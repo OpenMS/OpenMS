@@ -14,6 +14,7 @@ class BeliefPropagationInferenceEngine : public InferenceEngine<VARIABLE_KEY> {
 protected:
   Scheduler<VARIABLE_KEY> & _scheduler;
   const InferenceGraph<VARIABLE_KEY> & _graph;
+  unsigned long _nrMessagesPassed = 0;
 
   bool every_nontrivial_edge_has_passed_at_least_one_message() const {
     bool res = true;
@@ -36,8 +37,14 @@ public:
     _graph(graph)
   { }
 
+  // returns zero if nothing was run yet. will be overwritten each run.
+  unsigned long getNrMessagesPassed ()
+  {
+    return _nrMessagesPassed;
+  }
+
   std::vector<LabeledPMF<VARIABLE_KEY> > estimate_posteriors(const std::vector<std::vector<VARIABLE_KEY> > & joint_distributions_to_retrieve) {
-    _scheduler.run_until_convergence();
+    _nrMessagesPassed = _scheduler.run_until_convergence();
     if ( ! every_nontrivial_edge_has_passed_at_least_one_message() )
       // This can happen if the graph is so large that not every edge
       // has been visited yet or if the graph contains a connected

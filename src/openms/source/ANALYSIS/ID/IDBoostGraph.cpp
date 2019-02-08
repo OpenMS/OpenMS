@@ -429,7 +429,7 @@ namespace OpenMS
   }*/
 
   /// Do sth on ccs
-  void IDBoostGraph::applyFunctorOnCCs(std::function<void(Graph&)> functor)
+  void IDBoostGraph::applyFunctorOnCCs(std::function<unsigned long(Graph&)> functor)
   {
     if (ccs_.empty()) {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
@@ -457,11 +457,11 @@ namespace OpenMS
       LOG_INFO << "Printed cc " << i << std::endl;
       #endif
 
-      functor(curr_cc);
+      unsigned long result = functor(curr_cc);
 
       #ifdef INFERENCE_BENCH
       sw.stop();
-      sizes_and_times_[i] = {{boost::num_vertices(curr_cc), boost::num_edges(curr_cc)}, sw.getClockTime()};
+      sizes_and_times_[i] = {boost::num_vertices(curr_cc), boost::num_edges(curr_cc), result, sw.getClockTime()};
       #endif
     }
 
@@ -471,7 +471,7 @@ namespace OpenMS
 
     for( const auto& size_time : sizes_and_times_ )
     {
-      debugfile << size_time.first.first << "\t" << size_time.first.second << "\t" << size_time.second << "\n";
+      debugfile << std::get<0>(size_time) << "\t" << std::get<1>(size_time) <<  "\t" << std::get<2>(size_time) << "\t" << std::get<3>(size_time) << "\n";
     }
     debugfile.close();
     #endif
@@ -508,7 +508,7 @@ namespace OpenMS
 
       #ifdef INFERENCE_BENCH
       sw.stop();
-      sizes_and_times_[i] = {{boost::num_vertices(curr_cc), boost::num_edges(curr_cc)}, sw.getClockTime()};
+      sizes_and_times_[i] = {0, boost::num_vertices(curr_cc), boost::num_edges(curr_cc), sw.getClockTime()};
       #endif
     }
 
@@ -518,7 +518,7 @@ namespace OpenMS
 
     for( const auto& size_time : sizes_and_times_ )
     {
-      debugfile << size_time.first.first << "\t" << size_time.first.second <<  "\t" << size_time.second << "\n";
+      debugfile << std::get<0>(size_time) << "\t" << std::get<1>(size_time) <<  "\t" << std::get<2>(size_time) << "\t" << std::get<3>(size_time) << "\n";
     }
     debugfile.close();
     #endif

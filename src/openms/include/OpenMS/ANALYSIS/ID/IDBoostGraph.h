@@ -295,7 +295,7 @@ namespace OpenMS
         const ExperimentalDesign& ed);
 
     /// Do sth on connected components (your functor object has to inherit from std::function)
-    void applyFunctorOnCCs(std::function<void(Graph&)> functor);
+    void applyFunctorOnCCs(std::function<unsigned long(Graph&)> functor);
     void applyFunctorOnCCsST(std::function<void(Graph&)> functor);
 
     /// Add intermediate nodes to the graph that represent indist. protein groups and peptides with the same parents
@@ -337,7 +337,7 @@ namespace OpenMS
 
     #ifdef INFERENCE_BENCH
     /// nrnodes, nredges and times of last functor execution per connected component
-    std::vector<std::pair<std::pair<Size,Size>,double>> sizes_and_times_{1};
+    std::vector<std::tuple<unsigned long, Size, Size, double>> sizes_and_times_{1};
     #endif
 
     /// underlying protein identification object

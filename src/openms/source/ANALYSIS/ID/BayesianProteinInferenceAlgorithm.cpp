@@ -101,7 +101,7 @@ namespace OpenMS
         param_(param)
     {}
 
-    void operator() (IDBoostGraph::Graph& fg) {
+    unsigned long operator() (IDBoostGraph::Graph& fg) {
       //TODO do quick bruteforce calculation if the cc is really small?
 
       // this skips CCs with just peps or prots. We only add edges between different types.
@@ -220,6 +220,10 @@ namespace OpenMS
           BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
           auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
 
+          // TODO move the writing of statistics from IDBoostGraph here and write more stats
+          //  like nr messages and failure/success
+          unsigned long nrMessagesNeeded = bpie.getNrMessagesPassed();
+
           for (auto const &posteriorFactor : posteriorFactors)
           {
             double posterior = 1.0;
@@ -237,6 +241,7 @@ namespace OpenMS
           }
           //TODO we could write out/save the posteriors here,
           // so we can easily read them later for the best params of the grid search
+          return nrMessagesNeeded;
         }
         catch (const std::runtime_error& /*e*/)
         {
@@ -253,7 +258,9 @@ namespace OpenMS
           if (!graph_mp_ownership_acquired) bigb.to_graph();
           LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
                       " inference there." << std::endl;
+          return 0;
         }
+        return 0;
       }
       else
       {
@@ -273,7 +280,7 @@ namespace OpenMS
         param_(param)
     {}
 
-    void operator() (IDBoostGraph::Graph& fg) {
+    unsigned long operator() (IDBoostGraph::Graph& fg) {
       //TODO do quick bruteforce calculation if the cc is really small
 
       double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");
@@ -384,6 +391,8 @@ namespace OpenMS
             auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
+          //TODO update to use actual nr of messages
+          return 1;
         }
         catch (const std::runtime_error& /*e*/)
         {
@@ -396,14 +405,17 @@ namespace OpenMS
           bigb.to_graph();
           LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
                       "inference there." << std::endl;
+          return 0;
         }
         //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
-
+        return 0;
       }
       else
       {
         std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+        return 0;
       }
+      return 0;
     }
   };
 
@@ -907,7 +919,7 @@ namespace OpenMS
       param_.setValue("model_parameters:pep_emission", bestAlpha);
       param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
       ibg.applyFunctorOnCCs(ExtendedGraphInferenceFunctor(const_cast<const Param&>(param_)));
-      ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor(proteinIDs[0]));
+      ibg.applyFunctorOnCCsST(AnnotateIndistGroupsFunctor(proteinIDs[0]));
     }
 
 
