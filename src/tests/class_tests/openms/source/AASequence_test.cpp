@@ -89,6 +89,7 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_EQUAL(seq, seq2);
 
   // test complex term-mods
+  {
   AASequence seq3 = AASequence::fromString("VPQVSTPTLVEVSRSLGK(Label:18O(2))");
   TEST_EQUAL(seq3.isModified(), true)
   TEST_EQUAL(seq3.hasNTerminalModification(), false);
@@ -115,14 +116,30 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_EQUAL(seq7.hasCTerminalModification(), true);
   TEST_EQUAL(seq7.isModified(), true);
   TEST_EQUAL(seq7.getCTerminalModificationName(), "Amidated");
+  }
 
-  AASequence seqq8 = AASequence::fromString("PEPTIDEM(UniMod:10)");
-  TEST_EQUAL(seqq8.hasNTerminalModification(), false);
-  TEST_EQUAL(seqq8.hasCTerminalModification(), true);
-  TEST_EQUAL(seqq8.isModified(), true);
-  TEST_STRING_EQUAL(seqq8.getCTerminalModification()->getFullId(), "Met->Hse (C-term M)");
+  // Test UniMod
+  {
+    AASequence seq3 = AASequence::fromString("PEPTIDEM(UniMod:10)");
+    TEST_EQUAL(seq3.hasNTerminalModification(), false);
+    TEST_EQUAL(seq3.hasCTerminalModification(), true);
+    TEST_EQUAL(seq3.isModified(), true);
+    TEST_STRING_EQUAL(seq3.getCTerminalModification()->getFullId(), "Met->Hse (C-term M)");
+
+    // Also test lower-case unimod and equivalence
+    AASequence seq4 = AASequence::fromString("PEPTIDEM(unimod:10)");
+    TEST_EQUAL(seq4.hasNTerminalModification(), false);
+    TEST_EQUAL(seq4.hasCTerminalModification(), true);
+    TEST_EQUAL(seq4.isModified(), true);
+    TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Met->Hse (C-term M)");
+
+    TEST_EQUAL(
+        AASequence::fromString(".(UniMod:1)PEPC(UniMod:4)PEPM(UniMod:35)PEPR.(UniMod:2)"), 
+        AASequence::fromString(".(unimod:1)PEPC(unimod:4)PEPM(unimod:35)PEPR.(unimod:2)") )
+  }
 
   // test square bracket modifications
+  {
   AASequence seq8 = AASequence::fromString("PEPTIDEK[136]");
   TEST_EQUAL(seq8.hasNTerminalModification(), false);
   TEST_EQUAL(seq8.hasCTerminalModification(), false);
@@ -174,6 +191,7 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_STRING_EQUAL(seq16.getNTerminalModification()->getId(), "Gln->pyro-Glu");
   TEST_STRING_EQUAL(seq16.getNTerminalModification()->getFullId(), "Gln->pyro-Glu (N-term Q)");
   TEST_STRING_EQUAL(seq16.getNTerminalModificationName(), "Gln->pyro-Glu");
+  }
 
   // invalid test case: "Pyro-carbamidomethyl" is only defined as N-terminal
   // AASequence seq15 = AASequence::fromString("PEPC[143]TIDEK");
