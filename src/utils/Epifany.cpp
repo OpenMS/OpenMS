@@ -140,7 +140,7 @@ protected:
     setValidStrings_("greedy_group_resolution", {"none","remove_associations_only","remove_proteins_wo_evidence"});
     registerDoubleOption_("psm_probability_cutoff",
                           "<option>",
-                          0.001,
+                          0.01,
                           "Remove PSMs with probabilities less than or equal this cutoff", false, true);
     registerDoubleOption_("min_psms_extreme_probability",
                           "<option>",
