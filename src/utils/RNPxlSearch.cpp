@@ -75,6 +75,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <boost/regex.hpp>
+#include <boost/math/distributions/binomial.hpp>
 
 #include <map>
 #include <algorithm>
@@ -168,7 +169,6 @@ protected:
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("peptide:enzyme", all_enzymes);
-
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
@@ -341,10 +341,13 @@ protected:
     float err = 0;
     float Morph = 0;
 
+    float modds = 0; // match odds
+
     // partial loss morpheus related subscores
     float pl_MIC = 0;
     float pl_err = 0;
     float pl_Morph = 0;
+    float pl_modds = 0; // match odds
 
     // complete TIC fraction of explained peaks
     float total_MIC = 0;
@@ -495,8 +498,6 @@ protected:
     #endif
     }
   }
-
-
 
   // prefix used to denote marker ions in fragment  annotations
   static constexpr const char* ANNOTATIONS_MARKER_ION_PREFIX = "MI:";
@@ -1376,9 +1377,11 @@ protected:
           ph.setMetaValue(String("RNPxl:MIC"), ah.MIC);
           ph.setMetaValue(String("RNPxl:err"), ah.err);
           ph.setMetaValue(String("RNPxl:Morph"), ah.Morph);
+          ph.setMetaValue(String("RNPxl:modds"), ah.modds);
           ph.setMetaValue(String("RNPxl:pl_MIC"), ah.pl_MIC);
           ph.setMetaValue(String("RNPxl:pl_err"), ah.pl_err);
           ph.setMetaValue(String("RNPxl:pl_Morph"), ah.pl_Morph);
+          ph.setMetaValue(String("RNPxl:pl_modds"), ah.pl_modds);
           ph.setMetaValue(String("RNPxl:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
           ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
@@ -1441,6 +1444,7 @@ protected:
        << "isotope_error"
        << "RNPxl:score"
        << "RNPxl:total_loss_score"
+       << "RNPxl:modds"
        << "RNPxl:immonium_score"
        << "RNPxl:precursor_score"
        << "RNPxl:a_ion_score"
@@ -1452,6 +1456,7 @@ protected:
        << "RNPxl:pl_MIC"
        << "RNPxl:pl_err"
        << "RNPxl:pl_Morph"
+       << "RNPxl:pl_modds"
        << "RNPxl:total_MIC"
        << "RNPxl:RNA_MASS_z0";
     if (!purities.empty()) feature_set << "precursor_purity";
@@ -1506,7 +1511,6 @@ protected:
               continue;
             }
           }
-
 
           if (precursor_mass < small_peptide_mass_filter_threshold)
           {
@@ -1962,7 +1966,8 @@ protected:
                         a_ion_sub_score(0), 
                         tlss_MIC(0),
                         tlss_err(0), 
-                        tlss_Morph(0);
+                        tlss_Morph(0),
+                        tlss_modds(0);
 
                   scoreTotalLossFragments_(exp_spectrum,
                                          total_loss_spectrum,
@@ -1975,10 +1980,10 @@ protected:
                                          tlss_MIC,
                                          tlss_err,
                                          tlss_Morph,
+                                         tlss_modds,
                                          immonium_sub_score,
                                          precursor_sub_score,
                                          a_ion_sub_score);
-
 
                   // bad score, likely wihout any single matching peak
                   if (total_loss_score < 0.01) { continue; }
@@ -1990,6 +1995,7 @@ protected:
                   ah.MIC = tlss_MIC;
                   ah.err = tlss_err;
                   ah.Morph = tlss_Morph;
+                  ah.modds = tlss_modds;
                   ah.total_loss_score = total_loss_score;
                   ah.immonium_score = immonium_sub_score;
                   ah.precursor_score = precursor_sub_score;
@@ -2096,10 +2102,20 @@ protected:
                     const Size& scan_index = l->second.first;
                     const int& isotope_error = l->second.second;
                     const PeakSpectrum& exp_spectrum = spectra[scan_index];
-                    float tlss_MIC(0), tlss_err(0), tlss_Morph(0),
-                      immonium_sub_score(0), precursor_sub_score(0),
-                      a_ion_sub_score(0), partial_loss_sub_score(0), marker_ions_sub_score(0),
-                      plss_MIC(0), plss_err(0), plss_Morph(0), score;
+                    float tlss_MIC(0), 
+                      tlss_err(1.0), 
+                      tlss_Morph(0),
+                      tlss_modds(0),
+                      immonium_sub_score(0), 
+                      precursor_sub_score(0),
+                      a_ion_sub_score(0), 
+                      partial_loss_sub_score(0), 
+                      marker_ions_sub_score(0),
+                      plss_MIC(0), 
+                      plss_err(1.0), 
+                      plss_Morph(0), 
+                      plss_modds(0), 
+                      score(0);
 
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
                     PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
@@ -2114,6 +2130,7 @@ protected:
                                              tlss_MIC,
                                              tlss_err,
                                              tlss_Morph,
+                                             tlss_modds,
                                              immonium_sub_score,
                                              precursor_sub_score,
                                              a_ion_sub_score);
@@ -2122,12 +2139,17 @@ protected:
                     if (score < 0.01) { continue; }
 
                     scorePartialLossFragments_(exp_spectrum,
-                                               fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
-                                               partial_loss_spectrum_z1, partial_loss_spectrum_z2,
+                                               fragment_mass_tolerance, 
+                                               fragment_mass_tolerance_unit_ppm,
+                                               partial_loss_spectrum_z1, 
+                                               partial_loss_spectrum_z2,
                                                marker_ions_sub_score_spectrum_z1,
                                                partial_loss_sub_score,
                                                marker_ions_sub_score,
-                                               plss_MIC, plss_err, plss_Morph);
+                                               plss_MIC, 
+                                               plss_err, 
+                                               plss_Morph,
+                                               plss_modds);
 
                     // add peptide hit
                     AnnotatedHit ah;
@@ -2137,9 +2159,11 @@ protected:
                     ah.MIC = tlss_MIC;
                     ah.err = tlss_err;
                     ah.Morph = tlss_Morph;
+                    ah.modds = tlss_modds;
                     ah.pl_MIC = plss_MIC;
                     ah.pl_err = plss_err;
                     ah.pl_Morph = plss_Morph;
+                    ah.pl_modds = plss_modds;
                     ah.immonium_score = immonium_sub_score;
                     ah.precursor_score = precursor_sub_score;
                     ah.a_ion_score = a_ion_sub_score;
@@ -2188,13 +2212,14 @@ protected:
                 const Size &scan_index = l->second.first;
                 const int &isotope_error = l->second.second;
                 const PeakSpectrum &exp_spectrum = spectra[scan_index];
-                float total_loss_score;
-                float immonium_sub_score;
-                float precursor_sub_score;
-                float a_ion_sub_score;
-                float tlss_MIC;
-                float tlss_err;
-                float tlss_Morph;
+                float total_loss_score(0),
+                  immonium_sub_score(0),
+                  precursor_sub_score(0),
+                  a_ion_sub_score(0),
+                  tlss_MIC(0),
+                  tlss_err(1.0),
+                  tlss_Morph(0),
+                  tlss_modds(0);
 
                 const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
                 PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
@@ -2210,6 +2235,7 @@ protected:
                                          tlss_MIC,
                                          tlss_err,
                                          tlss_Morph,
+                                         tlss_modds,
                                          immonium_sub_score,
                                          precursor_sub_score,
                                          a_ion_sub_score);
@@ -2225,6 +2251,7 @@ protected:
                 ah.MIC = tlss_MIC;
                 ah.err = tlss_err;
                 ah.Morph = tlss_Morph;
+                ah.modds = tlss_modds;
                 ah.immonium_score = immonium_sub_score;
                 ah.precursor_score = precursor_sub_score;
                 ah.a_ion_score = a_ion_sub_score;
@@ -2307,18 +2334,24 @@ protected:
     postScoreHits_(spectra, 
                    annotated_hits, 
                    report_top_hits, 
-                   mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, 
+                   mm, 
+                   fixed_modifications, 
+                   variable_modifications, 
+                   max_variable_mods_per_peptide, 
                    partial_loss_spectrum_generator, 
-                   fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+                   fragment_mass_tolerance, 
+                   fragment_mass_tolerance_unit_ppm, 
                    all_feasible_fragment_adducts);
 
     progresslogger.startProgress(0, 1, "Post-processing and annotation...");
     postProcessHits_(spectra, 
                      annotated_hits, 
-                     protein_ids, peptide_ids, 
+                     protein_ids, 
+                     peptide_ids, 
                      report_top_hits, 
                      mm, 
-                     fixed_modifications, variable_modifications, 
+                     fixed_modifications, 
+                     variable_modifications, 
                      max_variable_mods_per_peptide,
                      purities);
     progresslogger.endProgress();
@@ -2383,6 +2416,45 @@ protected:
     return EXECUTION_OK;
   }
 
+  static double matchOddsScore_(
+    const PeakSpectrum& theoretical_spec, 
+    const Size matched_size,
+    const double fragment_mass_tolerance, 
+    const bool fragment_mass_tolerance_unit_ppm)
+  {
+    using boost::math::binomial;
+    Size theo_size = theoretical_spec.size();
+
+    if (matched_size < 1 || theo_size < 1) { return 0; }
+
+    double range = theoretical_spec[theo_size-1].getMZ() - theoretical_spec[0].getMZ();
+
+    // Compute fragment tolerance in Da for the mean of MZ values, if tolerance in ppm (rough approximation)
+    double mean = 0.0;
+    for (Size i = 0; i < theo_size; ++i) { mean += theoretical_spec[i].getMZ(); }
+    mean /= (double)theo_size;
+    double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
+
+    // A priori probability of a random match given info about the theoretical spectrum
+    double a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  static_cast<int>(theo_size))));
+    
+    double match_odds = 0;
+
+    binomial flip(theo_size, a_priori_p);
+    // min double number to avoid 0 values, causing scores with the value "inf"
+    match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
+
+    // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
+    if (match_odds >= 0.0)
+    {
+      return match_odds;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+
   // determine main score and sub scores of peaks without shifts
   void scoreTotalLossFragments_(const PeakSpectrum &exp_spectrum,
                                 const PeakSpectrum &total_loss_spectrum,
@@ -2395,6 +2467,7 @@ protected:
                                 float &tlss_MIC,
                                 float &tlss_err,
                                 float &tlss_Morph,
+                                float &tlss_modds,
                                 float &immonium_sub_score,
                                 float &precursor_sub_score,
                                 float &a_ion_sub_score) const
@@ -2422,6 +2495,10 @@ protected:
     tlss_MIC = tl_sub_scores.TIC != 0 ? tl_sub_scores.MIC / tl_sub_scores.TIC : 0;
     tlss_err = tl_sub_scores.err;
     tlss_Morph = tl_sub_scores.score;
+    tlss_modds = matchOddsScore_(total_loss_spectrum, 
+      (int)tlss_Morph, // = number of matched peaks
+      fragment_mass_tolerance, 
+      fragment_mass_tolerance_unit_ppm);
 
     if (!immonium_sub_score_spectrum.empty())
     {
@@ -2463,14 +2540,16 @@ protected:
                                   const PeakSpectrum &marker_ions_sub_score_spectrum_z1,
                                   float &partial_loss_sub_score,
                                   float &marker_ions_sub_score,
-                                  float &plss_MIC, float &plss_err, float &plss_Morph) const
+                                  float &plss_MIC, 
+                                  float &plss_err, 
+                                  float &plss_Morph,
+                                  float &plss_modds) const
   {
     const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
     plss_MIC = 0;
     plss_err = 0;
     plss_Morph = 0;
-
 
     if (!marker_ions_sub_score_spectrum_z1.empty())
     {
@@ -2492,53 +2571,35 @@ protected:
 */
     if (!partial_loss_spectrum_z1.empty()) // check if we generated partial loss spectra
     {
-      if (exp_pc_charge < 3)
+      MSSpectrum const * pl_spec = &partial_loss_spectrum_z1;
+      if (exp_pc_charge >= 3)
       {
-        partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, 
-                                                     fragment_mass_tolerance_unit_ppm,
-                                                     exp_spectrum,
-                                                     exp_spectrum.getIntegerDataArrays()[0], 
-                                                     partial_loss_spectrum_z1,
-                                                     partial_loss_spectrum_z1.getIntegerDataArrays()[0]);
-        auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
-                                                           fragment_mass_tolerance_unit_ppm,
-                                                           exp_spectrum,
-                                                           exp_spectrum.getIntegerDataArrays()[0],
-                                                           partial_loss_spectrum_z1,
-                                                           partial_loss_spectrum_z1.getIntegerDataArrays()[0]);
-
-        plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
-        plss_err = pl_sub_scores.err;
-        plss_Morph = pl_sub_scores.score;
+        pl_spec = &partial_loss_spectrum_z2;
       }
-      else //if (exp_pc_charge >= 3)
-      {
-        partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, 
-                                                     fragment_mass_tolerance_unit_ppm,
-                                                     exp_spectrum, 
-                                                     exp_spectrum.getIntegerDataArrays()[0],
-                                                     partial_loss_spectrum_z2,
-                                                     partial_loss_spectrum_z2.getIntegerDataArrays()[0]);
-        auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
-                                                           fragment_mass_tolerance_unit_ppm,
-                                                           exp_spectrum,
-                                                           exp_spectrum.getIntegerDataArrays()[0],
-                                                           partial_loss_spectrum_z2,
-                                                           partial_loss_spectrum_z2.getIntegerDataArrays()[0]);
-
-        plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
-        plss_err = pl_sub_scores.err;
-        plss_Morph = pl_sub_scores.score;
-      }
+      partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, 
+                                                    fragment_mass_tolerance_unit_ppm,
+                                                    exp_spectrum, 
+                                                    exp_spectrum.getIntegerDataArrays()[0],
+                                                    *pl_spec,
+                                                    pl_spec->getIntegerDataArrays()[0]);
+      auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
+                                                          fragment_mass_tolerance_unit_ppm,
+                                                          exp_spectrum,
+                                                          exp_spectrum.getIntegerDataArrays()[0],
+                                                          *pl_spec,
+                                                          pl_spec->getIntegerDataArrays()[0]);      
+      plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
+      plss_err = pl_sub_scores.err;
+      plss_Morph = pl_sub_scores.score;
+      plss_modds = matchOddsScore_(*pl_spec, (int)plss_Morph, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
     }
 #ifdef DEBUG_RNPXLSEARCH
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
-  // TODO: cap plss_err
+  // cap plss_err
   float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
   if (plss_err > ft_da) plss_err = ft_da;
   }
-
 };
 
 vector<ResidueModification> RNPxlSearch::RNPxlParameterParsing::getModifications(StringList modNames) {
