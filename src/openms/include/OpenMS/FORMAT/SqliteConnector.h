@@ -149,6 +149,22 @@ public:
       executeBindStatement(db_, prepare_statement, data);
     }
 
+    /**
+      @brief Prepares a SQL statement
+
+      This is useful for handling errors in a consistent manner.
+
+      @p db The sqlite database (needs to be open)
+      @p statement The SQL statement
+      @p data The data to bind
+
+      @exception Exception::IllegalArgument is thrown if the SQL command fails.
+    */
+    void executePreparedStatement(sqlite3_stmt *stmt, const String& prepare_statement)
+    {
+      executePreparedStatement(db_, stmt, prepare_statement);
+    }
+
 
 
 
@@ -213,6 +229,28 @@ public:
     }
 
     /**
+      @brief Prepares a SQL statement
+
+      This is useful for handling errors in a consistent manner.
+
+      @p db The sqlite database (needs to be open)
+      @p statement The SQL statement
+      @p data The data to bind
+
+      @exception Exception::IllegalArgument is thrown if the SQL command fails.
+    */
+    static void executePreparedStatement(sqlite3 *db, sqlite3_stmt *stmt, const String& prepare_statement)
+    {
+      int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), &stmt, nullptr);
+      if (rc != SQLITE_OK)
+      {
+        std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
+        std::cerr << "Prepared statement " << prepare_statement << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+      }
+    }
+
+    /**
       @brief Executes raw data SQL statements (insert statements) 
 
       This is useful for a case where raw data should be inserted into sqlite
@@ -231,9 +269,6 @@ public:
     */
     static void executeBindStatement(sqlite3 *db, const String& prepare_statement, const std::vector<String>& data)
     {
-      // The calling procedure is responsible for deleting the compiled SQL
-      // statement using sqlite3_finalize() after it has finished with it.
-
       sqlite3_stmt *stmt = nullptr;
       const char *curr_loc;
       int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), &stmt, &curr_loc);
