@@ -147,7 +147,7 @@ protected:
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minIsoScore", "<score 0-1>", .75, "minimum isotope cosine score threshold (0-1)", false, true);
+        registerDoubleOption_("minIsoScore", "<score 0-1>", .7, "minimum isotope cosine score threshold (0-1)", false, true);
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 1, "minimum charge distribution score threshold (>= 0)", false, true);
     }
 
