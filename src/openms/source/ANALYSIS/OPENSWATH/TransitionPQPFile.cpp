@@ -34,38 +34,10 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 
+#include <OpenMS/FORMAT/SqliteConnector.h>
+
 namespace OpenMS
 {
-
-  bool columnExists(sqlite3 *db, const String& tablename, const String& colname)
-  {
-    bool found = false;
-
-    sqlite3_stmt * xcntstmt;
-    String s = "PRAGMA table_info(" + tablename + ")";
-    int rc = sqlite3_prepare_v2(db, s.c_str(), -1, &xcntstmt, nullptr);
-
-    if (rc != SQLITE_OK)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("Error when determining columns of table: ") + tablename);
-    }
-
-    // Go through all columns and check whether the required column exists
-    sqlite3_step( xcntstmt );
-    while (sqlite3_column_type( xcntstmt, 0 ) != SQLITE_NULL)
-    {
-      String name = String(reinterpret_cast<const char*>(sqlite3_column_text( xcntstmt, 1 )));
-      if (colname == name)
-      {
-        found = true;
-      }
-
-      sqlite3_step( xcntstmt );
-    }
-    sqlite3_finalize(xcntstmt);
-    return found;
-  }
 
   TransitionPQPFile::TransitionPQPFile() :
     TransitionTSVFile()
@@ -122,7 +94,7 @@ namespace OpenMS
     sqlite3_finalize(cntstmt);
 
     String select_drift_time = "";
-    bool drift_time_exists = columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
+    bool drift_time_exists = SqliteConnector::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
     if (drift_time_exists)
     {
       select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";

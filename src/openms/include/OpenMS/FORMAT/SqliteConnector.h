@@ -44,6 +44,8 @@ namespace OpenMS
   /**
     @brief File adapter for Sqlite files
 
+    This class contains certain helper functions to deal with Sqlite files.
+
     @ingroup FileIO
   */
   class OPENMS_DLLAPI SqliteConnector
@@ -55,7 +57,15 @@ public:
     ///Destructor
     ~SqliteConnector();
 
-    ///Checkes whether the given table contains a certain column
+    /**
+      @brief Checkes whether the given table contains a certain column
+
+      @p db The sqlite database (needs to be open)
+      @p tablename The name of the table (needs to exist)
+      @p colname The name of the column to be checked
+
+      @returns Whether the column exists or not
+    */
     static bool columnExists(sqlite3 *db, const String& tablename, const String& colname);
 
 protected:
