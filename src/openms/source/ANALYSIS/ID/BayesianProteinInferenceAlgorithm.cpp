@@ -515,7 +515,7 @@ namespace OpenMS
     defaults_.setMaxFloat("model_parameters:pep_spurious_emission", 1.0);
 
     defaults_.setValue("model_parameters:pep_prior",
-                       0.5,
+                       0.1,
                        "Peptide prior probability (experimental, not part of grid search).");
     defaults_.setMinFloat("model_parameters:pep_prior", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_prior", 1.0);
@@ -834,7 +834,7 @@ namespace OpenMS
       }
       if (alpha > 1.0 || alpha < 0.0)
       {
-        alpha_search = {0.1, 0.3, 0.5, 0.7, 0.9};
+        alpha_search = {0.1, 0.25, 0.5, 0.6, 0.75};
       }
       else
       {
