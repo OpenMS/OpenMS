@@ -119,7 +119,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file>", StringList(), "Input: identification results");
-    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML,fasta"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
     registerInputFile_("exp_design", "<file>", "", "Input: experimental design", false);
     setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
@@ -231,7 +231,7 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    // get parameters specific for the feature finder
+    // get parameters specific for the algorithm underneath
     Param epifany_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to Epifany", epifany_param, 3);
 
@@ -269,7 +269,7 @@ protected:
       mergedprots[0].getProteinGroups().clear();
     }
 
-    IDFilter::filterBestPerPeptide(mergedpeps, true, true, 1);
+    IDFilter::filterBestPerPeptide(mergedpeps, true, true, int(epifany_param.getValue("top_PSMs")));
 
     IDFilter::filterEmptyPeptideIDs(mergedpeps);
 
@@ -313,7 +313,7 @@ protected:
 
     LOG_INFO << "Loading, merging, filtering took " << sw.toString() << std::endl;
     sw.reset();
-    LOG_INFO << "Graph now consists of " << mergedprots[0].getHits().size() << " proteins and " << mergedpeps.size() << "peptides.";
+    LOG_INFO << "Graph now consists of " << mergedprots[0].getHits().size() << " proteins and " << mergedpeps.size() << " peptides." << std::endl;
 
     BayesianProteinInferenceAlgorithm bpi1;
     bpi1.setParameters(epifany_param);

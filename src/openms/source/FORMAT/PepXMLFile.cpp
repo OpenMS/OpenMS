@@ -561,10 +561,44 @@ namespace OpenMS
           }
           else if (search_engine_name == "Percolator")
           {
-            double pep_score = static_cast<double>(h.getMetaValue("Percolator_PEP"));
-            f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << h.getMetaValue("Percolator_score") << "\"" << "/>\n";
-            f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << h.getMetaValue("Percolator_qvalue") << "\"" << "/>\n";
+            double pep_score = 0.0;
+            if (h.metaValueExists("MS:1001493"))
+            {
+              pep_score = static_cast<double>(h.getMetaValue("MS:1001493"));
+            }
+            else if (h.metaValueExists("Percolator_PEP"))
+            {
+              pep_score = static_cast<double>(h.getMetaValue("Percolator_PEP"));
+            }
+            else
+            {
+              throw Exception::MissingInformation(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,"Percolator PEP score missing for pepXML export of Percolator results.");
+            }
             f << "\t\t\t<search_score" << " name=\"Percolator_PEP\" value=\"" << pep_score << "\"" << "/>\n";
+
+            double qval_score = 0.0;
+            if (h.metaValueExists("MS:1001491"))
+            {
+              qval_score = static_cast<double>(h.getMetaValue("MS:1001491"));
+              f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << qval_score << "\"" << "/>\n";
+            }
+            else if (h.metaValueExists("Percolator_qvalue"))
+            {
+              qval_score = static_cast<double>(h.getMetaValue("Percolator_qvalue"));
+              f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << qval_score << "\"" << "/>\n";
+            }
+
+            double svm_score = 0.0;
+            if (h.metaValueExists("MS:1001492"))
+            {
+              svm_score = static_cast<double>(h.getMetaValue("MS:1001492"));
+              f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << svm_score << "\"" << "/>\n";
+            }
+            else if (h.metaValueExists("Percolator_score"))
+            {
+              svm_score = static_cast<double>(h.getMetaValue("Percolator_score"));
+              f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << svm_score << "\"" << "/>\n";
+            }
 
             double probability = 1.0 - pep_score;
             f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";

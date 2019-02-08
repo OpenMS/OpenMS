@@ -1106,15 +1106,11 @@ public:
         //make sure that first = best hit
         pep.sort();
 
-        //TODO think about if using any but the best PSM per spectrum makes sense in such a simple aggregation scheme
-        //for (auto& hit : pep.getHits())
-        //{
         auto pepIt = pep.getHits().begin();
-        //TODO sort or assume sorted
-        auto pepItEnd = nr_best_spectrum == 0 || pep.getHits().empty() ? pep.getHits().end() : pep.getHits().begin() + nr_best_spectrum;
+        auto pepItEnd = nr_best_spectrum == 0 || pep.getHits().size() <= nr_best_spectrum ? pep.getHits().end() : pep.getHits().begin() + nr_best_spectrum;
         for (; pepIt != pepItEnd; ++pepIt)
         {
-          PeptideHit &hit = pep.getHits()[0];
+          PeptideHit &hit = *pepIt;
 
           String lookup_seq;
           if (ignore_mods)

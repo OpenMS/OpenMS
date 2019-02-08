@@ -216,7 +216,7 @@ namespace OpenMS
           auto accToPHit = accession_map.find(std::string(proteinAcc));
           if (accToPHit == accession_map.end())
           {
-            std::cout << "Warning: Building graph: skipping pep that maps to a non existent protein accession.";
+            std::cout << "Warning: Building graph: skipping pep that maps to a non existent protein accession." << std::endl;
             continue;
           }
           //TODO consider/calculate missing digests. Probably not here though!
@@ -258,7 +258,7 @@ namespace OpenMS
       //TODO add psm regularizer nodes here optionally if using multiple psms (i.e. forcing them, so that only 1 or maybe 2 are present per spectrum)
       auto pepIt = spectrum.getHits().begin();
       //TODO sort or assume sorted
-      auto pepItEnd = use_top_psms == 0 || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + use_top_psms;
+      auto pepItEnd = (use_top_psms == 0 || (spectrum.getHits().size() <= use_top_psms)) ? spectrum.getHits().end() : spectrum.getHits().begin() + use_top_psms;
       for (; pepIt != pepItEnd; ++pepIt)
       {
         IDPointer pepPtr(&(*pepIt));
@@ -270,7 +270,7 @@ namespace OpenMS
           auto accToPHit = accession_map.find(std::string(proteinAcc));
           if (accToPHit == accession_map.end())
           {
-            std::cout << "Warning: Building graph: skipping pep that maps to a non existent protein accession.";
+            std::cout << "Warning: Building graph: skipping pep that maps to a non existent protein accession." << std::endl;
             continue;
           }
           //TODO consider/calculate missing digests. Probably not here though!
