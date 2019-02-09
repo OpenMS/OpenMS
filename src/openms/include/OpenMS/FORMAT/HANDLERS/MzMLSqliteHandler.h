@@ -226,8 +226,6 @@ public:
       void writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id);
 
 protected:
-
-      sqlite3* openDB() const;
       //@}
 
       String filename_;
