@@ -247,6 +247,37 @@ START_SECTION([EXTRA] void store(const String& filename, MapType& map))
   config.linear_fp_mass_acc = 0.0001;
   config.write_full_meta = true;
 
+  {
+    Precursor p;
+    std::set<Precursor::ActivationMethod> tmp = {Precursor::ActivationMethod::BIRD};
+    p.setActivationMethods(tmp);
+    p.setActivationEnergy(500);
+    p.setCharge(4);
+    p.setMZ(600);
+    p.setIsolationWindowUpperOffset(7);
+    p.setIsolationWindowLowerOffset(14);
+    p.setDriftTime(0.5);
+    p.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+    p.setMetaValue("peptide_sequence", "PEPTIDEK");
+
+    std::vector<Precursor> prec;
+    prec.push_back(p);
+    exp_orig.getSpectrum(0).setPrecursors(prec);
+    exp_orig.getChromatogram(0).setPrecursor(p);
+
+    Product pr;
+    // pr.setCharge(6);
+    pr.setMZ(300);
+    pr.setIsolationWindowUpperOffset(10);
+    pr.setIsolationWindowLowerOffset(15);
+    std::vector<Product> prod;
+    prod.push_back(pr);
+    exp_orig.getSpectrum(0).setProducts(prod);
+    exp_orig.getChromatogram(0).setProduct(pr);
+    TEST_REAL_SIMILAR(exp_orig.getSpectrum(0).getPrecursors()[0].getActivationEnergy(), 500.0);
+  }
+
+
   SqMassFile file;
   file.setConfig(config);
   std::string tmp_filename;
@@ -262,6 +293,44 @@ START_SECTION([EXTRA] void store(const String& filename, MapType& map))
   TEST_EQUAL(exp.getNrSpectra(), 2)
   TEST_EQUAL(exp.getNrChromatograms(), 1)
   TEST_EQUAL(exp.getSpectrum(0) == exp_orig.getSpectra()[0], false) // no exact duplicate
+
+  {
+    TEST_REAL_SIMILAR(exp.getSpectrum(0).getRT(), exp_orig.getSpectrum(0).getRT())
+    TEST_EQUAL(exp.getSpectrum(0).getNativeID(), exp_orig.getSpectrum(0).getNativeID())
+    TEST_EQUAL(exp.getSpectrum(0).getMSLevel(), exp_orig.getSpectrum(0).getMSLevel())
+    TEST_EQUAL(exp.getSpectrum(0).getInstrumentSettings().getPolarity(), exp_orig.getSpectrum(0).getInstrumentSettings().getPolarity())
+    TEST_EQUAL(exp.getSpectrum(0).getProducts().size(), 1)
+    TEST_REAL_SIMILAR(exp.getSpectrum(0).getProducts()[0].getMZ(), 300)
+    // TEST_EQUAL(exp.getSpectrum(0).getProducts()[0].getCharge(), 6)
+    TEST_REAL_SIMILAR(exp.getSpectrum(0).getProducts()[0].getIsolationWindowUpperOffset(), 10)
+    TEST_REAL_SIMILAR(exp.getSpectrum(0).getProducts()[0].getIsolationWindowLowerOffset(), 15)
+    TEST_EQUAL(exp.getSpectrum(0).getPrecursors().size(), 1)
+    TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getActivationEnergy(), 500)
+    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].getCharge(), 4)
+    TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getDriftTime(), 0.5)
+    // TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getDriftTimeUnit(), 0.5) // not implemented
+    TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getMZ(), 600)
+    TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getIsolationWindowUpperOffset(), 7)
+    TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getIsolationWindowLowerOffset(), 14)
+    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].metaValueExists("peptide_sequence"), true)
+    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].getMetaValue("peptide_sequence"), "PEPTIDEK")
+  }
+  {
+    TEST_EQUAL(exp.getChromatogram(0).getNativeID(), exp_orig.getChromatogram(0).getNativeID())
+    TEST_REAL_SIMILAR(exp.getChromatogram(0).getProduct().getMZ(), 300)
+    // TEST_EQUAL(exp.getChromatogram(0).getProduct().getCharge(), 6)
+    TEST_REAL_SIMILAR(exp.getChromatogram(0).getProduct().getIsolationWindowUpperOffset(), 10)
+    TEST_REAL_SIMILAR(exp.getChromatogram(0).getProduct().getIsolationWindowLowerOffset(), 15)
+    TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getActivationEnergy(), 500)
+    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().getCharge(), 4)
+    TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getDriftTime(), 0.5)
+    // TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getDriftTimeUnit(), 0.5) // not implemented
+    TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getMZ(), 600)
+    TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getIsolationWindowUpperOffset(), 7)
+    TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getIsolationWindowLowerOffset(), 14)
+    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().metaValueExists("peptide_sequence"), true)
+    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().getMetaValue("peptide_sequence"), "PEPTIDEK")
+  }
 
   MSExperiment exp2 = exp_orig;
 
