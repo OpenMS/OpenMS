@@ -138,8 +138,8 @@ START_SECTION(void load(const String& filename, MapType& map))
     }
   }
 
-  // no 1:1 mapping of experimental settings ...
-  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, false)
+  // mapping of experimental settings ...
+  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
 }
 END_SECTION
 
