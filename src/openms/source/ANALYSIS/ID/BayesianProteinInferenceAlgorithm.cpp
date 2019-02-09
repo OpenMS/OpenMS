@@ -208,17 +208,28 @@ namespace OpenMS
           InferenceGraph < IDBoostGraph::vertex_t > ig = bigb.to_graph();
           graph_mp_ownership_acquired = true;
 
+          unsigned long maxMessages = param_
+              .getValue("loopy_belief_propagation:max_nr_iterations");
+          double initDampeningLambda = param_
+              .getValue("loopy_belief_propagation:dampening_lambda");
+          double initConvergenceThreshold = param_.getValue(
+              "loopy_belief_propagation:convergence_threshold");
+          unsigned long nrEdges = boost::num_edges(fg);
+
           //TODO parametrize the type of scheduler.
-          PriorityScheduler<IDBoostGraph::vertex_t> scheduler(param_
-                                                                  .getValue("loopy_belief_propagation:dampening_lambda"),
-                                                              param_.getValue(
-                                                                  "loopy_belief_propagation:convergence_threshold"),
-                                                              param_
-                                                                  .getValue("loopy_belief_propagation:max_nr_iterations"));
+          PriorityScheduler<IDBoostGraph::vertex_t> scheduler(initDampeningLambda,
+                                                              initConvergenceThreshold,
+                                                              maxMessages);
           scheduler.add_ab_initio_edges(ig);
 
           BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
-          auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
+
+          auto posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
+              {
+            {std::max(1e5, std::pow(2*nrEdges,2)), initDampeningLambda, initConvergenceThreshold},
+            {pow(2*nrEdges,2)/2, std::min(0.5,initDampeningLambda*10), std::min(0.01,initConvergenceThreshold*10)},
+            {pow(2*nrEdges,2)/4, std::min(0.5,initDampeningLambda*100), std::min(0.01,initConvergenceThreshold*100)}
+              });
 
           // TODO move the writing of statistics from IDBoostGraph here and write more stats
           //  like nr messages and failure/success
@@ -524,7 +535,7 @@ namespace OpenMS
 
     defaults_.setValue("loopy_belief_propagation:scheduling_type",
                        "priority",
-                       "How to pick the next message:"
+                       "(Not used yet) How to pick the next message:"
                            " priority = based on difference to last message (higher = more important)."
                            " fifo = first in first out."
                            " random_spanning_tree = message passing follows a random spanning tree in each iteration");
@@ -537,16 +548,23 @@ namespace OpenMS
     defaults_.setValidStrings("loopy_belief_propagation:message_difference", {"MSE"});*/
     defaults_.setValue("loopy_belief_propagation:convergence_threshold",
                        1e-5,
-                       "Under which threshold is a message considered to be converged.");
+                       "Initial threshold under which MSE difference a message is considered to be converged.");
+    defaults_.setMinFloat("loopy_belief_propagation:convergence_threshold", 1e-7);
+    defaults_.setMaxFloat("loopy_belief_propagation:convergence_threshold", 1.0);
+
     defaults_.setValue("loopy_belief_propagation:dampening_lambda",
                        1e-3,
-                       "How strongly should messages be updated in each step. "
+                       "Initial value for how strongly should messages be updated in each step. "
                            "0 = new message overwrites old completely (no dampening),"
                            "1 = old message stays (no convergence, don't do that)"
-                           "In-between it will be a convex combination of both. Prevents oscillations but hinders convergence");
+                           "In-between it will be a convex combination of both. Prevents oscillations but hinders convergence.");
+    defaults_.setMinFloat("loopy_belief_propagation:dampening_lambda", 1e-7);
+    defaults_.setMaxFloat("loopy_belief_propagation:dampening_lambda", 0.5);
+
     defaults_.setValue("loopy_belief_propagation:max_nr_iterations",
                        1ul<<31,
-                       "If not all messages converge, how many iterations should be done at max?");
+                       "(Unused, autodetermined) If not all messages converge, how many iterations should be done at max?");
+    defaults_.setMinInt("loopy_belief_propagation:max_nr_iterations", 10);
 
     defaults_.setValue("loopy_belief_propagation:p_norm_inference",
                        1.0,

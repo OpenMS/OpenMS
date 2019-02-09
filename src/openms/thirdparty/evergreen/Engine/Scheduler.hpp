@@ -33,6 +33,18 @@ public:
     return _convergence_threshold;
   }
 
+  void set_dampening_lambda(double lambda) {
+    _dampening_lambda = lambda;
+  }
+
+  void set_convergence_threshold(double epsilon) {
+    _convergence_threshold = epsilon;
+  }
+
+  void set_maximum_iterations(unsigned long n) {
+    _maximum_iterations = n;
+  }
+
   // Returns the number of iterations spent:
   virtual unsigned long process_next_edges() = 0;
 
