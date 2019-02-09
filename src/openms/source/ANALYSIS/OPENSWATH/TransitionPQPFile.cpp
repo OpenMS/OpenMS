@@ -39,45 +39,7 @@
 namespace OpenMS
 {
 
-  template <typename ValueType>
-  void extractValue(ValueType* dst, sqlite3_stmt* stmt, int pos)
-  {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Not implemented");
-  }
-
-  template <> void extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
-  {
-    if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
-    {
-      *dst = sqlite3_column_double( stmt, pos);
-    }
-  }
-
-  template <> void extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
-  {
-    if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
-    {
-      *dst = sqlite3_column_int( stmt, pos);
-    }
-  }
-
-  template <> void extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
-  {
-    if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
-    {
-      *dst = String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, pos )));
-    }
-  }
-
-  template <> void extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
-  {
-    if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
-    {
-      *dst = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, pos )));
-    }
-  }
-
+  namespace Sql = Internal::SqliteHelper;
 
   TransitionPQPFile::TransitionPQPFile() :
     TransitionTSVFile()
@@ -221,38 +183,38 @@ namespace OpenMS
       setProgress(progress++);
       TSVTransition mytransition;
 
-      extractValue<double>(&mytransition.precursor, stmt, 0);
-      extractValue<double>(&mytransition.product, stmt, 1);
-      extractValue<double>(&mytransition.rt_calibrated, stmt, 2);
-      extractValue<std::string>(&mytransition.transition_name, stmt, 3);
-      extractValue<double>(&mytransition.CE, stmt, 4);
-      extractValue<double>(&mytransition.library_intensity, stmt, 5);
-      extractValue<std::string>(&mytransition.group_id, stmt, 6);
-      extractValue<int>((int*)&mytransition.decoy, stmt, 7);
-      extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
-      extractValue<std::string>(&mytransition.ProteinName, stmt, 9);
-      extractValue<std::string>(&mytransition.Annotation, stmt, 10);
-      extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
-      extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
-      extractValue<std::string>(&mytransition.SMILES, stmt, 13);
-      extractValue<std::string>(&mytransition.SumFormula, stmt, 14);
-      extractValue<int>(&mytransition.precursor_charge, stmt, 15);
-      extractValue<std::string>(&mytransition.peptide_group_label, stmt, 16);
-      extractValue<std::string>(&mytransition.label_type, stmt, 17);
-      extractValue<int>(&mytransition.fragment_charge, stmt, 18);
-      extractValue<int>(&mytransition.fragment_nr, stmt, 19);
-      extractValue<double>(&mytransition.fragment_mzdelta, stmt, 20);
-      extractValue<int>(&mytransition.fragment_modification, stmt, 21);
-      extractValue<std::string>(&mytransition.fragment_type, stmt, 22);
-      extractValue<std::string>(&mytransition.uniprot_id, stmt, 23);
-      extractValue<int>((int*)&mytransition.detecting_transition, stmt, 24);
-      extractValue<int>((int*)&mytransition.identifying_transition, stmt, 25);
-      extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 26);
+      Sql::extractValue<double>(&mytransition.precursor, stmt, 0);
+      Sql::extractValue<double>(&mytransition.product, stmt, 1);
+      Sql::extractValue<double>(&mytransition.rt_calibrated, stmt, 2);
+      Sql::extractValue<std::string>(&mytransition.transition_name, stmt, 3);
+      Sql::extractValue<double>(&mytransition.CE, stmt, 4);
+      Sql::extractValue<double>(&mytransition.library_intensity, stmt, 5);
+      Sql::extractValue<std::string>(&mytransition.group_id, stmt, 6);
+      Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 7);
+      Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
+      Sql::extractValue<std::string>(&mytransition.ProteinName, stmt, 9);
+      Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
+      Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
+      Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
+      Sql::extractValue<std::string>(&mytransition.SMILES, stmt, 13);
+      Sql::extractValue<std::string>(&mytransition.SumFormula, stmt, 14);
+      Sql::extractValueIntStr(&mytransition.precursor_charge, stmt, 15);
+      Sql::extractValue<std::string>(&mytransition.peptide_group_label, stmt, 16);
+      Sql::extractValue<std::string>(&mytransition.label_type, stmt, 17);
+      Sql::extractValueIntStr(&mytransition.fragment_charge, stmt, 18);
+      Sql::extractValue<int>(&mytransition.fragment_nr, stmt, 19);
+      Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 20);
+      Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 21);
+      Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 22);
+      Sql::extractValue<std::string>(&mytransition.uniprot_id, stmt, 23);
+      Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 24);
+      Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 25);
+      Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 26);
       if (sqlite3_column_type( stmt, 27 ) != SQLITE_NULL)
       {
         String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 27 ))).split('|', mytransition.peptidoforms);
       }
-      if (drift_time_exists) extractValue<double>(&mytransition.drift_time, stmt, 28); // optional attributes only present in newer file versions
+      if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 28); // optional attributes only present in newer file versions
 
       transition_list.push_back(mytransition);
       sqlite3_step( stmt );
