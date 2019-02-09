@@ -156,6 +156,56 @@ namespace OpenMS
     sqlite3_finalize(stmt);
   }
 
+  namespace Internal
+  {
+    namespace SqliteHelper
+    {
+
+      template <> void extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      {
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+        {
+          *dst = sqlite3_column_double( stmt, pos);
+        }
+      }
+
+      template <> void extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      {
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+        {
+          *dst = sqlite3_column_int( stmt, pos);
+        }
+      }
+
+      template <> void extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      {
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+        {
+          *dst = String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, pos )));
+        }
+      }
+
+      template <> void extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      {
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+        {
+          *dst = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, pos )));
+        }
+      }
+
+      /// Special case: store integer in a string data value
+      void extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos)
+      {
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+        {
+          *dst = sqlite3_column_int( stmt, pos);
+        }
+      }
+
+
+    }
+  }
+
 }
 
 

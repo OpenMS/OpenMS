@@ -251,6 +251,58 @@ protected:
 
   };
 
+  namespace Internal
+  {
+    namespace SqliteHelper
+    {
+
+      /**
+        @brief Extracts a specific value from an SQL column
+
+        @p dst Destination (where to store the value)
+        @p sqlite3_stmt Sqlite statement object
+        @p pos Column position 
+
+        For example, to extract a specific integer from column 5 of an SQL statement, one can use
+
+          sqlite3_stmt * stmt;
+          sqlite3 *db;
+          SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
+          sqlite3_step( stmt );
+
+          double target;
+          while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+          {
+            extractValue<double>(&target, stmt, 5);
+            sqlite3_step( stmt );
+          }
+          sqlite3_finalize(stmt);
+
+
+
+      */
+      template <typename ValueType>
+      void extractValue(ValueType* /* dst */, sqlite3_stmt* /* stmt */, int /* pos */)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Not implemented");
+      }
+
+      template <> void extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+
+      template <> void extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+
+      template <> void extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+
+      template <> void extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+
+      /// Special case where an integer should be stored in a String field
+      void extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
+
+    }
+  }
+
+
 } // namespace OpenMS
 
 
