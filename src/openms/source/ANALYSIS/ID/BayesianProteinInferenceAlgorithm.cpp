@@ -565,7 +565,8 @@ namespace OpenMS
     defaults_.setValue("loopy_belief_propagation:max_nr_iterations",
                        1ul<<31,
                        "(Unused, autodetermined) If not all messages converge, how many iterations should be done at max?");
-    defaults_.setMinInt("loopy_belief_propagation:max_nr_iterations", 10);
+    //I think restricting does not work because it only works for type Int (= int)
+    //defaults_.setMinInt("loopy_belief_propagation:max_nr_iterations", 10);
 
     defaults_.setValue("loopy_belief_propagation:p_norm_inference",
                        1.0,
