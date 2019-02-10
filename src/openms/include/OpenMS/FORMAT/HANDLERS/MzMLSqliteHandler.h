@@ -197,9 +197,11 @@ public:
 
           @note It is required to call this function first before writing any
                 data to disk, otherwise the tables will not be set up!
+
+          @note Be careful with this function, calling this on an existing file
+                will delete the file!
       */
       void createTables();
-      void createIndices();
 
       /**
           @brief Writes a set of spectra to disk
@@ -226,6 +228,8 @@ public:
       void writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id);
 
 protected:
+
+      void createIndices_();
       //@}
 
       String filename_;

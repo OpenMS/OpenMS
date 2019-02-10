@@ -907,7 +907,6 @@ namespace OpenMS
       if (spectra.empty()) return;
 
       SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_spectra_sql;
