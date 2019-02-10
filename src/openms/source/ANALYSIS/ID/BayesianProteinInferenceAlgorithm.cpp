@@ -276,6 +276,7 @@ namespace OpenMS
       else
       {
         std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+        return 0;
       }
     }
   };
