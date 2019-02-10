@@ -339,6 +339,11 @@ namespace OpenMS
       prepareSpectra_(db, spectra);
       for (Size k = 0; k < indices.size(); k++)
       {
+        if (indices[k] >= (int)spectra.size())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              String("Illegal spectrum index ") + indices[k] + " for file of size " + spectra.size());
+        }
         exp.push_back(spectra[indices[k]]); // TODO make more efficient
       }
 
@@ -360,6 +365,11 @@ namespace OpenMS
 
       for (Size k = 0; k < indices.size(); k++)
       {
+        if (indices[k] >= (int)chroms.size())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              String("Illegal chromatogram index ") + indices[k] + " for file of size " + chroms.size());
+        }
         exp.push_back(chroms[indices[k]]); // TODO make more efficient
       }
       if (meta_only) {return;}
