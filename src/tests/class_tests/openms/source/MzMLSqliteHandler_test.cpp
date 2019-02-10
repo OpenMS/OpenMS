@@ -543,7 +543,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
   }
 
   // now test with numpress
-  TOLERANCE_RELATIVE(1+1e-3)
+  TOLERANCE_RELATIVE(1+2e-4)
   // delete file if present
   file.remove();
   {
