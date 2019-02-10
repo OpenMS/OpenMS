@@ -4,6 +4,55 @@ import numpy as np
 
 
 
+
+
+    def getMetaValues(self):
+        mmap = {}
+        cdef Map[_String, size_t] c_mmap 
+        cdef libcpp_vector[_String] keys 
+        cdef libcpp_vector[_String].iterator k_it
+        # cdef _DataValue _c_value
+        # cdef DataValue _value 
+        # _value = DataValue.__new__(DataValue)
+        cdef int _type
+        cdef object py_result
+        self.inst.get().getKeys(keys)
+        while k_it != keys.end():
+            # _value = self.inst.get().getMetaValue(deref(k_it))
+            py_str = _cast_const_away(<char*>(deref(k_it)).c_str())
+            py_result = self.getMetaValue(py_str)
+            # _type = _value.valueType()
+            # if _type == DataType.STRING_VALUE:
+            #     py_result = _value.toString()
+            # elif _type == DataType.INT_VALUE:
+            #     py_result = _value.toInt()
+            # elif _type == DataType.DOUBLE_VALUE:
+            #     py_result = _value.toDouble()
+            # elif _type == DataType.INT_LIST:
+            #     py_result = _value.toIntList()
+            # elif _type == DataType.DOUBLE_LIST:
+            #     py_result = _value.toDoubleList()
+            # elif _type == DataType.STRING_LIST:
+            #     py_result = _value.toStringList()
+            # elif _type == DataType.EMPTY_VALUE:
+            #     py_result = None
+            # else:
+            #     raise Exception("DataValue instance has invalid value type %d" % _type)
+
+            mmap[ py_str ] = py_result
+            inc(k_it)
+
+        return mmap
+
+    def setMetaValues(self, dict mmap):
+        self.inst.get().clearMetaInfo()
+        for k, v in mmap.iteritems():
+            self.inst.get().setMetaValue(deref((convString(k)).get()), deref(DataValue(v).inst.get()))
+
+
+
+
+
     def get_peaks(self):
 
         cdef _MSSpectrum * spec_ = self.inst.get()
