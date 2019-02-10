@@ -36,8 +36,16 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <sqlite3.h>
+
 namespace OpenMS
 {
+
+  SqliteConnector::~SqliteConnector()
+  {
+    sqlite3_close(db_);
+  }
+
   void SqliteConnector::openDatabase(const String& filename)
   {
     // Open database
@@ -53,44 +61,24 @@ namespace OpenMS
     bool found = false;
 
     sqlite3_stmt * xcntstmt;
-    String s = "PRAGMA table_info(" + tablename + ")";
-    int rc = sqlite3_prepare_v2(db, s.c_str(), -1, &xcntstmt, nullptr);
-
-    if (rc != SQLITE_OK)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("Error when determining columns of table: ") + tablename);
-    }
+    SqliteConnector::executePreparedStatement(db, &xcntstmt, "PRAGMA table_info(" + tablename + ")");
 
     // Go through all columns and check whether the required column exists
-    sqlite3_step( xcntstmt );
+    sqlite3_step(xcntstmt);
     while (sqlite3_column_type( xcntstmt, 0 ) != SQLITE_NULL)
     {
       String name = String(reinterpret_cast<const char*>(sqlite3_column_text( xcntstmt, 1 )));
-      if (colname == name)
-      {
-        found = true;
-      }
-
-      sqlite3_step( xcntstmt );
+      if (colname == name) {found = true;}
+      sqlite3_step(xcntstmt);
     }
     sqlite3_finalize(xcntstmt);
+
     return found;
   }
 
   void SqliteConnector::executeStatement(sqlite3 *db, const std::stringstream& statement)
   {
-    char *zErrMsg = nullptr;
-    std::string insert_str = statement.str();
-    int rc = sqlite3_exec(db, insert_str.c_str(), nullptr /* callback */, nullptr, &zErrMsg);
-    if (rc != SQLITE_OK)
-    {
-      String error (zErrMsg);
-      std::cerr << "Error message after sqlite3_exec" << std::endl;
-      std::cerr << "Prepared statement " << statement.str() << std::endl;
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
-    }
+    SqliteConnector::executeStatement(db, statement.str());
   }
 
   void SqliteConnector::executeStatement(sqlite3 *db, const String& statement)
@@ -120,16 +108,9 @@ namespace OpenMS
 
   void SqliteConnector::executeBindStatement(sqlite3 *db, const String& prepare_statement, const std::vector<String>& data)
   {
+    int rc;
     sqlite3_stmt *stmt = nullptr;
-    const char *curr_loc;
-    int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), &stmt, &curr_loc);
-    if (rc != SQLITE_OK)
-    {
-      std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
-      std::cerr << "Prepared statement " << prepare_statement << std::endl;
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-    }
-
+    SqliteConnector::executePreparedStatement(db, &stmt, prepare_statement);
     for (Size k = 0; k < data.size(); k++)
     {
       // Fifth argument is a destructor for the blob.

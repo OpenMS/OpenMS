@@ -45,8 +45,6 @@
 struct sqlite3;
 struct sqlite3_stmt;
 
-#include <sqlite3.h>
-
 namespace OpenMS
 {
   /**
@@ -69,10 +67,7 @@ public:
     }
 
     /// Destructor
-    ~SqliteConnector()
-    {
-      sqlite3_close(db_);
-    }
+    ~SqliteConnector();
 
     /**
       @brief Returns the raw pointer to the database 
@@ -182,7 +177,7 @@ public:
     /**
       @brief Executes a given SQL statement (insert statement)
 
-      This is useful for writing a single row of data
+      This is useful for writing a single row of data. It wraps sqlite3_exec with proper error handling.
 
       @p db The sqlite database (needs to be open)
       @p statement The SQL statement
@@ -204,9 +199,17 @@ public:
     static void executeStatement(sqlite3 *db, const String& statement);
 
     /**
-      @brief Prepares a SQL statement
+      @brief Converts an SQL statement into a prepared statement
 
-      This is useful for handling errors in a consistent manner.
+      This routine converts SQL text into a prepared statement object and
+      returns a pointer to that object. This interface requires a database
+      connection created by a prior call to sqlite3_open() and a text string
+      containing the SQL statement to be prepared. This API does not actually
+      evaluate the SQL statement. It merely prepares the SQL statement for
+      evaluation.
+
+      This is useful for handling errors in a consistent manner. Internally
+      calls sqlite3_prepare_v2.
 
       @p db The sqlite database (needs to be open)
       @p statement The SQL statement
@@ -215,6 +218,7 @@ public:
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
     static void executePreparedStatement(sqlite3 *db, sqlite3_stmt** stmt, const String& prepare_statement);
+
 
     /**
       @brief Executes raw data SQL statements (insert statements) 
