@@ -744,10 +744,6 @@ namespace OpenMS
     void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id)
     {
       SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
-
-      // store run information
-      char *zErrMsg = nullptr;
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_run_sql;
@@ -755,9 +751,9 @@ namespace OpenMS
       std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
           run_id << ",'" << native_id << "','" << native_id << "'); ";
-      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
-      SqliteConnector::executeStatement(db, insert_run_sql);
-      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
+      conn.executeStatement("BEGIN TRANSACTION");
+      conn.executeStatement(insert_run_sql);
+      conn.executeStatement("END TRANSACTION");
 
       if (write_full_meta)
       {
@@ -790,8 +786,8 @@ namespace OpenMS
         std::string encoded_string;
         OpenMS::ZlibCompression::compressString(output, encoded_string);
         data.push_back(encoded_string);
-        // data.push_back(output); // in case you need to debug ... 
-        SqliteConnector::executeBindStatement(db, prepare_statement, data);
+        // data.push_back(output); // in case you need to debug on the uncompressed string ... 
+        conn.executeBindStatement(prepare_statement, data);
       }
     }
 
@@ -802,7 +798,6 @@ namespace OpenMS
       file.remove();
 
       SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
 
       // Create SQL structure
       char const *create_sql =
@@ -874,23 +869,12 @@ namespace OpenMS
         ");";
 
       // Execute SQL statement
-      char *zErrMsg = nullptr;
-      int rc;
-      rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
-      if (rc != SQLITE_OK)
-      {
-        sqlite3_free(zErrMsg);
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-            zErrMsg);
-      }
-      createIndices();
+      conn.executeStatement(create_sql);
+      createIndices_();
     }
 
-    void MzMLSqliteHandler::createIndices()
+    void MzMLSqliteHandler::createIndices_()
     {
-      SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
-
       // Create SQL structure
       char const *create_sql =
 
@@ -913,23 +897,14 @@ namespace OpenMS
         "CREATE INDEX precursor_sp_idx ON DATA(SPECTRUM_ID);";
 
       // Execute SQL statement
-      char *zErrMsg = nullptr;
-      int rc;
-      rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
-      if (rc != SQLITE_OK)
-      {
-        sqlite3_free(zErrMsg);
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-            zErrMsg);
-      }
+      SqliteConnector conn(filename_);
+      conn.executeStatement(create_sql);
     }
 
     void MzMLSqliteHandler::writeSpectra(const std::vector<MSSpectrum>& spectra)
     {
       // prevent writing of empty data which would throw an SQL exception
       if (spectra.empty()) return;
-
-      char *zErrMsg = nullptr;
 
       SqliteConnector conn(filename_);
       sqlite3 *db = conn.getDB();
@@ -1113,7 +1088,7 @@ namespace OpenMS
           if (!data.empty())
           {
             prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-            SqliteConnector::executeBindStatement(db, prepare_statement, data);
+            conn.executeBindStatement(prepare_statement, data);
           }
 
           data.clear();
@@ -1127,16 +1102,14 @@ namespace OpenMS
       if (!data.empty())
       {
         prepare_statement.resize( prepare_statement.size() -1 );
-        SqliteConnector::executeBindStatement(db, prepare_statement, data);
+        conn.executeBindStatement(prepare_statement, data);
       }
 
-      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-      SqliteConnector::executeStatement(db, insert_spectra_sql);
-      if (nr_precursors > 0) SqliteConnector::executeStatement(db, insert_precursor_sql);
-      if (nr_products > 0) SqliteConnector::executeStatement(db, insert_product_sql);
-
-      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
+      conn.executeStatement("BEGIN TRANSACTION");
+      conn.executeStatement(insert_spectra_sql);
+      if (nr_precursors > 0) conn.executeStatement(insert_precursor_sql);
+      if (nr_products > 0) conn.executeStatement(insert_product_sql);
+      conn.executeStatement("END TRANSACTION");
     }
 
     void MzMLSqliteHandler::writeChromatograms(const std::vector<MSChromatogram >& chroms)
@@ -1144,10 +1117,7 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (chroms.empty()) return;
 
-      char *zErrMsg = nullptr;
-
       SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_chrom_sql;
@@ -1307,7 +1277,7 @@ namespace OpenMS
           if (!data.empty())
           {
             prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-            SqliteConnector::executeBindStatement(db, prepare_statement, data);
+            conn.executeBindStatement(prepare_statement, data);
           }
 
           data.clear();
@@ -1320,17 +1290,15 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (!data.empty())
       {
-        prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-        SqliteConnector::executeBindStatement(db, prepare_statement, data);
+        prepare_statement.resize(prepare_statement.size() -1); // remove last ","
+        conn.executeBindStatement(prepare_statement, data);
       }
 
-      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-      SqliteConnector::executeStatement(db, insert_chrom_sql);
-      SqliteConnector::executeStatement(db, insert_precursor_sql);
-      SqliteConnector::executeStatement(db, insert_product_sql);
-
-      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
+      conn.executeStatement("BEGIN TRANSACTION");
+      conn.executeStatement(insert_chrom_sql);
+      conn.executeStatement(insert_precursor_sql);
+      conn.executeStatement(insert_product_sql);
+      conn.executeStatement("END TRANSACTION");
     }
 
   } // namespace Internal
