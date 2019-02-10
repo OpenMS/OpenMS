@@ -7,21 +7,33 @@ import numpy as np
 
 
     def getMetaValues(self):
+        """Cython signature: dict getMetaValues()
+
+        Returns all meta values in a Python dictionary.
+        """
+        # cdef _DataValue _c_value
+        # cdef DataValue _value 
+        # cdef int _type
+
         mmap = {}
         cdef Map[_String, size_t] c_mmap 
         cdef libcpp_vector[_String] keys 
         cdef libcpp_vector[_String].iterator k_it
-        # cdef _DataValue _c_value
-        # cdef DataValue _value 
-        # _value = DataValue.__new__(DataValue)
-        cdef int _type
         cdef object py_result
+
+        # get keys for iteration
         self.inst.get().getKeys(keys)
+
         while k_it != keys.end():
-            # _value = self.inst.get().getMetaValue(deref(k_it))
+            # easy approach: call Python fxn
             py_str = _cast_const_away(<char*>(deref(k_it)).c_str())
             py_result = self.getMetaValue(py_str)
-            # _type = _value.valueType()
+            # # hard approach: do it ourselves
+            # _c_value = self.inst.get().getMetaValue(deref(k_it))
+            # py_str = _cast_const_away(<char*>(deref(k_it)).c_str())
+            # _type = _c_value.valueType()
+            # _value = DataValue.__new__(DataValue)
+            # _value.inst = shared_ptr[_DataValue](new _DataValue(_c_value))
             # if _type == DataType.STRING_VALUE:
             #     py_result = _value.toString()
             # elif _type == DataType.INT_VALUE:
@@ -45,7 +57,11 @@ import numpy as np
         return mmap
 
     def setMetaValues(self, dict mmap):
-        self.inst.get().clearMetaInfo()
+        """Cython signature: setMetaValues(dict values)
+
+        Sets the meta values given in the Python dictionary.
+        """
+        self.inst.get().clearMetaInfo() # ensure its empty first
         for k, v in mmap.iteritems():
             self.inst.get().setMetaValue(deref((convString(k)).get()), deref(DataValue(v).inst.get()))
 
