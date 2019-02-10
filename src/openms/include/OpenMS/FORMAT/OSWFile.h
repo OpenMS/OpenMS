@@ -79,12 +79,6 @@ public:
     */
     void write(const std::string& in_osw, const std::string& osw_level, const std::map< std::string, std::vector<double> >& features);
 
-private:
-    /**
-    @brief Helper function for writing OSW SQLite files
-    */
-    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName);
-
   };
 
 } // namespace OpenMS
