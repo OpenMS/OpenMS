@@ -96,8 +96,6 @@ public:
 
 protected:
 
-      sqlite3* openDB();
-
       String filename_;
 
       /*
