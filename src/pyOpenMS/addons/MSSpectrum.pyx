@@ -62,7 +62,8 @@ import numpy as np
         """
         self.inst.get().clearMetaInfo() # ensure its empty first
         for k, v in mmap.iteritems():
-            self.inst.get().setMetaValue(deref((convString(k)).get()), deref(DataValue(v).inst.get()))
+            # self.inst.get().setMetaValue(deref((convString(k)).get()), deref(DataValue(v).inst.get()))
+            self.setMetaValue(k, v)
 
 
 
