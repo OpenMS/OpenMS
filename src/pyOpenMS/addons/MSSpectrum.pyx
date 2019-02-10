@@ -16,14 +16,13 @@ import numpy as np
         # cdef int _type
 
         mmap = {}
-        cdef Map[_String, size_t] c_mmap 
         cdef libcpp_vector[_String] keys 
-        cdef libcpp_vector[_String].iterator k_it
         cdef object py_result
 
         # get keys for iteration
         self.inst.get().getKeys(keys)
 
+        cdef libcpp_vector[_String].iterator k_it = keys.begin()
         while k_it != keys.end():
             # easy approach: call Python fxn
             py_str = _cast_const_away(<char*>(deref(k_it)).c_str())
