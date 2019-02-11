@@ -46,12 +46,17 @@ namespace OpenMS
   OSWFile::OSWFile()
   {
   }
-  
+
   OSWFile::~OSWFile()
   {
   }
 
-  void OSWFile::read(const std::string& in_osw, const std::string& osw_level, std::stringstream& pin_output, const double& ipf_max_peakgroup_pep, const double& ipf_max_transition_isotope_overlap, const double& ipf_min_transition_sn)
+  void OSWFile::read(const std::string& in_osw,
+                     const std::string& osw_level,
+                     std::stringstream& pin_output,
+                     const double& ipf_max_peakgroup_pep,
+                     const double& ipf_max_transition_isotope_overlap,
+                     const double& ipf_min_transition_sn)
   {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -61,14 +66,38 @@ namespace OpenMS
 
       if (osw_level == "ms1")
       {
-        select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS1 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
-      } else if (osw_level == "transition")
+        select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID " \
+                      "FROM FEATURE_MS1 "\
+                      "INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID "\
+                      "INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "\
+                      "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "\
+                      "INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON "\
+                        "PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
+      }
+      else if (osw_level == "transition")
       {
-        select_sql = "SELECT TRANSITION.DECOY AS DECOY, FEATURE_TRANSITION.*, RUN_ID || '_' || FEATURE_TRANSITION.FEATURE_ID || '_' || PRECURSOR_ID || '_' || TRANSITION_ID AS GROUP_ID, FEATURE_TRANSITION.FEATURE_ID || '_' || FEATURE_TRANSITION.TRANSITION_ID AS FEATURE_ID, 'PEPTIDE' AS MODIFIED_SEQUENCE FROM FEATURE_TRANSITION INNER JOIN (SELECT RUN_ID, ID, PRECURSOR_ID FROM FEATURE) AS FEATURE ON FEATURE_TRANSITION.FEATURE_ID = FEATURE.ID INNER JOIN PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID INNER JOIN (SELECT ID, DECOY FROM TRANSITION) AS TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID WHERE PEP <= " + OpenMS::String(ipf_max_peakgroup_pep) + " AND VAR_ISOTOPE_OVERLAP_SCORE <= " + OpenMS::String(ipf_max_transition_isotope_overlap) + " AND VAR_LOG_SN_SCORE > " + OpenMS::String(ipf_min_transition_sn) + " AND PRECURSOR.DECOY == 0 ORDER BY FEATURE_ID, PRECURSOR_ID, TRANSITION_ID;";
-      } else
+        select_sql = "SELECT TRANSITION.DECOY AS DECOY, FEATURE_TRANSITION.*, "\
+                        "RUN_ID || '_' || FEATURE_TRANSITION.FEATURE_ID || '_' || PRECURSOR_ID || '_' || TRANSITION_ID AS GROUP_ID, "\
+                        "FEATURE_TRANSITION.FEATURE_ID || '_' || FEATURE_TRANSITION.TRANSITION_ID AS FEATURE_ID, "\
+                        "'PEPTIDE' AS MODIFIED_SEQUENCE FROM FEATURE_TRANSITION "\
+                        "INNER JOIN (SELECT RUN_ID, ID, PRECURSOR_ID FROM FEATURE) AS FEATURE ON FEATURE_TRANSITION.FEATURE_ID = FEATURE.ID " \
+                        "INNER JOIN PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "\
+                        "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "\
+                        "INNER JOIN (SELECT ID, DECOY FROM TRANSITION) AS TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID "\
+                        "WHERE PEP <= " + OpenMS::String(ipf_max_peakgroup_pep) +
+                          " AND VAR_ISOTOPE_OVERLAP_SCORE <= " + OpenMS::String(ipf_max_transition_isotope_overlap) +
+                          " AND VAR_LOG_SN_SCORE > " + OpenMS::String(ipf_min_transition_sn) +
+                          " AND PRECURSOR.DECOY == 0 ORDER BY FEATURE_ID, PRECURSOR_ID, TRANSITION_ID;";
+      }
+      else
       {
         // Peak group-level query including peptide sequence
-        select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS2 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
+        select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID "\
+                      "FROM FEATURE_MS2 "\
+                      "INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID "\
+                      "INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "\
+                      "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "\
+                      "INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
       }
 
       // Execute SQL select statement
@@ -97,14 +126,17 @@ namespace OpenMS
           }
           if (OpenMS::String(sqlite3_column_name( stmt, i )) == "GROUP_ID")
           {
-            if (std::find(group_id_index.begin(), group_id_index.end(), OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) != group_id_index.end())
+            if (std::find(group_id_index.begin(), group_id_index.end(),
+                  OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) != group_id_index.end())
             {
-              scan_id = std::find(group_id_index.begin(), group_id_index.end(), OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+              scan_id = std::find(group_id_index.begin(), group_id_index.end(),
+                          OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
             }
             else
             {
               group_id_index.push_back(OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i ))));
-              scan_id = std::find(group_id_index.begin(), group_id_index.end(), OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+              scan_id = std::find(group_id_index.begin(), group_id_index.end(),
+                          OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
             }
           }
           if (OpenMS::String(sqlite3_column_name( stmt, i )) == "DECOY")
@@ -166,7 +198,9 @@ namespace OpenMS
 
     }
 
-    void OSWFile::write(const std::string& in_osw, const std::string& osw_level, const std::map< std::string, std::vector<double> >& features)
+    void OSWFile::write(const std::string& in_osw,
+                        const std::string& osw_level,
+                        const std::map< std::string, std::vector<double> >& features)
     {
       std::string table;
       std::string create_sql;
@@ -181,7 +215,8 @@ namespace OpenMS
                       "QVALUE DOUBLE NOT NULL," \
                       "PEP DOUBLE NOT NULL);";
 
-      } else if (osw_level == "transition")
+      }
+      else if (osw_level == "transition")
       {
         table = "SCORE_TRANSITION";
         create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
@@ -192,7 +227,8 @@ namespace OpenMS
                       "QVALUE DOUBLE NOT NULL," \
                       "PEP DOUBLE NOT NULL);";
 
-      } else
+      }
+      else
       {
         table = "SCORE_MS2";
         create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
