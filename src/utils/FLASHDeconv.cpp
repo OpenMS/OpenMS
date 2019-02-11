@@ -43,7 +43,7 @@ public:
         int maxMassCount;
         double isotopeCosineThreshold;
         int chargeDistributionScoreThreshold; // advanced parameters
-
+        double maxRTSpanForFeature;
     };
 
     struct PrecalcularedAveragine{
@@ -117,6 +117,13 @@ public:
         void reserve(Size n){
             peaks.reserve(n);
         }
+
+        bool operator<(const PeakGroup &a) const {
+            return this->spec->getRT() < a.spec->getRT();
+        }
+        bool operator>(const PeakGroup &a) const {
+            return this->spec->getRT() >= a.spec->getRT();
+        }
     };
 
 protected:
@@ -148,6 +155,7 @@ protected:
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
         registerDoubleOption_("minIsoScore", "<score 0-1>", .7, "minimum isotope cosine score threshold (0-1)", false, true);
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 1, "minimum charge distribution score threshold (>= 0)", false, true);
+        registerDoubleOption_("maxRTSpan", "<max retention span>", -1, "maximum RT span of a feature; if not set, default is total LC span / 10", false, true);
     }
 
     Parameter setParameter(){
@@ -166,7 +174,7 @@ protected:
         param.maxMassCount = getIntOption_("maxMC");
         param.isotopeCosineThreshold = getDoubleOption_("minIsoScore");
         param.chargeDistributionScoreThreshold = getIntOption_("minCDScore");
-
+        param.maxRTSpanForFeature = getDoubleOption_("maxRTSpan");
         return param;
     }
 
@@ -239,12 +247,15 @@ protected:
             cout << "Found " << massCntr - prevMassCntr << " masses in "<< qspecCntr - prevQspecCntr << " MS1 spectra out of "
             << specCntr - prevSpecCntr << endl;
 
+            cout<< "Writing results ...";
+            cout.flush();
             for(auto &pg : peakGroups)
                 writePeakGroup(pg, massCntr, qspecCntr, peakGroups.size(), param, fs, fsm);
-
             // make feature file..
-            double rtDelta = 10; // tmp
-            findNominalMassFeatures(peakGroups, rtDelta, featureCntr, fsf, param);
+
+            findNominalMassFeatures(peakGroups, featureCntr, fsf, param);
+            cout<<"done\n";
+
             prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr; total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
         }
 
@@ -322,11 +333,18 @@ protected:
     }
 
 
-    void findNominalMassFeatures(vector<PeakGroup> &peakGroups, double &rtDelta, int &id, fstream& fs, const Parameter & param){
+    void findNominalMassFeatures(vector<PeakGroup> &peakGroups, int &id, fstream& fs, const Parameter & param){
 
         map<int, vector<double>> massMap;
         map<int, vector<string>> writeMap;
 
+        double delta = param.maxRTSpanForFeature;
+        if(delta <=0){
+            auto end = peakGroups[peakGroups.size()-1].spec->getRT();
+            auto begin = peakGroups[0].spec->getRT();
+            delta = (end-begin)/10.0;
+        }
+        //sort(peakGroups.begin(), peakGroups.end());
         for(auto& pg : peakGroups){
             int nm = getNominalMass(pg.monoisotopicMass);
             double rt = pg.spec->getRT();
@@ -334,35 +352,35 @@ protected:
             auto it = massMap.find(nm);
             vector<double> v; // start rt, end rt, apex rt, intensity, maxIntensity, abundance
             if (it == massMap.end()){
-                v.push_back(rt);
-                v.push_back(rt);
-                v.push_back(rt);
-                v.push_back(intensity);
-                v.push_back(intensity);
-                v.push_back(0);
+                v.push_back(rt); // start rt 0
+                v.push_back(rt); // end rt 1
+                v.push_back(rt); // apex rt 2
+                v.push_back(intensity); // max intensity 3
+                v.push_back(0.0); // abundance 4
                 massMap[nm] = v;
                 continue;
             }
             v = it->second;
             double prt = v[1];
-            double pIntensity = v[3];
+            double pMaxIntensity = v[3];
 
-            if(rt - prt <rtDelta){ // keep feature
+            if(rt - prt <delta){ // keep feature
                 v[1] = rt;
-                if(pIntensity < intensity) v[2] = rt;
-                v[3] = intensity;
-                v[4] = v[4]<intensity?intensity:v[4];
-                v[5] += (pIntensity + intensity)/2.0*(rt - prt);
+                v[4] += (pMaxIntensity + intensity)/2.0*(rt - prt);
+                if(pMaxIntensity < intensity) {
+                    v[2] = rt;
+                    v[3] = intensity;
+                }
                 massMap[nm] = v;
             }else{ // write feature and clear key
-                if(v[1] - v[0] > rtDelta) {
+                if(v[1] - v[0] > 0) {
                     stringstream s;
                     s <<"\t" << param.fileName << "\t" << nm << "\t" << fixed << setprecision(5) << v[0] << "\t"
-                      << v[1]<<"\t"<<v[1]-v[0] << "\t" << v[2] << "\t" << v[4]<< "\t" << v[5];
+                      << v[1]<<"\t"<<v[1]-v[0] << "\t" << v[2] << "\t" << v[3]<< "\t" << v[4];
                     auto sit = writeMap.find(nm);
                     if (sit == writeMap.end()) {
                        vector<string> vs;
-                        writeMap[nm] = vs;
+                       writeMap[nm] = vs;
                     }
                     writeMap[nm].push_back(s.str());
                 }
@@ -376,7 +394,7 @@ protected:
             if(v[1] - v[0] <= 0) continue;
             stringstream s;
             s<<"\t"<< param.fileName << "\t" <<nm<<"\t"<<fixed<<setprecision(5)<<v[0]<<"\t"<<v[1]<<"\t"<<v[1]-v[0]<<"\t"
-                <<v[2]<<"\t"<<v[4]<< "\t" << v[5];
+                <<v[2]<<"\t"<<v[3]<< "\t" << v[4];
             auto sit = writeMap.find(nm);
             if (sit == writeMap.end()) {
                 vector<string> vs;
@@ -390,7 +408,6 @@ protected:
                 fs<<++id<<s<<"\n";
             }
         }
-
     }
 
 
