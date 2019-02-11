@@ -1081,7 +1081,7 @@ namespace OpenMS
           res_mod = mod_db->getBestModificationByDiffMonoMass(mass, tolerance, residue->getOneLetterCode(), ResidueModification::N_TERM);
           if (res_mod)
           {
-            aas.c_term_mod_ = res_mod;
+            aas.n_term_mod_ = res_mod;
             return mod_end;
           }
         }
