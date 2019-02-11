@@ -532,8 +532,8 @@ namespace OpenMS
       }
 
       // OpenSWATH: Insert transition data
-      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, \
-        DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
+      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, " <<
+        "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
         transition.transition_name << "'," <<
         transition.product << "," <<
         transition_charge << ",'" <<
@@ -563,8 +563,8 @@ namespace OpenMS
       }
 
       insert_precursor_sql <<
-        "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, \
-          LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" <<
+        "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
+        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" <<
         group_set_index << ",'" << peptide.id << "','" <<
         peptide.getPeptideGroupLabel() << "'," <<
         precursor_mz_map[group_set_index] << "," <<
@@ -592,8 +592,8 @@ namespace OpenMS
         compound_charge = String(compound.getChargeState());
       }
 
-      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY,\
-        LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" << group_set_index
+      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
+        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" << group_set_index
         << ",'" << compound.id << "',NULL," <<
         precursor_mz_map[group_set_index] << "," <<
         compound_charge <<
