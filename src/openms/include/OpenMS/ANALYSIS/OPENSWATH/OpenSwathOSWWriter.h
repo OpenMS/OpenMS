@@ -40,9 +40,6 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
-
-#include <sqlite3.h>
 
 #include <fstream>
 

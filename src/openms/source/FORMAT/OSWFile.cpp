@@ -35,6 +35,8 @@
 #include <OpenMS/FORMAT/OSWFile.h>
 
 #include <OpenMS/FORMAT/SqliteConnector.h>
+
+#include <sqlite3.h>
 #include <sstream>
 
 namespace OpenMS

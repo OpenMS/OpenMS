@@ -34,6 +34,10 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
+#include <OpenMS/FORMAT/SqliteConnector.h>
+
+#include <sqlite3.h>
+
 namespace OpenMS
 {
 
