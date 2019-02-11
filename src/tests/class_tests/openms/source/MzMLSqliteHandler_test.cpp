@@ -39,9 +39,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 ///////////////////////////
 
-#include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <QFile>
@@ -49,6 +47,85 @@
 using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
+
+void cmpDataIntensity(MSExperiment& exp1, MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+{
+  // Logic of comparison: if the absolute difference criterion is fulfilled,
+  // the relative one does not matter. If the absolute difference is larger
+  // than allowed, the test does not fail if the relative difference is less
+  // than allowed.
+  // Note that the sample spectrum intensity has a very large range, from
+  // 0.00013 to 183 838 intensity and encoding both values with high accuracy
+  // is difficult.
+
+  TOLERANCE_ABSOLUTE(abs_tol)
+  TOLERANCE_RELATIVE(rel_tol)
+  for (Size i = 0; i < exp1.getNrSpectra(); i++)
+  {
+    TEST_EQUAL(exp1.getSpectrum(i).size(), exp2.getSpectra()[i].size())
+    for (Size k = 0; k < exp1.getSpectrum(i).size(); k++)
+    {
+      // slof is no good for values smaller than 5
+      // if (exp.getSpectrum(i)[k].getIntensity() < 1.0) {continue;} 
+      TEST_REAL_SIMILAR(exp1.getSpectrum(i)[k].getIntensity(), exp2.getSpectra()[i][k].getIntensity())
+    }
+  }
+
+  for (Size i = 0; i < exp1.getNrChromatograms(); i++)
+  {
+    TEST_EQUAL(exp1.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
+    for (Size k = 0; k < exp1.getChromatogram(i).size(); k++)
+    {
+      TEST_REAL_SIMILAR(exp1.getChromatogram(i)[k].getIntensity(), exp2.getChromatograms()[i][k].getIntensity())
+    }
+  }
+}
+
+void cmpDataMZ(MSExperiment& exp1, MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+{
+  // Logic of comparison: if the absolute difference criterion is fulfilled,
+  // the relative one does not matter. If the absolute difference is larger
+  // than allowed, the test does not fail if the relative difference is less
+  // than allowed.
+  // Note that the sample spectrum intensity has a very large range, from
+  // 0.00013 to 183 838 intensity and encoding both values with high accuracy
+  // is difficult.
+
+  TOLERANCE_ABSOLUTE(abs_tol)
+  TOLERANCE_RELATIVE(rel_tol)
+  for (Size i = 0; i < exp1.getNrSpectra(); i++)
+  {
+    TEST_EQUAL(exp1.getSpectrum(i).size(), exp2.getSpectra()[i].size())
+    for (Size k = 0; k < exp1.getSpectrum(i).size(); k++)
+    {
+      // slof is no good for values smaller than 5
+      // if (exp.getSpectrum(i)[k].getIntensity() < 1.0) {continue;} 
+      TEST_REAL_SIMILAR(exp1.getSpectrum(i)[k].getMZ(), exp2.getSpectra()[i][k].getMZ())
+    }
+  }
+}
+
+void cmpDataRT(MSExperiment& exp1, MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+{
+  // Logic of comparison: if the absolute difference criterion is fulfilled,
+  // the relative one does not matter. If the absolute difference is larger
+  // than allowed, the test does not fail if the relative difference is less
+  // than allowed.
+  // Note that the sample spectrum intensity has a very large range, from
+  // 0.00013 to 183 838 intensity and encoding both values with high accuracy
+  // is difficult.
+
+  TOLERANCE_ABSOLUTE(abs_tol)
+  TOLERANCE_RELATIVE(rel_tol)
+  for (Size i = 0; i < exp1.getNrChromatograms(); i++)
+  {
+    TEST_EQUAL(exp1.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
+    for (Size k = 0; k < exp1.getChromatogram(i).size(); k++)
+    {
+      TEST_REAL_SIMILAR(exp1.getChromatogram(i)[k].getRT(), exp2.getChromatograms()[i][k].getRT())
+    }
+  }
+}
 
 ///////////////////////////
 
@@ -113,56 +190,9 @@ START_SECTION(void readExperiment(MSExperiment & exp, bool meta_only = false) co
 
   cout.precision(17);
 
-  // Logic of comparison: if the absolute difference criterion is fulfilled,
-  // the relative one does not matter. If the absolute difference is larger
-  // than allowed, the test does not fail if the relative difference is less
-  // than allowed.
-  // Note that the sample spectrum intensity has a very large range, from
-  // 0.00013 to 183 838 intensity and encoding both values with high accuracy
-  // is difficult.
-  TOLERANCE_ABSOLUTE(1e-4)
-  TOLERANCE_RELATIVE(1.001) // 0.1 % error for intensity 
-
-  for (Size i = 0; i < exp.getNrSpectra(); i++)
-  {
-    TEST_EQUAL(exp.getSpectrum(i).size(), exp2.getSpectra()[i].size())
-    for (Size k = 0; k < exp.getSpectrum(i).size(); k++)
-    {
-      // slof is no good for values smaller than 5
-      // if (exp.getSpectrum(i)[k].getIntensity() < 1.0) {continue;} 
-      TEST_REAL_SIMILAR(exp.getSpectrum(i)[k].getIntensity(), exp2.getSpectra()[i][k].getIntensity())
-    }
-  }
-
-  for (Size i = 0; i < exp.getNrChromatograms(); i++)
-  {
-    TEST_EQUAL(exp.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
-    for (Size k = 0; k < exp.getChromatogram(i).size(); k++)
-    {
-      TEST_REAL_SIMILAR(exp.getChromatogram(i)[k].getIntensity(), exp2.getChromatograms()[i][k].getIntensity())
-    }
-  }
-
-  TOLERANCE_ABSOLUTE(1e-5)
-  TOLERANCE_RELATIVE(1.000001) // less than 1ppm error for m/z 
-  for (Size i = 0; i < exp.getNrSpectra(); i++)
-  {
-    TEST_EQUAL(exp.getSpectrum(i).size(), exp2.getSpectra()[i].size())
-    for (Size k = 0; k < exp.getSpectrum(i).size(); k++)
-    {
-      TEST_REAL_SIMILAR(exp.getSpectrum(i)[k].getMZ(), exp2.getSpectra()[i][k].getMZ())
-    }
-
-  }
-  TOLERANCE_ABSOLUTE(0.05) // max 0.05 seconds error in RT
-  for (Size i = 0; i < exp.getNrChromatograms(); i++)
-  {
-    TEST_EQUAL(exp.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
-    for (Size k = 0; k < exp.getChromatogram(i).size(); k++)
-    {
-      TEST_REAL_SIMILAR(exp.getChromatogram(i)[k].getRT(), exp2.getChromatograms()[i][k].getRT())
-    }
-  }
+  cmpDataIntensity(exp, exp, 1e-4, 1.001); 
+  cmpDataMZ(exp, exp, 1e-5, 1.000001); // less than 1ppm error for m/z 
+  cmpDataRT(exp, exp, 0.05, 1.000001); // max 0.05 seconds error in RT
 
   // 1:1 mapping of experimental settings ...
   TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
@@ -188,7 +218,7 @@ START_SECTION( void readSpectra(std::vector<MSSpectrum> & exp, const std::vector
   MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
 
   MSExperiment exp2;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp2);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp2);
 
   // read in meta data only
   {
@@ -202,10 +232,19 @@ START_SECTION( void readSpectra(std::vector<MSSpectrum> & exp, const std::vector
 
   {
     std::vector<MSSpectrum> exp;
-    std::vector<int> indices = {0};
-    handler.readSpectra(exp, indices, true);
+    std::vector<int> indices = {1};
+    handler.readSpectra(exp, indices, false);
     TEST_EQUAL(exp.size(), 1)
-    TEST_EQUAL(exp[0].size(), 0)
+    TEST_EQUAL(exp[0].size(), 19800)
+    TEST_REAL_SIMILAR(exp[0].getRT(), 0.4738)
+  }
+
+  {
+    std::vector<MSSpectrum> exp;
+    std::vector<int> indices = {0};
+    handler.readSpectra(exp, indices, false);
+    TEST_EQUAL(exp.size(), 1)
+    TEST_EQUAL(exp[0].size(), 19914)
     TEST_REAL_SIMILAR(exp[0].getRT(), 0.2961)
   }
 
@@ -225,8 +264,8 @@ START_SECTION( void readSpectra(std::vector<MSSpectrum> & exp, const std::vector
     std::vector<int> indices = {0, 1};
     handler.readSpectra(exp, indices, false);
     TEST_EQUAL(exp.size(), 2)
-    TEST_NOT_EQUAL(exp[0].size(), 0)
-    TEST_NOT_EQUAL(exp[1].size(), 0)
+    TEST_EQUAL(exp[0].size(), 19914)
+    TEST_EQUAL(exp[1].size(), 19800)
     TEST_REAL_SIMILAR(exp[0].getRT(), 0.2961)
     TEST_REAL_SIMILAR(exp[1].getRT(), 0.4738)
   }
@@ -301,6 +340,20 @@ START_SECTION(std::vector<size_t> getSpectraIndicesbyRT(double RT, double deltaR
     TEST_EQUAL(res.size(), 2)
     TEST_EQUAL(res[0], 0)
     TEST_EQUAL(res[1], 1)
+  }
+
+  {
+    std::vector<int> indices = {1};
+    auto res = handler.getSpectraIndicesbyRT(0.296, 1.1, indices);
+    TEST_EQUAL(res.size(), 1)
+    TEST_EQUAL(res[0], 1)
+  }
+
+  {
+    std::vector<int> indices = {0};
+    auto res = handler.getSpectraIndicesbyRT(0.296, 1.1, indices);
+    TEST_EQUAL(res.size(), 1)
+    TEST_EQUAL(res[0], 0)
   }
 
   {
@@ -392,65 +445,16 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
   TEST_EQUAL(exp.getNrChromatograms(), 1)
   TEST_EQUAL(exp.getSpectrum(0) == exp2.getSpectra()[0], false) // no exact duplicate
 
-  cout.precision(17);
-
-  // Logic of comparison: if the absolute difference criterion is fulfilled,
-  // the relative one does not matter. If the absolute difference is larger
-  // than allowed, the test does not fail if the relative difference is less
-  // than allowed.
-  // Note that the sample spectrum intensity has a very large range, from
-  // 0.00013 to 183 838 intensity and encoding both values with high accuracy
-  // is difficult.
-  TOLERANCE_ABSOLUTE(1e-4)
-  TOLERANCE_RELATIVE(1.001) // 0.1 % error for intensity 
-
-  for (Size i = 0; i < exp.getNrSpectra(); i++)
-  {
-    TEST_EQUAL(exp.getSpectrum(i).size(), exp2.getSpectra()[i].size())
-    for (Size k = 0; k < exp.getSpectrum(i).size(); k++)
-    {
-      // slof is no good for values smaller than 5
-      // if (exp.getSpectrum(i)[k].getIntensity() < 1.0) {continue;} 
-      TEST_REAL_SIMILAR(exp.getSpectrum(i)[k].getIntensity(), exp2.getSpectra()[i][k].getIntensity())
-    }
-  }
-
-  for (Size i = 0; i < exp.getNrChromatograms(); i++)
-  {
-    TEST_EQUAL(exp.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
-    for (Size k = 0; k < exp.getChromatogram(i).size(); k++)
-    {
-      TEST_REAL_SIMILAR(exp.getChromatogram(i)[k].getIntensity(), exp2.getChromatograms()[i][k].getIntensity())
-    }
-  }
-
-  TOLERANCE_ABSOLUTE(1e-5)
-  TOLERANCE_RELATIVE(1.000001) // less than 1ppm error for m/z 
-  for (Size i = 0; i < exp.getNrSpectra(); i++)
-  {
-    TEST_EQUAL(exp.getSpectrum(i).size(), exp2.getSpectra()[i].size())
-    for (Size k = 0; k < exp.getSpectrum(i).size(); k++)
-    {
-      TEST_REAL_SIMILAR(exp.getSpectrum(i)[k].getMZ(), exp2.getSpectra()[i][k].getMZ())
-    }
-
-  }
-  TOLERANCE_ABSOLUTE(0.05) // max 0.05 seconds error in RT
-  for (Size i = 0; i < exp.getNrChromatograms(); i++)
-  {
-    TEST_EQUAL(exp.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
-    for (Size k = 0; k < exp.getChromatogram(i).size(); k++)
-    {
-      TEST_REAL_SIMILAR(exp.getChromatogram(i)[k].getRT(), exp2.getChromatograms()[i][k].getRT())
-    }
-  }
+  cmpDataIntensity(exp, exp, 1e-4, 1.001); 
+  cmpDataMZ(exp, exp, 1e-5, 1.000001); // less than 1ppm error for m/z 
+  cmpDataRT(exp, exp, 0.05, 1.000001); // max 0.05 seconds error in RT
 
   // 1:1 mapping of experimental settings ...
   TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
 }
 END_SECTION
 
-START_SECTION(void MzMLSqliteHandler::writeSpectra(const std::vector<MSSpectrum>& spectra))
+START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
 {
   MSExperiment exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp_orig);
@@ -542,7 +546,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
     TEST_EQUAL(handler.getNrChromatograms(), 1)
   }
 
-  // now test with numpress
+  // now test with numpress (accuracy is lower)
   TOLERANCE_RELATIVE(1+2e-4)
   // delete file if present
   file.remove();
