@@ -73,7 +73,8 @@ namespace OpenMS
     String integerConcatenateHelper(const std::vector<int> & indices)
     {
       String tmp;
-      tmp.reserve( int(log10(indices.size())+2) * indices.size() ); // each element has a size of the "," character plus n digits in base10 
+      // each element has a size of the "," character plus n digits in base10 
+      tmp.reserve( int(log10(indices.size())+2) * indices.size() );
       for (Size k = 0; k < indices.size(); k++)
       {
         tmp += String(indices[k]) + ",";
@@ -185,7 +186,7 @@ namespace OpenMS
           // intensity
           if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (typename ContainerT::iterator it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
+          for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
             it->setIntensity(*data_it);
           }
@@ -202,7 +203,7 @@ namespace OpenMS
 
           if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (typename ContainerT::iterator it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
+          for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
             it->setMZ(*data_it);
           }
@@ -218,7 +219,7 @@ namespace OpenMS
           }
           if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (typename ContainerT::iterator it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
+          for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
             it->setMZ(*data_it);
           }
@@ -238,7 +239,8 @@ namespace OpenMS
       {
         if (cont_data[k] < 2)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Spectrum/Chromatogram ") + k + " does not have 2 data arrays.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              String("Spectrum/Chromatogram ") + k + " does not have 2 data arrays.");
         }
       }
     }
@@ -284,7 +286,8 @@ namespace OpenMS
         {
           if (nr_results > 0)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "More than one run found, cannot read both into memory");
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "More than one run found, cannot read both into memory");
           }
 
           const void * raw_text = sqlite3_column_blob(stmt, 3);
@@ -312,13 +315,17 @@ namespace OpenMS
         // free memory
         sqlite3_finalize(stmt);
 
-        if (nr_results == 0) {LOG_WARN << "Warning: no meta data found, fall back to inference from SQL data structures." << std::endl;}
+        if (nr_results == 0)
+        {
+          LOG_WARN << "Warning: no meta data found, fall back to inference from SQL data structures." << std::endl;
+        }
       }
 
       bool exp_empty = (exp.getNrChromatograms() == 0 && exp.getNrSpectra() == 0);
       if (!write_full_meta_ || nr_results == 0 || exp_empty)
       {
-        // creates the spectra and chromatograms but does not fill them with data (provides option to return meta-data only)
+        // creates the spectra and chromatograms but does not fill them with
+        // data (provides option to return meta-data only)
         std::vector<MSChromatogram> chromatograms;
         std::vector<MSSpectrum> spectra;
         prepareChroms_(db, chromatograms);
@@ -347,7 +354,8 @@ namespace OpenMS
       if (indices.size() != exp.size())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-            String("Illegal spectral indices detected ") + integerConcatenateHelper(indices) + " for file of size " + getNrSpectra());
+            String("Illegal spectral indices detected ") + integerConcatenateHelper(indices) + \
+            " for file of size " + getNrSpectra());
       }
 
       if (meta_only)
@@ -358,7 +366,9 @@ namespace OpenMS
       populateSpectraWithData_(conn.getDB(), exp, indices);
     }
 
-    void MzMLSqliteHandler::readChromatograms(std::vector<MSChromatogram> & exp, const std::vector<int> & indices, bool meta_only) const
+    void MzMLSqliteHandler::readChromatograms(std::vector<MSChromatogram> & exp,
+                                              const std::vector<int> & indices,
+                                              bool meta_only) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index")
 
@@ -369,7 +379,8 @@ namespace OpenMS
       if (indices.size() != exp.size())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-            String("Illegal chromatogram indices detected ") + integerConcatenateHelper(indices) + " for file of size " + getNrChromatograms());
+            String("Illegal chromatogram indices detected ") + integerConcatenateHelper(indices) + \
+            " for file of size " + getNrChromatograms());
       }
 
       if (meta_only)
@@ -394,7 +405,9 @@ namespace OpenMS
       return (Size)ret;
     }
 
-    std::vector<size_t> MzMLSqliteHandler::getSpectraIndicesbyRT(double RT, double deltaRT, const std::vector<int> & indices) const
+    std::vector<size_t> MzMLSqliteHandler::getSpectraIndicesbyRT(double RT,
+                                                                 double deltaRT,
+                                                                 const std::vector<int> & indices) const
     {
       // this is necessary for some applications such as the m/z correction
       SqliteConnector conn(filename_);
@@ -472,7 +485,9 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices) const
+    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db,
+                                                           std::vector<MSChromatogram>& chromatograms,
+                                                           const std::vector<int> & indices) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == chromatograms.size(), "Chromatograms and indices need to have the same length.")
@@ -515,7 +530,9 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const
+    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db,
+                                                     std::vector<MSSpectrum>& spectra,
+                                                     const std::vector<int> & indices) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == spectra.size(), "Spectra and indices need to have the same length.")
@@ -538,7 +555,9 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices) const
+    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db,
+                                           std::vector<MSChromatogram>& chromatograms,
+                                           const std::vector<int> & indices) const
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -623,7 +642,9 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const
+    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db,
+                                            std::vector<MSSpectrum>& spectra,
+                                            const std::vector<int> & indices) const
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -995,8 +1016,14 @@ namespace OpenMS
 
         if (!spec.getPrecursors().empty())
         {
-          if (spec.getPrecursors().size() > 1) std::cout << "WARNING cannot store more than first precursor" << std::endl;
-          if (spec.getPrecursors()[0].getActivationMethods().size() > 1) std::cout << "WARNING cannot store more than one activation method" << std::endl;
+          if (spec.getPrecursors().size() > 1)
+          {
+            std::cout << "WARNING cannot store more than first precursor" << std::endl;
+          }
+          if (spec.getPrecursors()[0].getActivationMethods().size() > 1)
+          {
+            std::cout << "WARNING cannot store more than one activation method" << std::endl;
+          }
 
           OpenMS::Precursor prec = spec.getPrecursors()[0];
           // see src/openms/include/OpenMS/METADATA/Precursor.h for activation modes
@@ -1009,7 +1036,9 @@ namespace OpenMS
           if (prec.metaValueExists("peptide_sequence"))
           {
             pepseq = prec.getMetaValue("peptide_sequence");
-            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
+            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " <<
+                "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, 
+                "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
               spec_id_ << "," << prec.getCharge() << "," << prec.getMZ() <<
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
               "," << prec.getDriftTime() << 
@@ -1018,7 +1047,8 @@ namespace OpenMS
           }
           else
           {
-            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD) VALUES (" << 
+            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " << "
+              "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD) VALUES (" <<
               spec_id_ << "," << prec.getCharge() << "," << prec.getMZ() << 
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() << 
               "," << prec.getDriftTime() <<
@@ -1030,9 +1060,13 @@ namespace OpenMS
 
         if (!spec.getProducts().empty())
         {
-          if (spec.getProducts().size() > 1) std::cout << "WARNING cannot store more than first product" << std::endl;
+          if (spec.getProducts().size() > 1)
+          {
+            std::cout << "WARNING cannot store more than first product" << std::endl;
+          }
           OpenMS::Product prod = spec.getProducts()[0];
-          insert_product_sql << "INSERT INTO PRODUCT (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
+          insert_product_sql << "INSERT INTO PRODUCT (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " << 
+            "ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
             spec_id_ << "," << 0 << "," << prod.getMZ() << 
             "," << prod.getIsolationWindowLowerOffset() << "," << prod.getIsolationWindowUpperOffset() << "); ";
           nr_products++;
@@ -1205,7 +1239,9 @@ namespace OpenMS
         if (prec.metaValueExists("peptide_sequence"))
         {
           pepseq = prec.getMetaValue("peptide_sequence");
-          insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
+          insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " <<
+            "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " << 
+            "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
             chrom_id_ << "," << prec.getCharge() << "," << prec.getMZ() << 
             "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
             "," << prec.getDriftTime() << 
@@ -1214,7 +1250,8 @@ namespace OpenMS
         }
         else
         {
-          insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD) VALUES (" << 
+          insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " << 
+            "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD) VALUES (" << 
             chrom_id_ << "," << prec.getCharge() << "," << prec.getMZ() << 
             "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
             "," << prec.getDriftTime() << 
@@ -1223,7 +1260,8 @@ namespace OpenMS
         }
 
         OpenMS::Product prod = chrom.getProduct();
-        insert_product_sql << "INSERT INTO PRODUCT (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
+        insert_product_sql << "INSERT INTO PRODUCT (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " << 
+          "ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
           chrom_id_ << "," << 0 << "," << prod.getMZ() << 
           "," << prod.getIsolationWindowLowerOffset() << "," << prod.getIsolationWindowUpperOffset() << "); ";
 

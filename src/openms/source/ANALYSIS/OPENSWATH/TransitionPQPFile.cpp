@@ -129,9 +129,17 @@ namespace OpenMS
                   "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID " \
                   "INNER JOIN " \
-                  "(SELECT PEPTIDE_ID, GROUP_CONCAT(PROTEIN_ACCESSION,';') AS PROTEIN_ACCESSION FROM PROTEIN INNER JOIN PEPTIDE_PROTEIN_MAPPING ON PROTEIN.ID = PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID GROUP BY PEPTIDE_ID) AS PROTEIN_AGGREGATED ON PEPTIDE.ID = PROTEIN_AGGREGATED.PEPTIDE_ID " \
+                    "(SELECT PEPTIDE_ID, GROUP_CONCAT(PROTEIN_ACCESSION,';') AS PROTEIN_ACCESSION " \
+                    "FROM PROTEIN " \
+                    "INNER JOIN PEPTIDE_PROTEIN_MAPPING ON PROTEIN.ID = PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID "\
+                    "GROUP BY PEPTIDE_ID) " \
+                    "AS PROTEIN_AGGREGATED ON PEPTIDE.ID = PROTEIN_AGGREGATED.PEPTIDE_ID " \
                   "LEFT OUTER JOIN " \
-                  "(SELECT TRANSITION_ID, GROUP_CONCAT(MODIFIED_SEQUENCE,'|') AS PEPTIDOFORMS FROM TRANSITION_PEPTIDE_MAPPING INNER JOIN PEPTIDE ON TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID GROUP BY TRANSITION_ID) AS PEPTIDE_AGGREGATED ON TRANSITION.ID = PEPTIDE_AGGREGATED.TRANSITION_ID ";
+                    "(SELECT TRANSITION_ID, GROUP_CONCAT(MODIFIED_SEQUENCE,'|') AS PEPTIDOFORMS " \
+                    "FROM TRANSITION_PEPTIDE_MAPPING "\
+                    "INNER JOIN PEPTIDE ON TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID "\
+                    "GROUP BY TRANSITION_ID) "\
+                    "AS PEPTIDE_AGGREGATED ON TRANSITION.ID = PEPTIDE_AGGREGATED.TRANSITION_ID ";
 
     // Get compounds
     select_sql += "UNION SELECT " \
@@ -214,7 +222,8 @@ namespace OpenMS
       {
         String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 27 ))).split('|', mytransition.peptidoforms);
       }
-      if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 28); // optional attributes only present in newer file versions
+      // optional attributes only present in newer file versions
+      if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 28);
 
       transition_list.push_back(mytransition);
       sqlite3_step( stmt );
@@ -359,7 +368,8 @@ namespace OpenMS
       TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
       transitions.push_back(transition);
 
-      std::copy( transition.peptidoforms.begin(), transition.peptidoforms.end(), std::inserter( peptide_vec, peptide_vec.end() ) );
+      std::copy( transition.peptidoforms.begin(), transition.peptidoforms.end(),
+          std::inserter( peptide_vec, peptide_vec.end() ) );
 
       int group_set_index = group_map[transition.group_id];
 
@@ -405,11 +415,13 @@ namespace OpenMS
       // IPF: Generate transition-peptide mapping tables (one identification transition can map to multiple peptidoforms)
       for (Size j = 0; j < transition.peptidoforms.size(); j++)
       {
-        insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" << i << "," << peptide_map[transition.peptidoforms[j]] << "); ";
+        insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" <<
+          i << "," << peptide_map[transition.peptidoforms[j]] << "); ";
       }
 
       // OpenSWATH: Associate transitions with their precursors
-      insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" << i << "," << group_map[transition.group_id] << "); ";
+      insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" <<
+        i << "," << group_map[transition.group_id] << "); ";
 
       std::string transition_charge = "NULL"; // workaround for compounds with missing charge
       if (transition.fragment_charge != "NA")
@@ -534,11 +546,20 @@ namespace OpenMS
     // OpenSWATH: Prepare decoy updates
     std::stringstream update_decoys_sql;
     // Peptides
-    update_decoys_sql << "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN (SELECT PEPTIDE.ID FROM PRECURSOR JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID =  PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID WHERE PRECURSOR.DECOY = 1); ";
+    update_decoys_sql << "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN " <<
+      "(SELECT PEPTIDE.ID FROM PRECURSOR " <<
+      "JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " <<
+      "JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID WHERE PRECURSOR.DECOY = 1); ";
     // Compounds
-    update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN (SELECT COMPOUND.ID FROM PRECURSOR JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID =  PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
+    update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN " <<
+      "(SELECT COMPOUND.ID FROM PRECURSOR " <<
+      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " << 
+      "JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
     // Proteins
-    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN (SELECT PROTEIN.ID FROM PEPTIDE JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID =  PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
+    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " << 
+      "(SELECT PROTEIN.ID FROM PEPTIDE " <<
+      " JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
+      "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
 
     conn.executeStatement("BEGIN TRANSACTION");
 
@@ -570,14 +591,18 @@ namespace OpenMS
     writePQPOutput_(filename, targeted_exp);
   }
 
-  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id)
+  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename,
+                                                         OpenMS::TargetedExperiment& targeted_exp,
+                                                         bool legacy_traml_id)
   {
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
-  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id)
+  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename,
+                                                         OpenSwath::LightTargetedExperiment& targeted_exp,
+                                                         bool legacy_traml_id)
   {
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);

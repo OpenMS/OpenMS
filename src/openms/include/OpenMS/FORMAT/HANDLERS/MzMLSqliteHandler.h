@@ -154,7 +154,7 @@ public:
           @brief Get spectral indices around a specific retention time
 
           @param RT The retention time
-          @param deltaRT Tolerance window around RT (if less or equal than zero, the first spectrum *after* RT is returned)
+          @param deltaRT Tolerance window around RT (if less or equal than zero, only the first spectrum *after* RT is returned)
           @param indices Spectra to consider (if empty, all spectra are considered)
           @return The indices of the spectra within RT +/- deltaRT
       */
