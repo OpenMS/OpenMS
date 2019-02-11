@@ -16,6 +16,8 @@ set(sources_list
   MRMFeatureFinderScoring.cpp
   MRMFeaturePicker.cpp
   MRMFeatureQC.cpp
+  MRMBatchFeatureSelector.cpp
+  MRMFeatureSelector.cpp
   MRMIonSeries.cpp
   MRMRTNormalizer.cpp
   MRMTransitionGroupPicker.cpp

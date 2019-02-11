@@ -67,6 +67,7 @@ QcMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp
+SqliteConnector.cpp
 SqMassFile.cpp
 SwathFile.cpp
 SVOutStream.cpp
