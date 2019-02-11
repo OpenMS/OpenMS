@@ -54,6 +54,8 @@
 #include <omp.h>
 #endif
 
+#include <cmath>
+
 namespace OpenMS
 {
 
@@ -61,6 +63,24 @@ namespace OpenMS
   {
 
     namespace Sql = Internal::SqliteHelper;
+
+    /*
+     * @brief Helper function to concatenate integers with ","
+     *
+     * @param The integers to concatenate
+     * 
+     */
+    String integerConcatenateHelper(const std::vector<int> & indices)
+    {
+      String tmp;
+      tmp.reserve( int(log10(indices.size())+2) * indices.size() ); // each element has a size of the "," character plus n digits in base10 
+      for (Size k = 0; k < indices.size(); k++)
+      {
+        tmp += String(indices[k]) + ",";
+      }
+      tmp.resize(tmp.size() - 1); // remove last ","
+      return tmp;
+    }
 
     /*
      *
@@ -223,17 +243,6 @@ namespace OpenMS
       }
     }
 
-    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
-    {
-      int i;
-      for (i=0; i<argc; i++)
-      {
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-      }
-      printf("\n");
-      return(0);
-    }
-
     // the cost for initialization and copy should be minimal
     //  - a single C string is created
     //  - two ints
@@ -331,50 +340,44 @@ namespace OpenMS
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index")
 
+      // creates the spectra but does not fill them with data (provides option
+      // to return meta-data only)
       SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
-
-      // creates the spectra but does not fill them with data (provides option to return meta-data only)
-      std::vector<MSSpectrum> spectra;
-      prepareSpectra_(db, spectra);
-      for (Size k = 0; k < indices.size(); k++)
+      prepareSpectra_(conn.getDB(), exp, indices);
+      if (indices.size() != exp.size())
       {
-        if (indices[k] >= (int)spectra.size())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              String("Illegal spectrum index ") + indices[k] + " for file of size " + spectra.size());
-        }
-        exp.push_back(spectra[indices[k]]); // TODO make more efficient
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            String("Illegal spectral indices detected ") + integerConcatenateHelper(indices) + " for file of size " + getNrSpectra());
       }
 
-      if (meta_only) {return;}
+      if (meta_only)
+      {
+        return;
+      }
 
-      populateSpectraWithData_(db, exp, indices);
+      populateSpectraWithData_(conn.getDB(), exp, indices);
     }
 
     void MzMLSqliteHandler::readChromatograms(std::vector<MSChromatogram> & exp, const std::vector<int> & indices, bool meta_only) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index")
 
+      // creates the chromatograms but does not fill them with data (provides
+      // option to return meta-data only)
       SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
-
-      // creates the spectra but does not fill them with data (provides option to return meta-data only)
-      std::vector<MSChromatogram> chroms;
-      prepareChroms_(db, chroms);
-
-      for (Size k = 0; k < indices.size(); k++)
+      prepareChroms_(conn.getDB(), exp, indices);
+      if (indices.size() != exp.size())
       {
-        if (indices[k] >= (int)chroms.size())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              String("Illegal chromatogram index ") + indices[k] + " for file of size " + chroms.size());
-        }
-        exp.push_back(chroms[indices[k]]); // TODO make more efficient
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            String("Illegal chromatogram indices detected ") + integerConcatenateHelper(indices) + " for file of size " + getNrChromatograms());
       }
-      if (meta_only) {return;}
 
-      populateChromatogramsWithData_(db, exp, indices);
+      if (meta_only)
+      {
+        return;
+      }
+
+      populateChromatogramsWithData_(conn.getDB(), exp, indices);
     }
 
     Size MzMLSqliteHandler::getNrSpectra() const
@@ -396,44 +399,38 @@ namespace OpenMS
       // this is necessary for some applications such as the m/z correction
       SqliteConnector conn(filename_);
 
-      std::vector<size_t> result;
-      std::string select_sql;
-
-      select_sql = "SELECT " \
-                   "SPECTRUM.ID as spec_id " \
-                   "FROM SPECTRUM ";
+      String select_sql = "SELECT " \
+                          "SPECTRUM.ID as spec_id " \
+                          "FROM SPECTRUM ";
 
       if (deltaRT > 0.0)
       {
-        select_sql += "WHERE RETENTION_TIME BETWEEN ";
-        select_sql += String(RT - deltaRT) + " AND " + String(RT + deltaRT) + " ";
+        select_sql += " WHERE RETENTION_TIME BETWEEN " + String(RT - deltaRT) + " AND " + String(RT + deltaRT);
       }
       else
       {
-        select_sql += "WHERE RETENTION_TIME >= ";
-        select_sql += String(RT) + " ";
+        select_sql += " WHERE RETENTION_TIME >= " + String(RT);
       }
 
+      // restrict by a given set of indices
       if (!indices.empty())
       {
-        select_sql += String(" AND SPECTRUM.ID IN (");
-        for (Size k = 0; k < indices.size()-1; k++)
-        {
-          select_sql += String(indices[k]) + ",";
-        }
-        select_sql += String(indices[indices.size()-1]) + ") ";
+        select_sql += " AND SPECTRUM.ID IN (" + integerConcatenateHelper(indices) + ")";
       }
 
       if (deltaRT <= 0.0) {select_sql += " LIMIT 1";} // only take the first spectrum larger than RT
-      select_sql += ";";
+      select_sql += " ;";
 
+      // Execute SQL statement
       sqlite3_stmt * stmt;
       conn.executePreparedStatement(&stmt, select_sql);
       sqlite3_step(stmt);
+
+      std::vector<size_t> result;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         result.push_back( sqlite3_column_int(stmt, 0) );
-        sqlite3_step( stmt );
+        sqlite3_step(stmt);
       }
       sqlite3_finalize(stmt);
       
@@ -480,23 +477,16 @@ namespace OpenMS
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == chromatograms.size(), "Chromatograms and indices need to have the same length.")
 
-      std::string select_sql;
-
-      select_sql = "SELECT " \
-                    "CHROMATOGRAM.ID as chrom_id," \
-                    "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
-                    "DATA.COMPRESSION as data_compression," \
-                    "DATA.DATA_TYPE as data_type," \
-                    "DATA.DATA as binary_data " \
-                    "FROM CHROMATOGRAM " \
-                    "INNER JOIN DATA ON CHROMATOGRAM.ID = DATA.CHROMATOGRAM_ID " \
-                    "WHERE CHROMATOGRAM.ID IN (";
-
-      for (Size k = 0; k < indices.size()-1; k++)
-      {
-        select_sql += String(indices[k]) + ",";
-      }
-      select_sql += String(indices[indices.size()-1]) + ");";
+      String select_sql = "SELECT " \
+                          "CHROMATOGRAM.ID as chrom_id," \
+                          "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
+                          "DATA.COMPRESSION as data_compression," \
+                          "DATA.DATA_TYPE as data_type," \
+                          "DATA.DATA as binary_data " \
+                          "FROM CHROMATOGRAM " \
+                          "INNER JOIN DATA ON CHROMATOGRAM.ID = DATA.CHROMATOGRAM_ID " \
+                          "WHERE CHROMATOGRAM.ID IN (";
+      select_sql += integerConcatenateHelper(indices) + ");";
 
       // Execute SQL statement
       sqlite3_stmt * stmt;
@@ -530,23 +520,16 @@ namespace OpenMS
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == spectra.size(), "Spectra and indices need to have the same length.")
 
-      std::string select_sql;
-
-      select_sql = "SELECT " \
-                    "SPECTRUM.ID as spec_id," \
-                    "SPECTRUM.NATIVE_ID as spec_native_id," \
-                    "DATA.COMPRESSION as data_compression," \
-                    "DATA.DATA_TYPE as data_type," \
-                    "DATA.DATA as binary_data " \
-                    "FROM SPECTRUM " \
-                    "INNER JOIN DATA ON SPECTRUM.ID = DATA.SPECTRUM_ID " \
-                    "WHERE SPECTRUM.ID IN (";
-
-      for (Size k = 0; k < indices.size()-1; k++)
-      {
-        select_sql += String(indices[k]) + ",";
-      }
-      select_sql += String(indices[indices.size()-1]) + ");";
+      String select_sql = "SELECT " \
+                          "SPECTRUM.ID as spec_id," \
+                          "SPECTRUM.NATIVE_ID as spec_native_id," \
+                          "DATA.COMPRESSION as data_compression," \
+                          "DATA.DATA_TYPE as data_type," \
+                          "DATA.DATA as binary_data " \
+                          "FROM SPECTRUM " \
+                          "INNER JOIN DATA ON SPECTRUM.ID = DATA.SPECTRUM_ID " \
+                          "WHERE SPECTRUM.ID IN (";
+      select_sql += integerConcatenateHelper(indices) + ");";
 
       // Execute SQL statement
       sqlite3_stmt * stmt;
@@ -555,7 +538,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms) const
+    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices) const
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -579,12 +562,11 @@ namespace OpenMS
                     "INNER JOIN PRODUCT ON CHROMATOGRAM.ID = PRODUCT.CHROMATOGRAM_ID " \
                     ";";
 
-      /// TODO : do we want to support reading a subset of the data (e.g. only chromatograms xx - yy)
-      ///   readChromatograms_(db, stmt, chromatograms);
-      /// }
-
-      /// void readChromatograms_(sqlite3 *db, sqlite3_stmt* stmt, std::vector<MSChromatogram >& chromatograms)
-      /// {
+      if (!indices.empty())
+      {
+        select_sql += String("WHERE CHROMATOGRAM.ID IN (") + integerConcatenateHelper(indices) + ")";
+      }
+      select_sql += ";";
 
       // See https://www.sqlite.org/c3ref/column_blob.html
       // The pointers returned are valid until a type conversion occurs as
@@ -641,7 +623,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra) const
+    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -665,8 +647,13 @@ namespace OpenMS
                     "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
                     "FROM SPECTRUM " \
                     "LEFT JOIN PRECURSOR ON SPECTRUM.ID = PRECURSOR.SPECTRUM_ID " \
-                    "LEFT JOIN PRODUCT ON SPECTRUM.ID = PRODUCT.SPECTRUM_ID " \
-                    ";";
+                    "LEFT JOIN PRODUCT ON SPECTRUM.ID = PRODUCT.SPECTRUM_ID ";
+
+      if (!indices.empty())
+      {
+        select_sql += String("WHERE SPECTRUM.ID IN (") + integerConcatenateHelper(indices) + ")";
+      }
+      select_sql += ";";
 
       // See https://www.sqlite.org/c3ref/column_blob.html
       // The pointers returned are valid until a type conversion occurs as
