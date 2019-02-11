@@ -75,7 +75,7 @@ class AScoreTest : public AScore
     
     double computeCumulativeScoreTest_(Size N, Size n, double p) const
     {
-      return computeCumulativeScore_(N, n, p);
+      return computeCumulativeScore(N, n, p);
     }  
     
     //Size numberOfPhosphoEventsTest_(const String sequence) const;

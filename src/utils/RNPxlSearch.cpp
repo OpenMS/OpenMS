@@ -45,6 +45,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
@@ -79,6 +80,8 @@
 
 #include <map>
 #include <algorithm>
+
+#include <OpenMS/ANALYSIS/ID/AScore.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -1447,13 +1450,13 @@ protected:
      */     
     StringList feature_set;
     feature_set
-       << "isotope_error"
-       << "RNPxl:score"
+//       << "isotope_error"
+//       << "RNPxl:score"
        << "RNPxl:total_loss_score"
        << "RNPxl:modds"
        << "RNPxl:immonium_score"
        << "RNPxl:precursor_score"
-       << "RNPxl:a_ion_score"
+//       << "RNPxl:a_ion_score"
        << "RNPxl:marker_ions_score"
        << "RNPxl:partial_loss_score"
        << "RNPxl:MIC"
@@ -1464,7 +1467,7 @@ protected:
        << "RNPxl:pl_Morph"
        << "RNPxl:pl_modds"
        << "RNPxl:total_MIC"
-       << "RNPxl:RNA_MASS_z0"
+//       << "RNPxl:RNA_MASS_z0"
        << "precursor_intensity_log10";
     if (!purities.empty()) feature_set << "precursor_purity";
 
@@ -1730,6 +1733,8 @@ protected:
       }
     } // free spectra  
 
+    //TODO: precursor correction
+
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
@@ -1801,6 +1806,9 @@ protected:
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(e);
       }
+      // randomize order of targets and decoys to introduce no global 
+      // bias in cases where a target has same score as decoy. (we always take the first best scoring one)
+      std::random_shuffle(fasta_db.begin(), fasta_db.end());
       progresslogger.endProgress();
     }
 
@@ -1941,7 +1949,11 @@ protected:
                 immonium_sub_score_spectrum.getStringDataArrays()[0]);
               immonium_sub_score_spectrum.sortByPosition();
               precursor_ion_sub_score_spectrum_generator.getSpectrum(precursor_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
+              // only generate first 4 a-ions as others are rarely observed
               a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
+              a_ion_sub_score_spectrum.resize(4);
+              a_ion_sub_score_spectrum.getStringDataArrays()[0].resize(4); 
+              a_ion_sub_score_spectrum.getIntegerDataArrays()[0].resize(4); 
             }
 
             if (!fast_scoring_)
@@ -2428,6 +2440,24 @@ protected:
     const Size matched_size,
     const double fragment_mass_tolerance, 
     const bool fragment_mass_tolerance_unit_ppm)
+  {    
+    static AScore a_score_algorithm; 
+    const Size N = theoretical_spec.size();
+
+    if (matched_size < 1 || N < 1) { return 0; }
+
+    // compute p score as e.g. in the AScore implementation or Andromeda
+    const double p = 20.0 / 100.0; // level 20.0 / mz 100.0 (see ThresholdMower)
+    const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore(N, matched_size, p));
+    return pscore;
+  }
+
+/*
+  static double matchOddsScore_(
+    const PeakSpectrum& theoretical_spec, 
+    const Size matched_size,
+    const double fragment_mass_tolerance, 
+    const bool fragment_mass_tolerance_unit_ppm)
   {
     using boost::math::binomial;
     Size theo_size = theoretical_spec.size();
@@ -2461,7 +2491,7 @@ protected:
       return 0;
     }
   }
-
+*/
   // determine main score and sub scores of peaks without shifts
   void scoreTotalLossFragments_(const PeakSpectrum &exp_spectrum,
                                 const PeakSpectrum &total_loss_spectrum,

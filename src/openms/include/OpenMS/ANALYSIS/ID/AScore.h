@@ -90,6 +90,10 @@ namespace OpenMS
     */
     PeptideHit compute(const PeptideHit& hit, PeakSpectrum& real_spectrum);
 
+    /// Computes the cumulative binomial probabilities.
+    double computeCumulativeScore(Size N, Size n, double p) const;
+    
+
   protected:
     int compareMZ_(double mz1, double mz2) const;
     
@@ -167,9 +171,6 @@ namespace OpenMS
     */
     void determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const std::vector<std::vector<Size>>& permutations, std::multimap<double, Size>& ranking) const;
 
-    /// Computes the cumulative binomial probabilities.
-    double computeCumulativeScore_(Size N, Size n, double p) const;
-    
     /// Computes number of phospho events in a sequence
     Size numberOfPhosphoEvents_(const String sequence) const;
     

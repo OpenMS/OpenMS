@@ -168,7 +168,7 @@ namespace OpenMS
         {
           n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[window_idx], s_it->peak_depth);        
         }
-        double P_first = computeCumulativeScore_(N, n_first, p);
+        double P_first = computeCumulativeScore(N, n_first, p);
 
         Size n_second = 0; // number of matching peaks for second peptide
         for (Size window_idx = 0; window_idx <  windows_top10.size(); ++window_idx) //each 100 m/z window
@@ -176,7 +176,7 @@ namespace OpenMS
           n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[window_idx], s_it->peak_depth);        
         }
         Size N2 = site_determining_ions[1].size(); // all possibilities have the same number so take the first one
-        double P_second = computeCumulativeScore_(N2, n_second, p);
+        double P_second = computeCumulativeScore(N2, n_second, p);
 
         //abs is used to avoid -0 score values
         double score_first = abs(-10 * log10(P_first));
@@ -199,7 +199,7 @@ namespace OpenMS
     return phospho;
   }
 
-  double AScore::computeCumulativeScore_(Size N, Size n, double p) const
+  double AScore::computeCumulativeScore(Size N, Size n, double p) const
   {
     OPENMS_PRECONDITION(n <= N, "The number of matched ions (n) can be at most as large as the number of trials (N).");
     OPENMS_PRECONDITION(p >= 0 && p <= 1.0, "p must be a probability [0,1].");
@@ -580,7 +580,7 @@ namespace OpenMS
           n += numberOfMatchedIons_(*it, windows_top10[current_win], i);
         }
         double p = static_cast<double>(i) / 100.0;
-        double cumulative_score = computeCumulativeScore_(N, n, p);
+        double cumulative_score = computeCumulativeScore(N, n, p);
         
         //abs is used to avoid -0 score values
         (*site_score)[i - 1] = abs((-10.0 * log10(cumulative_score)));
