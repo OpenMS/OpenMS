@@ -1037,7 +1037,7 @@ namespace OpenMS
           {
             pepseq = prec.getMetaValue("peptide_sequence");
             insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " <<
-                "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, 
+                "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " << 
                 "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
               spec_id_ << "," << prec.getCharge() << "," << prec.getMZ() <<
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
@@ -1047,7 +1047,7 @@ namespace OpenMS
           }
           else
           {
-            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " << "
+            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " << 
               "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD) VALUES (" <<
               spec_id_ << "," << prec.getCharge() << "," << prec.getMZ() << 
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() << 
