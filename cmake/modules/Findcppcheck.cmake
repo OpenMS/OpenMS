@@ -1,5 +1,5 @@
 # - try to find cppcheck tool
-#
+# 
 # Cache Variables:
 #  CPPCHECK_EXECUTABLE
 #
