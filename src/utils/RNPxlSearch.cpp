@@ -703,6 +703,8 @@ protected:
         new_param.setValue("add_all_precursor_charges", "true");
         new_param.setValue("add_abundant_immonium_ions", "true");
         new_param.setValue("add_losses", "true");
+        new_param.setValue("add_a_ions", "true");
+
         tmp_generator.setParameters(new_param);
         tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
 
@@ -714,7 +716,10 @@ protected:
           total_loss_spectrum.getStringDataArrays()[0]);
         total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
 
-        PeakSpectrum partial_loss_spectrum, partial_loss_template_z1, partial_loss_template_z2, partial_loss_template_z3;
+        PeakSpectrum partial_loss_spectrum, 
+          partial_loss_template_z1, 
+          partial_loss_template_z2, 
+          partial_loss_template_z3;
        
         partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1); 
         partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2); 
@@ -1450,13 +1455,13 @@ protected:
      */     
     StringList feature_set;
     feature_set
-//       << "isotope_error"
-//       << "RNPxl:score"
+       << "isotope_error"
+       << "RNPxl:score"
        << "RNPxl:total_loss_score"
        << "RNPxl:modds"
        << "RNPxl:immonium_score"
        << "RNPxl:precursor_score"
-//       << "RNPxl:a_ion_score"
+       << "RNPxl:a_ion_score"
        << "RNPxl:marker_ions_score"
        << "RNPxl:partial_loss_score"
        << "RNPxl:MIC"
@@ -1467,7 +1472,7 @@ protected:
        << "RNPxl:pl_Morph"
        << "RNPxl:pl_modds"
        << "RNPxl:total_MIC"
-//       << "RNPxl:RNA_MASS_z0"
+       << "RNPxl:RNA_MASS_z0"
        << "precursor_intensity_log10";
     if (!purities.empty()) feature_set << "precursor_purity";
 
@@ -1912,7 +1917,9 @@ protected:
           Size rna_mod_index = 0;
 
           // TODO: track the XL-able nt here
-          for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); rna_mod_it != mm.mod_masses.end(); ++rna_mod_it, ++rna_mod_index)
+          for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); 
+            rna_mod_it != mm.mod_masses.end(); 
+            ++rna_mod_it, ++rna_mod_index)
           {            
             const double precursor_rna_weight = rna_mod_it->second;
             const double current_peptide_mass = current_peptide_mass_without_RNA + precursor_rna_weight; // add RNA mass
@@ -1958,10 +1965,6 @@ protected:
 
             if (!fast_scoring_)
             {
-              PeakSpectrum marker_ions_sub_score_spectrum_z1;
-              //shifted_immonium_ions_sub_score_spectrum;
-              PeakSpectrum partial_loss_spectrum_z1, partial_loss_spectrum_z2;
-
               // retrieve RNA adduct name
               auto mod_combinations_it = mm.mod_combinations.begin();
               std::advance(mod_combinations_it, rna_mod_index);
@@ -2071,12 +2074,19 @@ protected:
                 // Do we have (nucleotide) specific fragmentation adducts? for the current RNA adduct on the precursor?
                 // If so, generate spectra for shifted ion series
 
+
                 // score individually for every nucleotide
                 for (auto const & nuc_2_adducts : feasible_MS2_adducts)
                 {
+                  // determine current nucleotide and associated partial losses
                   const char& cross_linked_nucleotide = nuc_2_adducts.first;
                   const vector<FragmentAdductDefinition_>& partial_loss_modification = nuc_2_adducts.second;
 
+                  PeakSpectrum marker_ions_sub_score_spectrum_z1, 
+                    partial_loss_spectrum_z1, 
+                    partial_loss_spectrum_z2;
+
+                  // nucleotide is associated with certain NA-related fragment losses?
                   if (!partial_loss_modification.empty())
                   {
                     // shifted b- / y- / a-ions
@@ -2087,8 +2097,8 @@ protected:
                                                 precursor_rna_weight,
                                                 1,
                                                 partial_loss_modification,
-					        partial_loss_template_z1,
-					        partial_loss_template_z2,
+					                                      partial_loss_template_z1,
+					                                      partial_loss_template_z2,
                                                 partial_loss_template_z3,
                                                 partial_loss_spectrum_z1);
                     for (auto& n : partial_loss_spectrum_z1.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
@@ -2449,6 +2459,7 @@ protected:
     // compute p score as e.g. in the AScore implementation or Andromeda
     const double p = 20.0 / 100.0; // level 20.0 / mz 100.0 (see ThresholdMower)
     const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore(N, matched_size, p));
+    if (pscore < 0) return 0;
     return pscore;
   }
 
