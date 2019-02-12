@@ -46,13 +46,6 @@
 using namespace std;
 using namespace OpenMS;
 
-#ifdef _OPENMP
-#include <omp.h>
-#define NUMBER_OF_THREADS (omp_get_num_threads())
-#else
-#define NUMBER_OF_THREADS (1)
-#endif
-
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
@@ -165,20 +158,6 @@ protected:
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
   }
 
-  // vector<ResidueModification> getModifications_(StringList modNames)
-  // {
-  //   vector<ResidueModification> modifications;
-  //
-  //   // iterate over modification names and add to vector
-  //   for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
-  //   {
-  //     String modification(*mod_it);
-  //     modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
-  //   }
-  //
-  //   return modifications;
-  // }
-
   ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
@@ -192,6 +171,9 @@ protected:
     const string out_xquest_specxml = getStringOption_("out_xquest_specxml");
     const string out_mzIdentML = getStringOption_("out_mzIdentML");
 
+    LOG_INFO << "Analyzing file: " << endl;
+    LOG_INFO << in_mzml << endl;
+
     // load MS2 map
     PeakMap unprocessed_spectra;
     MzMLFile f;
@@ -200,6 +182,7 @@ protected:
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
+    options.addMSLevel(1);
     f.getOptions() = options;
     f.load(in_mzml, unprocessed_spectra);
 

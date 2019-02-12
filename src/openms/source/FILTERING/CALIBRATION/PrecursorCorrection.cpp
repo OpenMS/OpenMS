@@ -230,7 +230,10 @@ using namespace std;
 
       if (count_error_highest_intenstiy != 0)
       {
-        LOG_WARN << "Error: The method highest_intensity_peak failed " << count_error_highest_intenstiy << "times.";
+        LOG_INFO << "Correction to the highest intensity peak failed " 
+           << count_error_highest_intenstiy 
+           << " times because of missing peaks in the MS1. No changes were applied in these cases." 
+           << std::endl;
       }
 
       return corrected_precursors;

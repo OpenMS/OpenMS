@@ -262,11 +262,16 @@ protected:
       if (keep_chromatograms)
       {
         addDataProcessing_(
-          ffid_algo.getChromatograms(), 
+          ffid_algo.getChromatograms(),
           getProcessingInfo_(DataProcessing::FILTERING));
         MzMLFile().store(chrom_out, ffid_algo.getChromatograms());
         ffid_algo.getChromatograms().clear(true);
       }
+
+      // annotate mzML file
+      StringList feature_msfile_ref;
+      feature_msfile_ref.push_back("file://" + in);
+      features.setPrimaryMSRunPath(feature_msfile_ref);
 
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
     }

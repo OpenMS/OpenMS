@@ -93,6 +93,10 @@ public:
     /** Start the stop watch.
             The stop watch is started. If the stop watch is already running, <b>false</b>
             is returned.
+
+            If the watch holds data from previous measurements, these will be reset before starting up,
+            i.e. it is not possible to resume by start(), stop(), start().
+
             @return bool <b>false</b> if the stop watch was already running, <b>true</b> otherwise
     */
     bool start();

@@ -445,7 +445,7 @@ namespace OpenMS
     group_unassigned_2d_ = new QActionGroup(dm_unassigned_2d_);
     menu = new QMenu(dm_unassigned_2d_);
     StringList options = ListUtils::create<String>(
-      "Don't show,Show by precursor m/z,Show by peptide mass");
+      "Don't show,Show by precursor m/z,Show by peptide mass,Show label meta data");
     for (StringList::iterator opt_it = options.begin(); opt_it != options.end();
          ++opt_it)
     {
@@ -683,8 +683,11 @@ namespace OpenMS
   {
     if (!s.getFloatDataArrays().empty() &&
         (s.getFloatDataArrays()[0].getName() == "Ion Mobility" ||
+         s.getFloatDataArrays()[0].getName().find("Ion Mobility") == 0 ||
          s.getFloatDataArrays()[0].getName() == "ion mobility array" ||
+         s.getFloatDataArrays()[0].getName() == "mean inverse reduced ion mobility array" ||
          s.getFloatDataArrays()[0].getName() == "ion mobility drift time")
+
         )
     {
       return true;
@@ -1804,18 +1807,28 @@ namespace OpenMS
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
       set = true;
     }
     else if (action->text().toStdString() == "Show by precursor m/z")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
       set = true;
     }
     else if (action->text().toStdString() == "Show by peptide mass")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
+      set = true;
+    }
+    else if (action->text().toStdString() == "Show label meta data")
+    {
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, true);
       set = true;
     }
 
@@ -2828,6 +2841,9 @@ namespace OpenMS
 
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
+    // store active sub window
+    QMdiSubWindow* old_active = ws_->activeSubWindow();
+    
     String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid *.bz2 *.gz);;";
     String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d);;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
 
@@ -2848,6 +2864,9 @@ namespace OpenMS
       file_names = dialog.selectedFiles();
     }
 
+    // restore active sub window
+    ws_->setActiveSubWindow(old_active);
+    
     return file_names;
   }
 
@@ -3544,6 +3563,7 @@ namespace OpenMS
     tmpe->sortSpectra();
     tmpe->updateRanges();
     tmpe->setMetaValue("is_ion_mobility", "true");
+    tmpe->setMetaValue("ion_mobility_unit", "ms");
 
     // open new 2D widget
     Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
@@ -3554,6 +3574,12 @@ namespace OpenMS
       return;
     }
     w->xAxis()->setLegend(String("Ion Mobility [ms]"));
+
+    if (im_arr.getName().find("1002815") != std::string::npos)
+    {
+      w->xAxis()->setLegend(String("Ion Mobility [1/K0]"));
+      tmpe->setMetaValue("ion_mobility_unit", "1/K0");
+    }
 
     String caption = layer.name;
     caption += " (Ion Mobility Scan " + String(spidx) + ")";
@@ -3700,7 +3726,15 @@ namespace OpenMS
 
       if (layer.isIonMobilityData())
       {
-        w->canvas()->openglwidget()->setYLabel("Ion Mobility [ms]");
+        // Determine ion mobility unit (default is milliseconds)
+        String unit = "ms";
+        if (exp_sptr->metaValueExists("ion_mobility_unit"))
+        {
+          unit = exp_sptr->getMetaValue("ion_mobility_unit");
+        }
+        String label = "Ion Mobility [" + unit + "]";
+
+        w->canvas()->openglwidget()->setYLabel(label.c_str());
       }
 
       if (!w->canvas()->addLayer(exp_sptr, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))

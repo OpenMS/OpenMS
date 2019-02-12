@@ -56,24 +56,30 @@ namespace OpenMS
     /** @name Constructors
     */
     //@{
-    /// copy constructor
-    DigestionEnzyme(const DigestionEnzyme& enzyme);
+    /// Copy constructor
+    DigestionEnzyme(const DigestionEnzyme&) = default;
 
-    /// detailed constructor
+    /// Move constructor
+    DigestionEnzyme(DigestionEnzyme&&) = default;
+
+    /// Detailed constructor
     explicit DigestionEnzyme(const String& name,
                              const String& cleavage_regex,
                              const std::set<String>& synonyms = std::set<String>(),
                              String regex_description = "");
 
-    /// destructor
+    /// Destructor
     virtual ~DigestionEnzyme();
     //@}
 
     /** @name Assignment
      */
     //@{
-    /// assignment operator
-    DigestionEnzyme& operator=(const DigestionEnzyme& enzyme);
+    /// Assignment operator
+    DigestionEnzyme& operator=(const DigestionEnzyme&) = default;
+
+    /// Move assignment operator
+    DigestionEnzyme& operator=(DigestionEnzyme&&) & = default;
     //@}
 
     /** Accessors
@@ -137,6 +143,7 @@ namespace OpenMS
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzyme& enzyme);
 
   protected:
+
     /// default constructor
     DigestionEnzyme();
 

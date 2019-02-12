@@ -5,6 +5,7 @@ from libcpp cimport bool
 from MSSpectrum cimport *
 from MSExperiment cimport *
 from DataArrays cimport *
+from SimpleTSGXLMS cimport SimplePeak
 
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" namespace "OpenMS":
@@ -23,6 +24,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
                                         Size peptide_min_size,
                                         Int min_precursor_charge,
                                         Int max_precursor_charge,
+                                        libcpp_vector[ size_t ]& discarded_spectra,
                                         bool deisotope,
                                         bool labeled) nogil except +
 
@@ -35,6 +37,13 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
                                             const IntegerDataArray& exp_charges,
                                             FloatDataArray& ppm_error_array,
                                             double intensity_cutoff) nogil except +
+
+        void getSpectrumAlignmentSimple(libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& alignment,
+                                            double fragment_mass_tolerance,
+                                            bool fragment_mass_tolerance_unit_ppm,
+                                            const libcpp_vector[ SimplePeak ]& theo_spectrum,
+                                            const MSSpectrum& exp_spectrum,
+                                            const IntegerDataArray& exp_charges) nogil except +
 
         MSSpectrum deisotopeAndSingleChargeMSSpectrum(MSSpectrum& old_spectrum,
                                                       Int min_charge,

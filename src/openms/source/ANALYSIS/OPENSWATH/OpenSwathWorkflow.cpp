@@ -259,7 +259,7 @@ namespace OpenMS
     SwathMapMassCorrection::correctMZ(trgrmap_final, swath_maps,
         mz_correction_function, mz_extraction_window, ppm);
 
-    // 9. store transformation, using the selected model
+    // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
     Param model_params;
@@ -515,6 +515,7 @@ namespace OpenMS
           }
 
           SignedSize nr_batches = (transition_exp_used_all.getCompounds().size() / batch_size);
+
 #ifdef _OPENMP
 #ifndef DISABLE_NESTED_PARALLELISM
           // If we have a multiple of threads_outer_loop_ here, then use nested
@@ -544,17 +545,16 @@ namespace OpenMS
               current_swath_map_inner = current_swath_map->lightClone();
             }
 #endif
-
 #pragma omp critical (osw_write_stdout)
 #endif
             {
               std::cout << "Thread " <<
 #ifdef _OPENMP
-  #ifndef DISABLE_NESTED_PARALLELISM
+#ifndef DISABLE_NESTED_PARALLELISM
               outer_thread_nr << "_" << omp_get_thread_num() << " " <<
-  #else
+#else
               omp_get_thread_num() << "_0 " <<
-  #endif
+#endif
 #else
               "0" << 
 #endif
@@ -594,9 +594,7 @@ namespace OpenMS
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
             // output file and one output map).
-#ifdef _OPENMP
-#pragma omp critical (osw_write_out)
-#endif
+            #pragma omp critical (osw_write_out)
             {
               writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), featureFile, out_featureFile, store_features, chromConsumer);
             }
@@ -605,10 +603,8 @@ namespace OpenMS
         } // continue 2 (no continue due to OpenMP)
       } // continue 1 (no continue due to OpenMP)
 
-#ifdef _OPENMP
-#pragma omp critical (progress)
-#endif
-        this->setProgress(++progress);
+      #pragma omp critical (progress)
+      this->setProgress(++progress);
 
     }
     this->endProgress();
@@ -725,7 +721,7 @@ namespace OpenMS
     const std::vector< OpenMS::MSChromatogram > & ms2_chromatograms,
     const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
     const std::vector< OpenSwath::SwathMap >& swath_maps,
-    OpenSwath::LightTargetedExperiment& transition_exp,
+    const OpenSwath::LightTargetedExperiment& transition_exp,
     const Param& feature_finder_param,
     TransformationDescription trafo,
     const double rt_extraction_window,

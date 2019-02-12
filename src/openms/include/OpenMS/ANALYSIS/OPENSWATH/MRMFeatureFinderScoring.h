@@ -174,9 +174,9 @@ public:
      * @param trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param swath_map Optional SWATH-MS (DIA) map corresponding from which
-     *                  the chromatograms were extracted. Use empty map if no
-     *                  data is available.
+     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     *                   the chromatograms were extracted. Use empty map if no
+     *                   data is available.
      * @param output The output features with corresponding scores (the found
      *               features will be added to this FeatureMap).
      * @param ms1only Whether to only do MS1 scoring and skip all MS2 scoring
@@ -186,7 +186,7 @@ public:
                          const TransformationDescription & trafo,
                          const std::vector<OpenSwath::SwathMap>& swath_maps,
                          FeatureMap& output,
-                         bool ms1only=false);
+                         bool ms1only = false);
 
     /** @brief Set the flag for strict mapping
     */
@@ -269,9 +269,9 @@ private:
      * @param det_intensity_ratio_score The intensity score of the detection transitions for normalization
      * @param det_mi_ratio_score The MI score of the detection transitions for normalization
      * @param write_log_messages Whether to write signal to noise log messages
-     * @value a struct of type OpenSwath_Scores containing either target or decoy values
+     * @value a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
-    OpenSwath_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
+    OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
                                           OpenSwathScoring& scorer,
                                           const size_t feature_idx,
                                           const std::vector<std::string> & native_ids_detection,

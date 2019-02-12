@@ -192,8 +192,15 @@ macro(install_qt5_libs _qt_components _targetpath _install_component)
       endif()
     else()
       if(EXISTS "${_qt_lib_path}")
+	if (UNIX AND "${_qt_lib_path}" MATCHES ".*\\.[0-9]+\\.[0-9]+\\.[0-9]+$")
+	  string(REGEX REPLACE "\\.[0-9]+\\.[0-9]+$" "" _qt_lib_path_tgt ${_qt_lib_path})
+	else()
+          set(_qt_lib_path_tgt ${_qt_lib_path})
+        endif()
+        get_filename_component(_qt_lib_path_tgt "${_qt_lib_path_tgt}" NAME)
         install(FILES "${_qt_lib_path}"
           DESTINATION "${_targetpath}"
+          RENAME "${_qt_lib_path_tgt}"
           COMPONENT ${_install_component})
       else()
         message(FATAL_ERROR "QT5 lib ${_qt_component} not found at imported location ${_qt_lib_path} for install/package")

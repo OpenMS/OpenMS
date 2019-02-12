@@ -120,7 +120,6 @@ public:
     /// Return a mutable reference to the element whose key is @p key. If an element with the key @p key does not exist, it is inserted.
     T& operator[](const Key& key);
 
-
     inline bool equals(const Map<Key, T>& other) const
     {
       return operator==(

@@ -71,8 +71,8 @@ namespace OpenMS
        */
       struct ProteinProteinCrossLink
       {
-        AASequence alpha; // longer peptide
-        AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
+        const AASequence *alpha = nullptr; // longer peptide
+        const AASequence *beta = nullptr; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
         std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
         double cross_linker_mass = 0;
         String cross_linker_name;
@@ -82,7 +82,7 @@ namespace OpenMS
 
         ProteinProteinCrossLinkType getType() const
         {
-          if (!beta.empty()) return CROSS;
+          if (beta && !beta->empty()) return CROSS;
 
           if (cross_link_position.second == -1) return MONO;
 
@@ -166,6 +166,12 @@ namespace OpenMS
         double ppm_error_abs_sum = 0;
 
         int precursor_correction = 0;
+
+        double precursor_total_intensity = 0;
+        double precursor_target_intensity = 0;
+        double precursor_signal_proportion = 0;
+        Size precursor_target_peak_count = 0;
+        Size precursor_residual_peak_count = 0;
 
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 

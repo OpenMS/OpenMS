@@ -52,48 +52,14 @@ namespace OpenMS
     drift_time_(-1),
     drift_window_low_(0.0),
     drift_window_up_(0.0),
+    drift_time_unit_(Precursor::DriftTimeUnit::NONE),
     charge_(0),
     possible_charge_states_()
   {
   }
 
-  Precursor::Precursor(const Precursor & source) :
-    CVTermList(source),
-    Peak1D(source),
-    activation_methods_(source.activation_methods_),
-    activation_energy_(source.activation_energy_),
-    window_low_(source.window_low_),
-    window_up_(source.window_up_),
-    drift_time_(source.drift_time_),
-    drift_window_low_(source.drift_window_low_),
-    drift_window_up_(source.drift_window_up_),
-    charge_(source.charge_),
-    possible_charge_states_(source.possible_charge_states_)
-  {
-  }
-
   Precursor::~Precursor()
   {
-  }
-
-  Precursor & Precursor::operator=(const Precursor & source)
-  {
-    if (&source == this)
-      return *this;
-
-    CVTermList::operator=(source);
-    Peak1D::operator=(source);
-    activation_methods_ = source.activation_methods_;
-    activation_energy_ = source.activation_energy_;
-    window_low_ = source.window_low_;
-    window_up_ = source.window_up_;
-    drift_time_ = source.drift_time_;
-    drift_window_low_ = source.drift_window_low_;
-    drift_window_up_ = source.drift_window_up_;
-    charge_ = source.charge_;
-    possible_charge_states_ = source.possible_charge_states_;
-
-    return *this;
   }
 
   bool Precursor::operator==(const Precursor & rhs) const
@@ -105,6 +71,7 @@ namespace OpenMS
            drift_time_ == rhs.drift_time_ &&
            drift_window_up_ == rhs.drift_window_up_ &&
            drift_window_low_ == rhs.drift_window_low_ &&
+           drift_time_unit_ == rhs.drift_time_unit_ &&
            charge_ == rhs.charge_ &&
            possible_charge_states_ == rhs.possible_charge_states_ &&
            Peak1D::operator==(rhs) &&
@@ -173,6 +140,16 @@ namespace OpenMS
     drift_time_ = drift_time;
   }
 
+  Precursor::DriftTimeUnit Precursor::getDriftTimeUnit() const
+  {
+    return drift_time_unit_;
+  }
+
+  void Precursor::setDriftTimeUnit(DriftTimeUnit dt)
+  {
+    drift_time_unit_ = dt;
+  }
+
   double Precursor::getDriftTimeWindowLowerOffset() const
   {
     return drift_window_low_;
@@ -222,3 +199,4 @@ namespace OpenMS
   }
 
 }
+
