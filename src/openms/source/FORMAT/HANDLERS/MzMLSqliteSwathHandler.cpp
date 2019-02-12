@@ -108,25 +108,20 @@ namespace OpenMS
       return indices;
     }
 
-    std::vector<int> MzMLSqliteSwathHandler::readSpectraForWindow(OpenSwath::SwathMap swath_map)
+    std::vector<int> MzMLSqliteSwathHandler::readSpectraForWindow(const OpenSwath::SwathMap& swath_map)
     {
       std::vector< int > indices;
-      double center = swath_map.center;
+      const double center = swath_map.center;
 
       SqliteConnector conn(filename_);
       sqlite3_stmt * stmt;
 
-      std::string select_sql;
-      select_sql = "SELECT " \
-                   "SPECTRUM_ID " \
-                   "FROM PRECURSOR " \
-                   "WHERE ISOLATION_TARGET BETWEEN "; 
+      String select_sql = "SELECT " \
+                          "SPECTRUM_ID " \
+                          "FROM PRECURSOR " \
+                          "WHERE ISOLATION_TARGET BETWEEN ";
 
-      select_sql += String(center - 0.01); 
-      select_sql += " AND ";
-      select_sql += String(center + 0.01); 
-      select_sql += ";";
-
+      select_sql += String(center - 0.01) + " AND " + String(center + 0.01) + ";";
       conn.executePreparedStatement(&stmt, select_sql);
       sqlite3_step(stmt);
 

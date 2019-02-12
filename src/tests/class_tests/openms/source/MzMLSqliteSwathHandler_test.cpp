@@ -109,7 +109,7 @@ START_SECTION(std::vector<int> readMS1Spectra())
 }
 END_SECTION
 
-START_SECTION(std::vector<int> readSpectraForWindow(OpenSwath::SwathMap swath_map))
+START_SECTION(std::vector<int> readSpectraForWindow(const OpenSwath::SwathMap& swath_map))
 {
   MzMLSqliteSwathHandler handler(tmp_filename);
 
