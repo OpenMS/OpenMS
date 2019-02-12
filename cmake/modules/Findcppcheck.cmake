@@ -115,7 +115,9 @@ if(CPPCHECK_EXECUTABLE)
 		_cppcheck_set_arg_var(CPPCHECK_POSSIBLEERROR_ARG
 			"--enable=possibleError")
 		_cppcheck_set_arg_var(CPPCHECK_PERFORMANCE_ARG
-  			"--enable=performance")
+			"--enable=performance")
+		_cppcheck_set_arg_var(CPPCHECK_LANG_ARG
+			"--language=c++")
 		_cppcheck_set_arg_var(CPPCHECK_INLINE_SUPPRESSION_ARG "--inline-suppr")
 		_cppcheck_set_arg_var(CPPCHECK_POSSIBLEERROR_ARG "--enable=all")
 
@@ -150,7 +152,7 @@ if(CPPCHECK_EXECUTABLE)
 endif()
 
 set(CPPCHECK_ALL
-	"${CPPCHECK_EXECUTABLE} ${CPPCHECK_POSSIBLEERROR_ARG} ${CPPCHECK_PERFORMANCE_ARG} ${CPPCHECK_UNUSEDFUNC_ARG} ${CPPCHECK_STYLE_ARG} ${CPPCHECK_QUIET_ARG} ${CPPCHECK_INCLUDEPATH_ARG} some/include/path")
+  "${CPPCHECK_EXECUTABLE} ${CPPCHECK_POSSIBLEERROR_ARG} ${CPPCHECK_PERFORMANCE_ARG} ${CPPCHECK_LANG_ARG} ${CPPCHECK_UNUSEDFUNC_ARG} ${CPPCHECK_STYLE_ARG} ${CPPCHECK_QUIET_ARG} ${CPPCHECK_INCLUDEPATH_ARG} some/include/path")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(cppcheck
@@ -161,6 +163,7 @@ find_package_handle_standard_args(cppcheck
 	CPPCHECK_UNUSEDFUNC_ARG
 	CPPCHECK_STYLE_ARG
 	CPPCHECK_PERFORMANCE_ARG
+	CPPCHECK_LANG_ARG
 	CPPCHECK_INLINE_SUPPRESSION_ARG
 	CPPCHECK_INCLUDEPATH_ARG
 	CPPCHECK_QUIET_ARG)
