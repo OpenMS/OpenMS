@@ -601,14 +601,10 @@ namespace OpenMS
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         MSChromatogram chrom;
-
-        // int chrom_id = sqlite3_column_int(stmt, 0);
-        const unsigned char * native_id = sqlite3_column_text(stmt, 1);
-        chrom.setNativeID( std::string(reinterpret_cast<const char*>(native_id), sqlite3_column_bytes(stmt, 1)));
-        String peptide_sequence;
-
         OpenMS::Precursor precursor;
         OpenMS::Product product;
+
+        chrom.setNativeID(String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 1 ))));
         if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 2));
         if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) precursor.setDriftTime(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 4));
@@ -616,9 +612,7 @@ namespace OpenMS
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
         if (sqlite3_column_type(stmt, 7) != SQLITE_NULL) 
         {
-          const unsigned char * pepseq = sqlite3_column_text(stmt, 7);
-          peptide_sequence = std::string(reinterpret_cast<const char*>(pepseq), sqlite3_column_bytes(stmt, 7));
-          precursor.setMetaValue("peptide_sequence", peptide_sequence);
+          precursor.setMetaValue("peptide_sequence", String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 7 ))));
         }
         // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
         if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 9));
@@ -690,16 +684,12 @@ namespace OpenMS
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         MSSpectrum spec;
-
-        const unsigned char * native_id = sqlite3_column_text(stmt, 1);
-        spec.setNativeID( std::string(reinterpret_cast<const char*>(native_id), sqlite3_column_bytes(stmt, 1)));
-        String peptide_sequence;
-
-        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) spec.setMSLevel(sqlite3_column_int(stmt, 2));
-        if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) spec.setRT(sqlite3_column_double(stmt, 3));
-
         OpenMS::Precursor precursor;
         OpenMS::Product product;
+
+        spec.setNativeID(String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1))));
+        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) spec.setMSLevel(sqlite3_column_int(stmt, 2));
+        if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) spec.setRT(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 4));
         if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) precursor.setDriftTime(sqlite3_column_double(stmt, 5));
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 6));
@@ -707,9 +697,7 @@ namespace OpenMS
         if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
         if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) 
         {
-          const unsigned char * pepseq = sqlite3_column_text(stmt, 9);
-          peptide_sequence = std::string(reinterpret_cast<const char*>(pepseq), sqlite3_column_bytes(stmt, 9));
-          precursor.setMetaValue("peptide_sequence", peptide_sequence);
+          precursor.setMetaValue("peptide_sequence", String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 9 ))));
         }
         // if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 10));
         if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 11));
@@ -794,7 +782,7 @@ namespace OpenMS
         std::string encoded_string;
         OpenMS::ZlibCompression::compressString(output, encoded_string);
         data.push_back(encoded_string);
-        // data.push_back(output); // in case you need to debug on the uncompressed string ... 
+        // data.push_back(output); // in case you need to debug on the uncompressed string ...
         conn.executeBindStatement(prepare_statement, data);
       }
     }
@@ -1006,12 +994,12 @@ namespace OpenMS
       {
         const MSSpectrum& spec = spectra[k];
         int polarity = (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE); // 1 = positive
-        insert_spectra_sql << "INSERT INTO SPECTRUM(ID, RUN_ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" << 
-          spec_id_ << "," << 
+        insert_spectra_sql << "INSERT INTO SPECTRUM(ID, RUN_ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" <<
+          spec_id_ << "," <<
           run_id_ << ",'" <<
-          spec.getNativeID() << "'," << 
-          spec.getMSLevel() << "," << 
-          spec.getRT() << "," << 
+          spec.getNativeID() << "'," <<
+          spec.getMSLevel() << "," <<
+          spec.getRT() << "," <<
           polarity << "); ";
 
         if (!spec.getPrecursors().empty())
@@ -1037,7 +1025,7 @@ namespace OpenMS
           {
             pepseq = prec.getMetaValue("peptide_sequence");
             insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " <<
-                "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " << 
+                "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " <<
                 "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
               spec_id_ << "," << prec.getCharge() << "," << prec.getMZ() <<
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<

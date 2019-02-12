@@ -380,7 +380,7 @@ START_SECTION(std::vector<size_t> getSpectraIndicesbyRT(double RT, double deltaR
 
 }
 END_SECTION
-      
+
 START_SECTION(void writeExperiment(const MSExperiment & exp))
 {
   MSExperiment exp_orig;
