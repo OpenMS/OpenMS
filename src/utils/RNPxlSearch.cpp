@@ -112,6 +112,8 @@ public:
   {
   }
 
+  static constexpr double MIN_HYPERSCORE = 0.1; // hit's with lower score than this will be neglected (usually 1 or 0 matches)
+
 protected:
   void registerOptionsAndFlags_() override
   {
@@ -1342,7 +1344,7 @@ protected:
         PeptideIdentification pi;
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setMetaValue("spectrum_reference", spec.getNativeID());
-        pi.setScoreType("hyperscore");
+        pi.setScoreType("RNPxlScore");
         pi.setHigherScoreBetter(true);
         pi.setRT(spec.getRT());
         pi.setMZ(spec.getPrecursors()[0].getMZ());
@@ -2007,8 +2009,8 @@ protected:
                                          precursor_sub_score,
                                          a_ion_sub_score);
 
-                  // bad score, likely wihout any single matching peak
-                  if (total_loss_score < 0.01) { continue; }
+                  // bad score or less then two peaks matching
+                  if (total_loss_score < RNPxlSearch::MIN_HYPERSCORE || tlss_Morph < 2.0) { continue; }
 
                   // add peptide hit
                   AnnotatedHit ah;
@@ -2144,7 +2146,7 @@ protected:
                       plss_err(1.0), 
                       plss_Morph(0), 
                       plss_modds(0), 
-                      score(0);
+                      tlss_score(0);
 
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
                     PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
@@ -2155,7 +2157,7 @@ protected:
                                              a_ion_sub_score_spectrum,
                                              precursor_sub_score_spectrum,
                                              immonium_sub_score_spectrum,
-                                             score,
+                                             tlss_score,
                                              tlss_MIC,
                                              tlss_err,
                                              tlss_Morph,
@@ -2164,8 +2166,8 @@ protected:
                                              precursor_sub_score,
                                              a_ion_sub_score);
 
-                    // bad score, likely wihout any single matching peak
-                    if (score < 0.01) { continue; }
+                    // bad score or less then two peaks matching
+                    if (tlss_score < MIN_HYPERSCORE || tlss_Morph < 2.0) { continue; }
 
                     scorePartialLossFragments_(exp_spectrum,
                                                fragment_mass_tolerance, 
@@ -2179,12 +2181,15 @@ protected:
                                                plss_err, 
                                                plss_Morph,
                                                plss_modds);
+                    
+                    // less then two shifted peaks?
+                    if (plss_Morph < 2.0) { continue; }
 
                     // add peptide hit
                     AnnotatedHit ah;
                     ah.sequence = *cit; // copy StringView
                     ah.peptide_mod_index = mod_pep_idx;
-                    ah.total_loss_score = score;
+                    ah.total_loss_score = tlss_score;
                     ah.MIC = tlss_MIC;
                     ah.err = tlss_err;
                     ah.Morph = tlss_Morph;
@@ -2270,7 +2275,7 @@ protected:
                                          a_ion_sub_score);
 
                 // no good hit
-                if (total_loss_score < 0.01) { continue; }
+                if (total_loss_score < MIN_HYPERSCORE) { continue; }
 
                 // add peptide hit
                 AnnotatedHit ah;
@@ -2528,10 +2533,10 @@ protected:
                                            total_loss_spectrum.getIntegerDataArrays()[0]);
 
     // bad score, likely wihout any single matching peak
-    if (total_loss_score < 0.01) 
+    if (total_loss_score < MIN_HYPERSCORE) 
     { 
       // cap total loss error to a large value
-      float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
+      float ft_da = fragment_mass_tolerance_unit_ppm ? 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0 : 2.0 * fragment_mass_tolerance;
       if (tlss_err > ft_da) tlss_err = ft_da;
       return; 
     }
@@ -2547,8 +2552,10 @@ protected:
                                            total_loss_spectrum.getIntegerDataArrays()[0]);
 
     tlss_MIC = tl_sub_scores.TIC != 0 ? tl_sub_scores.MIC / tl_sub_scores.TIC : 0;
-    tlss_err = tl_sub_scores.err;
     tlss_Morph = tl_sub_scores.score;
+
+    // if we only have 1 or peaks assume some kind of average error to not underestimate the real error to much
+    tlss_err = tlss_Morph > 2 ? tl_sub_scores.err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
     tlss_modds = matchOddsScore_(total_loss_spectrum, 
       (int)tlss_Morph, // = number of matched peaks
       fragment_mass_tolerance, 
@@ -2639,8 +2646,9 @@ protected:
                                                           *pl_spec,
                                                           pl_spec->getIntegerDataArrays()[0]);      
       plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
-      plss_err = pl_sub_scores.err;
       plss_Morph = pl_sub_scores.score;
+      // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
+      plss_err = plss_Morph > 2 ? pl_sub_scores.err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
       plss_modds = matchOddsScore_(*pl_spec, (int)plss_Morph, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
     }
 #ifdef DEBUG_RNPXLSEARCH
@@ -3006,15 +3014,24 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
    if (unmodified_sequence.has('K'))
    {
       const double immonium_ion2_mz = EmpiricalFormula("C5H10N1").getMonoWeight(); 
-      spectrum.emplace_back(immonium_ion2_mz, 1.0);
-      spectrum_charge.emplace_back(1);
-      spectrum_annotation.emplace_back(String("iK(C5H10N1)"));
+      // only add special ios if there is not already a peak
+      if (spectrum.findNearest(immonium_ion2_mz, 1e-4) == -1)
+      {  
+        spectrum.emplace_back(immonium_ion2_mz, 1.0);
+        spectrum_charge.emplace_back(1);
+        spectrum_annotation.emplace_back(String("iK(C5H10N1)"));
+      }
 
       // usually only observed without shift (A. Stuetzer)
       const double immonium_ion3_mz = EmpiricalFormula("C6H13N2O").getMonoWeight(); 
-      spectrum.emplace_back(immonium_ion3_mz, 1.0);
-      spectrum_charge.emplace_back(1);
-      spectrum_annotation.emplace_back(String("iK(C6H13N2O)"));
+      // only add special ios if there is not already a peak
+      if (spectrum.findNearest(immonium_ion3_mz, 1e-4) == -1)
+      {  
+        spectrum.emplace_back(immonium_ion3_mz, 1.0);
+        spectrum_charge.emplace_back(1);
+        spectrum_annotation.emplace_back(String("iK(C6H13N2O)"));
+      }
+
     }
 }
 
@@ -3231,6 +3248,7 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
   }
 
   partial_loss_spectrum.sortByPosition();
+
 }
 
 void RNPxlSearch::RNPxlFragmentIonGenerator::addPrecursorWithCompleteRNA_(
@@ -3245,17 +3263,22 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addPrecursorWithCompleteRNA_(
   const double xl_mz = (fixed_and_variable_modified_peptide_weight + precursor_rna_weight +
                   static_cast<double>(charge) * Constants::PROTON_MASS_U)
                  / static_cast<double>(charge);
-  partial_loss_spectrum.push_back(Peak1D(xl_mz, 1.0));
-  partial_loss_spectrum_charge.push_back(charge);
-  if (charge > 1)
-  {
-    partial_loss_spectrum_annotation.push_back(String("[M+") 
-      + String(charge) + "H+" + precursor_rna_adduct + "]");
-  } 
-  else
-  {
-    partial_loss_spectrum_annotation.push_back(String("[M+H+") + precursor_rna_adduct + "]");
-  }  
+
+  // only add special ions if there is not already a peak
+  if (partial_loss_spectrum.findNearest(xl_mz, 1e-4) == -1)
+  {  
+    partial_loss_spectrum.push_back(Peak1D(xl_mz, 1.0));
+    partial_loss_spectrum_charge.push_back(charge);
+    if (charge > 1)
+    {
+      partial_loss_spectrum_annotation.push_back(String("[M+") 
+        + String(charge) + "H+" + precursor_rna_adduct + "]");
+    } 
+    else
+    {
+      partial_loss_spectrum_annotation.push_back(String("[M+H+") + precursor_rna_adduct + "]");
+    }  
+  }
 }
 
 int main(int argc, const char** argv)

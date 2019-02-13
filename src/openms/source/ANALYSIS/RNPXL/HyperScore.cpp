@@ -177,7 +177,7 @@ namespace OpenMS
       if (std::abs(theo_mz - exp_mz) < max_dist_dalton 
           && exp_z == theo_z)
       {
-        dot_product += exp_spectrum[index].getIntensity() * theo_intensity /* * mass_error */;
+        dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
         if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
         {
