@@ -1073,8 +1073,8 @@ namespace OpenMS
 
       const vector<PeptideEvidence>& pes = id.getHits()[j].getPeptideEvidences();
 
-      os << IdXMLFile::createFlankingAAXMLString_(pes);
-      os << IdXMLFile::createPositionXMLString_(pes);
+      IdXMLFile::createFlankingAAXMLString_(pes, os);
+      IdXMLFile::createPositionXMLString_(pes, os);
 
       String accs;
       for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
