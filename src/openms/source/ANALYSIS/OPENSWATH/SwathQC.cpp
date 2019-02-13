@@ -43,6 +43,7 @@
 #include <nlohmann/json.hpp>
 
 #include <cmath>       // round
+#include <iomanip>     // setw
 
 namespace OpenSwath
 {

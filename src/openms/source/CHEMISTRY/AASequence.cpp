@@ -154,8 +154,8 @@ namespace OpenMS
       // only add to string if not a fixed modification
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), nterm_mod_name) == fixed_modifications.end())
       {
-        double nominal_mass = Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass();
-        if (mod.isUserDefined()) nominal_mass = mod.getDiffMonoMass(); // just get input mass
+        double nominal_mass = mod.getDiffMonoMass(); // just get input mass
+        if (!mod.isUserDefined()) nominal_mass += Residue::getInternalToNTerm().getMonoWeight(); 
         if (integer_mass)
         {
           bs += "n[" + String(static_cast<int>(nominal_mass)) + "]";
@@ -208,8 +208,8 @@ namespace OpenMS
       // only add to string if not a fixed modification
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), cterm_mod_name) == fixed_modifications.end())
       {
-        double nominal_mass = Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass();
-        if (mod.isUserDefined()) nominal_mass = mod.getDiffMonoMass(); // just get input mass
+        double nominal_mass = mod.getDiffMonoMass(); // just get input mass
+        if (!mod.isUserDefined()) nominal_mass += Residue::getInternalToCTerm().getMonoWeight();
         if (integer_mass)
         {
           bs += "c[" + String(static_cast<int>(nominal_mass)) + "]";
