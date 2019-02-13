@@ -108,6 +108,7 @@ public:
         double intensity = .0;
         int chargeDistributionScore = 0;
         double isotopeCosineScore = .0;
+        int massIndex, specIndex;
         MSSpectrum *spec;
 
         void push_back(LogMzPeak & p){
@@ -239,8 +240,6 @@ protected:
             elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
             elapsed_wall_secs = chrono::duration<double>(t_end-t_start).count();
 
-
-
             cout << endl << "-- done [took " << elapsed_cpu_secs << " s (CPU), " <<elapsed_wall_secs << " s (Wall)] --" << endl;
             cout << "-- per spectrum [took " << 1000.0*elapsed_cpu_secs/(specCntr - prevSpecCntr)
                 << " ms (CPU), " << 1000.0*elapsed_wall_secs /(specCntr - prevSpecCntr) << " ms (Wall)] --"  << endl;
@@ -250,7 +249,7 @@ protected:
             cout<< "Writing results ...";
             cout.flush();
             for(auto &pg : peakGroups)
-                writePeakGroup(pg, massCntr, qspecCntr, peakGroups.size(), param, fs, fsm);
+                writePeakGroup(pg, peakGroups.size(), param, fs, fsm);
             // make feature file..
 
             findNominalMassFeatures(peakGroups, featureCntr, fsf, param);
@@ -325,6 +324,8 @@ protected:
             for (auto &pg : peakGroups) {
                 massCntr++;
                 pg.spec = &(*it);
+                pg.massIndex = massCntr;
+                pg.specIndex = qspecCntr;
                 allPeakGroups.push_back(pg);
             }
         }
@@ -412,15 +413,14 @@ protected:
 
 
 
-    void writePeakGroup(PeakGroup &pg, int& massCntr, int& qspecCntr, Size peakGroupSize,
-            Parameter& param, fstream &fs, fstream &fsm){
+    void writePeakGroup(PeakGroup &pg, Size peakGroupSize, Parameter& param, fstream &fs, fstream &fsm){
         double m = pg.monoisotopicMass;
         double intensity = pg.intensity;
         int nm = getNominalMass(m);
 
         fs<<fixed<<setprecision(4);
 
-        fs <<massCntr<<"\t"<<qspecCntr<<"\t"<<param.fileName<<"\t"<<pg.spec->getNativeID()<<"\t"<<peakGroupSize<<"\t"
+        fs <<pg.massIndex<<"\t"<<pg.specIndex<<"\t"<<param.fileName<<"\t"<<pg.spec->getNativeID()<<"\t"<<peakGroupSize<<"\t"
             << m << "\t" << nm<<"\t"<< intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t";
         sort(pg.peaks.begin(), pg.peaks.end());
 
