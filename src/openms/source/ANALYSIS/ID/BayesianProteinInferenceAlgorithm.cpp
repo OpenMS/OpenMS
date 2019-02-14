@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/openms_package_version.h>
 
 #include <set>
 
@@ -779,8 +780,11 @@ namespace OpenMS
 
     //TODO would be better if we set this after inference but only here we currently have
     // non-const access.
+    //TODO if you do peptide rescoring, you could/should actually set the search_engine parameter
+    //TODO add the most important settings of Epifany in SearchParameter metavalues, like PercolatorAdapter.
     proteinIDs[0].setScoreType("Posterior Probability");
-    proteinIDs[0].setSearchEngine("Epifany");
+    proteinIDs[0].setInferenceEngine("Epifany");
+    proteinIDs[0].setInferenceEngineVersion(OPENMS_PACKAGE_VERSION);
     proteinIDs[0].setHigherScoreBetter(true);
 
     // init empty graph

@@ -461,6 +461,8 @@ protected:
   struct OPENMS_DLLAPI MzTabSoftwareMetaData
   {
     MzTabParameter software;
+    //TODO shouldnt settings always consist of the name of the setting
+    // and the value?
     std::map<Size, MzTabString> setting;
   };
 
@@ -769,7 +771,11 @@ public:
  
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename);
 
-    static MzTab exportIdentificationsToMzTab(const std::vector<ProteinIdentification>& prot_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& filename);
+    static MzTab exportIdentificationsToMzTab(
+        const std::vector<ProteinIdentification>& prot_ids,
+        const std::vector<PeptideIdentification>& peptide_ids,
+        const String& filename,
+        bool first_run_inference_only);
 
     // Generate MzTab style list of PTMs from AASequence object. 
     // All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).

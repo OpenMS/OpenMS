@@ -364,6 +364,14 @@ public:
     void setSearchEngineVersion(const String& search_engine_version);
     /// Returns the search engine version
     const String& getSearchEngineVersion() const;
+    /// Sets the inference engine type
+    void setInferenceEngine(const String& search_engine);
+    /// Returns the type of search engine used
+    const String getInferenceEngine() const;
+    /// Sets the search engine version
+    void setInferenceEngineVersion(const String& inference_engine_version);
+    /// Returns the search engine version
+    const String getInferenceEngineVersion() const;
     /// Sets the search parameters
     void setSearchParameters(const SearchParameters& search_parameters);
     /// Returns the search parameters
@@ -380,6 +388,7 @@ public:
     void getPrimaryMSRunPath(StringList& toFill) const;
     /// if this object has inference data
     bool hasInferenceData() const;
+    bool hasInferenceEngineAsSearchEngine() const;
     //@}
 
 protected:

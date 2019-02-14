@@ -117,6 +117,9 @@ protected:
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("mzTab"));
+      registerFlag_("first_run_inference_only", "(idXML/mzid only): Does the first IdentificationRun in the file"
+                                                "only represent inference results? Read peptide information only"
+                                                "from second to last runs.");
     }
 
     ExitCodes main_(int, const char**) override
@@ -174,7 +177,7 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in); 
+        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in, getFlag_("first_run_inference_only"));
       }
 
       // export identification data from mzIdentML
@@ -184,7 +187,7 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         MzIdentMLFile().load(in, prot_ids, pep_ids);
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in); 
+        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in, getFlag_("first_run_inference_only"));
       }
 
       // export quantification data

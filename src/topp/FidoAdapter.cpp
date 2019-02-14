@@ -612,6 +612,10 @@ protected:
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group,
                                 greedy_flag, counter);
+        if (fido_success)
+        {
+          prot_it->setInferenceEngine("Fido");
+        }
       }
     }
     else // merge multiple protein ID runs
@@ -619,6 +623,7 @@ protected:
       ProteinIdentification all_proteins; // one ID run to merge all hits
       // set search engine to Fido since they might disagree for different runs:
       all_proteins.setSearchEngine("Fido");
+      all_proteins.setInferenceEngine("Fido");
 
       // make sure identifiers match (otherwise "IdXMLFile::store" complains):
       all_proteins.setIdentifier("");

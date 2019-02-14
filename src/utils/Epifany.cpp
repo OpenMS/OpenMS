@@ -360,6 +360,7 @@ protected:
              mergedprots[0].getHits().size() << " proteins in " <<
              mergedprots[0].getIndistinguishableProteins().size() <<
              " indist. groups." << std::endl;
+
     idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
     return ExitCodes::EXECUTION_OK;
 

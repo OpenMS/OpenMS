@@ -1113,7 +1113,11 @@ protected:
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
       for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
-      {      
+      {
+        // it is not a real search engine but we set it so that we know that
+        // scores were postprocessed
+        it->setSearchEngine("Percolator");
+        it->setSearchEngineVersion("3.02");
         if (protein_level_fdrs)
         {
           //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
@@ -1125,9 +1129,9 @@ protected:
             {
               hit->setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
               hit->setScore(pr->second.qvalue);
-	      //remove to mark the protein as mapped. We can safely assume that every protein
-	      // only occurs once in Percolator output.
-	      protein_map.erase(pr);
+              //remove to mark the protein as mapped. We can safely assume that every protein
+              // only occurs once in Percolator output.
+              protein_map.erase(pr);
             }
             else
             {
@@ -1135,25 +1139,29 @@ protected:
               hit->setMetaValue("MS:1001493", 1.0);  // same for percolator pep
             }
           }
-          it->setSearchEngine("Percolator");
+          if (protein_level_fdrs)
+          {
+            it->setInferenceEngine("Percolator");
+            it->setInferenceEngineVersion("3.02");
+          }
           it->setScoreType("q-value");
           it->setHigherScoreBetter(false);
           it->sort();
         }
         
-	if (!protein_map.empty())  //there remain unmapped proteins from Percolator
-	{
-	  for (const auto& prot : protein_map)
-	  {
-            if (prot.second.posterior_error_prob < 1.0) //actually present according to Percolator
-	    {
-              LOG_WARN << "Warning: Protein " << prot.first << " reported by Percolator with non-zero probability was"
-		      "not present in the input idXML. Ignoring to keep consistency of the PeptideIndexer settings..";
-	    }
-	  }
-	  // filter groups that might contain these unmapped proteins so we do not get errors while writing our output.
-	  IDFilter::updateProteinGroups(all_protein_ids[0].getIndistinguishableProteins(), all_protein_ids[0].getHits());
-	}
+        if (!protein_map.empty())  //there remain unmapped proteins from Percolator
+        {
+          for (const auto& prot : protein_map)
+          {
+                  if (prot.second.posterior_error_prob < 1.0) //actually present according to Percolator
+            {
+                    LOG_WARN << "Warning: Protein " << prot.first << " reported by Percolator with non-zero probability was"
+                "not present in the input idXML. Ignoring to keep consistency of the PeptideIndexer settings..";
+            }
+          }
+          // filter groups that might contain these unmapped proteins so we do not get errors while writing our output.
+          IDFilter::updateProteinGroups(all_protein_ids[0].getIndistinguishableProteins(), all_protein_ids[0].getHits());
+        }
 
         //TODO add software percolator and PercolatorAdapter
         it->setMetaValue("percolator", "PercolatorAdapter");

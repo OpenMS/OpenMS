@@ -174,16 +174,16 @@ namespace OpenMS
     best_pep.clear();
 
     ProteinIdentification::SearchParameters sp = prot_run.getSearchParameters();
-    prot_run.setSearchEngine("TOPPProteinInference_" + aggMethodString);
-    sp.setMetaValue("use_shared_peptides", use_shared_peptides);
-    sp.setMetaValue("treat_charge_variants_separately", treat_charge_variants_separately);
-    sp.setMetaValue("treat_modification_variants_separately", treat_modification_variants_separately);
+    prot_run.setInferenceEngine("TOPPProteinInference");
+    sp.setMetaValue("TOPPProteinInference:aggregation_method", aggMethodString);
+    sp.setMetaValue("TOPPProteinInference:use_shared_peptides", use_shared_peptides);
+    sp.setMetaValue("TOPPProteinInference:treat_charge_variants_separately", treat_charge_variants_separately);
+    sp.setMetaValue("TOPPProteinInference:treat_modification_variants_separately", treat_modification_variants_separately);
     prot_run.setSearchParameters(sp);
 
     double initScore = 0.0;
     switch (aggregation_method)
     {
-     //TODO for product we have to start at score = 1!
      //TODO for 0 probability peptides we could also multiply a minimum value
      //TODO Why are protein scores just floats???
      case AggregationMethod::PROD :

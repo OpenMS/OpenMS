@@ -377,13 +377,18 @@ namespace OpenMS
   //TODO find a more robust way to figure that out. CV Terms?
   bool ProteinIdentification::hasInferenceData() const
   {
+    return !getInferenceEngine().empty();
+  }
+
+  bool ProteinIdentification::hasInferenceEngineAsSearchEngine() const
+  {
     String se = getSearchEngine();
     return
-    se == "Fido" ||
-    se == "BayesianProteinInference" || // for backwards compat
-    se == "Epifany" ||
-    se == "Percolator" ||
-    se == "ProteinInference";
+        se == "Fido" || // FidoAdapter overwrites when it merges several runs
+        se == "BayesianProteinInference" || // for backwards compat
+        se == "Epifany" ||
+        (se == "Percolator" && !indistinguishable_proteins_.empty()) || // be careful, Percolator could be run with or without protein inference
+        se == "ProteinInference";
   }
 
   // Equality operator
@@ -648,6 +653,42 @@ namespace OpenMS
   ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters()
   {
     return search_parameters_;
+  }
+
+  void ProteinIdentification::setInferenceEngine(const String& inference_engine)
+  {
+    this->setMetaValue("InferenceEngineVersion", inference_engine);
+  }
+
+  const String ProteinIdentification::getInferenceEngine() const
+  {
+    if (this->metaValueExists("InferenceEngine"))
+    {
+      return this->getMetaValue("InferenceEngine");
+    }
+    else if (hasInferenceEngineAsSearchEngine())
+    {
+      return search_engine_;
+    }
+    return "";
+  }
+
+  void ProteinIdentification::setInferenceEngineVersion(const String& search_engine_version)
+  {
+    this->setMetaValue("InferenceEngineVersion", search_engine_version);
+  }
+
+  const String ProteinIdentification::getInferenceEngineVersion() const
+  {
+    if (this->metaValueExists("InferenceEngineVersion"))
+    {
+      return this->getMetaValue("InferenceEngineVersion");
+    }
+    else if (hasInferenceData())
+    {
+      return search_engine_version_;
+    }
+    return "";
   }
 
 } // namespace OpenMS
