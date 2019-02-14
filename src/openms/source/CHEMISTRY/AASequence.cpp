@@ -1111,7 +1111,9 @@ namespace OpenMS
           aas.c_term_mod_ = &(mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM));
           return mod_end;
         }
-        LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+        LOG_WARN << "Warning: unknown C-terminal modification [+delta mass]'" + mod 
+          + "' at residue: '" + residue->getOneLetterCode() 
+          + "' - adding it to the database" << std::endl;
       }
       else // C-terminal mod specified by absolute mass [123.4]
       {
@@ -1124,7 +1126,9 @@ namespace OpenMS
           aas.c_term_mod_ = &(mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM));
           return mod_end;
         }
-        LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+        LOG_WARN << "Warning: unknown C-terminal modification [absolute mass] '" + mod 
+          + "' at residue: '" + residue->getOneLetterCode() 
+          + "' - adding it to the database" << std::endl;
       }
     }
 

@@ -37,6 +37,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+//#define DEBUG_HYPERSCORE 1
+
 using std::vector;
 
 namespace OpenMS
@@ -111,8 +113,11 @@ namespace OpenMS
     const double yFact = logfactorial_(y_ion_count);
     const double bFact = logfactorial_(b_ion_count);
     const double hyperScore = log1p(dot_product) + yFact + bFact;
-      return hyperScore;
-    }
+    #ifdef DEBUG_HYPERSCORE
+      std::cout << "HyperScore/#y/#b: " << hyperScore << "/" << y_ion_count << "/" << b_ion_count << std::endl;
+    #endif
+    return hyperScore;
+  }
 
   double HyperScore::compute(double fragment_mass_tolerance, 
                              bool fragment_mass_tolerance_unit_ppm, 
@@ -170,7 +175,7 @@ namespace OpenMS
       const int theo_z = theo_charges[i];
 
       #ifdef DEBUG_HYPERSCORE
-      if (exp_z != theo_z) std::cout << "exp_z != theo_z " << exp_z << "\t" << theo_z << std::endl;
+        if (exp_z != theo_z) std::cout << "exp_z != theo_z " << exp_z << "\t" << theo_z << std::endl;
       #endif
 
       // found peak match
@@ -199,6 +204,9 @@ namespace OpenMS
     const double yFact = logfactorial_(y_ion_count);
     const double bFact = logfactorial_(b_ion_count);
     const double hyperScore = log1p(dot_product) + yFact + bFact;
+    #ifdef DEBUG_HYPERSCORE
+      std::cout << "HyperScore/#y/#b: " << hyperScore << "/" << y_ion_count << "/" << b_ion_count << std::endl;
+    #endif
     return hyperScore;    
   } 
 

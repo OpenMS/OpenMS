@@ -77,6 +77,8 @@
 
 #include <boost/regex.hpp>
 #include <boost/math/distributions/binomial.hpp>
+#include <boost/math/distributions/normal.hpp>
+
 
 #include <map>
 #include <algorithm>
@@ -328,12 +330,15 @@ protected:
 
   /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
   /// floats need to be initialized to zero as default
-  struct AnnotatedHit
+  class AnnotatedHit
   {
+    public:
     StringView sequence;
     SignedSize peptide_mod_index = 0; // enumeration index of the non-RNA peptide modification
     Size rna_mod_index = 0; // index of the RNA modification
     int isotope_error = 0; // wheter the hit has been matched with isotopic misassignment
+
+    float mass_error_p = 0;
 
     static constexpr const char UNKNOWN_NUCLEOTIDE = '?';
     char cross_linked_nucleotide = UNKNOWN_NUCLEOTIDE;
@@ -384,8 +389,8 @@ protected:
 		+ 0.327 * (  73.64 * ah.precursor_score - 0.821)
 		+ 0.748 * ( 22.014 * ah.marker_ions_score - 0.903)
 		+ 0.746 * (  0.043 * ah.partial_loss_score - 0.472)
-		- 1.788 * (  301.0 * ah.err - 1.771)
-		- 1.292 * (240.825 * ah.pl_err - 1.323)
+/*		- 1.788 * (  301.0 * ah.err - 1.771)
+		- 1.292 * (240.825 * ah.pl_err - 1.323) */
 		+ 2.324 * static_cast<int>(isXL);
 	/* old version
 	return 
@@ -810,7 +815,7 @@ protected:
             #endif
             peak_is_annotated.insert(aligned.second);
 
-            // only allow matching charges (if a fragment charge was assigned)
+            // only allow matching charges
             if (fragment_charge == charge)
             {
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
@@ -1379,6 +1384,7 @@ protected:
           // determine RNA modification from index in map
           std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
           std::advance(mod_combinations_it, ah.rna_mod_index);
+          ph.setMetaValue(String("RNPxl:mass_error_p"), ah.mass_error_p);
           ph.setMetaValue(String("RNPxl:total_loss_score"), ah.total_loss_score);
           ph.setMetaValue(String("RNPxl:immonium_score"), ah.immonium_score);
           ph.setMetaValue(String("RNPxl:precursor_score"), ah.precursor_score);
@@ -1459,6 +1465,7 @@ protected:
     feature_set
        << "isotope_error"
        << "RNPxl:score"
+       << "RNPxl:mass_error_p"
        << "RNPxl:total_loss_score"
        << "RNPxl:modds"
        << "RNPxl:immonium_score"
@@ -1628,6 +1635,13 @@ protected:
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+
+    // true positives: assumed gaussian distribution of mass error
+    // with sigma^2 = precursor_mass_tolerance
+    boost::math::normal gaussian_mass_error(0.0, sqrt(precursor_mass_tolerance));
+    // random: assumed uniform distribution of mass error
+    const float mass_error_prior_negatives = 1.0 / (2.0 * precursor_mass_tolerance);
+
     bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
     IntList precursor_isotopes = getIntList_("precursor:isotopes");
 
@@ -2012,8 +2026,12 @@ protected:
                   // bad score or less then two peaks matching
                   if (total_loss_score < RNPxlSearch::MIN_HYPERSCORE || tlss_Morph < 2.0) { continue; }
 
+                  const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
+                  const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
+                  
                   // add peptide hit
                   AnnotatedHit ah;
+                  ah.mass_error_p = mass_error_score;
                   ah.sequence = *cit; // copy StringView
                   ah.peptide_mod_index = mod_pep_idx;
                   ah.MIC = tlss_MIC;
@@ -2185,8 +2203,13 @@ protected:
                     // less then two shifted peaks?
                     if (plss_Morph < 2.0) { continue; }
 
+                    const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
+                    const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
+                    
                     // add peptide hit
                     AnnotatedHit ah;
+                    ah.mass_error_p = mass_error_score;
+
                     ah.sequence = *cit; // copy StringView
                     ah.peptide_mod_index = mod_pep_idx;
                     ah.total_loss_score = tlss_score;
@@ -2277,8 +2300,13 @@ protected:
                 // no good hit
                 if (total_loss_score < MIN_HYPERSCORE) { continue; }
 
+                const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
+                const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
+
                 // add peptide hit
                 AnnotatedHit ah;
+                ah.mass_error_p = mass_error_score;
+
                 ah.sequence = *cit; // copy StringView
                 ah.peptide_mod_index = mod_pep_idx;
                 ah.total_loss_score = total_loss_score;
