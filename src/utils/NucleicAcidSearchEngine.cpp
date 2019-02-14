@@ -256,7 +256,7 @@ protected:
   struct AnnotatedHit
   {
     IdentificationData::IdentifiedOligoRef oligo_ref;
-    SignedSize mod_index; // enumeration index of the modification
+    NASequence sequence;
     double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
     Int charge;
@@ -625,9 +625,6 @@ protected:
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
-                        const vector<ConstRibonucleotidePtr>& fixed_mods,
-                        const vector<ConstRibonucleotidePtr>& variable_mods,
-                        Size max_variable_mods_per_oligo,
                         bool negative_mode)
   {
     IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
@@ -653,22 +650,13 @@ protected:
       // create full oligo hit structure from annotated hits
       for (const auto& pair : annotated_hits[scan_index])
       {
-        const AnnotatedHit& hit = pair.second;
         double score = pair.first;
-        // get unmodified string
-        NASequence seq = hit.oligo_ref->sequence;
-        LOG_DEBUG << "Hit sequence: " << seq << endl;
-        // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
-        vector<NASequence> all_modified_oligos;
-        ModifiedNASequenceGenerator::applyFixedModifications(
-          fixed_mods.begin(), fixed_mods.end(), seq);
-        ModifiedNASequenceGenerator::applyVariableModifications(
-          variable_mods.begin(), variable_mods.end(), seq,
-          max_variable_mods_per_oligo, all_modified_oligos);
+        const AnnotatedHit& hit = pair.second;
+        LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
 
         // transfer parent matches from unmodified oligo:
         IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
-        oligo.sequence = all_modified_oligos[hit.mod_index];
+        oligo.sequence = hit.sequence;
         IdentificationData::IdentifiedOligoRef oligo_ref;
 #pragma omp critical (id_data_access)
         oligo_ref = id_data.registerIdentifiedOligo(oligo);
@@ -1034,7 +1022,9 @@ protected:
       digest.push_back(it);
     }
 
-// shorter oligos take (possibly much) less time to process than longer ones;
+    Int base_charge = negative_mode ? -1 : 1;
+
+ // shorter oligos take (possibly much) less time to process than longer ones;
 // due to the sorting order of "NASequence", they also appear earlier in the
 // container - therefore use dynamic scheduling to distribute work evenly:
 #pragma omp parallel for schedule(dynamic)
@@ -1054,14 +1044,19 @@ protected:
         variable_modifications.begin(), variable_modifications.end(), ns,
         max_variable_mods_per_oligo, all_modified_oligos, true);
 
-      for (SignedSize mod_idx = 0;
-           mod_idx < SignedSize(all_modified_oligos.size()); ++mod_idx)
+      // group modified oligos by precursor mass - oligos with the same
+      // combination of mods (just different placements) will have same mass:
+      map<double, vector<const NASequence*>> modified_oligos_by_mass;
+      for (const NASequence& seq : all_modified_oligos)
       {
-        const NASequence& candidate = all_modified_oligos[mod_idx];
-        double candidate_mass = (use_avg_mass ? candidate.getAverageWeight() :
-                                 candidate.getMonoWeight());
-        LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
-                  << float(candidate_mass) << " Da)" << endl;
+        double mass = (use_avg_mass ? seq.getAverageWeight() :
+                       seq.getMonoWeight());
+        modified_oligos_by_mass[mass].push_back(&seq);
+      }
+
+      for (const auto& pair : modified_oligos_by_mass)
+      {
+        double candidate_mass = pair.first;
 
         // determine MS2 precursors that match to the current mass
         double tol = search_param.precursor_mass_tolerance;
@@ -1075,88 +1070,98 @@ protected:
 
         if (low_it == up_it) continue; // no matching precursor in data
 
-        Int base_charge = negative_mode ? -1 : 1;
-        map<Int, PeakSpectrum> theo_spectra_by_charge;
-        for (; low_it != up_it; ++low_it)
+        for (const NASequence* seq_ptr : pair.second)
         {
-          LOG_DEBUG << "Matching precursor mass: " << float(low_it->first)
-                    << endl;
+          const NASequence& candidate = *seq_ptr;
+          LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
+                    << float(candidate_mass) << " Da)" << endl;
 
-          Size charge = low_it->second.charge;
-          // look up theoretical spectrum for this charge:
-          auto pos = theo_spectra_by_charge.find(charge);
-          if (pos == theo_spectra_by_charge.end())
+          map<Int, PeakSpectrum> theo_spectra_by_charge;
+          for (; low_it != up_it; ++low_it)
           {
-            // no spectrum for this charge yet - generate it:
-            PeakSpectrum theo_spectrum;
-            // @TODO: avoid regenerating spectra with lower charges as part of
-            // higher-charged spectra
-            spectrum_generator.getSpectrum(theo_spectrum, candidate,
-                                           base_charge, charge * base_charge);
-            theo_spectrum.setName(candidate.toString());
-            pos = theo_spectra_by_charge.insert(make_pair(charge,
-                                                          theo_spectrum)).first;
-          }
-          const PeakSpectrum& theo_spectrum = pos->second;
+            LOG_DEBUG << "Matching precursor mass: " << float(low_it->first)
+                      << endl;
 
-          Size scan_index = low_it->second.scan_index;
-          const PeakSpectrum& exp_spectrum = spectra[scan_index];
-          vector<PeptideHit::PeakAnnotation> annotations;
-          double score = MetaboliteSpectralMatching::computeHyperScore(
-            search_param.fragment_mass_tolerance,
-            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-            annotations);
+            Size charge = low_it->second.charge;
+            // look up theoretical spectrum for this charge:
+            auto pos = theo_spectra_by_charge.find(charge);
+            if (pos == theo_spectra_by_charge.end())
+            {
+              // no spectrum for this charge yet - generate it:
+              PeakSpectrum theo_spectrum;
+              // @TODO: avoid regenerating spectra with lower charges as part of
+              // higher-charged spectra
+              spectrum_generator.getSpectrum(theo_spectrum, candidate,
+                                             base_charge, charge * base_charge);
+              theo_spectrum.setName(candidate.toString());
+              pos = theo_spectra_by_charge.insert(
+                make_pair(charge, theo_spectrum)).first;
+            }
+            const PeakSpectrum& theo_spectrum = pos->second;
 
-          if (!exp_ms2_out.empty())
-          {
+            Size scan_index = low_it->second.scan_index;
+            const PeakSpectrum& exp_spectrum = spectra[scan_index];
+            vector<PeptideHit::PeakAnnotation> annotations;
+            double score = MetaboliteSpectralMatching::computeHyperScore(
+              search_param.fragment_mass_tolerance,
+              search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+              annotations);
+
+            if (!exp_ms2_out.empty())
+            {
 #pragma omp critical (exp_ms2_out)
-            exp_ms2_spectra.addSpectrum(exp_spectrum);
-          }
-          if (!theo_ms2_out.empty())
-          {
+              exp_ms2_spectra.addSpectrum(exp_spectrum);
+            }
+            if (!theo_ms2_out.empty())
+            {
 #pragma omp critical (theo_ms2_out)
-            theo_ms2_spectra.addSpectrum(theo_spectrum);
-          }
+              theo_ms2_spectra.addSpectrum(theo_spectrum);
+            }
 
-          if (score < 1e-16) continue; // no hit
-
-          // add oligo hit
-          AnnotatedHit ah;
-          ah.oligo_ref = oligo_ref;
-          ah.mod_index = mod_idx;
-          // @TODO: is "observed - calculated" the right way around?
-          ah.precursor_error_ppm =
-            (low_it->first - candidate_mass) / candidate_mass * 1.0e6;
-          ah.annotations = annotations;
-          ah.charge = charge;
-          ah.adduct = low_it->second.adduct;
+            if (score < 1e-16) continue; // no hit
 
 #pragma omp atomic
-          ++hit_counter;
+            ++hit_counter;
 
 #ifdef DEBUG_NASEARCH
-          cout << "best score in pre-score: " << score << endl;
+            cout << "best score in pre-score: " << score << endl;
 #endif
 
 #pragma omp critical (annotated_hits_access)
-          {
-            HitsByScore& scan_hits = annotated_hits[scan_index];
-            if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits))
             {
-              scan_hits.insert(make_pair(score, ah));
-            }
-            else // we already have enough hits for this spectrum - replace one?
-            {
-              double worst_score = (--scan_hits.end())->first;
-              if (score >= worst_score)
+              HitsByScore& scan_hits = annotated_hits[scan_index];
+              HitsByScore::iterator pos = scan_hits.end();
+              if ((report_top_hits == 0) ||
+                  (scan_hits.size() < report_top_hits))
               {
-                scan_hits.insert(make_pair(score, ah));
-                // prune list of hits if possible (careful about tied scores!):
-                Size n_worst = scan_hits.count(worst_score);
-                if (scan_hits.size() - n_worst >= report_top_hits)
+                pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
+              }
+              else // already have enough hits for this spectrum - replace one?
+              {
+                double worst_score = (--scan_hits.end())->first;
+                if (score >= worst_score)
                 {
-                  scan_hits.erase(worst_score);
+                  pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
+                  // prune list of hits if possible (careful about tied scores):
+                  Size n_worst = scan_hits.count(worst_score);
+                  if (scan_hits.size() - n_worst >= report_top_hits)
+                  {
+                    scan_hits.erase(worst_score);
+                  }
                 }
+              }
+              // add oligo hit data only if necessary (good enough score):
+              if (pos != scan_hits.end())
+              {
+                AnnotatedHit& ah = pos->second;
+                ah.oligo_ref = oligo_ref;
+                ah.sequence = candidate;
+                // @TODO: is "observed - calculated" the right way around?
+                ah.precursor_error_ppm =
+                  (low_it->first - candidate_mass) / candidate_mass * 1.0e6;
+                ah.annotations = annotations;
+                ah.charge = charge;
+                ah.adduct = low_it->second.adduct;
               }
             }
           }
@@ -1180,9 +1185,7 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, fixed_modifications,
-                     variable_modifications, max_variable_mods_per_oligo,
-                     negative_mode);
+    postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
     progresslogger.endProgress();
 
     // FDR:
