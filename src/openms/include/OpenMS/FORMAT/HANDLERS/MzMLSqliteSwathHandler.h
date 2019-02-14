@@ -66,7 +66,7 @@ public:
 
           @param filename The sqMass filename
       */
-      MzMLSqliteSwathHandler(String filename) :
+      MzMLSqliteSwathHandler(const String& filename) :
         filename_(filename)
       {}
 
@@ -92,11 +92,9 @@ public:
           @return A list of spectral indices for the provided SWATH window
 
       */
-      std::vector<int> readSpectraForWindow(OpenSwath::SwathMap swath_map);
+      std::vector<int> readSpectraForWindow(const OpenSwath::SwathMap & swath_map);
 
 protected:
-
-      sqlite3* openDB();
 
       String filename_;
 
