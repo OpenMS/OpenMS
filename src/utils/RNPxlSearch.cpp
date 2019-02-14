@@ -382,16 +382,17 @@ protected:
 
   static float calculateCombinedScore(const AnnotatedHit& ah, const bool isXL)
   {
-	return
-	    + 0.995
+	return 
+    + 0.995
 		+ 7.142 * (  0.058 * ah.total_loss_score - 0.900)
 		+ 0.802 * (  33.35 * ah.immonium_score - 1.148)
 		+ 0.327 * (  73.64 * ah.precursor_score - 0.821)
 		+ 0.748 * ( 22.014 * ah.marker_ions_score - 0.903)
 		+ 0.746 * (  0.043 * ah.partial_loss_score - 0.472)
-/*		- 1.788 * (  301.0 * ah.err - 1.771)
-		- 1.292 * (240.825 * ah.pl_err - 1.323) */
+		- 1.788 * (  301.0 * ah.err - 1.771)
+		- 1.292 * (240.825 * ah.pl_err - 1.323) 
 		+ 2.324 * static_cast<int>(isXL);
+  
 	/* old version
 	return 
 	  2.493
@@ -980,7 +981,7 @@ protected:
           continue;
         }
 
-        for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
+        for (auto pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
         {
           // only annotate experimental peaks with shift - i.e. do not annotated complete loss peaks again
           if (peak_is_annotated.find(pair_it->second) != peak_is_annotated.end()) { continue; }
@@ -1109,7 +1110,7 @@ protected:
             PeptideHit::PeakAnnotation fa;
             fa.mz = fragment_mz;
             fa.intensity = fragment_intensity;
-            fa.charge = 1; // for visualion charge is not really important so we set it to 1, TODO: read out charge from ion name and set here
+            fa.charge = 1; // TODO: read out charge from ion name and set here
             fa.annotation = ion_name;
             annotated_precursor_ions.push_back(fa);
           }
@@ -1640,7 +1641,7 @@ protected:
     // with sigma^2 = precursor_mass_tolerance
     boost::math::normal gaussian_mass_error(0.0, sqrt(precursor_mass_tolerance));
     // random: assumed uniform distribution of mass error
-    const float mass_error_prior_negatives = 1.0 / (2.0 * precursor_mass_tolerance);
+    const double mass_error_prior_negatives = 1.0 / (2.0 * precursor_mass_tolerance);
 
     bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
     IntList precursor_isotopes = getIntList_("precursor:isotopes");
@@ -2027,7 +2028,8 @@ protected:
                   if (total_loss_score < RNPxlSearch::MIN_HYPERSCORE || tlss_Morph < 2.0) { continue; }
 
                   const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
-                  const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
+                  const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) 
+                    / mass_error_prior_negatives;
                   
                   // add peptide hit
                   AnnotatedHit ah;
@@ -3304,7 +3306,8 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addPrecursorWithCompleteRNA_(
     } 
     else
     {
-      partial_loss_spectrum_annotation.push_back(String("[M+H+") + precursor_rna_adduct + "]");
+      partial_loss_spectrum_annotation.push_back(String("[M+H+") 
+        + precursor_rna_adduct + "]");
     }  
   }
 }

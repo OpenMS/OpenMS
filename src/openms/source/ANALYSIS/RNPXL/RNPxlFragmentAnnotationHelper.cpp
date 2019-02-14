@@ -110,7 +110,9 @@ namespace OpenMS
     String fas;
     for (auto & a : sorted)
     {
-      fas += String("(") + String::number(a.mz, 3) + "," + String::number(100.0 * a.intensity, 1) + ",\"" + a.annotation + "\")";    
+      fas += String("(") + String::number(a.mz, 3) + "," 
+        + String::number(100.0 * a.intensity, 1) + ",\"" 
+        + a.annotation + "\")";    
       if (&a != &sorted.back()) { fas += "|"; }     
     }
     return fas;
@@ -127,19 +129,19 @@ namespace OpenMS
   {
     if (!shifted_b_ions.empty())
     {
-      const std::vector<PeptideHit::PeakAnnotation>& fas_tmp = fragmentAnnotationDetailsToPHFA("b", shifted_b_ions);
+      const auto& fas_tmp = fragmentAnnotationDetailsToPHFA("b", shifted_b_ions);
       fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
     }
 
     if (!shifted_y_ions.empty())
     {
-      const std::vector<PeptideHit::PeakAnnotation>& fas_tmp = fragmentAnnotationDetailsToPHFA("y", shifted_y_ions);
+      const auto& fas_tmp = fragmentAnnotationDetailsToPHFA("y", shifted_y_ions);
       fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
     }
 
     if (!shifted_a_ions.empty())
     {
-      const std::vector<PeptideHit::PeakAnnotation>& fas_tmp = fragmentAnnotationDetailsToPHFA("a", shifted_a_ions);
+      const auto& fas_tmp = fragmentAnnotationDetailsToPHFA("a", shifted_a_ions);
       fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
     }
 

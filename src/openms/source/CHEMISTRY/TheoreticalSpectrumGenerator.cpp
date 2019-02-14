@@ -127,7 +127,10 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const AASequence & peptide, Int min_charge, Int max_charge) const
+  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, 
+    const AASequence & peptide, 
+    Int min_charge, 
+    Int max_charge) const
   {
 
     if (peptide.empty())
@@ -321,7 +324,7 @@ namespace OpenMS
     Peak1D p;
     IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
 
-    String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + String(charge, '+');
+    String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size());
 
     double j(0.0);
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
@@ -386,7 +389,7 @@ namespace OpenMS
         IsotopeDistribution dist = loss_ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
 
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
-        String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
+        String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + "-" + loss_name;
 
         double j(0.0);
         for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)
@@ -407,7 +410,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
-          String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
+          String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + "-" + loss_name;
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
@@ -469,7 +472,7 @@ namespace OpenMS
           spectrum.push_back(p);
           if (add_metainfo_)
           {
-            String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(i + 1) + String(charge, '+');
+            String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(i + 1);
             ion_names.push_back(ion_name);
             charges.push_back(charge);
           }
@@ -523,7 +526,7 @@ namespace OpenMS
           spectrum.push_back(p);
           if (add_metainfo_)
           {
-            String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(peptide.size() - i) + String(charge, '+');
+            String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(peptide.size() - i);
             ion_names.push_back(ion_name);
             charges.push_back(charge);
           }
@@ -558,11 +561,11 @@ namespace OpenMS
     String ion_name;
     if (charge == 1)
     {
-      ion_name = "[M+H]+";
+      ion_name = "[M+H]";
     }
     else
     { 
-      ion_name = "[M+" + String(charge) + "H]" + String(charge) + "+";
+      ion_name = "[M+" + String(charge) + "H]";
     }
 
     // precursor peak
@@ -613,11 +616,11 @@ namespace OpenMS
           String ion_name;
           if (charge == 1)
           {
-            ion_name = "[M+H-H2O]+";
+            ion_name = "[M+H-H2O]";
           }
           else
           { 
-            ion_name = "[M+" + String(charge) + "H-H2O]" + String(charge) + "+";
+            ion_name = "[M+" + String(charge) + "H-H2O]";
           }
           ion_names.push_back(ion_name);
           charges.push_back(charge);
@@ -654,11 +657,11 @@ namespace OpenMS
           String ion_name;
           if (charge == 1)
           {
-            ion_name = "[M+H-NH3]+";
+            ion_name = "[M+H-NH3]";
           }
           else
           { 
-            ion_name = "[M+" + String(charge) + "H-NH3]" + String(charge) + "+";
+            ion_name = "[M+" + String(charge) + "H-NH3]";
           }
 
           ion_names.push_back(ion_name);
@@ -676,11 +679,11 @@ namespace OpenMS
         String ion_name;
         if (charge == 1)
         {
-          ion_name = "[M+H-NH3]+";
+          ion_name = "[M+H-NH3]";
         }
         else
         { 
-          ion_name = "[M+" + String(charge) + "H-NH3]" + String(charge) + "+";
+          ion_name = "[M+" + String(charge) + "H-NH3]";
         }        
         ion_names.push_back(ion_name);
         charges.push_back(charge);
