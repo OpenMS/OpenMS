@@ -2385,7 +2385,7 @@ Not sure how to handle these:
 
     MzTabSoftwareMetaData sw;
     sw.software.fromCellString("[MS,MS:1000752,TOPP software," + VersionInfo::getVersion() + "]");
-    meta_data.software[std::max(1ul,meta_data.software.size())] = sw;
+    meta_data.software[std::max<size_t>(1u, meta_data.software.size())] = sw;
 
     MzTabPSMSectionRows rows;
     Size psm_id(0);
