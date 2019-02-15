@@ -266,6 +266,56 @@ START_SECTION((static double toDouble(const String &this_s)))
 }
 END_SECTION
 
+
+START_SECTION((static bool toDouble(std::stringstream& ss, double& target)))
+{
+  double d;
+  {
+    std::stringstream ss("12345.45  ");
+    TEST_EQUAL(StringUtils::toDouble(ss, d), true);
+    TEST_REAL_SIMILAR(d, 12345.45)
+    TEST_EQUAL(ss.eof(), true); // was the stream pointer advanced?
+  }
+
+  {
+    std::stringstream ss("+1234.45!");
+    TEST_EQUAL(StringUtils::toDouble(ss, d), true);
+    TEST_REAL_SIMILAR(d, 1234.45)
+    TEST_EQUAL(ss.tellg(), 9); // was the stream pointer advanced?
+  }
+  {
+    std::stringstream ss("  -123.45");
+    TEST_EQUAL(StringUtils::toDouble(ss, d), true);
+    TEST_REAL_SIMILAR(d, -123.45)
+    TEST_EQUAL(ss.eof(), true); // was the stream pointer advanced?
+  }
+  {
+    std::stringstream ss("15.0e6");
+    TEST_EQUAL(StringUtils::toDouble(ss, d), true);
+    TEST_REAL_SIMILAR(d, 15.0e6)
+    TEST_EQUAL(ss.eof(), true); // was the stream pointer advanced?
+  }
+  {
+    // try two doubles in a single stream;
+    // Note: the comma is essential! removing it leads to a failed parse, since apparently
+    //  "15.0e6 96e+06" is consumed up to 
+    //             ! here and then fails ...
+    std::stringstream ss("15.0e6, 96e+06");   // explicitly test X.0eY vs XeY since some compilers implementation of the native operator>> stop reading after 'X.0'.
+    TEST_EQUAL(StringUtils::toDouble(ss, d), true);
+    TEST_REAL_SIMILAR(d, 15.0e6)
+    TEST_EQUAL(ss.tellg(), 7); // was the stream pointer advanced?
+    TEST_EQUAL(StringUtils::toDouble(ss, d), true);
+    TEST_REAL_SIMILAR(d, 96e+06)
+    TEST_EQUAL(ss.eof(), true); // was the stream pointer advanced?
+  }
+  {
+    std::stringstream ss(" !noNumber");
+    TEST_EQUAL(StringUtils::toDouble(ss, d), false);
+    TEST_EQUAL(ss.tellg(), 2); // was the stream pointer advanced?
+  }
+}
+END_SECTION
+
 START_SECTION((static String& toUpper(String &this_s)))
 {
   // TODO

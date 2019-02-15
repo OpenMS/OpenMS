@@ -789,22 +789,42 @@ public:
       return ret;
     }
 
-    static double toDouble(const String& this_s)
+    /**
+      @brief convert String (leading and trailing whitespace allowed) to double
+
+      @p s Input string which represents a double, e.g. " 12.3 "
+      @return A double representation of @p s
+      @throws Exception::ConversionError if the string is not completely explained by the double (whitespaces are allowed)
+    */
+    static double toDouble(const String& s)
     {
       double ret;
       // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
       // so don't change this unless you have benchmarks for all platforms!
-      String::ConstIterator it = this_s.begin();
-      if (!boost::spirit::qi::phrase_parse(it, this_s.end(), parse_double_, boost::spirit::ascii::space, ret))
+      String::ConstIterator it = s.begin();
+      if (!boost::spirit::qi::phrase_parse(it, s.end(), parse_double_, boost::spirit::ascii::space, ret))
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + this_s + "' to a double value");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + s + "' to a double value");
       }
       // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
-      if (it != this_s.end())
+      if (it != s.end())
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Prefix of string '") + this_s + "' successfully converted to a double value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Prefix of string '") + s + "' successfully converted to a double value. Additional characters found at position " + (int)(distance(s.begin(), it) + 1));
       }
       return ret;
+    }
+
+    /// Reads a double from a streams current position.
+    /// The stream pointer is modified (advanced).
+    /// The @p target only contains a valid result if the functions returns true (i.e. parsing succeeded).
+    /// Whitespaces before and after the double are consumed as well.
+    static bool toDouble(std::stringstream& ss, double& target)
+    {
+      boost::spirit::istream_iterator it_start(ss), it_end;
+      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
+      // so don't change this unless you have benchmarks for all platforms!
+      // Do not use a whitespace skipper here (default), since that parses "15.0e6 96e+06" as '15.0e696' ...
+      return boost::spirit::qi::phrase_parse(it_start, it_end, parse_double_, boost::spirit::ascii::space, target);
     }
 
 
