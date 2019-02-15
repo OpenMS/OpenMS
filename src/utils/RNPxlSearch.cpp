@@ -1570,6 +1570,7 @@ protected:
     // true positives: assumed gaussian distribution of mass error
     // with sigma^2 = precursor_mass_tolerance
     boost::math::normal gaussian_mass_error(0.0, sqrt(precursor_mass_tolerance));
+
     // random: assumed uniform distribution of mass error
     const double mass_error_prior_negatives = 1.0 / (2.0 * precursor_mass_tolerance);
 
@@ -3123,7 +3124,7 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
       partial_loss_spectrum_charge,
       partial_loss_spectrum_annotation);
 
-    // annotate generated a,b,y ions with fragment shift name
+    // annotate generated a-,b-,y-ions with fragment shift name
     PeakSpectrum shifted_series_peaks;
     shifted_series_peaks.getStringDataArrays().resize(1); // annotation
     shifted_series_peaks.getIntegerDataArrays().resize(1); // charge
@@ -3140,10 +3141,10 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
         for (Size i = 0; i != partial_loss_template_z1.size(); ++i) 
         { 
           Peak1D p = partial_loss_template_z1[i];
-          p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+          p.setMZ(p.getMZ() + fragment_shift_mass);         
           shifted_series_peaks.push_back(p);
           shifted_series_annotations.push_back(partial_loss_template_z1.getStringDataArrays()[0][i]);
-          shifted_series_charges.push_back(partial_loss_template_z1.getIntegerDataArrays()[0][i]);
+          shifted_series_charges.push_back(1);
         } 
       }
       else if (z == 2)
@@ -3151,13 +3152,13 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
         for (Size i = 0; i != partial_loss_template_z2.size(); ++i) 
         { 
           // currently, also contains z=1 precursor peaks which we aleardy added before
-          if (partial_loss_template_z2.getIntegerDataArrays()[0][i] == z)
+          if (partial_loss_template_z2.getIntegerDataArrays()[0][i] == 2)
           { 
             Peak1D p = partial_loss_template_z2[i];
-            p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+            p.setMZ(p.getMZ() + fragment_shift_mass / 2.0);         
             shifted_series_peaks.push_back(p);
             shifted_series_annotations.push_back(partial_loss_template_z2.getStringDataArrays()[0][i]);
-            shifted_series_charges.push_back(partial_loss_template_z2.getIntegerDataArrays()[0][i]);
+            shifted_series_charges.push_back(2);
           } 
         } 
       }
@@ -3166,13 +3167,13 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
         for (Size i = 0; i != partial_loss_template_z3.size(); ++i) 
         { 
           // currently, also contains z=1 and 2 precursor peaks which we aleardy added before
-          if (partial_loss_template_z3.getIntegerDataArrays()[0][i] == z)
+          if (partial_loss_template_z3.getIntegerDataArrays()[0][i] == 3)
           { 
             Peak1D p = partial_loss_template_z3[i];
-            p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+            p.setMZ(p.getMZ() + fragment_shift_mass / 3.0);         
             shifted_series_peaks.push_back(p);
             shifted_series_annotations.push_back(partial_loss_template_z3.getStringDataArrays()[0][i]);
-            shifted_series_charges.push_back(partial_loss_template_z3.getIntegerDataArrays()[0][i]);
+            shifted_series_charges.push_back(3);
           } 
         } 
       }
@@ -3189,7 +3190,8 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
     }
 
     // append shifted and annotated ion series to partial loss spectrum
-    partial_loss_spectrum.insert(partial_loss_spectrum.end(), shifted_series_peaks.begin(), shifted_series_peaks.end());
+    partial_loss_spectrum.insert(partial_loss_spectrum.end(), 
+      shifted_series_peaks.begin(), shifted_series_peaks.end());
     // std::move strings during insert
     partial_loss_spectrum_annotation.insert(
       partial_loss_spectrum_annotation.end(),

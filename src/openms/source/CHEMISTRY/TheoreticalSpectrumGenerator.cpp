@@ -634,7 +634,15 @@ namespace OpenMS
       p.setIntensity(pre_int_H2O_);
       if (add_metainfo_)
       {
-        String ion_name("[M+H-H2O]");
+        String ion_name;
+        if (charge == 1)
+        {
+          ion_name = "[M+H-H2O]";
+        }
+        else
+        { 
+          ion_name = "[M+" + String(charge) + "H-H2O]";
+        }
         ion_names.push_back(ion_name);
         charges.push_back(charge);
       }

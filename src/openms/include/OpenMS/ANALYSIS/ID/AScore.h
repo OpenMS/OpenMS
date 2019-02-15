@@ -172,10 +172,10 @@ namespace OpenMS
     void determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const std::vector<std::vector<Size>>& permutations, std::multimap<double, Size>& ranking) const;
 
     /// Computes number of phospho events in a sequence
-    Size numberOfPhosphoEvents_(const String sequence) const;
+    Size numberOfPhosphoEvents_(const String& sequence) const;
     
     /// Create variant of the peptide with all phosphorylations removed
-    AASequence removePhosphositesFromSequence_(const String sequence) const;
+    AASequence removePhosphositesFromSequence_(const String& sequence) const;
     
     /// Create theoretical spectra with all combinations with the number of phosphorylation events
     std::vector<PeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size>>& permutations, const AASequence& seq_without_phospho) const;

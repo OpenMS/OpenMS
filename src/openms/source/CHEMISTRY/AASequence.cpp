@@ -105,7 +105,7 @@ namespace OpenMS
     for (Size i = 0; i != seq.size(); ++i)
     {
       const Residue& r = seq[i];
-      const String aa = r.getOneLetterCode();
+      const String& aa = r.getOneLetterCode();
       if (r.isModified())
       {
         const ResidueModification& mod = *(r.getModification());
