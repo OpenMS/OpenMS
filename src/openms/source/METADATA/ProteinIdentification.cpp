@@ -657,14 +657,14 @@ namespace OpenMS
 
   void ProteinIdentification::setInferenceEngine(const String& inference_engine)
   {
-    this->setMetaValue("InferenceEngineVersion", inference_engine);
+    this->search_parameters_.setMetaValue("InferenceEngine", inference_engine);
   }
 
   const String ProteinIdentification::getInferenceEngine() const
   {
     if (this->metaValueExists("InferenceEngine"))
     {
-      return this->getMetaValue("InferenceEngine");
+      return this->search_parameters_.getMetaValue("InferenceEngine");
     }
     else if (hasInferenceEngineAsSearchEngine())
     {
@@ -675,12 +675,12 @@ namespace OpenMS
 
   void ProteinIdentification::setInferenceEngineVersion(const String& search_engine_version)
   {
-    this->setMetaValue("InferenceEngineVersion", search_engine_version);
+    this->search_parameters_.setMetaValue("InferenceEngineVersion", search_engine_version);
   }
 
   const String ProteinIdentification::getInferenceEngineVersion() const
   {
-    if (this->metaValueExists("InferenceEngineVersion"))
+    if (this->search_parameters_.metaValueExists("InferenceEngineVersion"))
     {
       return this->getMetaValue("InferenceEngineVersion");
     }

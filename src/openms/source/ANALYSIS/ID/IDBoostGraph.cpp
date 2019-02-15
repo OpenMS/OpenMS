@@ -1227,21 +1227,23 @@ namespace OpenMS
   }
 
   // TODO templatize
-  void IDBoostGraph::printFilteredGraph(std::ostream& out, const FilteredGraph& fg) const
+  void IDBoostGraph::printFilteredGraph(std::ostream& out, const FilteredGraph& fg)
   {
+    LabelVisitor lv;
     // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
     //TODO Is passing "this" to lambda bad? How can I pass private members then?
-    auto labels = boost::make_transform_value_property_map([this](const IDPointer &p) { return boost::apply_visitor(lv_, p); },
+    auto labels = boost::make_transform_value_property_map([&](const IDPointer &p) { return boost::apply_visitor(lv, p); },
                                                            boost::get(boost::vertex_bundle, fg));
     //boost::print_graph(fg);
     boost::write_graphviz(out, fg, boost::make_label_writer(labels));
   }
 
-  void IDBoostGraph::printGraph(std::ostream& out, const Graph& fg) const
+  void IDBoostGraph::printGraph(std::ostream& out, const Graph& fg)
   {
+    LabelVisitor lv;
     // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
     //TODO Is passing "this" to lambda bad? How can I pass private members then?
-    auto labels = boost::make_transform_value_property_map([this](const IDPointer &p) { return boost::apply_visitor(lv_, p); },
+    auto labels = boost::make_transform_value_property_map([&](const IDPointer &p) { return boost::apply_visitor(lv, p); },
                                                            boost::get(boost::vertex_bundle, fg));
     //boost::print_graph(fg);
     boost::write_graphviz(out, fg, boost::make_label_writer(labels));

@@ -1821,7 +1821,7 @@ namespace OpenMS
       }
 
       MzTabParameter protein_score_type;
-      protein_score_type.fromCellString("[,," + prot_ids[0].getInferenceEngine() + "," +prot_ids[0].getInferenceEngineVersion()+"]"); // TODO: check if we need one for every run (should not be redundant!)
+      protein_score_type.fromCellString("[,," + prot_ids[0].getInferenceEngine() + "," + prot_ids[0].getInferenceEngineVersion() + "]"); // TODO: check if we need one for every run (should not be redundant!)
       meta_data.protein_search_engine_score[1] = protein_score_type; // TODO add meta value to ProteinIdentification
 
       // maps the filenames in the runs to the MSRun index in the metadata section

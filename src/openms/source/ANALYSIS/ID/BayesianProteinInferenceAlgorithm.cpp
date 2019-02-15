@@ -54,7 +54,7 @@ namespace OpenMS
   private:
     ProteinIdentification& prots;
   public:
-    AnnotateIndistGroupsFunctor(ProteinIdentification& proteinIDToAnnotateGroups):
+    explicit AnnotateIndistGroupsFunctor(ProteinIdentification& proteinIDToAnnotateGroups):
     prots(proteinIDToAnnotateGroups)
     {}
 
@@ -97,14 +97,16 @@ namespace OpenMS
   {
   public:
     const Param& param_;
+    unsigned long cnt_;
 
     explicit GraphInferenceFunctor(const Param& param):
-        param_(param)
+        param_(param),
+        cnt_(0)
     {}
 
     unsigned long operator() (IDBoostGraph::Graph& fg) {
       //TODO do quick bruteforce calculation if the cc is really small?
-
+      cnt_++;
       // this skips CCs with just peps or prots. We only add edges between different types.
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
@@ -268,11 +270,22 @@ namespace OpenMS
 
           // Graph builder needs to build otherwise it leaks memory.
           if (!graph_mp_ownership_acquired) bigb.to_graph();
+          bool debug = true;
+          if (debug)
+          {
+            std::ofstream ofs;
+            ofs.open ("failed_cc_a"+ String(param_.getValue("model_parameters:pep_emission")) +
+                "_b" + String(param_.getValue("model_parameters:pep_spurious_emission")) + "_g" +
+                String(param_.getValue("model_parameters:prot_prior")) + "_c" +
+                String(param_.getValue("model_parameters:pep_prior")) + "_p" + String(pnorm) + "_"
+                + String(cnt_) + ".graphviz"
+                , std::ofstream::out | std::ofstream::app);
+            IDBoostGraph::printGraph(ofs, fg);
+          }
           LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
                       " inference there." << std::endl;
           return 0;
         }
-        return 0;
       }
       else
       {
@@ -421,14 +434,12 @@ namespace OpenMS
           return 0;
         }
         //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
-        return 0;
       }
       else
       {
         std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
         return 0;
       }
-      return 0;
     }
   };
 
@@ -466,20 +477,13 @@ namespace OpenMS
     /* More parameter TODOs:
      * - grid search settings: e.g. fine, coarse, prob. threshold, lower convergence crit.
      * - use own groups (and regularize)
-     * - use own priors
      * - multiple runs
      * - what to do about multiple charge states or modded peptides
      * - use add. pep. infos (rt, ms1dev)
      * - add dependencies on peptides in same feature and psms to same peptide (so that there is competition)
      * - ...
      */
-
-/* TODO not yet implemented
- * defaults_.setValue("keep_threshold",
-                       "false",
-                       "Keep only proteins and protein groups with estimated probability higher than this threshold");
-
-
+    /*
     defaults_.setValue("combine_indist_groups",
                        "false",
                        "Combine indistinguishable protein groups beforehand to only perform inference on them (probability for the whole group = is ANY of them present).");*/
@@ -529,7 +533,7 @@ namespace OpenMS
 
     defaults_.setValue("model_parameters:pep_prior",
                        0.1,
-                       "Peptide prior probability (experimental, not part of grid search).");
+                       "Peptide prior probability (experimental, should be covered by combinations of the other params).");
     defaults_.setMinFloat("model_parameters:pep_prior", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_prior", 1.0);
 
@@ -842,7 +846,7 @@ namespace OpenMS
       vector<double> alpha_search;
       if (gamma > 1.0 || gamma < 0.0)
       {
-        gamma_search = {0.5};
+        gamma_search = {0.2, 0.5, 0.7};
       }
       else
       {
@@ -858,7 +862,7 @@ namespace OpenMS
       }
       if (alpha > 1.0 || alpha < 0.0)
       {
-        alpha_search = {0.1, 0.25, 0.5, 0.6, 0.75};
+        alpha_search = {0.1, 0.25, 0.5, 0.65, 0.8};
       }
       else
       {

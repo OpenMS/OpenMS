@@ -325,6 +325,9 @@ namespace OpenMS
     //TODO docu
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
 
+    static void printFilteredGraph(std::ostream& out, const FilteredGraph& fg);
+    static void printGraph(std::ostream& out, const Graph& fg);
+
   private:
 
     struct SequenceToReplicateChargeVariantHierarchy;
@@ -357,7 +360,7 @@ namespace OpenMS
     std::unordered_map<vertex_t, Size> pepHitVtx_to_run_;
 
     /// a visitor that creates labels based on the node type (e.g. for printing)
-    LabelVisitor lv_;
+    //LabelVisitor lv_; //currently created locally
 
     /// helper function to add a vertex if it is not present yet, otherwise return the present one
     /// needs a temporary filled vertex_map that is modifiable
@@ -367,9 +370,6 @@ namespace OpenMS
 
     /// internal function to annotate the underlying ID structures based on the given Graph
     void annotateIndistProteins_(const Graph& fg, bool addSingletons) const;
-
-    void printFilteredGraph(std::ostream& out, const FilteredGraph& fg) const;
-    void printGraph(std::ostream& out, const Graph& fg) const;
 
   };
 
