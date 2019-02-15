@@ -315,7 +315,7 @@ protected:
     sw.reset();
     LOG_INFO << "Graph now consists of " << mergedprots[0].getHits().size() << " proteins and " << mergedpeps.size() << " peptides." << std::endl;
 
-    BayesianProteinInferenceAlgorithm bpi1;
+    BayesianProteinInferenceAlgorithm bpi1(getIntOption_("debug"));
     bpi1.setParameters(epifany_param);
     bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps);
     LOG_INFO << "Inference total took " << sw.toString() << std::endl;

@@ -53,7 +53,7 @@ namespace OpenMS
   {
   public:
     /// Constructor
-    BayesianProteinInferenceAlgorithm();
+    explicit BayesianProteinInferenceAlgorithm(unsigned int debug_lvl = 0);
 
     /// Destructor
     ~BayesianProteinInferenceAlgorithm() override = default;
@@ -86,6 +86,8 @@ namespace OpenMS
 
     /// The grid search object initialized with a default grid
     GridSearch<double,double,double> grid{{0.008,0.032,0.128},{0.001},{0.5}};
+
+    unsigned int debug_lvl_;
 
     #ifdef INFERENCE_BENCH
     std::vector<std::pair<double,Size>> debug_times_;

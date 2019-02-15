@@ -662,7 +662,7 @@ namespace OpenMS
 
   const String ProteinIdentification::getInferenceEngine() const
   {
-    if (this->metaValueExists("InferenceEngine"))
+    if (this->search_parameters_.metaValueExists("InferenceEngine"))
     {
       return this->search_parameters_.getMetaValue("InferenceEngine");
     }
@@ -682,7 +682,7 @@ namespace OpenMS
   {
     if (this->search_parameters_.metaValueExists("InferenceEngineVersion"))
     {
-      return this->getMetaValue("InferenceEngineVersion");
+      return this->search_parameters_.getMetaValue("InferenceEngineVersion");
     }
     else if (hasInferenceData())
     {

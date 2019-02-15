@@ -96,11 +96,14 @@ namespace OpenMS
       public std::function<void(IDBoostGraph::Graph&)>
   {
   public:
+    //TODO think about restructuring params (we do not need every param from the BPI class here.
     const Param& param_;
+    unsigned int debug_lvl_;
     unsigned long cnt_;
 
-    explicit GraphInferenceFunctor(const Param& param):
+    explicit GraphInferenceFunctor(const Param& param, unsigned int debug_lvl):
         param_(param),
+        debug_lvl_(debug_lvl),
         cnt_(0)
     {}
 
@@ -270,8 +273,8 @@ namespace OpenMS
 
           // Graph builder needs to build otherwise it leaks memory.
           if (!graph_mp_ownership_acquired) bigb.to_graph();
-          bool debug = true;
-          if (debug)
+
+          if (debug_lvl_ > 2)
           {
             std::ofstream ofs;
             ofs.open ("failed_cc_a"+ String(param_.getValue("model_parameters:pep_emission")) +
@@ -448,11 +451,13 @@ namespace OpenMS
     Param& param_;
     IDBoostGraph& ibg_;
     const ProteinIdentification& prots_;
+    const unsigned int debug_lvl_;
 
-    explicit GridSearchEvaluator(Param& param, IDBoostGraph& ibg, const ProteinIdentification& prots):
+    explicit GridSearchEvaluator(Param& param, IDBoostGraph& ibg, const ProteinIdentification& prots, unsigned int debug_lvl):
         param_(param),
         ibg_(ibg),
-        prots_(prots)
+        prots_(prots),
+        debug_lvl_(debug_lvl)
     {}
 
     double operator() (double alpha, double beta, double gamma)
@@ -461,27 +466,28 @@ namespace OpenMS
       param_.setValue("model_parameters:prot_prior", gamma);
       param_.setValue("model_parameters:pep_emission", alpha);
       param_.setValue("model_parameters:pep_spurious_emission", beta);
-      ibg_.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
+      ibg_.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_), debug_lvl_));
       FalseDiscoveryRate fdr;
       return fdr.applyEvaluateProteinIDs(prots_);
     }
   };
 
 
-  BayesianProteinInferenceAlgorithm::BayesianProteinInferenceAlgorithm() :
+  BayesianProteinInferenceAlgorithm::BayesianProteinInferenceAlgorithm(unsigned int debug_lvl) :
       DefaultParamHandler("BayesianProteinInferenceAlgorithm"),
-      ProgressLogger()
+      ProgressLogger(),
+      debug_lvl_(debug_lvl)
   {
     // set default parameter values
 
     /* More parameter TODOs:
-     * - grid search settings: e.g. fine, coarse, prob. threshold, lower convergence crit.
+     * - grid search settings: e.g. fine, coarse, prob. threshold, lower convergence crit., own lists
      * - use own groups (and regularize)
      * - multiple runs
      * - what to do about multiple charge states or modded peptides
      * - use add. pep. infos (rt, ms1dev)
      * - add dependencies on peptides in same feature and psms to same peptide (so that there is competition)
-     * - ...
+     * - option to write graphfile?
      */
     /*
     defaults_.setValue("combine_indist_groups",
@@ -749,7 +755,12 @@ namespace OpenMS
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs)
   {
 
-    //TODO think about how to include missing peptides
+    //TODO The following is a sketch to think about how to include missing peptides
+    // Requirement: Datastructures for peptides first
+    // Options:
+    // - Require annotation from peptideindexer
+    // - Require sequence from peptideindexer
+    // - Require fasta file and annotate here
     /*
     // get enzyme settings from peptideID
     const DigestionEnzymeProtein enzyme = proteinIDs[0].getSearchParameters().digestion_enzyme;
@@ -823,11 +834,11 @@ namespace OpenMS
       ibg.computeConnectedComponents();
       ibg.clusterIndistProteinsAndPeptides();
 
-      //TODO how to perform group inference
+      //Note: How to perform group inference
       // Three options:
-      // -collapse proteins to groups beforehand and run inference
-      // -use the automatically created indist. groups and report their posterior
-      // -calculate prior from proteins for the group beforehand and remove proteins from network (saves computation
+      // -(implemented) use the automatically created indist. groups and report their posterior
+      // - collapse proteins to groups beforehand and run inference
+      // - calculate prior from proteins for the group beforehand and remove proteins from network (saves computation
       //  because messages are not passed from prots to groups anymore.
 
 
@@ -882,13 +893,13 @@ namespace OpenMS
       bool annotate_group_posteriors = param_.getValue("annotate_group_probabilities").toBool();
       param_.setValue("annotate_group_probabilities","false");
 
-      //TODO run grid search on reduced graph? Then make sure, untouched protein/peps do not affect results.
+      //TODO run grid search on reduced graph? Then make sure, untouched protein/peps do not affect evaluation results.
       //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
       //TODO think about running grid search on the small CCs only (maybe it's enough)
       if (gs.getNrCombos() > 1)
       {
         std::cout << "Testing " << gs.getNrCombos() << " param combinations." << std::endl;
-        gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
+        gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0], debug_lvl_), -1.0, bestParams);
       }
       else
       {
@@ -906,7 +917,7 @@ namespace OpenMS
       // Reset original values for those two options
       param_.setValue("update_PSM_probabilities", update_PSM_probabilities ? "true" : "false");
       param_.setValue("annotate_group_probabilities", annotate_group_posteriors ? "true" : "false");
-      ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
+      ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_), debug_lvl_));
 
 
       LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0) << std::endl;
@@ -914,10 +925,10 @@ namespace OpenMS
 
       // rename score_type in PepIDs? I think not. Posterior Probability is still fine. You can
       // get the type from search_engine = Epifany + setting = on.
+      // TODO But we could set the "search engine". E.g. Percolator sets itself, too and is just a rescoring.
       //if (update_PSM_probabilities)
       //{}
       //TODO set all unused (= not top) PSMs to 0 or remove! Currently not so bad because FDR also can take just the best.
-
 
     }
     else
@@ -936,7 +947,7 @@ namespace OpenMS
       std::array<size_t, 3> bestParams{{0, 0, 0}};
       //TODO run grid search on reduced graph?
       //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
-      gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
+      gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0], debug_lvl_), -1.0, bestParams);
 
       std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
       double bestGamma = gamma_search[bestParams[2]];
@@ -949,9 +960,5 @@ namespace OpenMS
       ibg.applyFunctorOnCCs(ExtendedGraphInferenceFunctor(const_cast<const Param&>(param_)));
       ibg.applyFunctorOnCCsST(AnnotateIndistGroupsFunctor(proteinIDs[0]));
     }
-
-
-    //TODO write graphfile?
-    //TODO let user modify Grid for GridSearch and/or provide some more default settings
   }
 }
