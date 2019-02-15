@@ -600,7 +600,7 @@ namespace OpenMS
     }
     // loss peaks of the precursor
 
-    //loss of water
+    // loss of water
     EmpiricalFormula ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("H2O");
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
@@ -634,7 +634,7 @@ namespace OpenMS
       p.setIntensity(pre_int_H2O_);
       if (add_metainfo_)
       {
-        String ion_name("[M+H]-H2O" + String((Size)charge, '+'));
+        String ion_name("[M+H-H2O]");
         ion_names.push_back(ion_name);
         charges.push_back(charge);
       }
