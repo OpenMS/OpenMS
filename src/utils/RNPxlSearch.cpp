@@ -46,6 +46,7 @@
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
@@ -582,12 +583,6 @@ protected:
       LOG_DEBUG << exp.size() << " : " << annotated_hits.size() << endl;
     #endif
 
-    SpectrumAlignment spectrum_aligner;
-    Param pa = spectrum_aligner.getParameters();
-    pa.setValue("tolerance", fragment_mass_tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
-    pa.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm ? "true" : "false");  
-    spectrum_aligner.setParameters(pa);
-
     // remove all but top n scoring for localization (usually all but the first one)
 #ifdef _OPENMP
 #pragma omp parallel for 
@@ -769,7 +764,17 @@ protected:
           LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
         #endif
         vector<pair<Size, Size>> alignment;
-        spectrum_aligner.getSpectrumAlignment(alignment, total_loss_spectrum, exp_spectrum);
+
+        // align spectra (only allow matching charges)
+        DataArrays::FloatDataArray ppm_error_array; // not needed here but filled by alignment
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment, 
+          fragment_mass_tolerance, 
+          fragment_mass_tolerance_unit_ppm, 
+          total_loss_spectrum, 
+          exp_spectrum, 
+          total_loss_spectrum.getIntegerDataArrays()[0], 
+          exp_spectrum.getIntegerDataArrays()[0], 
+          ppm_error_array);
 
         const PeakSpectrum::StringDataArray& total_loss_annotations = total_loss_spectrum.getStringDataArrays()[0];
         const PeakSpectrum::IntegerDataArray& total_loss_charges = total_loss_spectrum.getIntegerDataArrays()[0];
@@ -791,129 +796,87 @@ protected:
           {
             Size loss_first = ion_name.find_first_of('-'); // start of loss
             Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
+            const bool ion_has_neutral_loss = (loss_first != string::npos);
 
-            if (loss_first != string::npos) // ion with neutral loss e.g. water
+            if (ion_has_neutral_loss) // ion with neutral loss e.g. water
             {
-              // only allow matching charges
-              if (fragment_charge == charge)
-              {
-                PeptideHit::PeakAnnotation fa;
-                fa.mz = fragment_mz;
-                fa.intensity = fragment_intensity;
-                fa.charge = charge;
-                fa.annotation = ion_name;
-                unshifted_loss_ions.push_back(fa);
-                peak_is_annotated.insert(aligned.second);
-              }
+              PeptideHit::PeakAnnotation fa;
+              fa.mz = fragment_mz;
+              fa.intensity = fragment_intensity;
+              fa.charge = charge;
+              fa.annotation = ion_name;
+              unshifted_loss_ions.push_back(fa);
+              peak_is_annotated.insert(aligned.second);
             }
-            else
+            else // no neutral loss
             {
-            String ion_nr_string = ion_name.substr(1, charge_pos - 1);
-            Size ion_number = (Size)ion_nr_string.toInt();
-            #ifdef DEBUG_RNPXLSEARCH
-              const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
-              LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
-            #endif
-            peak_is_annotated.insert(aligned.second);
-
-            // only allow matching charges
-            if (fragment_charge == charge)
-            {
+              String ion_nr_string = ion_name.substr(1, charge_pos - 1);
+              Size ion_number = (Size)ion_nr_string.toInt();
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_y_ions[ion_number].push_back(d);
-            }
-            #ifdef DEBUG_RNPXLSEARCH
-            else
-            {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
-            }
-            #endif
+              #ifdef DEBUG_RNPXLSEARCH
+                const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+              #endif
+              peak_is_annotated.insert(aligned.second);
             }
           }
           else if (ion_name[0] == 'b')
           {
             Size loss_first = ion_name.find_first_of('-'); // start of loss
             Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
+            const bool ion_has_neutral_loss = (loss_first != string::npos);
 
-            if (loss_first != string::npos)
+            if (ion_has_neutral_loss)
             {
-              // only allow matching charges
-              if (fragment_charge == charge)
-              {
-                PeptideHit::PeakAnnotation fa;
-                fa.mz = fragment_mz;
-                fa.intensity = fragment_intensity;
-                fa.charge = charge;
-                fa.annotation = ion_name;
-                unshifted_loss_ions.push_back(fa);
-                peak_is_annotated.insert(aligned.second);
-              }
+              PeptideHit::PeakAnnotation fa;
+              fa.mz = fragment_mz;
+              fa.intensity = fragment_intensity;
+              fa.charge = charge;
+              fa.annotation = ion_name;
+              unshifted_loss_ions.push_back(fa);
+              peak_is_annotated.insert(aligned.second);
             }
             else
             {
               String ion_nr_string = ion_name.substr(1, charge_pos - 1);
               Size ion_number = (Size)ion_nr_string.toInt();
-            #ifdef DEBUG_RNPXLSEARCH
-              const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-              LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
-            #endif
-            peak_is_annotated.insert(aligned.second);
-
-            // only allow matching charges (if a fragment charge was assigned)
-            if (fragment_charge == charge)
-            {
+              #ifdef DEBUG_RNPXLSEARCH
+                const AASequence& peptide_sequence = aas.getPrefix(ion_number);
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+              #endif
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_b_ions[ion_number].push_back(d);
-            }
-            #ifdef DEBUG_RNPXLSEARCH
-            else
-            {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
-            }
-            #endif
+              peak_is_annotated.insert(aligned.second);
             }
           }
           else if (ion_name[0] == 'a')
           {
             Size loss_first = ion_name.find_first_of('-'); // start of loss
             Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
+            const bool ion_has_neutral_loss = (loss_first != string::npos);
 
-            if (loss_first != string::npos)
+            if (ion_has_neutral_loss)
             {
-              // only allow matching charges (if a fragment charge was assigned)
-              if (fragment_charge == charge)
-              {
-                PeptideHit::PeakAnnotation fa;
-                fa.mz = fragment_mz;
-                fa.intensity = fragment_intensity;
-                fa.charge = charge;
-                fa.annotation = ion_name;
-                unshifted_loss_ions.push_back(fa);
-                peak_is_annotated.insert(aligned.second);
-              }
+              PeptideHit::PeakAnnotation fa;
+              fa.mz = fragment_mz;
+              fa.intensity = fragment_intensity;
+              fa.charge = charge;
+              fa.annotation = ion_name;
+              unshifted_loss_ions.push_back(fa);
+              peak_is_annotated.insert(aligned.second);
             }
             else
             {
               String ion_nr_string = ion_name.substr(1, charge_pos - 1);
               auto ion_number = (Size)ion_nr_string.toInt();
-            #ifdef DEBUG_RNPXLSEARCH
-              const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-              LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
-            #endif
-            peak_is_annotated.insert(aligned.second);
-
-            // only allow matching charges (if a fragment charge was assigned)
-            if (fragment_charge == charge)
-            {
+              #ifdef DEBUG_RNPXLSEARCH
+                const AASequence& peptide_sequence = aas.getPrefix(ion_number);
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+              #endif
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_a_ions[ion_number].push_back(d);
-            }
-            #ifdef DEBUG_RNPXLSEARCH
-            else
-            {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
-            }
-            #endif
+              peak_is_annotated.insert(aligned.second);
             }
           }
           else if (ion_name.hasPrefix("[M+")) // precursor ion
@@ -921,20 +884,20 @@ protected:
             PeptideHit::PeakAnnotation fa;
             fa.mz = fragment_mz;
             fa.intensity = fragment_intensity;
-            fa.charge = 1; // for visualion charge is not really important so we set it to 0
+            fa.charge = charge;
             fa.annotation = ion_name;
-            peak_is_annotated.insert(aligned.second);
             annotated_precursor_ions.push_back(fa);
+            peak_is_annotated.insert(aligned.second);
           }
           else if (ion_name.hasPrefix("i")) // immonium ion
           {
             PeptideHit::PeakAnnotation fa;
             fa.mz = fragment_mz;
             fa.intensity = fragment_intensity;
-            fa.charge = 1;
+            fa.charge = charge;
             fa.annotation = ion_name;
-            peak_is_annotated.insert(aligned.second);
             annotated_immonium_ions.push_back(fa);
+            peak_is_annotated.insert(aligned.second);
           }
         }
 
@@ -969,8 +932,17 @@ protected:
         /////////////////
         // Align partial-loss-spectrum to the experimental measured one
         alignment.clear();
+        ppm_error_array.clear();
 
-        spectrum_aligner.getSpectrumAlignment(alignment, partial_loss_spectrum, exp_spectrum);
+        // align spectra (only allow matching charges)
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment, 
+          fragment_mass_tolerance, 
+          fragment_mass_tolerance_unit_ppm, 
+          partial_loss_spectrum, 
+          exp_spectrum, 
+          total_loss_spectrum.getIntegerDataArrays()[0], 
+          exp_spectrum.getIntegerDataArrays()[0], 
+          ppm_error_array);
 
         const PeakSpectrum::StringDataArray& partial_loss_annotations = partial_loss_spectrum.getStringDataArrays()[0];
         const PeakSpectrum::IntegerDataArray& partial_loss_charges = partial_loss_spectrum.getIntegerDataArrays()[0];
@@ -1016,18 +988,8 @@ protected:
             ion_nr_string.substitute("+", ""); // remove one or multiple '+'
             auto ion_number = (Size)ion_nr_string.toInt();
 
-            // only allow matching charges
-            if (fragment_charge == charge)
-            {
-              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
-              shifted_y_ions[ion_number].push_back(d);
-            }
-            #ifdef DEBUG_RNPXLSEARCH
-            else
-            {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
-            }
-            #endif
+            RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+            shifted_y_ions[ion_number].push_back(d);
           }
           else if (fragment_ion_name.hasPrefix("b"))
           {
@@ -1036,18 +998,8 @@ protected:
             ion_nr_string.substitute("+", ""); // remove one or multiple '+'
             auto ion_number = (Size)ion_nr_string.toInt();
 
-            // only allow matching charges
-            if (fragment_charge == charge)
-            {
-              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
-              shifted_b_ions[ion_number].push_back(d);
-            }
-            #ifdef DEBUG_RNPXLSEARCH
-            else
-            {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
-            }
-            #endif
+            RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+            shifted_b_ions[ion_number].push_back(d);
           }
           else if (fragment_ion_name.hasPrefix("a"))
           {
@@ -1056,18 +1008,8 @@ protected:
             ion_nr_string.substitute("+", ""); // remove one or multiple '+'
             auto ion_number = (Size)ion_nr_string.toInt();
 
-            // only allow matching charges (if a fragment charge was assigned)
-            if (fragment_charge == charge)
-            {
-              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
-              shifted_a_ions[ion_number].push_back(d);
-            }
-            #ifdef DEBUG_RNPXLSEARCH
-            else
-            {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
-            }
-            #endif
+            RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+            shifted_a_ions[ion_number].push_back(d);
           }
           else if (ion_name.hasPrefix(ANNOTATIONS_MARKER_ION_PREFIX))
           {
@@ -1080,12 +1022,6 @@ protected:
               fa.annotation = ion_name;
               annotated_marker_ions.push_back(fa);
             }
-            #ifdef DEBUG_RNPXLSEARCH
-            else
-            {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << 1 << endl;
-            }
-            #endif
           }
           else if (ion_name.hasPrefix("i"))
           {
@@ -1098,19 +1034,13 @@ protected:
               fa.annotation = ion_name;
               shifted_immonium_ions.push_back(fa);
             }
-            #ifdef DEBUG_RNPXLSEARCH
-            else
-            {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << 1 << endl;
-            }
-            #endif
           }
           else if (ion_name.hasPrefix("[M+"))
           {
             PeptideHit::PeakAnnotation fa;
             fa.mz = fragment_mz;
             fa.intensity = fragment_intensity;
-            fa.charge = 1; // TODO: read out charge from ion name and set here
+            fa.charge = charge;
             fa.annotation = ion_name;
             annotated_precursor_ions.push_back(fa);
           }
@@ -3177,18 +3107,6 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
   partial_loss_spectrum.getStringDataArrays().resize(1); // annotation
   PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation = partial_loss_spectrum.getStringDataArrays()[0];
 
-  // ADD: (mainly for ETD) MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
-  for (int charge = 1; charge <= static_cast<int>(precursor_charge); ++charge)
-  {
-    addPrecursorWithCompleteRNA_(fixed_and_variable_modified_peptide_weight,
-                                 precursor_rna_adduct,
-                                 precursor_rna_weight,
-                                 charge,
-                                 partial_loss_spectrum,
-                                 partial_loss_spectrum_charge,
-                                 partial_loss_spectrum_annotation);
-  }
-
   // for all observable MS2 adducts ...
   for (Size i = 0; i != partial_loss_modification.size(); ++i)
   {
@@ -3232,22 +3150,30 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
       {
         for (Size i = 0; i != partial_loss_template_z2.size(); ++i) 
         { 
-          Peak1D p = partial_loss_template_z2[i];
-          p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
-          shifted_series_peaks.push_back(p);
-          shifted_series_annotations.push_back(partial_loss_template_z2.getStringDataArrays()[0][i]);
-          shifted_series_charges.push_back(partial_loss_template_z2.getIntegerDataArrays()[0][i]);
+          // currently, also contains z=1 precursor peaks which we aleardy added before
+          if (partial_loss_template_z2.getIntegerDataArrays()[0][i] == z)
+          { 
+            Peak1D p = partial_loss_template_z2[i];
+            p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+            shifted_series_peaks.push_back(p);
+            shifted_series_annotations.push_back(partial_loss_template_z2.getStringDataArrays()[0][i]);
+            shifted_series_charges.push_back(partial_loss_template_z2.getIntegerDataArrays()[0][i]);
+          } 
         } 
       }
       else if (z == 3)
       {
         for (Size i = 0; i != partial_loss_template_z3.size(); ++i) 
         { 
-          Peak1D p = partial_loss_template_z3[i];
-          p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
-          shifted_series_peaks.push_back(p);
-          shifted_series_annotations.push_back(partial_loss_template_z3.getStringDataArrays()[0][i]);
-          shifted_series_charges.push_back(partial_loss_template_z3.getIntegerDataArrays()[0][i]);
+          // currently, also contains z=1 and 2 precursor peaks which we aleardy added before
+          if (partial_loss_template_z3.getIntegerDataArrays()[0][i] == z)
+          { 
+            Peak1D p = partial_loss_template_z3[i];
+            p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+            shifted_series_peaks.push_back(p);
+            shifted_series_annotations.push_back(partial_loss_template_z3.getStringDataArrays()[0][i]);
+            shifted_series_charges.push_back(partial_loss_template_z3.getIntegerDataArrays()[0][i]);
+          } 
         } 
       }
       else // don't consider fragment ions with charge >= 4 
@@ -3275,6 +3201,18 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
       shifted_series_charges.begin(),
       shifted_series_charges.end()
     );
+  }
+
+  // ADD: (mainly for ETD) MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
+  for (int charge = 1; charge <= static_cast<int>(precursor_charge); ++charge)
+  {
+    addPrecursorWithCompleteRNA_(fixed_and_variable_modified_peptide_weight,
+                                 precursor_rna_adduct,
+                                 precursor_rna_weight,
+                                 charge,
+                                 partial_loss_spectrum,
+                                 partial_loss_spectrum_charge,
+                                 partial_loss_spectrum_annotation);
   }
 
   partial_loss_spectrum.sortByPosition();
