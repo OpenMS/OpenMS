@@ -266,14 +266,27 @@ protected:
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
 
   // query modified residues from database
-  vector<ConstRibonucleotidePtr> getModifications_(const set<String>& mod_names)
+  set<ConstRibonucleotidePtr> getModifications_(
+    const set<String>& mod_names, map<String, vector<String>> ambig_mods =
+    map<String, vector<String>>())
   {
-    vector<ConstRibonucleotidePtr> modifications;
+    set<ConstRibonucleotidePtr> modifications;
+    auto db_ptr = RibonucleotideDB::getInstance();
     for (String m : mod_names)
     {
-      m.substitute('_', ',');
-      ConstRibonucleotidePtr rm = RibonucleotideDB::getInstance()->getRibonucleotide(m);
-      modifications.push_back(rm);
+      auto pos = ambig_mods.find(m); // handle ambiguity codes
+      if (pos != ambig_mods.end())
+      {
+        for (const String& sub_mod : pos->second)
+        {
+          modifications.insert(db_ptr->getRibonucleotide(sub_mod));
+        }
+      }
+      else
+      {
+        m.substitute('_', ',');
+        modifications.insert(db_ptr->getRibonucleotide(m));
+      }
     }
     return modifications;
   }
@@ -841,10 +854,17 @@ protected:
     search_param.variable_mods.insert(var_mod_names.begin(),
                                       var_mod_names.end());
 
-    vector<ConstRibonucleotidePtr> fixed_modifications =
+    // ambiguity codes that represent multiple mods:
+    map<String, vector<String>> ambig_mods;
+    ambig_mods["mA?"] = {"Am", "mA"};
+    ambig_mods["mC?"] = {"Cm", "mC"};
+    ambig_mods["mG?"] = {"Gm", "mG"};
+    ambig_mods["mU?"] = {"Um", "mU"};
+
+    set<ConstRibonucleotidePtr> fixed_modifications =
       getModifications_(search_param.fixed_mods);
-    vector<ConstRibonucleotidePtr> variable_modifications =
-      getModifications_(search_param.variable_mods);
+    set<ConstRibonucleotidePtr> variable_modifications =
+      getModifications_(search_param.variable_mods, ambig_mods);
 
     // @TODO: add slots for these to "IdentificationData::DBSearchParam"?
     IntList precursor_isotopes = (use_avg_mass ? vector<Int>(1, 0) :
@@ -1024,7 +1044,7 @@ protected:
 
     Int base_charge = negative_mode ? -1 : 1;
 
- // shorter oligos take (possibly much) less time to process than longer ones;
+// shorter oligos take (possibly much) less time to process than longer ones;
 // due to the sorting order of "NASequence", they also appear earlier in the
 // container - therefore use dynamic scheduling to distribute work evenly:
 #pragma omp parallel for schedule(dynamic)
@@ -1039,10 +1059,10 @@ protected:
       vector<NASequence> all_modified_oligos;
       NASequence ns = oligo_ref->sequence;
       ModifiedNASequenceGenerator::applyFixedModifications(
-        fixed_modifications.begin(), fixed_modifications.end(), ns);
+        fixed_modifications, ns);
       ModifiedNASequenceGenerator::applyVariableModifications(
-        variable_modifications.begin(), variable_modifications.end(), ns,
-        max_variable_mods_per_oligo, all_modified_oligos, true);
+        variable_modifications, ns, max_variable_mods_per_oligo,
+        all_modified_oligos, true);
 
       // group modified oligos by precursor mass - oligos with the same
       // combination of mods (just different placements) will have same mass:
@@ -1077,12 +1097,12 @@ protected:
                     << float(candidate_mass) << " Da)" << endl;
 
           map<Int, PeakSpectrum> theo_spectra_by_charge;
-          for (; low_it != up_it; ++low_it)
+          for (auto prec_it = low_it; prec_it != up_it; ++prec_it)
           {
-            LOG_DEBUG << "Matching precursor mass: " << float(low_it->first)
+            LOG_DEBUG << "Matching precursor mass: " << float(prec_it->first)
                       << endl;
 
-            Size charge = low_it->second.charge;
+            Size charge = prec_it->second.charge;
             // look up theoretical spectrum for this charge:
             auto pos = theo_spectra_by_charge.find(charge);
             if (pos == theo_spectra_by_charge.end())
@@ -1099,7 +1119,7 @@ protected:
             }
             const PeakSpectrum& theo_spectrum = pos->second;
 
-            Size scan_index = low_it->second.scan_index;
+            Size scan_index = prec_it->second.scan_index;
             const PeakSpectrum& exp_spectrum = spectra[scan_index];
             vector<PeptideHit::PeakAnnotation> annotations;
             double score = MetaboliteSpectralMatching::computeHyperScore(
@@ -1158,10 +1178,10 @@ protected:
                 ah.sequence = candidate;
                 // @TODO: is "observed - calculated" the right way around?
                 ah.precursor_error_ppm =
-                  (low_it->first - candidate_mass) / candidate_mass * 1.0e6;
+                  (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
                 ah.annotations = annotations;
                 ah.charge = charge;
-                ah.adduct = low_it->second.adduct;
+                ah.adduct = prec_it->second.adduct;
               }
             }
           }

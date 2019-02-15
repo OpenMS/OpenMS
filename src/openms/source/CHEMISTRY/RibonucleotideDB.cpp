@@ -63,6 +63,60 @@ namespace OpenMS
     p5->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
     code_map_[p5->getCode()] = ribonucleotides_.size();
     ribonucleotides_.push_back(p5);
+    // add ambiguous representations of methylations:
+    Ribonucleotide* mA =
+      new Ribonucleotide("unspecified methyladenosine (base mod.)", "mA");
+    mA->setFormula(EmpiricalFormula("C11O4N5H15"));
+    mA->setMonoMass(mA->getFormula().getMonoWeight());
+    mA->setAvgMass(mA->getFormula().getAverageWeight());
+    mA->setOrigin('A');
+    code_map_[mA->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(mA);
+    Ribonucleotide* mC =
+      new Ribonucleotide("unspecified methylcytidine (base mod.)", "mC");
+    mC->setFormula(EmpiricalFormula("C10O5N3H15"));
+    mC->setMonoMass(mC->getFormula().getMonoWeight());
+    mC->setAvgMass(mC->getFormula().getAverageWeight());
+    mC->setOrigin('C');
+    code_map_[mC->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(mC);
+    Ribonucleotide* mG =
+      new Ribonucleotide("unspecified methylguanosine (base mod.)", "mG");
+    mG->setFormula(EmpiricalFormula("C11O5N5H15"));
+    mG->setMonoMass(mG->getFormula().getMonoWeight());
+    mG->setAvgMass(mG->getFormula().getAverageWeight());
+    mG->setOrigin('G');
+    code_map_[mG->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(mG);
+    Ribonucleotide* mU = new Ribonucleotide(
+      "unspecified methyl[pseudo]uridine (base mod.)", "mU");
+    mU->setFormula(EmpiricalFormula("C10O6N2H14"));
+    mU->setMonoMass(mU->getFormula().getMonoWeight());
+    mU->setAvgMass(mU->getFormula().getAverageWeight());
+    mU->setOrigin('U');
+    code_map_[mU->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(mU);
+    // and more variants:
+    mA = new Ribonucleotide(*mA);
+    mA->setName("unspecified methyladenosine");
+    mA->setCode("mA?");
+    code_map_[mA->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(mA);
+    mC = new Ribonucleotide(*mC);
+    mC->setName("unspecified methylcytidine");
+    mC->setCode("mC?");
+    code_map_[mC->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(mC);
+    mG = new Ribonucleotide(*mG);
+    mG->setName("unspecified methylguanosine");
+    mG->setCode("mG?");
+    code_map_[mG->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(mG);
+    mU = new Ribonucleotide(*mU);
+    mU->setName("unspecified methyl[pseudo]uridine");
+    mU->setCode("mU?");
+    code_map_[mU->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(mU);
   }
 
 
@@ -90,16 +144,19 @@ namespace OpenMS
 
     QTextStream source(&file);
     source.setCodec("UTF-8");
+    Size line_count = 1;
     String line = source.readLine();
-    // skip leading comments:
-    while (line.hasPrefix("#")) line = source.readLine();
+    while (line[0] == '#') // skip leading comments
+    {
+      line = source.readLine();
+      ++line_count;
+    }
     if (line != header)
     {
       String msg = "expected header line starting with: '" + header + "'";
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   line, msg);
     }
-    Size line_count = 1;
 
     QChar prime(0x2032); // Unicode "prime" character
     while (!source.atEnd())
@@ -119,7 +176,8 @@ namespace OpenMS
       catch (...)
       {
         LOG_ERROR << "Error: Failed to parse input line " << line_count
-                  << " - skipping this line." << endl;
+                  << ":\n\"" << String(row) << "\"\nSkipping this line."
+                  << endl;
       }
     }
   }
