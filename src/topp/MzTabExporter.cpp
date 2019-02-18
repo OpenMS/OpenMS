@@ -185,7 +185,6 @@ protected:
           }
 
           row.accession = MzTabString(peptide_evidences[i].getProteinAccession());
-          remap_target_decoy(row.opt_);
           rows.push_back(row);
         }
       }
@@ -195,7 +194,6 @@ protected:
         row.post = MzTabString("null");
         row.start = MzTabString("null");
         row.end = MzTabString("null");
-        remap_target_decoy(row.opt_);
         rows.push_back(row);
       }
     }
@@ -402,7 +400,6 @@ protected:
         const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
         if (pep_ids.empty())
         {
-          remap_target_decoy(row.opt_);
           rows.push_back(row);
           continue;
         }
@@ -416,7 +413,6 @@ protected:
 
         if (all_hits.empty())
         {
-          remap_target_decoy(row.opt_);
           rows.push_back(row);
           continue;
         }
@@ -454,8 +450,11 @@ protected:
 
         // create and fill opt_ columns for psm (PeptideHit) user values
         addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_, String("global"), best_ph);
-        remap_target_decoy(row.opt_);
         rows.push_back(row);
+      }
+      for (auto &row : rows)
+      {
+        remapTargetDecoy_(row.opt_);
       }
       mztab.setPeptideSectionRows(rows);
       return mztab;
@@ -571,7 +570,6 @@ protected:
             opt_column_entry.first = "opt_global_protein_group_type";
             opt_column_entry.second = MzTabString("single_protein");
             protein_row.opt_.push_back(opt_column_entry);
-            remap_target_decoy(protein_row.opt_);
             protein_rows.push_back(protein_row);
           }
 
@@ -604,7 +602,6 @@ protected:
             opt_column_entry.first = "opt_global_protein_group_type";
             opt_column_entry.second = MzTabString("protein_group");
             protein_row.opt_.push_back(opt_column_entry);
-            remap_target_decoy(protein_row.opt_);
             protein_rows.push_back(protein_row);
           }
 
@@ -635,10 +632,13 @@ protected:
             protein_row.opt_.push_back(opt_column_entry);
             protein_row.best_search_engine_score[1] = MzTabDouble(group.probability);
             //std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
-            remap_target_decoy(protein_row.opt_);
             protein_rows.push_back(protein_row);
           }
 
+        }
+        for (auto &row : protein_rows)
+        {
+          remapTargetDecoy_(row.opt_);
         }
         mztab.setProteinSectionRows(protein_rows);
       }
@@ -731,9 +731,11 @@ protected:
         // pass common row entries and create rows for all peptide evidences
         addPepEvidenceToRows(peptide_evidences, row, rows);
       }
-
+      for (auto &row : rows)
+      {
+        remapTargetDecoy_(row.opt_);
+      }
       mztab.setPSMSectionRows(rows);
-
       return mztab;
     }
 
@@ -1014,10 +1016,12 @@ protected:
             }
           }
         }
-        remap_target_decoy(row.opt_);
         rows.push_back(row);
       }
-
+      for (auto &row : rows)
+      {
+        remapTargetDecoy_(row.opt_);
+      }
       mztab.setPeptideSectionRows(rows);
       return mztab;
     }
@@ -1103,20 +1107,21 @@ protected:
       return EXECUTION_OK;
     }
   private:
-      static void remap_target_decoy(vector<MzTabOptionalColumnEntry> &opt)
+      static void remapTargetDecoy_(vector<MzTabOptionalColumnEntry> &opt_entries)
       {
         const String old_header("opt_global_target_decoy");
         const String new_header("opt_global_cv_MS:1002217_decoy_peptide");
-        for (MzTabOptionalColumnEntry &opt_entry : opt)
+        for (auto &opt_entry : opt_entries)
         {
           if (opt_entry.first == old_header || opt_entry.first == new_header)
           {
             opt_entry.first = new_header;
-            const String current_value = opt_entry.second.get();
+            const String &current_value = opt_entry.second.get();
             if (current_value == "target" || current_value == "target+decoy")
             {
               opt_entry.second = MzTabString("0");
-            } else if (current_value == "decoy")
+            }
+            else if (current_value == "decoy")
             {
               opt_entry.second = MzTabString("1");
             }
