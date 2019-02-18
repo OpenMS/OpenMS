@@ -339,8 +339,8 @@ namespace OpenMS
     Graphs ccs_;
 
     #ifdef INFERENCE_BENCH
-    /// nrnodes, nredges and times of last functor execution per connected component
-    std::vector<std::tuple<unsigned long, Size, Size, double>> sizes_and_times_{1};
+    /// nrnodes, nredges, nrmessages and times of last functor execution per connected component
+    std::vector<std::tuple<vertex_t, vertex_t, unsigned long, double>> sizes_and_times_{1};
     #endif
 
     /// underlying protein identification object

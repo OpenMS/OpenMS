@@ -461,7 +461,7 @@ namespace OpenMS
 
       #ifdef INFERENCE_BENCH
       sw.stop();
-      sizes_and_times_[i] = {boost::num_vertices(curr_cc), boost::num_edges(curr_cc), result, sw.getClockTime()};
+      sizes_and_times_[i] = tuple<vertex_t, vertex_t, unsigned long, double>{boost::num_vertices(curr_cc), boost::num_edges(curr_cc), result, sw.getClockTime()};
       #endif
     }
 
@@ -508,7 +508,7 @@ namespace OpenMS
 
       #ifdef INFERENCE_BENCH
       sw.stop();
-      sizes_and_times_[i] = {0, boost::num_vertices(curr_cc), boost::num_edges(curr_cc), sw.getClockTime()};
+      sizes_and_times_[i] = tuple<vertex_t, vertex_t, unsigned long, double>{boost::num_vertices(curr_cc), boost::num_edges(curr_cc), 0, sw.getClockTime()};
       #endif
     }
 
