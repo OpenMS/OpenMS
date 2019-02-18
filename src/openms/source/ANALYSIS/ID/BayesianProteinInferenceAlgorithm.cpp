@@ -232,9 +232,9 @@ namespace OpenMS
 
           auto posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
               {
-            {std::max<unsigned long>(10000ul, nrEdges*nrEdges*2ul), initDampeningLambda, initConvergenceThreshold},
-            {nrEdges*nrEdges, std::min(0.5,initDampeningLambda*10), std::min(0.01,initConvergenceThreshold*10)},
-            {nrEdges*nrEdges/2ul, std::min(0.5,initDampeningLambda*100), std::min(0.01,initConvergenceThreshold*100)}
+                  std::make_tuple(std::max<unsigned long>(10000ul, nrEdges*nrEdges*2ul), initDampeningLambda, initConvergenceThreshold),
+                  std::make_tuple(nrEdges*nrEdges, std::min(0.5,initDampeningLambda*10), std::min(0.01,initConvergenceThreshold*10)),
+                  std::make_tuple(nrEdges*nrEdges/2ul, std::min(0.5,initDampeningLambda*100), std::min(0.01,initConvergenceThreshold*100))
               });
 
           // TODO move the writing of statistics from IDBoostGraph here and write more stats
