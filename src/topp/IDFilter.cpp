@@ -239,6 +239,8 @@ protected:
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs. Usually used in combination with 'score:prot' or 'thresh:prot'.");
 
+    registerStringList_("remove_peptide_hits_by_metavalue", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+
   }
 
 
@@ -255,6 +257,22 @@ protected:
     Size n_prot_hits = IDFilter::countHits(proteins);
     Size n_pep_ids = peptides.size();
     Size n_pep_hits = IDFilter::countHits(peptides);
+
+    // handle remove_meta
+    StringList meta_info = getStringList_("remove_peptide_hits_by_metavalue");
+    bool remove_meta_enabled = (meta_info.size() > 0);
+    if (remove_meta_enabled && meta_info.size() != 3)
+    {
+      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+    if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt"))
+    {
+      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
 
     // Filtering peptide identification according to set criteria
 
@@ -609,6 +627,51 @@ protected:
       IDFilter::removeDecoyHits(proteins);
     }
 
+
+    // remove peptide hits with meta values:
+    if (remove_meta_enabled)
+    {
+      auto checkMVs = [this, &meta_info](PeptideHit& ph)->bool
+      {
+        if (!ph.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test 
+        DataValue v_data = ph.getMetaValue(meta_info[0]);
+        DataValue v_user;
+        switch (v_data.valueType())
+        {
+          case DataValue::STRING_VALUE : v_user = String(meta_info[2]); break;
+          case DataValue::INT_VALUE : v_user = String(meta_info[2]).toInt(); break;
+          case DataValue::DOUBLE_VALUE : v_user = String(meta_info[2]).toDouble(); break;
+          case DataValue::STRING_LIST : v_user = (StringList)ListUtils::create<String>(meta_info[2]); break;
+          case DataValue::INT_LIST : v_user = ListUtils::create<Int>(meta_info[2]); break;
+          case DataValue::DOUBLE_LIST : v_user = ListUtils::create<double>(meta_info[2]); break;
+          case DataValue::EMPTY_VALUE : v_user = DataValue::EMPTY; break;
+        }
+
+        if (meta_info[1] == "lt")
+        {
+          return !(v_data < v_user);
+        }
+        else if (meta_info[1] == "eq")
+        {
+          return !(v_data == v_user);
+        } 
+        else if (meta_info[1] == "gt")
+        {
+          return !(v_data > v_user);
+        }
+        else
+        {
+          writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Illegal meta value filtering operator!");
+        }
+      }; // of lambda
+
+      for (auto & pid : peptides)
+      {
+        vector<PeptideHit>& phs = pid.getHits();
+        phs.erase(remove_if(phs.begin(), phs.end(), checkMVs), phs.end());
+      }
+    }
 
     // Clean-up:
 

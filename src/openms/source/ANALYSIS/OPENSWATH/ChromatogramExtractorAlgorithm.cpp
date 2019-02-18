@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -352,6 +353,10 @@ namespace OpenMS
         }
         else if (use_im && used_filter == 1)
         {
+          if (extraction_coordinates[k].ion_mobility < 0)
+          {
+            std::cerr << "WARNING : Drift time of ion is negative!" << std::endl;
+          }
           extract_value_tophat(mz_start, mz_it, mz_end, int_it, im_it,
                                extraction_coordinates[k].mz, extraction_coordinates[k].ion_mobility,
                                integrated_intensity, mz_extraction_window, im_extraction_window, ppm);
@@ -361,7 +366,6 @@ namespace OpenMS
           throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
 
-        // Time is first, intensity is second
         output[k]->getTimeArray()->data.push_back(current_rt);
         output[k]->getIntensityArray()->data.push_back(integrated_intensity);
       }

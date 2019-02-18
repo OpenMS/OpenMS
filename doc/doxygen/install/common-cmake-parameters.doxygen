@@ -67,6 +67,10 @@ The most important CMake variables are:
     <td>Defines the C++ compiler to use.</td>
   </tr>
   <tr>
+    <td valign="top">\c MY_CXX_FLAGS</td>
+    <td>Additional custom C++ compile options you would like to add (must fit your chosen compiler). This might be useful, for example, for adding debug symbols to a Release build, or for performance analysis (e.g. for '... -DMY_CXX_FLAGS="-g;-fno-omit-frame-pointer" ...')</td>
+  </tr>
+  <tr>
     <td valign="top">\c CMAKE_C_COMPILER</td>
     <td>Defines the C compiler to use. This should match the C++ compiler.
     Mixing compilers (e.g., <i>clang++</i> for C++ and <i>gcc</i> for C) can

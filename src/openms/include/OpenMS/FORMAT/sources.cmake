@@ -80,6 +80,7 @@ SequestOutfile.h
 SpecArrayFile.h
 SVOutStream.h
 SwathFile.h
+SqliteConnector.h
 SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h

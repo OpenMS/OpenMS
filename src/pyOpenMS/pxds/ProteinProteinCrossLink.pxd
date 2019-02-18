@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         ProteinProteinCrossLink() nogil except +
 
 
-        AASequence alpha
-        AASequence beta
+        const AASequence *alpha
+        const AASequence *beta
         libcpp_pair[ ptrdiff_t, ptrdiff_t] cross_link_position
         double cross_linker_mass
         String cross_linker_name
