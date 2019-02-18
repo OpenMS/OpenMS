@@ -116,7 +116,8 @@ public:
   }
 
   static constexpr double MIN_HYPERSCORE = 0.1; // hit's with lower score than this will be neglected (usually 1 or 0 matches)
-
+  static constexpr double MIN_TOTAL_LOSS_IONS = 1; // minimum number of matches to unshifted ions
+  static constexpr double MIN_SHIFTED_IONS = 1; // minimum number of matches to shifted ions (applies to XLs only)
 protected:
   void registerOptionsAndFlags_() override
   {
@@ -786,10 +787,12 @@ protected:
           const Peak1D& fragment = exp_spectrum[fragment_index];
           const double fragment_intensity = fragment.getIntensity(); // in percent (%)
           const double fragment_mz = fragment.getMZ();
-          const int fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
+         
 
           const String& ion_name = total_loss_annotations[aligned.first];
           const int charge = total_loss_charges[aligned.first];
+
+          OPENMS_PRECONDITION(exp_spectrum.getIntegerDataArrays().back()[fragment_index] == charge, "Charges in alignment must match.");
 
           // define which ion names are annotated
           if (ion_name[0] == 'y')
@@ -1956,7 +1959,13 @@ protected:
                                          a_ion_sub_score);
 
                   // bad score or less then two peaks matching
-                  if (total_loss_score < RNPxlSearch::MIN_HYPERSCORE || tlss_Morph < 2.0) { continue; }
+                  if (total_loss_score < MIN_HYPERSCORE 
+                    || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
+	            || tlss_modds < 1e-10
+                    || tlss_MIC < 0.01) 
+                  { 
+                    continue; 
+                  }
 
                   const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                   const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) 
@@ -2118,7 +2127,13 @@ protected:
                                              a_ion_sub_score);
 
                     // bad score or less then two peaks matching
-                    if (tlss_score < MIN_HYPERSCORE || tlss_Morph < 2.0) { continue; }
+                    if (tlss_score < MIN_HYPERSCORE 
+                      || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
+                      || tlss_modds < 1e-10
+                      || tlss_MIC < 0.01) 
+                    { 
+                      continue; 
+                    }
 
                     scorePartialLossFragments_(exp_spectrum,
                                                fragment_mass_tolerance, 
@@ -2132,9 +2147,17 @@ protected:
                                                plss_err, 
                                                plss_Morph,
                                                plss_modds);
-                    
+
+                    const double total_MIC = tlss_MIC + plss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
                     // less then two shifted peaks?
-                    if (plss_Morph < 2.0) { continue; }
+                    if ( partial_loss_sub_score < MIN_HYPERSCORE // at least one peak with 10% of max intensity
+                      || plss_Morph < MIN_SHIFTED_IONS + 1.0 // > 1 shifted peaks
+                      || plss_modds < 1e-10 
+                      || total_MIC < 0.01  // less than 1% explained peaks
+                      )
+                    { 
+                      continue; 
+                    }
 
                     const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
@@ -2158,8 +2181,7 @@ protected:
                     ah.precursor_score = precursor_sub_score;
                     ah.a_ion_score = a_ion_sub_score;
                     ah.cross_linked_nucleotide = cross_linked_nucleotide;
-                    ah.total_MIC = tlss_MIC + plss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
-
+                    ah.total_MIC = total_MIC; 
                     // scores from shifted peaks
                     ah.marker_ions_score = marker_ions_sub_score;
                     ah.partial_loss_score = partial_loss_sub_score;
@@ -2230,8 +2252,13 @@ protected:
                                          precursor_sub_score,
                                          a_ion_sub_score);
 
-                // no good hit
-                if (total_loss_score < MIN_HYPERSCORE) { continue; }
+                // bad score or less then two peaks matching
+                if (total_loss_score < MIN_HYPERSCORE 
+                  || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
+                  || tlss_modds < 1e-10) 
+                { 
+                  continue; 
+                }
 
                 const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                 const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
