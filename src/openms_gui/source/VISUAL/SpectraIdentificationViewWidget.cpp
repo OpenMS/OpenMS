@@ -292,6 +292,7 @@ namespace OpenMS
       }
 
       fragment_window_->resizeColumnsToContents();
+      fragment_window_->resizeRowsToContents();
       fragment_window_->show();
       fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
       QApplication::setActiveWindow(fragment_window_);
