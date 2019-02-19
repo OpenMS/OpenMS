@@ -287,7 +287,7 @@ protected:
         maxIso.trimRight(.01*maxIso.getMostAbundant().getIntensity());
         param.maxIsotopeCount = min(param.maxIsotopeCount, (int)maxIso.size() - 1);
         generator->setMaxIsotope((Size)param.maxIsotopeCount);
-        return PrecalcularedAveragine(param.minMass, param.maxMass, (param.maxMass - param.minMass)/1000.0, generator);
+        return PrecalcularedAveragine(param.minMass, param.maxMass, max(10.0, (param.maxMass - param.minMass)/100.0), generator);
     }
 
     vector<PeakGroup> Deconvolution(MSExperiment &map, Parameter &param,
