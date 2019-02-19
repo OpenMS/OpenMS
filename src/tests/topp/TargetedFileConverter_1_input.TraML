@@ -23,6 +23,7 @@
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.2" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV"/>
+      <userParam name="GeneName" type="xsd:string" value="Gene1"/>
       <ProteinRef ref="P0C0L5;P0C0L4"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
         <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
@@ -41,6 +42,7 @@
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.6" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR"/>
+      <userParam name="GeneName" type="xsd:string" value="Gene2"/>
       <ProteinRef ref="Q9HCU0"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
         <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
