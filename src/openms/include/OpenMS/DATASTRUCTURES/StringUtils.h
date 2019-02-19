@@ -814,17 +814,18 @@ public:
       return ret;
     }
 
-    /// Reads a double from a streams current position.
-    /// The stream pointer is modified (advanced).
+    /// Reads a double from an iterator position.
+    /// The begin iterator is modified (advanced) if parsing was successful.
     /// The @p target only contains a valid result if the functions returns true (i.e. parsing succeeded).
-    /// Whitespaces before and after the double are consumed as well.
-    static bool toDouble(std::stringstream& ss, double& target)
+    /// Whitespaces before and after the double are NOT consumed!
+    template <typename IteratorT>
+    static bool extractDouble(IteratorT& begin, const IteratorT& end, double& target)
     {
-      boost::spirit::istream_iterator it_start(ss), it_end;
       // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
       // so don't change this unless you have benchmarks for all platforms!
-      // Do not use a whitespace skipper here (default), since that parses "15.0e6 96e+06" as '15.0e696' ...
-      return boost::spirit::qi::phrase_parse(it_start, it_end, parse_double_, boost::spirit::ascii::space, target);
+
+      // qi::parse() does not consume whitespace before or after the double (qi::parse_phrase() would).
+      return boost::spirit::qi::parse(begin, end, parse_double_, target);
     }
 
 

@@ -339,8 +339,8 @@ namespace OpenMS
     {
       while (input_line_1_.ok() && input_line_2_.ok())
       {
-        element_1_.fillFromInputLine(input_line_1_);
-        element_2_.fillFromInputLine(input_line_2_);
+        element_1_.fillFromInputLine(input_line_1_, line_str_1);
+        element_2_.fillFromInputLine(input_line_2_, line_str_2);
 
         if (element_1_.is_number)
         {
@@ -678,7 +678,7 @@ namespace OpenMS
   }
 
 
-  void FuzzyStringComparator::StreamElement_::fillFromInputLine(InputLine& input_line)
+  void FuzzyStringComparator::StreamElement_::fillFromInputLine(InputLine& input_line, const std::string& str_line)
   {
     // first reset all internal variables so we do not mess with
     // old values
@@ -694,11 +694,18 @@ namespace OpenMS
     {
       // go back to initial position and try to read as double
       input_line.seekGToSavedPosition();
-      if (!(is_number = StringUtils::toDouble(input_line.line_, number))) // the >>operator is awfully slow (especially on VS); huge potential for speed improvement
+      auto it_start = str_line.begin() + (int)input_line.line_position_;
+      auto it_start_fixed = it_start;
+      // extracting the double does NOT modify the stream (since we work on the string)
+      if (is_number = StringUtils::extractDouble(it_start, str_line.end(), number))
       {
-        // go back to initial position and read as letter (since its neither space nor number)
-        input_line.seekGToSavedPosition();
-        input_line.line_ >> letter; // read letter
+        // forward the stream
+        input_line.line_.seekg(input_line.line_.tellg() + std::distance(it_start_fixed, it_start));
+      }
+      else
+      {
+        // no double/float/int either ... so read as letter
+        input_line.line_ >> letter;
       }
     }
   }

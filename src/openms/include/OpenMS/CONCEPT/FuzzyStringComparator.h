@@ -328,7 +328,9 @@ protected:
       void reset();
 
       /// Read the next element from an InputLine and update the InputLine accordingly
-      void fillFromInputLine(InputLine & input_line);
+      /// The @p str_line contains the same data as the stream, since it saves some forth-and-back conversion internally
+      /// TODO: avoid streams alltogether (slow, and no random access, required by boost::qi) at some point
+      void fillFromInputLine(InputLine& input_line, const std::string& str_line);
     };
 
     /// Stores information about characters, numbers, and white spaces loaded from the first input stream
