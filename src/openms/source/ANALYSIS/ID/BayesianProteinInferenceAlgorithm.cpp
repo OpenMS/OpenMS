@@ -118,6 +118,7 @@ namespace OpenMS
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
         bool annotate_group_posterior = param_.getValue("annotate_group_probabilities").toBool();
         bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
+        bool regularize = param_.getValue("model_parameters:regularize").toBool();
         double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");
         if (pnorm <= 0)
         {
@@ -171,8 +172,17 @@ namespace OpenMS
 
             if (fg[*ui].which() == 6) // pep hit = psm
             {
-              bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit *>(fg[*ui])
-                                                                     ->getPeptideEvidences().size(), in[0], *ui));
+              if (regularize)
+              {
+                bigb.insert_dependency(mpf.createRegularizingSumEvidenceFactor(boost::get<PeptideHit *>(fg[*ui])
+                                                                                   ->getPeptideEvidences().size(), in[0], *ui));
+              }
+              else
+              {
+                bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit *>(fg[*ui])
+                                                                                   ->getPeptideEvidences().size(), in[0], *ui));
+              }
+
               bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui,
                                                                      boost::get<PeptideHit *>(fg[*ui])->getScore()));
               if (update_PSM_probabilities)
@@ -542,6 +552,11 @@ namespace OpenMS
                        "Peptide prior probability (experimental, should be covered by combinations of the other params).");
     defaults_.setMinFloat("model_parameters:pep_prior", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_prior", 1.0);
+
+    defaults_.setValue("model_parameters:regularize",
+                       "false",
+                       "Regularize the number of proteins that produce a peptide together (experimental, should be activated when using higher p-norms).");
+    defaults_.setValidStrings("model_parameters:regularize",{"true","false"});
 
     defaults_.addSection("loopy_belief_propagation","Settings for the loopy belief propagation algorithm.");
 

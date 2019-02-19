@@ -1099,10 +1099,11 @@ public:
       std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
       for (auto &pep : pep_ids)
       {
-        bool higher_score_better = pep.isHigherScoreBetter();
         //skip if no hits (which almost could be considered and error or warning.
         if (pep.getHits().empty())
           continue;
+
+        bool higher_score_better = pep.isHigherScoreBetter();
         //make sure that first = best hit
         pep.sort();
 
@@ -1144,6 +1145,7 @@ public:
             }
             else //note that this was def. not the best
             {
+              // TODO if it is only about filtering, we can omit writing this metavalue (absence = false)
               hit.setMetaValue("bestForItsPep", "false");
             }
           }

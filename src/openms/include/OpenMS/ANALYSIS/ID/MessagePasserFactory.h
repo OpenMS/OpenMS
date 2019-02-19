@@ -60,6 +60,7 @@ public:
 
     TableDependency<Label> createPeptideEvidenceFactor(Label id, double prob);
 
+    TableDependency<Label> createRegularizingSumEvidenceFactor(size_t nrParents, Label nId, Label pepId);
     TableDependency<Label> createSumEvidenceFactor(size_t nrParents, Label nId, Label pepId);
 
     TableDependency<Label> createSumFactor(size_t nrParents, Label nId);
@@ -149,6 +150,26 @@ TableDependency<L> MessagePasserFactory<L>::createSumEvidenceFactor(size_t nrPar
     table[indexArr] = notConditional;
     unsigned long indexArr2[2] = {i,1ul};
     table[indexArr2] = 1.0 - notConditional;
+  }
+  //std::cout << table << std::endl;
+  LabeledPMF<L> lpmf({nId, pepId}, PMF({0L,0L}, table));
+  //std::cout << lpmf << std::endl;
+  return TableDependency<L>(lpmf,p);
+}
+
+template <typename L>
+TableDependency<L> MessagePasserFactory<L>::createRegularizingSumEvidenceFactor(size_t nrParents, L nId, L pepId) {
+  Tensor<double> table({static_cast<unsigned long>(nrParents + 1) , 2});
+  unsigned long z[2]{0ul,0ul};
+  unsigned long z1[2]{0ul,1ul};
+  table[z] = 1. - beta;
+  table[z1] = beta;
+  for (unsigned long i=1; i <= nrParents; ++i) {
+    double notConditional = notConditionalGivenSum(i);
+    unsigned long indexArr[2] = {i,0ul};
+    table[indexArr] = notConditional / i;
+    unsigned long indexArr2[2] = {i,1ul};
+    table[indexArr2] = (1.0 - notConditional) / i;
   }
   //std::cout << table << std::endl;
   LabeledPMF<L> lpmf({nId, pepId}, PMF({0L,0L}, table));

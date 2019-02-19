@@ -269,7 +269,7 @@ protected:
       mergedprots[0].getProteinGroups().clear();
     }
 
-    IDFilter::filterBestPerPeptide(mergedpeps, true, true, int(epifany_param.getValue("top_PSMs")));
+    IDFilter::filterBestPerPeptide(mergedpeps, true, true, static_cast<unsigned int>(epifany_param.getValue("top_PSMs")));
 
     IDFilter::filterEmptyPeptideIDs(mergedpeps);
 
