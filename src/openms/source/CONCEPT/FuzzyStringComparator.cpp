@@ -349,6 +349,7 @@ namespace OpenMS
 #ifdef DEBUG_FUZZY
             std::cout << "cmp number: " << String(element_1_.number) << " : " << String(element_2_.number) << std::endl;
 #endif
+            if (element_1_.number == element_2_.number) continue;
 
             // check if absolute difference is small
             double absdiff = element_1_.number - element_2_.number;
@@ -697,14 +698,13 @@ namespace OpenMS
       auto it_start = str_line.begin() + (int)input_line.line_position_;
       auto it_start_fixed = it_start;
       // extracting the double does NOT modify the stream (since we work on the string)
-      if (is_number = StringUtils::extractDouble(it_start, str_line.end(), number))
-      {
-        // forward the stream
+      is_number = StringUtils::extractDouble(it_start, str_line.end(), number);
+      if (is_number)
+      { // forward the stream
         input_line.line_.seekg(long(input_line.line_.tellg()) + long(std::distance(it_start_fixed, it_start)));
       }
       else
-      {
-        // no double/float/int either ... so read as letter
+      { // no double/float/int either ... so read as letter
         input_line.line_ >> letter;
       }
     }
