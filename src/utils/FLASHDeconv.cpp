@@ -245,7 +245,7 @@ protected:
                 << " ms (CPU), " << 1000.0*elapsed_wall_secs /(specCntr - prevSpecCntr) << " ms (Wall)] --"  << endl;
             cout << "Found " << massCntr - prevMassCntr << " masses in "<< qspecCntr - prevQspecCntr << " MS1 spectra out of "
             << specCntr - prevSpecCntr << endl;
-
+            if(peakGroups.empty()) continue;
             cout<< "Writing results ...";
             cout.flush();
             for(auto &pg : peakGroups)
@@ -287,7 +287,7 @@ protected:
         maxIso.trimRight(.01*maxIso.getMostAbundant().getIntensity());
         param.maxIsotopeCount = min(param.maxIsotopeCount, (int)maxIso.size() - 1);
         generator->setMaxIsotope((Size)param.maxIsotopeCount);
-        return PrecalcularedAveragine(param.minMass, param.maxMass, 10.0, generator);
+        return PrecalcularedAveragine(param.minMass, param.maxMass, (param.maxMass - param.minMass)/1000.0, generator);
     }
 
     vector<PeakGroup> Deconvolution(MSExperiment &map, Parameter &param,
@@ -374,7 +374,7 @@ protected:
                 }
                 massMap[nm] = v;
             }else{ // write feature and clear key
-                if(v[1] - v[0] > 0) {
+                if(v[1] - v[0] > 0 && v[1]-v[0]<delta) {
                     stringstream s;
                     s <<"\t" << param.fileName << "\t" << nm << "\t" << fixed << setprecision(5) << v[0] << "\t"
                       << v[1]<<"\t"<<v[1]-v[0] << "\t" << v[2] << "\t" << v[3]<< "\t" << v[4];
