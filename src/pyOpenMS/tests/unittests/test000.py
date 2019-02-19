@@ -214,7 +214,7 @@ def testAASequence():
     assert seq.toBracketString() == b"PEPTIDESEKUEM[147]CER"
     assert seq.toBracketString(True, []) == b"PEPTIDESEKUEM[147]CER"
     print( seq.toBracketString(False, []) )
-    assert seq.toBracketString(False, []) == b"PEPTIDESEKUEM[147.035400017100017]CER"
+    assert seq.toBracketString(False, []) == b"PEPTIDESEKUEM[147.03540001709996]CER"
     print( seq.toBracketString(False) )
     assert seq.toBracketString(False) == b"PEPTIDESEKUEM[147.035400017100017]CER"
     assert seq.toUniModString() == b"PEPTIDESEKUEM(UniMod:35)CER"

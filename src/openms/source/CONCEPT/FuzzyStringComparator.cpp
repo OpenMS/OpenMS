@@ -700,7 +700,7 @@ namespace OpenMS
       if (is_number = StringUtils::extractDouble(it_start, str_line.end(), number))
       {
         // forward the stream
-        input_line.line_.seekg(input_line.line_.tellg() + std::distance(it_start_fixed, it_start));
+        input_line.line_.seekg(long(input_line.line_.tellg()) + long(std::distance(it_start_fixed, it_start)));
       }
       else
       {
