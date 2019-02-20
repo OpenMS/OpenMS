@@ -1,12 +1,12 @@
 
 -- General information --
 
-File name: /nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/FileInfo_5_input.mzDat
+File name: C:/dev/openmsqt5/src/tests/topp/FileInfo_5_input.mzDat
 File type: mzData
 
 MS levels: 1, 2
+Total number of peaks: 3149
 Number of spectra: 10
-Number of peaks: 3149
 
 Number of spectra per MS level:
   level 1: 4
