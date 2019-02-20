@@ -368,7 +368,8 @@ namespace OpenMS
     return true;
   }
   
-  bool MultiplexFilteringProfile::filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const
+  bool MultiplexFilteringProfile::filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern,
+                                                            const std::multimap<size_t, MultiplexSatelliteProfile >& satellites_profile) const
   {
     if (pattern.getMassShiftCount() < 2)
     {
@@ -395,18 +396,16 @@ namespace OpenMS
           size_t idx_1 = peptide_1 * isotopes_per_peptide_max_ + isotope;
           size_t idx_2 = peptide_2 * isotopes_per_peptide_max_ + isotope;
           
-          std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_1;
-          std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_2;
-          satellites_1 = satellites_profile.equal_range(idx_1);
-          satellites_2 = satellites_profile.equal_range(idx_2);
+          auto satellites_1 = satellites_profile.equal_range(idx_1);
+          auto satellites_2 = satellites_profile.equal_range(idx_2);
           
           // loop over satellites in mass trace 1
-          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
+          for (auto satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
           {
             double rt_1 = (satellite_it_1->second).getRT();
             
             // loop over satellites in mass trace 2
-            for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
+            for (auto satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
             {
               double rt_2 = (satellite_it_2->second).getRT();
               

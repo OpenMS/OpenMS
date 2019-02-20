@@ -22,7 +22,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-12-07T15:34:38" search_engine="OpenPepXL" search_engine_version="2.4.0-feature-OPXL-speedup-by-simplification-2018-12-07" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-02-11T12:52:00" search_engine="OpenPepXL" search_engine_version="2.4.0-fix-OPXL-decoy-metavalue-2019-02-11" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -92,6 +92,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="298"/>
 				<UserParam type="string" name="accessions_beta" value="-"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="-"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="721.084594726563" RT="2132.47583007812" spectrum_reference="spectrum=131,spectrum=113" >
@@ -152,6 +153,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.190406834856118" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=131"/>
@@ -204,6 +206,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="721.084594726563" RT="2132.47583007812" spectrum_reference="spectrum=131,spectrum=23" >
@@ -264,6 +267,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.202402484471653" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=131"/>
@@ -316,6 +320,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="541.064880371094" RT="2132.78686523438" spectrum_reference="spectrum=132,spectrum=120" >
@@ -376,6 +381,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.159752955247908" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=132"/>
@@ -428,6 +434,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="541.064880371094" RT="2132.78686523438" spectrum_reference="spectrum=132,spectrum=40" >
@@ -488,6 +495,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.159994913963651" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=132"/>
@@ -540,6 +548,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="656.050903320313" RT="2228.50292963107" spectrum_reference="spectrum=238,spectrum=219" >
@@ -599,6 +608,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="153"/>
 				<UserParam type="string" name="accessions_beta" value="-"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="-"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="721.084655761719" RT="2100.65356445312" spectrum_reference="spectrum=52,spectrum=113" >
@@ -659,6 +669,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.177950536879016" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=52"/>
@@ -711,6 +722,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="721.084655761719" RT="2100.65356445312" spectrum_reference="spectrum=52,spectrum=23" >
@@ -771,6 +783,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.261280289109611" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=52"/>
@@ -823,6 +836,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="541.064880371094" RT="2101.32348632812" spectrum_reference="spectrum=54,spectrum=120" >
@@ -883,6 +897,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.122229997194374" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=54"/>
@@ -935,6 +950,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="541.064880371094" RT="2101.32348632812" spectrum_reference="spectrum=54,spectrum=40" >
@@ -995,6 +1011,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.159752955247908" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=54"/>
@@ -1047,6 +1064,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="71"/>
 				<UserParam type="string" name="accessions_beta" value="Protein2"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="124"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
