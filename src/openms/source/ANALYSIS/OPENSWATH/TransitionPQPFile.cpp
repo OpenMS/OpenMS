@@ -628,7 +628,7 @@ namespace OpenMS
     conn.executeStatement("BEGIN TRANSACTION");
 
     // Execute SQL insert statement
-    String insert_version = "INSERT INTO VERSION (ID) VALUES (2);";
+    String insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
     conn.executeStatement(insert_version);
     conn.executeStatement(insert_protein_sql);
     conn.executeStatement(insert_peptide_protein_mapping);
