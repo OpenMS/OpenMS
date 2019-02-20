@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
@@ -337,8 +339,8 @@ namespace OpenMS
     {
       while (input_line_1_.ok() && input_line_2_.ok())
       {
-        element_1_.fillFromInputLine(input_line_1_);
-        element_2_.fillFromInputLine(input_line_2_);
+        element_1_.fillFromInputLine(input_line_1_, line_str_1);
+        element_2_.fillFromInputLine(input_line_2_, line_str_2);
 
         if (element_1_.is_number)
         {
@@ -347,6 +349,7 @@ namespace OpenMS
 #ifdef DEBUG_FUZZY
             std::cout << "cmp number: " << String(element_1_.number) << " : " << String(element_2_.number) << std::endl;
 #endif
+            if (element_1_.number == element_2_.number) continue;
 
             // check if absolute difference is small
             double absdiff = element_1_.number - element_2_.number;
@@ -675,139 +678,8 @@ namespace OpenMS
     }
   }
 
-// we need this only for the stream extraction bug
-#ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
-  bool FuzzyStringComparator::StreamElement_::readdigits(InputLine& input_line, std::string& target_buffer, char& c_buffer)
-  {
-    // we want at least one digit, otherwise it is false
-    c_buffer = input_line.line_.peek();
-    if (c_buffer == EOF || !isdigit(c_buffer))
-    {
-      return false;
-    }
-    else
-    {
-      target_buffer.push_back(c_buffer);
-      c_buffer = input_line.line_.get();
-    }
 
-    // try to get more numbers
-    while (true)
-    {
-      c_buffer = input_line.line_.peek();
-      if (isdigit(c_buffer) && c_buffer != EOF)
-      {
-        target_buffer.push_back(c_buffer);
-        c_buffer = input_line.line_.get();
-      }
-      else
-      {
-        break;
-      }
-    }
-
-    return true;
-  }
-
-  bool FuzzyStringComparator::StreamElement_::tryExtractDouble(InputLine& input_line, double& target)
-  {
-    char c_peek;
-    std::string buffer;
-
-    if (input_line.line_.eof())
-    {
-      return false;
-    }
-
-    c_peek = input_line.line_.peek();
-
-    // .99
-    bool have_seen_decimal_separator = false;
-
-    // read sign or first number, otherwise abort
-    if ((c_peek == '+' || c_peek == '-' || isdigit(c_peek) || c_peek == '.') && c_peek != EOF)
-    {
-      buffer.push_back(c_peek);
-      c_peek = input_line.line_.get();
-      have_seen_decimal_separator = (c_peek == '.');
-    }
-    else
-    {
-      return false;
-    }
-
-    // try to accumulate more numbers
-    readdigits(input_line, buffer, c_peek);
-
-    // if we have no decimal separator, return what we already accumulated
-    if (c_peek != '.' && !have_seen_decimal_separator)
-    {
-      // have we accumulated more then +/-
-      if (buffer.size() > 1 || isdigit(buffer[0]))
-      {
-        target = boost::lexical_cast<double>(buffer);
-        return true;
-      }
-      else
-      {
-        return false;
-      }
-    }
-    else if (!have_seen_decimal_separator)
-    {
-      buffer.push_back(c_peek);
-      c_peek = input_line.line_.get();
-
-      // try to read the rest of the float
-      readdigits(input_line, buffer, c_peek);
-    }
-
-    // check if the number is followed by an e+/- something
-    if (c_peek == 'e' || c_peek == 'E')
-    {
-      // add char to buffer
-      buffer.push_back(c_peek);
-      input_line.line_.get();
-      // get next char
-      c_peek = input_line.line_.peek();
-
-      // check if we have a sign
-      if (c_peek == '+' || c_peek == '-')
-      {
-        buffer.push_back(c_peek);
-        c_peek = input_line.line_.get();
-      }
-
-      // try to accumulate the rest of scientific notation
-      if (readdigits(input_line, buffer, c_peek))
-      {
-        target = boost::lexical_cast<double>(buffer);
-        return true;
-      }
-      else
-      {
-        return false;
-      }
-    }
-    else // just a simple floating point number, convert
-    {
-      // have we accumulated more then +/-
-      if (buffer.size() > 1 || isdigit(buffer[0]))
-      {
-        target = boost::lexical_cast<double>(buffer);
-        return true;
-      }
-      else
-      {
-        // not enough content for cast
-        return false;
-      }
-    }
-  }
-
-#endif
-
-  void FuzzyStringComparator::StreamElement_::fillFromInputLine(InputLine& input_line)
+  void FuzzyStringComparator::StreamElement_::fillFromInputLine(InputLine& input_line, const std::string& str_line)
   {
     // first reset all internal variables so we do not mess with
     // old values
@@ -823,20 +695,17 @@ namespace OpenMS
     {
       // go back to initial position and try to read as double
       input_line.seekGToSavedPosition();
-#ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
-      // is a number? (explicit bool op for C11)
-      if (tryExtractDouble(input_line, number))
-#else
-      if ((is_number = (bool(input_line.line_ >> number)))) // the >>operator is awfully slow (especially on VS); huge potential for speed improvement
-#endif
-      {
-        is_number = true;
+      auto it_start = str_line.begin() + (int)input_line.line_position_;
+      auto it_start_fixed = it_start;
+      // extracting the double does NOT modify the stream (since we work on the string)
+      is_number = StringUtils::extractDouble(it_start, str_line.end(), number);
+      if (is_number)
+      { // forward the stream
+        input_line.line_.seekg(long(input_line.line_.tellg()) + long(std::distance(it_start_fixed, it_start)));
       }
       else
-      {
-        // go back to initial position and read as letter (since its neither space nor number)
-        input_line.seekGToSavedPosition();
-        input_line.line_ >> letter; // read letter
+      { // no double/float/int either ... so read as letter
+        input_line.line_ >> letter;
       }
     }
   }
