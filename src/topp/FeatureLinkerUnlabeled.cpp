@@ -35,6 +35,8 @@
 
 #include "FeatureLinkerBase.cpp"
 
+#include <iomanip>     // setw
+
 using namespace OpenMS;
 using namespace std;
 

@@ -38,7 +38,6 @@
 
 #include <boost/range/algorithm.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
-#include <sqlite3.h>
 #include <iostream>
 
 namespace OpenMS

@@ -46,6 +46,8 @@
 #include <QFileInfo>
 #include <QtCore/QRegExp>
 
+#include <iomanip>     // setw
+
 #define HIGH_PRECISION 5
 #define LOW_PRECISION 3
 

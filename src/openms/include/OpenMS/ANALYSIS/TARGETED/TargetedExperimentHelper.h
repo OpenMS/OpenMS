@@ -819,9 +819,9 @@ protected:
         return configuration_list_;
       }
 
-      void addConfiguration(const Configuration configuration)
+      void addConfiguration(const Configuration& configuration)
       {
-        return configuration_list_.push_back(configuration);
+        configuration_list_.push_back(configuration);
       }
 
       const std::vector<Interpretation> & getInterpretationList() const
@@ -829,9 +829,9 @@ protected:
         return interpretation_list_;
       }
 
-      void addInterpretation(const Interpretation interpretation)
+      void addInterpretation(const Interpretation& interpretation)
       {
-        return interpretation_list_.push_back(interpretation);
+        interpretation_list_.push_back(interpretation);
       }
 
       void resetInterpretations()
