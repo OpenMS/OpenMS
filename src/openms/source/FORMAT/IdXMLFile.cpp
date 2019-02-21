@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <fstream>
+#include <unordered_map>
 #include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
@@ -190,7 +191,13 @@ namespace OpenMS
     }
 
     UInt prot_count = 0;
-    std::map<String, UInt> accession_to_id;
+    std::unordered_map<string, UInt> accession_to_id;
+    size_t protein_count{0};
+    for (const auto& pi : protein_ids)
+    {
+      protein_count += pi.getHits().size();
+    }
+    accession_to_id.reserve(protein_count); // expect this many keys (avoid rehashing)
 
     // identifiers of protein identifications that are already written
     std::vector<String> done_identifiers;
@@ -227,19 +234,20 @@ namespace OpenMS
       os << "significance_threshold=\"" << protein_ids[i].getSignificanceThreshold() << "\" >\n";
 
       // write protein hits
-      for (Size j = 0; j < protein_ids[i].getHits().size(); ++j)
+      size_t hit_count { protein_ids[i].getHits().size() };
+      for (Size j = 0; j < hit_count; ++j)
       {
         os << "\t\t\t<ProteinHit "
-           << "id=\"PH_" << prot_count << "\" "
+           << "id=\"PH_" << String(prot_count) << "\" "
            << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" "
-           << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
+           << "score=\"" << String(protein_ids[i].getHits()[j].getScore()) << "\" ";
         accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count;
         ++prot_count;
 
         double coverage = protein_ids[i].getHits()[j].getCoverage();
         if (coverage != ProteinHit::COVERAGE_UNKNOWN)
         {
-          os << "coverage=\"" << coverage << "\" ";
+          os << "coverage=\"" << String(coverage) << "\" ";
         }
 
         os << "sequence=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getSequence()) << "\" >\n";
@@ -287,16 +295,16 @@ namespace OpenMS
         {
           os << "higher_score_better=\"false\" ";
         }
-        os << "significance_threshold=\"" << peptide_ids[l].getSignificanceThreshold() << "\" ";
+        os << "significance_threshold=\"" << String(peptide_ids[l].getSignificanceThreshold()) << "\" ";
         // mz
         if (peptide_ids[l].hasMZ())
         {
-          os << "MZ=\"" << peptide_ids[l].getMZ() << "\" ";
+          os << "MZ=\"" << String(peptide_ids[l].getMZ()) << "\" ";
         }
         // rt
         if (peptide_ids[l].hasRT())
         {
-          os << "RT=\"" << peptide_ids[l].getRT() << "\" ";
+          os << "RT=\"" << String(peptide_ids[l].getRT()) << "\" ";
         }
         // spectrum_reference
         const DataValue& dv = peptide_ids[l].getMetaValue("spectrum_reference");
@@ -314,20 +322,19 @@ namespace OpenMS
 
         // sort by score
         pep_id.sort();
-        const vector<PeptideHit> pep_hits = pep_id.getHits();
+        const vector<PeptideHit>& pep_hits = pep_id.getHits();
 
-        for (Size j = 0; j < pep_hits.size(); ++j)
+        for (const PeptideHit& p_hit : pep_hits)
         {
-          const PeptideHit& p_hit = pep_hits[j];
           os << "\t\t\t<PeptideHit"
-             << " score=\"" << precisionWrapper(p_hit.getScore()) << "\""
+             << " score=\"" << String(p_hit.getScore()) << "\""
              << " sequence=\"" << writeXMLEscape(p_hit.getSequence().toString()) << "\""
-             << " charge=\"" << p_hit.getCharge() << "\"";
+             << " charge=\"" << String(p_hit.getCharge()) << "\"";
 
           const std::vector<PeptideEvidence>& pes = p_hit.getPeptideEvidences();
 
-          os << createFlankingAAXMLString_(pes);
-          os << createPositionXMLString_(pes);
+          createFlankingAAXMLString_(pes, os);
+          createPositionXMLString_(pes, os);
 
           // Extract all protein accessions.
           // Note: protein accessions correspond to neighboring AAs and start/end
@@ -361,14 +368,14 @@ namespace OpenMS
             for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = p_hit.getAnalysisResults().begin();
                 ar_it != p_hit.getAnalysisResults().end(); ++ar_it, ++k)
             {
-              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << k << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
-              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << k << "_score\" value=\"" << ar_it->main_score << "\"/>" << "\n";
+              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << String(k) << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
+              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_score\" value=\"" << String(ar_it->main_score) << "\"/>" << "\n";
               if (!ar_it->sub_scores.empty())
               {
                 for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
                     subscore_it != ar_it->sub_scores.end(); ++subscore_it)
                 {
-                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << k << "_subscore_" << subscore_it->first <<"\" value=\"" << subscore_it->second << "\"/>" << "\n";
+                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_subscore_" << subscore_it->first <<"\" value=\"" << String(subscore_it->second) << "\"/>" << "\n";
                 }
               }
             }
@@ -646,12 +653,12 @@ namespace OpenMS
 
         for (std::vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
-          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          const auto it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
             pe.setProteinAccession(it2->second);
-            peptide_evidences_.push_back(pe);
+            peptide_evidences_.push_back(std::move(pe));
           }
           else
           {
@@ -888,7 +895,7 @@ namespace OpenMS
 
   void IdXMLFile::addProteinGroups_(
     MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>&
-    groups, const String& group_name, const std::map<String, UInt>& accession_to_id)
+    groups, const String& group_name, const std::unordered_map<string, UInt>& accession_to_id)
   {
     for (Size g = 0; g < groups.size(); ++g)
     {
@@ -903,7 +910,7 @@ namespace OpenMS
       {
         if (acc_it != groups[g].accessions.begin())
           accessions += ",";
-        std::map<String, UInt>::const_iterator pos = accession_to_id.find(*acc_it);
+        const auto pos = accession_to_id.find(*acc_it);
         if (pos != accession_to_id.end())
         {
           accessions += "PH_" + String(pos->second);
@@ -924,11 +931,11 @@ namespace OpenMS
     groups.clear();
     Size g_id = 0;
     String current_meta = group_name + "_" + String(g_id);
+    StringList values;
     while (last_meta_->metaValueExists(current_meta)) // assumes groups have incremental g_IDs
     {
       // convert to proper ProteinGroup
       ProteinIdentification::ProteinGroup g;
-      StringList values;
       String(last_meta_->getMetaValue(current_meta)).split(',', values);
       if (values.size() < 2)
       {
@@ -939,13 +946,13 @@ namespace OpenMS
       {
         g.accessions.push_back(proteinid_to_accession_[values[i_ind]]);
       }
-      groups.push_back(g);
+      groups.push_back(std::move(g));
       last_meta_->removeMetaValue(current_meta);
       current_meta = group_name + "_" + String(++g_id);
     }
   }
 
-  String IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes)
+  std::ostream& IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes, std::ostream& os)
   {
     // Check if information on previous/following aa available. If not, we will not write it out
     bool has_aa_before_information(false);
@@ -966,44 +973,31 @@ namespace OpenMS
 
     if (has_aa_before_information)
     {
-      for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+      os << " aa_before=\"" << pes.begin()->getAABefore();;
+      for (std::vector<PeptideEvidence>::const_iterator it = pes.begin() + 1; it != pes.end(); ++it)
       {
-        if (it == pes.begin())
-        {
-          aa_string += " aa_before=\"" + String(it->getAABefore());
-        }
-        else
-        {
-          aa_string += " " + String(it->getAABefore());
-        }
-        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+        os << " " << it->getAABefore();
       }
+      os << "\"";
     }
 
     if (has_aa_after_information)
     {
-      for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+      os << " aa_after=\"" << pes.begin()->getAAAfter();
+      for (std::vector<PeptideEvidence>::const_iterator it = pes.begin() + 1; it != pes.end(); ++it)
       {
-        if (it == pes.begin())
-        {
-          aa_string += " aa_after=\"" + String(it->getAAAfter());
-        }
-        else
-        {
-          aa_string += " " + String(it->getAAAfter());
-        }
-        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+        os << " " << it->getAAAfter();
       }
+      os << "\"";
     }
-    return aa_string;
+    return os;
   }
 
-  String IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence> & pes)
+  std::ostream& IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence>& pes, std::ostream& os)
   {
     bool has_aa_start_information(false);
     bool has_aa_end_information(false);
 
-    String aa_string;
     for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
     {
       if (it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
@@ -1020,41 +1014,29 @@ namespace OpenMS
     {
       if (has_aa_start_information)
       {
-        for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+        os << " start=\"" << String(pes.begin()->getStart());
+        for (std::vector<PeptideEvidence>::const_iterator it = pes.begin() + 1; it != pes.end(); ++it)
         {
-          if (it == pes.begin())
-          {
-            aa_string += " start=\"" + String(it->getStart());
-          }
-          else
-          {
-            aa_string += " " + String(it->getStart());
-          }
-          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+          os << " " << String(it->getStart());
         }
+        os << "\"";
       }
 
       if (has_aa_end_information)
       {
-        for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+        os << " end=\"" << String(pes.begin()->getEnd());
+        for (std::vector<PeptideEvidence>::const_iterator it = pes.begin() + 1; it != pes.end(); ++it)
         {
-          if (it == pes.begin())
-          {
-            aa_string += " end=\"" + String(it->getEnd());
-          }
-          else
-          {
-            aa_string += " " + String(it->getEnd());
-          }
-          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+          os << " " << String(it->getEnd());
         }
+        os << "\"";
       }
     }
-    return aa_string;
+    return os;
   }
 
   void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os,
-                                            std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent)
+                                            const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent)
   {
     String val;
     PeptideHit::PeakAnnotation::writePeakAnnotationsString_(val, annotations);
@@ -1071,9 +1053,9 @@ namespace OpenMS
     s.split_quoted('|', as);
 
     // for each peak annotation: split string and fill fragment annotation entries
-    for (auto& pa : as)
+    StringList fields;
+    for (const auto& pa : as)
     {
-      StringList fields;
       pa.split_quoted(',', fields);
       if (fields.size() != 4)
       {

@@ -413,6 +413,7 @@ namespace OpenMS
     }
   }
 
+
   char TheoreticalSpectrumGenerator::residueTypeToIonLetter_(Residue::ResidueType res_type)
   {
     switch (res_type)
@@ -454,14 +455,12 @@ namespace OpenMS
 
 
   void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const
-
   {
     double pos = ion.getMonoWeight(res_type, charge);
     Peak1D p;
     IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
 
     String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + String((Size)abs(charge), '+');
-
 
     double j(0.0);
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
@@ -553,7 +552,6 @@ namespace OpenMS
 
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
         String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + "-" + loss_name + String((Size)abs(charge), '+');
-
 
         double j(0.0);
         for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)

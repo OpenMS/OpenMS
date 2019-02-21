@@ -46,6 +46,8 @@
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+#include <iomanip>     // setw
+
 using namespace OpenMS;
 using namespace std;
 

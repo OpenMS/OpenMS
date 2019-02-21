@@ -63,8 +63,7 @@ namespace OpenMS
       Something similar to the neutral loss precalculation used in TheoreticalSpectrumGeneratorXLMS
       should be implemented here as well.
 
-  @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
-
+      @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
 
       @ingroup Chemistry
   */

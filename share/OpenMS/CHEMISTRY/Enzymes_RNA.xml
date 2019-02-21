@@ -46,6 +46,15 @@
       <ITEM name="ThreePrimeGain" value="p" type="string" />
       <ITEM name="FivePrimeGain" value="" type="string" />
     </NODE>
+    <NODE name="RNase_H">
+      <ITEM name="Name" value="RNase_H" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=.)" type="string" />
+      <ITEM name="RegExDescription" value="RNase H can cut anywhere (in an RNA-DNA duplex)." type="string" />
+      <ITEM name="CutsAfter" value=".*" type="string" />
+      <ITEM name="CutsBefore" value=".*" type="string" />
+      <ITEM name="ThreePrimeGain" value="" type="string" />
+      <ITEM name="FivePrimeGain" value="p" type="string" />
+    </NODE>
     <NODE name="no cleavage">
       <ITEM name="Name" value="no cleavage" type="string" />
       <ITEM name="RegEx" value="()" type="string" />
@@ -55,7 +64,7 @@
     </NODE>
     <NODE name="unspecific cleavage">
       <ITEM name="Name" value="unspecific cleavage" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[A-Z])" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=.)" type="string" />
       <ITEM name="RegExDescription" value="Unspecific cleavage cuts at every site." type="string" />
       <ITEM name="CutsAfter" value=".*" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />

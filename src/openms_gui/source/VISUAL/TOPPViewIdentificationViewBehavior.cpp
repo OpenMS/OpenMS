@@ -1170,10 +1170,17 @@ namespace OpenMS
       }
 
       String label = ann.annotation;
+      label.trim();
 
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
 #endif
+
+      QStringList lines = label.toQString().split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+      if (lines.size() > 1)
+      {
+        label = String(lines[0]);
+      }
 
       // write out positive and negative charges with the correct sign at the end of the annotation string
       switch (ann.charge)
@@ -1212,6 +1219,11 @@ namespace OpenMS
 
       DPosition<2> position(current_spectrum[peak_idx].getMZ(),
         current_spectrum[peak_idx].getIntensity());
+
+      if (lines.size() > 1)
+      {
+        label.append("\n").append(String(lines[1]));
+      }
 
       Annotation1DItem* item = new Annotation1DPeakItem(
         position,

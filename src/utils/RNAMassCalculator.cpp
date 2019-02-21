@@ -37,6 +37,8 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+#include <iomanip> // for "setprecision"
 #include <iostream>
 #include <ostream>
 

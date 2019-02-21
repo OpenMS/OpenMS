@@ -91,6 +91,8 @@ namespace OpenMS
     QTextStream source(&file);
     source.setCodec("UTF-8");
     String line = source.readLine();
+    // skip leading comments:
+    while (line.hasPrefix("#")) line = source.readLine();
     if (line != header)
     {
       String msg = "expected header line starting with: '" + header + "'";

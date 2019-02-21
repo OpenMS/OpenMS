@@ -224,13 +224,13 @@ set_tests_properties("TOPP_Decharger_1_out1" PROPERTIES DEPENDS "TOPP_Decharger_
 #------------------------------------------------------------------------------
 # DTAExtractor tests
 add_test("TOPP_DTAExtractor_1" ${TOPP_BIN_PATH}/DTAExtractor -test -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out DTAExtractor -rt :61)
-add_test("TOPP_DTAExtractor_1_out1" ${DIFF} -in1 DTAExtractor_RT60.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_1_output.dta )
+add_test("TOPP_DTAExtractor_1_out1" ${DIFF} -in1 DTAExtractor_RT60.0.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_1_output.dta )
 set_tests_properties("TOPP_DTAExtractor_1_out1" PROPERTIES DEPENDS "TOPP_DTAExtractor_1")
 add_test("TOPP_DTAExtractor_2" ${TOPP_BIN_PATH}/DTAExtractor -test -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out DTAExtractor -level 1)
-add_test("TOPP_DTAExtractor_2_out1" ${DIFF} -in1 DTAExtractor_RT60.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_2_output.dta )
+add_test("TOPP_DTAExtractor_2_out1" ${DIFF} -in1 DTAExtractor_RT60.0.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_2_output.dta )
 set_tests_properties("TOPP_DTAExtractor_2_out1" PROPERTIES DEPENDS "TOPP_DTAExtractor_2")
 add_test("TOPP_DTAExtractor_3" ${TOPP_BIN_PATH}/DTAExtractor -test -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out DTAExtractor -level 2 -mz :1000)
-add_test("TOPP_DTAExtractor_3_out1" ${DIFF} -in1 DTAExtractor_RT140_MZ5.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_3_output.dta )
+add_test("TOPP_DTAExtractor_3_out1" ${DIFF} -in1 DTAExtractor_RT140.0_MZ5.0.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_3_output.dta )
 set_tests_properties("TOPP_DTAExtractor_3_out1" PROPERTIES DEPENDS "TOPP_DTAExtractor_3")
 
 #------------------------------------------------------------------------------
@@ -2502,6 +2502,16 @@ add_test("UTILS_XFDR_4_out43" ${DIFF} -whitelist "date=" -in1 XFDR_test_out4_tem
 set_tests_properties("UTILS_XFDR_4_out41" PROPERTIES DEPENDS "UTILS_XFDR_4")
 set_tests_properties("UTILS_XFDR_4_out42" PROPERTIES DEPENDS "UTILS_XFDR_4")
 set_tests_properties("UTILS_XFDR_4_out43" PROPERTIES DEPENDS "UTILS_XFDR_4")
+add_test("UTILS_XFDR_5" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -minborder -3 -maxborder 3 -in ${DATA_DIR_TOPP}/XFDR_test_in3.xquest.xml -out_idXML XFDR_test_out5_temp.idXML -out_mzIdentML XFDR_test_out5_temp.mzid -out_xquest XFDR_test_out5_temp.xquest.xml)
+add_test("UTILS_XFDR_5_out51" ${DIFF} -whitelist "date=" -in1 XFDR_test_out5_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out5.idXML)
+add_test("UTILS_XFDR_5_out52" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out5_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out5.mzid)
+add_test("UTILS_XFDR_5_out53" ${DIFF} -whitelist "date=" -in1 XFDR_test_out5_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out5.xquest.xml)
+set_tests_properties("UTILS_XFDR_5_out51" PROPERTIES DEPENDS "UTILS_XFDR_5")
+set_tests_properties("UTILS_XFDR_5_out52" PROPERTIES DEPENDS "UTILS_XFDR_5")
+set_tests_properties("UTILS_XFDR_5_out53" PROPERTIES DEPENDS "UTILS_XFDR_5")
+add_test("UTILS_XFDR_6" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in4.idXML -out_idXML XFDR_test_out6_temp.idXML)
+add_test("UTILS_XFDR_6_out6" ${DIFF} -whitelist "date=" -in1 XFDR_test_out6_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out6.idXML)
+set_tests_properties("UTILS_XFDR_6_out6" PROPERTIES DEPENDS "UTILS_XFDR_6")
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
@@ -2519,16 +2529,3 @@ set_tests_properties("UTILS_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "
 add_test("UTILS_RNAMassCalculator_1" ${TOPP_BIN_PATH}/RNAMassCalculator -test -in_seq "AUCGGC" -charge -1 -2 -out RNAMassCalculator.tmp)
 add_test("UTILS_RNAMassCalculator_1_out" ${DIFF} -in1 RNAMassCalculator.tmp -in2 ${DATA_DIR_TOPP}/RNAMassCalculator_1.txt)
 set_tests_properties("UTILS_RNAMassCalculator_1_out" PROPERTIES DEPENDS "UTILS_RNAMassCalculator_1")
-
-
-add_test("UTILS_XFDR_5" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -minborder -3 -maxborder 3 -in ${DATA_DIR_TOPP}/XFDR_test_in3.xquest.xml -out_idXML XFDR_test_out5_temp.idXML -out_mzIdentML XFDR_test_out5_temp.mzid -out_xquest XFDR_test_out5_temp.xquest.xml)
-add_test("UTILS_XFDR_5_out51" ${DIFF} -whitelist "date=" -in1 XFDR_test_out5_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out5.idXML)
-add_test("UTILS_XFDR_5_out52" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out5_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out5.mzid)
-add_test("UTILS_XFDR_5_out53" ${DIFF} -whitelist "date=" -in1 XFDR_test_out5_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out5.xquest.xml)
-set_tests_properties("UTILS_XFDR_5_out51" PROPERTIES DEPENDS "UTILS_XFDR_5")
-set_tests_properties("UTILS_XFDR_5_out52" PROPERTIES DEPENDS "UTILS_XFDR_5")
-set_tests_properties("UTILS_XFDR_5_out53" PROPERTIES DEPENDS "UTILS_XFDR_5")
-add_test("UTILS_XFDR_6" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in4.idXML -out_idXML XFDR_test_out6_temp.idXML)
-add_test("UTILS_XFDR_6_out6" ${DIFF} -whitelist "date=" -in1 XFDR_test_out6_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out6.idXML)
-set_tests_properties("UTILS_XFDR_6_out6" PROPERTIES DEPENDS "UTILS_XFDR_6")
-

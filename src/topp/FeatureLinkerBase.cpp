@@ -46,6 +46,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <iomanip>     // setw
+
 using namespace OpenMS;
 using namespace std;
 
