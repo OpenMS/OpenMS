@@ -154,7 +154,7 @@ namespace OpenMS
     std::stringstream sql_run;
     sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
             // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
-            <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << "', "
+            <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", '"
             << input_filename_ << "'); ";
 
     // Execute SQL insert statement
