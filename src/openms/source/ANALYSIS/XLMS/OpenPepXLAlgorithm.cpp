@@ -429,9 +429,9 @@ using namespace OpenMS;
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
     Size spectrum_counter = 0;
 
-#ifdef _OPENMP
-#pragma omp parallel for schedule(guided)
-#endif
+// #ifdef _OPENMP
+// #pragma omp parallel for schedule(guided)
+// #endif
     for (SignedSize pair_index = 0; pair_index < static_cast<SignedSize>(spectrum_pairs.size()); ++pair_index)
     {
       Size scan_index = spectrum_pairs[pair_index].first;
@@ -476,7 +476,11 @@ using namespace OpenMS;
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
 
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > mainscore_csms_spectrum;
-      for (Size i = 0; i != cross_link_candidates.size(); ++i)
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(guided)
+#endif
+      for (SignedSize i = 0; i < static_cast<SignedSize>(cross_link_candidates.size()); ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
 
@@ -492,10 +496,15 @@ using namespace OpenMS;
         {
           link_pos_B = cross_link_candidate.cross_link_position.second;
         }
-        specGen_mainscore.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, 2, link_pos_B);
+        AASequence alpha;
+        AASequence beta;
+        if (cross_link_candidate.alpha) { alpha = *cross_link_candidate.alpha; }
+        if (cross_link_candidate.beta) { beta = *cross_link_candidate.beta; }
+
+        specGen_mainscore.getLinearIonSpectrum(theoretical_spec_linear_alpha, alpha, cross_link_candidate.cross_link_position.first, 2, link_pos_B);
         if (type_is_cross_link)
         {
-          specGen_mainscore.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, 2);
+          specGen_mainscore.getLinearIonSpectrum(theoretical_spec_linear_beta, beta, cross_link_candidate.cross_link_position.second, 2);
         }
 
         // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
@@ -534,7 +543,7 @@ using namespace OpenMS;
         else
         {
           // Function for mono-links or loop-links
-          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, 2, precursor_charge, link_pos_B);
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, alpha, cross_link_candidate.cross_link_position.first, precursor_mass, 2, precursor_charge, link_pos_B);
         }
         if (theoretical_spec_xlinks_alpha.size() < 1)
         {
@@ -591,6 +600,7 @@ using namespace OpenMS;
         csm.match_odds_beta = match_odds_beta;
         csm.precursor_error_ppm = rel_error;
 
+#pragma omp critical (mainscore_csms_spectrum_access)
         mainscore_csms_spectrum.push_back(csm);
       }
       // progresslogger.endProgress();
@@ -602,12 +612,16 @@ using namespace OpenMS;
       for (Size i = 0; i < last_candidate_index ; ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = mainscore_csms_spectrum[i].cross_link;
+        AASequence alpha;
+        AASequence beta;
+        if (cross_link_candidate.alpha) { alpha = *cross_link_candidate.alpha; }
+        if (cross_link_candidate.beta) { beta = *cross_link_candidate.beta; }
 
 #ifdef DEBUG_OPENPEPXLALGO
-        double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
+        double candidate_mz = (alpha.getMonoWeight() + beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
+          LOG_DEBUG << "Pair: " << alpha.toString() << "-" << beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
               << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
         }
 #endif
@@ -628,17 +642,17 @@ using namespace OpenMS;
           link_pos_B = cross_link_candidate.cross_link_position.second;
         }
 
-        specGen.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
+        specGen.getLinearIonSpectrum(theoretical_spec_linear_alpha, alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
         if (type_is_cross_link)
         {
-          specGen.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
+          specGen.getLinearIonSpectrum(theoretical_spec_linear_beta, beta, cross_link_candidate.cross_link_position.second, false, 2);
           specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
           specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
         }
         else
         {
           // Function for mono-links or loop-links
-          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 2, precursor_charge, link_pos_B);
+          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 2, precursor_charge, link_pos_B);
         }
 
         vector< pair< Size, Size > > matched_spec_linear_alpha;
@@ -759,8 +773,8 @@ using namespace OpenMS;
           }
 
           // compute wTIC
-          double wTIC = XQuestScores::weightedTICScore(cross_link_candidate.alpha.size(), cross_link_candidate.beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
-          double wTICold = XQuestScores::weightedTICScoreXQuest(cross_link_candidate.alpha.size(), cross_link_candidate.beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
+          double wTIC = XQuestScores::weightedTICScore(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
+          double wTICold = XQuestScores::weightedTICScoreXQuest(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
 
           // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
           Size n_xlink_charges = (precursor_charge - 1) - 2;

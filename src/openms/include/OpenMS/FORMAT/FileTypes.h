@@ -102,6 +102,7 @@ namespace OpenMS
       MRM,                ///< SpectraST MRM List
       SQMASS,             ///< SqLite format for mass and chromatograms
       PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB
+      MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
       PSMS,               ///< Percolator tab-delimited output (PSM level)
       PIN,                ///< Percolator tab-delimited input (PSM level)

@@ -128,9 +128,9 @@ protected:
      * @param it_rt    pointer to the spectrum
      * @param intensity_first_peak    intensity to compare to
      *
-     * @return boolean if there is a significant peak
+     * @return -1 (if there is no significant peak), or peak index mz_idx (if there is a significant peak)
      */
-    bool checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
+    int checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
 
     /**
      * @brief check if there are enough peaks in the RT band to form the pattern

@@ -869,10 +869,24 @@ namespace OpenMS
     QStringList header_labels;
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
+      // do not export hidden columns
+      if (table_widget_->isColumnHidden(i))
+      {
+        continue;
+      }
+
       QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
       if (ti != nullptr)
       {
-        header_labels.append(ti->text());
+        // add the format of this complex column to the header
+        if (ti->text() == "PeakAnnotations")
+        {
+          header_labels.append("PeakAnnotations(mz|intensity|charge|annotation;)");
+        }
+        else
+        {
+          header_labels.append(ti->text());
+        }
       }
     }
 
@@ -890,6 +904,12 @@ namespace OpenMS
         strList.clear();
         for (int c = 0; c < table_widget_->columnCount(); ++c)
         {
+          // do not export hidden columns
+          if (table_widget_->isColumnHidden(c))
+          {
+            continue;
+          }
+
           QTableWidgetItem* ti = table_widget_->item(r, c);
           if (ti != nullptr)
           {
@@ -902,6 +922,39 @@ namespace OpenMS
                 sel = "1";
               }
               strList << sel;
+            }
+            else if (table_widget_->horizontalHeaderItem(c)->text() == "PeakAnnotations") // write out peak annotations instead of the "show" string in the table
+            {
+              int ms2_spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
+              int current_identification_index = table_widget_->item(r, 12)->data(Qt::DisplayRole).toInt();  // peptide id. index
+
+              if (current_identification_index < 0
+               || current_identification_index >= static_cast<int>((*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications().size()))
+               {
+                 continue;
+               }
+
+              int current_peptide_hit_index = table_widget_->item(r, 13)->data(Qt::DisplayRole).toInt();  // peptide hit index
+
+              const vector<PeptideIdentification>& peptide_ids = (*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications();
+              const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
+
+              if (current_peptide_hit_index < 0
+               || current_peptide_hit_index >= static_cast<int>(phits.size()))
+              {
+                continue;
+              }
+              const PeptideHit& hit = phits[current_peptide_hit_index];
+              QString annotation = "";
+
+              for (const PeptideHit::PeakAnnotation & pa : hit.getPeakAnnotations())
+              {
+                annotation += String(pa.mz).toQString() + "|" +
+                                String(pa.intensity).toQString() + "|" +
+                                String(pa.charge).toQString() + "|" +
+                                pa.annotation.toQString() + ";";
+              }
+              strList << annotation;
             }
             else
             {

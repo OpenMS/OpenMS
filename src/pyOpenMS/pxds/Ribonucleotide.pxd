@@ -1,7 +1,6 @@
 from Types cimport *
 from String cimport *
 from EmpiricalFormula cimport *
-#from RibonucleotideModification cimport *
 
 
 cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS::Ribonucleotide":
