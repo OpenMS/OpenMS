@@ -79,6 +79,7 @@
 #include <boost/regex.hpp>
 #include <boost/math/distributions/binomial.hpp>
 #include <boost/math/distributions/normal.hpp>
+#include <boost/math/distributions/beta.hpp>
 
 
 #include <map>
@@ -384,8 +385,63 @@ protected:
 
   static float calculateCombinedScore(const AnnotatedHit& ah, const bool isXL)
   {
-	return 
-    + 0.995
+/*
+	coeff.	std. err.	Z-score	P>|z|
+not isXL:
+1	RNPxl:total_loss_score	0.21721652155697285	0.09483942249623674	2.2903610739046	0.022000394091310493
+1	RNPxl:mass_error_p	1.9988345415208777	0.5320970905622918	3.756522215538927	1.7229098345827865E-4
+1	RNPxl:modds	0.5842539236790404	0.14707508807450823	3.972487328262264	7.112602099945686E-5
+1	RNPxl:total_MIC	4.059968526608637	0.6997810753887223	5.801769538213591	6.561872156751747E-9
+1	Constant	-6.486416409280039	1.0530367515627284	-6.159724624666768	7.287158654278869E-10
+
+ isXL:
+	coeff.	std. err.	Z-score	P>|z|
+RNPxl:pl_MIC	2.3319284783288805	1.443968593532589	1.614944042947601	0.10632281328213189
+RNPxl:pl_Morph	-0.1821314450150078	0.0992607992067629	-1.8348778820088194	0.06652378554713212
+RNPxl:mass_error_p	1.2107674392113372	0.6479149468312813	1.8687135481790702	0.06166267808238679
+RNPxl:total_loss_score	0.25318342707227187	0.11026025896332549	2.2962346492990293	0.02166246839013919
+RNPxl:modds	0.5446999629799386	0.21771187712636128	2.501930396125295	0.012351820599275531
+RNPxl:partial_loss_score	0.12472562244230834	0.04757766801488459	2.6215160945527667	0.008753962882873556
+RNPxl:Morph	0.4688059636415974	0.14790453990151833	3.169652290279595	0.0015262145546381944
+RNPxl:MIC	4.0386886051238	1.161533977368853	3.477030103133424	5.070008902814394E-4
+Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.5283262211340798E-7
+
+*/
+
+    if (!isXL)
+    {
+	return - 6.486416409280039 
+               + 4.059968526608637   * ah.total_MIC         
+               + 0.5842539236790404  * ah.modds
+               + 0.21721652155697285 * ah.total_loss_score
+               + 1.9988345415208777  * ah.mass_error_p;
+    }
+    else
+    {
+	return - 6.648631037190969
+               + 0.4688059636415974  * ah.Morph
+               + 4.0386886051238     * ah.MIC         
+               + 0.5446999629799386  * ah.modds
+               + 0.25318342707227187 * ah.total_loss_score
+               + 0.12472562244230834 * ah.partial_loss_score
+               + 1.2107674392113372  * ah.mass_error_p
+               + 2.3319284783288805  * ah.pl_MIC
+               - 0.1821314450150078  * ah.pl_Morph;
+    }
+//    return ah.total_loss_score + ah.total_MIC + ah.mass_error_p / 3.0;
+/*
+	return - 4.2 
+               + 1.995 * ah.total_MIC         
+               + 1.115 * ah.mass_error_p
+               + 0.504 * ah.total_loss_score
+               - 0.021 * ah.Morph
+               - 0.011 * ah.modds
+               + 0.084 * ah.partial_loss_score
+               - 0.244 * ah.pl_Morph
+               - 1.077 * static_cast<int>(isXL);
+*/
+/*            
+    return + 0.995
 		+ 7.142 * (  0.058 * ah.total_loss_score - 0.900)
 		+ 0.802 * (  33.35 * ah.immonium_score - 1.148)
 		+ 0.327 * (  73.64 * ah.precursor_score - 0.821)
@@ -394,7 +450,7 @@ protected:
 		- 1.788 * (  301.0 * ah.err - 1.771)
 		- 1.292 * (240.825 * ah.pl_err - 1.323) 
 		+ 2.324 * static_cast<int>(isXL);
-  
+*/
 	/* old version
 	return 
 	  2.493
@@ -2129,8 +2185,8 @@ protected:
                     // bad score or less then two peaks matching
                     if (tlss_score < MIN_HYPERSCORE 
                       || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-                      || tlss_modds < 1e-10
-                      || tlss_MIC < 0.01) 
+                      || tlss_MIC < 0.01 
+                      || tlss_modds < 1e-10) 
                     { 
                       continue; 
                     }
@@ -2149,16 +2205,15 @@ protected:
                                                plss_modds);
 
                     const double total_MIC = tlss_MIC + plss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
-                    // less then two shifted peaks?
-                    if ( partial_loss_sub_score < MIN_HYPERSCORE // at least one peak with 10% of max intensity
+                    // less then two shifted peaks? seems to throw out some good hits ???
+/*                    if ( partial_loss_sub_score < MIN_HYPERSCORE // at least one peak with 10% of max intensity
                       || plss_Morph < MIN_SHIFTED_IONS + 1.0 // > 1 shifted peaks
-                      || plss_modds < 1e-10 
                       || total_MIC < 0.01  // less than 1% explained peaks
                       )
                     { 
                       continue; 
                     }
-
+*/
                     const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
                     
@@ -2252,10 +2307,13 @@ protected:
                                          precursor_sub_score,
                                          a_ion_sub_score);
 
-                // bad score or less then two peaks matching
+                const double total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
+
+                // super bad score
                 if (total_loss_score < MIN_HYPERSCORE 
                   || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-                  || tlss_modds < 1e-10) 
+                  || tlss_modds < 1e-10
+                  || total_MIC < 0.01) 
                 { 
                   continue; 
                 }
@@ -2278,13 +2336,13 @@ protected:
                 ah.precursor_score = precursor_sub_score;
                 ah.a_ion_score = a_ion_sub_score;
 
-                ah.total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
+                ah.total_MIC = total_MIC;
 
                 ah.rna_mod_index = rna_mod_index;
                 ah.isotope_error = isotope_error;
 
                 // simple combined score in fast scoring:
-                ah.score = total_loss_score + ah.total_MIC; 
+                ah.score = total_loss_score + ah.total_MIC + mass_error_score / 3.0; 
 
 #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -2440,62 +2498,19 @@ protected:
 
   static double matchOddsScore_(
     const PeakSpectrum& theoretical_spec, 
-    const Size matched_size,
-    const double fragment_mass_tolerance, 
-    const bool fragment_mass_tolerance_unit_ppm)
+    const Size matched_size)
   {    
-    static AScore a_score_algorithm; 
     const Size N = theoretical_spec.size();
 
     if (matched_size < 1 || N < 1) { return 0; }
 
-    // compute p score as e.g. in the AScore implementation or Andromeda
     const double p = 20.0 / 100.0; // level 20.0 / mz 100.0 (see ThresholdMower)
-    const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore(N, matched_size, p));
-    if (pscore < 0) return 0;
-    return pscore;
-  }
+    const double pscore = boost::math::ibeta(matched_size + 1, N - matched_size, p);
+    if (pscore <= std::numeric_limits<double>::min()) return -log10(std::numeric_limits<double>::min());
+    const double minusLog10p1pscore = -log10(pscore);
+    return minusLog10p1pscore;
+  } 
 
-/*
-  static double matchOddsScore_(
-    const PeakSpectrum& theoretical_spec, 
-    const Size matched_size,
-    const double fragment_mass_tolerance, 
-    const bool fragment_mass_tolerance_unit_ppm)
-  {
-    using boost::math::binomial;
-    Size theo_size = theoretical_spec.size();
-
-    if (matched_size < 1 || theo_size < 1) { return 0; }
-
-    double range = theoretical_spec[theo_size-1].getMZ() - theoretical_spec[0].getMZ();
-
-    // Compute fragment tolerance in Da for the mean of MZ values, if tolerance in ppm (rough approximation)
-    double mean = 0.0;
-    for (Size i = 0; i < theo_size; ++i) { mean += theoretical_spec[i].getMZ(); }
-    mean /= (double)theo_size;
-    double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
-
-    // A priori probability of a random match given info about the theoretical spectrum
-    long double a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  static_cast<int>(theo_size))));
-    
-    long double match_odds(0);
-
-    binomial flip(theo_size, a_priori_p);
-    // min double number to avoid 0 values, causing scores with the value "inf"
-    match_odds = -log(1 - cdf(flip, (long double)matched_size) + std::numeric_limits<long double>::min());
-
-    // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
-    if (match_odds >= 0.0)
-    {
-      return (double)match_odds;
-    }
-    else
-    {
-      return 0;
-    }
-  }
-*/
   // determine main score and sub scores of peaks without shifts
   void scoreTotalLossFragments_(const PeakSpectrum &exp_spectrum,
                                 const PeakSpectrum &total_loss_spectrum,
@@ -2544,10 +2559,7 @@ protected:
 
     // if we only have 1 or peaks assume some kind of average error to not underestimate the real error to much
     tlss_err = tlss_Morph > 2 ? tl_sub_scores.err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
-    tlss_modds = matchOddsScore_(total_loss_spectrum, 
-      (int)tlss_Morph, // = number of matched peaks
-      fragment_mass_tolerance, 
-      fragment_mass_tolerance_unit_ppm);
+    tlss_modds = matchOddsScore_(total_loss_spectrum, (int)tlss_Morph); // (int)Morph == number of matched peaks
 
     if (!immonium_sub_score_spectrum.empty())
     {
@@ -2637,7 +2649,7 @@ protected:
       plss_Morph = pl_sub_scores.score;
       // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
       plss_err = plss_Morph > 2 ? pl_sub_scores.err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
-      plss_modds = matchOddsScore_(*pl_spec, (int)plss_Morph, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+      plss_modds = matchOddsScore_(*pl_spec, (int)plss_Morph);
     }
 #ifdef DEBUG_RNPXLSEARCH
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
