@@ -43,81 +43,80 @@ namespace OpenMS
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-    const Size BUFSIZE = 8192;
-    char line[BUFSIZE];
     experiment.clear(true);
     MSChromatogram chromatogram;
-    std::cmatch m;
-    std::regex re_channel("^Channel\t([^\r]+)");
-    std::regex re_injection("^Injection\t([^\r]+)");
-    std::regex re_processing_method("^Processing Method\t([^\r]+)");
-    std::regex re_instrument_method("^Instrument Method\t([^\r]+)");
-    std::regex re_injection_date("^Injection Date\t([^\r]+)");
-    std::regex re_injection_time("^Injection Time\t([^\r]+)");
-    std::regex re_detector("^Detector\t([^\r]+)");
-    std::regex re_signal_quantity("^Signal Quantity\t([^\r]+)");
-    std::regex re_signal_unit("^Signal Unit\t([^\r]+)");
-    std::regex re_signal_info("^Signal Info\t([^\r]+)");
-    std::regex re_raw_data("^Raw Data:");
+    std::string line;
+    std::smatch m;
+    std::regex re_channel("^Channel\t([^\r]+)\r?");
+    std::regex re_injection("^Injection\t([^\r]+)\r?");
+    std::regex re_processing_method("^Processing Method\t([^\r]+)\r?");
+    std::regex re_instrument_method("^Instrument Method\t([^\r]+)\r?");
+    std::regex re_injection_date("^Injection Date\t([^\r]+)\r?");
+    std::regex re_injection_time("^Injection Time\t([^\r]+)\r?");
+    std::regex re_detector("^Detector\t([^\r]+)\r?");
+    std::regex re_signal_quantity("^Signal Quantity\t([^\r]+)\r?");
+    std::regex re_signal_unit("^Signal Unit\t([^\r]+)\r?");
+    std::regex re_signal_info("^Signal Info\t([^\r]+)\r?");
+    std::regex re_raw_data("^Raw Data:\r?");
     while (!ifs.eof())
     {
-      ifs.getline(line, BUFSIZE);
-      if (std::regex_search(line, m, re_injection))
+      std::getline(ifs, line);
+      if (std::regex_match(line, m, re_injection))
       {
-        experiment.setMetaValue("mzml_id", std::string(m[1]));
+        experiment.setMetaValue("mzml_id", m[1].str());
       }
-      else if (std::regex_search(line, m, re_channel))
+      else if (std::regex_match(line, m, re_channel))
       {
-        experiment.setMetaValue("acq_method_name", std::string(m[1]));
+        experiment.setMetaValue("acq_method_name", m[1].str());
       }
-      else if (std::regex_search(line, m, re_processing_method))
+      else if (std::regex_match(line, m, re_processing_method))
       {
-        experiment.getExperimentalSettings().getInstrument().getSoftware().setName(String(m[1]));
+        experiment.getExperimentalSettings().getInstrument().getSoftware().setName(m[1].str());
       }
-      else if (std::regex_search(line, m, re_instrument_method))
+      else if (std::regex_match(line, m, re_instrument_method))
       {
-        experiment.getExperimentalSettings().getInstrument().setName(String(m[1]));
+        experiment.getExperimentalSettings().getInstrument().setName(m[1].str());
       }
-      else if (std::regex_search(line, m, re_injection_date))
+      else if (std::regex_match(line, m, re_injection_date))
       {
-        experiment.setMetaValue("injection_date", std::string(m[1]));
+        experiment.setMetaValue("injection_date", m[1].str());
       }
-      else if (std::regex_search(line, m, re_injection_time))
+      else if (std::regex_match(line, m, re_injection_time))
       {
-        experiment.setMetaValue("injection_time", std::string(m[1]));
+        experiment.setMetaValue("injection_time", m[1].str());
       }
-      else if (std::regex_search(line, m, re_detector))
+      else if (std::regex_match(line, m, re_detector))
       {
-        experiment.setMetaValue("detector", std::string(m[1]));
+        experiment.setMetaValue("detector", m[1].str());
       }
-      else if (std::regex_search(line, m, re_signal_quantity))
+      else if (std::regex_match(line, m, re_signal_quantity))
       {
-        experiment.setMetaValue("signal_quantity", std::string(m[1]));
+        experiment.setMetaValue("signal_quantity", m[1].str());
       }
-      else if (std::regex_search(line, m, re_signal_unit))
+      else if (std::regex_match(line, m, re_signal_unit))
       {
-        experiment.setMetaValue("signal_unit", std::string(m[1]));
+        experiment.setMetaValue("signal_unit", m[1].str());
       }
-      else if (std::regex_search(line, m, re_signal_info))
+      else if (std::regex_match(line, m, re_signal_info))
       {
-        experiment.setMetaValue("signal_info", std::string(m[1]));
+        experiment.setMetaValue("signal_info", m[1].str());
       }
-      else if (std::regex_search(line, m, re_raw_data))
+      else if (std::regex_match(line, m, re_raw_data))
       {
-        ifs.getline(line, BUFSIZE); // remove the subsequent line, right before the raw data
-        break;
+        std::getline(ifs, line); // remove the subsequent line, right before the raw data
+        break;                   // and exit the loop
       }
     }
     while (!ifs.eof())
     {
-      ifs.getline(line, BUFSIZE);
+      std::getline(ifs, line);
       double rt, intensity;
-      int ret = std::sscanf(line, "%lf\t%*f\t%lf", &rt, &intensity);
+      int ret = std::sscanf(line.c_str(), "%lf\t%*f\t%lf", &rt, &intensity);
       if (ret == 2)
       {
         chromatogram.push_back(ChromatogramPeak(rt, intensity));
       }
-      else if (!strcmp(line, "\r") || !strcmp(line, ""))
+      else if (line == "\r" || line.empty())
       {
         continue; // skips eventual empty lines, eg. the last before EOF
       }
@@ -126,7 +125,6 @@ namespace OpenMS
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string(line), "Couldn't parse the raw data.");
       }
     }
-    ifs.close();
     experiment.addChromatogram(chromatogram);
   }
 }
