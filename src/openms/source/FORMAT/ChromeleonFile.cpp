@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ChromeleonFile.h>
+#include <fstream>
+#include <regex>
 
 namespace OpenMS
 {
