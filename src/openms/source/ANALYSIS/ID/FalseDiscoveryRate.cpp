@@ -1182,16 +1182,17 @@ namespace OpenMS
     for (const auto& grp : grps)
     {
       double score = grp.probability;
+      bool target = false;
       for (const auto& acc : grp.accessions)
       {
         // In groups you usually want to check if at least one member is a real target
         if (decoy_accs.find(acc) == decoy_accs.end())
         {
-          scores_labels.emplace_back(score, true);
+          target = true;
           break;
         }
       }
-      scores_labels.emplace_back(score, false);
+      scores_labels.emplace_back(score, target);
     }
   }
   
