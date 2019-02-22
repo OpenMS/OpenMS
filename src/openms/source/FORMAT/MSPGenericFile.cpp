@@ -112,13 +112,13 @@ namespace OpenMS
         } while ( std::regex_search(line, m, re_point) );
       }
       // Synon
-      else if (std::regex_search(line, m, re_synon))
+      else if (std::regex_match(line, m, re_synon))
       {
         // LOG_DEBUG << "Synon: " << m[1] << "\n";
         synonyms_.push_back(String(m[1]));
       }
       // Name
-      else if (std::regex_search(line, m, re_name))
+      else if (std::regex_match(line, m, re_name))
       {
         addSpectrumToLibrary(spectrum, library);
         // LOG_DEBUG << "\n\nName: " << m[1] << "\n";
@@ -135,7 +135,7 @@ namespace OpenMS
         spectrum.setMetaValue(String("NIST#"), String(m[2]));
       }
       // Other metadata
-      else if (std::regex_search(line, m, re_metadatum))
+      else if (std::regex_match(line, m, re_metadatum))
       {
         // LOG_DEBUG << m[1] << m[2] << "\n";
         spectrum.setMetaValue(String(m[1]), String(m[2]));
