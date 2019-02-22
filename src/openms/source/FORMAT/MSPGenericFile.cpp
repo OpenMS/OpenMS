@@ -35,8 +35,8 @@
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <boost/regex.hpp>
 #include <fstream>
+#include <regex>
 
 namespace OpenMS
 {
@@ -63,14 +63,14 @@ namespace OpenMS
 
   void MSPGenericFile::updateMembers_()
   {
-    synonyms_separator_ = (String)param_.getValue("synonyms_separator");
+    synonyms_separator_ = param_.getValue("synonyms_separator").toString();
   }
 
   void MSPGenericFile::load(const String& filename, MSExperiment& library)
   {
-    // TODO: Remove following "clock" code when not necessary anymore
-    std::clock_t start;
-    start = std::clock();
+    // DEBUG
+    // std::clock_t start;
+    // start = std::clock();
 
     loaded_spectra_names_.clear();
     synonyms_.clear();
@@ -79,46 +79,46 @@ namespace OpenMS
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-    const Size BUFSIZE { 65536 };
-    char line[BUFSIZE];
+    std::string line;
     library.clear(true);
     MSSpectrum spectrum;
     spectrum.setMetaValue("is_valid", 0); // to avoid adding invalid spectra to the library
 
-    boost::cmatch m;
-    boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
-    boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
-    boost::regex re_points_line("^\\d");
-    boost::regex re_point("(\\d+(?:\\.\\d+)?)[: ](\\d+(?:\\.\\d+)?);? ?");
-    boost::regex re_cas_nist("^CAS#: ([\\d-]+);  NIST#: (\\d+)"); // specific to NIST db
-    boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
+    std::smatch m;
+    std::regex re_name("^Name: ([^\r]+)\r?");
+    std::regex re_synon("^synon(?:yms?)?: ([^\r]+)\r?", std::regex::icase);
+    std::regex re_points_line("^\\d");
+    std::regex re_point("(\\d+(?:\\.\\d+)?)[: ](\\d+(?:\\.\\d+)?);? ?");
+    std::regex re_cas_nist("^CAS#: ([\\d-]+);  NIST#: (\\d+)"); // specific to NIST db
+    std::regex re_metadatum("^([^:]+): ([^\r]+)\r?");
 
     LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
 
     while (!ifs.eof())
     {
-      ifs.getline(line, BUFSIZE);
+      std::getline(ifs, line);
       // Peaks
-      if (boost::regex_search(line, m, re_points_line))
+      if (std::regex_search(line, m, re_points_line))
       {
         // LOG_DEBUG << "re_points_line\n";
-        boost::regex_search(line, m, re_point);
+        std::regex_search(line, m, re_point);
         do
         {
           // LOG_DEBUG << "{" << m[1] << "} {" << m[2] << "}; ";
           const double position { std::stod(m[1]) };
           const double intensity { std::stod(m[2]) };
           spectrum.push_back( Peak1D(position, intensity) );
-        } while ( boost::regex_search(m[0].second, m, re_point) );
+          line = m.suffix().str();
+        } while ( std::regex_search(line, m, re_point) );
       }
       // Synon
-      else if (boost::regex_search(line, m, re_synon))
+      else if (std::regex_search(line, m, re_synon))
       {
         // LOG_DEBUG << "Synon: " << m[1] << "\n";
         synonyms_.push_back(String(m[1]));
       }
       // Name
-      else if (boost::regex_search(line, m, re_name))
+      else if (std::regex_search(line, m, re_name))
       {
         addSpectrumToLibrary(spectrum, library);
         // LOG_DEBUG << "\n\nName: " << m[1] << "\n";
@@ -128,14 +128,14 @@ namespace OpenMS
         spectrum.setMetaValue("is_valid", 1);
       }
       // Specific case of NIST's exported msp
-      else if (boost::regex_search(line, m, re_cas_nist))
+      else if (std::regex_search(line, m, re_cas_nist))
       {
         // LOG_DEBUG << "CAS#: " << m[1] << "; NIST#: " << m[2] << "\n";
         spectrum.setMetaValue(String("CAS#"), String(m[1]));
         spectrum.setMetaValue(String("NIST#"), String(m[2]));
       }
       // Other metadata
-      else if (boost::regex_search(line, m, re_metadatum))
+      else if (std::regex_search(line, m, re_metadatum))
       {
         // LOG_DEBUG << m[1] << m[2] << "\n";
         spectrum.setMetaValue(String(m[1]), String(m[2]));
@@ -143,9 +143,9 @@ namespace OpenMS
     }
     // To make sure a spectrum is added even if no empty line is present before EOF
     addSpectrumToLibrary(spectrum, library);
-    ifs.close();
     LOG_INFO << "Loading spectra from .msp file completed." << std::endl;
-    std::cout << "PARSE TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
+    // DEBUG
+    // std::cout << "PARSE TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
   }
 
   void MSPGenericFile::addSpectrumToLibrary(
