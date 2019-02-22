@@ -48,9 +48,8 @@ START_TEST(ChromeleonFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromeleonFile* ptr = 0;
-ChromeleonFile* null_ptr = 0;
-const String input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
+ChromeleonFile* ptr = nullptr;
+ChromeleonFile* null_ptr = nullptr;
 
 START_SECTION(ChromeleonFile())
 {
@@ -65,12 +64,12 @@ START_SECTION(~ChromeleonFile())
 }
 END_SECTION
 
-ptr = new ChromeleonFile();
-
 START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 {
+  ChromeleonFile chromeleonFile;
   MSExperiment experiment;
-  ptr->load(input_filepath, experiment);
+  const String input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
+  chromeleonFile.load(input_filepath, experiment);
   TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "UV_VIS_2")
   TEST_EQUAL(experiment.getMetaValue("mzml_id"), "20171013_C61_ISO_P1_GA1")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "HM_metode_ZorBax_0,02%_Acetic_acid_ver6")
@@ -121,8 +120,6 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_REAL_SIMILAR(c1[3300].getIntensity(), c2[3300].getIntensity())
 }
 END_SECTION
-
-delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -43,66 +43,66 @@ namespace OpenMS
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-    const Size BUFSIZE = 65536;
+    const Size BUFSIZE = 8192;
     char line[BUFSIZE];
     experiment.clear(true);
     MSChromatogram chromatogram;
-    boost::cmatch m;
-    boost::regex re_channel("^Channel\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_injection("^Injection\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_processing_method("^Processing Method\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_instrument_method("^Instrument Method\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_injection_date("^Injection Date\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_injection_time("^Injection Time\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_detector("^Detector\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_signal_quantity("^Signal Quantity\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_signal_unit("^Signal Unit\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_signal_info("^Signal Info\t(.+)", boost::regex::no_mod_s);
-    boost::regex re_raw_data("^Raw Data:", boost::regex::no_mod_s);
+    std::cmatch m;
+    std::regex re_channel("^Channel\t([^\r]+)");
+    std::regex re_injection("^Injection\t([^\r]+)");
+    std::regex re_processing_method("^Processing Method\t([^\r]+)");
+    std::regex re_instrument_method("^Instrument Method\t([^\r]+)");
+    std::regex re_injection_date("^Injection Date\t([^\r]+)");
+    std::regex re_injection_time("^Injection Time\t([^\r]+)");
+    std::regex re_detector("^Detector\t([^\r]+)");
+    std::regex re_signal_quantity("^Signal Quantity\t([^\r]+)");
+    std::regex re_signal_unit("^Signal Unit\t([^\r]+)");
+    std::regex re_signal_info("^Signal Info\t([^\r]+)");
+    std::regex re_raw_data("^Raw Data:");
     while (!ifs.eof())
     {
       ifs.getline(line, BUFSIZE);
-      if (boost::regex_search(line, m, re_injection))
+      if (std::regex_search(line, m, re_injection))
       {
         experiment.setMetaValue("mzml_id", std::string(m[1]));
       }
-      else if (boost::regex_search(line, m, re_channel))
+      else if (std::regex_search(line, m, re_channel))
       {
         experiment.setMetaValue("acq_method_name", std::string(m[1]));
       }
-      else if (boost::regex_search(line, m, re_processing_method))
+      else if (std::regex_search(line, m, re_processing_method))
       {
         experiment.getExperimentalSettings().getInstrument().getSoftware().setName(String(m[1]));
       }
-      else if (boost::regex_search(line, m, re_instrument_method))
+      else if (std::regex_search(line, m, re_instrument_method))
       {
         experiment.getExperimentalSettings().getInstrument().setName(String(m[1]));
       }
-      else if (boost::regex_search(line, m, re_injection_date))
+      else if (std::regex_search(line, m, re_injection_date))
       {
         experiment.setMetaValue("injection_date", std::string(m[1]));
       }
-      else if (boost::regex_search(line, m, re_injection_time))
+      else if (std::regex_search(line, m, re_injection_time))
       {
         experiment.setMetaValue("injection_time", std::string(m[1]));
       }
-      else if (boost::regex_search(line, m, re_detector))
+      else if (std::regex_search(line, m, re_detector))
       {
         experiment.setMetaValue("detector", std::string(m[1]));
       }
-      else if (boost::regex_search(line, m, re_signal_quantity))
+      else if (std::regex_search(line, m, re_signal_quantity))
       {
         experiment.setMetaValue("signal_quantity", std::string(m[1]));
       }
-      else if (boost::regex_search(line, m, re_signal_unit))
+      else if (std::regex_search(line, m, re_signal_unit))
       {
         experiment.setMetaValue("signal_unit", std::string(m[1]));
       }
-      else if (boost::regex_search(line, m, re_signal_info))
+      else if (std::regex_search(line, m, re_signal_info))
       {
         experiment.setMetaValue("signal_info", std::string(m[1]));
       }
-      else if (boost::regex_search(line, m, re_raw_data))
+      else if (std::regex_search(line, m, re_raw_data))
       {
         ifs.getline(line, BUFSIZE); // remove the subsequent line, right before the raw data
         break;
