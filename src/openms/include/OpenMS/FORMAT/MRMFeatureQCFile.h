@@ -36,7 +36,6 @@
 
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 
 namespace OpenMS

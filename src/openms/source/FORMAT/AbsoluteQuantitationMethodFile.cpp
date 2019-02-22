@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>
+#include <regex>
 
 namespace OpenMS
 {
@@ -117,8 +118,8 @@ namespace OpenMS
     {
       const String& header = h.first;
       const Size& i = h.second;
-      boost::smatch m;
-      if (boost::regex_search(header, m, boost::regex("transformation_model_param_(.+)")))
+      std::smatch m;
+      if (std::regex_match(header, m, std::regex("transformation_model_param_(.+)")))
       {
         setCastValue_(String(m[1]), tl[i], tm_params);
       }
