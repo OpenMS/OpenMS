@@ -36,7 +36,7 @@
 #define OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 
 // define to get timings for connected components
-#define INFERENCE_BENCH
+//#define INFERENCE_BENCH
 
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
 #include <OpenMS/CONCEPT/LogStream.h>
