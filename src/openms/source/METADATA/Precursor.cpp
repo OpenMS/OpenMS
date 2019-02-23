@@ -68,6 +68,7 @@ namespace OpenMS
     drift_time_(std::move(rhs.drift_time_)),
     drift_window_low_(std::move(rhs.drift_window_low_)),
     drift_window_up_(std::move(rhs.drift_window_up_)),
+    drift_time_unit_(std::move(rhs.drift_time_unit_)),
     charge_(std::move(rhs.charge_)),
     possible_charge_states_(std::move(rhs.possible_charge_states_))
   {
