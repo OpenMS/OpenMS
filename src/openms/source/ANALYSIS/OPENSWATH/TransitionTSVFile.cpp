@@ -299,6 +299,7 @@ namespace OpenMS
 
       // LibraryIntensity
       if (!extractName<double>(mytransition.library_intensity, "LibraryIntensity", tmp_line, header_dict) &&
+          !extractName<double>(mytransition.library_intensity, "RelativeIntensity", tmp_line, header_dict) && // Spectronaut
           !extractName<double>(mytransition.library_intensity, "RelativeFragmentIntensity", tmp_line, header_dict)) // Spectronaut
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
