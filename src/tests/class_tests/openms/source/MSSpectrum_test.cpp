@@ -74,21 +74,27 @@ p3.setMZ(30.0);
 MSSpectrum* ptr = nullptr;
 MSSpectrum* nullPointer = nullptr;
 START_SECTION((MSSpectrum()))
+{
   ptr = new MSSpectrum();
   TEST_NOT_EQUAL(ptr, nullPointer)
+}
 END_SECTION
 
 START_SECTION((~MSSpectrum()))
+{
   delete ptr;
+}
 END_SECTION
 
 START_SECTION(([EXTRA] MSSpectrum()))
+{
   MSSpectrum tmp;
   Peak1D peak;
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
   TEST_EQUAL(tmp.size(),1);
-  TEST_REAL_SIMILAR(tmp[0].getMZ(),47.11);
+  TEST_REAL_SIMILAR(tmp[0].getMZ(), 47.11);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
@@ -183,6 +189,7 @@ START_SECTION((IntegerDataArrays& getIntegerDataArrays()))
 END_SECTION
 
 START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
+{
   MSSpectrum s;
   s.push_back(p1);
   s.push_back(p2);
@@ -255,8 +262,7 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   TEST_REAL_SIMILAR(s2.getFloatDataArrays()[0][1], 3.0)
   TEST_EQUAL(s2.getIntegerDataArrays()[0][1], 3)
   TEST_EQUAL(s2.getStringDataArrays()[0][1], "3")
-
-
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
@@ -289,7 +295,7 @@ END_SECTION
 
 
 /////////////////////////////////////////////////////////////
-// Copy constructor, assignment operator, equality
+// Copy constructor, move constructor, assignment operator, move assignment operator, equality
 
 START_SECTION((MSSpectrum(const MSSpectrum& source)))
 {
@@ -317,6 +323,42 @@ START_SECTION((MSSpectrum(const MSSpectrum& source)))
   //peaks
   TEST_EQUAL(tmp2.size(),1);
   TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
+}
+END_SECTION
+
+START_SECTION((MSSpectrum(const MSSpectrum&& source)))
+{
+  MSSpectrum tmp;
+  tmp.setRT(9.0);
+  tmp.setDriftTime(5.0);
+  tmp.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::VSSC);
+  tmp.setMSLevel(18);
+  tmp.setName("bla2");
+  tmp.setMetaValue("label2",5.0);
+  tmp.getInstrumentSettings().getScanWindows().resize(2);
+  //peaks
+  MSSpectrum::PeakType peak;
+  peak.getPosition()[0] = 47.11;
+  tmp.push_back(peak);
+  peak.getPosition()[0] = 48.11;
+  tmp.push_back(peak);
+  
+  //copy tmp so we can move one of them
+  MSSpectrum orig = tmp;
+	MSSpectrum tmp2(std::move(tmp));
+
+  TEST_EQUAL(tmp2, orig); // should be equal to the original
+
+  TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),2);
+  TEST_REAL_SIMILAR(tmp2.getMetaValue("label2"), 5.0)
+  TEST_EQUAL(tmp2.getMSLevel(), 18)
+  TEST_REAL_SIMILAR(tmp2.getRT(), 9.0)
+  TEST_REAL_SIMILAR(tmp2.getDriftTime(), 5.0)
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::VSSC);
+  TEST_EQUAL(tmp2.getName(),"bla2")
+  TEST_EQUAL(tmp2.size(),2);
+  TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
+  TEST_REAL_SIMILAR(tmp2[1].getPosition()[0],48.11);
 }
 END_SECTION
 
@@ -359,6 +401,45 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
   TEST_EQUAL(tmp2.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::NONE);
   TEST_EQUAL(tmp2.getName(),"")
   TEST_EQUAL(tmp2.size(),0);
+}
+END_SECTION
+
+START_SECTION((MSSpectrum& operator= (const MSSpectrum&& source)))
+{
+  MSSpectrum tmp;
+  tmp.setRT(9.0);
+  tmp.setDriftTime(5.0);
+  tmp.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::VSSC);
+  tmp.setMSLevel(18);
+  tmp.setName("bla2");
+  tmp.setMetaValue("label2",5.0);
+  tmp.getInstrumentSettings().getScanWindows().resize(2);
+  //peaks
+  MSSpectrum::PeakType peak;
+  peak.getPosition()[0] = 47.11;
+  tmp.push_back(peak);
+  peak.getPosition()[0] = 48.11;
+  tmp.push_back(peak);
+
+  //copy tmp so we can move one of them
+  MSSpectrum orig = tmp;
+
+  //move assignment
+  MSSpectrum tmp2;
+  tmp2 = std::move(tmp);
+
+  TEST_EQUAL(tmp2, orig); // should be equal to the original
+
+  TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),2);
+  TEST_REAL_SIMILAR(tmp2.getMetaValue("label2"), 5.0)
+  TEST_EQUAL(tmp2.getMSLevel(), 18)
+  TEST_REAL_SIMILAR(tmp2.getRT(), 9.0)
+  TEST_REAL_SIMILAR(tmp2.getDriftTime(), 5.0)
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::VSSC);
+  TEST_EQUAL(tmp2.getName(),"bla2")
+  TEST_EQUAL(tmp2.size(),2);
+  TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
+  TEST_REAL_SIMILAR(tmp2[1].getPosition()[0],48.11);
 }
 END_SECTION
 
