@@ -41,7 +41,7 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <set>
 
 namespace OpenMS
@@ -259,7 +259,7 @@ namespace OpenMS
       return;
     }
 
-    boost::unordered_map<String, const DigestionEnzymeType*> enzyme_names_;  // index by names
+    std::unordered_map<std::string, const DigestionEnzymeType*> enzyme_names_;  // index by names
 
     Map<String, const DigestionEnzymeType*> enzyme_regex_; // index by regex
 

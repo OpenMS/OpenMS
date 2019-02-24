@@ -229,7 +229,7 @@ public:
     /**
       custom string formatting of time, using only the minimal number of units required (e.g., does not report hours when seconds suffice).
     */
-    static String toString(double time);
+    static String toString(const double time);
 
 private:
 

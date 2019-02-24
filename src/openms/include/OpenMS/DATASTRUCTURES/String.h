@@ -34,6 +34,7 @@
 
 #pragma once
 
+
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -46,7 +47,8 @@ class QString;
 namespace OpenMS
 {
   class DataValue;
-
+  template <typename FloatingPointType>
+  struct PrecisionWrapper;
   /**
       @brief A more convenient string class.
 
@@ -126,14 +128,14 @@ public:
     OPENMS_DLLAPI String(long long unsigned int i);
     /// Constructor from an unsigned integer
     OPENMS_DLLAPI String(long long signed int i);
-    /// Constructor from float
-    OPENMS_DLLAPI String(float f);
-    /// Constructor from double
-    OPENMS_DLLAPI String(double d);
-    /// Constructor from long double
-    OPENMS_DLLAPI String(long double ld);
-    /// Constructor from DataValue (casted to String)
-    OPENMS_DLLAPI String(const DataValue& d);
+    /// Constructor from float (@p full_precision controls number of fractional digits, 3 digits when false, and 6 when true)
+    OPENMS_DLLAPI String(float f, bool full_precision = true);
+    /// Constructor from double (@p full_precision controls number of fractional digits, 3 digits when false, and 15 when true)
+    OPENMS_DLLAPI String(double d, bool full_precision = true);
+    /// Constructor from long double (@p full_precision controls number of fractional digits, 3 digits when false, and 15 when true)
+    OPENMS_DLLAPI String(long double ld, bool full_precision = true);
+    /// Constructor from DataValue (@p full_precision controls number of fractional digits for all double types or lists of double, 3 digits when false, and 15 when true)
+    OPENMS_DLLAPI String(const DataValue& d, bool full_precision = true);
 
     //@}
 

@@ -194,6 +194,8 @@ set(format_executables_list
   MzIdentMLValidator_test
   MzMLFile_test
   MzMLSpectrumDecoder_test
+  MzMLSqliteHandler_test
+  MzMLSqliteSwathHandler_test
   MzMLValidator_test
   MzTab_test
   MzTabFile_test

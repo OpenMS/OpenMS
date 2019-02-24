@@ -351,8 +351,11 @@ public:
     /// <BR>For conversion of string DataValues to numeric types, first use toString() and then the conversion methods of String.
     //@{
 
-    ///Conversion to String.
-    String toString() const;
+    /**
+      @brief Conversion to String
+      @p full_precision Controls number of fractional digits for all double types or lists of double, 3 digits when false, and 15 when true.
+    **/
+    String toString(bool full_precision = true) const;
 
     ///Conversion to QString
     QString toQString() const;
