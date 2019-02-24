@@ -72,6 +72,13 @@ public:
     ~MRMFeatureFilter() override;
     //@}
 
+    /**
+      @brief Get the class' default parameters
+
+      @param[out] params Output parameters
+    */
+    void getDefaultParameters(Param& params) const;
+
     /// Synchronize members with param class
     void updateMembers_() override;
 

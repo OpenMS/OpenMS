@@ -78,13 +78,25 @@ namespace OpenMS
   void MetaInfo::setValue(const String & name, const DataValue & value)
   {
     UInt index = registry_.registerName(name); // no-op if name is already registered
-    index_to_value_[index] = value;
+    setValue(index, value);
   }
 
   void MetaInfo::setValue(UInt index, const DataValue & value)
   {
     // @TODO: check if that index is registered in MetaInfoRegistry?
-    index_to_value_[index] = value;
+    auto it = index_to_value_.find(index);
+    if ( it != index_to_value_.end()) 
+    {
+      it->second = value; 
+    }
+    else
+    {
+      // Note; we need to create a copy of data value here and can't use the const &
+      // The underlying flat_map invalidates references to it if inserting
+      // an element leads to relocation (e.g, in constructs like: m.insert(1, m[2]));)
+      DataValue tmp = value;
+      index_to_value_.insert(std::make_pair(index, tmp));
+    }
   }
 
   MetaInfoRegistry & MetaInfo::registry()

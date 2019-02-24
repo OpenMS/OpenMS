@@ -983,7 +983,7 @@ private:
 
   static String getSpectrumReference(const PeptideIdentification &pep_id)
   {
-    return pep_id.getMetaValue("spectrum_reference");
+    return pep_id.getHits()[0].getMetaValue("spectrum_index");
   }
 
   /**

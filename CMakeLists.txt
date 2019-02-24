@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 project("OpenMS_host")
 
 #------------------------------------------------------------------------------
@@ -208,7 +208,12 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
-# Enable fingerid_test
+# Enable SIRIUS_test (SiriusAdapter) 
+#------------------------------------------------------------------------------
+option(ENABLE_SIRIUS_TEST "Enable test for fingerid (SiriusAdapter)" ON)
+
+#------------------------------------------------------------------------------
+# Enable CSI:FingerID_test (SiriusAdapter)
 #------------------------------------------------------------------------------
 option(ENABLE_FINGERID_TEST "Enable test for fingerid (SiriusAdapter)" OFF)
 
@@ -316,6 +321,29 @@ set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SU
 SET(CMAKE_MACOSX_RPATH FALSE)
 # macOS-specific variable used when installing own libraries/bins. Use relative path to bin here.
 SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
+
+if(UNIX AND NOT APPLE)
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+if (ENABLE_PREPARE_KNIME_PACKAGE)
+  ## Since we rely on copying instead of "installing" for KNIME packaging
+  ## we need to do it during building already.
+  ## In this case, make sure that QT is in a system path if you want to test it locally.
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+else()
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+endif()
+
+# the RPATH to be used when installing
+SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+
+# don't add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+endif()
 
 #------------------------------------------------------------------------------
 # lib naming when building with msvc & convenience location of build.bat

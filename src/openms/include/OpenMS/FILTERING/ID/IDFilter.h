@@ -234,11 +234,9 @@ public:
 
       bool operator()(const PeptideHit& hit) const
       {
-        std::set<String> present_accessions = hit.extractProteinAccessionsSet();
-        for (std::set<String>::iterator it = present_accessions.begin();
-             it != present_accessions.end(); ++it)
+        for (const auto& it : hit.extractProteinAccessionsSet())
         {
-          if (accessions.count(*it) > 0) return true;
+          if (accessions.count(it) > 0) return true;
         }
         return false;
       }
@@ -810,12 +808,10 @@ public:
     static void removeHitsMatchingProteins(std::vector<IdentificationType>& ids,
                                            const std::set<String> accessions)
     {
-      struct HasMatchingAccession<typename IdentificationType::HitType>
-        acc_filter(accessions);
-      for (typename std::vector<IdentificationType>::iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
+      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
+      for (auto& id_it : ids)
       {
-        removeMatchingItems(id_it->getHits(), acc_filter);
+        removeMatchingItems(id_it.getHits(), acc_filter);
       }
     }
 
@@ -828,14 +824,12 @@ public:
     */
     template <class IdentificationType>
     static void keepHitsMatchingProteins(std::vector<IdentificationType>& ids,
-                                         const std::set<String> accessions)
+                                         const std::set<String>& accessions)
     {
-      struct HasMatchingAccession<typename IdentificationType::HitType>
-        acc_filter(accessions);
-      for (typename std::vector<IdentificationType>::iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
+      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
+      for (auto& id_it : ids)
       {
-        keepMatchingItems(id_it->getHits(), acc_filter);
+        keepMatchingItems(id_it.getHits(), acc_filter);
       }
     }
 

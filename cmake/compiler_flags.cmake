@@ -35,6 +35,14 @@
 #------------------------------------------------------------------------------
 # This cmake file handles all the project specific compiler flags
 
+# allow additional custom compile flags on the cmake command line by using -DMY_CXX_FLAGS="-g -D_GLIBCXX_ASSERTIONS ..."
+# useful for e.g. Release with debug symbols on gcc/clang
+if (MY_CXX_FLAGS)
+  message(STATUS "Adding custom compile flags: '${MY_CXX_FLAGS}'!")
+  add_compile_options(${MY_CXX_FLAGS})
+endif()
+
+
 if (CMAKE_COMPILER_IS_GNUCXX)
 
   add_compile_options(-Wall -Wextra 

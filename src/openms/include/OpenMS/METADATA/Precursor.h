@@ -80,6 +80,16 @@ public:
       SIZE_OF_ACTIVATIONMETHOD
     };
 
+    ///Drift time unit
+    enum DriftTimeUnit
+    {
+      NONE,          ///< No unit
+      MILLISECOND,   ///< milliseconds
+      VSSC,          ///< volt-second per square centimeter
+      SIZE_OF_DRIFTTIMEUNIT
+    };
+
+
     /// Names of activation methods
     static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
     static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
@@ -160,6 +170,17 @@ public:
     void setDriftTime(double drift_time);
 
     /**
+      @brief Returns the ion mobility drift time unit
+    */
+    DriftTimeUnit getDriftTimeUnit() const;
+
+    /**
+      @brief Sets the ion mobility drift time unit
+    */
+    void setDriftTimeUnit(DriftTimeUnit dt);
+
+
+    /**
      * @brief Returns the lower offset from the target ion mobility in milliseconds
      *
      * @note This is an offset relative to the target ion mobility. The start
@@ -216,6 +237,7 @@ protected:
     double drift_time_;
     double drift_window_low_;
     double drift_window_up_;
+    DriftTimeUnit drift_time_unit_;
     Int charge_;
     std::vector<Int> possible_charge_states_;
   };
