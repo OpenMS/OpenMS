@@ -219,8 +219,12 @@ def testAASequence():
     assert seq.toUnmodifiedString() == "PEPTIDESEKUEMCER"
     assert seq.toBracketString() == "PEPTIDESEKUEM[147]CER"
     assert seq.toBracketString(True, []) == "PEPTIDESEKUEM[147]CER"
-    assert seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.0354000171]CER"
-    assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.0354000171]CER"
+    print( seq.toBracketString(False, []) )
+    assert seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.03540001709996]CER" or
+           seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.035400017100017]CER"
+    print( seq.toBracketString(False) )
+    assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
+           seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
     assert seq.toUniModString() == "PEPTIDESEKUEM(UniMod:35)CER"
     assert seq.isModified()
     assert not seq.hasCTerminalModification()

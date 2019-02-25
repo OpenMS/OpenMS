@@ -129,7 +129,7 @@ private:
      *
      * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
      */
-    bool filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const;
+    bool filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites_profile) const;
     
     /**
      * @brief spline interpolated profile data and peak boundaries
