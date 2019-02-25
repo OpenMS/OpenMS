@@ -148,7 +148,7 @@ protected:
     registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, false);
 
     // consider one before annotated monoisotopic peak and the annotated one
-    IntList isotopes = {0, 1};
+    IntList isotopes = {0};
     registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
@@ -410,7 +410,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
 
     if (!isXL)
     {
-	return - 6.486416409280039 
+	    return - 6.486416409280039 
                + 4.059968526608637   * ah.total_MIC         
                + 0.5842539236790404  * ah.modds
                + 0.21721652155697285 * ah.total_loss_score
@@ -418,7 +418,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
     }
     else
     {
-	return - 6.648631037190969
+	    return - 6.648631037190969
                + 0.4688059636415974  * ah.Morph
                + 4.0386886051238     * ah.MIC         
                + 0.5446999629799386  * ah.modds
@@ -594,7 +594,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
     static void generatePartialLossSpectrum(const String& unmodified_sequence,
                                      const double& fixed_and_variable_modified_peptide_weight,
                                      const String& precursor_rna_adduct,
-                                     const double& precursor_rna_weight,
+                                     const double& precursor_rna_mass,
                                      const int& precursor_charge,
                                      const vector<FragmentAdductDefinition_>& partial_loss_modification,
                                      const PeakSpectrum& patial_loss_template_z1,
@@ -603,7 +603,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
                                      PeakSpectrum& partial_loss_spectrum);
     static void addPrecursorWithCompleteRNA_(const double fixed_and_variable_modified_peptide_weight,
                                       const String & precursor_rna_adduct,
-                                      const double precursor_rna_weight,
+                                      const double precursor_rna_mass,
                                       const int charge,
                                       PeakSpectrum & partial_loss_spectrum,
                                       MSSpectrum::IntegerDataArray & partial_loss_spectrum_charge,
@@ -656,6 +656,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
     // If we did a (total-loss) only fast scoring, PSMs were not associated with a nucleotide.
     // To make the localization code work for both fast and slow (all-shifts) scoring,
     // we copy PSMs for every cross-linkable nucleotide present in the precursor.
+    // Then we recalculate the XL specific scores not conisdered in fast scoring
     if (fast_scoring_)
     {
 #ifdef _OPENMP
@@ -665,7 +666,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
       {
         vector<AnnotatedHit> new_hits;
 
-        // for each PSM
+        // for each PSM of this spectrum
         for (Size i = 0; i != annotated_hits[scan_index].size(); ++i)
         {
           // determine RNA on precursor from index in map
@@ -673,24 +674,157 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
           std::advance(mod_combinations_it, annotated_hits[scan_index][i].rna_mod_index);
           const String precursor_rna_adduct = *mod_combinations_it->second.begin();
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
-
-          // just copy non-cross-linked peptide PSMs
+          
           if (precursor_rna_adduct == "none") 
           {
             new_hits.push_back(annotated_hits[scan_index][i]);
-            continue;
           }
-
-          // if we have a cross-link, copy PSM information for each cross-linkable nucleotides
-          for (auto const & c : feasible_MS2_adducts)
+          else
           {
-            AnnotatedHit a(annotated_hits[scan_index][i]);
-            a.cross_linked_nucleotide = c.first; // nucleotide
-            new_hits.push_back(a);
+            // if we have a cross-link, copy PSM information for each cross-linkable nucleotides
+            for (auto const & c : feasible_MS2_adducts)
+            {
+              AnnotatedHit a(annotated_hits[scan_index][i]);
+              a.cross_linked_nucleotide = c.first; // nucleotide
+              new_hits.push_back(a);
+            }
           }
         }
         annotated_hits[scan_index].swap(new_hits);
       }
+
+      // fill in values of slow scoring so they can be used in percolator
+      for (Size scan_index = 0; scan_index != annotated_hits.size(); ++scan_index)
+      {
+        // for each PSM of this spectrum
+        for (Size i = 0; i != annotated_hits[scan_index].size(); ++i)
+        {
+          AnnotatedHit& ah = annotated_hits[scan_index][i];
+
+          // reconstruct fixed and variable modified peptide sequence (without RNA)
+          const String& unmodified_sequence = ah.sequence.getString();
+          AASequence aas = AASequence::fromString(unmodified_sequence);
+          vector<AASequence> all_modified_peptides;
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
+          double current_peptide_mass_without_RNA = fixed_and_variable_modified_peptide.getMonoWeight();
+
+          // determine RNA on precursor from index in map
+          auto mod_combinations_it = mm.mod_combinations.begin();
+          std::advance(mod_combinations_it, ah.rna_mod_index);
+          const String precursor_rna_adduct = *mod_combinations_it->second.begin();
+          const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
+          const vector<FragmentAdductDefinition_>& marker_ions = all_feasible_adducts.at(precursor_rna_adduct).marker_ions;
+          const double precursor_rna_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
+
+          if (precursor_rna_adduct == "none") 
+          {
+            ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
+            continue;
+          }
+
+          // determine current nucleotide and associated partial losses
+          vector<FragmentAdductDefinition_> partial_loss_modification;
+          for (auto const & nuc_2_adducts : feasible_MS2_adducts)
+          {
+            if(nuc_2_adducts.first == ah.cross_linked_nucleotide)
+            {
+              partial_loss_modification = nuc_2_adducts.second;
+            } 
+          } 
+
+          // TODO: not needed to generate all templates (but will make not much of a difference
+          // as this is only done a few thousand times during post-scoring). That way,
+          // the code is basically the same as in the main scoring loop.
+          PeakSpectrum  partial_loss_template_z1, 
+            partial_loss_template_z2, 
+            partial_loss_template_z3;
+       
+          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1); 
+          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2); 
+          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z3, fixed_and_variable_modified_peptide, 3, 3); 
+
+          PeakSpectrum marker_ions_sub_score_spectrum_z1, 
+            partial_loss_spectrum_z1, 
+            partial_loss_spectrum_z2;
+
+          // nucleotide is associated with certain NA-related fragment losses?
+          if (!partial_loss_modification.empty())
+          {
+            // shifted b- / y- / a-ions
+            // generate shifted_immonium_ions_sub_score_spectrum.empty
+            RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
+                                        current_peptide_mass_without_RNA,
+                                        precursor_rna_adduct,
+                                        precursor_rna_mass,
+                                        1,
+                                        partial_loss_modification,
+                                        partial_loss_template_z1,
+                                        partial_loss_template_z2,
+                                        partial_loss_template_z3,
+                                        partial_loss_spectrum_z1);
+            for (auto& n : partial_loss_spectrum_z1.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
+
+            RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
+                                        current_peptide_mass_without_RNA,
+                                        precursor_rna_adduct,
+                                        precursor_rna_mass,
+                                        2, // don't know the charge of the precursor at that point
+                                        partial_loss_modification,
+                                        partial_loss_template_z1,
+                                        partial_loss_template_z2,
+                                        partial_loss_template_z3,
+                                        partial_loss_spectrum_z2);
+            for (auto& n : partial_loss_spectrum_z2.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
+          }
+
+          // add shifted marker ions
+          marker_ions_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
+          marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation
+          RNPxlFragmentIonGenerator::addMS2MarkerIons(
+            marker_ions,
+            marker_ions_sub_score_spectrum_z1,
+            marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0],
+            marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
+
+          const PeakSpectrum& exp_spectrum = exp[scan_index];
+          float  partial_loss_sub_score(0), 
+            marker_ions_sub_score(0),
+            plss_MIC(0), 
+            plss_err(1.0), 
+            plss_Morph(0), 
+            plss_modds(0), 
+            tlss_score(0);
+
+          scorePartialLossFragments_(exp_spectrum,
+                                      fragment_mass_tolerance, 
+                                      fragment_mass_tolerance_unit_ppm,
+                                      partial_loss_spectrum_z1, 
+                                      partial_loss_spectrum_z2,
+                                      marker_ions_sub_score_spectrum_z1,
+                                      partial_loss_sub_score,
+                                      marker_ions_sub_score,
+                                      plss_MIC, 
+                                      plss_err, 
+                                      plss_Morph,
+                                      plss_modds);
+
+
+          // fill in missing scores not considered in fast scoring
+          ah.pl_MIC = plss_MIC;
+          ah.pl_err = plss_err;
+          ah.pl_Morph = plss_Morph;
+          ah.pl_modds = plss_modds;
+          // add extra matched ion current
+          ah.total_MIC += plss_MIC; 
+          // scores from shifted peaks
+          ah.marker_ions_score = marker_ions_sub_score;
+          ah.partial_loss_score = partial_loss_sub_score;
+          // combined score
+          ah.score = RNPxlSearch::calculateCombinedScore(ah, true);
+        } 
+      } 
     }
 
 #ifdef _OPENMP
@@ -727,7 +861,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
         std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
         std::advance(mod_combinations_it, a.rna_mod_index);
         const String precursor_rna_adduct = *mod_combinations_it->second.begin();
-        const double precursor_rna_weight = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
+        const double precursor_rna_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
 
         // we don't localize on non-cross-links
         if (precursor_rna_adduct == "none") { continue; }
@@ -787,7 +921,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
         RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                     fixed_and_variable_modified_peptide_weight,
                                     precursor_rna_adduct,
-                                    precursor_rna_weight,
+                                    precursor_rna_mass,
                                     precursor_charge,
                                     partial_loss_modification,
                                     partial_loss_template_z1,
@@ -1928,8 +2062,8 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
             rna_mod_it != mm.mod_masses.end(); 
             ++rna_mod_it, ++rna_mod_index)
           {            
-            const double precursor_rna_weight = rna_mod_it->second;
-            const double current_peptide_mass = current_peptide_mass_without_RNA + precursor_rna_weight; // add RNA mass
+            const double precursor_rna_mass = rna_mod_it->second;
+            const double current_peptide_mass = current_peptide_mass_without_RNA + precursor_rna_mass; // add RNA mass
             // TODO: const char xl_nucleotide; // can be none
 
             // determine MS2 precursors that match to the current peptide mass
@@ -2112,7 +2246,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
                     RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                                 current_peptide_mass_without_RNA,
                                                 precursor_rna_adduct,
-                                                precursor_rna_weight,
+                                                precursor_rna_mass,
                                                 1,
                                                 partial_loss_modification,
 					                                      partial_loss_template_z1,
@@ -2124,7 +2258,7 @@ Constant	-6.648631037190969	1.2666197103005374	-5.249113828817186	1.528326221134
                     RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                                 current_peptide_mass_without_RNA,
                                                 precursor_rna_adduct,
-                                                precursor_rna_weight,
+                                                precursor_rna_mass,
                                                 2, // don't know the charge of the precursor at that point
                                                 partial_loss_modification,
 					                                      partial_loss_template_z1,
@@ -3133,7 +3267,7 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String
 void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const String &unmodified_sequence,
                                                                          const double &fixed_and_variable_modified_peptide_weight,
                                                                          const String &precursor_rna_adduct,
-                                                                         const double &precursor_rna_weight,
+                                                                         const double &precursor_rna_mass,
                                                                          const int &precursor_charge,
                                                                          const vector<RNPxlSearch::FragmentAdductDefinition_> &partial_loss_modification,
                                                                          const PeakSpectrum& partial_loss_template_z1,
@@ -3249,7 +3383,7 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
   {
     addPrecursorWithCompleteRNA_(fixed_and_variable_modified_peptide_weight,
                                  precursor_rna_adduct,
-                                 precursor_rna_weight,
+                                 precursor_rna_mass,
                                  charge,
                                  partial_loss_spectrum,
                                  partial_loss_spectrum_charge,
@@ -3263,13 +3397,13 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
 void RNPxlSearch::RNPxlFragmentIonGenerator::addPrecursorWithCompleteRNA_(
   const double fixed_and_variable_modified_peptide_weight, 
   const String &precursor_rna_adduct,
-  const double precursor_rna_weight, 
+  const double precursor_rna_mass, 
   const int charge, 
   PeakSpectrum &partial_loss_spectrum,
   MSSpectrum::IntegerDataArray &partial_loss_spectrum_charge,
   MSSpectrum::StringDataArray &partial_loss_spectrum_annotation)
 {
-  const double xl_mz = (fixed_and_variable_modified_peptide_weight + precursor_rna_weight +
+  const double xl_mz = (fixed_and_variable_modified_peptide_weight + precursor_rna_mass +
                   static_cast<double>(charge) * Constants::PROTON_MASS_U)
                  / static_cast<double>(charge);
 
