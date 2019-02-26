@@ -270,7 +270,7 @@ protected:
             << specCntr - prevSpecCntr << endl;
             */
             if(peakGroups.empty()) continue;
-            cout<< "writing results ...";
+            cout<< endl<< "writing results ...";
             cout.flush();
             for(auto &pg : peakGroups)
                 writePeakGroup(pg, peakGroups.size(), param, fs, fsm);
@@ -770,6 +770,7 @@ protected:
         int maxChargeRange = 0;
         while (setBinIndex != massBins.npos) {
             Byte continuousChargeCntr = 0;
+           // Byte continuousHarmonicChargeCntr = 0;
             //Byte maxContinuousChargeCntr = 0;
             massBins[setBinIndex] = false;
             for (int j = 0; j <= chargeRange; j++) {
@@ -784,17 +785,21 @@ protected:
                 long hbi = setBinIndex - harmonicBinOffsets[j];
                 long hbi2 = setBinIndex - harmonicBinOffsets2[j];
 
-                bool harmonicMzBinClear = hbi<1 || hbi >= (long)mzBins.size()-1 || !(mzBins[hbi]||mzBins[hbi-1]||mzBins[hbi+1]);//||mzBins[hbi-1]||mzBins[hbi+1]
+                bool harmonicMzBinClear = hbi<1 || hbi >= (long)mzBins.size()-1
+                        || !(mzBins[hbi]||mzBins[hbi-1]||mzBins[hbi+1]);//||mzBins[hbi-1]||mzBins[hbi+1]
                 if(!harmonicMzBinClear){
                     //massBins[setBinIndex] = false;
                     //continuousChargeCntr = 0;
+                    //continuousHarmonicChargeCntr++;
                     break;
                 }
 
-                harmonicMzBinClear = hbi2<1 || hbi2 >= (long)mzBins.size()-1 || !(mzBins[hbi2]||mzBins[hbi2-1]||mzBins[hbi2+1]);//||mzBins[hbi2-1]||mzBins[hbi2+1]
+                harmonicMzBinClear = hbi2<1 || hbi2 >= (long)mzBins.size()-1
+                        || !(mzBins[hbi2]||mzBins[hbi2-1]||mzBins[hbi2+1]);//||mzBins[hbi2-1]||mzBins[hbi2+1]
                 if(!harmonicMzBinClear){
                     //massBins[setBinIndex] = false;
                     //continuousChargeCntr = 0;
+                    //continuousHarmonicChargeCntr++;
                     break;
                 }
 
@@ -805,6 +810,8 @@ protected:
                 maxChargeRange = maxChargeRange > j? maxChargeRange : j;
                 //maxContinuousChargeCntr = maxContinuousChargeCntr > continuousChargeCntr? maxContinuousChargeCntr : continuousChargeCntr;
             }
+
+
             setBinIndex = massBins.find_next(setBinIndex);
         }
         return maxChargeRange;
@@ -1056,17 +1063,17 @@ protected:
                 }
                 massMap[nm] = v;
             }else{ // write feature and clear key
-                if(v[1] - v[0] > 0 && v[1]-v[0]<delta) {
-                    stringstream s;
-                    s <<"\t" << param.fileName << "\t" << nm << "\t" << fixed << setprecision(5) << v[0] << "\t"
-                      << v[1]<<"\t"<<v[1]-v[0] << "\t" << v[2] << "\t" << v[3]<< "\t" << v[4];
-                    auto sit = writeMap.find(nm);
-                    if (sit == writeMap.end()) {
-                        vector<String> vs;
-                        writeMap[nm] = vs;
-                    }
-                    writeMap[nm].push_back(s.str());
+
+                stringstream s;
+                s <<"\t" << param.fileName << "\t" << nm << "\t" << fixed << setprecision(5) << v[0] << "\t"
+                  << v[1]<<"\t"<<v[1]-v[0] << "\t" << v[2] << "\t" << v[3]<< "\t" << v[4];
+                auto sit = writeMap.find(nm);
+                if (sit == writeMap.end()) {
+                    vector<String> vs;
+                    writeMap[nm] = vs;
                 }
+                writeMap[nm].push_back(s.str());
+
                 massMap.erase(it);
             }
         }
@@ -1074,7 +1081,7 @@ protected:
         for (auto it=massMap.begin(); it!=massMap.end(); ++it){
             int nm = it->first;
             auto v = it->second;
-            if(v[1] - v[0] <= 0) continue;
+            //if(v[1] - v[0] <= 0) continue;
             stringstream s;
             s<<"\t"<< param.fileName << "\t" <<nm<<"\t"<<fixed<<setprecision(5)<<v[0]<<"\t"<<v[1]<<"\t"<<v[1]-v[0]<<"\t"
              <<v[2]<<"\t"<<v[3]<< "\t" << v[4];
