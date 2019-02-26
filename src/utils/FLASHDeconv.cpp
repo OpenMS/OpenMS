@@ -216,7 +216,7 @@ protected:
         auto param = setParameter();
         auto averagines = getPrecalculatedAveragines(param);
         int specCntr = 0, qspecCntr = 0, massCntr = 0, featureCntr = 0;
-        int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0, total_featureCntr = 0;
+        int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0;//, total_featureCntr = 0;
         double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
         fstream fs, fsm, fsf;
 
@@ -784,14 +784,14 @@ protected:
                 long hbi = setBinIndex - harmonicBinOffsets[j];
                 long hbi2 = setBinIndex - harmonicBinOffsets2[j];
 
-                bool harmonicMzBinClear = hbi<1 || hbi >= (long)mzBins.size()-1 || !(mzBins[hbi]);//||mzBins[hbi-1]||mzBins[hbi+1]
+                bool harmonicMzBinClear = hbi<1 || hbi >= (long)mzBins.size()-1 || !(mzBins[hbi]||mzBins[hbi-1]||mzBins[hbi+1]);//||mzBins[hbi-1]||mzBins[hbi+1]
                 if(!harmonicMzBinClear){
                     //massBins[setBinIndex] = false;
                     //continuousChargeCntr = 0;
                     break;
                 }
 
-                harmonicMzBinClear = hbi2<1 || hbi2 >= (long)mzBins.size()-1 || !(mzBins[hbi2]);//||mzBins[hbi2-1]||mzBins[hbi2+1]
+                harmonicMzBinClear = hbi2<1 || hbi2 >= (long)mzBins.size()-1 || !(mzBins[hbi2]||mzBins[hbi2-1]||mzBins[hbi2+1]);//||mzBins[hbi2-1]||mzBins[hbi2+1]
                 if(!harmonicMzBinClear){
                     //massBins[setBinIndex] = false;
                     //continuousChargeCntr = 0;
@@ -801,6 +801,7 @@ protected:
                 bool set = ++continuousChargeCntr >= minContinuousCharge;
                 if(!set) continue;
                 massBins[setBinIndex] = true;
+                //break;
                 maxChargeRange = maxChargeRange > j? maxChargeRange : j;
                 //maxContinuousChargeCntr = maxContinuousChargeCntr > continuousChargeCntr? maxContinuousChargeCntr : continuousChargeCntr;
             }
