@@ -138,12 +138,10 @@ namespace OpenMS
 
     if (mass >= 0)
     {
-      key += "+" + String(Math::round(mass));
+      key += "+";
     }
-    else
-    {
-      key += String(Math::round(mass));
-    }
+    key += String(int(Math::round(mass)));
+
 
     String line = "";
     line += origin.toUpper();
