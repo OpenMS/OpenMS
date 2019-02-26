@@ -628,6 +628,64 @@ namespace OpenMS
       pep_it->getHits().swap(filtered_hits);
     }
   }
-  
+
+
+  void IDFilter::keepBestMatchPerQuery(
+    IdentificationData& id_data,
+    IdentificationData::ScoreTypeRef score_ref)
+  {
+    if (id_data.getMoleculeQueryMatches().size() <= 1) return; // nothing to do
+
+    vector<IdentificationData::QueryMatchRef> best_matches =
+      id_data.getBestMatchPerQuery(score_ref);
+    auto best_match_it = best_matches.begin();
+    for (auto it = id_data.query_matches_.begin();
+         it != id_data.query_matches_.end(); )
+    {
+      if (it == *best_match_it)
+      {
+        ++it;
+        ++best_match_it;
+      }
+      else
+      {
+        it = id_data.query_matches_.erase(it);
+      }
+    }
+
+    id_data.cleanup();
+  }
+
+
+  void IDFilter::filterQueryMatchesByScore(
+    IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
+    double cutoff)
+  {
+    bool higher_better = score_ref->higher_better;
+
+    id_data.removeFromSetIf_(
+      id_data.query_matches_, [&](IdentificationData::QueryMatchRef it) -> bool
+      {
+        pair<double, bool> score = it->getScore(score_ref);
+        return !score.second || id_data.isBetterScore(cutoff, score.first,
+                                                      higher_better);
+      });
+
+    id_data.cleanup();
+  }
+
+
+  void IDFilter::removeDecoys(IdentificationData& id_data)
+  {
+    Size n_parents = id_data.getParentMolecules().size();
+    id_data.removeFromSetIf_(
+      id_data.parent_molecules_,
+      [&](IdentificationData::ParentMoleculeRef it) -> bool
+      {
+        return it->is_decoy;
+      });
+
+    if (id_data.getParentMolecules().size() < n_parents) id_data.cleanup();
+  }
 
 } // namespace OpenMS

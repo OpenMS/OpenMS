@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>457</width>
-    <height>343</height>
+    <width>500</width>
+    <height>428</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,11 +17,29 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QLabel" name="enter_seq_label">
-       <property name="text">
-        <string>Enter peptide sequence:</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_12">
+       <item>
+        <widget class="QLabel" name="enter_seq_label">
+         <property name="text">
+          <string>Enter sequence:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBox">
+         <item>
+          <property name="text">
+           <string>Peptide</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>RNA</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="QLineEdit" name="line_edit">
@@ -63,6 +81,9 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="minimum">
+              <number>-99</number>
              </property>
              <property name="value">
               <number>1</number>
@@ -145,12 +166,27 @@
            </item>
            <item>
             <property name="text">
+             <string>A-b-ions</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>B-ions</string>
             </property>
            </item>
            <item>
             <property name="text">
              <string>C-ions</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>D-ions</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>W-ions</string>
             </property>
            </item>
            <item>

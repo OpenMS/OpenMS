@@ -173,7 +173,7 @@ namespace OpenMS
       // m/z tolerance in Th
       mz_tolerance = mz_tolerance_;
     }
-    
+
     // The mass traces of the peptide(s) form a m/z shift pattern. Starting with the mono-isotopic mass trace of each peptide,
     // how long is the series of m/z shifts until the first expected mass trace is missing? We want to see
     // at least isotopes_per_peptide_min_ of these m/z shifts in each peptide. Note that we need to demand subsequent(!) mass traces
@@ -235,6 +235,7 @@ namespace OpenMS
         }
       }
     }
+
         
     // Check that there is no significant peak (aka zeroth peak) to the left of the mono-isotopic peak (aka first peak).
     // Further check that there is no mistaken charge state identity. For example, check that a 2+ pattern isn't really a 4+ or 6+ pattern.
@@ -268,7 +269,7 @@ namespace OpenMS
             return false;
           }
         }
-        
+
         // Check mistaken charge state identities
         // We are searching the patterns in the order of the most common occurrence (and not decreasing charge state). 
         // That can lead to mistaken charge state identities. Here we check that this is not the case.
@@ -289,7 +290,7 @@ namespace OpenMS
             return false;
           }
         }
-        
+
         if (pattern.getCharge() == 3)
         {
           // Is the 3+ pattern really a 6+ pattern?
@@ -299,7 +300,7 @@ namespace OpenMS
             return false;
           }
         }
-        
+
         if (pattern.getCharge() == 1)
         {
           for (int c = 2; c < 7; ++c)

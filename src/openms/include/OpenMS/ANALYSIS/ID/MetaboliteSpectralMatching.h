@@ -159,13 +159,37 @@ namespace OpenMS
     ~MetaboliteSpectralMatching() override;
 
     /// hyperscore computation
-    double computeHyperScore(MSSpectrum, MSSpectrum, const double&, const double&);
+    static double computeHyperScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      double mz_lower_bound = 0.0);
+
+    /// hyperscore computation (with output of peak annotations)
+    static double computeHyperScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      std::vector<PeptideHit::PeakAnnotation>& annotations,
+      double mz_lower_bound = 0.0);
 
     /// main method of MetaboliteSpectralMatching
     void run(PeakMap &, PeakMap &, MzTab &);
 
   protected:
     void updateMembers_() override;
+
+    // we have to use a pointer for "annotations" because mutable
+    // references can't have temporary default values:
+    static double computeHyperScore_(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      std::vector<PeptideHit::PeakAnnotation>* annotations = 0,
+      double mz_lower_bound = 0.0);
 
   private:
     /// private member functions

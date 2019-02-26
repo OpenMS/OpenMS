@@ -1,6 +1,7 @@
 from Types cimport *
 from String cimport *
-from AASequence cimport *
+from NASequence cimport *
+from IdentificationData cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
 
@@ -15,7 +16,9 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
       String getEnzymeName() nogil except +
       void setEnzyme(String name) nogil except +
 
-      void digest(String& rna, libcpp_vector[String]& output, Size min_length, Size max_length) nogil except +
+#      void digest(const String & rna, libcpp_vector[ String ] & output, Size min_length, Size max_length) nogil except +
+      void digest(NASequence & rna, libcpp_vector[ NASequence ] & output, Size min_length, Size max_length) nogil except +
+      void digest(IdentificationData & id_data, Size min_length, Size max_length) nogil except +
 
       # Returns the specificity for the digestion
       Specificity getSpecificity() nogil except +

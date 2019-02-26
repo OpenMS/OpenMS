@@ -77,7 +77,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   String original_sequence_restriction = sequence_restriction;
 
   // 152 modification
-  const String cysteine_adduct_string("C4H8S2O2");
+  const String cysteine_adduct_string("C4H8S2O2");//FIXME: why is this changed from ancestor?
   const EmpiricalFormula cysteine_adduct_formula(cysteine_adduct_string); // 152 modification
 
   RNPxlModificationMassesResult result;

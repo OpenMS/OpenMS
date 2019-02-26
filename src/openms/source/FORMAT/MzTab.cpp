@@ -626,6 +626,46 @@ namespace OpenMS
     psm_data_ = psd;
   }
 
+  const MzTabSmallMoleculeSectionRows& MzTab::getSmallMoleculeSectionRows() const
+  {
+    return small_molecule_data_;
+  }
+
+  void MzTab::setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd)
+  {
+    small_molecule_data_ = smsd;
+  }
+
+  const MzTabNucleicAcidSectionRows& MzTab::getNucleicAcidSectionRows() const
+  {
+    return nucleic_acid_data_;
+  }
+
+  void MzTab::setNucleicAcidSectionRows(const MzTabNucleicAcidSectionRows& nasd)
+  {
+    nucleic_acid_data_ = nasd;
+  }
+
+  const MzTabOligonucleotideSectionRows& MzTab::getOligonucleotideSectionRows() const
+  {
+    return oligonucleotide_data_;
+  }
+
+  void MzTab::setOligonucleotideSectionRows(const MzTabOligonucleotideSectionRows& onsd)
+  {
+    oligonucleotide_data_ = onsd;
+  }
+
+  const MzTabOSMSectionRows& MzTab::getOSMSectionRows() const
+  {
+    return osm_data_;
+  }
+
+  void MzTab::setOSMSectionRows(const MzTabOSMSectionRows& osd)
+  {
+    osm_data_ = osd;
+  }
+
   void MzTab::setCommentRows(const std::map<Size, String>& com)
   {
     comment_rows_ = com;
@@ -646,94 +686,39 @@ namespace OpenMS
     return comment_rows_;
   }
 
-  const MzTabSmallMoleculeSectionRows& MzTab::getSmallMoleculeSectionRows() const
-  {
-    return small_molecule_data_;
-  }
-
-  void MzTab::setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd)
-  {
-    small_molecule_data_ = smsd;
-  }
-
   std::vector<String> MzTab::getProteinOptionalColumnNames() const
   {
-    // vector is used to preserve the column order
-    std::vector<String> names;
-    if (!protein_data_.empty())
-    {
-      for (MzTabProteinSectionRows::const_iterator it = protein_data_.begin(); it != protein_data_.end(); ++it)
-      {
-        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
-        {
-          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-          {
-            names.push_back(it_opt->first);
-          }
-        }
-      }
-    }
-    return names;
+    return getOptionalColumnNames_(protein_data_);
   }
 
   std::vector<String> MzTab::getPeptideOptionalColumnNames() const
   {
-    // vector is used to preserve the column order
-    std::vector<String> names;
-    if (!peptide_data_.empty())
-    {
-      for (MzTabPeptideSectionRows::const_iterator it = peptide_data_.begin(); it != peptide_data_.end(); ++it)
-      {
-        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
-        {
-          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-          {
-            names.push_back(it_opt->first);
-          }
-        }
-      }
-    }
-    return names;
+    return getOptionalColumnNames_(peptide_data_);
   }
 
   std::vector<String> MzTab::getPSMOptionalColumnNames() const
   {
-    // vector is used to preserve the column order
-    std::vector<String> names;
-    if (!psm_data_.empty())
-    {
-      for (MzTabPSMSectionRows::const_iterator it = psm_data_.begin(); it != psm_data_.end(); ++it)
-      {
-        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
-        {
-          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-          {
-            names.push_back(it_opt->first);
-          }
-        }
-      }
-    }
-    return names;
+    return getOptionalColumnNames_(psm_data_);
   }
 
   std::vector<String> MzTab::getSmallMoleculeOptionalColumnNames() const
   {
-    // vector is used to preserve the column order
-    std::vector<String> names;
-    if (!small_molecule_data_.empty())
-    {
-      for (MzTabSmallMoleculeSectionRows::const_iterator it = small_molecule_data_.begin(); it != small_molecule_data_.end(); ++it)
-      {
-        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
-        {
-          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-          {
-            names.push_back(it_opt->first);
-          }
-        }
-      }
-    }
-    return names;
+    return getOptionalColumnNames_(small_molecule_data_);
+  }
+
+  std::vector<String> MzTab::getNucleicAcidOptionalColumnNames() const
+  {
+    return getOptionalColumnNames_(nucleic_acid_data_);
+  }
+
+  std::vector<String> MzTab::getOligonucleotideOptionalColumnNames() const
+  {
+    return getOptionalColumnNames_(oligonucleotide_data_);
+  }
+
+  std::vector<String> MzTab::getOSMOptionalColumnNames() const
+  {
+    return getOptionalColumnNames_(osm_data_);
   }
 
   MzTabParameter::MzTabParameter()
