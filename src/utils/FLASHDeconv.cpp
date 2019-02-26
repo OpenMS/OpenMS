@@ -332,13 +332,13 @@ protected:
             total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
         }
 
-        if(infileArray.size() > 1){
+        //if(infileArray.size() > 1){
             cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " <<total_elapsed_wall_secs << " s (Wall)] --" << endl;
             cout << "-- per spectrum [took " << 1000.0*total_elapsed_cpu_secs/total_specCntr
                  << " ms (CPU), " << 1000.0*total_elapsed_wall_secs /total_specCntr << " ms (Wall)] --" << endl;
             cout << "In total, found " << total_massCntr << " masses in "<< total_qspecCntr << " MS1 spectra out of "
                  << specCntr << endl;
-        }
+       // }
 
         if(!isOutPathDir) {
             fsm << "];";
@@ -784,11 +784,18 @@ protected:
                 long hbi = setBinIndex - harmonicBinOffsets[j];
                 long hbi2 = setBinIndex - harmonicBinOffsets2[j];
 
-                bool harmonicMzBinClear = hbi<0 || hbi >= (long)mzBins.size() || !mzBins[hbi];
-                harmonicMzBinClear &= hbi2<0 || hbi2 >= (long)mzBins.size() || !mzBins[hbi2];
+                bool harmonicMzBinClear = hbi<1 || hbi >= (long)mzBins.size()-1 || !(mzBins[hbi]||mzBins[hbi-1]||mzBins[hbi+1]);
                 if(!harmonicMzBinClear){
-                    continuousChargeCntr = 0;
-                    continue;
+                    massBins[setBinIndex] = false;
+                    //continuousChargeCntr = 0;
+                    break;
+                }
+
+                harmonicMzBinClear = hbi2<1 || hbi2 >= (long)mzBins.size()-1 || !(mzBins[hbi2]||mzBins[hbi2-1]||mzBins[hbi2+1]);
+                if(!harmonicMzBinClear){
+                    massBins[setBinIndex] = false;
+                    //continuousChargeCntr = 0;
+                    break;
                 }
 
                 bool set = ++continuousChargeCntr >= minContinuousCharge;
