@@ -828,6 +828,17 @@ public:
       return boost::spirit::qi::parse(begin, end, parse_double_, target);
     }
 
+    /// Reads an int from an iterator position.
+    /// The begin iterator is modified (advanced) if parsing was successful.
+    /// The @p target only contains a valid result if the functions returns true (i.e. parsing succeeded).
+    /// Whitespaces before and after the double are NOT consumed!
+    template <typename IteratorT>
+    static bool extractInt(IteratorT& begin, const IteratorT& end, int& target)
+    {
+      // qi::parse() does not consume whitespace before or after the int (qi::parse_phrase() would).
+      return boost::spirit::qi::parse(begin, end, parse_int_, target);
+    }
+
 
     static String& toUpper(String & this_s)
     {
@@ -956,6 +967,7 @@ public:
   // (the original Boost implementation has a bug, see https://svn.boost.org/trac/boost/ticket/6955)
   static boost::spirit::qi::real_parser<double, real_policies_NANfixed_<double> > parse_double_;
   static boost::spirit::qi::real_parser<float, real_policies_NANfixed_<float> > parse_float_;
+  static boost::spirit::qi::int_parser<> parse_int_;
 
   };
 

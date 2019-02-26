@@ -336,6 +336,61 @@ START_SECTION((template <typename IteratorT> static bool extractDouble(IteratorT
 }
 END_SECTION
 
+START_SECTION((template <typename IteratorT> static bool extractInt(IteratorT& begin, const IteratorT& end, int& target)))
+{
+  int i;
+  {
+    std::string ss("12345  ");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractInt(it, ss.end(), i), true);
+    TEST_EQUAL(i, 12345)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 5); // was the iterator advanced?
+  }
+
+  {
+    std::string ss("+1234!");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractInt(it, ss.end(), i), true);
+    TEST_EQUAL(i, 1234)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 5); // was the iterator advanced?
+  }
+  {
+    i = 0;
+    std::string ss("  -123");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractInt(it, ss.end(), i), false);
+    TEST_EQUAL(i, 0)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 0); // was the iterator advanced?
+  }
+  {
+    std::string ss("y15++");
+    auto it = ss.begin() + 1;
+    TEST_EQUAL(StringUtils::extractInt(it, ss.end(), i), true);
+    TEST_EQUAL(i, 15)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 3); // was the iterator advanced?
+  }
+  {
+    // try two ints in a single stream (should stop after the first)
+    std::string ss("-5	9");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractInt(it, ss.end(), i), true);
+    TEST_EQUAL(i, -5)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 2); // was the iterator advanced?
+    auto it2 = ss.begin() + 3;
+    TEST_EQUAL(StringUtils::extractInt(it2, ss.end(), i), true);
+    TEST_EQUAL(i, 9)
+    TEST_EQUAL((int)std::distance(ss.begin(), it2), 4); // was the iterator advanced?
+  }
+  {
+    std::string ss("!noNumber");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractInt(it, ss.end(), i), false);
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 0); // was the iterator advanced?
+  }
+}
+END_SECTION
+
+
 START_SECTION((static String& toUpper(String &this_s)))
 {
   // TODO
