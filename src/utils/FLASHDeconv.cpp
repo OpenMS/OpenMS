@@ -36,7 +36,7 @@ public:
         double tolerance; // up to here: ordinary user accessible parameters
         String fileName;
 
-        double intensityThreshold;
+        double intensityThreshold;// advanced parameters
         int chargeRange;
         int minContinuousChargeCount;
         int minChargeCount;
@@ -44,7 +44,7 @@ public:
         int maxIsotopeCount;
         int maxMassCount;
         double isotopeCosineThreshold;
-        int chargeDistributionScoreThreshold; // advanced parameters
+        int chargeDistributionScoreThreshold;
         double maxRTDelta;
     };
 
@@ -130,10 +130,6 @@ public:
             return this->spec->getRT() >= a.spec->getRT();
         }
 
-       // bool operator==(const PeakGroup &a) const {
-            //if(this->spec->getRT() == a.spec->getRT()) return this->monoisotopicMass == a.monoisotopicMass;
-         //   return this->spec->getRT() == a.spec->getRT();
-       // }
     };
 
 protected:
@@ -159,14 +155,14 @@ protected:
         registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
 
         registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
-        registerIntOption_("minCCC", "<min continuous charge count>", 4, "minimum number of peaks of continuous charges per mass", false, true);
-        registerIntOption_("minCC", "<min charge count>", 8, "minimum number of peaks of distinct charges per mass (recommended - ~20% of (maxC - minC))", false, true);
+        registerIntOption_("minCCC", "<min continuous charge count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
+        registerIntOption_("minCC", "<min charge count>", 8, "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))", false, true);
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
         registerDoubleOption_("minIsoScore", "<score 0-1>", .75, "minimum isotope cosine score threshold (0-1)", false, true);
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 1, "minimum charge distribution score threshold (>= 0)", false, true);
-        registerDoubleOption_("maxRTDelta", "<max RT delta>", -1, "max retention time duration with no peak in a feature (seconds); by default, 1/20 total LC duration", false, true);
+        registerDoubleOption_("maxRTDelta", "<max RT delta>", -1, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
     }
 
     Parameter setParameter(){
@@ -214,30 +210,23 @@ protected:
         }
         sort(infileArray.begin(), infileArray.end());
 
-
         bool isOutPathDir = (QFileInfo(QString::fromUtf8(outfilePath.data(), (int)outfilePath.size())).isDir());
 
         cout << "Initializing ... " <<endl;
         auto param = setParameter();
         auto averagines = getPrecalculatedAveragines(param);
         int specCntr = 0, qspecCntr = 0, massCntr = 0, featureCntr = 0;
-        int prevSpecCntr = 0, prevQspecCntr = 0, prevMassCntr = 0, prevFeatureCntr = 0;
-
+        int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0, total_featureCntr = 0;
         double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
         fstream fs, fsm, fsf;
 
         if(!isOutPathDir) {
             fs.open(outfilePath + ".tsv", fstream::out);
-            writeHeader(fs);
+            if(param.maxRTDelta>=0) fsf.open(outfilePath + "feature.tsv", fstream::out);
+
+            writeHeader(fs, fsf, param.maxRTDelta>=0);
             fsm.open(outfilePath + ".m", fstream::out);
             fsm << "m=[";
-
-            fsf.open(outfilePath + "feature.tsv", fstream::out);
-            fsf
-                    << "FeatureID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
-                       "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-                       "\tApexIntensity\tAbundance"
-                    << endl;
         }
 
         for (auto& infile : infileArray){
@@ -248,23 +237,16 @@ protected:
                 std::size_t found = outfileName.find_last_of(".");
                 outfileName = outfileName.substr(0,found);
                 fs.open(outfilePath + outfileName + ".tsv", fstream::out);
-                writeHeader(fs);
+                if(param.maxRTDelta>=0) fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
+                writeHeader(fs, fsf, param.maxRTDelta>=0);
 
                 outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
                 outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
-                fsm.open(outfilePath + outfileName + ".m", fstream::out);
+                fsm.open(outfilePath + "m" + outfileName + ".m", fstream::out);
                 fsm << "m=[";
-
-                fsf.open(outfilePath + outfileName + "feature.tsv", fstream::out);
-                fsf
-                        << "FeatureID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
-                           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-                           "\tApexIntensity\tAbundance"
-                        << endl;
             }
 
-
-                double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
+            double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
             cout << "Processing : " << infile.toStdString() << endl;
 
             MSExperiment map;
@@ -272,29 +254,28 @@ protected:
             mzml.setLogType(log_type_);
             mzml.load(infile, map);
 
-            cout << "Running FLASHDeconv now ... "<<endl;
+            cout << "Running FLASHDeconv ... "<<endl;
             auto begin = clock();
             auto t_start = chrono::high_resolution_clock::now();
-            auto peakGroups = Deconvolution(map, param, averagines,  specCntr, qspecCntr, massCntr);
+            auto peakGroups = Deconvolution(map, param, averagines, specCntr, qspecCntr, massCntr);
             auto t_end = chrono::high_resolution_clock::now();
             auto end = clock();
             elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
             elapsed_wall_secs = chrono::duration<double>(t_end-t_start).count();
 
-            cout << endl << "-- done [took " << elapsed_cpu_secs << " s (CPU), " <<elapsed_wall_secs << " s (Wall)] --" << endl;
+            /*cout << endl << "-- done [took " << elapsed_cpu_secs << " s (CPU), " <<elapsed_wall_secs << " s (Wall)] --" << endl;
             cout << "-- per spectrum [took " << 1000.0*elapsed_cpu_secs/(specCntr - prevSpecCntr)
                 << " ms (CPU), " << 1000.0*elapsed_wall_secs /(specCntr - prevSpecCntr) << " ms (Wall)] --"  << endl;
             cout << "Found " << massCntr - prevMassCntr << " masses in "<< qspecCntr - prevQspecCntr << " MS1 spectra out of "
             << specCntr - prevSpecCntr << endl;
+            */
             if(peakGroups.empty()) continue;
-            cout<< "Writing results ...";
+            cout<< "writing results ...";
             cout.flush();
             for(auto &pg : peakGroups)
                 writePeakGroup(pg, peakGroups.size(), param, fs, fsm);
             cout<<"done\n";
-
-
-            //TODO index --- when dir output file output diff!!
+/*
             Param common_param = getParam_().copy("algorithm:common:", true);
             writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
@@ -313,7 +294,7 @@ protected:
             mtd_param.setValue("noise_threshold_int", .0, "");
 
             double rtd = (map[map.size()-1].getRT() - map[0].getRT() ) / (specCntr - prevSpecCntr);
-            double delta = param.maxRTDelta < 0? (map[map.size()-1].getRT() - map[0].getRT() )/20 : param.maxRTDelta;
+            double delta = param.maxRTDelta < 0? (map[map.size()-1].getRT() - map[0].getRT() )/10.0 : param.maxRTDelta;
             mtd_param.setValue("min_sample_rate", rtd/delta, "");
             mtd_param.setValue("min_trace_length", .001, "");
 
@@ -324,41 +305,38 @@ protected:
             //cout<<map.size();
             for(auto &mt : m_traces){
                 auto mass = mt.getCentroidMZ();
-                fsf<< fixed << setprecision(4)<<++featureCntr - prevFeatureCntr<<"\t"<<param.fileName<<"\t"<<mass/0.999497<<"\t"<<mass<<"\t"<<mt.begin()->getRT()
+                fsf<< fixed << setprecision(4)<<++featureCntr<<"\t"<<param.fileName<<"\t"<<mass<<"\t"<<mt.begin()->getRT()
                 <<"\t"<<mt.rbegin()->getRT()<<"\t"<<mt.getTraceLength()<<"\t"<< mt[mt.findMaxByIntPeak()].getRT()
                 <<"\t"<<mt.getMaxIntensity(false)<<"\t"<<mt.computePeakArea()<<"\n";
-/*
-                for(auto &p : mt){
-                    fsf<<fixed << setprecision(4)<<p.getMZ() <<",";
-                }
-                fsf<<"\t";
-                for(auto &p : mt){
-                    fsf<<fixed << setprecision(4)<<p.getIntensity() <<",";
-                }
-                fsf<<"\n";*/
             }
-
-
-          //  cout<< " finding features ...";
-          //  cout.flush();
-         //   findNominalMassFeatures(peakGroups, featureCntr, fsf, param);
+*/
+            if(param.maxRTDelta>=0) findNominalMassFeatures(peakGroups, featureCntr, fsf, param);
 
             if(isOutPathDir){
                 fsm << "];";
                 fsm.close();
                 fs.close();
-                fsf.close();
+                if(param.maxRTDelta>=0) fsf.close();
+                total_specCntr += specCntr;
+                total_qspecCntr += qspecCntr;
+                total_massCntr += massCntr;
+                specCntr = qspecCntr = massCntr = featureCntr = 0;
+            }else{
+                total_specCntr = specCntr;
+                total_qspecCntr = qspecCntr;
+                total_massCntr = massCntr;
             }
 
-            prevFeatureCntr = featureCntr;
-            prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr; total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
+            //prevFeatureCntr = featureCntr;
+            //prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr;
+            total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
         }
 
         if(infileArray.size() > 1){
             cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " <<total_elapsed_wall_secs << " s (Wall)] --" << endl;
-            cout << "-- per spectrum [took " << 1000.0*total_elapsed_cpu_secs/specCntr
-                 << " ms (CPU), " << 1000.0*total_elapsed_wall_secs /specCntr << " ms (Wall)] --" << endl;
-            cout << "In total, found " << massCntr << " masses in "<< qspecCntr << " MS1 spectra out of "
+            cout << "-- per spectrum [took " << 1000.0*total_elapsed_cpu_secs/total_specCntr
+                 << " ms (CPU), " << 1000.0*total_elapsed_wall_secs /total_specCntr << " ms (Wall)] --" << endl;
+            cout << "In total, found " << total_massCntr << " masses in "<< total_qspecCntr << " MS1 spectra out of "
                  << specCntr << endl;
         }
 
@@ -366,15 +344,21 @@ protected:
             fsm << "];";
             fsm.close();
             fs.close();
-            fsf.close();
+            if(param.maxRTDelta>=0) fsf.close();
         }
         return EXECUTION_OK;
     }
 
-    void writeHeader(fstream &fs){
+    void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false){
         fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassCountInSpec\tExactMass\tNominalMass(round(ExactMass*0.999497))\t"
               "AggregatedIntensity\tRetentionTime\tPeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\t"
               "PeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
+        if(!featureOut) return;
+        fsf << "FeatureID\tFileName\tNominalMass\tStartRetentionTime"
+                   "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
+                   "\tApexIntensity\tAbundance"
+                << endl;
+
         return;
     }
 
@@ -419,7 +403,7 @@ protected:
             auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, harmonicFilter, harmonicFilter2, param);
             scoreAndFilterPeakGroups(peakGroups, averagines, param);
 
-            it->clear(false);
+            //it->clear(false);
             if(peakGroups.empty()){
                 continue;
             }
@@ -440,22 +424,17 @@ protected:
                     it->push_back(tp);
                     //Peak1D tp2(mass+.0000001, (float) p.orgPeak->getIntensity());
                     //it->push_back(tp2);
-                }*/
+                }
                 auto mass = pg.monoisotopicMass;
-               // mass = round(mass*10.0)/10.0;
                 mass = getNominalMass(mass);
                 Peak1D tp(mass, (float) pg.intensity);//
-                it->push_back(tp);
-
-
+                it->push_back(tp);*/
             }
-            it->sortByPosition();
+            //it->sortByPosition();
         }
         printProgress(1);
         return allPeakGroups;
     }
-
-
 
     void writePeakGroup(PeakGroup &pg, Size peakGroupSize, Parameter& param, fstream &fs, fstream &fsm){
         double m = pg.monoisotopicMass;
@@ -708,25 +687,26 @@ protected:
             harmonicBinOffsets2[i] = (long)((minLogMz-harmonicFilter2[i]-minBinLogMass) / param.tolerance);
         }
 
-        int chargeRange = getInitialMassBinsUsingMinChargeCount(massBins, mzBins, binOffsets, binNumber, param);
+        int chargeRange = getInitialMassBinsUsingMinChargeCount(massBins, mzBins, binOffsets, binNumber, minBinLogMass, param);
         return getFinalMassBinsUsingMinContinuousChargeCount(massBins, mzBins, chargeRange, binOffsets,harmonicBinOffsets, harmonicBinOffsets2, param);
     }
 
     int getInitialMassBinsUsingMinChargeCount(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
-                             long *binOffsets, Size &binNumber, const Parameter &param){
+                             long *binOffsets, Size &binNumber, double &minBinLogMass, const Parameter &param){
         auto setBinIndex = mzBins.find_first();
         int chargeRange = param.chargeRange;
         int minChargeCount = param.minChargeCount;
         int minContinuousChargeCount = param.minContinuousChargeCount;
         long biThreshold = (long) binNumber;
+        double binThresholdSmallMass = (log(15000.0)-minBinLogMass)/param.tolerance;
         //auto firstSetBinIndex = 1;
-        long lastSetBinIndex = (long)mzBins.size()-1;
+        //long lastSetBinIndex = (long)mzBins.size()-1;
 
         Byte *massBinScores = new Byte[binNumber];
         fill_n(massBinScores, binNumber, 0);
 
-        Byte *massBinScoreThresholds = new Byte[binNumber];
-        fill_n(massBinScoreThresholds, binNumber, 0);
+       // Byte *massBinScoreThresholds = new Byte[binNumber];
+       // fill_n(massBinScoreThresholds, binNumber, 0);
 
         int maxChargeRange = 0;
         while (setBinIndex != mzBins.npos) {
@@ -738,20 +718,8 @@ protected:
                 auto &bs = massBinScores[bi];
                 if(bs < minContinuousChargeCount) continue;
                 if(bs < minChargeCount) {
-                    if(massBinScoreThresholds[bi] == 0) {
-                        int k = j + 1;
-                        while (k < chargeRange && bi > binOffsets[k]) {
-                            k++;
-                        }
-                        int l = j - 1;
-                        while (l >= 0 && bi < lastSetBinIndex + binOffsets[l]) {
-                            l--;
-                        }
-                        Byte s = (Byte)((k - l + 1) * .6);
-                        massBinScoreThresholds[bi] =  (Byte)(s < minContinuousChargeCount ? minContinuousChargeCount : s);
-                    }
-                    if(bs < massBinScoreThresholds[bi])
-                        continue;
+                    if(bi>binThresholdSmallMass)continue;
+                    if(bs < bi/binThresholdSmallMass * minChargeCount) continue;
                 }
                 massBins[bi] = true;
                 maxChargeRange = maxChargeRange > j? maxChargeRange : j;
@@ -1040,17 +1008,17 @@ protected:
 
 
 
-/*    void findNominalMassFeatures(vector<PeakGroup> &peakGroups, int &id, fstream& fs, const Parameter & param){
+    void findNominalMassFeatures(vector<PeakGroup> &peakGroups, int &id, fstream& fs, const Parameter & param){
 
         map<int, vector<double>> massMap;
         map<int, vector<String>> writeMap;
 
         double delta = param.maxRTDelta;
-        if(delta <=0){
+        /*if(delta <=0){
             auto end = peakGroups[peakGroups.size()-1].spec->getRT();
             auto begin = peakGroups[0].spec->getRT();
             delta = (end-begin)/10.0;
-        }
+        }*/
         //sort(peakGroups.begin(), peakGroups.end());
         for(auto& pg : peakGroups){
             int nm = getNominalMass(pg.monoisotopicMass);
@@ -1115,7 +1083,7 @@ protected:
                 fs<<++id<<s<<"\n";
             }
         }
-    }*/
+    }
 };
 
     int main(int argc, const char **argv) {
