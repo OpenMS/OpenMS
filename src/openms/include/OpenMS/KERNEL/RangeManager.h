@@ -68,6 +68,9 @@ public:
       pos_range_(rhs.pos_range_)
     {}
 
+    /// Move constructor
+    RangeManager(RangeManager&&) noexcept = default;
+
     /// Destructor
     virtual ~RangeManager()
     {}
