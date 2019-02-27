@@ -448,7 +448,7 @@ protected:
         fs<<fixed<<setprecision(4);
 
         fs <<pg.massIndex<<"\t"<<pg.specIndex<<"\t"<<param.fileName<<"\t"<<pg.spec->getNativeID()<<"\t"<<pg.massCntr<<"\t"
-            << m << "\t" << nm<<"\t"<< intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t"<<"\t";
+            << m << "\t" << nm<<"\t"<< intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t";
 
         sort(pg.peaks.begin(), pg.peaks.end());
 
