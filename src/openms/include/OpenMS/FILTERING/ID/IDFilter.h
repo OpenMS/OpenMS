@@ -49,6 +49,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -213,6 +214,44 @@ public:
         // false if the "target_decoy" meta value is "target" or "target+decoy",
         // without checking for an "isDecoy" meta value in that case
         return target_decoy(hit) || is_decoy(hit);
+      }
+    };
+
+    /**
+       @brief Given a list of protein accessions, do any occur in the annotation(s) of this hit?
+
+       @note This predicate also works for peptide evidence (class PeptideEvidence).
+    */
+    template <class HitType>
+    struct HasMatchingAccessionUnordered
+    {
+      typedef HitType argument_type; // for use as a predicate
+
+      const std::unordered_set<String>& accessions;
+
+      HasMatchingAccessionUnordered(const std::unordered_set<String>& accessions_):
+        accessions(accessions_)
+      {}
+
+      bool operator()(const PeptideHit& hit) const
+      {
+        std::set<String> present_accessions = hit.extractProteinAccessionsSet();
+        for (std::set<String>::iterator it = present_accessions.begin();
+             it != present_accessions.end(); ++it)
+        {
+          if (accessions.count(*it) > 0) return true;
+        }
+        return false;
+      }
+
+      bool operator()(const ProteinHit& hit) const
+      {
+        return (accessions.count(hit.getAccession()) > 0);
+      }
+
+      bool operator()(const PeptideEvidence& evidence) const
+      {
+        return (accessions.count(evidence.getProteinAccession()) > 0);
       }
     };
 

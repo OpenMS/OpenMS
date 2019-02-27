@@ -242,7 +242,7 @@ namespace OpenMS
     const vector<PeptideIdentification>& peptides)
   {
     // collect accessions that are referenced by peptides for each ID run:
-    map<String, set<String> > run_to_accessions;
+    map<String, unordered_set<String> > run_to_accessions;
     for (vector<PeptideIdentification>::const_iterator pep_it =
            peptides.begin(); pep_it != peptides.end(); ++pep_it)
     {
@@ -265,8 +265,8 @@ namespace OpenMS
          prot_it != proteins.end(); ++prot_it)
     {
       const String& run_id = prot_it->getIdentifier();
-      const set<String>& accessions = run_to_accessions[run_id];
-      struct HasMatchingAccession<ProteinHit> acc_filter(accessions);
+      const unordered_set<String>& accessions = run_to_accessions[run_id];
+      struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
       keepMatchingItems(prot_it->getHits(), acc_filter);
     }
   }
@@ -326,7 +326,7 @@ namespace OpenMS
     if (groups.empty()) return true; // nothing to update
 
     // we'll do lots of look-ups, so use a suitable data structure:
-    set<String> valid_accessions;
+    unordered_set<String> valid_accessions;
     for (vector<ProteinHit>::const_iterator hit_it = hits.begin();
          hit_it != hits.end(); ++hit_it)
     {
@@ -339,12 +339,11 @@ namespace OpenMS
            groups.begin(); group_it != groups.end(); ++group_it)
     {
       ProteinIdentification::ProteinGroup filtered;
-      // sort group accessions (required for 'set_intersection' operation)
-      sort(group_it->accessions.begin(), group_it->accessions.end());
-      set_intersection(group_it->accessions.begin(), group_it->accessions.end(),
-                       valid_accessions.begin(), valid_accessions.end(),
-                       inserter(filtered.accessions,
-                                filtered.accessions.begin()));
+      for (const String& acc : group_it->accessions)
+      {
+	if (valid_accessions.find(acc) != valid_accessions.end())
+		filtered.accessions.push_back(acc);
+      }
       if (!filtered.accessions.empty())
       {
         if (filtered.accessions.size() < group_it->accessions.size())
