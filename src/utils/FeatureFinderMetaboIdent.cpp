@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -614,20 +614,22 @@ protected:
   void resolveOverlappingFeatures_(FeatureGroup& group,
                                    const FeatureBoundsMap& feature_bounds)
   {
-    LOG_DEBUG << "Overlapping features:";
-    for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
-         ++it)
+    if (debug_level_ > 0)
     {
-      if (it != group.begin()) LOG_DEBUG << ",";
-      LOG_DEBUG << " " << (*it)->getMetaValue("PeptideRef") << " (RT "
-                << float((*it)->getRT()) << ")";
+      String msg = "Overlapping features: ";
+      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
+           ++it)
+      {
+        if (it != group.begin()) msg += ", ";
+        msg += String((*it)->getMetaValue("PeptideRef")) + " (RT " + String(float((*it)->getRT())) + ")";
+      }
+      LOG_DEBUG << msg << endl;
     }
-    LOG_DEBUG << endl;
 
-    double best_rt_delta = numeric_limits<double>::infinity();
     Feature* best_feature = 0;
     while (!group.empty())
     {
+      double best_rt_delta = numeric_limits<double>::infinity();
       // best feature is the one with min. RT deviation to target:
       for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
            ++it)

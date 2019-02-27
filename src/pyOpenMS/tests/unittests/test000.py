@@ -213,8 +213,10 @@ def testAASequence():
     assert seq.toUnmodifiedString() == b"PEPTIDESEKUEMCER"
     assert seq.toBracketString() == b"PEPTIDESEKUEM[147]CER"
     assert seq.toBracketString(True, []) == b"PEPTIDESEKUEM[147]CER"
-    assert seq.toBracketString(False, []) == b"PEPTIDESEKUEM[147.0354000171]CER"
-    assert seq.toBracketString(False) == b"PEPTIDESEKUEM[147.0354000171]CER"
+    print( seq.toBracketString(False, []) )
+    assert seq.toBracketString(False, []) == b"PEPTIDESEKUEM[147.03540001709996]CER" or seq.toBracketString(False, []) == b"PEPTIDESEKUEM[147.035400017100017]CER"
+    print( seq.toBracketString(False) )
+    assert seq.toBracketString(False) == b"PEPTIDESEKUEM[147.03540001709996]CER" or seq.toBracketString(False) == b"PEPTIDESEKUEM[147.035400017100017]CER"
     assert seq.toUniModString() == b"PEPTIDESEKUEM(UniMod:35)CER"
     assert seq.isModified()
     assert not seq.hasCTerminalModification()
@@ -439,8 +441,8 @@ def testEmpiricalFormula():
     s = ef.toString()
     assert s == b"C2H5"
     m = ef.getElementalComposition()
-    assert m["C"] == 2
-    assert m["H"] == 5
+    assert m[b"C"] == 2
+    assert m[b"H"] == 5
     assert ef.getNumberOfAtoms() == 7
 
 @report
@@ -3590,9 +3592,9 @@ def testMxxxFile():
 
     myStr = pyopenms.String()
     fh.storeBuffer(myStr, mse)
-    assert len(str(myStr)) == 5269
+    assert len(myStr.toString()) == 5269
     mse2 = pyopenms.MSExperiment()
-    fh.loadBuffer(str(myStr), mse2)
+    fh.loadBuffer(bytes(myStr), mse2)
     assert mse2 == mse
     assert mse2.size() == 1
 
@@ -3692,7 +3694,7 @@ def testNumpressCoder():
     inp =  [1.0, 2.0, 3.0]
     np.encodeNP(inp, tmp, True, nc)
 
-    res = str(tmp)
+    res = tmp.toString()
     assert len(res) != 0, len(res)
     assert res != "", res
     np.decodeNP(res, out, True, nc)
@@ -3723,7 +3725,7 @@ def testNumpressConfig():
     np.numpressErrorTolerance = 4.2
     np.estimate_fixed_point = True
     np.linear_fp_mass_acc = 4.2
-    np.setCompression("linear")
+    np.setCompression(b"linear")
 
 @report
 def testBase64():
@@ -3734,7 +3736,7 @@ def testBase64():
     out = pyopenms.String()
     inp =  [1.0, 2.0, 3.0]
     b.encode(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
-    res = str(out)
+    res = out.toString()
     assert len(res) != 0
     assert res != ""
 
@@ -5175,4 +5177,39 @@ def testString():
     pystr1 = pyopenms.String(u"bläh")
     pystr2 = pyopenms.String(u"bläh")
     assert(pystr1 == pystr2)
+
+    # Handling of different Unicode Strings:
+    # - unicode is natively stored in OpenMS::String
+    # - encoded bytesequences for utf8, utf16 and iso8859 can be stored as
+    #   char arrays in OpenMS::String (and be accessed using c_str())
+    # - encoded bytesequences for anything other than utf8 cannot use
+    #   "toString()" as this function expects utf8
+    ustr = u"bläh"
+    pystr = pyopenms.String(ustr)
+    assert (pystr.toString() == u"bläh")
+    pystr = pyopenms.String(ustr.encode("utf8"))
+    assert (pystr.toString() == u"bläh")
+
+    pystr = pyopenms.String(ustr.encode("iso8859_15"))
+    assert (pystr.c_str().decode("iso8859_15") == u"bläh")
+    pystr = pyopenms.String(ustr.encode("utf16"))
+    assert (pystr.c_str().decode("utf16") == u"bläh")
+
+    # toString will throw as its not UTF8
+    pystr = pyopenms.String(ustr.encode("iso8859_15"))
+    didThrow = False
+    try:
+        pystr.toString()
+    except UnicodeDecodeError:
+        didThrow = True
+    assert didThrow
+
+    # toString will throw as its not UTF8
+    pystr = pyopenms.String(ustr.encode("utf16"))
+    didThrow = False
+    try:
+        pystr.toString()
+    except UnicodeDecodeError:
+        didThrow = True
+    assert didThrow
 

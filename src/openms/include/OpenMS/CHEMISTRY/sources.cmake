@@ -17,7 +17,9 @@ DigestionEnzymeRNA.h
 DigestionEnzymeDB.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
+ModifiedNASequenceGenerator.h
 ModificationsDB.h
+NASequence.h
 ProteaseDB.h
 ProteaseDigestion.h
 Residue.h
@@ -25,9 +27,12 @@ ResidueDB.h
 ResidueModification.h
 RNaseDB.h
 RNaseDigestion.h
+Ribonucleotide.h
+RibonucleotideDB.h
 TheoreticalSpectrumGenerator.h
 SpectrumAnnotator.h
 TheoreticalSpectrumGeneratorXLMS.h
+SimpleTSGXLMS.h
 SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h

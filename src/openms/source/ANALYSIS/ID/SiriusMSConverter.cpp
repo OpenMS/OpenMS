@@ -99,7 +99,7 @@ namespace OpenMS
     // depending on the charge different MASSDIFF
     if (charge != 0)
     {
-      massdiff = massdiff/abs(charge);
+      massdiff = massdiff/std::abs(charge);
     }
 
     while (peak_index != -1 && iterations > 0)
@@ -172,7 +172,7 @@ namespace OpenMS
           ++count_assume_mono;
         }
         // negative mode - make sure charges are < 0
-        if (p == IonSource::Polarity::NEGATIVE) { precursor_charge = -abs(precursor_charge); }
+        if (p == IonSource::Polarity::NEGATIVE) { precursor_charge = -(std::abs(precursor_charge)); }
 
         // set feature_charge for msfile if feature information is available
         // no charge annotated - assume mono-charged
@@ -182,7 +182,7 @@ namespace OpenMS
           ++count_assume_mono;
         }
         // negative mode - make sure charges are < 0
-        if (p == IonSource::Polarity::NEGATIVE) { feature_charge = -abs(feature_charge); }
+        if (p == IonSource::Polarity::NEGATIVE) { feature_charge = -(std::abs(feature_charge)); }
 
         // get m/z and intensity of precursor != MS1 spectrum
         double precursor_mz = precursor[0].getMZ();
@@ -192,7 +192,7 @@ namespace OpenMS
         double collision = precursor[0].getActivationEnergy();
 
         // find corresponding ms1 spectra (precursor)
-        PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum((spectra.begin()+ind));
+        PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum((spectra.begin() + ind));
 
         double test_mz = precursor_mz;
         double precursor_rt = 0.0;
@@ -201,9 +201,10 @@ namespace OpenMS
         isotopes.clear();
         vector<Peak1D> precursor_spec;
 
-        if (s_it2->getMSLevel() != 1)
+        // getPrecursorSpectrum returns past-the-end iterator if spectrum is not found.
+        if (s_it2 == spectra.end() || s_it2->getMSLevel() != 1)
         {
-          count_no_ms1 = count_no_ms1 + 1;
+          ++count_no_ms1;
         }
         // get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
         else

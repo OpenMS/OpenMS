@@ -336,6 +336,19 @@ namespace OpenMS
         
       }
       
+      // Use a more restrictive averagine similarity when we are searching for peptide singlets.
+      double similarity;
+      if (pattern.getMassShiftCount() == 1)
+      {
+        // We are detecting peptide singlets.
+        similarity = averagine_similarity_ + averagine_similarity_scaling_*(1 - averagine_similarity_);
+      }
+      else
+      {
+        // We are detecting peptide doublets or triplets or ...
+        similarity = averagine_similarity_;
+      }
+      
       // Calculate Pearson and Spearman rank correlations
       if ((intensities_model.size() < isotopes_per_peptide_min_) || (intensities_data.size() < isotopes_per_peptide_min_))
       {
@@ -344,17 +357,19 @@ namespace OpenMS
       double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
       double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
 
-      if ((correlation_Pearson < averagine_similarity_) || (correlation_Spearman < averagine_similarity_))
+      if ((correlation_Pearson < similarity) || (correlation_Spearman < similarity))
       {
         return false;
       }
+
       
     }
     
     return true;
   }
   
-  bool MultiplexFilteringProfile::filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const
+  bool MultiplexFilteringProfile::filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern,
+                                                            const std::multimap<size_t, MultiplexSatelliteProfile >& satellites_profile) const
   {
     if (pattern.getMassShiftCount() < 2)
     {
@@ -381,18 +396,16 @@ namespace OpenMS
           size_t idx_1 = peptide_1 * isotopes_per_peptide_max_ + isotope;
           size_t idx_2 = peptide_2 * isotopes_per_peptide_max_ + isotope;
           
-          std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_1;
-          std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_2;
-          satellites_1 = satellites_profile.equal_range(idx_1);
-          satellites_2 = satellites_profile.equal_range(idx_2);
+          auto satellites_1 = satellites_profile.equal_range(idx_1);
+          auto satellites_2 = satellites_profile.equal_range(idx_2);
           
           // loop over satellites in mass trace 1
-          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
+          for (auto satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
           {
             double rt_1 = (satellite_it_1->second).getRT();
             
             // loop over satellites in mass trace 2
-            for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
+            for (auto satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
             {
               double rt_2 = (satellite_it_2->second).getRT();
               

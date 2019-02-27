@@ -24,12 +24,15 @@ cdef inline shared_ptr[_String] convString(argument_var):
         res = (<String>argument_var).inst
         return res
     elif isinstance(argument_var, bytes):
-        # Simple, convert directly to char*
-        res = shared_ptr[_String](new _String(<char*>argument_var))
+        # Simple, convert directly to char* - however there may be zero bytes
+        # in the array when using certain encodings, we therefore need to make
+        # sure we capture the full length.
+        res = shared_ptr[_String](new _String(<char*>argument_var, len(argument_var)))
         return res
     elif isinstance(argument_var, str) or isinstance(argument_var, unicode):
-        # First encode with UTF8 (note that toString below decodes with UTF8),
-        # then convert the result to char*
+        # First encode with UTF8 (note that output encoding as well as
+        # String.toString both decode with UTF8), then convert the result to
+        # char*
         py_byte_string = argument_var.encode('UTF-8')
         c_string_argument_var = py_byte_string
         res = shared_ptr[_String](new _String(<char*>c_string_argument_var))

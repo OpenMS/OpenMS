@@ -315,9 +315,7 @@ namespace OpenMS
     int LogStreamBuf::sync()
     {
       int ret = 0;
-      #ifdef _OPENMP
-        #pragma omp critical (LOGSTREAM)
-      #endif
+      #pragma omp critical (LOGSTREAM)
       {
         ret = syncLF_();
       }
@@ -556,9 +554,7 @@ namespace OpenMS
   template <typename T>
   Logger::LogStream& operator<<(Logger::LogStream& mylog, const T& v)
   {
-    #ifdef _OPENMP
-      #pragma omp critical (LOGSTREAM)
-    #endif
+    #pragma omp critical (LOGSTREAM)
     {
       static_cast<std::ostream &>(mylog) << v;
     };

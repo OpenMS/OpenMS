@@ -52,6 +52,7 @@ namespace OpenMS
     drift_time_(-1),
     drift_window_low_(0.0),
     drift_window_up_(0.0),
+    drift_time_unit_(Precursor::DriftTimeUnit::NONE),
     charge_(0),
     possible_charge_states_()
   {
@@ -70,6 +71,7 @@ namespace OpenMS
            drift_time_ == rhs.drift_time_ &&
            drift_window_up_ == rhs.drift_window_up_ &&
            drift_window_low_ == rhs.drift_window_low_ &&
+           drift_time_unit_ == rhs.drift_time_unit_ &&
            charge_ == rhs.charge_ &&
            possible_charge_states_ == rhs.possible_charge_states_ &&
            Peak1D::operator==(rhs) &&
@@ -136,6 +138,16 @@ namespace OpenMS
   void Precursor::setDriftTime(double drift_time)
   {
     drift_time_ = drift_time;
+  }
+
+  Precursor::DriftTimeUnit Precursor::getDriftTimeUnit() const
+  {
+    return drift_time_unit_;
+  }
+
+  void Precursor::setDriftTimeUnit(DriftTimeUnit dt)
+  {
+    drift_time_unit_ = dt;
   }
 
   double Precursor::getDriftTimeWindowLowerOffset() const
