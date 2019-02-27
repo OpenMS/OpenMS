@@ -57,6 +57,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h> 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h> 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 
 #include <OpenMS/KERNEL/RangeUtils.h>
 
@@ -141,7 +142,7 @@ protected:
     setValidFormats_("in_id", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
-    setValidFormats_("out", ListUtils::create<String>("tsv,traML"));
+    setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
 
     // TODO: add method fragment annotation here? swith the other to heuristcs? s
     registerStringOption_("method", "<choice>", "highest_intensity", "Method used for assay library construction",false);
@@ -425,21 +426,20 @@ protected:
         // sort intensity in MS2 spectrum to extract transitions
         transition_spectrum.sortByIntensity(true);
 
-        // filter out the precursors if they are in the ms2 spectrum; 
+        // filter out the precursors if they are in the ms2 spectrum;
         if (exclude_ms2_precursor)
         {
           for (auto spec_it = transition_spectrum.begin();
                     spec_it != transition_spectrum.end();
                     ++spec_it)
           {
-            
             if (transition_spectrum.getPrecursors()[0].getMZ() == spec_it->getMZ())
             {
               transition_spectrum.erase(spec_it);
               break;
             }
-          } 
-        } 
+          }
+        }
 
         // find max and min intensity peak
         max_int = max_element(transition_spectrum.begin(),transition_spectrum.end(), intensityLess_)->getIntensity();
@@ -600,26 +600,26 @@ protected:
           OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
           if (explanation_array.getName() != "explanation")
           {
-            LOG_WARN << "Fragment explanation was not found. Please check if you annotation works properly." << std::endl; 
+            LOG_WARN << "Fragment explanation was not found. Please check if you annotation works properly." << std::endl;
           }
-          else 
+          else
           {
             // precursor in fragment annotation has the same sumformula as MS1 Precursor
             if (explanation_array[spec_index] == sumformula)
             {
-              // save exact mass 
+              // save exact mass
               if(use_exact_mass)
               {
                 exact_mass_precursor = spec_it->getMZ();
               }
-              // remove precursor ms2 entry 
+              // remove precursor ms2 entry
               if(exclude_ms2_precursor)
               {
                 transition_spectrum.erase(transition_spectrum.begin() + spec_index);
                 transition_spectrum.getStringDataArrays()[0].erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
                 transition_spectrum.getFloatDataArrays()[0].erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
                 break; // if last element have to break if not iterator will go out of range
-              } 
+              }
             }
           }
         }
@@ -652,7 +652,7 @@ protected:
         float threshold_transition = max_int * (transition_threshold / 100);
         float threshold_noise = min_int * 1.1;
         int transition_counter = 0;
-       
+
         // extract current StringDataArry with annotations/explanations;
         OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
 
@@ -691,12 +691,12 @@ protected:
             transition_counter += 1;
           }
         }
-      
+
         transition_group_counter += 1;
         PotentialTransitions pts;
         pts.precursor_mz = (use_exact_mass && exact_mass_precursor != 0.0)  ? exact_mass_precursor : it->first.pmass;
         pts.precursor_rt = it->first.rt;
-        pts.precursor_int = 0; 
+        pts.precursor_int = 0;
         //pts.transition_quality = ;
         pts.compound_name = description;
         pts.compound_adduct = adduct;
@@ -854,7 +854,7 @@ protected:
                                                   sirius_algo,
                                                   feature_mapping);
     
-      // filter known_unkowns based on description (UNKNOWN)  
+      // filter known_unkowns based on description (UNKNOWN)
       std::map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
       std::map<const BaseFeature*, std::vector<size_t>> known_features; 
       if (!use_known_unknowns)
@@ -916,7 +916,7 @@ protected:
   
         // sort vector path list
         std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
-        LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl; 
+        LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
   
         // get Sirius FragmentAnnotion from subdirs
         vector<MSSpectrum> annotated_spectra;
@@ -1016,7 +1016,7 @@ protected:
           }
         }
       }
- 
+
       // potential transitions of one file
       vector<PotentialTransitions> tmp_pts;
       if (use_fragment_annotation)
@@ -1087,14 +1087,23 @@ protected:
       // validate and write
       OpenMS::TransitionTSVFile::convertTargetedExperimentToTSV(out.c_str(), t_exp);
     }
-    else
+    else if (extension == "traML")
     {
       // validate
       OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
       // write traML
       TraMLFile traml_out;
-      traml_out.store(out,t_exp);
+      traml_out.store(out, t_exp);
     }
+    else if (extension == "pqp")
+    {
+      //validate 
+      OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
+      // write pqp
+      TransitionPQPFile pqp_out;
+      pqp_out.convertTargetedExperimentToPQP(out.c_str(), t_exp);
+    }
+
     return EXECUTION_OK;
   }
 };
