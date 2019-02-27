@@ -110,7 +110,7 @@ public:
         double intensity = .0;
         int chargeDistributionScore = 0;
         double isotopeCosineScore = .0;
-        int massIndex, specIndex;
+        int massIndex, specIndex, massCntr;
         MSSpectrum *spec;
 
         void push_back(LogMzPeak & p){
@@ -143,7 +143,7 @@ protected:
     }
 
     void registerOptionsAndFlags_() override {
-        registerInputFile_("in", "<inputfile>", "", "Input file");
+        registerInputFile_("in", "<input file>", "", "Input file");
         //setValidFormats_("in", ListUtils::create<String>("mzML"));
         registerOutputFile_("out", "<output file prefix/output dir>", "", "Output file prefix or output dir (if prefix, [file prefix].tsv , [file prefix]feature.tsv, and [file prefix].m will be generated. "
                                                         "if dir, [dir]/[inputfile].tsv, [dir]/[inputfile]feature.tsv, and [dir]/[inputfile].m are generated per [inputfile])");
@@ -230,21 +230,7 @@ protected:
         }
 
         for (auto& infile : infileArray){
-            param.fileName = QFileInfo(infile).fileName().toStdString();
 
-            if(isOutPathDir){
-                std::string outfileName(param.fileName);
-                std::size_t found = outfileName.find_last_of(".");
-                outfileName = outfileName.substr(0,found);
-                fs.open(outfilePath + outfileName + ".tsv", fstream::out);
-                if(param.maxRTDelta>=0) fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
-                writeHeader(fs, fsf, param.maxRTDelta>=0);
-
-                outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
-                outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
-                fsm.open(outfilePath + "m" + outfileName + ".m", fstream::out);
-                fsm << "m=[";
-            }
 
             double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
             cout << "Processing : " << infile.toStdString() << endl;
@@ -272,8 +258,25 @@ protected:
             if(peakGroups.empty()) continue;
             cout<< endl<< "writing results ...";
             cout.flush();
+
+            param.fileName = QFileInfo(infile).fileName().toStdString();
+
+            if(isOutPathDir){
+                std::string outfileName(param.fileName);
+                std::size_t found = outfileName.find_last_of(".");
+                outfileName = outfileName.substr(0,found);
+                fs.open(outfilePath + outfileName + ".tsv", fstream::out);
+                if(param.maxRTDelta>=0) fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
+                writeHeader(fs, fsf, param.maxRTDelta>=0);
+
+                outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
+                outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
+                fsm.open(outfilePath + "m" + outfileName + ".m", fstream::out);
+                fsm << "m=[";
+            }
+
             for(auto &pg : peakGroups)
-                writePeakGroup(pg, peakGroups.size(), param, fs, fsm);
+                writePeakGroup(pg, param, fs, fsm);
             cout<<"done\n";
 /*
             Param common_param = getParam_().copy("algorithm:common:", true);
@@ -414,6 +417,7 @@ protected:
                 pg.spec = &(*it);
                 pg.massIndex = massCntr;
                 pg.specIndex = qspecCntr;
+                pg.massCntr = peakGroups.size();
                 allPeakGroups.push_back(pg);
 
                 /*
@@ -436,17 +440,17 @@ protected:
         return allPeakGroups;
     }
 
-    void writePeakGroup(PeakGroup &pg, Size peakGroupSize, Parameter& param, fstream &fs, fstream &fsm){
+    void writePeakGroup(PeakGroup &pg, Parameter& param, fstream &fs, fstream &fsm){
         double m = pg.monoisotopicMass;
         double intensity = pg.intensity;
         int nm = getNominalMass(m);
 
         fs<<fixed<<setprecision(4);
 
-        fs <<pg.massIndex<<"\t"<<pg.specIndex<<"\t"<<param.fileName<<"\t"<<pg.spec->getNativeID()<<"\t"<<peakGroupSize<<"\t"
-            << m << "\t" << nm<<"\t"<< intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t";
-        sort(pg.peaks.begin(), pg.peaks.end());
+        fs <<pg.massIndex<<"\t"<<pg.specIndex<<"\t"<<param.fileName<<"\t"<<pg.spec->getNativeID()<<"\t"<<pg.massCntr<<"\t"
+            << m << "\t" << nm<<"\t"<< intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t"<<"\t";
 
+        sort(pg.peaks.begin(), pg.peaks.end());
 
         for(auto &p : pg.peaks){
             fs<<p.orgPeak->getMZ()<<";";
