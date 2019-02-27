@@ -41,8 +41,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <regex>
-
+#include <boost/regex.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -238,8 +237,8 @@ protected:
             quick_seq.pop_back();
           }
           vector<String> tokenized;
-          smatch m;
-          while (regex_search(quick_seq, m, std::regex("[^\\[]|(\\[[^\\[\\]]*\\])")))
+          boost::smatch m;
+          while (boost::regex_search(quick_seq, m, boost::regex("[^\\[]|(\\[[^\\[\\]]*\\])")))
           {
             tokenized.push_back(m.str(0));
             quick_seq = m.suffix();
