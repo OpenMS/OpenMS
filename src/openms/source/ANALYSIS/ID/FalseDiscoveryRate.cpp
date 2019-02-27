@@ -60,6 +60,8 @@ namespace OpenMS
     defaults_.setValidStrings("add_decoy_peptides", ListUtils::create<String>("true,false"));
     defaults_.setValue("add_decoy_proteins", "false", "If 'true' decoy proteins will be written to output file, too. The q-value is set to the closest target score.");
     defaults_.setValidStrings("add_decoy_proteins", ListUtils::create<String>("true,false"));
+    defaults_.setValue("conservative", "false", "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.");
+    defaults_.setValidStrings("conservative", ListUtils::create<String>("true,false"));
     defaultsToParam_();
   }
 
@@ -835,12 +837,12 @@ namespace OpenMS
 
     std::vector<std::pair<double,bool>> scores_labels;
     std::map<double,double> scores_to_FDR;
-    //TODO actually we do not need the labels for empiricalFDR and it currently fails if we do not have TD annotations
+    //TODO actually we do not need the labels for estimated FDR and it currently fails if we do not have TD annotations
     //TODO maybe separate getScores and getScoresAndLabels
     getScores_(scores_labels, ids[0]);
     calculateEstimatedQVal_(scores_to_FDR, scores_labels, higher_score_better);
     if (!scores_labels.empty())
-      setScores_(scores_to_FDR, ids[0], "Empirical Q-Values", false);
+      setScores_(scores_to_FDR, ids[0], "Estimated Q-Values", false);
   }
 
   double FalseDiscoveryRate::applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff, UInt fpCutoff, double diffWeight)
@@ -878,13 +880,14 @@ namespace OpenMS
     LOG_INFO << "Evaluation of protein probabilities: Difference estimated vs. T-D FDR = " << diff << " and roc" << fpCutoff << " = " << auc << std::endl;
     // we want the score to get higher the lesser the difference. Subtract from one.
     // Then convex combination with the AUC.
-    return (1.0 - diff) * diffWeight + auc * (1.0 - diffWeight);
+    return (1.0 - diff) * (1.0 - diffWeight) + auc * diffWeight;
   }
 
 
   //TODO the following two methods assume sortedness. Add precondition and/or doxygen comment
   double FalseDiscoveryRate::diffEstimatedEmpirical_(const std::vector<std::pair<double, bool>>& scores_labels, double pepCutoff)
   {
+    bool conservative = param_.getValue("conservative").toBool();
     if (scores_labels.empty())
     {
       LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
@@ -906,7 +909,15 @@ namespace OpenMS
       if ((pit+1)->first != pit->first)
       {
         est = pepSum / (truePos + falsePos);
-        emp = static_cast<double>(falsePos) / (truePos + falsePos);
+        if (conservative)
+        {
+          emp = static_cast<double>(falsePos) / (truePos);
+        }
+        else
+        {
+          emp = static_cast<double>(falsePos) / (truePos+falsePos);
+        }
+
         diffArea += trapezoidal_area_xEqy(estPrev, est, empPrev, emp);
 
         //truePosPrev = truePos;
@@ -1036,6 +1047,7 @@ namespace OpenMS
 
   void FalseDiscoveryRate::calculateFDRBasic_(std::map<double,double>& scores_to_FDR, std::vector<std::pair<double,bool>>& scores_labels, bool qvalue, bool higher_score_better)
   {
+    bool conservative = param_.getValue("conservative").toBool();
     if (scores_labels.empty())
     {
       LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
@@ -1068,7 +1080,16 @@ namespace OpenMS
         #ifdef FALSE_DISCOVERY_RATE_DEBUG
         std::cerr << "Recording score: " << last_score << " with " << decoys << " decoys at index+1 = " << (j+1) << " -> fdr: " << decoys/(j+1.0) << std::endl;
         #endif
-        scores_to_FDR[last_score] = decoys/(j+1.0);
+        //we are using the conservative formula (Decoy + 1) / (Tgts)
+        if (conservative)
+        {
+          scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0-decoys);
+        }
+        else
+        {
+          scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0);
+        }
+
         last_score = scores_labels[j].first;
       }
     }

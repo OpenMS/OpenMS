@@ -478,7 +478,10 @@ namespace OpenMS
       param_.setValue("model_parameters:pep_spurious_emission", beta);
       ibg_.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_), debug_lvl_));
       FalseDiscoveryRate fdr;
-      return fdr.applyEvaluateProteinIDs(prots_);
+      Param fdrparam = fdr.getParameters();
+      fdrparam.setValue("conservative",param_.getValue("param_optimize:conservative_fdr"));
+      fdr.setParameters(fdrparam);
+      return fdr.applyEvaluateProteinIDs(prots_, 1.0, 50, static_cast<double>(param_.getValue("param_optimize:aucweight")));
     }
   };
 
@@ -611,6 +614,11 @@ namespace OpenMS
                        " between = convex combination.");
     defaults_.setMinFloat("param_optimize:aucweight", 0.0);
     defaults_.setMaxFloat("param_optimize:aucweight", 1.0);
+
+    defaults_.setValue("param_optimize:conservative_fdr",
+                          "true",
+                          "Use (D+1)/(T) instead of (D+1)/(T+D) for parameter estimation.");
+    defaults_.setValidStrings("param_optimize:conservative_fdr", {"true","false"});
 
 
     // write defaults into Param object param_
@@ -914,7 +922,7 @@ namespace OpenMS
       if (gs.getNrCombos() > 1)
       {
         std::cout << "Testing " << gs.getNrCombos() << " param combinations." << std::endl;
-        gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0], debug_lvl_), -1.0, bestParams);
+        /*double res =*/ gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0], debug_lvl_), -1.0, bestParams);
       }
       else
       {
