@@ -163,7 +163,7 @@ public:
 
 
     /**
-      @brief Checkes whether the given table exists
+      @brief Checks whether the given table exists
 
       @p db The sqlite database (needs to be open)
       @p tablename The name of the table to be checked

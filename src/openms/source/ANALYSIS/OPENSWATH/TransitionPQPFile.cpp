@@ -491,7 +491,7 @@ namespace OpenMS
 
       for (const auto& it : peptide.protein_refs)
       {
-        peptide_protein_map.push_back(std::make_pair(peptide_set_index, protein_map[it]));
+        peptide_protein_map.emplace_back(peptide_set_index, protein_map[it]);
       }
 
       String gene_name = "NA";
@@ -499,8 +499,8 @@ namespace OpenMS
       {
         gene_name = peptide.getMetaValue("GeneName");
       }
-      if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = gene_map.size();
-      peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
+      auto r = gene_map.emplace(gene_name, gene_map.size()); // only inserts if not present`
+      peptide_gene_map.emplace_back(peptide_set_index, *r.first);
 
       insert_precursor_sql <<
         "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
