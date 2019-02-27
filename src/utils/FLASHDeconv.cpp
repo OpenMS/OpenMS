@@ -603,21 +603,16 @@ protected:
             int peakIndex = currentPeakIndex + d;
             for (int i = 1; peakIndex>=0 && peakIndex < logMzPeaksSize ; i++) {
                 double isotopeLogMz = logMz + Constants::C13C12_MASSDIFF_U * i * d / charge / mz;
-                //double isotopeLogMzMin = logMz + (Constants::C13C12_MASSDIFF_U - 0.001) * d / charge / mz;
 
                 bool isotopePeakPresent = false;
-                //double ci = -1.0;
                 while (peakIndex >= 0 && peakIndex < logMzPeaksSize) {
                     double& logMzForIsotopePeak = logMzPeaks[peakIndex].logMz;
                     peakIndex += d;
                     if (logMzForIsotopePeak < isotopeLogMz - tol){ if (d < 0){ break;} else{ continue;}}
                     if (logMzForIsotopePeak > isotopeLogMz + tol){ if (d < 0){ continue;}else { break;}}
+
                     isotopePeakPresent = true;
                     addPeakToPeakGroup(logMzPeaks[peakIndex-d], charge, i * d, mzToMassOffset, tol, peakGroup, peakMassBins, d>0);
-                    //if(ci<logMzPeaks[peakIndex-d].orgPeak->getIntensity()){
-                    //    ci = logMzPeaks[peakIndex-d].orgPeak->getIntensity();
-                        //logMz = logMzPeaks[peakIndex-d].logMz;
-                    //}
                 }
                 if (!isotopePeakPresent) break;
                 if (d < 0) {
@@ -777,10 +772,6 @@ protected:
                 long bi = setBinIndex - binOffsets[j];
                 if(bi<0) break;
                 bool mzBinSet = (bi < (long)mzBins.size()) && mzBins[bi];
-                if(!mzBinSet){
-                    continuousChargeCntr = 0;
-                    continue;
-                }
 
                 long hbi = setBinIndex - harmonicBinOffsets[j];
                 long hbi2 = setBinIndex - harmonicBinOffsets2[j];
@@ -801,6 +792,11 @@ protected:
                     //continuousChargeCntr = 0;
                     //continuousHarmonicChargeCntr++;
                     break;
+                }
+
+                if(!mzBinSet){
+                    continuousChargeCntr = 0;
+                    continue;
                 }
 
                 bool set = ++continuousChargeCntr >= minContinuousCharge;
