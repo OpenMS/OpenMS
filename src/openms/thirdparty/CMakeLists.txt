@@ -42,8 +42,7 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 add_subdirectory(eol-bspline)
 
 # evergreen Bayesian inference library (0.9)
-# from TODO
-add_subdirectory(evergreen)
+add_subdirectory(evergreen/src)
 add_subdirectory(IsoSpec)
 
 add_subdirectory(json)

@@ -120,23 +120,31 @@ protected:
   {
     registerInputFileList_("in", "<file>", StringList(), "Input: identification results");
     setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
-    registerInputFile_("exp_design", "<file>", "", "Input: experimental design", false);
+    registerInputFile_("exp_design", "<file>", "", "(Currently unused) Input: experimental design", false);
     setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML,consensusXML"));
-    registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately,"
-                                   " don't merge them. Merging results in loss of descriptive information"
-                                   " of the single protein identification runs.", false);
+    // Not yet supported
+    //registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately,"
+    //                               " don't merge them. Merging results in loss of descriptive information"
+    //                               " of the single protein identification runs.", false);
     registerStringOption_("protein_fdr",
                           "<option>",
                           "false",
                           "Additionally calculate the target-decoy FDR on protein-level based on the posteriors", false, false);
     setValidStrings_("protein_fdr", {"true","false"});
 
+    registerStringOption_("conservative_fdr",
+                          "<option>",
+                          "true",
+                          "Use (D+1)/(T) instead of (D+1)/(T+D) for reporting protein FDRs.", false, true);
+    setValidStrings_("conservative_fdr", {"true","false"});
+
     registerStringOption_("greedy_group_resolution",
                        "<option>",
                        "none",
-                       "Post-process inference output with greedy resolution of shared peptides based on the parent protein probabilities. Also adds the resolved ambiguity groups to output.", false, true);
+                       "Post-process inference output with greedy resolution of shared peptides based on the parent protein probabilities."
+                       " Also adds the resolved ambiguity groups to output.", false, false);
     setValidStrings_("greedy_group_resolution", {"none","remove_associations_only","remove_proteins_wo_evidence"});
     registerDoubleOption_("psm_probability_cutoff",
                           "<option>",
@@ -150,6 +158,7 @@ protected:
                           "<option>",
                           1.0,
                           "Set PSMs with probability higher than this to this maximum probability.", false, true);
+
 
     addEmptyLine_();
 
@@ -277,6 +286,7 @@ protected:
 
     double min_nonnull_obs_probability = getDoubleOption_("min_psms_extreme_probability");
     double max_nonone_obs_probability = getDoubleOption_("max_psms_extreme_probability");
+    // Currently unused
     bool datadependent_extrema_removal = false;
     if (datadependent_extrema_removal)
     {
@@ -353,6 +363,9 @@ protected:
     {
       LOG_INFO << "Calculating target-decoy q-values..." << std::endl;
       FalseDiscoveryRate fdr;
+      Param fdrparam = fdr.getParameters();
+      fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
+      fdr.setParameters(fdrparam);
       fdr.applyBasic(mergedprots[0], true);
     }
 
