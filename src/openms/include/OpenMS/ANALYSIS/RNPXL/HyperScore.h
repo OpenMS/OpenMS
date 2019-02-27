@@ -84,6 +84,27 @@ struct OPENMS_DLLAPI HyperScore
                         const PeakSpectrum& theo_spectrum,
                         const DataArrays::IntegerDataArray& theo_charges);
 
+  /* @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
+   *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
+   *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions
+   * @note Peak intensities of the theoretical spectrum are typically 1 or TIC normalized, but can also be e.g. ion probabilities
+   * @param fragment_mass_tolerance mass tolerance applied left and right of the theoretical spectrum peak position
+   * @param fragment_mass_tolerance_unit_ppm Unit of the mass tolerance is: Thomson if false, ppm if true
+   * @param exp_spectrum measured spectrum
+   * @param exp_charges charges of measured peaks
+   * @param theo_spectrum theoretical spectrum Peaks need to contain an ion annotation as provided by TheoreticalSpectrumGenerator.
+   * @param theo_charges charges of theoretical peaks
+   * @param intensity_sum summed intensity for observed bond indices (e.g., b3=123 -> intensity_sum[2]=123)
+   * Note: intensity_sum must be zeroed and of size #AA in peptide
+  */
+  static double compute(double fragment_mass_tolerance, 
+                        bool fragment_mass_tolerance_unit_ppm, 
+                        const PeakSpectrum& exp_spectrum, 
+                        const DataArrays::IntegerDataArray& exp_charges,
+                        const PeakSpectrum& theo_spectrum,
+                        const DataArrays::IntegerDataArray& theo_charges,
+                        std::vector<double>& intensity_sum);
+
   private:
     // helper to compute the log factorial
     static double logfactorial_(UInt x);
