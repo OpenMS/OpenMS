@@ -20,7 +20,7 @@ const unsigned long int ALLOCATION_ALIGNMENT = 512;
 template <typename T>
 T* aligned_malloc(unsigned long num_elements) {
   #ifdef _WIN32
-    T*result = (T*)_aligned_alloc(ALLOCATION_ALIGNMENT, num_elements*sizeof(T));
+    T*result = (T*)_aligned_malloc(ALLOCATION_ALIGNMENT, num_elements*sizeof(T));
     assert(result != NULL);
     return result;
   #else
