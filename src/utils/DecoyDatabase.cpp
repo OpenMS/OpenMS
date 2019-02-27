@@ -237,7 +237,7 @@ protected:
             quick_seq.pop_back();
           }
           vector<String> tokenized;
-          smatch m;
+          boost::smatch m;
           while (boost::regex_search(quick_seq, m, boost::regex("[^\\[]|(\\[[^\\[\\]]*\\])")))
           {
             tokenized.push_back(m.str(0));
