@@ -159,10 +159,10 @@ protected:
         registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
         registerIntOption_("minCCC", "<min continuous charge count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
         registerIntOption_("minCC", "<min charge count>", 6, "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))", false, true);
-        registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
+        registerIntOption_("minIC", "<min isotope count>", 5, "minimum isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 50, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minIsoScore", "<score 0-1>", .75, "minimum isotope cosine score threshold (0-1)", false, true);
+        registerDoubleOption_("minIsoScore", "<score 0-1>", .8, "minimum isotope cosine score threshold (0-1)", false, true);
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)", false, true);
         registerDoubleOption_("maxRTDelta", "<max RT delta>", -1, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
     }
@@ -360,9 +360,9 @@ protected:
               "AggregatedIntensity\tRetentionTime\tPeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\t"
               "PeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
         if(!featureOut) return;
-        fsf << "FeatureID\tFileName\tNominalMass\tStartRetentionTime"
+        fsf << "ID\tFileName\tNominalMass\tStartRetentionTime"
                    "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-                   "\tApexIntensity\tAbundance"
+                   "\tMaxIntensity\tQuantity"
                 << endl;
 
         return;
@@ -612,7 +612,7 @@ protected:
                 }
             }
 
-            if(!pg.peaks.empty() && maxi + isoOff >= param.minContinuousIsotopeCount - 1){
+            if(!pg.peaks.empty()){//                for(auto& i :peakMassBins){TODO
                 for(auto& i :peakMassBins){
                     if(i>=massBins.size()) continue;
                     massBins[i] = false;
@@ -931,7 +931,7 @@ protected:
         maxSetIntensityCounter = 0;
         for (int i = 0; i < param.maxIsotopeCount; i++) {
             if (perIsotopeIntensities[i] <= 0) {
-                setIntensityCounter = 0;
+                //setIntensityCounter = 0;
                 continue;
             }
             setIntensityCounter++;
