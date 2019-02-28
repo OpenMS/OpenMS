@@ -159,7 +159,7 @@ protected:
         registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
         registerIntOption_("minCCC", "<min continuous charge count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
         registerIntOption_("minCC", "<min charge count>", 6, "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))", false, true);
-        registerIntOption_("minIC", "<min isotope count>", 5, "minimum isotope count", false, true);
+        registerIntOption_("minIC", "<min isotope count>", 4, "minimum isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 50, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
         registerDoubleOption_("minIsoScore", "<score 0-1>", .8, "minimum isotope cosine score threshold (0-1)", false, true);
