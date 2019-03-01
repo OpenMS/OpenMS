@@ -224,7 +224,7 @@ public:
     /**
       @brief Returns a substring where @p n characters were removed from the end of the string.
 
-  If @p n is greater than size(), the result is an empty string.
+      If @p n is greater than size(), the result is an empty string.
 
       @param n Number of characters that will be removed from the end of the string.
      */
@@ -526,6 +526,12 @@ public:
       return false;
     }
 
+    /// boost hash
+    std::size_t hash_value(String const& s) const
+    {
+      return std::hash<std::string>()(static_cast<std::string>(s));
+    }
+
     /// create view that references a substring of the original string
     inline StringView substr(Size start, Size length) const
     {
@@ -553,7 +559,17 @@ public:
     private:
       const char* begin_;
       Size size_;
-  }; 
-
+  };
 } // namespace OPENMS
+
+namespace std
+{
+  template <> struct hash<OpenMS::String> //hash for String
+  {
+    std::size_t operator()( OpenMS::String const& s) const
+    {
+      return std::hash<string>()(static_cast<string>(s));
+    }
+  };
+} // namespace std
 

@@ -39,41 +39,52 @@ using namespace std;
 namespace OpenMS
 {
 
+  Software::Software(const String& name, const String& version) :
+    CVTermList(),
+    name_(name),
+    version_(version)
+  {
+  }
+
   Software::~Software()
   {
   }
 
-  bool Software::operator==(const Software & rhs) const
+  bool Software::operator==(const Software& rhs) const
   {
     return CVTermList::operator==(rhs) &&
            name_ == rhs.name_ &&
            version_ == rhs.version_;
   }
 
-  bool Software::operator!=(const Software & rhs) const
+  bool Software::operator!=(const Software& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & Software::getName() const
+  bool Software::operator<(const Software& rhs) const
+  {
+    return tie(name_, version_) < tie(rhs.name_, rhs.version_);
+  }
+
+  const String& Software::getName() const
   {
     return name_;
   }
 
-  void Software::setName(const String & name)
+  void Software::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & Software::getVersion() const
+  const String& Software::getVersion() const
   {
     return version_;
   }
 
-  void Software::setVersion(const String & version)
+  void Software::setVersion(const String& version)
   {
     version_ = version;
   }
 
 }
-

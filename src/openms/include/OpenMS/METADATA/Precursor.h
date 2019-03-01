@@ -98,8 +98,13 @@ public:
     Precursor();
     /// Copy constructor
     Precursor(const Precursor &) = default;
+
+    // note: we implement the move constructor ourselves due to a bug in MSVS
+    // 2015/2017 which cannot produce a default move constructor for classes
+    // that contain STL containers (other than vector).
+
     /// Move constructor
-    Precursor(Precursor&&) = default;
+    Precursor(Precursor&&) noexcept;
     /// Destructor
     ~Precursor() override;
 

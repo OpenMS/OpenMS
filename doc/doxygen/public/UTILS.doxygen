@@ -112,6 +112,7 @@
   - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
   - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
   - @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
+  - @subpage UTILS_NucleicAcidSearchEngine - Search MzML files for oligonucleotides and their modifications.
   - @subpage UTILS_OpenSwathDIAPreScoring - SWATH (data-independent acquisition) pre-scoring.
   - @subpage UTILS_OpenSwathRewriteToFeatureXML - Rewrites results from mProphet back into featureXML.
   - @subpage UTILS_OpenSwathFileSplitter - A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window.
@@ -127,6 +128,7 @@
   - @subpage TOPP_CorrelateMassTraces - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
   - @subpage UTILS_IDDecoyProbability - Estimate probability of peptide hits.
   - @subpage UTILS_RNADigestor - Digests an RNA sequence database in-silico.
+  - @subpage UTILS_RNAMassCalculator - Calculates masses and mass-to-charge ratios of RNA sequences.
 
 <!--
   - TODO we need descriptions for all of these

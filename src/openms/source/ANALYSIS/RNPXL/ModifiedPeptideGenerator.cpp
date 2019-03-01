@@ -75,10 +75,7 @@ namespace OpenMS
       for (vector<ResidueModification>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
       {
         // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode()[0] != fixed_it->getOrigin())
-        {
-          continue;
-        }
+        if (residue_it->getOneLetterCode()[0] != fixed_it->getOrigin()) { continue; }
 
         // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
         const ResidueModification::TermSpecificity& term_spec = fixed_it->getTermSpecificity();
@@ -105,17 +102,19 @@ namespace OpenMS
     if (var_mods_begin == var_mods_end || max_variable_mods_per_peptide == 0)
     {
       // if unmodified peptides should be kept return the original list of digested peptides
-      if (keep_unmodified)
-      {
-        all_modified_peptides.push_back(peptide);
-      }
+      if (keep_unmodified) { all_modified_peptides.push_back(peptide); }
       return;
     }
 
     // if there is at most one variable modification allowed for a peptide we don't need combinatoric placement and can reside to a faster implementation
     if (max_variable_mods_per_peptide == 1)
     {
-      applyAtMostOneVariableModification_(var_mods_begin, var_mods_end, peptide, all_modified_peptides, keep_unmodified);
+      applyAtMostOneVariableModification_(
+        var_mods_begin,
+        var_mods_end,
+        peptide,
+        all_modified_peptides,
+        keep_unmodified);
       return;
     }
 

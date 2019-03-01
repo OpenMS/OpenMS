@@ -98,7 +98,7 @@ public:
     IsotopeDistribution();
 
     /// Copy constructor
-    IsotopeDistribution(const IsotopeDistribution & isotope_distribution) = default;
+    IsotopeDistribution(const IsotopeDistribution&) = default;
 
     /// Move constructor
     IsotopeDistribution(IsotopeDistribution&&) noexcept = default;
