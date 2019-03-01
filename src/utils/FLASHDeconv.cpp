@@ -154,7 +154,7 @@ protected:
         registerIntOption_("maxC", "<min charge>", 35, "maximum charge state", false, false);
         registerDoubleOption_("minM", "<min mass>", 500.0, "minimum mass (Da)", false, false);
         registerIntOption_("minCCC", "<min continuous charge count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
-        registerIntOption_("minCC", "<min charge count>", 6, "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))", false, true);
+        registerIntOption_("minCC", "<min charge count>", 8, "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))", false, true);
         registerIntOption_("minIC", "<min isotope count>", 4, "minimum isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 50, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
