@@ -283,7 +283,7 @@ protected:
             cout<<"done\n";
 
             if(param.findFeature) {
-                findFeatures(map, fsf, param);
+                findFeatures(map, featureCntr, fsf, param);
             }
 
             if(isOutPathDir){
@@ -319,7 +319,7 @@ protected:
         return EXECUTION_OK;
     }
 
-    void findFeatures(MSExperiment &map, fstream &fsf, Parameter& param){
+    void findFeatures(MSExperiment &map, int &featureCntr, fstream &fsf, Parameter& param){
         Param common_param = getParam_().copy("algorithm:common:", true);
         writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
