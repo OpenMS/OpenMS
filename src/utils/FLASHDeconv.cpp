@@ -45,7 +45,7 @@ public:
         int maxMassCount;
         double isotopeCosineThreshold;
         int chargeDistributionScoreThreshold;
-        double maxRTDelta;
+        bool findFeature;
         int hCharges[3] = {2,3,5};
         int numOverlappedScans = 10;
     };
@@ -153,18 +153,21 @@ protected:
         registerIntOption_("minC", "<max charge>", 2, "minimum charge state", false, false);
         registerIntOption_("maxC", "<min charge>", 35, "maximum charge state", false, false);
         registerDoubleOption_("minM", "<min mass>", 500.0, "minimum mass (Da)", false, false);
-        registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
-        registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
-
-        registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
         registerIntOption_("minCCC", "<min continuous charge count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
         registerIntOption_("minCC", "<min charge count>", 6, "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))", false, true);
         registerIntOption_("minIC", "<min isotope count>", 4, "minimum isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 50, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minIsoScore", "<score 0-1>", .7, "minimum isotope cosine score threshold (0-1)", false, true);
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)", false, true);
-        registerDoubleOption_("maxRTDelta", "<max RT delta>", 60, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
+        registerIntOption_("findFeature", "<true: 1 false: 0>", 1, "find feature using mass tracer if set", false, true);
+
+        registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
+        registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
+        registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
+        registerDoubleOption_("minIsoScore", "<score 0-1>", .7, "minimum isotope cosine score threshold (0-1)", false, true);
+
+
+        //registerDoubleOption_("maxRTDelta", "<max RT delta>", 10.0, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
     }
 
     Parameter setParameter(){
@@ -183,7 +186,8 @@ protected:
         param.maxMassCount = getIntOption_("maxMC");
         param.isotopeCosineThreshold = getDoubleOption_("minIsoScore");
         param.chargeDistributionScoreThreshold = getIntOption_("minCDScore");
-        param.maxRTDelta = getDoubleOption_("maxRTDelta");
+        param.findFeature = getIntOption_("findFeature")>0;
+        //param.maxRTDelta = getDoubleOption_("maxRTDelta");
         //param.hCharges = new ;
         return param;
     }
@@ -225,15 +229,17 @@ protected:
 
         if(!isOutPathDir) {
             fs.open(outfilePath + ".tsv", fstream::out);
-            if(param.maxRTDelta>=0) fsf.open(outfilePath + "feature.tsv", fstream::out);
+            if(param.findFeature) fsf.open(outfilePath + "feature.tsv", fstream::out);
 
-            writeHeader(fs, fsf, param.maxRTDelta>=0);
+            writeHeader(fs, fsf, param.findFeature);
             fsm.open(outfilePath + ".m", fstream::out);
             fsm << "m=[";
         }
 
         for (auto& infile : infileArray){
-
+            if(isOutPathDir){
+                specCntr = qspecCntr = massCntr = featureCntr = 0;
+            }
 
             double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
             cout << "Processing : " << infile.toStdString() << endl;
@@ -263,8 +269,8 @@ protected:
                 std::size_t found = outfileName.find_last_of(".");
                 outfileName = outfileName.substr(0,found);
                 fs.open(outfilePath + outfileName + ".tsv", fstream::out);
-                if(param.maxRTDelta>=0) fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
-                writeHeader(fs, fsf, param.maxRTDelta>=0);
+                if(param.findFeature) fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
+                writeHeader(fs, fsf, param.findFeature);
 
                 outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
                 outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
@@ -275,78 +281,86 @@ protected:
             for(auto &pg : peakGroups)
                 writePeakGroup(pg, param, fs, fsm);
             cout<<"done\n";
-/*
-            Param common_param = getParam_().copy("algorithm:common:", true);
-            writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
-            Param mtd_param = getParam_().copy("algorithm:mtd:", true);
-            writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
-
-            MassTraceDetection mtdet;
-            mtd_param.insert("", common_param);
-            mtd_param.remove("chrom_fwhm");
-
-            // trace_termination_outliers : MassTraceDetection.cpp // * (param.minCharge + param.chargeRange)
-            mtd_param.setValue("mass_error_ppm", param.tolerance * (param.chargeRange + param.minCharge), "Allowed mass deviation (in ppm).");
-            mtd_param.setValue("trace_termination_criterion", "sample_rate", "");
-            mtd_param.setValue("reestimate_mt_sd", "false","");
-            mtd_param.setValue("quant_method", "area", "");
-            mtd_param.setValue("noise_threshold_int", .0, "");
-
-            double rtd = (map[map.size()-1].getRT() - map[0].getRT() ) / (specCntr - prevSpecCntr);
-            double delta = param.maxRTDelta < 0? (map[map.size()-1].getRT() - map[0].getRT() )/10.0 : param.maxRTDelta;
-            mtd_param.setValue("min_sample_rate", rtd/delta, "");
-            mtd_param.setValue("min_trace_length", .001, "");
-
-            mtdet.setParameters(mtd_param);
-
-            vector<MassTrace> m_traces;
-            mtdet.run(map, m_traces);  // m_traces : output of this function
-            //cout<<map.size();
-            for(auto &mt : m_traces){
-                auto mass = mt.getCentroidMZ();
-                fsf<< fixed << setprecision(4)<<++featureCntr<<"\t"<<param.fileName<<"\t"<<mass<<"\t"<<mt.begin()->getRT()
-                <<"\t"<<mt.rbegin()->getRT()<<"\t"<<mt.getTraceLength()<<"\t"<< mt[mt.findMaxByIntPeak()].getRT()
-                <<"\t"<<mt.getMaxIntensity(false)<<"\t"<<mt.computePeakArea()<<"\n";
+            if(param.findFeature) {
+                findFeatures(map, fsf, param);
             }
-*/
-            if(param.maxRTDelta>=0) findNominalMassFeatures(peakGroups, featureCntr, fsf, param);
 
             if(isOutPathDir){
                 fsm << "];";
                 fsm.close();
                 fs.close();
-                if(param.maxRTDelta>=0) fsf.close();
+                if(param.findFeature) fsf.close();
                 total_specCntr += specCntr;
                 total_qspecCntr += qspecCntr;
                 total_massCntr += massCntr;
-                specCntr = qspecCntr = massCntr = featureCntr = 0;
             }else{
                 total_specCntr = specCntr;
                 total_qspecCntr = qspecCntr;
                 total_massCntr = massCntr;
             }
 
-            //prevFeatureCntr = featureCntr;
-            //prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr;
             total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
         }
 
-        //if(infileArray.size() > 1){
-            cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " <<total_elapsed_wall_secs << " s (Wall)] --" << endl;
-            cout << "-- per spectrum [took " << 1000.0*total_elapsed_cpu_secs/total_specCntr
-                 << " ms (CPU), " << 1000.0*total_elapsed_wall_secs /total_specCntr << " ms (Wall)] --" << endl;
-            cout << "In total, found " << total_massCntr << " masses in "<< total_qspecCntr << " MS1 spectra out of "
-                 << total_specCntr << endl;
-       // }
+        cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " <<total_elapsed_wall_secs << " s (Wall)] --" << endl;
+        cout << "-- per spectrum [took " << 1000.0*total_elapsed_cpu_secs/total_specCntr
+             << " ms (CPU), " << 1000.0*total_elapsed_wall_secs /total_specCntr << " ms (Wall)] --" << endl;
+        cout << "In total, found " << total_massCntr << " masses in "<< total_qspecCntr << " MS1 spectra out of "
+             << total_specCntr << endl;
+        if(featureCntr>0)  cout << "mass tracer found " << featureCntr << " features" << endl;
 
         if(!isOutPathDir) {
             fsm << "];";
             fsm.close();
             fs.close();
-            if(param.maxRTDelta>=0) fsf.close();
+            if(param.findFeature) fsf.close();
         }
         return EXECUTION_OK;
+    }
+
+    void findFeatures(MSExperiment &map, fstream &fsf, Parameter& param){
+        Param common_param = getParam_().copy("algorithm:common:", true);
+        writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
+
+        Param mtd_param = getParam_().copy("algorithm:mtd:", true);
+        writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
+
+        MassTraceDetection mtdet;
+        mtd_param.insert("", common_param);
+        mtd_param.remove("chrom_fwhm");
+
+        mtd_param.setValue("mass_error_da",  .2,// * (param.chargeRange+ param.minCharge),
+                           "Allowed mass deviation (in da).");
+        //mtd_param.setValue("trace_termination_criterion", "outlier", "");
+        mtd_param.setValue("trace_termination_criterion", "sample_rate", "");
+
+        mtd_param.setValue("reestimate_mt_sd", "false", "");
+        mtd_param.setValue("quant_method", "area", "");
+        mtd_param.setValue("noise_threshold_int", .0, "");
+
+        //double rtd = (map[map.size() - 1].getRT() - map[0].getRT()) / specCntr;
+        //double delta = param.maxRTDelta < 0? (map[map.size()-1].getRT() - map[0].getRT() )/10.0 : param.maxRTDelta;
+        mtd_param.setValue("min_sample_rate", 0.1, "");
+        //mtd_param.setValue("trace_termination_outliers", (int)(param.maxRTDelta/rtd), "");
+        mtd_param.setValue("min_trace_length", .001, "");
+        //mtd_param.setValue("max_trace_length", 1000.0, "");
+        mtdet.setParameters(mtd_param);
+
+        vector<MassTrace> m_traces;
+        mtdet.run(map, m_traces);  // m_traces : output of this function
+        //cout<<map.size();
+        for (auto &mt : m_traces) {
+            auto mass = mt.getCentroidMZ();
+            fsf << fixed << setprecision(4) << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
+                << getNominalMass(mass) << "\t"
+                << mt.begin()->getRT() << "\t"
+                << mt.rbegin()->getRT() << "\t"
+                << mt.getTraceLength() << "\t"
+                << mt[mt.findMaxByIntPeak()].getRT() << "\t"
+                << mt.getMaxIntensity(false) << "\t"
+                << mt.computePeakArea() << "\n";
+        }
     }
 
     void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false){
@@ -354,7 +368,7 @@ protected:
               "AggregatedIntensity\tRetentionTime\tPeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\t"
               "PeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
         if(!featureOut) return;
-        fsf << "ID\tFileName\tNominalMass\tStartRetentionTime"
+        fsf << "ID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
                    "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
                    "\tMaxIntensity\tQuantity"
                 << endl;
@@ -406,15 +420,14 @@ protected:
             auto logMzPeaks = getLogMzPeaks(*it, param.intensityThreshold);
             auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, harmonicFilters,
                                                         prevMassBinVector, prevMinBinLogMassVector, param);
-            if(peakGroups.empty()){
-                continue;
-            }
+            if(param.findFeature) it->clear(false);
+
+            if(peakGroups.empty()) continue;
 
             scoreAndFilterPeakGroups(peakGroups, averagines, param);
-            //it->clear(false);
-            if(peakGroups.empty()){
-                continue;
-            }
+
+            if(peakGroups.empty()) continue;
+
             //prevPgs = peakGroups;
             qspecCntr++;
             for (auto &pg : peakGroups) {
@@ -424,22 +437,13 @@ protected:
                 pg.specIndex = qspecCntr;
                 pg.massCntr = (int)peakGroups.size();
                 allPeakGroups.push_back(pg);
+                if(!param.findFeature) continue;
 
-                /*
-                for (auto &p : pg.peaks) {
-                    auto mass = p.getMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U;
-                    //mass = getNominalMass(mass);
-                    Peak1D tp(mass, (float) p.orgPeak->getIntensity());//
-                    it->push_back(tp);
-                    //Peak1D tp2(mass+.0000001, (float) p.orgPeak->getIntensity());
-                    //it->push_back(tp2);
-                }
                 auto mass = pg.monoisotopicMass;
-                mass = getNominalMass(mass);
                 Peak1D tp(mass, (float) pg.intensity);//
-                it->push_back(tp);*/
+                it->push_back(tp);
             }
-            //it->sortByPosition();
+            if(param.findFeature) it->sortByPosition();
         }
         printProgress(1);
         return allPeakGroups;
@@ -1065,18 +1069,14 @@ protected:
     }
 
 
-
+/*
     void findNominalMassFeatures(vector<PeakGroup> &peakGroups, int &id, fstream& fs, const Parameter & param){
 
         map<int, vector<double>> massMap;
         map<int, vector<String>> writeMap;
 
         double delta = param.maxRTDelta;
-        /*if(delta <=0){
-            auto end = peakGroups[peakGroups.size()-1].spec->getRT();
-            auto begin = peakGroups[0].spec->getRT();
-            delta = (end-begin)/10.0;
-        }*/
+
         //sort(peakGroups.begin(), peakGroups.end());
         for(auto& pg : peakGroups){
             int nm = getNominalMass(pg.monoisotopicMass);
@@ -1141,7 +1141,7 @@ protected:
                 fs<<++id<<s<<"\n";
             }
         }
-    }
+    }*/
 };
 
     int main(int argc, const char **argv) {
