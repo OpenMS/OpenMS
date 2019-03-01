@@ -47,6 +47,7 @@ public:
         int chargeDistributionScoreThreshold;
         double maxRTDelta;
         int hCharges[3] = {2,3,5};
+        int numOverlappedScans = 10;
     };
 
     struct PrecalcularedAveragine{
@@ -162,9 +163,9 @@ protected:
         registerIntOption_("minIC", "<min isotope count>", 4, "minimum isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 50, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minIsoScore", "<score 0-1>", .8, "minimum isotope cosine score threshold (0-1)", false, true);
+        registerDoubleOption_("minIsoScore", "<score 0-1>", .7, "minimum isotope cosine score threshold (0-1)", false, true);
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)", false, true);
-        registerDoubleOption_("maxRTDelta", "<max RT delta>", -1, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
+        registerDoubleOption_("maxRTDelta", "<max RT delta>", 120, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
     }
 
     Parameter setParameter(){
@@ -393,10 +394,10 @@ protected:
 
         float prevProgress = .0;
         vector<PeakGroup> allPeakGroups;
-        //vector<PeakGroup> prevPgs;
 
-        boost::dynamic_bitset<> prevMassBins(0);
-        double prevMinBinLogMass = 1;
+        //to overlap previous mass bins.
+        vector<boost::dynamic_bitset<>> prevMassBinVector;
+        vector<double> prevMinBinLogMassVector;
 
         for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
@@ -411,8 +412,7 @@ protected:
 
             auto logMzPeaks = getLogMzPeaks(*it, param.intensityThreshold);
             auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, harmonicFilters,
-                    prevMassBins, prevMinBinLogMass,
-                    param);
+                                                        prevMassBinVector, prevMinBinLogMassVector, param);
             if(peakGroups.empty()){
                 continue;
             }
@@ -522,7 +522,7 @@ protected:
 
 
     vector<PeakGroup> getPeakGroupsFromSpectrum(vector<LogMzPeak> &logMzPeaks, double *filter, vector<double*> &hFilters,
-                                                boost::dynamic_bitset<> &prevMassBins, double& prevMinBinLogMass,
+                                                vector<boost::dynamic_bitset<>> &prevMassBinVector, vector<double>& prevMinBinLogMassVector,
                                                 const Parameter &param){
         double maxBinLogMass = std::min(logMzPeaks[logMzPeaks.size() - 1].logMz - filter[param.chargeRange - param.minChargeCount], log(param.maxMass));
         double minBinLogMass = logMzPeaks[0].logMz - filter[param.minContinuousChargeCount];
@@ -534,22 +534,28 @@ protected:
 
         boost::dynamic_bitset<> u(massBins);
 
-        if(prevMassBins.size()>0) {
-            auto massDiff = minBinLogMass - prevMinBinLogMass;
-            Size shift = (Size)(massDiff > 0 ? massDiff/ param.tolerance : -massDiff/ param.tolerance);
+        for(Size i=0;i<prevMassBinVector.size();i++){
+            auto& pmb = prevMassBinVector[i];
+            if(pmb.empty()) continue;
 
-            if(massDiff> 0)prevMassBins >>= shift;
-            else {
-                prevMassBins <<= shift;
-            }
-            prevMassBins.resize(massBins.size());
-            u |= prevMassBins;
+            auto massDiff = minBinLogMass - prevMinBinLogMassVector[i];
+            Size shift = (Size)(massDiff > 0 ? massDiff/ param.tolerance : -massDiff/ param.tolerance);
+            if(massDiff> 0)u |= (pmb >> shift);
+            else u |= (pmb << shift);
             u.resize(massBins.size());
         }
 
-        prevMassBins = massBins;
-        prevMinBinLogMass = minBinLogMass;
-        return getPeakGroupsWithMassBins(u, logMzPeaks, minBinLogMass, filter, chargeRange, param);
+        auto peakGroups = getPeakGroupsWithMassBins(u, logMzPeaks, minBinLogMass, filter, chargeRange, param);
+
+        if(prevMassBinVector.size() >= (Size)param.numOverlappedScans) {
+            prevMassBinVector.erase(prevMassBinVector.begin());
+            prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
+        }
+        prevMassBinVector.push_back(massBins);
+        prevMinBinLogMassVector.push_back(minBinLogMass);
+        // prev mass update here.
+
+        return peakGroups;
     }
 
     vector<PeakGroup> getPeakGroupsWithMassBins(boost::dynamic_bitset<> &massBins,//double &binScoreThreshold,
@@ -612,7 +618,7 @@ protected:
                 }
             }
 
-            if(!pg.peaks.empty()){//                for(auto& i :peakMassBins){TODO
+            if(!pg.peaks.empty()){//
                 for(auto& i :peakMassBins){
                     if(i>=massBins.size()) continue;
                     massBins[i] = false;
