@@ -40,8 +40,63 @@
 
 namespace OpenMS
 {
-    MassTraceDetection::MassTraceDetection() :
-            DefaultParamHandler("MassTraceDetection"), ProgressLogger()
+  MassTraceDetection::MassTraceDetection() :
+    DefaultParamHandler("MassTraceDetection"), ProgressLogger()
+  {
+    defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
+    defaults_.setValue("mass_error_da", -0.1, "Allowed mass deviation (in dalton); not used by default.");
+
+    defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
+    defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
+
+    defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
+    defaults_.setValidStrings("reestimate_mt_sd", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data.");
+    defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
+
+    // advanced parameters
+    defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("trace_termination_criterion", ListUtils::create<String>("outlier,sample_rate"));
+    defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", ListUtils::create<String>("advanced"));
+
+    defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_trace_length", -1.0, "Maximum expected length of a mass trace (in seconds). Set to a negative value to disable maximal length check during mass trace detection.", ListUtils::create<String>("advanced"));
+
+    defaultsToParam_();
+
+    this->setLogType(CMD);
+  }
+
+  MassTraceDetection::~MassTraceDetection()
+  {
+  }
+
+  void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
+                                                         const double& added_int, double& centroid_mz, double& prev_counter,
+                                                         double& prev_denom)
+  {
+    double new_weight(added_int);
+    double new_mz(added_mz);
+
+    double counter_tmp(1 + (new_weight * new_mz) / prev_counter);
+    double denom_tmp(1 + (new_weight) / prev_denom);
+    centroid_mz *= (counter_tmp / denom_tmp);
+    prev_counter *= counter_tmp;
+    prev_denom *= denom_tmp;
+
+    return;
+  }
+
+  void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
+                               PeakMap::ConstAreaIterator& end,
+                               std::vector<MassTrace>& found_masstraces)
+  {
+    PeakMap map;
+    MSSpectrum current_spectrum;
+
+    if (begin == end)
     {
       defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
@@ -338,7 +393,11 @@ namespace OpenMS
         // Size min_scans_to_consider(std::floor((min_sample_rate_ /2)*10));
         Size min_scans_to_consider(5);
 
-        // double outlier_ratio(0.3);
+      // double ftl_mean(centroid_mz);
+      double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
+      if(mass_error_da_>0) ftl_sd = mass_error_da_;
+
+      double intensity_so_far(apex_peak.getIntensity());
 
         // double ftl_mean(centroid_mz);
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
@@ -551,19 +610,24 @@ namespace OpenMS
 
     }
 
-    void MassTraceDetection::updateMembers_()
-    {
-      mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
-      noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
-      chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
-      quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));
+    this->endProgress();
 
-      trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion");
-      trace_termination_outliers_ = (Size)param_.getValue("trace_termination_outliers");
-      min_sample_rate_ = (double)param_.getValue("min_sample_rate");
-      min_trace_length_ = (double)param_.getValue("min_trace_length");
-      max_trace_length_ = (double)param_.getValue("max_trace_length");
-      reestimate_mt_sd_ = param_.getValue("reestimate_mt_sd").toBool();
-    }
+  }
+  
+  void MassTraceDetection::updateMembers_()
+  {
+    mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
+    mass_error_da_ = (double)param_.getValue("mass_error_da");
+    noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
+    chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
+    quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));
+
+    trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion");
+    trace_termination_outliers_ = (Size)param_.getValue("trace_termination_outliers");
+    min_sample_rate_ = (double)param_.getValue("min_sample_rate");
+    min_trace_length_ = (double)param_.getValue("min_trace_length");
+    max_trace_length_ = (double)param_.getValue("max_trace_length");
+    reestimate_mt_sd_ = param_.getValue("reestimate_mt_sd").toBool();
+  }
 
 }

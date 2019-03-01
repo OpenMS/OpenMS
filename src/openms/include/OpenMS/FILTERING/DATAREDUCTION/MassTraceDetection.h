@@ -69,61 +69,33 @@ namespace OpenMS
 
       @ingroup Quantitation
     */
-    class OPENMS_DLLAPI MassTraceDetection :
-            public DefaultParamHandler,
-            public ProgressLogger
-    {
-    public:
-        /// Default constructor
-        MassTraceDetection();
+protected:
+    void updateMembers_() override;
 
-        /// Default destructor
-        ~MassTraceDetection() override;
+private:
 
-        /** @name Helper methods
-        */
+    typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
 
-        /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
-        void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
+    /// The internal run method
+    void run_(const MapIdxSortedByInt& chrom_apices,
+              const Size peak_count, 
+              const PeakMap & work_exp,
+              const std::vector<Size>& spec_offsets,
+              std::vector<MassTrace> & found_masstraces);
 
-        /** @name Main computation methods
-        */
+    // parameter stuff
+    double mass_error_ppm_;
+    double mass_error_da_; // added by kyowon jeong
+    double noise_threshold_int_;
+    double chrom_peak_snr_;
+    MassTrace::MT_QUANTMETHOD quant_method_;
 
-        /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
-        void run(const PeakMap &, std::vector<MassTrace> &, const Size max_traces = 0);
+    String trace_termination_criterion_;
+    Size trace_termination_outliers_;
+    double min_sample_rate_;
+    double min_trace_length_;
+    double max_trace_length_;
 
-        /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
-        void run(PeakMap::ConstAreaIterator & begin, PeakMap::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
-
-        /** @name Private methods and members
-        */
-    protected:
-        void updateMembers_() override;
-
-    private:
-
-        typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
-
-        /// The internal run method
-        void run_(const MapIdxSortedByInt& chrom_apices,
-                  const Size peak_count,
-                  const PeakMap & work_exp,
-                  const std::vector<Size>& spec_offsets,
-                  std::vector<MassTrace> & found_masstraces,
-                  const Size max_traces = 0);
-
-        // parameter stuff
-        double mass_error_ppm_;
-        double noise_threshold_int_;
-        double chrom_peak_snr_;
-        MassTrace::MT_QUANTMETHOD quant_method_;
-
-        String trace_termination_criterion_;
-        Size trace_termination_outliers_;
-        double min_sample_rate_;
-        double min_trace_length_;
-        double max_trace_length_;
-
-        bool reestimate_mt_sd_;
-    };
+    bool reestimate_mt_sd_;
+  };
 }
