@@ -45,7 +45,7 @@ public:
         int maxMassCount;
         double isotopeCosineThreshold;
         int chargeDistributionScoreThreshold;
-        bool findFeature;
+        double maxRTDelta;
         int hCharges[3] = {2,3,5};
         int numOverlappedScans = 10;
     };
@@ -159,12 +159,12 @@ protected:
         registerIntOption_("maxIC", "<max isotope count>", 50, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)", false, true);
-        registerIntOption_("findFeature", "<true: 1 false: 0>", 1, "find feature using mass tracer if set", false, true);
 
         registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
         registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
         registerDoubleOption_("minIsoScore", "<score 0-1>", .7, "minimum isotope cosine score threshold (0-1)", false, true);
+        registerDoubleOption_("maxRTDelta", "<maximum RT between masses for feature finding>", 30.0, "maximum RT between masses for feature finding", false, true);
 
 
         //registerDoubleOption_("maxRTDelta", "<max RT delta>", 10.0, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
@@ -186,9 +186,7 @@ protected:
         param.maxMassCount = getIntOption_("maxMC");
         param.isotopeCosineThreshold = getDoubleOption_("minIsoScore");
         param.chargeDistributionScoreThreshold = getIntOption_("minCDScore");
-        param.findFeature = getIntOption_("findFeature")>0;
-        //param.maxRTDelta = getDoubleOption_("maxRTDelta");
-        //param.hCharges = new ;
+        param.maxRTDelta = getDoubleOption_("maxRTDelta");
         return param;
     }
 
@@ -229,9 +227,9 @@ protected:
 
         if(!isOutPathDir) {
             fs.open(outfilePath + ".tsv", fstream::out);
-            if(param.findFeature) fsf.open(outfilePath + "feature.tsv", fstream::out);
+            if(param.maxRTDelta>0) fsf.open(outfilePath + "feature.tsv", fstream::out);
 
-            writeHeader(fs, fsf, param.findFeature);
+            writeHeader(fs, fsf, param.maxRTDelta>0);
             fsm.open(outfilePath + ".m", fstream::out);
             fsm << "m=[";
         }
@@ -269,8 +267,8 @@ protected:
                 std::size_t found = outfileName.find_last_of(".");
                 outfileName = outfileName.substr(0,found);
                 fs.open(outfilePath + outfileName + ".tsv", fstream::out);
-                if(param.findFeature) fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
-                writeHeader(fs, fsf, param.findFeature);
+                if(param.maxRTDelta>0) fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
+                writeHeader(fs, fsf, param.maxRTDelta>0);
 
                 outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
                 outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
@@ -282,15 +280,15 @@ protected:
                 writePeakGroup(pg, param, fs, fsm);
             cout<<"done\n";
 
-            if(param.findFeature) {
-                findFeatures(map, featureCntr, fsf, param);
+            if(param.maxRTDelta>0) {
+                findFeatures(map, featureCntr, specCntr, fsf, param);
             }
 
             if(isOutPathDir){
                 fsm << "];";
                 fsm.close();
                 fs.close();
-                if(param.findFeature) fsf.close();
+                if(param.maxRTDelta>0) fsf.close();
                 total_specCntr += specCntr;
                 total_qspecCntr += qspecCntr;
                 total_massCntr += massCntr;
@@ -314,12 +312,12 @@ protected:
             fsm << "];";
             fsm.close();
             fs.close();
-            if(param.findFeature) fsf.close();
+            if(param.maxRTDelta>0) fsf.close();
         }
         return EXECUTION_OK;
     }
 
-    void findFeatures(MSExperiment &map, int &featureCntr, fstream &fsf, Parameter& param){
+    void findFeatures(MSExperiment &map, int &featureCntr, int& specCntr, fstream &fsf, Parameter& param){
         Param common_param = getParam_().copy("algorithm:common:", true);
         writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
@@ -330,19 +328,19 @@ protected:
         mtd_param.insert("", common_param);
         mtd_param.remove("chrom_fwhm");
 
-        mtd_param.setValue("mass_error_da",  .2,// * (param.chargeRange+ param.minCharge),
+        mtd_param.setValue("mass_error_da",  .1,// * (param.chargeRange+ param.minCharge),
                            "Allowed mass deviation (in da).");
-        //mtd_param.setValue("trace_termination_criterion", "outlier", "");
-        mtd_param.setValue("trace_termination_criterion", "sample_rate", "");
+        mtd_param.setValue("trace_termination_criterion", "outlier", "");
+        //mtd_param.setValue("trace_termination_criterion", "sample_rate", "");
 
         mtd_param.setValue("reestimate_mt_sd", "false", "");
         mtd_param.setValue("quant_method", "area", "");
         mtd_param.setValue("noise_threshold_int", .0, "");
 
-        //double rtd = (map[map.size() - 1].getRT() - map[0].getRT()) / specCntr;
-        //double delta = param.maxRTDelta < 0? (map[map.size()-1].getRT() - map[0].getRT() )/10.0 : param.maxRTDelta;
+        double rtd = (map[map.size() - 1].getRT() - map[0].getRT()) / specCntr;
+
         mtd_param.setValue("min_sample_rate", 0.1, "");
-        //mtd_param.setValue("trace_termination_outliers", (int)(param.maxRTDelta/rtd), "");
+        mtd_param.setValue("trace_termination_outliers", (int)(param.maxRTDelta/rtd), "");
         mtd_param.setValue("min_trace_length", .001, "");
         //mtd_param.setValue("max_trace_length", 1000.0, "");
         mtdet.setParameters(mtd_param);
@@ -420,7 +418,7 @@ protected:
             auto logMzPeaks = getLogMzPeaks(*it, param.intensityThreshold);
             auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, harmonicFilters,
                                                         prevMassBinVector, prevMinBinLogMassVector, param);
-            if(param.findFeature) it->clear(false);
+            if(param.maxRTDelta>0) it->clear(false);
 
             if(peakGroups.empty()) continue;
 
@@ -437,13 +435,13 @@ protected:
                 pg.specIndex = qspecCntr;
                 pg.massCntr = (int)peakGroups.size();
                 allPeakGroups.push_back(pg);
-                if(!param.findFeature) continue;
+                if(param.maxRTDelta<=0) continue;
 
                 auto mass = pg.monoisotopicMass;
                 Peak1D tp(mass, (float) pg.intensity);//
                 it->push_back(tp);
             }
-            if(param.findFeature) it->sortByPosition();
+            if(param.maxRTDelta>0) it->sortByPosition();
         }
         printProgress(1);
         return allPeakGroups;
