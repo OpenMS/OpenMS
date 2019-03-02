@@ -19,7 +19,7 @@ from functools import wraps
 def report(f):
     @wraps(f)
     def wrapper(*a, **kw):
-        print(b"run b", f.__name__)
+        print("run b", f.__name__)
         f(*a, **kw)
     return wrapper
 
@@ -28,12 +28,12 @@ def testElementTutorial():
 
     edb = ElementDB()
 
-    edb.hasElement("O")
-    edb.hasElement("S")
+    assert edb.hasElement("O")
+    assert edb.hasElement("S")
 
     oxygen = edb.getElement("O")
-    oxygen.getName()
-    oxygen.getSymbol()
+    assert oxygen.getName() == "Oxygen"
+    assert oxygen.getSymbol() == "O"
     oxygen.getMonoWeight()
     isotopes = oxygen.getIsotopeDistribution()
 
@@ -48,14 +48,15 @@ def testElementTutorial():
 @report
 def testEmpiricalFormulaTutorial():
 
+    print("testEmpiricalFormulaTutorial")
     methanol = EmpiricalFormula("CH3OH")
     water = EmpiricalFormula("H2O")
     ethanol = EmpiricalFormula("CH2" + methanol.toString())
     wm = water + methanol
-    print(wm.toString())
+    print(wm)
     print(wm.getElementalComposition())
 
-    # .. Wait for pyOpenMS 2.4
+    # TODO: dicts are still using bytes!
     wm = water + methanol # only in pyOpenMS 2.4
     m = wm.getElementalComposition()
     assert m[b"C"] == 1
@@ -91,9 +92,9 @@ def testAASequenceTutorial():
     suffix = seq.getSuffix(5)
     concat = seq + seq
 
-    print(seq.toString())
-    print(concat.toString())
-    print(suffix.toString())
+    print(seq)
+    print(concat)
+    print(suffix)
     seq.getMonoWeight() # weight of M
     seq.getMonoWeight(Residue.ResidueType.Full, 2) # weight of M+2H
     mz = seq.getMonoWeight(Residue.ResidueType.Full, 2) / 2.0 # m/z of M+2H
@@ -102,7 +103,7 @@ def testAASequenceTutorial():
     print("Monoisotopic m/z of (M+2H)2+ is", mz)
 
     seq_formula = seq.getFormula()
-    print("Peptide", seq.toString(), "has molecular formula", seq_formula.toString())
+    print("Peptide", seq, "has molecular formula", seq_formula)
     print("="*35)
 
     isotopes = seq_formula.getIsotopeDistribution( CoarseIsotopePatternGenerator(6) )
@@ -111,35 +112,39 @@ def testAASequenceTutorial():
 
     suffix = seq.getSuffix(3) # y3 ion "GER"
     print("="*35)
-    print("y3 ion :", suffix.toString())
+    print("y3 ion :", suffix)
     y3_formula = suffix.getFormula(Residue.ResidueType.YIon, 2) # y3++ ion
     suffix.getMonoWeight(Residue.ResidueType.YIon, 2) / 2.0 # CORRECT
     suffix.getMonoWeight(Residue.ResidueType.XIon, 2) / 2.0 # CORRECT
     suffix.getMonoWeight(Residue.ResidueType.BIon, 2) / 2.0 # INCORRECT
+    assert str(y3_formula) == "C13H24N6O6", str(y3_formula)
+    assert str(seq_formula) == "C44H67N13O15"
+
 
     print("y3 mz :", suffix.getMonoWeight(Residue.ResidueType.YIon, 2) / 2.0 )
-    print(y3_formula.toString())
-    print(seq_formula.toString())
+    print(y3_formula)
+    print(seq_formula)
 
     seq = AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
-    print(seq.toUnmodifiedString())
+    print(seq)
     print(seq.toString())
+    print(seq.toUnmodifiedString())
     print(seq.toUniModString())
     print(seq.toBracketString())
     print(seq.toBracketString(False))
 
-    print(AASequence.fromString("DFPIAM(UniMod:35)GER").toString())
-    print(AASequence.fromString("DFPIAM[+16]GER").toString())
-    print(AASequence.fromString("DFPIAM[+15.99]GER").toString())
-    print(AASequence.fromString("DFPIAM[147]GER").toString())
-    print(AASequence.fromString("DFPIAM[147.035405]GER").toString())
+    print(AASequence.fromString("DFPIAM(UniMod:35)GER"))
+    print(AASequence.fromString("DFPIAM[+16]GER"))
+    print(AASequence.fromString("DFPIAM[+15.99]GER"))
+    print(AASequence.fromString("DFPIAM[147]GER"))
+    print(AASequence.fromString("DFPIAM[147.035405]GER"))
 
     s = AASequence.fromString(".(Dimethyl)DFPIAMGER.")
-    print(s.toString(), s.hasNTerminalModification())
+    print(s, s.hasNTerminalModification())
     s = AASequence.fromString(".DFPIAMGER.(Label:18O(2))")
-    print(s.toString(), s.hasCTerminalModification())
+    print(s, s.hasCTerminalModification())
     s = AASequence.fromString(".DFPIAMGER(Phospho).")
-    print(s.toString(), s.hasCTerminalModification())
+    print(s, s.hasCTerminalModification())
 
 
     bsa = FASTAEntry()
@@ -173,11 +178,11 @@ def testTheoreticalSpectrumGenTutorial():
     peptide = AASequence.fromString("DFPIANGER")
     # standard behavior is adding b- and y-ions of charge 1
     p = Param()
-    p.setValue(b"add_b_ions", b"false", b"Add peaks of b-ions to the spectrum")
+    p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum")
     tsg.setParameters(p)
     tsg.getSpectrum(spec1, peptide, 1, 1)
-    p.setValue(b"add_b_ions", b"true", b"Add peaks of a-ions to the spectrum")
-    p.setValue(b"add_metainfo", b"true", "")
+    p.setValue("add_b_ions", "true", "Add peaks of a-ions to the spectrum")
+    p.setValue("add_metainfo", "true", "")
     tsg.setParameters(p)
     tsg.getSpectrum(spec2, peptide, 1, 2)
     print("Spectrum 1 has", spec1.size(), "peaks.")
@@ -192,13 +197,14 @@ def testTheoreticalSpectrumGenTutorial():
 @report
 def testDigestionTutorial():
 
+    print("testDigestionTutorial")
     dig = ProteaseDigestion()
     dig.getEnzymeName() # Trypsin
     bsa = b'DEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA'
     bsa = AASequence.fromString(bsa)
     result = []
     dig.digest(bsa, result)
-    print(result[4].toString())
+    print(result[4])
     len(result) # 74 peptides
     assert len(result) == 74
 
@@ -213,7 +219,7 @@ def testDigestionTutorial():
     dig.setEnzyme('Lys-C')
     result = []
     dig.digest(bsa, result)
-    print(result[4].toString())
+    print(result[4])
     len(result) # 53 peptides
     assert len(result) == 53
 
