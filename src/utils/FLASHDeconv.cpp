@@ -365,6 +365,7 @@ protected:
 
     void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false){
         fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassCountInSpec\tExactMass\tNominalMass(round(ExactMass*0.999497))\t"
+              "PeakMinCharge\tPeakMaxCharge\t"
               "AggregatedIntensity\tRetentionTime\tPeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\t"
               "PeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
         if(!featureOut) return;
@@ -462,13 +463,20 @@ protected:
         double m = pg.monoisotopicMass;
         double intensity = pg.intensity;
         int nm = getNominalMass(m);
+        sort(pg.peaks.begin(), pg.peaks.end());
+        int minCharge = 10000;
+        int maxCharge = 0;
+        for(auto &p : pg.peaks){
+            minCharge = minCharge < p.charge? minCharge : p.charge;
+            maxCharge = maxCharge > p.charge? maxCharge : p.charge;
+        }
+
 
         fs<<fixed<<setprecision(4);
 
         fs <<pg.massIndex<<"\t"<<pg.specIndex<<"\t"<<param.fileName<<"\t"<<pg.spec->getNativeID()<<"\t"<<pg.massCntr<<"\t"
-            << m << "\t" << nm<<"\t"<< intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t";
+            << m << "\t" << nm<<"\t" minCharge << "\t" << maxCharge << "\t"  << intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t";
 
-        sort(pg.peaks.begin(), pg.peaks.end());
 
         for(auto &p : pg.peaks){
             fs<<p.orgPeak->getMZ()<<";";
