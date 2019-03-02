@@ -220,7 +220,7 @@ def testAASequence():
     assert seq.toBracketString() == "PEPTIDESEKUEM[147]CER"
     assert seq.toBracketString(True, []) == "PEPTIDESEKUEM[147]CER"
     print( seq.toBracketString(False, []) )
-    assert seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.03540001709996]CER" or
+    assert seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
            seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.035400017100017]CER"
     print( seq.toBracketString(False) )
     assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
@@ -1396,7 +1396,8 @@ def _testParam(p):
         if len(k.split(b":")) < 2: continue
         f = k.split(b":")[0]
         p.setSectionDescription(f, k)
-        assert p.getSectionDescription(f) == k
+        # TODO: keys inside maps are not yet properly decoded
+        assert p.getSectionDescription(f) == k.decode()
 
         assert p.get(k) is not None
 

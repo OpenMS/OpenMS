@@ -338,6 +338,7 @@ def testDatastructuresTutorial():
     p.setMZ(405.2) # isolation at 405.2 +/- 1.5 Th
     p.setActivationEnergy(40) # 40 eV
     p.setCharge(2) # 2+ ion
+    p.setMetaValue("description", "test_description")
     p.setMetaValue("description", chromatogram.getNativeID())
     p.setMetaValue("peptide_sequence", chromatogram.getNativeID())
     chromatogram.setPrecursor(p)
