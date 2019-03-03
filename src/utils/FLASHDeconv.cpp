@@ -769,9 +769,9 @@ protected:
         long biThreshold = (long) binNumber;
 
         long binThresholdMinMass = (long)max(.0, (log(param.minMass)-minBinLogMass)/param.tolerance);
-        long binThresholdSmallMass = (long)((log(10000.0) )/param.tolerance);
+        long binThresholdSmallMass = (long)((log(10000.0) - minBinLogMass)/param.tolerance);
         long binMinBinLogMass = (long)(minBinLogMass/param.tolerance);
-        double factor = (double)(minChargeCount - minContinuousChargeCount) / binThresholdSmallMass;
+        double factor = (double)(minChargeCount - minContinuousChargeCount) / (binThresholdSmallMass + binMinBinLogMass);
         Byte *massBinScores = new Byte[binNumber];
         fill_n(massBinScores, binNumber, 0);
 
