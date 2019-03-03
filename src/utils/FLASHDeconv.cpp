@@ -150,8 +150,8 @@ protected:
         registerOutputFile_("out", "<output file prefix/output dir>", "", "Output file prefix or output dir (if prefix, [file prefix].tsv , [file prefix]feature.tsv, and [file prefix].m will be generated. "
                                                         "if dir, [dir]/[inputfile].tsv, [dir]/[inputfile]feature.tsv, and [dir]/[inputfile].m are generated per [inputfile])");
 
-        registerIntOption_("minC", "<max charge>", 2, "minimum charge state", false, false);
-        registerIntOption_("maxC", "<min charge>", 35, "maximum charge state", false, false);
+        registerIntOption_("minC", "<min charge>", 2, "minimum charge state", false, false);
+        registerIntOption_("maxC", "<max charge>", 35, "maximum charge state", false, false);
         registerDoubleOption_("minM", "<min mass>", 500.0, "minimum mass (Da)", false, false);
         registerIntOption_("minCCC", "<min continuous charge count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
         registerIntOption_("minCC", "<min charge count>", 7, "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))", false, true);
@@ -475,7 +475,7 @@ protected:
         fs<<fixed<<setprecision(4);
 
         fs <<pg.massIndex<<"\t"<<pg.specIndex<<"\t"<<param.fileName<<"\t"<<pg.spec->getNativeID()<<"\t"<<pg.massCntr<<"\t"
-            << m << "\t" << nm<<"\t" << minCharge << "\t" << maxCharge << "\t"  << intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t";
+            << m << "\t" << nm<< "\t" << minCharge << "\t" << maxCharge << "\t"  << intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t";
 
 
         for(auto &p : pg.peaks){
@@ -539,7 +539,7 @@ protected:
                                                 vector<boost::dynamic_bitset<>> &prevMassBinVector, vector<double>& prevMinBinLogMassVector,
                                                 const Parameter &param){
         double maxBinLogMass = std::min(logMzPeaks[logMzPeaks.size() - 1].logMz - filter[param.chargeRange - param.minChargeCount], log(param.maxMass));
-        double minBinLogMass = logMzPeaks[0].logMz - filter[param.minContinuousChargeCount];
+        double minBinLogMass = logMzPeaks[0].logMz - filter[param.minContinuousChargeCount - 1];
 
         Size massBinNumber = (Size)((maxBinLogMass - minBinLogMass) / param.tolerance + 1);
         boost::dynamic_bitset<> mzBins = getMzBins(logMzPeaks, param.tolerance);
@@ -603,15 +603,16 @@ protected:
             for (int j = 0; j < chargeRange; j++) {
                 int charge = j + param.minCharge;
                 double mzToMassOffset = - filter[j] - minBinLogMass;
-
                 while (currentPeakIndex[j] < (int)logMzPeaks.size()) {
-                    Size bi = (Size)((logMzPeaks[currentPeakIndex[j]].logMz - filter[j] - minBinLogMass) / tol);
-                    if (bi > setBinIndex) break;
-                    if (setBinIndex == bi) {
+                    long bi = (long)((logMzPeaks[currentPeakIndex[j]].logMz + mzToMassOffset) / tol);
+                    if(bi<0) {
+                    }else if ((Size)bi == setBinIndex) {
                         addPeaksAroundPeakIndexToPeakGroup(pg, peakMassBins,currentPeakIndex[j],
-                                mzToMassOffset, logMzPeaks, charge, tol);
+                                                           mzToMassOffset, logMzPeaks, charge, tol);
                         addIsotopicPeaksToPeakGroup(pg, peakMassBins, currentPeakIndex[j],
-                                mzToMassOffset, logMzPeaks, charge, tol, isoOff);
+                                                    mzToMassOffset, logMzPeaks, charge, tol, isoOff);
+                    }else if ((Size)bi > setBinIndex){
+                        break;
                     }
                     currentPeakIndex[j]++;
                 }
@@ -642,6 +643,7 @@ protected:
             if(peakIndex <0 || peakIndex>=logMzPeaksSize) continue;
             if(abs(logMz - logMzPeaks[peakIndex].logMz) > tol) continue;
             //addPeakToPeakGroup(logMzPeaks[peakIndex], charge, 0, mzToMassOffset, tol, peakGroup, peakMassBins, i>0);
+
             LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, 0);
             peakGroup.push_back(p);
 
@@ -767,11 +769,13 @@ protected:
         long biThreshold = (long) binNumber;
 
         long binThresholdMinMass = (long)max(.0, (log(param.minMass)-minBinLogMass)/param.tolerance);
-        long binThresholdSmallMass = (long)((log(12000.0)-minBinLogMass)/param.tolerance);
-        double denominator = (double)(minChargeCount - minContinuousChargeCount) / binThresholdSmallMass;
+        long binThresholdSmallMass = (long)((log(10000.0) )/param.tolerance);
+        long binMinBinLogMass = (long)(minBinLogMass/param.tolerance);
+        double factor = (double)(minChargeCount - minContinuousChargeCount) / binThresholdSmallMass;
         Byte *massBinScores = new Byte[binNumber];
         fill_n(massBinScores, binNumber, 0);
 
+        //int tmp=0;
         int maxChargeRange = 0;
         while (setBinIndex != mzBins.npos) {
             for (int j = 0; j < chargeRange; j++) {
@@ -783,15 +787,17 @@ protected:
                 if(bi > binThresholdSmallMass ){
                     if(bs < minChargeCount) continue;
                 }else{
-                    if(bs < bi*denominator + minContinuousChargeCount) continue;
+                    if(bs < (bi + binMinBinLogMass)*factor + minContinuousChargeCount) continue;
                 }
+
+                //if(j == param.minContinuousChargeCount -1)tmp++; //
 
                 massBins[bi] = true;
                 maxChargeRange = maxChargeRange > j? maxChargeRange : j;
             }
             setBinIndex = mzBins.find_next(setBinIndex);
         }
-
+        //if(tmp>0)         cout<<"* 1: "<< tmp<<endl;//
         /*
         setBinIndex = massBins.find_first();
         while (setBinIndex != massBins.npos) {
@@ -836,23 +842,27 @@ protected:
         int maxChargeRange = 0;
         long binThreshold = (long) mzBins.size();
 
+        //int tmp = 0;
         while (setBinIndex != massBins.npos) {
             Byte continuousChargeCntr = 0;
             massBins[setBinIndex] = false;
+            auto cm = exp(minBinLogMass + setBinIndex*param.tolerance);
+
             for (int j = 0; j <= chargeRange; j++) {
                 long bi = setBinIndex - binOffsets[j];
                 if(bi<0) break;
                 if(bi >= binThreshold) continue;
 
                 bool harmonicMzBinClear = false; // check harmonic artifact in both charge and isotope direction
+
                 for(Size k=0;k<harmonicBinOffsetVector.size();k++){
                     int hc = param.hCharges[k];
                     long hbi = setBinIndex - harmonicBinOffsetVector[k][j];
                     harmonicMzBinClear = hbi<1 || hbi >= (long)mzBins.size()-1
                                               || !(mzBins[hbi]||mzBins[hbi-1]||mzBins[hbi+1]);//||mzBins[hbi-1]||mzBins[hbi+1]
                     if(!harmonicMzBinClear) break;
-
-                    hbi = setBinIndex + (long)(Constants::C13C12_MASSDIFF_U/hc/(minBinLogMass + setBinIndex * param.tolerance));
+                    hbi = setBinIndex + long(.5 + Constants::C13C12_MASSDIFF_U/hc/(param.tolerance*cm));
+                    //cout<< cm <<" " << (exp(minBinLogMass + hbi*param.tolerance)) << endl;
                     harmonicMzBinClear = hbi<1 || hbi >= (long)mzBins.size()-1
                                          || !(mzBins[hbi]||mzBins[hbi-1]||mzBins[hbi+1]);//||mzBins[hbi-1]||mzBins[hbi+1]
                     if(!harmonicMzBinClear) break;
@@ -868,10 +878,13 @@ protected:
                 ++continuousChargeCntr;
                 if(continuousChargeCntr < minContinuousCharge) continue;
                 massBins[setBinIndex] = true;
+               // if(j == param.minContinuousChargeCount-1) tmp++; //
+
                 maxChargeRange = maxChargeRange > j? maxChargeRange : j;
             }
             setBinIndex = massBins.find_next(setBinIndex);
         }
+        //if(tmp>0) cout<<"* : "<< tmp<<endl;
         return maxChargeRange;
     }
 
