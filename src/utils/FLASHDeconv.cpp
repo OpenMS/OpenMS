@@ -153,6 +153,17 @@ protected:
         return (int) (m * 0.999497 + .5);
     }
 
+    static double getBinValue(Size bin, double minV, double tol){
+        return minV + bin * tol;
+    }
+
+    static Size getBinNumber(double v, double minV, double tol){
+        if(v<minV) return 0;
+        return (Size)((v-minV)/tol);
+
+    }
+
+
     void registerOptionsAndFlags_() override {
         registerInputFile_("in", "<input file>", "", "Input file");
         //setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -165,7 +176,7 @@ protected:
         registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
         registerIntOption_("minCCC", "<min continuous charge count>", 3,
                            "minimum number of peaks of continuous charges per mass", false, true);
-        registerIntOption_("minCC", "<min charge count>", 8,
+        registerIntOption_("minCC", "<min charge count>", 12,
                            "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))",
                            false, true);
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
@@ -352,7 +363,7 @@ protected:
 
         //mtd_param.setValue("mass_error_da", .2,// * (param.chargeRange+ param.minCharge),
         //                   "Allowed mass deviation (in da).");
-        mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 5, "");
+        mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 10, "");
         mtd_param.setValue("trace_termination_criterion", "outlier", "");
         //mtd_param.setValue("trace_termination_criterion", "sample_rate", "");
 
@@ -549,13 +560,6 @@ protected:
             logMzPeaks.push_back(logMzPeak);
         }
 
-        //vector<LogMzPeak> tlogMzPeaks;
-        //tlogMzPeaks.reserve(spec.size() + prev.size());
-        //for(auto &peak : logMzPeaks) tlogMzPeaks.push_back(peak);
-        //for(auto &peak : prev) tlogMzPeaks.push_back(peak);
-        //sort(tlogMzPeaks.begin(), tlogMzPeaks.end());
-
-        //prev = logMzPeaks;
         return logMzPeaks;
     }
 
@@ -565,19 +569,20 @@ protected:
                               vector<boost::dynamic_bitset<>> &prevMassBinVector,
                               vector<double> &prevMinBinLogMassVector,
                               const Parameter &param) {
-        double maxBinLogMass = std::min(
+        double massBinMaxValue = std::min(
                 logMzPeaks[logMzPeaks.size() - 1].logMz - filter[param.chargeRange - param.minContinuousChargeCount],
                 log(param.maxMass));
-        double minBinLogMass = logMzPeaks[0].logMz - filter[param.minContinuousChargeCount - 1];
+        double massBinMinValue = logMzPeaks[0].logMz - filter[param.minContinuousChargeCount - 1];
+        double mzBinMinValue = logMzPeaks[0].logMz;
+        double mzBinMaxValue = logMzPeaks[logMzPeaks.size() - 1].logMz;
 
-        Size massBinNumber = (Size) ((maxBinLogMass - minBinLogMass) / param.tolerance + 1);
-        boost::dynamic_bitset<> mzBins = getMzBins(logMzPeaks, param.tolerance);
+        Size massBinNumber = getBinNumber(massBinMaxValue, massBinMinValue, param.tolerance) + 1;
+        boost::dynamic_bitset<> mzBins = getMzBins(logMzPeaks, mzBinMinValue, mzBinMaxValue, param.tolerance);
         boost::dynamic_bitset<> massBins(massBinNumber);
-        int chargeRange = getMassBins(massBins, mzBins, minBinLogMass, logMzPeaks[0].logMz, filter, hFilters,
-                                      massBinNumber, param);
+        int chargeRange = getMassBins(massBins, mzBins, massBinMinValue, mzBinMinValue, filter, hFilters, param);
 
-        auto u = getUnionMassBin(massBins, minBinLogMass, prevMassBinVector, prevMinBinLogMassVector, param);
-        auto peakGroups = getPeakGroupsWithMassBins(u, logMzPeaks, minBinLogMass, filter, chargeRange, param);
+        auto u = getUnionMassBin(massBins, massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, param);
+        auto peakGroups = getPeakGroupsWithMassBins(u, logMzPeaks, massBinMinValue, filter, chargeRange, param);
 
         // prev mass update here.
 
@@ -694,6 +699,8 @@ protected:
             int peakIndex = currentPeakIndex + d;
             for (int i = 1; peakIndex >= 0 && peakIndex < logMzPeaksSize; i++) {
                 double isotopeLogMz = logMz + isof * i * d;
+                //cout<<fixed<<setprecision(4)<<(exp(isotopeLogMz) - exp(logMz))*charge<<endl;
+
                 double isotopeLogMzMin = isotopeLogMz - tol;
                 double isotopeLogMzMax = isotopeLogMz + tol;
                 bool isotopePeakPresent = false;
@@ -730,12 +737,12 @@ protected:
     }
 */
 
-    boost::dynamic_bitset<> getMzBins(vector<LogMzPeak> &logMzPeaks, double tol) {
-        Size binNumber = (Size) ((logMzPeaks[logMzPeaks.size() - 1].logMz - logMzPeaks[0].logMz) / tol + 1);
+    boost::dynamic_bitset<> getMzBins(vector<LogMzPeak> &logMzPeaks, double& mzBinMinValue, double& mzBinMaxValue, double tol) {
+        Size binNumber = (Size) ((mzBinMaxValue - mzBinMinValue) / tol + 1);
         boost::dynamic_bitset<> mzBins(binNumber);
 
         for (auto &p : logMzPeaks) {
-            Size bi = (Size) ((p.logMz - logMzPeaks[0].logMz) / tol);
+            Size bi = getBinNumber(p.logMz, mzBinMinValue, tol);
             if (bi >= binNumber - 1) break;
             mzBins[bi] = true;
             mzBins[bi + 1] = true;
@@ -767,45 +774,41 @@ protected:
     }
 */
     int getMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
-                    double &minBinLogMass, double &minLogMz,
-                    double *filter, vector<double *> &hFilters, Size &binNumber, const Parameter &param) {
+                    double &massBinMinValue, double &mzBinMinValue,
+                    double *filter, vector<double *> &hFilters, const Parameter &param) {
 
         long *binOffsets = new long[param.chargeRange];
         vector<long *> harmonicBinOffsetVector;
-        //long *harmonicBinOffsets2 = new long[param.chargeRange];
 
         for (int i = 0; i < param.chargeRange; i++) {
-            binOffsets[i] = (long) ((minLogMz - filter[i] - minBinLogMass) / param.tolerance);
+            binOffsets[i] = (long) floor((mzBinMinValue - filter[i] - massBinMinValue) / param.tolerance);
         }
 
         for (auto &hf : hFilters) {
             long *harmonicBinOffsets = new long[param.chargeRange];
             for (int i = 0; i < param.chargeRange; i++) {
-                harmonicBinOffsets[i] = (long) ((minLogMz - hf[i] - minBinLogMass) / param.tolerance);
+                harmonicBinOffsets[i] = (long) floor((mzBinMinValue - hf[i] - massBinMinValue) / param.tolerance);
             }
             harmonicBinOffsetVector.push_back(harmonicBinOffsets);
         }
 
-        getInitialMassBinsUsingMinChargeCount(massBins, mzBins, binOffsets, binNumber, minBinLogMass,
+        getInitialMassBinsUsingMinChargeCount(massBins, mzBins, binOffsets, massBinMinValue,
                                               param);
-        return getFinalMassBinsAndDeleteHarmonicArtifacts(massBins, mzBins, minBinLogMass, binOffsets,
+        return getFinalMassBinsAndDeleteHarmonicArtifacts(massBins, mzBins, mzBinMinValue, binOffsets,
                                                           harmonicBinOffsetVector, param);
     }
 
     void getInitialMassBinsUsingMinChargeCount(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
-                                               long *binOffsets, Size &binNumber, double &minBinLogMass,
+                                               long *binOffsets, double &massBinMinValue,
                                                const Parameter &param) {
         auto setBinIndex = mzBins.find_first();
         int chargeRange = param.chargeRange;
         int minChargeCount = param.minChargeCount;
         int minContinuousChargeCount = param.minContinuousChargeCount;
-        long biThreshold = (long) binNumber;
+        long binNumber = (long) massBins.size();
 
-        long binThresholdMinMass = (long) max(.0, (log(param.minMass) - minBinLogMass) / param.tolerance);
-        //long binThresholdSmallMass = (long) ((log(10000.0) - minBinLogMass) / param.tolerance);
-        // long binMinBinLogMass = (long) (minBinLogMass / param.tolerance);
-        //double factor =
-        //        (double) (minChargeCount - minContinuousChargeCount) / (binThresholdSmallMass + binMinBinLogMass);
+        long binThresholdMinMass = (long) getBinNumber(log(param.minMass), massBinMinValue, param.tolerance);
+
         Byte *massBinScores = new Byte[binNumber];
         fill_n(massBinScores, binNumber, 0);
 
@@ -815,12 +818,11 @@ protected:
             f[i] = param.minChargeCoverage * i;
         }
 
-        //int maxChargeRange = 0;
         while (setBinIndex != mzBins.npos) {
             for (Byte j = 0; j < chargeRange; j++) {
                 long bi = setBinIndex + binOffsets[j];
                 if (bi < binThresholdMinMass) continue;
-                if (bi >= biThreshold) break;
+                if (bi >= binNumber) break;
                 if(massBins[bi]) continue;
 
                 auto &bs = massBinScores[bi];
@@ -828,67 +830,76 @@ protected:
                 if (bs < minChargeCount) {
                     if (bs < minContinuousChargeCount + f[j]) continue;
                 }
-
                 massBins[bi] = true;
-                //maxChargeRange = massBinMaxCharges[bi] > j ? massBinMaxCharges[bi] : j;
             }
             setBinIndex = mzBins.find_next(setBinIndex);
         }
-
-        // return chargeRange;
     }
 
     int getFinalMassBinsAndDeleteHarmonicArtifacts(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
-                                                   double &minBinLogMass,
+                                                   double &mzBinMinValue,
                                                    long *binOffsets,
                                                    vector<long *> &harmonicBinOffsetVector,
                                                    const Parameter &param) {
-        auto setBinIndex = massBins.find_first();
+
         int minContinuousCharge = param.minContinuousChargeCount;
         int maxChargeRange = 0;
         long binThreshold = (long) mzBins.size();
         double tol = param.tolerance;
+        double * cms = new double[mzBins.size()];
+        auto setBinIndex = mzBins.find_first();
 
+        while (setBinIndex != mzBins.npos) {
+            cms[setBinIndex] = exp(getBinValue(setBinIndex, mzBinMinValue, tol));
+            setBinIndex = mzBins.find_next(setBinIndex);
+        }
+
+        setBinIndex = massBins.find_first();
         while (setBinIndex != massBins.npos) {
             Byte continuousChargeCntr = 0;
             massBins[setBinIndex] = false;
-            auto cm = exp(minBinLogMass + setBinIndex * tol);
 
             for (int j = 0; j < param.chargeRange; j++) {
                 long bi = setBinIndex - binOffsets[j];
                 if (bi < 0) break;
                 if (bi >= binThreshold) continue;
 
+
+
+                auto cm = cms[bi];
+                bool harmonicMzBinClear = false; // check harmonic artifact in both charge and isotope direction
+
+                for (Size k = 0; k < harmonicBinOffsetVector.size(); k++) {
+                    int hc = param.hCharges[k];
+                    long hbi = setBinIndex - harmonicBinOffsetVector[k][j];
+                    harmonicMzBinClear = hbi < 2 || hbi >= (long) mzBins.size()
+                                         || !(mzBins[hbi]||mzBins[hbi - 1]||
+                                              mzBins[hbi - 2]);//||mzBins[hbi-1]||mzBins[hbi+1]
+                    if (!harmonicMzBinClear) break;
+
+                    hbi = hbi + long(Constants::C13C12_MASSDIFF_U / (param.minCharge + j) / hc / (tol * cm));
+                    harmonicMzBinClear = hbi < 0 || hbi >= (long) mzBins.size() - 2
+                                         || !(mzBins[hbi]||mzBins[hbi + 1]||
+                                              mzBins[hbi + 2]);//||mzBins[hbi-1]||mzBins[hbi+1]
+                    if (!harmonicMzBinClear) break;
+
+
+                    hbi = hbi - long(Constants::C13C12_MASSDIFF_U / (param.minCharge + j) / hc / (tol * cm));
+                    harmonicMzBinClear = hbi < 2 || hbi >= (long) mzBins.size()
+                                         || !(mzBins[hbi]||mzBins[hbi - 1]||
+                                              mzBins[hbi - 2]);//||mzBins[hbi-1]||mzBins[hbi+1]
+                    if (!harmonicMzBinClear) break;
+                }
+
+                if (!harmonicMzBinClear){
+                    break;
+                }
+
                 if (!mzBins[bi]) {
                     continuousChargeCntr = 0;
                     continue;
                 }
 
-                bool harmonicMzBinClear = false; // check harmonic artifact in both charge and isotope direction
-
-                for (Size k = 0; k < harmonicBinOffsetVector.size(); k++) {
-                    int hc = param.hCharges[k];
-
-                    long hbi = setBinIndex - harmonicBinOffsetVector[k][j];
-                    harmonicMzBinClear = hbi < 1 || hbi >= (long) mzBins.size() - 1
-                                         || !(mzBins[hbi] || mzBins[hbi - 1] ||
-                                              mzBins[hbi + 1]);//||mzBins[hbi-1]||mzBins[hbi+1]
-                    if (!harmonicMzBinClear) break;
-
-                    long ii = setBinIndex + long(.5 + Constants::C13C12_MASSDIFF_U / hc / (tol * cm));
-                    harmonicMzBinClear = ii < 1 || ii >= (long) mzBins.size() - 1
-                                         || !(mzBins[ii] || mzBins[ii - 1] ||
-                                              mzBins[ii + 1]);//||mzBins[hbi-1]||mzBins[hbi+1]
-                    if (!harmonicMzBinClear) break;
-
-                    long hii = hbi + long(.5 + Constants::C13C12_MASSDIFF_U / hc / (tol * cm / hc));
-                    harmonicMzBinClear = hii < 1 || hii >= (long) mzBins.size() - 1
-                                         || !(mzBins[hii] || mzBins[hii - 1] ||
-                                              mzBins[hii + 1]);//||mzBins[hbi-1]||mzBins[hbi+1]
-                    if (!harmonicMzBinClear) break;
-                }
-
-                if (!harmonicMzBinClear) break;
 
                 ++continuousChargeCntr;
 
