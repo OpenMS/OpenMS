@@ -2166,7 +2166,7 @@ static void scoreShiftedFragments_(
   ExitCodes main_(int, const char**) override
   {
     // force initialization of residue db
-    AASequence::fromString("GPAVLIMCFYWHKRQNEDST");
+    static auto s = AASequence::fromString("GPAVLIMCFYWHKRQNEDST");
 
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
