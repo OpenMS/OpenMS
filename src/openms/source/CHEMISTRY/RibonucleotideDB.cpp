@@ -47,76 +47,7 @@ namespace OpenMS
     max_code_length_(0)
   {
     readFromFile_("CHEMISTRY/Modomics.tsv");
-    // add more convenient representations for terminal phosphates:
-    EmpiricalFormula phosphate("H2PO3");
-    Ribonucleotide* p3 = new Ribonucleotide("3' terminal phosphate", "3'-p");
-    p3->setFormula(phosphate);
-    p3->setMonoMass(phosphate.getMonoWeight());
-    p3->setAvgMass(phosphate.getAverageWeight());
-    p3->setTermSpecificity(Ribonucleotide::THREE_PRIME);
-    code_map_[p3->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(p3);
-    Ribonucleotide* p5 = new Ribonucleotide("5' terminal phosphate", "5'-p");
-    p5->setFormula(phosphate);
-    p5->setMonoMass(p3->getMonoMass());
-    p5->setAvgMass(p3->getAvgMass());
-    p5->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
-    code_map_[p5->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(p5);
-    // add ambiguous representations of methylations:
-    Ribonucleotide* mA =
-      new Ribonucleotide("unspecified methyladenosine (base mod.)", "mA");
-    mA->setFormula(EmpiricalFormula("C11O4N5H15"));
-    mA->setMonoMass(mA->getFormula().getMonoWeight());
-    mA->setAvgMass(mA->getFormula().getAverageWeight());
-    mA->setOrigin('A');
-    code_map_[mA->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(mA);
-    Ribonucleotide* mC =
-      new Ribonucleotide("unspecified methylcytidine (base mod.)", "mC");
-    mC->setFormula(EmpiricalFormula("C10O5N3H15"));
-    mC->setMonoMass(mC->getFormula().getMonoWeight());
-    mC->setAvgMass(mC->getFormula().getAverageWeight());
-    mC->setOrigin('C');
-    code_map_[mC->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(mC);
-    Ribonucleotide* mG =
-      new Ribonucleotide("unspecified methylguanosine (base mod.)", "mG");
-    mG->setFormula(EmpiricalFormula("C11O5N5H15"));
-    mG->setMonoMass(mG->getFormula().getMonoWeight());
-    mG->setAvgMass(mG->getFormula().getAverageWeight());
-    mG->setOrigin('G');
-    code_map_[mG->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(mG);
-    Ribonucleotide* mU = new Ribonucleotide(
-      "unspecified methyl[pseudo]uridine (base mod.)", "mU");
-    mU->setFormula(EmpiricalFormula("C10O6N2H14"));
-    mU->setMonoMass(mU->getFormula().getMonoWeight());
-    mU->setAvgMass(mU->getFormula().getAverageWeight());
-    mU->setOrigin('U');
-    code_map_[mU->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(mU);
-    // and more variants:
-    mA = new Ribonucleotide(*mA);
-    mA->setName("unspecified methyladenosine");
-    mA->setCode("mA?");
-    code_map_[mA->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(mA);
-    mC = new Ribonucleotide(*mC);
-    mC->setName("unspecified methylcytidine");
-    mC->setCode("mC?");
-    code_map_[mC->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(mC);
-    mG = new Ribonucleotide(*mG);
-    mG->setName("unspecified methylguanosine");
-    mG->setCode("mG?");
-    code_map_[mG->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(mG);
-    mU = new Ribonucleotide(*mU);
-    mU->setName("unspecified methyl[pseudo]uridine");
-    mU->setCode("mU?");
-    code_map_[mU->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(mU);
+    readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
   }
 
 
@@ -216,27 +147,41 @@ namespace OpenMS
     }
     // "parts[4]" is the Unicode equivalent to "parts[5]", so we can skip it
     ribo->setHTMLCode(parts[5]);
-    ribo->setFormula(EmpiricalFormula(parts[6]));
+    if (!parts[6].empty() && (parts[6] != "-"))
+    {
+      ribo->setFormula(EmpiricalFormula(parts[6]));
+    }
     if (!parts[7].empty() && (parts[7] != "None"))
     {
       ribo->setMonoMass(parts[7].toDouble());
+      if ((ribo->getMonoMass() == 0.0) && (!ribo->getFormula().isEmpty()))
+      {
+        ribo->setMonoMass(ribo->getFormula().getMonoWeight());
+      }
     }
     if (!parts[8].empty() && (parts[8] != "None"))
     {
       ribo->setAvgMass(parts[8].toDouble());
+      if ((ribo->getAvgMass() == 0.0) && (!ribo->getFormula().isEmpty()))
+      {
+        ribo->setAvgMass(ribo->getFormula().getAverageWeight());
+      }
     }
     // Modomics' "new code" contains information on terminal specificity:
-    if (parts[2].hasSubstring("55") || (parts[2] == "N"))
+    if (parts[2].hasSuffix("N")) // terminal mod., exception: "GN"
     {
-      ribo->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
-    }
-    else if (parts[2].hasSubstring("33"))
-    {
-      ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
+      if (parts[2].hasSubstring("55") || (parts[2] == "N"))
+      {
+        ribo->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
+      }
+      else if (parts[2].hasSubstring("33"))
+      {
+        ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
+      }
     }
     else // default specificity is "ANYWHERE"; set formula after base loss:
     {
-      if (parts[1].hasSuffix("m"))
+      if (parts[1].hasSuffix("m")) // mod. attached to the ribose, not base
       {
         ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
       }

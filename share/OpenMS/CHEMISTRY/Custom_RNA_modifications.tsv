@@ -1,0 +1,14 @@
+# This file contains OpenMS- and user-defined RNA modifications.
+# It is read in addition to the Modomics data file ("Modomics.tsv") and uses the same format.
+# For terminal modifications, the "new_nomenclature" value has to end in "N" and contain either "33" (3'-terminal mod.) or "55" (5'-terminal mod.).
+name	short_name	new_nomenclature	originating_base	rnamods_abbrev	html_abbrev	formula	monoisotopic_mass	average_mass
+3' terminal phosphate	3'-p	33N	pppN			H2PO3	0.0	0.0
+5' terminal phosphate	5'-p	55N	pppN			H2PO3	0.0	0.0
+unspecified methyladenosine ("m?A")	mA		A			C11O4N5H15	0.0	0.0
+unspecified methylcytidine ("m?C")	mC		C			C10O5N3H15	0.0	0.0
+unspecified methylguanosine ("m?G")	mG		G			C11O5N5H15	0.0	0.0
+unspecified methyl[pseudo]uridine ("m?U")	mU		U			C10O6N2H14	0.0	0.0
+unspecified methyladenosine ("m?A" or "Am")	mA?		A			C11O4N5H15	0.0	0.0
+unspecified methylcytidine ("m?C" or "Cm")	mC?		C			C10O5N3H15	0.0	0.0
+unspecified methylguanosine ("m?G" or "Gm")	mG?		G			C11O5N5H15	0.0	0.0
+unspecified methyl[pseudo]uridine ("m?U" or "Um")	mU?		U			C10O6N2H14	0.0	0.0
