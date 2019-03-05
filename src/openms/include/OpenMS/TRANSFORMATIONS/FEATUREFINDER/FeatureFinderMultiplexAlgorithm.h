@@ -66,6 +66,7 @@ public:
   /// get methods
   FeatureMap& getFeatureMap();
   ConsensusMap& getConsensusMap();
+  MSExperiment& getBlacklist();
   
 protected:
   

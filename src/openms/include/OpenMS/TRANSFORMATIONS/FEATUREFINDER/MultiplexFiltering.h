@@ -109,6 +109,11 @@ public:
      * @brief returns the intensity-filtered, centroided spectral data
      */
     MSExperiment& getCentroidedExperiment();
+    
+    /**
+     * @brief exports the blacklisted, centroided peaks to mzML
+     */
+    void writeBlacklist_(String blacklist_out);
 
 protected:
     /**
@@ -169,7 +174,7 @@ protected:
      * @param pattern_idx    index of the pattern in <patterns_>
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
-
+    
     /**
      * @brief check if the satellite peaks conform with the averagine model
      *

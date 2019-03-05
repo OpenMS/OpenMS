@@ -400,6 +400,15 @@ namespace OpenMS
     
   }
   
+  void MultiplexFiltering::writeBlacklist_(String blacklist_out)
+  {
+    int a = 1;
+    
+    std::cout << "\n\n";
+    std::cout << "Writing the blacklist to mzML.\n";
+    std::cout << "\n\n";
+  }
+  
   bool MultiplexFiltering::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const
   {
     // construct averagine distribution
