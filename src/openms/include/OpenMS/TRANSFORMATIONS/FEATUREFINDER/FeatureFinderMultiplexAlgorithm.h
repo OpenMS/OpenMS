@@ -93,6 +93,9 @@ protected:
   // final results, maps of detected features
   FeatureMap feature_map_;
   ConsensusMap consensus_map_;
+  
+  // blacklist
+  MSExperiment exp_blacklist_;
 
   /**
    * @brief generate list of m/z shifts

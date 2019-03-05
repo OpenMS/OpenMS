@@ -256,7 +256,7 @@ public:
     // run feature detection algorithm
     algorithm.run(exp, true);
 
-    // write feature and consensus maps
+    // write feature map, consensus maps and blacklist
     if (!(out_.empty()))
     {
       writeFeatureMap_(out_, algorithm.getFeatureMap());
@@ -264,6 +264,10 @@ public:
     if (!(out_multiplets_.empty()))
     {
       writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
+    }
+    if (!(out_blacklist_.empty()))
+    {
+      writeBlacklist_(out_blacklist_, algorithm.getBlacklist());
     }
     
     return EXECUTION_OK;

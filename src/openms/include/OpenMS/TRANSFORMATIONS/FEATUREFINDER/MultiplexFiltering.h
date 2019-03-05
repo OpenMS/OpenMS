@@ -111,9 +111,9 @@ public:
     MSExperiment& getCentroidedExperiment();
     
     /**
-     * @brief exports the blacklisted, centroided peaks to mzML
+     * @brief returns the blacklisted, centroided peaks
      */
-    void writeBlacklist_(String blacklist_out);
+    MSExperiment getBlacklist();
 
 protected:
     /**
