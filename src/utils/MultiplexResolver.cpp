@@ -36,8 +36,10 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
@@ -107,6 +109,7 @@ private:
 
   // input and output files
   String in_;
+  String in_blacklist_;
   String out_;
   String out_conflicts_;
 
@@ -118,10 +121,15 @@ private:
   // section "labels"
   map<String, double> label_mass_shift_;
   
+  // blacklist
+  MSExperiment exp_blacklist_;
+  
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Peptide multiplets with assigned sequence information");
     setValidFormats_("in", ListUtils::create<String>("consensusXML"));
+    registerInputFile_("in_blacklist", "<file>", "", "Optional input containing spectral peaks blacklisted during feature detection. Needed for generation of dummy features.", false);
+    setValidFormats_("in_blacklist", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Complete peptide multiplets.");
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_conflicts", "<file>", "", "Optional output containing peptide multiplets without ID annotation or with conflicting quant/ID information.", false);
@@ -166,6 +174,7 @@ private:
   void getParameters_in_out_()
   {
     in_ = getStringOption_("in");
+    in_blacklist_ = getStringOption_("in_blacklist");
     out_ = getStringOption_("out");
     out_conflicts_ = getStringOption_("out_conflicts");
   }
@@ -537,6 +546,15 @@ public:
     ConsensusXMLFile file;
     ConsensusMap map_in;
     file.load(in_, map_in);
+
+    /**
+     * load (optional) blacklist
+     */
+    MzMLFile file_blacklist;
+    if (!(in_blacklist_.empty()))
+    {
+      file_blacklist.load(in_blacklist_, exp_blacklist_);
+    }
 
     /**
      * generate patterns
