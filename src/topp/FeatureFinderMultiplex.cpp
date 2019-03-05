@@ -245,6 +245,7 @@ public:
     params.remove("in");
     params.remove("out");
     params.remove("out_multiplets");
+    params.remove("out_blacklist");
     params.remove("log");
     params.remove("debug");
     params.remove("threads");
