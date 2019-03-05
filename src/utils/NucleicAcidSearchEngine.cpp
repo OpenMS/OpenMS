@@ -96,8 +96,6 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-//#define DEBUG_NASEARCH
-
 using namespace OpenMS;
 using namespace std;
 
@@ -1143,9 +1141,7 @@ protected:
 #pragma omp atomic
             ++hit_counter;
 
-#ifdef DEBUG_NASEARCH
-            cout << "best score in pre-score: " << score << endl;
-#endif
+            LOG_DEBUG << "Score: " << score << endl;
 
 #pragma omp critical (annotated_hits_access)
             {
