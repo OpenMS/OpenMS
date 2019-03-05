@@ -74,7 +74,8 @@ namespace OpenMS
                    double mono_mass = 0.0,
                    double avg_mass = 0.0,
                    enum TermSpecificityNuc term_spec = ANYWHERE,
-                   const EmpiricalFormula& baseloss_formula = EmpiricalFormula());
+                   const EmpiricalFormula& baseloss_formula =
+                   default_baseloss_);
 
     /// Copy constructor
     Ribonucleotide(const Ribonucleotide& ribo) = default;
@@ -171,6 +172,9 @@ namespace OpenMS
     bool isModified() const;
 
   protected:
+    /// Default value for sum formula after nucleobase loss
+    static const EmpiricalFormula default_baseloss_;
+
     String name_; ///< full name
     String code_; ///< short name
     String new_code_; ///< Modomics code

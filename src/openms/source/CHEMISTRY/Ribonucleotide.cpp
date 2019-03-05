@@ -39,6 +39,9 @@ using namespace std;
 
 namespace OpenMS
 {
+  const EmpiricalFormula Ribonucleotide::default_baseloss_ =
+    EmpiricalFormula("C5H10O5");
+
   ostream& operator<<(ostream& os, const Ribonucleotide& ribo)
   {
     os << "Ribonucleotide '"
