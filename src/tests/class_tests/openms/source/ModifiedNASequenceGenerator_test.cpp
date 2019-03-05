@@ -75,7 +75,7 @@ START_SECTION(static void applyVariableModifications(const std::set<ConstRibonuc
 {
   set<ModifiedNASequenceGenerator::ConstRibonucleotidePtr> var_mods;
   // query modified ribos by code
-  vector<string> mods_code = {"s4U", "m3U"};  // 4-thiouridine, 3-methyluridine
+  vector<string> mods_code = {"m3U", "s4U"};  // 3-methyluridine, 4-thiouridine
   for (auto const & f : mods_code) { var_mods.insert(db->getRibonucleotide(f)); }
 
   NASequence sequence = NASequence::fromString("AUAUAUA");
@@ -86,12 +86,12 @@ START_SECTION(static void applyVariableModifications(const std::set<ConstRibonuc
 
   TEST_EQUAL(ams.size(), 7);
   TEST_STRING_EQUAL(ams[0].toString(), NASequence::fromString("AUAUAUA").toString());
-  TEST_STRING_EQUAL(ams[1].toString(), NASequence::fromString("AUAUA[s4U]A").toString());
-  TEST_STRING_EQUAL(ams[2].toString(), NASequence::fromString("AUAUA[m3U]A").toString());
-  TEST_STRING_EQUAL(ams[3].toString(), NASequence::fromString("AUA[s4U]AUA").toString());
-  TEST_STRING_EQUAL(ams[4].toString(), NASequence::fromString("AUA[m3U]AUA").toString());
-  TEST_STRING_EQUAL(ams[5].toString(), NASequence::fromString("A[s4U]AUAUA").toString());
-  TEST_STRING_EQUAL(ams[6].toString(), NASequence::fromString("A[m3U]AUAUA").toString());
+  TEST_STRING_EQUAL(ams[1].toString(), NASequence::fromString("AUAUA[m3U]A").toString());
+  TEST_STRING_EQUAL(ams[2].toString(), NASequence::fromString("AUAUA[s4U]A").toString());
+  TEST_STRING_EQUAL(ams[3].toString(), NASequence::fromString("AUA[m3U]AUA").toString());
+  TEST_STRING_EQUAL(ams[4].toString(), NASequence::fromString("AUA[s4U]AUA").toString());
+  TEST_STRING_EQUAL(ams[5].toString(), NASequence::fromString("A[m3U]AUAUA").toString());
+  TEST_STRING_EQUAL(ams[6].toString(), NASequence::fromString("A[s4U]AUAUA").toString());
 
   ams.clear();
   // (1) Add at most one modification. (false) without the unmodified version
