@@ -176,7 +176,7 @@ protected:
         registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
         registerIntOption_("minCCC", "<min continuous charge count>", 3,
                            "minimum number of peaks of continuous charges per mass", false, true);
-        registerIntOption_("minCC", "<min charge count>", 12,
+        registerIntOption_("minCC", "<min charge count>", 10,
                            "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))",
                            false, true);
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
@@ -328,7 +328,6 @@ protected:
                 total_massCntr = massCntr;
                 total_featureCntr = featureCntr;
             }
-
             total_elapsed_cpu_secs += elapsed_cpu_secs;
             total_elapsed_wall_secs += elapsed_wall_secs;
         }
@@ -846,15 +845,15 @@ protected:
         int maxChargeRange = 0;
         long binThreshold = (long) mzBins.size();
         double tol = param.tolerance;
-        double * cms = new double[mzBins.size()];
-        auto setBinIndex = mzBins.find_first();
+        //map<Size, double> cms;
+      /*  auto setBinIndex = mzBins.find_first();
 
         while (setBinIndex != mzBins.npos) {
             cms[setBinIndex] = exp(getBinValue(setBinIndex, mzBinMinValue, tol));
             setBinIndex = mzBins.find_next(setBinIndex);
         }
-
-        setBinIndex = massBins.find_first();
+*/
+        auto setBinIndex = massBins.find_first();
         while (setBinIndex != massBins.npos) {
             Byte continuousChargeCntr = 0;
             massBins[setBinIndex] = false;
@@ -864,9 +863,9 @@ protected:
                 if (bi < 0) break;
                 if (bi >= binThreshold) continue;
 
+                auto cm= exp(getBinValue((Size)bi, mzBinMinValue, tol));
 
-
-                auto cm = cms[bi];
+                //auto cm = cms[bi];
                 bool harmonicMzBinClear = false; // check harmonic artifact in both charge and isotope direction
 
                 for (Size k = 0; k < harmonicBinOffsetVector.size(); k++) {
