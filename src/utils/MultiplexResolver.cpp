@@ -118,6 +118,8 @@ private:
   String labels_;
   unsigned missed_cleavages_;
   double mass_tolerance_;
+  double mz_tolerance_;
+  double rt_tolerance_;
 
   // section "labels"
   map<String, double> label_mass_shift_;
@@ -151,7 +153,9 @@ private:
       defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("mass_tolerance", 0.1, "Mass tolerance in Da for matching the detected to the theoretical mass shifts.", ListUtils::create<String>("advanced"));
+      defaults.setValue("mass_tolerance", 0.1, "Mass tolerance in Da for matching the mass shifts in the detected peptide multiplet to the theoretical mass shift pattern.", ListUtils::create<String>("advanced"));
+      defaults.setValue("mz_tolerance", 10, "m/z tolerance in ppm for checking if dummy feature vicinity was blacklisted.", ListUtils::create<String>("advanced"));
+      defaults.setValue("rt_tolerance", 5, "Retention time tolerance in seconds for checking if dummy feature vicinity was blacklisted.", ListUtils::create<String>("advanced"));
     }
 
     if (section == "labels")
@@ -188,6 +192,8 @@ private:
     labels_ = getParam_().getValue("algorithm:labels");
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     mass_tolerance_ = getParam_().getValue("algorithm:mass_tolerance");
+    mz_tolerance_ = getParam_().getValue("algorithm:mz_tolerance");
+    rt_tolerance_ = getParam_().getValue("algorithm:rt_tolerance");
   }
 
   /**
@@ -381,24 +387,19 @@ private:
    */
   bool isBlacklisted(double rt, double mz, size_t charge)
   {
-    double mz_tolerance = 0.1;    // m/z tolerance in DA
-    double rt_tolerance = 10;     // retention time tolerance in sec
+    double mz_tolerance = mz_tolerance_ * mz / 1000000;    // m/z tolerance in Da
     
-    MSExperiment::ConstIterator it_rt = exp_blacklist_.RTBegin(rt);
+    MSExperiment::ConstIterator it_rt_begin = exp_blacklist_.RTBegin(rt - rt_tolerance_);
+    MSExperiment::ConstIterator it_rt_end = exp_blacklist_.RTEnd(rt + rt_tolerance_);
     
-    if ((std::abs(it_rt->getRT() - rt)) > rt_tolerance)
-    {
-      // The nearest spectrum is more than rt_tolerance away.
-      // A blacklisted peak cannot be nearby.
-      return false;
-    }
-    else
+    // loop over range of relevant spectra
+    for (MSExperiment::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
     {
       // Loop over first three isotopes in dummy feature (and check if one of them is blacklisted).
       for (size_t isotope = 0; isotope < 3; ++isotope)
       {
         double mz_isotope = mz + isotope * Constants::C13C12_MASSDIFF_U / charge;
-
+        
         MSSpectrum::ConstIterator it_mz = it_rt->MZBegin(mz_isotope);
         
         if ((std::abs(it_mz->getMZ() - mz_isotope)) < mz_tolerance)
@@ -407,10 +408,10 @@ private:
           return true;
         }
       }
-      
-      // None of the first three isotopes has a blacklisted peak near-by.
-      return false;
     }
+    
+    // None of the first three isotopes has a blacklisted peak near-by.
+    return false;
   }
   
   /**
@@ -497,6 +498,9 @@ private:
         feature_handle.setCharge(charge);
         feature_handle.setMapIndex(it_mass_shift - pattern.begin());
         consensus_complete.insert(feature_handle);
+        
+        // debug output
+        //std::cout << "dummy feature @ RT = " << RT << "   m/z = " << (mz_complete + it_mass_shift->delta_mass / charge) << "   blacklisted = " << isBlacklisted(RT, mz_complete + it_mass_shift->delta_mass / charge, charge) << "\n";
       }
       
     }
