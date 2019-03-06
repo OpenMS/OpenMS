@@ -343,6 +343,12 @@ set_tests_properties("TOPP_FeatureFinderMultiplex_9_out1" PROPERTIES DEPENDS "TO
 add_test("TOPP_FeatureFinderMultiplex_9_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_18.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_9_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_9_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_9")
 
+add_test("TOPP_FeatureFinderMultiplex_10" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_10_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_10_parameters.ini -out FeatureFinderMultiplex_19.tmp -out_multiplets FeatureFinderMultiplex_20.tmp)
+add_test("TOPP_FeatureFinderMultiplex_10_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_19.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_10_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_10_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_10")
+add_test("TOPP_FeatureFinderMultiplex_10_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_20.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_10_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_10_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_10")
+
 #------------------------------------------------------------------------------
 # FileConverter tests
 add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_1_input.mzData -out FileConverter_1.tmp -out_type mzML)
@@ -2346,16 +2352,19 @@ add_test("UTILS_MultiplexResolver_1_out1" ${DIFF} -whitelist "id=" "href=" -in1 
 set_tests_properties("UTILS_MultiplexResolver_1_out1" PROPERTIES DEPENDS "UTILS_MultiplexResolver_1")
 add_test("UTILS_MultiplexResolver_1_out2" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_1_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_1_output_conflicts.consensusXML )
 set_tests_properties("UTILS_MultiplexResolver_1_out2" PROPERTIES DEPENDS "UTILS_MultiplexResolver_1")
+
 add_test("UTILS_MultiplexResolver_2" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_2_input.consensusXML -ini ${DATA_DIR_TOPP}/MultiplexResolver_2_parameters.ini -out MultiplexResolver_2.tmp -out_conflicts MultiplexResolver_2_conflicts.tmp)
 add_test("UTILS_MultiplexResolver_2_out1" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_2.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_2_output.consensusXML )
 set_tests_properties("UTILS_MultiplexResolver_2_out1" PROPERTIES DEPENDS "UTILS_MultiplexResolver_2")
 add_test("UTILS_MultiplexResolver_2_out2" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_2_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_2_output_conflicts.consensusXML )
 set_tests_properties("UTILS_MultiplexResolver_2_out2" PROPERTIES DEPENDS "UTILS_MultiplexResolver_2")
+
 add_test("UTILS_MultiplexResolver_3" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_3_input.consensusXML -ini ${DATA_DIR_TOPP}/MultiplexResolver_3_parameters.ini -out MultiplexResolver_3.tmp -out_conflicts MultiplexResolver_3_conflicts.tmp)
 add_test("UTILS_MultiplexResolver_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_3.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_3_output.consensusXML )
 set_tests_properties("UTILS_MultiplexResolver_3_out1" PROPERTIES DEPENDS "UTILS_MultiplexResolver_3")
 add_test("UTILS_MultiplexResolver_3_out3" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_3_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_3_output_conflicts.consensusXML )
 set_tests_properties("UTILS_MultiplexResolver_3_out3" PROPERTIES DEPENDS "UTILS_MultiplexResolver_3")
+
 add_test("UTILS_MultiplexResolver_4" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_4_input.consensusXML -in_blacklist ${DATA_DIR_TOPP}/MultiplexResolver_4_input.mzML -ini ${DATA_DIR_TOPP}/MultiplexResolver_4_parameters.ini -out MultiplexResolver_4.tmp -out_conflicts MultiplexResolver_4_conflicts.tmp)
 add_test("UTILS_MultiplexResolver_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_4.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_4_output.consensusXML )
 set_tests_properties("UTILS_MultiplexResolver_4_out1" PROPERTIES DEPENDS "UTILS_MultiplexResolver_4")
