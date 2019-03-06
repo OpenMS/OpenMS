@@ -222,8 +222,8 @@ START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTer
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"44.4\"/>";
-  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",String("44.4")),ref)
+  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"12.5\"/>";
+  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS", String("12.5")),ref)
 }
 END_SECTION
 
@@ -231,8 +231,8 @@ START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTer
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"44.4\"/>";
-  OpenMS::DataValue val = 44.4;
+  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"12.5\"/>";
+  OpenMS::DataValue val = 12.5;
   TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",val),ref)
 }
 END_SECTION

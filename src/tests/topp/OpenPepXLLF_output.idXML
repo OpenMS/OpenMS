@@ -20,7 +20,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="397"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-12-07T15:34:40" search_engine="OpenPepXL" search_engine_version="2.4.0-feature-OPXL-speedup-by-simplification-2018-12-07" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-02-11T12:52:01" search_engine="OpenPepXL" search_engine_version="2.4.0-fix-OPXL-decoy-metavalue-2019-02-11" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -81,6 +81,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="2078"/>
 				<UserParam type="string" name="accessions_beta" value="-"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="-"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.165161132813" RT="4618.08310000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=9435" >
@@ -137,6 +138,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="1539"/>
 				<UserParam type="string" name="accessions_beta" value="Protein1"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="182"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.297929420845218" sequence="LGCKALHVLFER" charge="4" aa_before="K" aa_after="V" start="178" end="189" protein_refs="PH_0" >
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9435"/>
@@ -185,6 +187,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="1539"/>
 				<UserParam type="string" name="accessions_beta" value="Protein1"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="182"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.72900390625" RT="4706.7912" spectrum_reference="controllerType=0 controllerNumber=1 scan=9705" >
@@ -240,6 +243,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="825"/>
 				<UserParam type="string" name="accessions_beta" value="-"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="-"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

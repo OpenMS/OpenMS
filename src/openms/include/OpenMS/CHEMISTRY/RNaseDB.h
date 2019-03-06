@@ -47,7 +47,7 @@ namespace OpenMS
 
     @brief Database for enzymes that digest RNA (RNases)
 
-    The enzymes stored in this DB are defined in an XML file under share/CHEMISTRY/Enzymes_RNA.xml.
+    The enzymes stored in this DB are defined in an XML file under "share/CHEMISTRY/Enzymes_RNA.xml".
   */
   class OPENMS_DLLAPI RNaseDB: public DigestionEnzymeDB<DigestionEnzymeRNA, RNaseDB>
   {

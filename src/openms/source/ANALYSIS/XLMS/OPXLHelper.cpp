@@ -1011,10 +1011,6 @@ namespace OpenMS
       // remove leading "," of first position
       prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
       ph_alpha.setMetaValue("XL_Protein_position_alpha", prot1_pos);
-      if (String(ph_alpha.getMetaValue("target_decoy")).hasSubstring("decoy"))
-      {
-        ph_alpha.setMetaValue("xl_target_decoy", "decoy");
-      }
 
       // cross-link position in Protein (beta)
       if (id.getHits().size() == 2)
@@ -1040,7 +1036,15 @@ namespace OpenMS
         prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
         ph_alpha.setMetaValue("accessions_beta", prot2_accessions);
         ph_beta.setMetaValue("accessions_beta", prot2_accessions);
-        if (String(ph_beta.getMetaValue("target_decoy")).hasSubstring("decoy"))
+
+        if (String(ph_alpha.getMetaValue("target_decoy")).hasSubstring("target") &&
+              String(ph_beta.getMetaValue("target_decoy")).hasSubstring("target")) // "target" and "target+decoy" will be treated as "target"
+        {
+          // if both alpha's and beta's accession lists contain at least one target each, the cross-link will be treated as a target
+          ph_alpha.setMetaValue("xl_target_decoy", "target");
+          ph_beta.setMetaValue("xl_target_decoy", "target");
+        }
+        else // if at least one of the two accession lists only contains decoys, the cross-link will be treated as a decoy
         {
           ph_alpha.setMetaValue("xl_target_decoy", "decoy");
           ph_beta.setMetaValue("xl_target_decoy", "decoy");
@@ -1066,6 +1070,15 @@ namespace OpenMS
         else
         {
           ph_alpha.setMetaValue("XL_Protein_position_beta", "-");
+        }
+
+        if (String(ph_alpha.getMetaValue("target_decoy")).hasSubstring("target")) // "target" and "target+decoy" will be treated as "target"
+        {
+          ph_alpha.setMetaValue("xl_target_decoy", "target");
+        }
+        else
+        {
+          ph_alpha.setMetaValue("xl_target_decoy", "decoy");
         }
       }
     }

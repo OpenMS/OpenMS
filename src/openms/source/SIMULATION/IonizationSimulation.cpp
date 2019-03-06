@@ -216,7 +216,7 @@ namespace OpenMS
       if (components.size() != 2)
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got invalid esi:charge_impurity (") + esi_charge_impurity[i] + ") with " + components.size() + " components instead of 2.");
       // determine charge of adduct (by # of '+')
-      Size l_charge = components[0].size();
+      Size l_charge = components[0].size(); //FIXME only works for + charge
       l_charge -= components[0].remove('+').size();
       EmpiricalFormula ef(components[0].remove('+'));
       // effectively subtract electrons

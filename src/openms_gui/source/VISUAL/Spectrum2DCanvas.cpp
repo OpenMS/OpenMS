@@ -941,8 +941,12 @@ namespace OpenMS
         else
         {
           sequence = pep_begin->getHits()[0].getSequence().toString();
-          if (pep_begin->getHits().size() > 1) sequence += "...";
         }
+        if (sequence.empty() && !pep_begin->getHits().empty())
+        {
+          sequence = pep_begin->getHits()[0].getMetaValue("label");
+        }
+        if (pep_begin->getHits().size() > 1) sequence += "...";
         painter.drawText(pos.x() + 10.0, pos.y() + 10.0, sequence.toQString());
       }
     }

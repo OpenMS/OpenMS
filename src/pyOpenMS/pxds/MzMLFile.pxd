@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
 
         # COMMENT: store/load XML structure to/from a string
         void storeBuffer(String & output, MSExperiment exp) nogil except +
-        void loadBuffer(libcpp_string output, MSExperiment & exp) nogil except +
+        void loadBuffer(const String& input, MSExperiment & exp) nogil except +
 
         void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *) nogil except + # wrap-ignore
         void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *,

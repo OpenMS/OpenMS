@@ -196,6 +196,20 @@ START_SECTION(computeScore_())
     {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
   });
   TEST_REAL_SIMILAR(score, 0.10427624775717449)
+
+  // Checks for bad input
+  feature.setMetaValue("sn_ratio", 0.0);
+  feature.setMetaValue("peak_apices_sum", 0.0);
+  feature.setMetaValue("var_xcorr_coelution", -1.0);
+
+  score = selector.computeScore_(feature, { {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE} });
+  TEST_REAL_SIMILAR(score, 1.0)
+
+  score = selector.computeScore_(feature, { {"peak_apices_sum", MRMFeatureSelector::LambdaScore::LOG} });
+  TEST_REAL_SIMILAR(score, 1.0)
+
+  score = selector.computeScore_(feature, { {"var_xcorr_coelution", MRMFeatureSelector::LambdaScore::LOG} });
+  TEST_REAL_SIMILAR(score, 1.0)
 }
 END_SECTION
 

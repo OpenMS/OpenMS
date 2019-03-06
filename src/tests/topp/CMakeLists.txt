@@ -224,13 +224,13 @@ set_tests_properties("TOPP_Decharger_1_out1" PROPERTIES DEPENDS "TOPP_Decharger_
 #------------------------------------------------------------------------------
 # DTAExtractor tests
 add_test("TOPP_DTAExtractor_1" ${TOPP_BIN_PATH}/DTAExtractor -test -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out DTAExtractor -rt :61)
-add_test("TOPP_DTAExtractor_1_out1" ${DIFF} -in1 DTAExtractor_RT60.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_1_output.dta )
+add_test("TOPP_DTAExtractor_1_out1" ${DIFF} -in1 DTAExtractor_RT60.0.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_1_output.dta )
 set_tests_properties("TOPP_DTAExtractor_1_out1" PROPERTIES DEPENDS "TOPP_DTAExtractor_1")
 add_test("TOPP_DTAExtractor_2" ${TOPP_BIN_PATH}/DTAExtractor -test -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out DTAExtractor -level 1)
-add_test("TOPP_DTAExtractor_2_out1" ${DIFF} -in1 DTAExtractor_RT60.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_2_output.dta )
+add_test("TOPP_DTAExtractor_2_out1" ${DIFF} -in1 DTAExtractor_RT60.0.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_2_output.dta )
 set_tests_properties("TOPP_DTAExtractor_2_out1" PROPERTIES DEPENDS "TOPP_DTAExtractor_2")
 add_test("TOPP_DTAExtractor_3" ${TOPP_BIN_PATH}/DTAExtractor -test -in ${DATA_DIR_TOPP}/DTAExtractor_1_input.mzML -out DTAExtractor -level 2 -mz :1000)
-add_test("TOPP_DTAExtractor_3_out1" ${DIFF} -in1 DTAExtractor_RT140_MZ5.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_3_output.dta )
+add_test("TOPP_DTAExtractor_3_out1" ${DIFF} -in1 DTAExtractor_RT140.0_MZ5.0.dta -in2 ${DATA_DIR_TOPP}/DTAExtractor_3_output.dta )
 set_tests_properties("TOPP_DTAExtractor_3_out1" PROPERTIES DEPENDS "TOPP_DTAExtractor_3")
 
 #------------------------------------------------------------------------------
@@ -1523,6 +1523,15 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_17_cache_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_cache")
   set_tests_properties("TOPP_OpenSwathWorkflow_17_cache_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_cache")
 
+  # Test with ion mobility and the SQLite workflow
+  add_test("TOPP_OpenSwathWorkflow_17_b_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out OpenSwathWorkflow_17_input.pqp.tmp -out_type pqp)
+  add_test("TOPP_OpenSwathWorkflow_17_b" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr_type pqp -tr OpenSwathWorkflow_17_input.pqp.tmp -out_chrom OpenSwathWorkflow_17_b.chrom.mzML.tmp -out_features OpenSwathWorkflow_17_b.featureXML.tmp -test -use_ms1_traces -readOptions workingInMemory -ion_mobility_window 0.05 -use_ms1_ion_mobility "false")
+  add_test("TOPP_OpenSwathWorkflow_17_b_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17_b.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_b_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_17_b_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17_b.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_b_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_b" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_b_prepare")
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_b_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_b")
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_b_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_b")
+
   add_test("TOPP_OpenSwathFileSplitter_1" ${TOPP_BIN_PATH}/OpenSwathFileSplitter -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -outputDirectory ""  -out_qc OpenSwathFileSplitter_1.json.tmp -test)
   add_test("TOPP_OpenSwathFileSplitter_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_1_input_ms1.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_ms1.mzML)
   add_test("TOPP_OpenSwathFileSplitter_1_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_1_input_4.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_4.mzML)
@@ -2386,6 +2395,11 @@ set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_Decoy
 add_test("UTILS_DecoyDatabase_3" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_3.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -method shuffle -Decoy:non_shuffle_pattern "KR" -seed 42 -enzyme "Chymotrypsin")
 add_test("UTILS_DecoyDatabase_3_out" ${DIFF} -in1 DecoyDatabase_3.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_3_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_3_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_3")
+add_test("UTILS_DecoyDatabase_4" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out DecoyDatabase_4.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -method reverse -seed 42 )
+add_test("UTILS_DecoyDatabase_4_out" ${DIFF} -in1 DecoyDatabase_4.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_4_out.fasta )
+set_tests_properties("UTILS_DecoyDatabase_4_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_4")
+
+
 
 # SimpleSearchEngine:
 add_test("UTILS_SimpleSearchEngine_1" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
@@ -2498,3 +2512,20 @@ set_tests_properties("UTILS_XFDR_5_out53" PROPERTIES DEPENDS "UTILS_XFDR_5")
 add_test("UTILS_XFDR_6" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in4.idXML -out_idXML XFDR_test_out6_temp.idXML)
 add_test("UTILS_XFDR_6_out6" ${DIFF} -whitelist "date=" -in1 XFDR_test_out6_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out6.idXML)
 set_tests_properties("UTILS_XFDR_6_out6" PROPERTIES DEPENDS "UTILS_XFDR_6")
+
+#------------------------------------------------------------------------------
+# NucleicAcidSearchEngine:
+add_test("UTILS_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test
+-ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in
+${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp
+-database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
+add_test("UTILS_NucleicAcidSearchEngine_11_out" ${DIFF} -in1 NucleicAcidSearchEngine_11_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("UTILS_NucleicAcidSearchEngine_12_out" ${DIFF} -in1 NucleicAcidSearchEngine_12_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
+set_tests_properties("UTILS_NucleicAcidSearchEngine_11_out" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_1")
+set_tests_properties("UTILS_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_1")
+
+#------------------------------------------------------------------------------
+# RNAMassCalculator:
+add_test("UTILS_RNAMassCalculator_1" ${TOPP_BIN_PATH}/RNAMassCalculator -test -in_seq "AUCGGC" -charge -1 -2 -out RNAMassCalculator.tmp)
+add_test("UTILS_RNAMassCalculator_1_out" ${DIFF} -in1 RNAMassCalculator.tmp -in2 ${DATA_DIR_TOPP}/RNAMassCalculator_1.txt)
+set_tests_properties("UTILS_RNAMassCalculator_1_out" PROPERTIES DEPENDS "UTILS_RNAMassCalculator_1")

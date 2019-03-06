@@ -414,30 +414,25 @@ namespace OpenMS
   }
 
 
-  String StopWatch::toString(double time)
+  String StopWatch::toString(const double time)
   {
-    int d(0), h(0), m(0);
-    double s(0), s_single(0);
+    int d(0), h(0), m(0), s(0);
 
     TimeType time_i = (TimeType) time; // trunc to integer
 
     // compute days
     d = int(time_i / (3600*24));
     time_i -= d*(3600*24);
-    time -= d*(3600*24);
 
     // hours
     h = int(time_i / 3600);
     time_i -= h*3600;
-    time -= h*3600;
 
     // minutes
     m = int(time_i / 60);
     time_i -= m*60;
-    time -= m*60;
 
-    s_single = time;
-    s = (double) time_i;
+    s = int(time_i);
 
 
     String s_d = String(d);
@@ -445,12 +440,10 @@ namespace OpenMS
     String s_m = String(m).fillLeft('0', 2) + ":";
     String s_s = String(s).fillLeft('0', 2); // if we show seconds in combination with minutes, we round to nominal 
 
-    String s_s_single = String::number(s_single, 2); // second (shown by itself with no minutes) has two digits after decimal
-
     return ( (d>0 ? s_d + "d " + s_h + s_m + s_s + " h" :
              (h>0 ?              s_h + s_m + s_s + " h" :
              (m>0 ?                    s_m + s_s + " m" :
-             (                        s_s_single + " s")))));
+             (      String::number(time, 2) + " s"))))); // second (shown by itself with no minutes) has two digits after decimal
 
   }
 

@@ -38,10 +38,13 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
+
 
 namespace OpenMS
 {
   class AASequence;
+  class NASequence;
 
   /**
       @brief Generates theoretical spectra with various options
@@ -60,7 +63,7 @@ namespace OpenMS
       Something similar to the neutral loss precalculation used in TheoreticalSpectrumGeneratorXLMS
       should be implemented here as well.
 
-  @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
+      @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
 
       @ingroup Chemistry
   */
@@ -76,20 +79,24 @@ namespace OpenMS
     TheoreticalSpectrumGenerator();
 
     /// copy constructor
-    TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator & source);
+    TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source);
 
     /// destructor
     ~TheoreticalSpectrumGenerator() override;
     //@}
 
     /// assignment operator
-    TheoreticalSpectrumGenerator & operator=(const TheoreticalSpectrumGenerator & tsg);
+    TheoreticalSpectrumGenerator& operator=(const TheoreticalSpectrumGenerator& tsg);
 
     /** @name Acessors
      */
     //@{
     /// returns a spectrum with the ion types, that are set in the tool parameters
-    virtual void getSpectrum(PeakSpectrum & spec, const AASequence & peptide, Int min_charge, Int max_charge) const;
+    virtual void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge, Int max_charge) const;
+
+    /// returns a spectrum with the ion types, that are set in the tool parameters
+    virtual void getSpectrum(PeakSpectrum& spec, const NASequence& nucleotide, Int min_charge, Int max_charge) const;
+
 
     /// overwrite
     void updateMembers_() override;
@@ -98,19 +105,41 @@ namespace OpenMS
 
     protected:
       /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-      virtual void addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge = 1) const;
+      virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge = 1) const;
+
+      /// adds peaks to a spectrum of the given ion-type, nucleotide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+      virtual void addPeaks_(PeakSpectrum& spectrum, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, NASequence::NASFragmentType res_type, Int charge = 1) const;
 
       /// adds the precursor peaks to the spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-      virtual void addPrecursorPeaks_(PeakSpectrum & spec, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
+      virtual void addPrecursorPeaks_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
+
+      /// adds the precursor peaks to the spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true //TODO check that this works now
+      virtual void addPrecursorPeaks_(PeakSpectrum& spec, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
 
       /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-      void addAbundantImmoniumIons_(PeakSpectrum & spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
+      void addAbundantImmoniumIons_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
+
+      /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true //TODO check tht this works
+      //void addAbundantImmoniumIons_(PeakSpectrum & spec, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
+      //We don't support Immonium ions in Nuc mode
 
       /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-      void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
+      void addIsotopeCluster_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
+
+      /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true //TODO test this
+      void addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, NASequence::NASFragmentType res_type, Int charge, double intensity) const;
+
+      /// helper for mapping residue type to letter
+      static char residueTypeToIonLetter_(Residue::ResidueType res_type);
+
+      /// helper for mapping nucleotide type to code
+      static String ribonucleotideTypeToIonCode_(NASequence::NASFragmentType type, Size num = 0);
 
       /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-      void addLosses_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
+      void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
+
+       /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true //TODO test this
+      void addLosses_(PeakSpectrum& spectrum, const NASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
 
       bool add_b_ions_;
       bool add_y_ions_;
@@ -118,6 +147,9 @@ namespace OpenMS
       bool add_c_ions_;
       bool add_x_ions_;
       bool add_z_ions_;
+      bool add_d_ions_;
+      bool add_w_ions_;
+      bool add_aB_ions_;
       bool add_first_prefix_ion_;
       bool add_losses_;
       bool add_metainfo_;
@@ -131,6 +163,10 @@ namespace OpenMS
       double x_intensity_;
       double y_intensity_;
       double z_intensity_;
+      double d_intensity_;
+      double w_intensity_;
+      double aB_intensity_;
+
       Int max_isotope_;
       double rel_loss_intensity_;
       double pre_int_;

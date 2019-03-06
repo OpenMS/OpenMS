@@ -558,7 +558,7 @@ protected:
          // MzTabString uri; // Location of the protein’s source entry.
          // MzTabStringList go_terms; // List of GO terms for the protein.
             double coverage = hit.getCoverage();
-            protein_row.protein_coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
+            protein_row.coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
          // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
 
             // create and fill opt_ columns for protein hit user values
