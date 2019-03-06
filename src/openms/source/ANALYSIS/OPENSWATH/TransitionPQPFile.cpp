@@ -93,6 +93,19 @@ namespace OpenMS
       select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";
     }
 
+    String select_gene = "";
+    String select_gene_null = "";
+    String join_gene = "";
+    bool gene_exists = SqliteConnector::tableExists(db, "GENE");
+    if (gene_exists)
+    {
+      select_gene = ", GENE.GENE_NAME AS gene_name ";
+      select_gene_null = ", 'NA' AS gene_name ";
+      join_gene = "LEFT JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
+                  "LEFT JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
+    }
+
+
     // Get peptides
     select_sql = "SELECT " \
                   "PRECURSOR.PRECURSOR_MZ AS precursor, " \
@@ -123,8 +136,10 @@ namespace OpenMS
                   "TRANSITION.IDENTIFYING AS identifying_transition, " \
                   "TRANSITION.QUANTIFYING AS quantifying_transition, " \
                   "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms " + \
-                  select_drift_time +
-                  "FROM PRECURSOR " \
+                  select_drift_time + \
+                  select_gene + \
+                  "FROM PRECURSOR " + \
+                  join_gene + \
                   "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
                   "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " \
@@ -173,6 +188,7 @@ namespace OpenMS
                   "TRANSITION.QUANTIFYING AS quantifying_transition, " \
                   "NULL AS peptidoforms " +
                   select_drift_time +
+                  select_gene_null +
                   "FROM PRECURSOR " \
                   "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
@@ -225,6 +241,9 @@ namespace OpenMS
       }
       // optional attributes only present in newer file versions
       if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 28);
+      if (gene_exists) Sql::extractValue<std::string>(&mytransition.GeneName, stmt, 29);
+
+      if (mytransition.GeneName == "NA") mytransition.GeneName = "";
 
       transition_list.push_back(mytransition);
       sqlite3_step( stmt );
@@ -246,6 +265,19 @@ namespace OpenMS
     const char* create_sql =
       "CREATE TABLE VERSION(" \
       "ID INT NOT NULL);" \
+
+      // gene table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE GENE(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "GENE_NAME TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // peptide_gene_mapping table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PEPTIDE_GENE_MAPPING(" \
+      "PEPTIDE_ID INT NOT NULL," \
+      "GENE_ID INT NOT NULL);" \
 
       // protein table
       // OpenSWATH proteomics workflows
@@ -333,7 +365,7 @@ namespace OpenMS
 
     // Index maps
     std::vector<std::string> group_vec, peptide_vec, compound_vec, protein_vec;
-    std::map<std::string, int > group_map, peptide_map, compound_map, protein_map;
+    std::map<std::string, int > group_map, peptide_map, compound_map, protein_map, gene_map;
     std::map<int,double> precursor_mz_map;
     std::map<int,bool> precursor_decoy_map;
 
@@ -447,6 +479,7 @@ namespace OpenMS
     std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
     insert_precursor_sql.precision(11);
     std::vector<std::pair<int, int> > peptide_protein_map;
+    std::vector<std::pair<int, int> > peptide_gene_map;
 
     // OpenSWATH: Prepare peptide precursor inserts
     for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
@@ -456,10 +489,19 @@ namespace OpenMS
       int group_set_index = group_map[peptide.id];
       int peptide_set_index = peptide_map[peptide_sequence];
 
-      for (std::vector<String>::iterator it = peptide.protein_refs.begin(); it != peptide.protein_refs.end(); ++it)
+      for (const auto& it : peptide.protein_refs)
       {
-        peptide_protein_map.push_back(std::make_pair(peptide_set_index,protein_map[*it]));
+        peptide_protein_map.emplace_back(peptide_set_index, protein_map[it]);
       }
+
+      String gene_name = "NA";
+      if (peptide.metaValueExists("GeneName"))
+      {
+        gene_name = peptide.getMetaValue("GeneName");
+      }
+      
+      if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = gene_map.size();
+      peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
 
       insert_precursor_sql <<
         "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
@@ -506,6 +548,23 @@ namespace OpenMS
     }
 
     boost::erase(peptide_protein_map, boost::unique<boost::return_found_end>(boost::sort(peptide_protein_map)));
+    boost::erase(peptide_gene_map, boost::unique<boost::return_found_end>(boost::sort(peptide_gene_map)));
+
+    // OpenSWATH: Prepare peptide-gene mapping inserts
+    std::stringstream insert_peptide_gene_mapping;
+    for (const auto& it : peptide_gene_map)
+    {
+      insert_peptide_gene_mapping << "INSERT INTO PEPTIDE_GENE_MAPPING (PEPTIDE_ID, GENE_ID) VALUES (" <<
+        it.first << "," << it.second << "); ";
+    }
+    // OpenSWATH: Prepare gene inserts
+    std::stringstream insert_gene_sql;
+    for (const auto& it : gene_map)
+    {
+      insert_gene_sql << "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (" <<
+        it.second << ",'" << it.first << "'," << 0 << "); ";
+    }
+
     // OpenSWATH: Prepare peptide-protein mapping inserts
     std::stringstream insert_peptide_protein_mapping;
     for (const auto& it : peptide_protein_map)
@@ -559,16 +618,23 @@ namespace OpenMS
     // Proteins
     update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " << 
       "(SELECT PROTEIN.ID FROM PEPTIDE " <<
-      " JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
+      "JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
       "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
+    // Genes
+    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " << 
+      "(SELECT GENE.ID FROM PEPTIDE " <<
+      "JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " <<
+      "JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID WHERE PEPTIDE.DECOY = 1); ";
 
     conn.executeStatement("BEGIN TRANSACTION");
 
     // Execute SQL insert statement
-    String insert_version = "INSERT INTO VERSION (ID) VALUES (2);";
+    String insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
     conn.executeStatement(insert_version);
     conn.executeStatement(insert_protein_sql);
     conn.executeStatement(insert_peptide_protein_mapping);
+    conn.executeStatement(insert_gene_sql);
+    conn.executeStatement(insert_peptide_gene_mapping);
     conn.executeStatement(insert_peptide_sql);
     conn.executeStatement(insert_compound_sql);
     conn.executeStatement(insert_precursor_peptide_mapping);

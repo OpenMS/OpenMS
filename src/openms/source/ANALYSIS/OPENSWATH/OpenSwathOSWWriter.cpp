@@ -153,7 +153,8 @@ namespace OpenMS
     // Insert run_id information
     std::stringstream sql_run;
     sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
-            << *(int64_t*)&run_id_ << ", '" // Conversion from UInt64 to int64_t to support SQLite
+            // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
+            <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", '"
             << input_filename_ << "'); ";
 
     // Execute SQL insert statement
@@ -196,55 +197,57 @@ namespace OpenMS
   }
 
   String OpenSwathOSWWriter::prepareLine(const OpenSwath::LightCompound& /* pep */,
-      const OpenSwath::LightTransition* /* transition */,
-      FeatureMap& output, String id) const
+                                         const OpenSwath::LightTransition* /* transition */,
+                                         FeatureMap& output,
+                                         String id) const
   {
     std::stringstream sql, sql_feature, sql_feature_ms1, sql_feature_ms1_precursor, sql_feature_ms2, sql_feature_ms2_transition, sql_feature_uis_transition;
 
-    for (FeatureMap::iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
+    for (const auto& feature_it : output)
     {
-      UInt64 uint64_feature_id = feature_it->getUniqueId();
-      int64_t feature_id = *(int64_t*)&uint64_feature_id; // Conversion from UInt64 to int64_t to support SQLite
+      UInt64 uint64_feature_id = feature_it.getUniqueId();
+      int64_t feature_id = static_cast<int64_t >(uint64_feature_id & ~(1UL << 63)); // clear sign bit
 
-      for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
+      for (const auto& sub_it : feature_it.getSubordinates())
       {
-        if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
+        if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
         {
           std::string total_mi = "NULL"; // total_mi is not guaranteed to be set
-          if (!sub_it->getMetaValue("total_mi").isEmpty())
+          if (!sub_it.getMetaValue("total_mi").isEmpty())
           {
-            total_mi = sub_it->getMetaValue("total_mi").toString();
+            total_mi = sub_it.getMetaValue("total_mi").toString();
           }
           sql_feature_ms2_transition  << "INSERT INTO FEATURE_TRANSITION "\
             "(FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI) VALUES ("
-                                      << feature_id << ", " 
-                                      << sub_it->getMetaValue("native_id") << ", " 
-                                      << sub_it->getIntensity() << ", " 
-                                      << sub_it->getMetaValue("total_xic") << ", " 
-                                      << sub_it->getMetaValue("peak_apex_int") << ", " 
+                                      << feature_id << ", "
+                                      << sub_it.getMetaValue("native_id") << ", "
+                                      << sub_it.getIntensity() << ", "
+                                      << sub_it.getMetaValue("total_xic") << ", "
+                                      << sub_it.getMetaValue("peak_apex_int") << ", "
                                       << total_mi << "); ";
         }
-        else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1" && sub_it->getIntensity() > 0.0)
+        else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
         {
           std::vector<String> precursor_id;
-          OpenMS::String(sub_it->getMetaValue("native_id")).split(OpenMS::String("Precursor_i"), precursor_id);
-          sql_feature_ms1_precursor  << "INSERT INTO FEATURE_PRECURSOR (FEATURE_ID, ISOTOPE, AREA_INTENSITY, APEX_INTENSITY) VALUES (" 
-                                      << feature_id << ", " 
-                                      << precursor_id[1] << ", " 
-                                      << sub_it->getIntensity() << ", " 
-                                      << sub_it->getMetaValue("peak_apex_int") << "); ";
+          OpenMS::String(sub_it.getMetaValue("native_id")).split(OpenMS::String("Precursor_i"), precursor_id);
+          sql_feature_ms1_precursor  << "INSERT INTO FEATURE_PRECURSOR (FEATURE_ID, ISOTOPE, AREA_INTENSITY, APEX_INTENSITY) VALUES ("
+                                      << feature_id << ", "
+                                      << precursor_id[1] << ", "
+                                      << sub_it.getIntensity() << ", "
+                                      << sub_it.getMetaValue("peak_apex_int") << "); ";
         }
       }
 
-      sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES (" 
-                  << feature_id << ", '" 
-                  << *(int64_t*)&run_id_ << "', " 
-                  << id << ", " 
-                  << feature_it->getRT() << ", " 
-                  << feature_it->getMetaValue("norm_RT") << ", " 
-                  << feature_it->getMetaValue("delta_rt") << ", " 
-                  << feature_it->getMetaValue("leftWidth") << ", " 
-                  << feature_it->getMetaValue("rightWidth") << "); ";
+      sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES ("
+                  << feature_id << ", "
+                  // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
+                  <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", "
+                  << id << ", "
+                  << feature_it.getRT() << ", "
+                  << feature_it.getMetaValue("norm_RT") << ", "
+                  << feature_it.getMetaValue("delta_rt") << ", "
+                  << feature_it.getMetaValue("leftWidth") << ", "
+                  << feature_it.getMetaValue("rightWidth") << "); ";
 
       sql_feature_ms2 << "INSERT INTO FEATURE_MS2 " \
         "(FEATURE_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, "\
@@ -257,42 +260,42 @@ namespace OpenMS
         "VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, "\
         "VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ "\
         ") VALUES ("
-                      << feature_id << ", " 
-                      << feature_it->getIntensity() << ", " 
-                      << getScore(*feature_it, "total_xic") << ", " 
-                      << getScore(*feature_it, "peak_apices_sum") << ", " 
-                      << getScore(*feature_it, "total_mi") << ", " 
-                      << getScore(*feature_it, "var_bseries_score") << ", " 
-                      << getScore(*feature_it, "var_dotprod_score") << ", " 
-                      << getScore(*feature_it, "var_intensity_score") << ", " 
-                      << getScore(*feature_it, "var_isotope_correlation_score") << ", " 
-                      << getScore(*feature_it, "var_isotope_overlap_score") << ", " 
-                      << getScore(*feature_it, "var_library_corr") << ", " 
-                      << getScore(*feature_it, "var_library_dotprod") << ", " 
-                      << getScore(*feature_it, "var_library_manhattan") << ", " 
-                      << getScore(*feature_it, "var_library_rmsd") << ", " 
-                      << getScore(*feature_it, "var_library_rootmeansquare") << ", " 
-                      << getScore(*feature_it, "var_library_sangle") << ", " 
-                      << getScore(*feature_it, "var_log_sn_score") << ", " 
-                      << getScore(*feature_it, "var_manhatt_score") << ", " 
-                      << getScore(*feature_it, "var_massdev_score") << ", " 
-                      << getScore(*feature_it, "var_massdev_score_weighted") << ", " 
-                      << getScore(*feature_it, "var_mi_score") << ", " 
-                      << getScore(*feature_it, "var_mi_weighted_score") << ", " 
-                      << getScore(*feature_it, "var_mi_ratio_score") << ", " 
-                      << getScore(*feature_it, "var_norm_rt_score") << ", " 
-                      << getScore(*feature_it, "var_xcorr_coelution") << ", " 
-                      << getScore(*feature_it, "var_xcorr_coelution_weighted") << ", " 
-                      << getScore(*feature_it, "var_xcorr_shape") << ", " 
-                      << getScore(*feature_it, "var_xcorr_shape_weighted") << ", " 
-                      << getScore(*feature_it, "var_yseries_score") << ", " 
-                      << getScore(*feature_it, "var_elution_model_fit_score") << ", " 
-                      << getScore(*feature_it, "var_sonar_lag") << ", "
-                      << getScore(*feature_it, "var_sonar_shape") << ", " 
-                      << getScore(*feature_it, "var_sonar_log_sn") << ", " 
-                      << getScore(*feature_it, "var_sonar_log_diff") << ", " 
-                      << getScore(*feature_it, "var_sonar_log_trend") << ", " 
-                      << getScore(*feature_it, "var_sonar_rsq") << "); ";
+                      << feature_id << ", "
+                      << feature_it.getIntensity() << ", "
+                      << getScore(feature_it, "total_xic") << ", "
+                      << getScore(feature_it, "peak_apices_sum") << ", "
+                      << getScore(feature_it, "total_mi") << ", "
+                      << getScore(feature_it, "var_bseries_score") << ", "
+                      << getScore(feature_it, "var_dotprod_score") << ", "
+                      << getScore(feature_it, "var_intensity_score") << ", "
+                      << getScore(feature_it, "var_isotope_correlation_score") << ", "
+                      << getScore(feature_it, "var_isotope_overlap_score") << ", "
+                      << getScore(feature_it, "var_library_corr") << ", "
+                      << getScore(feature_it, "var_library_dotprod") << ", "
+                      << getScore(feature_it, "var_library_manhattan") << ", "
+                      << getScore(feature_it, "var_library_rmsd") << ", "
+                      << getScore(feature_it, "var_library_rootmeansquare") << ", "
+                      << getScore(feature_it, "var_library_sangle") << ", "
+                      << getScore(feature_it, "var_log_sn_score") << ", "
+                      << getScore(feature_it, "var_manhatt_score") << ", "
+                      << getScore(feature_it, "var_massdev_score") << ", "
+                      << getScore(feature_it, "var_massdev_score_weighted") << ", "
+                      << getScore(feature_it, "var_mi_score") << ", "
+                      << getScore(feature_it, "var_mi_weighted_score") << ", "
+                      << getScore(feature_it, "var_mi_ratio_score") << ", "
+                      << getScore(feature_it, "var_norm_rt_score") << ", "
+                      << getScore(feature_it, "var_xcorr_coelution") << ", "
+                      << getScore(feature_it, "var_xcorr_coelution_weighted") << ", "
+                      << getScore(feature_it, "var_xcorr_shape") << ", "
+                      << getScore(feature_it, "var_xcorr_shape_weighted") << ", "
+                      << getScore(feature_it, "var_yseries_score") << ", "
+                      << getScore(feature_it, "var_elution_model_fit_score") << ", "
+                      << getScore(feature_it, "var_sonar_lag") << ", "
+                      << getScore(feature_it, "var_sonar_shape") << ", "
+                      << getScore(feature_it, "var_sonar_log_sn") << ", "
+                      << getScore(feature_it, "var_sonar_log_diff") << ", "
+                      << getScore(feature_it, "var_sonar_log_trend") << ", "
+                      << getScore(feature_it, "var_sonar_rsq") << "); ";
 
       if (use_ms1_traces_)
       {
@@ -302,45 +305,45 @@ namespace OpenMS
           " VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_COELUTION_CONTRAST, "\
           " VAR_XCORR_COELUTION_COMBINED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_CONTRAST, VAR_XCORR_SHAPE_COMBINED "\
           ") VALUES ("
-                        << feature_id << ", " 
-                        << getScore(*feature_it, "ms1_area_intensity") << ", " 
-                        << getScore(*feature_it, "ms1_apex_intensity") << ", " 
-                        << getScore(*feature_it, "var_ms1_ppm_diff") << ", " 
-                        << getScore(*feature_it, "var_ms1_mi_score") << ", " 
-                        << getScore(*feature_it, "var_ms1_mi_contrast_score") << ", " 
-                        << getScore(*feature_it, "var_ms1_mi_combined_score") << ", " 
-                        << getScore(*feature_it, "var_ms1_isotope_correlation") << ", " 
-                        << getScore(*feature_it, "var_ms1_isotope_overlap") << ", " 
-                        << getScore(*feature_it, "var_ms1_xcorr_coelution") << ", " 
-                        << getScore(*feature_it, "var_ms1_xcorr_coelution_contrast") << ", " 
-                        << getScore(*feature_it, "var_ms1_xcorr_coelution_combined") << ", " 
-                        << getScore(*feature_it, "var_ms1_xcorr_shape") << ", " 
-                        << getScore(*feature_it, "var_ms1_xcorr_shape_contrast") << ", " 
-                        << getScore(*feature_it, "var_ms1_xcorr_shape_combined") << "); ";
+                        << feature_id << ", "
+                        << getScore(feature_it, "ms1_area_intensity") << ", "
+                        << getScore(feature_it, "ms1_apex_intensity") << ", "
+                        << getScore(feature_it, "var_ms1_ppm_diff") << ", "
+                        << getScore(feature_it, "var_ms1_mi_score") << ", "
+                        << getScore(feature_it, "var_ms1_mi_contrast_score") << ", "
+                        << getScore(feature_it, "var_ms1_mi_combined_score") << ", "
+                        << getScore(feature_it, "var_ms1_isotope_correlation") << ", "
+                        << getScore(feature_it, "var_ms1_isotope_overlap") << ", "
+                        << getScore(feature_it, "var_ms1_xcorr_coelution") << ", "
+                        << getScore(feature_it, "var_ms1_xcorr_coelution_contrast") << ", "
+                        << getScore(feature_it, "var_ms1_xcorr_coelution_combined") << ", "
+                        << getScore(feature_it, "var_ms1_xcorr_shape") << ", "
+                        << getScore(feature_it, "var_ms1_xcorr_shape_contrast") << ", "
+                        << getScore(feature_it, "var_ms1_xcorr_shape_combined") << "); ";
       }
 
       if (enable_uis_scoring_)
       {
-        std::vector<String> id_target_transition_names = getSeparateScore(*feature_it, "id_target_transition_names");
-        std::vector<String> id_target_area_intensity = getSeparateScore(*feature_it, "id_target_area_intensity");
-        std::vector<String> id_target_total_area_intensity = getSeparateScore(*feature_it, "id_target_total_area_intensity");
-        std::vector<String> id_target_apex_intensity = getSeparateScore(*feature_it, "id_target_apex_intensity");
-        std::vector<String> id_target_total_mi = getSeparateScore(*feature_it, "id_target_apex_intensity");
-        std::vector<String> id_target_intensity_score = getSeparateScore(*feature_it, "id_target_intensity_score");
-        std::vector<String> id_target_intensity_ratio_score = getSeparateScore(*feature_it, "id_target_intensity_ratio_score");
-        std::vector<String> id_target_log_intensity = getSeparateScore(*feature_it, "id_target_ind_log_intensity");
-        std::vector<String> id_target_ind_xcorr_coelution = getSeparateScore(*feature_it, "id_target_ind_xcorr_coelution");
-        std::vector<String> id_target_ind_xcorr_shape = getSeparateScore(*feature_it, "id_target_ind_xcorr_shape");
-        std::vector<String> id_target_ind_log_sn_score = getSeparateScore(*feature_it, "id_target_ind_log_sn_score");
-        std::vector<String> id_target_ind_massdev_score = getSeparateScore(*feature_it, "id_target_ind_massdev_score");
-        std::vector<String> id_target_ind_mi_score = getSeparateScore(*feature_it, "id_target_ind_mi_score");
-        std::vector<String> id_target_ind_mi_ratio_score = getSeparateScore(*feature_it, "id_target_ind_mi_ratio_score");
-        std::vector<String> id_target_ind_isotope_correlation = getSeparateScore(*feature_it, "id_target_ind_isotope_correlation");
-        std::vector<String> id_target_ind_isotope_overlap = getSeparateScore(*feature_it, "id_target_ind_isotope_overlap");
+        auto id_target_transition_names = getSeparateScore(feature_it, "id_target_transition_names");
+        auto id_target_area_intensity = getSeparateScore(feature_it, "id_target_area_intensity");
+        auto id_target_total_area_intensity = getSeparateScore(feature_it, "id_target_total_area_intensity");
+        auto id_target_apex_intensity = getSeparateScore(feature_it, "id_target_apex_intensity");
+        auto id_target_total_mi = getSeparateScore(feature_it, "id_target_apex_intensity");
+        auto id_target_intensity_score = getSeparateScore(feature_it, "id_target_intensity_score");
+        auto id_target_intensity_ratio_score = getSeparateScore(feature_it, "id_target_intensity_ratio_score");
+        auto id_target_log_intensity = getSeparateScore(feature_it, "id_target_ind_log_intensity");
+        auto id_target_ind_xcorr_coelution = getSeparateScore(feature_it, "id_target_ind_xcorr_coelution");
+        auto id_target_ind_xcorr_shape = getSeparateScore(feature_it, "id_target_ind_xcorr_shape");
+        auto id_target_ind_log_sn_score = getSeparateScore(feature_it, "id_target_ind_log_sn_score");
+        auto id_target_ind_massdev_score = getSeparateScore(feature_it, "id_target_ind_massdev_score");
+        auto id_target_ind_mi_score = getSeparateScore(feature_it, "id_target_ind_mi_score");
+        auto id_target_ind_mi_ratio_score = getSeparateScore(feature_it, "id_target_ind_mi_ratio_score");
+        auto id_target_ind_isotope_correlation = getSeparateScore(feature_it, "id_target_ind_isotope_correlation");
+        auto id_target_ind_isotope_overlap = getSeparateScore(feature_it, "id_target_ind_isotope_overlap");
 
-        if ((String)feature_it->getMetaValue("id_target_num_transitions") != "")
+        if ((String)feature_it.getMetaValue("id_target_num_transitions") != "")
         {
-          int id_target_num_transitions = feature_it->getMetaValue("id_target_num_transitions").toString().toInt();
+          int id_target_num_transitions = feature_it.getMetaValue("id_target_num_transitions").toString().toInt();
 
           for (int i = 0; i < id_target_num_transitions; ++i)
           {
@@ -351,46 +354,46 @@ namespace OpenMS
               " VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_RATIO_SCORE, "\
               " VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE "\
               ") VALUES ("
-                                        << feature_id << ", " 
-                                        << id_target_transition_names[i] << ", " 
-                                        << id_target_area_intensity[i] << ", " 
-                                        << id_target_total_area_intensity[i] << ", " 
-                                        << id_target_apex_intensity[i] << ", " 
-                                        << id_target_total_mi[i] << ", " 
-                                        << id_target_intensity_score[i] << ", " 
-                                        << id_target_intensity_ratio_score[i] << ", " 
-                                        << id_target_log_intensity[i] << ", " 
-                                        << id_target_ind_xcorr_coelution[i] << ", " 
-                                        << id_target_ind_xcorr_shape[i] << ", " 
-                                        << id_target_ind_log_sn_score[i] << ", " 
-                                        << id_target_ind_massdev_score[i] << ", " 
-                                        << id_target_ind_mi_score[i] << ", " 
-                                        << id_target_ind_mi_ratio_score[i] << ", " 
-                                        << id_target_ind_isotope_correlation[i] << ", " 
+                                        << feature_id << ", "
+                                        << id_target_transition_names[i] << ", "
+                                        << id_target_area_intensity[i] << ", "
+                                        << id_target_total_area_intensity[i] << ", "
+                                        << id_target_apex_intensity[i] << ", "
+                                        << id_target_total_mi[i] << ", "
+                                        << id_target_intensity_score[i] << ", "
+                                        << id_target_intensity_ratio_score[i] << ", "
+                                        << id_target_log_intensity[i] << ", "
+                                        << id_target_ind_xcorr_coelution[i] << ", "
+                                        << id_target_ind_xcorr_shape[i] << ", "
+                                        << id_target_ind_log_sn_score[i] << ", "
+                                        << id_target_ind_massdev_score[i] << ", "
+                                        << id_target_ind_mi_score[i] << ", "
+                                        << id_target_ind_mi_ratio_score[i] << ", "
+                                        << id_target_ind_isotope_correlation[i] << ", "
                                         << id_target_ind_isotope_overlap[i] << "); ";
           }
         }
 
-        std::vector<String> id_decoy_transition_names = getSeparateScore(*feature_it, "id_decoy_transition_names");
-        std::vector<String> id_decoy_area_intensity = getSeparateScore(*feature_it, "id_decoy_area_intensity");
-        std::vector<String> id_decoy_total_area_intensity = getSeparateScore(*feature_it, "id_decoy_total_area_intensity");
-        std::vector<String> id_decoy_apex_intensity = getSeparateScore(*feature_it, "id_decoy_apex_intensity");
-        std::vector<String> id_decoy_total_mi = getSeparateScore(*feature_it, "id_decoy_total_mi");
-        std::vector<String> id_decoy_intensity_score = getSeparateScore(*feature_it, "id_decoy_intensity_score");
-        std::vector<String> id_decoy_intensity_ratio_score = getSeparateScore(*feature_it, "id_decoy_intensity_ratio_score");
-        std::vector<String> id_decoy_log_intensity = getSeparateScore(*feature_it, "id_decoy_ind_log_intensity");
-        std::vector<String> id_decoy_ind_xcorr_coelution = getSeparateScore(*feature_it, "id_decoy_ind_xcorr_coelution");
-        std::vector<String> id_decoy_ind_xcorr_shape = getSeparateScore(*feature_it, "id_decoy_ind_xcorr_shape");
-        std::vector<String> id_decoy_ind_log_sn_score = getSeparateScore(*feature_it, "id_decoy_ind_log_sn_score");
-        std::vector<String> id_decoy_ind_massdev_score = getSeparateScore(*feature_it, "id_decoy_ind_massdev_score");
-        std::vector<String> id_decoy_ind_mi_score = getSeparateScore(*feature_it, "id_decoy_ind_mi_score");
-        std::vector<String> id_decoy_ind_mi_ratio_score = getSeparateScore(*feature_it, "id_decoy_ind_mi_ratio_score");
-        std::vector<String> id_decoy_ind_isotope_correlation = getSeparateScore(*feature_it, "id_decoy_ind_isotope_correlation");
-        std::vector<String> id_decoy_ind_isotope_overlap = getSeparateScore(*feature_it, "id_decoy_ind_isotope_overlap");
+        auto id_decoy_transition_names = getSeparateScore(feature_it, "id_decoy_transition_names");
+        auto id_decoy_area_intensity = getSeparateScore(feature_it, "id_decoy_area_intensity");
+        auto id_decoy_total_area_intensity = getSeparateScore(feature_it, "id_decoy_total_area_intensity");
+        auto id_decoy_apex_intensity = getSeparateScore(feature_it, "id_decoy_apex_intensity");
+        auto id_decoy_total_mi = getSeparateScore(feature_it, "id_decoy_total_mi");
+        auto id_decoy_intensity_score = getSeparateScore(feature_it, "id_decoy_intensity_score");
+        auto id_decoy_intensity_ratio_score = getSeparateScore(feature_it, "id_decoy_intensity_ratio_score");
+        auto id_decoy_log_intensity = getSeparateScore(feature_it, "id_decoy_ind_log_intensity");
+        auto id_decoy_ind_xcorr_coelution = getSeparateScore(feature_it, "id_decoy_ind_xcorr_coelution");
+        auto id_decoy_ind_xcorr_shape = getSeparateScore(feature_it, "id_decoy_ind_xcorr_shape");
+        auto id_decoy_ind_log_sn_score = getSeparateScore(feature_it, "id_decoy_ind_log_sn_score");
+        auto id_decoy_ind_massdev_score = getSeparateScore(feature_it, "id_decoy_ind_massdev_score");
+        auto id_decoy_ind_mi_score = getSeparateScore(feature_it, "id_decoy_ind_mi_score");
+        auto id_decoy_ind_mi_ratio_score = getSeparateScore(feature_it, "id_decoy_ind_mi_ratio_score");
+        auto id_decoy_ind_isotope_correlation = getSeparateScore(feature_it, "id_decoy_ind_isotope_correlation");
+        auto id_decoy_ind_isotope_overlap = getSeparateScore(feature_it, "id_decoy_ind_isotope_overlap");
 
-        if ((String)feature_it->getMetaValue("id_decoy_num_transitions") != "")
+        if ((String)feature_it.getMetaValue("id_decoy_num_transitions") != "")
         {
-          int id_decoy_num_transitions = feature_it->getMetaValue("id_decoy_num_transitions").toString().toInt();
+          int id_decoy_num_transitions = feature_it.getMetaValue("id_decoy_num_transitions").toString().toInt();
 
           for (int i = 0; i < id_decoy_num_transitions; ++i)
           {
@@ -401,22 +404,22 @@ namespace OpenMS
                 " VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_RATIO_SCORE, "\
                 " VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) "\
                 "VALUES ("
-                                        << feature_id << ", " 
-                                        << id_decoy_transition_names[i] << ", " 
-                                        << id_decoy_area_intensity[i] << ", " 
-                                        << id_decoy_total_area_intensity[i] << ", " 
-                                        << id_decoy_apex_intensity[i] << ", " 
-                                        << id_decoy_total_mi[i] << ", " 
-                                        << id_decoy_intensity_score[i] << ", " 
-                                        << id_decoy_intensity_ratio_score[i] << ", " 
+                                        << feature_id << ", "
+                                        << id_decoy_transition_names[i] << ", "
+                                        << id_decoy_area_intensity[i] << ", "
+                                        << id_decoy_total_area_intensity[i] << ", "
+                                        << id_decoy_apex_intensity[i] << ", "
+                                        << id_decoy_total_mi[i] << ", "
+                                        << id_decoy_intensity_score[i] << ", "
+                                        << id_decoy_intensity_ratio_score[i] << ", "
                                         << id_decoy_log_intensity[i] << ", "
-                                        << id_decoy_ind_xcorr_coelution[i] << ", " 
-                                        << id_decoy_ind_xcorr_shape[i] << ", " 
-                                        << id_decoy_ind_log_sn_score[i] << ", " 
-                                        << id_decoy_ind_massdev_score[i] << ", " 
-                                        << id_decoy_ind_mi_score[i] << ", " 
-                                        << id_decoy_ind_mi_ratio_score[i] << ", " 
-                                        << id_decoy_ind_isotope_correlation[i] << ", " 
+                                        << id_decoy_ind_xcorr_coelution[i] << ", "
+                                        << id_decoy_ind_xcorr_shape[i] << ", "
+                                        << id_decoy_ind_log_sn_score[i] << ", "
+                                        << id_decoy_ind_massdev_score[i] << ", "
+                                        << id_decoy_ind_mi_score[i] << ", "
+                                        << id_decoy_ind_mi_ratio_score[i] << ", "
+                                        << id_decoy_ind_isotope_correlation[i] << ", "
                                         << id_decoy_ind_isotope_overlap[i] << "); ";
           }
         }
