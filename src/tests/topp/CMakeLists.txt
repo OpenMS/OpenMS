@@ -2356,6 +2356,11 @@ add_test("UTILS_MultiplexResolver_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 
 set_tests_properties("UTILS_MultiplexResolver_3_out1" PROPERTIES DEPENDS "UTILS_MultiplexResolver_3")
 add_test("UTILS_MultiplexResolver_3_out3" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_3_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_3_output_conflicts.consensusXML )
 set_tests_properties("UTILS_MultiplexResolver_3_out3" PROPERTIES DEPENDS "UTILS_MultiplexResolver_3")
+add_test("UTILS_MultiplexResolver_4" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_4_input.consensusXML -in_blacklist ${DATA_DIR_TOPP}/MultiplexResolver_4_input.mzML -ini ${DATA_DIR_TOPP}/MultiplexResolver_4_parameters.ini -out MultiplexResolver_4.tmp -out_conflicts MultiplexResolver_4_conflicts.tmp)
+add_test("UTILS_MultiplexResolver_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_4.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_4_output.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_4_out1" PROPERTIES DEPENDS "UTILS_MultiplexResolver_4")
+add_test("UTILS_MultiplexResolver_4_out3" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_4_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_4_output_conflicts.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_4_out3" PROPERTIES DEPENDS "UTILS_MultiplexResolver_4")
 
 # INIUpdater:
 if(WITH_GUI)
