@@ -882,7 +882,9 @@ namespace OpenMS
     }
     else if (tag == "PeptideHit")
     {
-      pep_hit_.setPeptideEvidences(peptide_evidences_);
+      pep_hit_.setPeptideEvidences(std::move(peptide_evidences_));
+      peptide_evidences_.clear(); // clear will reset the vector to a valid, known state
+
       if (!current_analysis_result_.score_type.empty())
       {
         pep_hit_.addAnalysisResults(current_analysis_result_);

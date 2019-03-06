@@ -37,12 +37,13 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <algorithm>
 #include <climits>
@@ -162,7 +163,7 @@ public:
       HasMetaValue(const String& key_, const DataValue& value_):
         key(key_),
         value(value_)
-      {} 
+      {}
 
       bool operator()(const HitType& hit) const
       {
@@ -300,7 +301,6 @@ public:
 
     };
 
-
     ///@}
 
 
@@ -337,7 +337,7 @@ public:
     /// Is the list of peptide evidences of this peptide hit empty?
     struct HasNoEvidence;
 
-    
+
     /**
        @brief Filter Peptide Hit by its digestion product
 
@@ -357,8 +357,8 @@ public:
       {}
 
       static inline Int disabledValue(){ return -1; }
-      
-      /// Filter function on min max cutoff values to be used with remove_if 
+
+      /// Filter function on min max cutoff values to be used with remove_if
       /// returns true if peptide should be removed (does not pass filter)
       bool operator()(PeptideHit& p)
       {
@@ -367,7 +367,7 @@ public:
           [&](const Int missed_cleavages)
           {
 
-            bool max_filter = max_cleavages_ != disabledValue() ? 
+            bool max_filter = max_cleavages_ != disabledValue() ?
                               missed_cleavages > max_cleavages_ : false;
             bool min_filter = min_cleavages_ != disabledValue() ?
                               missed_cleavages < min_cleavages_ : false;
@@ -377,7 +377,8 @@ public:
 
       void filterPeptideSequences(std::vector<PeptideHit>& hits)
       {
-        hits.erase(std::remove_if(hits.begin(), hits.end(), (*this)), hits.end());
+        hits.erase(std::remove_if(hits.begin(), hits.end(), (*this)),
+                   hits.end());
       }
 
     };
@@ -443,7 +444,6 @@ public:
       }
 
     };
-
 
     ///@}
 
@@ -597,7 +597,7 @@ public:
 
     /**
        @brief remove peptide evidences based on a filter
-       
+
        @param filter filter function that overloads ()(PeptideEvidence&) operator
        @param peptides a collection of peptide evidences
      */
@@ -615,13 +615,12 @@ public:
           std::vector<PeptideEvidence> evidences;
           remove_copy_if(hit_it->getPeptideEvidences().begin(),
                          hit_it->getPeptideEvidences().end(),
-                         back_inserter(evidences), 
+                         back_inserter(evidences),
                          std::not1(filter));
           hit_it->setPeptideEvidences(evidences);
         }
       }
     }
-    
 
     ///@}
 
@@ -832,8 +831,6 @@ public:
         keepMatchingItems(id_it.getHits(), acc_filter);
       }
     }
-
-    
 
     ///@}
 
@@ -1082,6 +1079,19 @@ public:
 
     ///@}
 
+
+    /// @name Filter functions for class IdentificationData
+    ///@{
+    static void keepBestMatchPerQuery(
+      IdentificationData& id_data,
+      IdentificationData::ScoreTypeRef score_ref);
+
+    static void filterQueryMatchesByScore(
+      IdentificationData& id_data,
+      IdentificationData::ScoreTypeRef score_ref, double cutoff);
+
+    static void removeDecoys(IdentificationData& id_data);
+    ///@}
 
   };
 

@@ -93,9 +93,7 @@ using namespace boost::math;
 
 /**
   @page TOPP_FeatureFinderMultiplex FeatureFinderMultiplex
-
   @brief Detects peptide pairs in LC-MS data and determines their relative abundance.
-
 <CENTER>
   <table>
     <tr>
@@ -112,27 +110,19 @@ using namespace boost::math;
     </tr>
   </table>
 </CENTER>
-
   FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we outline the algorithm.
-
   <b>Algorithm</b>
-
   The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f). In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a). It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance. Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5. The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
-
   We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c). Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
   - all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold,
   - the intensity profiles in neighbourhoods around all six m/z positions show a good correlation and
   - the relative intensity ratios within a peptide agree up to a factor with the ratios of a theoretic averagine model.
-
   Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
-
   @image html SILACAnalyzer_algorithm.png
-
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FeatureFinderMultiplex.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_FeatureFinderMultiplex.html
-
 */
 
 // We do not want this class to show up in the docu:
@@ -249,7 +239,7 @@ public:
     algorithm.setLogType(this->log_type_);
     // run feature detection algorithm
     algorithm.run(exp, true);
-    
+
     // write feature and consensus maps
     if (!(out_.empty()))
     {

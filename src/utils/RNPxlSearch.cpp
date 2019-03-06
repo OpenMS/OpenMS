@@ -2405,7 +2405,6 @@ static void scoreShiftedFragments_(
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
-
       ++count_proteins;
 
       IF_MASTERTHREAD

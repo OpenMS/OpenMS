@@ -272,6 +272,7 @@ protected:
     /**
      * @brief type of averagine to use
      */
+
     String averagine_type_;
 
   };

@@ -43,6 +43,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/CONCEPT/MacrosTest.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>

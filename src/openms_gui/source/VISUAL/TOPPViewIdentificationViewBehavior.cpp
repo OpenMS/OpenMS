@@ -277,7 +277,8 @@ namespace OpenMS
     activate1DSpectrum(index, -1, -1);
   }
 
-  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index,
+  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(
+    int spectrum_index,
     int peptide_id_index,
     int peptide_hit_index)
   {
@@ -414,9 +415,9 @@ namespace OpenMS
               if (seq.empty()) seq = ph.getMetaValue("label"); // e.g. for RNA sequences
               widget_1D->canvas()->setTextBox(seq.toQString());
             }
-            else if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
+            else if (widget_1D->canvas()->isIonLadderVisible())
             {
-              if (widget_1D->canvas()->isIonLadderVisible())
+              if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
               {
                 // @TODO: read ion list from the input file (meta value)
                 static vector<String> top_ions = ListUtils::create<String>("a,b,c");
@@ -428,25 +429,23 @@ namespace OpenMS
                   bottom_ions);
                 widget_1D->canvas()->setTextBox(diagram.toQString());
               }
-            }
-            /*
-            else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
-            {
-              try
+              else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
               {
-                // @TODO: read ion list from the input file (meta value)
-                NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
-                static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
-                static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
-                String diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
-                                                          top_ions, bottom_ions);
-                widget_1D->canvas()->setTextBox(diagram.toQString());
-              }
-              catch (Exception::ParseError) // label doesn't contain have a valid seq.
-              {
+                try
+                {
+                  // @TODO: read ion list from the input file (meta value)
+                  NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
+                  static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
+                  static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
+                  String diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
+                                                            top_ions, bottom_ions);
+                  widget_1D->canvas()->setTextBox(diagram.toQString());
+                }
+                catch (Exception::ParseError) // label doesn't contain have a valid seq.
+                {
+                }
               }
             }
-            */
           }
           break;
         }
@@ -624,7 +623,7 @@ namespace OpenMS
     }
   }
 
-/*
+
   void TOPPViewIdentificationViewBehavior::generateSequenceRow_(const NASequence& seq, vector<String>& row)
   {
     if (seq.hasFivePrimeMod())
@@ -644,7 +643,7 @@ namespace OpenMS
       row[row.size() - 1] = (code == "3'-p" ? "p" : code);
     }
   }
-*/
+
 
   template <typename SeqType>
   String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(
@@ -664,10 +663,17 @@ namespace OpenMS
         cout << "Adding Peak Annotation to Diagram: " << label << endl;
       #endif
       // expected format: [ion][number][...]
-      if ((label.size() < 2) || !islower(label[0]) || !isdigit(label[1])) { continue; }
+      if ((label.size() < 2) || !islower(label[0]) || !isdigit(label[1]))
+      {
+        continue;
+      }
       // cut out the position number:
       Size split = label.find_first_not_of("0123456789", 2);
       String ion = label.prefix(1);
+      // special case for RNA: "a[n]-B", where "[n]" is the ion number
+      // -> don't forget to add the "-B" back on if it's there:
+      String more_ion = label.substr(split);
+      if (more_ion == "-B") ion += more_ion;
       Size pos = label.substr(1, split - 1).toInt();
       ion_pos[ion].insert(pos);
       #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -789,7 +795,9 @@ namespace OpenMS
       html += "<tr>";
       for (const String& cell : row)
       {
-        cout << "cel:: '" << cell << "'" << endl;
+        #ifdef DEBUG_IDENTIFICATION_VIEW
+          cout << "cell: '" << cell << "'" << endl;
+        #endif
         html += "<td align=\"center\">" + cell + "</td>";
       }
       html += "</tr>";
@@ -805,7 +813,7 @@ namespace OpenMS
 
   // add specializations to allow template implementation outside of header file:
   template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<AASequence>(const AASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
-  // template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<NASequence>(const NASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+  template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<NASequence>(const NASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
 
   void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor>& pcs)

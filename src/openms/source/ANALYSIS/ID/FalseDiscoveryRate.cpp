@@ -77,7 +77,7 @@ namespace OpenMS
       return;
     }
 
-    bool higher_score_better(ids.begin()->isHigherScoreBetter());
+    bool higher_score_better = ids.begin()->isHigherScoreBetter();
 
     // first search for all identifiers and charge variants
     set<String> identifiers;
@@ -270,7 +270,7 @@ namespace OpenMS
         }
 
         // calculate fdr for the forward scores
-        Map<double, double> score_to_fdr;
+        map<double, double> score_to_fdr;
         calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
         // annotate fdr
@@ -366,7 +366,7 @@ namespace OpenMS
     bool higher_score_better = fwd_ids.begin()->isHigherScoreBetter();
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // calculate fdr for the forward scores
-    Map<double, double> score_to_fdr;
+    map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
@@ -467,7 +467,7 @@ namespace OpenMS
 
 
     // calculate fdr for the forward scores
-    Map<double, double> score_to_fdr;
+    map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
@@ -487,9 +487,9 @@ namespace OpenMS
       vector<ProteinHit> new_hits;
       for (auto hit : old_hits)
       {
-        // Add decoy proteins only if add_decoy_proteins is set 
+        // Add decoy proteins only if add_decoy_proteins is set
         if (add_decoy_proteins || hit.getMetaValue("target_decoy") != "decoy")
-        {      
+        {
           hit.setMetaValue(score_type, hit.getScore());
           hit.setScore(score_to_fdr[hit.getScore()]);
           new_hits.push_back(hit);
@@ -527,7 +527,7 @@ namespace OpenMS
     bool q_value = !param_.getValue("no_qvalues").toBool();
     bool higher_score_better = fwd_ids.begin()->isHigherScoreBetter();
     // calculate fdr for the forward scores
-    Map<double, double> score_to_fdr;
+    map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
@@ -555,7 +555,126 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::calculateFDRs_(Map<double, double>& score_to_fdr, vector<double>& target_scores, vector<double>& decoy_scores, bool q_value, bool higher_score_better) const
+
+  void FalseDiscoveryRate::handleQueryMatch_(
+    IdentificationData::QueryMatchRef match_ref,
+    IdentificationData::ScoreTypeRef score_ref,
+    vector<double>& target_scores, vector<double>& decoy_scores,
+    map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
+    map<IdentificationData::QueryMatchRef, double>& match_to_score) const
+  {
+    IdentificationData::MoleculeType molecule_type =
+      match_ref->getMoleculeType();
+    if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
+    {
+      return; // compounds don't have parents with target/decoy status
+    }
+    pair<double, bool> score = match_ref->getScore(score_ref);
+    if (!score.second) return; // no score of this type
+    match_to_score[match_ref] = score.first;
+    IdentificationData::IdentifiedMoleculeRef molecule_ref =
+      match_ref->identified_molecule_ref;
+    auto pos = molecule_to_decoy.find(molecule_ref);
+    bool is_decoy;
+    if (pos == molecule_to_decoy.end()) // new molecule
+    {
+      if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
+      {
+        is_decoy = match_ref->getIdentifiedPeptideRef()->allParentsAreDecoys();
+      }
+      else // if (molecule_type == IdentificationData::MoleculeType::RNA)
+      {
+        is_decoy = match_ref->getIdentifiedOligoRef()->allParentsAreDecoys();
+      }
+      molecule_to_decoy[molecule_ref] = is_decoy;
+    }
+    else
+    {
+      is_decoy = pos->second;
+    }
+    if (is_decoy)
+    {
+      decoy_scores.push_back(score.first);
+    }
+    else
+    {
+      target_scores.push_back(score.first);
+    }
+  }
+
+
+  IdentificationData::ScoreTypeRef FalseDiscoveryRate::applyToQueryMatches(
+    IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref)
+    const
+  {
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+    bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
+    vector<double> target_scores, decoy_scores;
+    map<IdentificationData::IdentifiedMoleculeRef, bool> molecule_to_decoy;
+    map<IdentificationData::QueryMatchRef, double> match_to_score;
+    if (use_all_hits)
+    {
+      for (auto it = id_data.getMoleculeQueryMatches().begin();
+           it != id_data.getMoleculeQueryMatches().end(); ++it)
+      {
+        handleQueryMatch_(it, score_ref, target_scores, decoy_scores,
+                          molecule_to_decoy, match_to_score);
+      }
+    }
+    else
+    {
+      vector<IdentificationData::QueryMatchRef> best_matches =
+        id_data.getBestMatchPerQuery(score_ref);
+      for (auto match_ref : best_matches)
+      {
+        handleQueryMatch_(match_ref, score_ref, target_scores, decoy_scores,
+                          molecule_to_decoy, match_to_score);
+      }
+    }
+
+    map<double, double> score_to_fdr;
+    bool higher_better = score_ref->higher_better;
+    bool use_qvalue = !param_.getValue("no_qvalues").toBool();
+    calculateFDRs_(score_to_fdr, target_scores, decoy_scores, use_qvalue,
+                   higher_better);
+
+    IdentificationData::ScoreType fdr_score;
+    fdr_score.higher_better = false;
+    if (use_qvalue)
+    {
+      fdr_score.name = "q-value";
+      fdr_score.cv_term = CVTerm("MS:1002354", "PSM-level q-value", "MS");
+    }
+    else
+    {
+      fdr_score.name = "FDR";
+      fdr_score.cv_term = CVTerm("MS:1002355", "PSM-level FDRScore", "MS");
+    }
+    IdentificationData::ScoreTypeRef fdr_ref =
+      id_data.registerScoreType(fdr_score);
+    for (IdentificationData::MoleculeQueryMatches::iterator it =
+           id_data.getMoleculeQueryMatches().begin(); it !=
+           id_data.getMoleculeQueryMatches().end(); ++it)
+    {
+      if (!include_decoys)
+      {
+        auto pos = molecule_to_decoy.find(it->identified_molecule_ref);
+        if ((pos != molecule_to_decoy.end()) && pos->second) continue;
+      }
+      auto pos = match_to_score.find(it);
+      if (pos == match_to_score.end()) continue;
+      double fdr = score_to_fdr.at(pos->second);
+      // @TODO: find a more efficient way to add a score
+      // IdentificationData::MoleculeQueryMatch copy(*it);
+      // copy.scores.push_back(make_pair(fdr_ref, fdr));
+      // id_data.registerMoleculeQueryMatch(copy);
+      id_data.addScore(it, fdr_ref, fdr);
+    }
+    return fdr_ref;
+  }
+
+
+  void FalseDiscoveryRate::calculateFDRs_(map<double, double>& score_to_fdr, vector<double>& target_scores, vector<double>& decoy_scores, bool q_value, bool higher_score_better) const
   {
     Size number_of_target_scores = target_scores.size();
     // sort the scores
@@ -664,7 +783,6 @@ namespace OpenMS
       }
     }
 
-
     // assign q-value of decoy_score to closest target_score
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
@@ -672,7 +790,7 @@ namespace OpenMS
 
       // advance target index until score is better than decoy score
       size_t k{0};
-      while (k != target_scores.size() && 
+      while (k != target_scores.size() &&
              ((target_scores[k] <= ds && higher_score_better) ||
               (target_scores[k] >= ds && !higher_score_better)))
       {
@@ -690,11 +808,11 @@ namespace OpenMS
         else
         {
           score_to_fdr[ds] = 1.0;
+          continue;
         }
       }
-
       if (k == target_scores.size()) { score_to_fdr[ds] = score_to_fdr[target_scores.back()]; continue; }
-      
+
       if (fabs(target_scores[k] - ds) < fabs(target_scores[k - 1] - ds))
       {
         score_to_fdr[ds] = score_to_fdr[target_scores[k]];
