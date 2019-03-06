@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -376,15 +377,14 @@ private:
    * 
    * @param RT
    * @param mz
+   * @param charge
    */
-  bool isBlacklisted(double rt, double mz)
+  bool isBlacklisted(double rt, double mz, size_t charge)
   {
     double mz_tolerance = 0.1;    // m/z tolerance in DA
-    double rt_tolerance = 10;   // retention time tolerance in sec
+    double rt_tolerance = 10;     // retention time tolerance in sec
     
     MSExperiment::ConstIterator it_rt = exp_blacklist_.RTBegin(rt);
-    
-    //std::cout << "RT =  " << rt << "    RT (begin) = " << it_rt->getRT() << "    RT (delta) = " << (std::abs(it_rt->getRT() - rt)) << "\n";
     
     if ((std::abs(it_rt->getRT() - rt)) > rt_tolerance)
     {
@@ -394,23 +394,23 @@ private:
     }
     else
     {
-      MSSpectrum::ConstIterator it_mz = it_rt->MZBegin(mz);
-      
-      //std::cout << "m/z =  " << mz << "    m/z (begin) = " << it_mz->getMZ() << "    m/z (delta) = " << (std::abs(it_mz->getMZ() - mz)) << "\n";
-      
-      if ((std::abs(it_mz->getMZ() - mz)) > mz_tolerance)
+      // Loop over first three isotopes in dummy feature (and check if one of them is blacklisted).
+      for (size_t isotope = 0; isotope < 3; ++isotope)
       {
-        // The nearest peak is more than mz_tolerance away.
-        return false;
+        double mz_isotope = mz + isotope * Constants::C13C12_MASSDIFF_U / charge;
+
+        MSSpectrum::ConstIterator it_mz = it_rt->MZBegin(mz_isotope);
+        
+        if ((std::abs(it_mz->getMZ() - mz_isotope)) < mz_tolerance)
+        {
+          // There is a blacklisted peak close-by.
+          return true;
+        }
       }
-      else
-      {
-        // There is a blacklisted peak close-by.
-        return true;
-      }
+      
+      // None of the first three isotopes has a blacklisted peak near-by.
+      return false;
     }
-    
-    //return false;
   }
   
   /**
@@ -477,20 +477,26 @@ private:
         }
       }
       else
-      {
+      {        
         // construct dummy feature
         FeatureHandle feature_handle;
         feature_handle.setMZ(mz_complete + it_mass_shift->delta_mass / charge);
         feature_handle.setRT(RT);
-        feature_handle.setIntensity(0.0);
+        if (isBlacklisted(RT, mz_complete + it_mass_shift->delta_mass / charge, charge))
+        {
+          // Some peaks close-by were blacklisted during feature detection i.e. another peptide feature overlaps with the dummy feature.
+          // Consequently, we better report NaN i.e. not quantifiable.
+          feature_handle.setIntensity(std::numeric_limits<double>::quiet_NaN());
+        }
+        else
+        {
+          // There is no blacklisted peak near-by i.e. there is no peptide feature in the vicinity.
+          // Consequently, we can confidently report zero i.e. the peptide is absent.
+          feature_handle.setIntensity(0.0);
+        }
         feature_handle.setCharge(charge);
         feature_handle.setMapIndex(it_mass_shift - pattern.begin());
         consensus_complete.insert(feature_handle);
-        
-        // debug output
-        double RT_dummy = RT;
-        double mz_dummy = mz_complete + it_mass_shift->delta_mass / charge;
-        std::cout << "Construct dummy feature @    RT = " << RT_dummy << "    m/z = " << mz_dummy << "    blacklisted = " << isBlacklisted(RT_dummy, mz_dummy) << "\n";
       }
       
     }
