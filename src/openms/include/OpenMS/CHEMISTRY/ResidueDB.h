@@ -71,11 +71,7 @@ public:
     /// this member function serves as a replacement of the constructor
     inline static ResidueDB* getInstance()
     {
-      static ResidueDB* db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new ResidueDB;
-      }
+      static ResidueDB* db_ = new ResidueDB;
       return db_;
     }
 
