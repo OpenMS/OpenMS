@@ -252,7 +252,7 @@ private:
   }
 
   /**
-   * @brief check wether all delta masses in the detected patter
+   * @brief check wether all delta masses in the detected pattern
    * match up with a delta mass in the theoretical pattern
    *
    * @param consensus    detected pattern
@@ -372,6 +372,48 @@ private:
   }
   
   /**
+   * @brief check if this position is blacklisted
+   * 
+   * @param RT
+   * @param mz
+   */
+  bool isBlacklisted(double rt, double mz)
+  {
+    double mz_tolerance = 0.1;    // m/z tolerance in DA
+    double rt_tolerance = 10;   // retention time tolerance in sec
+    
+    MSExperiment::ConstIterator it_rt = exp_blacklist_.RTBegin(rt);
+    
+    //std::cout << "RT =  " << rt << "    RT (begin) = " << it_rt->getRT() << "    RT (delta) = " << (std::abs(it_rt->getRT() - rt)) << "\n";
+    
+    if ((std::abs(it_rt->getRT() - rt)) > rt_tolerance)
+    {
+      // The nearest spectrum is more than rt_tolerance away.
+      // A blacklisted peak cannot be nearby.
+      return false;
+    }
+    else
+    {
+      MSSpectrum::ConstIterator it_mz = it_rt->MZBegin(mz);
+      
+      //std::cout << "m/z =  " << mz << "    m/z (begin) = " << it_mz->getMZ() << "    m/z (delta) = " << (std::abs(it_mz->getMZ() - mz)) << "\n";
+      
+      if ((std::abs(it_mz->getMZ() - mz)) > mz_tolerance)
+      {
+        // The nearest peak is more than mz_tolerance away.
+        return false;
+      }
+      else
+      {
+        // There is a blacklisted peak close-by.
+        return true;
+      }
+    }
+    
+    //return false;
+  }
+  
+  /**
    * @brief complete consensus
    *
    * @param consensus    (possibly) incomplete consensus
@@ -444,6 +486,11 @@ private:
         feature_handle.setCharge(charge);
         feature_handle.setMapIndex(it_mass_shift - pattern.begin());
         consensus_complete.insert(feature_handle);
+        
+        // debug output
+        double RT_dummy = RT;
+        double mz_dummy = mz_complete + it_mass_shift->delta_mass / charge;
+        std::cout << "Construct dummy feature @    RT = " << RT_dummy << "    m/z = " << mz_dummy << "    blacklisted = " << isBlacklisted(RT_dummy, mz_dummy) << "\n";
       }
       
     }
