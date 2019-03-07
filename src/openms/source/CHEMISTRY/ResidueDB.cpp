@@ -119,7 +119,7 @@ namespace OpenMS
     return s;
   }
 
-  void ResidueDB::setResidues(const String& file_name)
+  void ResidueDB::setResidues_(const String& file_name)
   {
     #pragma omp critical (ResidueDB)
     {
@@ -160,8 +160,8 @@ namespace OpenMS
       for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
       {
         residue_names_[*it] = r;
-// should this be?        residue_by_one_letter_code_[(unsigned char)(r->getOneLetterCode()[0])] = r;
-        residue_by_one_letter_code_[(unsigned char)((*it)[0])] = r;
+        residue_by_one_letter_code_[(unsigned char)(r->getOneLetterCode()[0])] = r;
+        // was: residue_by_one_letter_code_[(unsigned char)((*it)[0])] = r;
       }
       residues_.insert(r);
       const_residues_.insert(r);
@@ -484,42 +484,43 @@ namespace OpenMS
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
     // terminal mods. don't apply to residue (side chain), so don't consider them:
-    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
-    return getModifiedResidue(getResidue(mod.getOrigin()), mod.getFullId());
+    const ResidueModification* mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
+    auto r = getResidue(mod->getOrigin());
+    return getModifiedResidue(r, mod->getFullId());
   }
 
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
     OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
     // search if the mod already exists
-    const String& res_name = residue->getName();
+    const String & res_name = residue->getName();
     Residue* res(nullptr);
     #pragma omp critical (ResidueDB)
     {
       if (residue_names_.find(res_name) != residue_names_.end())
       {
-        // terminal mods. don't apply to residue (side chain), so don't consider them:
-        const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
-        const String& id = mod.getId().empty() ? mod.getFullId() : mod.getId();
+        // terminal modifications don't apply to residues (side chain), so only consider internal ones
+        const ResidueModification* mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
 
-        if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
+        // check if modification in ResidueDB
+        if (mod != nullptr)
         {
-          res = residue_mod_names_[res_name][id];
+          const String& id = mod->getId().empty() ? mod->getFullId() : mod->getId();
+
+          // check if modified residue is already present in ResidueDB
+          if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
+          {
+            res = residue_mod_names_[res_name][id];
+          }
+          else
+          {
+            // create and register this modified residue
+            res = new Residue(*residue_names_[res_name]);
+            res->setModification_(*mod);
+            addResidue_(res);
+          }
         }
-        else
-        {
-          // create and register this modified residue
-          res = new Residue(*residue_names_[res_name]);
-          res->setModification_(mod);
-          addResidue_(res);
-        } 
       }
-    }
-
-    if (res == nullptr)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("Residue with name " + res_name + " was not registered in residue DB, register first!").c_str());
     }
     return res;
   }

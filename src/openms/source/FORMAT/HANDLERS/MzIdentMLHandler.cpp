@@ -986,12 +986,9 @@ namespace OpenMS
                 {
                   if (mods[s].hasSubstring(jt->getMetaValue("xl_mod")))
                   {
-                    ResidueModification mod;
-                    try
-                    {
-                      mod = xl_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
-                    }
-                    catch (...)
+                    const ResidueModification* mod = xl_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
+                    
+                    if (mod == nullptr)
                     {
                       if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                       {
@@ -1002,8 +999,8 @@ namespace OpenMS
                         mod = xl_db->getModification(mods[s], "", ResidueModification::C_TERM);
                       }
                     }
-                    acc = mod.getPSIMODAccession();
-                    name = mod.getId();
+                    acc = mod->getPSIMODAccession();
+                    name = mod->getId();
                   }
                   if (!acc.empty())
                   {
@@ -1012,9 +1009,9 @@ namespace OpenMS
                 }
                 if ( acc.empty() && (mods.size() > 0) ) // If ambiguity can not be resolved by xl_mod, just take one with the same mass diff from the database
                 {
-                  ResidueModification mod = xl_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
-                  acc = mod.getPSIMODAccession();
-                  name = mod.getId();
+                  const ResidueModification* mod = xl_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
+                  acc = mod->getPSIMODAccession();
+                  name = mod->getId();
                 }
 
                 if (!acc.empty())

@@ -76,11 +76,7 @@ public:
     /// Returns a pointer to the modifications DB (singleton)
     inline static ModificationsDB* getInstance(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo")
     {
-      static ModificationsDB* db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
-      }
+      static ModificationsDB* db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
       return db_;
     }
 
@@ -94,10 +90,8 @@ public:
 
     /**
        @brief Returns the modification with the given index
-
-       @throw Exception::IndexOverflow if the index is too large
     */
-    const ResidueModification& getModification(Size index) const;
+    const ResidueModification* getModification(Size index) const;
 
     /**
        @brief Collects all modifications which have the given name as synonym
@@ -119,10 +113,9 @@ public:
 
        If more than one matching modification is found, the first one is returned with a warning.
 
-       @throw Exception::ElementNotFound if no modification named @p mod_name exists (via searchModifications())
-       @throw Exception::InvalidValue if no matching modification exists
+       Returns nullptr if no modification named @p mod_name exists (via searchModifications()) or if no matching modification exists
     */
-    const ResidueModification& getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
+    const ResidueModification* getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /// Returns true if the modification exists
     bool has(String modification) const;

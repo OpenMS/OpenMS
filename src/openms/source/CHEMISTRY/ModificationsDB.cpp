@@ -49,7 +49,6 @@ using namespace std;
 namespace OpenMS
 {
   bool ModificationsDB::is_instantiated_ = false;
-  
 
   ModificationsDB::ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
   {
@@ -67,40 +66,36 @@ namespace OpenMS
     {
       readFromOBOFile(xlmod_file);
     }
-
     is_instantiated_ = true;
-  }
-
-
-  bool ModificationsDB::isInstantiated()
-  {
-    return is_instantiated_;
   }
 
 
   ModificationsDB::~ModificationsDB()
   {
     modification_names_.clear();
-    for (vector<ResidueModification*>::iterator it = mods_.begin(); it != mods_.end(); ++it)
+    for (auto it = mods_.begin(); it != mods_.end(); ++it)
     {
       delete *it;
     }
   }
 
+  bool ModificationsDB::isInstantiated()
+  {
+    return is_instantiated_;
+  }
 
   Size ModificationsDB::getNumberOfModifications() const
   {
-    return mods_.size();
+    Size s;
+    s = mods_.size();
+    return s;
   }
 
 
-  const ResidueModification& ModificationsDB::getModification(Size index) const
+  const ResidueModification* ModificationsDB::getModification(Size index) const
   {
-    if (index >= mods_.size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, mods_.size());
-    }
-    return *mods_[index];
+    OPENMS_PRECONDITION(index < mods_.size(), "Index out of bounds in ModificationsDB::getModification(Size index)." );
+    return mods_[index];
   }
 
 
@@ -141,7 +136,7 @@ namespace OpenMS
   }
 
 
-  const ResidueModification& ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
+  const ResidueModification* ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     set<const ResidueModification*> mods;
     // if residue is specified, try residue-specific search first to avoid
@@ -156,7 +151,8 @@ namespace OpenMS
 
     if (mods.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Retrieving the modification failed. It is not available for the residue '" + String(residue) + "' and term specificity " + String(Int(term_spec)) + ".", mod_name);
+      LOG_WARN << "Warning ("<< OPENMS_PRETTY_FUNCTION << ") Retrieving the modification failed. It is not available for the residue '" + String(residue) + "' and term specificity " + String(Int(term_spec)) + ". " <<  mod_name << endl;
+      return nullptr;
     }
     if (mods.size() > 1)
     {
@@ -168,7 +164,7 @@ namespace OpenMS
       }
       LOG_WARN << "\n";
     }
-    return **mods.begin();
+    return *mods.begin();
   }
 
 

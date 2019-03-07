@@ -970,34 +970,34 @@ namespace OpenMS
                     {
                       if (spci->second.front().getAccession() == "MS:1001189")  // nterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
-                        mod = m.getFullId();
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
+                        mod = m->getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1001190")  // cterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
-                        mod = m.getFullId();
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
+                        mod = m->getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1002057")  // pro nterm
                       {
                         // TODO: add support for protein N-terminal modifications in unimod
-                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::N_TERM);
-                        mod = m.getFullId();
+                        // ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::N_TERM);
+                        mod = m->getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1002058")  // pro cterm
                       {
                         // TODO: add support for protein C-terminal modifications in unimod
-                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::C_TERM);
-                        mod = m.getFullId();
+                        // ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::C_TERM);
+                        mod = m->getFullId();
                       }
                     }
                   }
                   else  // anywhere
                   {
-                    ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r);
-                    mod = m.getFullId();
+                    const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r);
+                    mod = m->getFullId();
                   }
 
                   if (fixedMod)
@@ -2617,7 +2617,7 @@ namespace OpenMS
 
                       // now use the new modification
                       Size mod_idx = mod_db->findModificationIndex(residue_name);
-                      const ResidueModification* res_mod = &mod_db->getModification(mod_idx);
+                      const ResidueModification* res_mod = mod_db->getModification(mod_idx);
 
                       // Set a modification on the given AA
                       // Note: this calls setModification_ on a new Residue which changes its
@@ -2752,34 +2752,34 @@ namespace OpenMS
         current_pep->appendChild(current_seq);
         if (peps->second.hasNTerminalModification())
         {
-          const ResidueModification& mod = *(peps->second.getNTerminalModification());
+          const ResidueModification* mod = peps->second.getNTerminalModification();
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode("0"));
-          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-          String origin = mod.getOrigin();
+          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
+          String origin = mod->getOrigin();
           if (origin == "X") origin = ".";
           current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(origin.c_str()));
-          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
           current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
-          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));
 
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);
         }
         if (peps->second.hasCTerminalModification())
         {
-          const ResidueModification& mod = *(peps->second.getCTerminalModification());
+          const ResidueModification* mod = peps->second.getCTerminalModification();
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(peps->second.size() + 1).c_str()));
-          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-          String origin = mod.getOrigin();
+          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
+          String origin = mod->getOrigin();
           if (origin == "X") origin = ".";
           current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(origin.c_str()));
-          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
           current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
-          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));
 
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);

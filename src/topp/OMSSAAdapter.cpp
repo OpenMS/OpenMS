@@ -673,8 +673,9 @@ protected:
             9 modmax	-  the max number of modification types
         */
 
-        ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(it->second).getTermSpecificity();
-        String origin = ModificationsDB::getInstance()->getModification(it->second).getOrigin();
+	const ResidueModification* mod = ModificationsDB::getInstance()->getModification(it->second);
+        ResidueModification::TermSpecificity ts = mod->getTermSpecificity();
+        const String& origin = mod->getOrigin();
         if (ts == ResidueModification::ANYWHERE)
         {
           out << "\t\t<MSModType value=\"modaa\">0</MSModType>" << "\n";
@@ -704,8 +705,8 @@ protected:
         out << "\t</MSModSpec_type>" << "\n";
 
         out << "\t<MSModSpec_name>" << it->second << "</MSModSpec_name>" << "\n";
-        out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffMonoMass()  << "</MSModSpec_monomass>" << "\n";
-        out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
+        out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second)->getDiffMonoMass()  << "</MSModSpec_monomass>" << "\n";
+        out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second)->getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
         out << "\t<MSModSpec_n15mass>0</MSModSpec_n15mass>" << "\n";
 
         if (origin != "")
@@ -718,8 +719,8 @@ protected:
           double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
           double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossAverageMass();
           */
-          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getMonoWeight();
-          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getAverageWeight();
+          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getMonoWeight();
+          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getAverageWeight();
 
           if (fabs(neutral_loss_mono) > 0.00001)
           {
@@ -748,10 +749,10 @@ protected:
     writeDebug_("Splitting modification into N-Term, C-Term and anywhere specificity", 1);
     for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
     {
-      ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+      ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(*it)->getTermSpecificity();
       if (ts == ResidueModification::ANYWHERE)
       {
-        fixed_residue_mods[ModificationsDB::getInstance()->getModification(*it).getOrigin()] = *it;
+        fixed_residue_mods[ModificationsDB::getInstance()->getModification(*it)->getOrigin()] = *it;
       }
       if (ts == ResidueModification::C_TERM)
       {
