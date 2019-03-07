@@ -1286,7 +1286,7 @@ static void scoreShiftedFragments_(
 
         // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
         // 1. get all possible RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
-        LOG_DEBUG << "precursor_rna_adduct: "  << precursor_rna_adduct << endl;
+        LOG_DEBUG << "Precursor NA adduct: "  << precursor_rna_adduct << endl;
         const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
         if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
@@ -1304,6 +1304,11 @@ static void scoreShiftedFragments_(
 
         // get marker ions (these are not specific to the cross-linked nucleotide but also depend on the whole oligo bound to the precursor)
         const vector<RNPxlFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_rna_adduct).marker_ions;
+        LOG_DEBUG << "Marker ions used for this Precursor NA adduct: "  << endl;
+        for (auto & fa : marker_ions)
+        {
+          LOG_DEBUG << fa.name << " " << fa.mass << endl;
+        }
 
         // generate total loss spectrum for the fixed and variable modified peptide (without RNA) (using the settings for partial loss generation)
         // but as we also add the abundant immonium ions for charge 1 and precursor ions for all charges to get a more complete annotation
@@ -1551,7 +1556,7 @@ static void scoreShiftedFragments_(
           fragment_mass_tolerance_unit_ppm, 
           partial_loss_spectrum, 
           exp_spectrum, 
-          total_loss_spectrum.getIntegerDataArrays()[0], 
+          partial_loss_spectrum.getIntegerDataArrays()[0], 
           exp_spectrum.getIntegerDataArrays()[0], 
           ppm_error_array);
 
@@ -1575,10 +1580,16 @@ static void scoreShiftedFragments_(
           const double & fragment_intensity = fragment.getIntensity(); // in percent (%)
           const double & fragment_mz = fragment.getMZ();
           const int & fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
+          #ifdef DEBUG_RNPXLSEARCH
+            LOG_DEBUG << "fragment_mz:" << fragment_mz << " fragment_charge:" << fragment_charge << endl; 
+          #endif
 
           String ion_name = partial_loss_annotations[pair_it->first];
           const int charge = partial_loss_charges[pair_it->first];
 
+          #ifdef DEBUG_RNPXLSEARCH
+            LOG_DEBUG << "theo_name:" << ion_name  << " theo_charge:" << charge << endl; 
+          #endif
           vector<String> f;
 
           ion_name.split(' ', f);  // e.g. "y3 C3O" or just "y2"
@@ -1624,6 +1635,7 @@ static void scoreShiftedFragments_(
           }
           else if (ion_name.hasPrefix(RNPxlFragmentIonGenerator::ANNOTATIONS_MARKER_ION_PREFIX))
           {
+            LOG_DEBUG << "Marker ion aligned: " << ion_name << " fragment_mz: " << fragment_mz << " fragment_charge: " << fragment_charge << endl;
             if (fragment_charge == 1)
             {
               PeptideHit::PeakAnnotation fa;
