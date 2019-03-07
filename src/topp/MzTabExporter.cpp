@@ -367,7 +367,7 @@ protected:
         row.mass_to_charge = MzTabDouble(f.getMZ());
         MzTabDoubleList rt_list;
         vector<MzTabDouble> rts;
-        rts.emplace_back(MzTabDouble(f.getRT()));
+        rts.emplace_back(f.getRT());
         rt_list.set(rts);
         row.retention_time = rt_list;
 
@@ -375,8 +375,8 @@ protected:
         vector<MzTabDouble> window;
         if (f.getConvexHull().getBoundingBox() != DBoundingBox<2>())
         {
-          window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().minX()));
-          window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().maxX()));
+          window.emplace_back(f.getConvexHull().getBoundingBox().minX());
+          window.emplace_back(f.getConvexHull().getBoundingBox().maxX());
         }
 
         MzTabDoubleList rt_window;
@@ -592,7 +592,7 @@ protected:
                 protein_row.accession = MzTabString(group.accessions[j]);
                 // protein_row.description  // TODO: how to set description? information not contained in group
               }
-              entries.emplace_back(MzTabString(group.accessions[j]));
+              entries.emplace_back(group.accessions[j]);
             }
             ambiguity_members.set(entries);
             protein_row.ambiguity_members = ambiguity_members; // Alternative protein identifications.
@@ -622,7 +622,7 @@ protected:
               {
                 protein_row.accession = MzTabString(group.accessions[j]);
               }
-              entries.emplace_back(MzTabString(group.accessions[j]));
+              entries.emplace_back(group.accessions[j]);
             }
             ambiguity_members.set(entries);
             protein_row.ambiguity_members = ambiguity_members; // Alternative protein identifications.
@@ -700,7 +700,7 @@ protected:
         row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
 
         vector<MzTabDouble> rts_vector;
-        rts_vector.emplace_back(MzTabDouble(it->getRT()));
+        rts_vector.emplace_back(it->getRT());
 
         MzTabDoubleList rts;
         rts.set(rts_vector);
@@ -710,7 +710,7 @@ protected:
         row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMonoWeight(Residue::Full, best_ph.getCharge()) / best_ph.getCharge()) : MzTabDouble();
 
         // add opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
-        row.opt_.emplace_back(make_pair("opt_global_modified_sequence", MzTabString(aas.toString())));
+        row.opt_.emplace_back("opt_global_modified_sequence", aas.toString());
 
         // currently write all keys
         // TODO: percentage procedure with MetaInfoInterfaceUtils
@@ -757,7 +757,7 @@ protected:
           {
             MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
             vector<std::pair<Size, MzTabParameter> > pos;
-            pos.emplace_back(make_pair(0, MzTabParameter()));
+            pos.emplace_back(0, MzTabParameter());
             mod.setModificationIdentifier(unimod_accession);
             mod.setPositionsAndParameters(pos);
             mods.push_back(mod);
@@ -775,7 +775,7 @@ protected:
               // MzTab standard is to just report Unimod accession.
               MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
               vector<std::pair<Size, MzTabParameter> > pos;
-              pos.emplace_back(make_pair(ai + 1, MzTabParameter()));
+              pos.emplace_back(ai + 1, MzTabParameter());
               mod.setPositionsAndParameters(pos);
               mod.setModificationIdentifier(unimod_accession);
               mods.push_back(mod);
@@ -791,7 +791,7 @@ protected:
           {
             MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
             vector<std::pair<Size, MzTabParameter> > pos;
-            pos.emplace_back(make_pair(aas.size() + 1, MzTabParameter()));
+            pos.emplace_back(aas.size() + 1, MzTabParameter());
             mod.setPositionsAndParameters(pos);
             mod.setModificationIdentifier(unimod_accession);
             mods.push_back(mod);
@@ -923,7 +923,7 @@ protected:
         row.mass_to_charge = MzTabDouble(c.getMZ());
         MzTabDoubleList rt_list;
         vector<MzTabDouble> rts;
-        rts.emplace_back(MzTabDouble(c.getRT()));
+        rts.emplace_back(c.getRT());
         rt_list.set(rts);
         row.retention_time = rt_list;
         MzTabDoubleList rt_window;  
