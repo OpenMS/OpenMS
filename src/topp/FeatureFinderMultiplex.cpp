@@ -203,9 +203,9 @@ public:
    * @brief Write blacklist to mzML file.
    *
    * @param filename    name of mzML file
-   * @param blacklist    blaclist for output
+   * @param blacklist    blacklist for output
    */
-  void writeBlacklist_(const String& filename, MSExperiment& blacklist) const
+  void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
   {    
     MzMLFile file;
     file.store(filename, blacklist);
