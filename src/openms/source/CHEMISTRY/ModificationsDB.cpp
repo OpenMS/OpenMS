@@ -42,6 +42,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
+#include <limits>
 #include <fstream>
 
 using namespace std;
@@ -118,8 +119,8 @@ namespace OpenMS
 
       if (!modification_names_.has(mod_name))
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            mod_name);
+        LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
+        return; 
       }
     }
 
@@ -177,12 +178,14 @@ namespace OpenMS
   {
     if (!modification_names_.has(mod_name))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
+      LOG_WARN << OPENMS_PRETTY_FUNCTION  << " Modification not found: " << mod_name << endl;
+      return numeric_limits<Size>::max();
     }
 
     if (modification_names_[mod_name].size() > 1)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "more than one element of name '" + mod_name + "' found!");
+      LOG_WARN << OPENMS_PRETTY_FUNCTION  << " More than one Modification with name: " << mod_name << endl;
+      return numeric_limits<Size>::max();
     }
 
     const ResidueModification* mod = *modification_names_[mod_name].begin();
@@ -194,8 +197,8 @@ namespace OpenMS
       }
     }
 
-    // throw if we did not find the modification
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
+    LOG_WARN << OPENMS_PRETTY_FUNCTION  << " Modification name found but modification not found: " << mod_name << endl;
+    return numeric_limits<Size>::max();
   }
 
 
@@ -232,7 +235,7 @@ namespace OpenMS
         // map to multiple residues), we calculate a monoisotopic mass from the
         // delta mass.
         // First the internal (inside an AA chain) weight of the residue:
-        if (residue_ != nullptr) continue; // @TODO: throw an exception here?
+        if (residue_ != nullptr) continue;
         double internal_weight = residue_->getMonoWeight() -
           residue_->getInternalToFull().getMonoWeight();
         mono_mass = (*it)->getDiffMonoMass() + internal_weight;
@@ -303,7 +306,8 @@ namespace OpenMS
   {
     if (has(new_mod->getFullId()))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification already exists in ModificationsDB.", String(new_mod->getFullId()));
+      LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
+      return;
     }
     modification_names_[new_mod->getFullId()].insert(new_mod);
     modification_names_[new_mod->getId()].insert(new_mod);
