@@ -2432,55 +2432,71 @@ namespace OpenMS
                     }
                     else if (index == static_cast<SignedSize>(aas.size() + 1))
                     {
-                      try // does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
+                      // TODO: does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
+                      if (cvname == "unknown modification")
                       {
-                        if (cvname == "unknown modification")
+                        const String & cvvalue = cv.getValue();
+                        if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                         {
-                          const String & cvvalue = cv.getValue();
-                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
-                          {
-                            aas.setCTerminalModification(cvvalue);
-                          }
+                          aas.setCTerminalModification(cvvalue);
                         }
                         else
+                        {
+                          LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
+                        }
+                      }
+                      else
+                      {
+                        if (ModificationsDB::getInstance()->has(cvname))
                         {
                           aas.setCTerminalModification(cvname);
                         }
-                        cvp = cvp->getNextElementSibling();
-                        continue;
+                        else
+                        {
+                          LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
+                        }
                       }
-                      catch (...)
-                      {
-                        // TODO Residue and AASequence should use CrossLinksDB as well
-                      }
+                      cvp = cvp->getNextElementSibling();
+                      continue;
                     }
                     else
                     {
-                      try
+                      if (cvname == "unknown modification")
                       {
-                        if (cvname == "unknown modification")
+                        const String & cvvalue = cv.getValue();
+                        if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                         {
-                          const String & cvvalue = cv.getValue();
-                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
-                          {
-                            aas.setModification(index - 1, cvvalue); //TODO @mths,Timo : do this via UNIMOD accessions
-                          }
+                          aas.setModification(index - 1, cvvalue); 
                         }
                         else
                         {
-                          aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
+                          LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
                         }
-                        cvp = cvp->getNextElementSibling();
-                        continue;
                       }
-                      catch (Exception::BaseException& e)
+                      else
                       {
+                        if (ModificationsDB::getInstance()->has(cvname))
+                        {
+                          aas.setModification(index - 1, cvname);
+                        }
+                        else
+                        {
+                          LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
+                        }
+                      }
+                      cvp = cvp->getNextElementSibling();
+                      continue;
+/* TODO enetz: look up in XLDB and remvoe this ha
                         // this is a bad hack to avoid a long list of warnings in the case of XL-MS data
                         if ( !(String(e.getMessage()).hasSubstring("'DSG'") || String(e.getMessage()).hasSubstring("'DSS'") || String(e.getMessage()).hasSubstring("'EDC'")) || String(e.getMessage()).hasSubstring("'BS3'") || String(e.getMessage()).hasSubstring("'BS2G'") )
                         {
                           LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << endl;
                         }
-                      }
+*/
                     }
                   }
                 }
