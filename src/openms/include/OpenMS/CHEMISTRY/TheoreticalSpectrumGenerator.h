@@ -106,13 +106,12 @@ namespace OpenMS
        @param base_charge Minimum charge for peaks in each spectrum
 
        One spectrum per element in @p charges is generated in @p spectra.
-       The order corresponds to that in @p charges.
 
        All values in @p charges must be either positive or negative.
 
        This function is more efficient than calling getSpectrum() multiple times, because spectra of lower charge states are reused.
     */
-    void getMultipleSpectra(std::vector<PeakSpectrum>& spectra, const NASequence& oligo, const std::set<Int>& charges, Int base_charge = 1) const;
+    void getMultipleSpectra(std::map<Int, PeakSpectrum>& spectra, const NASequence& oligo, const std::set<Int>& charges, Int base_charge = 1) const;
 
     /// overwrite
     void updateMembers_() override;

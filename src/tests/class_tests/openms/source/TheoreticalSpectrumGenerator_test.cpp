@@ -609,7 +609,7 @@ START_SECTION((void getSpectrum(PeakSpectrum& spec, const NASequence& nucleotide
 END_SECTION
 
 
-START_SECTION((void getMultipleSpectra(std::vector<PeakSpectrum>& spectra, const NASequence& oligo, const std::set<Int>& charges, Int base_charge = 1) const))
+START_SECTION((void getMultipleSpectra(std::map<Int, PeakSpectrum>& spectra, const NASequence& oligo, const std::set<Int>& charges, Int base_charge = 1) const))
 {
   TheoreticalSpectrumGenerator gen;
   Param param = gen.getParameters();
@@ -637,14 +637,16 @@ START_SECTION((void getMultipleSpectra(std::vector<PeakSpectrum>& spectra, const
     index++;
   }
   // now using the new function:
-  vector<PeakSpectrum> spectra;
+  map<Int, PeakSpectrum> spectra;
   gen.getMultipleSpectra(spectra, seq, charges, -1);
   // compare:
   TEST_EQUAL(compare.size(), spectra.size());
-  for (index = 0; index < spectra.size(); ++index)
+  index = 0;
+  for (const auto& pair : spectra)
   {
-    TEST_EQUAL(compare[index].size(), spectra[index].size());
-    TEST_EQUAL(compare[index] == spectra[index], true);
+    TEST_EQUAL(compare[index].size(), pair.second.size());
+    TEST_EQUAL(compare[index] == pair.second, true);
+    index++;
   }
 }
 END_SECTION

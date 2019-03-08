@@ -207,9 +207,9 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::getMultipleSpectra(vector<PeakSpectrum>& spectra, const NASequence& oligo, const set<Int>& charges, Int base_charge) const
+  void TheoreticalSpectrumGenerator::getMultipleSpectra(map<Int, PeakSpectrum>& spectra, const NASequence& oligo, const set<Int>& charges, Int base_charge) const
   {
-    spectra.resize(charges.size());
+    spectra.clear();
     if (charges.empty()) return;
     bool negative_mode = *charges.begin() < 0;
     bool add_all_precursors = (add_precursor_peaks_ &&
@@ -221,63 +221,61 @@ namespace OpenMS
       if (base_charge > 0) base_charge = -base_charge;
       // in negative mode, charges are ordered high to low - iterate in reverse:
       set<Int>::const_reverse_iterator charge_it = charges.rbegin();
-      vector<PeakSpectrum>::reverse_iterator spec_it = spectra.rbegin();
       // skip requested charges that are lower than "base_charge":
       while (*charge_it > base_charge) // ">" because of negative mode
       {
         ++charge_it;
         if (charge_it == charges.rend()) return;
-        ++spec_it;
       }
       Int charge = base_charge;
-      for (; charge_it != charges.rend(); ++charge_it, ++spec_it)
+      while (charge_it != charges.rend())
       {
+        PeakSpectrum& spectrum = spectra[*charge_it];
         for (; charge >= *charge_it; --charge)
         {
-          addSimpleSpectrum_(*spec_it, oligo, charge, add_all_precursors,
+          addSimpleSpectrum_(spectrum, oligo, charge, add_all_precursors,
                              false);
         }
-        vector<PeakSpectrum>::reverse_iterator next_it = spec_it + 1;
-        if (next_it != spectra.rend())
+        ++charge_it;
+        if (charge_it != charges.rend())
         {
-          *next_it = *spec_it; // initialize next spectrum
+          spectra[*charge_it] = spectrum; // initialize next spectrum
         }
         if (add_some_precursors)
         {
-          addPrecursorPeaks_(*spec_it, oligo, charge);
+          addPrecursorPeaks_(spectrum, oligo, charge);
         }
-        spec_it->sortByPosition();
+        spectrum.sortByPosition();
       }
     }
     else // positive mode
     {
       set<Int>::const_iterator charge_it = charges.begin();
-      vector<PeakSpectrum>::iterator spec_it = spectra.begin();
       // skip requested charges that are lower than "base_charge":
       while (*charge_it < base_charge)
       {
         ++charge_it;
         if (charge_it == charges.end()) return;
-        ++spec_it;
       }
       Int charge = base_charge;
-      for (; charge_it != charges.end(); ++charge_it, ++spec_it)
+      while (charge_it != charges.end())
       {
-        for (; charge <= *charge_it; ++charge)
+        PeakSpectrum& spectrum = spectra[*charge_it];
+       for (; charge <= *charge_it; ++charge)
         {
-          addSimpleSpectrum_(*spec_it, oligo, charge, add_all_precursors,
+          addSimpleSpectrum_(spectrum, oligo, charge, add_all_precursors,
                              false);
         }
-        vector<PeakSpectrum>::iterator next_it = spec_it + 1;
-        if (next_it != spectra.end())
+        ++charge_it;
+        if (charge_it != charges.end())
         {
-          *next_it = *spec_it; // initialize next spectrum
+          spectra[*charge_it] = spectrum; // initialize next spectrum
         }
         if (add_some_precursors)
         {
-          addPrecursorPeaks_(*spec_it, oligo, charge);
+          addPrecursorPeaks_(spectrum, oligo, charge);
         }
-        spec_it->sortByPosition();
+        spectrum.sortByPosition();
       }
     }
   }
