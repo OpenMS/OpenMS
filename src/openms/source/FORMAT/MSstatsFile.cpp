@@ -188,7 +188,10 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
 
   // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
   TextFile csv_out;
-  csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
+  csv_out.addLine(
+    String(rt_summarization_manual ? "RetentionTime,": "") + 
+    "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," +
+    String(has_fraction ? "Fraction,": "") + "Intensity");
 
   // Regex definition for fragment ions
   boost::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
@@ -214,13 +217,79 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
   }
   const String delim(",");
 
-  // Keeps track of unique peptides (Size of value set is 1)
-  std::map< String, std::set<String > > peptideseq_to_accessions;
+  // We quantify indistinguishable groups with one (corner case) or multiple proteins.
+  // If indistinguishable groups are not annotated (no inference or only trivial inference has been performed) we assume
+  // that all proteins can be indipendently quantified (each forming an indistinguishable group).
+  using IndProtGrp = ProteinIdentification::ProteinGroup;
+  using IndProtGrps = std::vector<IndProtGrp>;
+  IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();  
+  if (ind_prots.empty())
+  {
+    for (const OpenMS::ProteinHit& prot_hit : consensus_map.getProteinIdentifications()[0].getHits())
+    {
+      ProteinIdentification::ProteinGroup pg;
+      pg.accessions.push_back(prot_hit.getAccession());
+      ind_prots.push_back(pg);
+    }
+  }
 
-  // Stores all the lines that will be present in the final MSstats output,
-  // We need to map peptide sequences to full features, because then we can ignore peptides
-  // that are mapped to multiple proteins. We also need to map to the
-  // intensities, such that we combine intensities over multiple retention times.
+  // Map protein accession to its indistinguishable group
+  std::map< String, const IndProtGrp* > accession_to_group;
+  for (const IndProtGrp& pgrp : ind_prots)
+  {
+    std::cout << "Group size: " << pgrp.accessions.size() << endl;
+    for (const String & a : pgrp.accessions)
+    {
+      std::cout << a << endl;
+      accession_to_group[a] = &(pgrp); 
+    }
+  }
+ 
+  // Map peptides to protein accessions
+  std::map< String, std::set<String > > peptideseq_to_accessions;
+  std::map< String, bool > peptideseq_quantifyable;
+  for (Size i = 0; i < features.size(); ++i)
+  {
+    const OpenMS::BaseFeature &base_feature = features[i];
+    for (const OpenMS::PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
+    {
+      for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
+      {
+        const std::vector< PeptideEvidence > & original_peptide_evidences = pep_hit.getPeptideEvidences();
+        const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.size() == 0) ? placeholder_peptide_evidences : original_peptide_evidences;
+        const String & sequence = pep_hit.getSequence().toString(); // to modified string
+
+        // check if all referenced protein accessions are part of the same indistinguishable group
+        // if so, we mark the sequence as quantifyable
+        std::set<String> accs = pep_hit.extractProteinAccessionsSet();
+        std::set<const IndProtGrp*> maps_to_indgrps;
+        for (const String& a : accs) 
+        {
+          if (accession_to_group.find(a) != accession_to_group.end())
+          { 
+            maps_to_indgrps.insert(accession_to_group[a]); 
+          }
+          else
+          {
+            LOG_WARN << "Accession " << a << " does not match to an infered group." << std::endl;
+          }
+        }
+        peptideseq_quantifyable[sequence] = (maps_to_indgrps.size() == 1);
+
+        for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
+        {
+          const String & accession = pep_ev.getProteinAccession();
+  	  peptideseq_to_accessions[sequence].insert(accession); // TODO: check: will add NA for peptide evidences without protein reference
+        }
+      }
+    }
+  }
+
+  // Stores all the lines that will be present in the final MSstats output
+  // Several things needs to be considered:
+  // - We need to map peptide sequences to full features, because then we can ignore peptides
+  //   that are mapped to multiple proteins. 
+  // - We also need to map to the intensities, such that we combine intensities over multiple retention times.
   map< String, map< MSstatsLine, set< pair<Intensity, Coordinate> > > > peptideseq_to_prefix_to_intensities;
 
   for (Size i = 0; i < features.size(); ++i)
@@ -241,7 +310,7 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
         const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
-        const String & sequence = pep_hit.getSequence().toUnmodifiedString();
+        const String & sequence = pep_hit.getSequence().toString(); // to modified string
 
         // Have to combine all fragment annotations with all peptide evidences
         for (const OpenMS::PeptideHit::PeakAnnotation & frag_ann : fragment_annotations)
@@ -267,22 +336,34 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
 
           for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
           {
+            // link sequence to protein
+            const String & accession = pep_ev.getProteinAccession();
+
+            // TODO: @julianus check if this is correct            
+            if (accession_to_group.find(accession) == accession_to_group.end())
+            {
+              LOG_WARN << "Can't map accession: " << accession << " to indistinguishable group." << endl; 
+              continue;
+            }
+
             // Write new line for each run
             for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
             {
-              const String &filename = consensus_feature_filenames[i][j];
+              const String &consfilename = consensus_feature_filenames[i][j];
               const Intensity intensity(consensus_feature_intensites[i][j]);
               const Coordinate retention_time(consensus_feature_retention_times[i][j]);
               const unsigned label(consensus_feature_labels[i][j]);
 
-              const String & accession = pep_ev.getProteinAccession();
-              peptideseq_to_accessions[sequence].insert(accession);
+              // link protein to indistinguishable group              
+              const StringList & ind_proteins = accession_to_group[accession]->accessions;
+              // concatenated protein accessions  
+              const String ind_group_accession = ListUtils::concatenate(ind_proteins,";");
 
-              const pair< String, unsigned> tpl1 = make_pair(filename, label);
+              const pair< String, unsigned> tpl1 = make_pair(consfilename, label);
               const unsigned sample = path_label_to_sample[tpl1];
               const unsigned fraction = path_label_to_fraction[tpl1];
 
-              const pair< String, unsigned> tpl2 = make_pair(filename, fraction);
+              const pair< String, unsigned> tpl2 = make_pair(consfilename, fraction);
 
               // Resolve run
               const unsigned run = run_map[tpl2];  // MSstats run according to the file table
@@ -292,7 +373,7 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
               // Assemble MSstats line
               MSstatsLine prefix(
                       has_fraction,
-                      accession,
+                      ind_group_accession,
                       sequence,
                       precursor_charge,
                       fragment_ion,
@@ -301,7 +382,7 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
                       sampleSection.getFactorValue(sample, condition),
                       sampleSection.getFactorValue(sample, bioreplicate),
                       String(run),
-                      (has_fraction ? delim + String(fraction) : "")
+                      (has_fraction ? String(fraction) : "")
               );
               pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
               peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
@@ -324,16 +405,17 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
 
   for (const pair< String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
   {
-    // Only write if unique peptide
-    if (peptideseq_accessions.second.size() == 1)
+    const String& seq = peptideseq_accessions.first;
+    // Only write peptide if all referenced proteins are from the same indistinguishable group
+    if (peptideseq_quantifyable[seq])
     {
       for (const pair< MSstatsLine, set< pair< Intensity, Coordinate > > > &line :
-              peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
+              peptideseq_to_prefix_to_intensities[seq])
       {
         // First, we collect all retention times and intensities
         set< Coordinate > retention_times;
         set< Intensity > intensities;
-        for (const pair< Intensity, Coordinate > p : line.second)
+        for (const pair< Intensity, Coordinate >& p : line.second)
         {
           if (retention_times.find(p.second) != retention_times.end())
           {
@@ -384,7 +466,6 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
           }
           csv_out.addLine(line.first.toString() + delim + String(intensity));
         }
-
       }
     }
   }
