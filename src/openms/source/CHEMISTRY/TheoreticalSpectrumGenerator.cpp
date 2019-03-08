@@ -144,90 +144,142 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const NASequence& nucleotide, Int min_charge, Int max_charge) const
+  void TheoreticalSpectrumGenerator::addSimpleSpectrum_(
+    PeakSpectrum& spectrum, const NASequence& oligo, Int charge,
+    bool add_precursor, bool sort) const
+  {
+    if (add_metainfo_)
+    {
+      if (spectrum.getIntegerDataArrays().empty())
+      {
+        spectrum.getIntegerDataArrays().resize(1);
+        spectrum.getIntegerDataArrays()[0].setName("Charges");
+      }
+      if (spectrum.getStringDataArrays().empty())
+      {
+        spectrum.getStringDataArrays().resize(1);
+        spectrum.getStringDataArrays()[0].setName("IonNames");
+      }
+    }
+
+    if (add_b_ions_) addPeaks_(spectrum, oligo, NASequence::BIon, charge);
+    if (add_y_ions_) addPeaks_(spectrum, oligo, NASequence::YIon, charge);
+    if (add_a_ions_) addPeaks_(spectrum, oligo, NASequence::AIon, charge);
+    if (add_c_ions_) addPeaks_(spectrum, oligo, NASequence::CIon, charge);
+    if (add_x_ions_) addPeaks_(spectrum, oligo, NASequence::XIon, charge);
+    if (add_z_ions_) addPeaks_(spectrum, oligo, NASequence::ZIon, charge);
+    if (add_d_ions_) addPeaks_(spectrum, oligo, NASequence::DIon, charge);
+    if (add_w_ions_) addPeaks_(spectrum, oligo, NASequence::WIon, charge);
+    if (add_aB_ions_) addPeaks_(spectrum, oligo, NASequence::AminusB, charge);
+
+    if (add_precursor) addPrecursorPeaks_(spectrum, oligo, charge);
+
+    if (sort) spectrum.sortByPosition();
+  }
+
+
+  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const NASequence& oligo, Int min_charge, Int max_charge) const
   {
     Int sign = 1;
-    if (max_charge < 0 && min_charge < 0)
+    if (max_charge < 0 && min_charge < 0) // negative mode
     {
       sign = -1;
     }
-    else if ((max_charge > 0 && min_charge < 0) ||
-             (max_charge < 0 && min_charge > 0))
+    else if (max_charge * min_charge < 0)
     {
-      //Signs don't match we need to quit and thow error here to avoid messing up for loops below
+      // Signs don't match - we need to quit and thow error here to avoid messing up for loops below
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "min. and max. charge must both be either positive or negative");
     }
-    else if (max_charge < min_charge)
+    if (abs(max_charge) < abs(min_charge))
     {
       swap(max_charge, min_charge);
     }
-    PeakSpectrum::StringDataArray ion_names;
-    PeakSpectrum::IntegerDataArray charges;
 
-    if (add_metainfo_)
+    for (uint z = (uint)abs(min_charge); z <= (uint)abs(max_charge) && z < (uint)oligo.size(); ++z)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
-      {
-        charges = spectrum.getIntegerDataArrays()[0];
-      }
-      if (spectrum.getStringDataArrays().size() > 0)
-      {
-        ion_names = spectrum.getStringDataArrays()[0];
-      }
-      ion_names.setName("IonNames");
-      charges.setName("Charges");
-    }
-
-    for (uint z = (uint)abs(min_charge); z <= (uint)abs(max_charge) && z < (uint)nucleotide.size(); ++z)
-    {
-      if (add_b_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::BIon, z * sign);
-      if (add_y_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::YIon, z * sign);
-      if (add_a_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::AIon, z * sign);
-      if (add_c_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::CIon, z * sign);
-      if (add_x_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::XIon, z * sign);
-      if (add_z_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::ZIon, z * sign);
-      if (add_d_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::DIon, z * sign);
-      if (add_w_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::WIon, z * sign);
-      if (add_aB_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::AminusB, z * sign);
-    }
-
-    if (add_precursor_peaks_)
-    {
-      if (add_all_precursor_charges_)
-      {
-        for (uint z = (uint)abs(min_charge); z <= (uint)abs(max_charge); ++z)
-        {
-          addPrecursorPeaks_(spectrum, nucleotide, ion_names, charges, z * sign);
-        }
-      }
-      else // add_all_precursor_charges_ = false, only add precursor with highest charge
-      {
-        addPrecursorPeaks_(spectrum, nucleotide, ion_names, charges, max_charge);
-      }
-    }
-
-    if (add_metainfo_)
-    {
-      if (spectrum.getIntegerDataArrays().size() > 0)
-      {
-        spectrum.getIntegerDataArrays()[0] = charges;
-      }
-      else
-      {
-        spectrum.getIntegerDataArrays().push_back(charges);
-      }
-      if (spectrum.getStringDataArrays().size() > 0)
-      {
-        spectrum.getStringDataArrays()[0] = ion_names;
-      }
-      else
-      {
-        spectrum.getStringDataArrays().push_back(ion_names);
-      }
+      bool add_precursor =
+        ((add_precursor_peaks_ && add_all_precursor_charges_) ||
+         (add_precursor_peaks_ && (z == abs(max_charge))));
+      addSimpleSpectrum_(spectrum, oligo, z * sign, add_precursor, false);
     }
 
     spectrum.sortByPosition();
-    return;
+  }
+
+
+  void TheoreticalSpectrumGenerator::getMultipleSpectra(vector<PeakSpectrum>& spectra, const NASequence& oligo, const set<Int>& charges, Int base_charge) const
+  {
+    spectra.resize(charges.size());
+    if (charges.empty()) return;
+    bool negative_mode = *charges.begin() < 0;
+    bool add_all_precursors = (add_precursor_peaks_ &&
+                               add_all_precursor_charges_);
+    bool add_some_precursors = (add_precursor_peaks_ &&
+                                !add_all_precursor_charges_);
+    if (negative_mode)
+    {
+      if (base_charge > 0) base_charge = -base_charge;
+      // in negative mode, charges are ordered high to low - iterate in reverse:
+      set<Int>::const_reverse_iterator charge_it = charges.rbegin();
+      vector<PeakSpectrum>::reverse_iterator spec_it = spectra.rbegin();
+      // skip requested charges that are lower than "base_charge":
+      while (*charge_it > base_charge) // ">" because of negative mode
+      {
+        ++charge_it;
+        if (charge_it == charges.rend()) return;
+        ++spec_it;
+      }
+      Int charge = base_charge;
+      for (; charge_it != charges.rend(); ++charge_it, ++spec_it)
+      {
+        for (; charge >= *charge_it; --charge)
+        {
+          addSimpleSpectrum_(*spec_it, oligo, charge, add_all_precursors,
+                             false);
+        }
+        vector<PeakSpectrum>::reverse_iterator next_it = spec_it + 1;
+        if (next_it != spectra.rend())
+        {
+          *next_it = *spec_it; // initialize next spectrum
+        }
+        if (add_some_precursors)
+        {
+          addPrecursorPeaks_(*spec_it, oligo, charge);
+        }
+        spec_it->sortByPosition();
+      }
+    }
+    else // positive mode
+    {
+      set<Int>::const_iterator charge_it = charges.begin();
+      vector<PeakSpectrum>::iterator spec_it = spectra.begin();
+      // skip requested charges that are lower than "base_charge":
+      while (*charge_it < base_charge)
+      {
+        ++charge_it;
+        if (charge_it == charges.end()) return;
+        ++spec_it;
+      }
+      Int charge = base_charge;
+      for (; charge_it != charges.end(); ++charge_it, ++spec_it)
+      {
+        for (; charge <= *charge_it; ++charge)
+        {
+          addSimpleSpectrum_(*spec_it, oligo, charge, add_all_precursors,
+                             false);
+        }
+        vector<PeakSpectrum>::iterator next_it = spec_it + 1;
+        if (next_it != spectra.end())
+        {
+          *next_it = *spec_it; // initialize next spectrum
+        }
+        if (add_some_precursors)
+        {
+          addPrecursorPeaks_(*spec_it, oligo, charge);
+        }
+        spec_it->sortByPosition();
+      }
+    }
   }
 
 
@@ -478,7 +530,7 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, NASequence::NASFragmentType res_type, Int charge, double intensity) const
+  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, NASequence::NASFragmentType res_type, Int charge, double intensity) const
   {
     double charge_unit = (charge < 0) ? -1.0 : 1.0; // pos. or neg. charge?
     double pos = ion.getMonoWeight(res_type, charge);
@@ -495,8 +547,8 @@ namespace OpenMS
       p.setIntensity(intensity * it->getIntensity());
       if (add_metainfo_) // one entry per peak
       {
-        ion_names.push_back(ion_name);
-        charges.push_back(charge);
+        spectrum.getStringDataArrays()[0].push_back(ion_name);
+        spectrum.getIntegerDataArrays()[0].push_back(charge);
       }
       spectrum.push_back(p);
     }
@@ -582,9 +634,9 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum& spectrum, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, NASequence::NASFragmentType res_type, Int charge) const
+  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum& spectrum, const NASequence& oligo, NASequence::NASFragmentType res_type, Int charge) const
   {
-    spectrum.reserve(nucleotide.size());
+    spectrum.reserve(oligo.size());
 
     // Generate the ion peaks:
     // Does not generate peaks of full sequence (therefore "<").
@@ -638,9 +690,9 @@ namespace OpenMS
       if (!add_isotopes_) // add single peak
       {
         Size length = add_first_prefix_ion_ ? 1 : 2;
-        for (; length < nucleotide.size(); ++length)
+        for (; length < oligo.size(); ++length)
         {
-          NASequence ion = nucleotide.getPrefix(length);
+          NASequence ion = oligo.getPrefix(length);
           double mass = ion.getMonoWeight(res_type, charge);
           Peak1D p;
           p.setMZ(mass / abs(charge));
@@ -649,27 +701,27 @@ namespace OpenMS
           if (add_metainfo_)
           {
             String ion_name = ribonucleotideTypeToIonCode_(res_type, length); // + String((Size)abs(charge), charge_sign);
-            ion_names.push_back(ion_name);
-            charges.push_back(charge);
+            spectrum.getStringDataArrays()[0].push_back(ion_name);
+            spectrum.getIntegerDataArrays()[0].push_back(charge);
           }
         }
       }
       else // add isotope clusters (slow)
       {
         Size length = add_first_prefix_ion_ ? 1 : 2;
-        for (; length < nucleotide.size(); ++length)
+        for (; length < oligo.size(); ++length)
         {
-          const NASequence ion = nucleotide.getPrefix(length);
-          addIsotopeCluster_(spectrum, ion, ion_names, charges, res_type, charge, intensity); //TODO IMPLEMENT
+          const NASequence ion = oligo.getPrefix(length);
+          addIsotopeCluster_(spectrum, ion, res_type, charge, intensity); //TODO IMPLEMENT
         }
       }
 
 //      if (add_losses_) // add loss peaks (slow)
 //      {
 //        Size i = add_first_prefix_ion_ ? 1 : 2;
-//        for (; i < nucleotide.size(); ++i)
+//        for (; i < oligo.size(); ++i)
 //        {
-//          const NASequence ion = nucleotide.getPrefix(i);
+//          const NASequence ion = oligo.getPrefix(i);
 //          addLosses_(spectrum, ion, ion_names, charges, intensity, res_type, charge);
 //        }
 //      }
@@ -678,9 +730,9 @@ namespace OpenMS
     {
       if (!add_isotopes_) // add single peak
       {
-        for (Size length = 1; length < nucleotide.size(); ++length)
+        for (Size length = 1; length < oligo.size(); ++length)
         {
-          NASequence ion = nucleotide.getSuffix(length);
+          NASequence ion = oligo.getSuffix(length);
           double mass = ion.getMonoWeight(res_type, charge);
           Peak1D p;
           p.setMZ(mass / abs(charge));
@@ -689,25 +741,25 @@ namespace OpenMS
           if (add_metainfo_)
           {
             String ion_name = ribonucleotideTypeToIonCode_(res_type, length); // + String((Size)abs(charge), charge_sign);
-            ion_names.push_back(ion_name);
-            charges.push_back(charge);
+            spectrum.getStringDataArrays()[0].push_back(ion_name);
+            spectrum.getIntegerDataArrays()[0].push_back(charge);
           }
         }
       }
       else // add isotope clusters
       {
-        for (Size length = 1; length < nucleotide.size(); ++length)
+        for (Size length = 1; length < oligo.size(); ++length)
         {
-          const NASequence ion = nucleotide.getSuffix(length);
-          addIsotopeCluster_(spectrum, ion, ion_names, charges, res_type, charge, intensity); //TODO IMPLEMENT
+          const NASequence ion = oligo.getSuffix(length);
+          addIsotopeCluster_(spectrum, ion, res_type, charge, intensity); //TODO IMPLEMENT
         }
       }
 
       //if (add_losses_) // add loss peaks (slow)
       //{
-      //  for (Size i = 1; i < nucleotide.size(); ++i)
+      //  for (Size i = 1; i < oligo.size(); ++i)
        // {
-        //  const NASequence ion = nucleotide.getSuffix(i);
+        //  const NASequence ion = oligo.getSuffix(i);
         //  addLosses_(spectrum, ion, ion_names, charges, intensity, res_type, charge);
        // }
      // }
@@ -959,7 +1011,7 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::addPrecursorPeaks_(PeakSpectrum& spectrum, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge) const
+  void TheoreticalSpectrumGenerator::addPrecursorPeaks_(PeakSpectrum& spectrum, const NASequence& oligo, Int charge) const
   {
     Peak1D p;
 
@@ -974,11 +1026,11 @@ namespace OpenMS
     String ion_name("[M"+ String(charge_sign)+"H]" + String((Size)abs(charge), charge_sign));
 
     // precursor peak
-    double mono_pos = nucleotide.getMonoWeight(NASequence::Full, charge);
+    double mono_pos = oligo.getMonoWeight(NASequence::Full, charge);
 
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = nucleotide.getFormula(NASequence::Full, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
+      IsotopeDistribution dist = oligo.getFormula(NASequence::Full, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
       double j(0.0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
@@ -986,8 +1038,8 @@ namespace OpenMS
         p.setIntensity(pre_int_ * it->getIntensity());
         if (add_metainfo_)
         {
-          ion_names.push_back(ion_name);
-          charges.push_back(charge);
+          spectrum.getStringDataArrays()[0].push_back(ion_name);
+          spectrum.getIntegerDataArrays()[0].push_back(charge);
         }
         spectrum.push_back(p);
       }
@@ -998,15 +1050,15 @@ namespace OpenMS
       p.setIntensity(pre_int_);
       if (add_metainfo_)
       {
-        ion_names.push_back(ion_name);
-        charges.push_back(charge);
+        spectrum.getStringDataArrays()[0].push_back(ion_name);
+        spectrum.getIntegerDataArrays()[0].push_back(charge);
       }
       spectrum.push_back(p);
     }
     // loss peaks of the precursor
 
     //loss of water
-    EmpiricalFormula ion = nucleotide.getFormula(NASequence::Full, charge) - EmpiricalFormula("H2O");
+    EmpiricalFormula ion = oligo.getFormula(NASequence::Full, charge) - EmpiricalFormula("H2O");
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
@@ -1019,8 +1071,8 @@ namespace OpenMS
         if (add_metainfo_)
         {
           String ion_name("[M"+ String(charge_sign)+"H]-H2O" + String((Size)abs(charge), charge_sign));
-          ion_names.push_back(ion_name);
-          charges.push_back(charge);
+          spectrum.getStringDataArrays()[0].push_back(ion_name);
+          spectrum.getIntegerDataArrays()[0].push_back(charge);
         }
         spectrum.push_back(p);
       }
@@ -1032,14 +1084,14 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("[M"+String(charge_sign)+"H]-H2O" + String((Size)abs(charge), charge_sign));
-        ion_names.push_back(ion_name);
-        charges.push_back(charge);
+        spectrum.getStringDataArrays()[0].push_back(ion_name);
+        spectrum.getIntegerDataArrays()[0].push_back(charge);
       }
       spectrum.push_back(p);
     }
 
     //loss of ammonia
-    ion = nucleotide.getFormula(NASequence::Full, charge) - EmpiricalFormula("NH3");
+    ion = oligo.getFormula(NASequence::Full, charge) - EmpiricalFormula("NH3");
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
@@ -1052,8 +1104,8 @@ namespace OpenMS
         if (add_metainfo_)
         {
           String ion_name("[M"+String(charge_sign)+"H]-NH3" + String((Size)abs(charge), charge_sign));
-          ion_names.push_back(ion_name);
-          charges.push_back(charge);
+          spectrum.getStringDataArrays()[0].push_back(ion_name);
+          spectrum.getIntegerDataArrays()[0].push_back(charge);
         }
         spectrum.push_back(p);
       }
@@ -1065,8 +1117,8 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("[M"+String(charge_sign)+"H]-NH3" + String((Size)abs(charge), charge_sign));
-        ion_names.push_back(ion_name);
-        charges.push_back(charge);
+        spectrum.getStringDataArrays()[0].push_back(ion_name);
+        spectrum.getIntegerDataArrays()[0].push_back(charge);
       }
       spectrum.push_back(p);
     }

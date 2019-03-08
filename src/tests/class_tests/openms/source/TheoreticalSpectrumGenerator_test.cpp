@@ -608,6 +608,47 @@ START_SECTION((void getSpectrum(PeakSpectrum& spec, const NASequence& nucleotide
 }
 END_SECTION
 
+
+START_SECTION((void getMultipleSpectra(std::vector<PeakSpectrum>& spectra, const NASequence& oligo, const std::set<Int>& charges, Int base_charge = 1) const))
+{
+  TheoreticalSpectrumGenerator gen;
+  Param param = gen.getParameters();
+  param.setValue("add_first_prefix_ion", "true");
+  param.setValue("add_metainfo", "true");
+  // param.setValue("add_precursor_peaks", "true"); // yes or no?
+  param.setValue("add_a_ions", "true");
+  param.setValue("add_b_ions", "true");
+  param.setValue("add_c_ions", "true");
+  param.setValue("add_d_ions", "true");
+  param.setValue("add_w_ions", "true");
+  param.setValue("add_x_ions", "true");
+  param.setValue("add_y_ions", "true");
+  param.setValue("add_z_ions", "true");
+  param.setValue("add_a-B_ions", "true");
+
+  NASequence seq = NASequence::fromString("[m1A]UCCACAGp");
+  set<Int> charges = {-1, -3, -5};
+  // get spectra the old-fashioned way:
+  vector<PeakSpectrum> compare(charges.size());
+  Size index = 0;
+  for (Int charge : charges)
+  {
+    gen.getSpectrum(compare[index], seq, -1, charge);
+    index++;
+  }
+  // now using the new function:
+  vector<PeakSpectrum> spectra;
+  gen.getMultipleSpectra(spectra, seq, charges, -1);
+  // compare:
+  TEST_EQUAL(compare.size(), spectra.size());
+  for (index = 0; index < spectra.size(); ++index)
+  {
+    TEST_EQUAL(compare[index].size(), spectra[index].size());
+    TEST_EQUAL(compare[index] == spectra[index], true);
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
