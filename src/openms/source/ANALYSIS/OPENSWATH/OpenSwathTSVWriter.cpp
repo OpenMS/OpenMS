@@ -73,6 +73,7 @@ namespace OpenMS
           << "masserror_ppm" << "\t"
           << "Intensity" << "\t"
           << "ProteinName" << "\t"
+          << "GeneName" << "\t"
           << "decoy" << "\t"
           << "assay_rt" <<"\t"
           << "delta_rt" << "\t"
@@ -141,6 +142,7 @@ namespace OpenMS
           StringList aggr_Peak_Area, aggr_Peak_Apex, aggr_Fragment_Annotation;
           StringList aggr_prec_Peak_Area, aggr_prec_Peak_Apex, aggr_prec_Fragment_Annotation;
           StringList rt_fwhm;
+          String gene_name;
           for (std::vector<Feature>::const_iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
           {
             if (sub_it->metaValueExists("FeatureLevel"))
@@ -219,6 +221,7 @@ namespace OpenMS
             + "\t" + (feature_it->metaValueExists("masserror_ppm") ? ListUtils::concatenate(feature_it->getMetaValue("masserror_ppm").toDoubleList(), ";") : "")
             + "\t" + (String)feature_it->getIntensity()
             + "\t" + protein_name
+            + "\t" + gene_name
             + "\t" + decoy
             // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
             + "\t" + (String)feature_it->getMetaValue("assay_rt")

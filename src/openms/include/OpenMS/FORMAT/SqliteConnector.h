@@ -162,6 +162,15 @@ public:
 
 
 
+    /**
+      @brief Checks whether the given table exists
+
+      @p db The sqlite database (needs to be open)
+      @p tablename The name of the table to be checked
+
+      @returns Whether the column exists or not
+    */
+    static bool tableExists(sqlite3 *db, const String& tablename);
 
     /**
       @brief Checkes whether the given table contains a certain column
