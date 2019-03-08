@@ -994,6 +994,7 @@ protected:
     }
     param.setValue("add_first_prefix_ion", "true");
     param.setValue("add_metainfo", "true");
+    // param.setValue("add_precursor_peaks", "true"); // yes or no?
     spectrum_generator.setParameters(param);
 
     vector<HitsByScore> annotated_hits(spectra.size());
@@ -1076,7 +1077,7 @@ protected:
       {
         double candidate_mass = pair.first;
 
-        // determine MS2 precursors that match to the current mass
+        // determine MS2 precursors that match to the current mass:
         double tol = search_param.precursor_mass_tolerance;
         if (search_param.precursor_tolerance_ppm)
         {
@@ -1088,13 +1089,25 @@ protected:
 
         if (low_it == up_it) continue; // no matching precursor in data
 
+        // collect all relevant charge states for theoret. spectrum generation:
+        set<Int> precursor_charges;
+        for (auto prec_it = low_it; prec_it != up_it; ++prec_it)
+        {
+          precursor_charges.insert(prec_it->second.charge * base_charge);
+        }
+
         for (const NASequence* seq_ptr : pair.second)
         {
           const NASequence& candidate = *seq_ptr;
           LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
                     << float(candidate_mass) << " Da)" << endl;
 
+          // pre-generate spectra:
           map<Int, PeakSpectrum> theo_spectra_by_charge;
+          spectrum_generator.getMultipleSpectra(theo_spectra_by_charge,
+                                                candidate, precursor_charges,
+                                                base_charge);
+
           for (auto prec_it = low_it; prec_it != up_it; ++prec_it)
           {
             LOG_DEBUG << "Matching precursor mass: " << float(prec_it->first)
@@ -1102,20 +1115,8 @@ protected:
 
             Size charge = prec_it->second.charge;
             // look up theoretical spectrum for this charge:
-            auto pos = theo_spectra_by_charge.find(charge);
-            if (pos == theo_spectra_by_charge.end())
-            {
-              // no spectrum for this charge yet - generate it:
-              PeakSpectrum theo_spectrum;
-              // @TODO: avoid regenerating spectra with lower charges as part of
-              // higher-charged spectra
-              spectrum_generator.getSpectrum(theo_spectrum, candidate,
-                                             base_charge, charge * base_charge);
-              theo_spectrum.setName(candidate.toString());
-              pos = theo_spectra_by_charge.insert(
-                make_pair(charge, theo_spectrum)).first;
-            }
-            const PeakSpectrum& theo_spectrum = pos->second;
+            PeakSpectrum& theo_spectrum =
+              theo_spectra_by_charge[charge * base_charge];
 
             Size scan_index = prec_it->second.scan_index;
             const PeakSpectrum& exp_spectrum = spectra[scan_index];
@@ -1132,6 +1133,7 @@ protected:
             }
             if (!theo_ms2_out.empty())
             {
+              theo_spectrum.setName(candidate.toString());
 #pragma omp critical (theo_ms2_out)
               theo_ms2_spectra.addSpectrum(theo_spectrum);
             }
