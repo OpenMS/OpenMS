@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -107,7 +107,7 @@ namespace OpenMS
         sl << String(ma.first + "_" + ma.second[i].first);
       }
     }
-    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "fragment_annotation" << "rank";
+    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "rank";
     return ListUtils::concatenate(sl, separator);
   }
 
@@ -248,6 +248,38 @@ namespace OpenMS
           ph.setMetaValue("RNPxl:z3 mass", (double)weight_z3);
           ph.setMetaValue("RNPxl:z4 mass", (double)weight_z4);
           csv_rows.push_back(row);
+
+          // In the last annotation step we add the oligo as delta mass modification
+          // to get the proper theoretical mass annotated in the PeptideHit
+          // Try to add it to the C- then N-terminus. 
+          // If already modified search for an unmodified amino acid and add it there
+          if (rna_weight > 0)
+          {
+            const AASequence& aa = ph.getSequence();
+            const String seq = ph.getSequence().toString();
+
+            if (!aa.hasCTerminalModification()) 
+            {
+              AASequence new_aa = AASequence::fromString(seq + ".[" + String(rna_weight) + "]");
+              ph.setSequence(new_aa);
+            }
+            else if (!aa.hasNTerminalModification()) 
+            {
+              AASequence new_aa = AASequence::fromString("[" + String(rna_weight) + "]." + seq);
+              ph.setSequence(new_aa);
+            }
+            else // place it anywhere
+            {
+              for (auto a : aa)
+              {
+                if (!a.isModified())
+                {
+                  a.setModification("[" + String(rna_weight) + "]");
+                  break;
+                }
+              }             
+            }
+          }          
       }
     }
   }

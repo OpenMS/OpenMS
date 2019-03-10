@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,11 +60,15 @@ namespace OpenMS
   /**
     @brief A container for consensus elements.
 
-    A %ConsensusMap is a container holding 2-dimensional consensus elements (ConsensusFeature)
-    which in turn represent combined elements of 2-dimensional experiments.
-    The map is implemented as a vector of elements.
+    A %ConsensusMap is a container holding 2-dimensional consensus elements
+    (ConsensusFeature) which in turn represent analytes that have been
+    quantified across multiple LC-MS/MS experiments. Each analyte in a
+    ConsensusFeature is linked to its original LC-MS/MS run, the links are
+    maintained by the ConsensusMap class.
+    The map is implemented as a vector of elements of type ConsensusFeature.
 
-    The map indices used in the consensus features should be registered in this class.
+    To be consistent, all maps who are referenced by ConsensusFeature objects
+    (through a unique id) need to be registered in this class. 
 
     @ingroup Kernel
   */

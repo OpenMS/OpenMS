@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed)
+  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
     ofstream f(filename.c_str());
     if (!f)
@@ -104,6 +104,7 @@ namespace OpenMS
     String raw_data;
     String base_name;
     SpectrumMetaDataLookup lookup;
+    lookup.rt_tolerance = rt_tolerance;
 
     // The mz-File (if given)
     if (!mz_file.empty())
@@ -287,7 +288,14 @@ namespace OpenMS
         }
         else
         {
-          scan_index = lookup.findByRT(it->getRT());
+          if (it->metaValueExists("spectrum_reference"))
+          {
+            scan_index = lookup.findByNativeID(it->getMetaValue("spectrum_reference"));
+          }
+          else
+          {
+            scan_index = lookup.findByRT(it->getRT());
+          }
 
           SpectrumMetaDataLookup::SpectrumMetaData meta;
           lookup.getSpectrumMetaData(scan_index, meta);
@@ -569,7 +577,7 @@ namespace OpenMS
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
           }
-          if (it->getScoreType() == "Posterior Error Probability")
+          if (it->getScoreType() == "Posterior Error Probability" || it->getScoreType() == "pep")
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
             double probability = 1.0 - h.getScore();

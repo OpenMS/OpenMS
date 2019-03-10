@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,12 +64,20 @@ namespace OpenMS
 
 public:
 
-    /** @name Typedefs and Constants
-    */
+    /** @name Formula conversion
+     *
+     * @brief Computes empirical formula required to add to the desired type
+     *
+     * Computes the empirical formula required to be added to convert an
+     * internal residue (inside an AA sequence) to that of a residue of the
+     * desired type. For example, to obtain the conversion formula for an
+     * internal ion to a "y ion", use getInternalToYTerm().
+     *
+     * Formulae that need to be added to the internal residues to get to
+     * fragment type from http://www.matrixscience.com/help/fragmentation_help.html
+     */
     //@{
 
-    // Formulae that need to be added to the internal residues to get to fragment type
-    // Formulae from http://www.matrixscience.com/help/fragmentation_help.html
     inline static const EmpiricalFormula& getInternalToFull()
     {
       static const EmpiricalFormula to_full = EmpiricalFormula("H2O");
@@ -114,14 +122,14 @@ public:
     inline static const EmpiricalFormula& getInternalToXIon()
     {
       // Mind the "-"
-      static const EmpiricalFormula to_full = 
+      static const EmpiricalFormula to_full =
         getInternalToCTerm() + EmpiricalFormula("CO") - EmpiricalFormula("H");
       return to_full;
     }
 
     inline static const EmpiricalFormula& getInternalToYIon()
     {
-      static const EmpiricalFormula to_full = 
+      static const EmpiricalFormula to_full =
         getInternalToCTerm() + EmpiricalFormula("H");
       return to_full;
     }
@@ -129,11 +137,10 @@ public:
     inline static const EmpiricalFormula& getInternalToZIon()
     {
       // Mind the "-"
-      static const EmpiricalFormula to_full = 
+      static const EmpiricalFormula to_full =
         getInternalToCTerm() - EmpiricalFormula("NH2");
       return to_full;
     }
-
 
     //@}
 
@@ -142,23 +149,23 @@ public:
     //@{
     enum ResidueType
     {
-      Full = 0,       // with N-terminus and C-terminus
-      Internal,       // internal, without any termini
-      NTerminal,      // only N-terminus
-      CTerminal,      // only C-terminus
-      AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
-      BIon,           // MS:1001224 N-terminus up to the peptide bond
-      CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
-      XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
-      YIon,           // MS:1001220 peptide bond up to the C-terminus
-      ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond
-      Precursor,      // MS:1001523 Precursor ion
-      BIonMinusH20,   // MS:1001222 b ion without water
-      YIonMinusH20,   // MS:1001223 y ion without water
-      BIonMinusNH3,   // MS:1001232 b ion without ammonia
-      YIonMinusNH3,   // MS:1001233 y ion without ammonia
-      NonIdentified,  // MS:1001240 Non-identified ion
-      Unannotated,    // no stored annotation
+      Full = 0,       ///< with N-terminus and C-terminus
+      Internal,       ///< internal, without any termini
+      NTerminal,      ///< only N-terminus
+      CTerminal,      ///< only C-terminus
+      AIon,           ///< MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,           ///< MS:1001224 N-terminus up to the peptide bond
+      CIon,           ///< MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,           ///< MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,           ///< MS:1001220 peptide bond up to the C-terminus
+      ZIon,           ///< MS:1001230 C-alpha/carbonyl carbon bond
+      Precursor,      ///< MS:1001523 Precursor ion
+      BIonMinusH20,   ///< MS:1001222 b ion without water
+      YIonMinusH20,   ///< MS:1001223 y ion without water
+      BIonMinusNH3,   ///< MS:1001232 b ion without ammonia
+      YIonMinusNH3,   ///< MS:1001233 y ion without ammonia
+      NonIdentified,  ///< MS:1001240 Non-identified ion
+      Unannotated,    ///< no stored annotation
       SizeOfResidueType
     };
     //@}
@@ -170,30 +177,38 @@ public:
     /** @name Constructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     Residue();
 
-    /// copy constructor
-    Residue(const Residue& residue);
+    /// Copy constructor
+    Residue(const Residue&) = default;
 
-    /// detailed constructor
+    /// Move constructor
+    Residue(Residue&&) = default;
+
+    /// Detailed constructor
     Residue(const String& name,
             const String& three_letter_code,
             const String& one_letter_code,
             const EmpiricalFormula& formula);
 
-    /// destructor
+    /// Destructor
     virtual ~Residue();
     //@}
 
     /** @name Assignment
      */
     //@{
-    /// assignment operator
-    Residue& operator=(const Residue& residue);
+
+    /// Assignment operator
+    Residue& operator=(const Residue&) = default;
+
+    /// Move assignment operator
+    Residue& operator=(Residue&&) & = default;
     //@}
 
-    /** Accessors
+    /** @name Accessors
     */
     //@{
     /// sets the name of the residue
@@ -306,28 +321,6 @@ public:
 
     /// returns the residue sets this residue is contained in
     const std::set<String>& getResidueSets() const;
-    //@}
-
-    /** @name Predicates
-    */
-    //@{
-    /// true if the residue has neutral loss
-    bool hasNeutralLoss() const;
-
-    /// true if N-terminal neutral losses are set
-    bool hasNTermNeutralLosses() const;
-
-    /// equality operator
-    bool operator==(const Residue& residue) const;
-
-    /// inequality operator
-    bool operator!=(const Residue& residue) const;
-
-    /// equality operator for one letter code
-    bool operator==(char one_letter_code) const;
-
-    /// equality operator for one letter code
-    bool operator!=(char one_letter_code) const;
 
     /// returns the pka of the residue
     double getPka() const;
@@ -367,6 +360,28 @@ public:
 
     /// sets the C-terminal direction backbone basicity
     void setBackboneBasicityRight(double gb_bb_r);
+    //@}
+
+    /** @name Predicates
+    */
+    //@{
+    /// true if the residue has neutral loss
+    bool hasNeutralLoss() const;
+
+    /// true if N-terminal neutral losses are set
+    bool hasNTermNeutralLosses() const;
+
+    /// equality operator
+    bool operator==(const Residue& residue) const;
+
+    /// inequality operator
+    bool operator!=(const Residue& residue) const;
+
+    /// equality operator for one letter code
+    bool operator==(char one_letter_code) const;
+
+    /// equality operator for one letter code
+    bool operator!=(char one_letter_code) const;
 
     /// true if the residue is a modified one
     bool isModified() const;
@@ -374,6 +389,9 @@ public:
     /// true if the residue is contained in the set
     bool isInResidueSet(const String& residue_set);
     //@}
+
+    /// helper for mapping residue types to letters for Text annotations and labels
+    static char residueTypeToIonLetter(const ResidueType& res_type);
 
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
@@ -436,6 +454,17 @@ protected:
     // residue sets this amino acid is contained in
     std::set<String> residue_sets_;
 
+    // precalculated residue type delta weights for more efficient weight calculation
+    double internal_to_full_monoweight_ = getInternalToFull().getMonoWeight();
+    double internal_to_nterm_monoweight_ = getInternalToNTerm().getMonoWeight();
+    double internal_to_cterm_monoweight_ = getInternalToCTerm().getMonoWeight();
+    double internal_to_a_monoweight_ = getInternalToAIon().getMonoWeight();
+    double internal_to_b_monoweight_ = getInternalToBIon().getMonoWeight();
+    double internal_to_c_monoweight_ = getInternalToCIon().getMonoWeight();
+    double internal_to_x_monoweight_ = getInternalToXIon().getMonoWeight();
+    double internal_to_y_monoweight_ = getInternalToYIon().getMonoWeight();
+    double internal_to_z_monoweight_ = getInternalToZIon().getMonoWeight();
+
     /// sets the modification (helper function)
     void setModification_(const ResidueModification& mod);
 
@@ -444,4 +473,3 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 }
-

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,6 +124,7 @@ namespace OpenMS
     if (writing_spectra_)
     {
       ofs_ << "\t\t</spectrumList>\n";
+      writing_spectra_ = false;
     }
 
     // Create copy and add dataprocessing if required
@@ -154,7 +155,6 @@ namespace OpenMS
     {
       ofs_ << "\t\t<chromatogramList count=\"" << chromatograms_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
       writing_chromatograms_ = true;
-      writing_spectra_ = false;
     }
     Internal::MzMLHandler::writeChromatogram_(ofs_, ccpy,
             chromatograms_written_++, *validator_);

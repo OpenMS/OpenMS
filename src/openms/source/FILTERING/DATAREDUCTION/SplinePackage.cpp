@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,48 +40,48 @@ using namespace std;
 namespace OpenMS
 {
 
-  SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling) :
-    spline_(mz, intensity)
+  SplinePackage::SplinePackage(std::vector<double> pos, std::vector<double> intensity) :
+    spline_(pos, intensity)
   {
-    if (!(mz.size() == intensity.size() && mz.size() > 1))
+    if (!(pos.size() == intensity.size() && pos.size() > 1))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "m/z and intensity vectors either not of the same size or too short.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "m/z (or RT) and intensity vectors either not of the same size or too short.");
     }
 
-    mz_min_ = mz.front();
-    mz_max_ = mz.back();
-    mz_step_width_ = scaling * (mz_max_ - mz_min_) / (mz.size() - 1); // step width somewhat smaller than the average raw data spacing
+    pos_min_ = pos.front();
+    pos_max_ = pos.back();
+    pos_step_width_ = (pos_max_ - pos_min_) / (pos.size() - 1);
   }
 
   SplinePackage::~SplinePackage()
   {
   }
 
-  double SplinePackage::getMzMin() const
+  double SplinePackage::getPosMin() const
   {
-    return mz_min_;
+    return pos_min_;
   }
 
-  double SplinePackage::getMzMax() const
+  double SplinePackage::getPosMax() const
   {
-    return mz_max_;
+    return pos_max_;
   }
 
-  double SplinePackage::getMzStepWidth() const
+  double SplinePackage::getPosStepWidth() const
   {
-    return mz_step_width_;
+    return pos_step_width_;
   }
 
-  bool SplinePackage::isInPackage(double mz) const
+  bool SplinePackage::isInPackage(double pos) const
   {
-    return mz >= mz_min_ && mz <= mz_max_;
+    return pos >= pos_min_ && pos <= pos_max_;
   }
 
-  double SplinePackage::eval(double mz) const
+  double SplinePackage::eval(double pos) const
   {
-    if (this->isInPackage(mz))
+    if (this->isInPackage(pos))
     {
-      return max(0.0, spline_.eval(mz));
+      return max(0.0, spline_.eval(pos));
     }
     else
     {

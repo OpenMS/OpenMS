@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #define PEN_SIZE_MAX_LIMIT 100    // maximum size of a rectangle representing a point for raw peak data
-#define PEN_SIZE_MIN_LIMIT 1      // minimum. This should not be changed without adapting the way dots are plotted 
+#define PEN_SIZE_MIN_LIMIT 1      // minimum. This should not be changed without adapting the way dots are plotted
                                   // (might lead to inconsistencies when switching between drawing modes of
                                   //  paintMaximumIntensities() vs. paintAllIntensities() )
 
@@ -372,11 +372,11 @@ namespace OpenMS
           {
             const ExperimentType::SpectrumType& spec = peak_map[rt_indices[n_ms1_scans*quantiles[i]]];
             n_s.push_back(std::distance(spec.MZBegin(mz_min), spec.MZEnd(mz_max)) + 1); // +1 to since distance is 0 if only one m/z is shown
-          } 
+          }
           std::sort(n_s.begin(), n_s.end());
           n_peaks_in_scan = n_s[1]; // median
         }
-      
+
         double ratio_data2pixel_rt = n_ms1_scans / (double)rt_pixel_count;
         double ratio_data2pixel_mz = n_peaks_in_scan / (double)mz_pixel_count;
 
@@ -403,7 +403,7 @@ namespace OpenMS
 
           // compute ideal pen width (from data);
           // since points are rectangular, we take the value of the most "crowded" dimension
-          // i.e. so that adjacent points do not overlap      
+          // i.e. so that adjacent points do not overlap
           double pen_width = std::min(1/ratio_data2pixel_rt, 1/ratio_data2pixel_mz);
           // ... and make sure its within our boundaries
           pen_width = std::max(pen_width, pen_size_min_);
@@ -523,7 +523,7 @@ namespace OpenMS
       double scale_factor = canvas_coverage_min_ / ratio_data2pixel;
       // however, within bounds (no need to check the pen_size_min_, because we can only exceed here, not underestimate)
       scale_factor = std::min(pen_size_max_, scale_factor);
-      // The difference between the original pen_width vs. this scale 
+      // The difference between the original pen_width vs. this scale
       // gives the number of peaks to merge in the crowded dimension
       merge_factor = scale_factor / pen_width;
       // set pen width to the new scale
@@ -889,9 +889,10 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintIdentifications_(Size layer_index, QPainter & painter)
+  void Spectrum2DCanvas::paintIdentifications_(Size layer_index, QPainter& painter)
   {
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
+    bool show_labels = getLayerFlag(layer_index, LayerData::I_LABELS);
     vector<PeptideIdentification>::const_iterator pep_begin, pep_end;
     if (layer.type == LayerData::DT_FEATURE)
     {
@@ -910,7 +911,7 @@ namespace OpenMS
 
     for (; pep_begin != pep_end; ++pep_begin)
     {
-      if (!pep_begin->getHits().empty())
+      if (!pep_begin->getHits().empty() || show_labels)
       {
         if (!pep_begin->hasRT() ||
             !pep_begin->hasMZ())
@@ -932,9 +933,20 @@ namespace OpenMS
         painter.drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
 
         //draw sequence
-        String sequence = pep_begin->getHits()[0].getSequence().toString();
-        if (pep_begin->getHits().size() > 1)
-          sequence += "...";
+        String sequence;
+        if (show_labels)
+        {
+          sequence = pep_begin->getMetaValue("label");
+        }
+        else
+        {
+          sequence = pep_begin->getHits()[0].getSequence().toString();
+        }
+        if (sequence.empty() && !pep_begin->getHits().empty())
+        {
+          sequence = pep_begin->getHits()[0].getMetaValue("label");
+        }
+        if (pep_begin->getHits().size() > 1) sequence += "...";
         painter.drawText(pos.x() + 10.0, pos.y() + 10.0, sequence.toQString());
       }
     }
@@ -1279,9 +1291,6 @@ namespace OpenMS
     }
     else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  // chromatogram data
     {
-      getCurrentLayer_().getPeakDataMuteable()->sortChromatograms(true);
-      getCurrentLayer_().getPeakDataMuteable()->updateRanges(1);
-
       update_buffer_ = true;
 
       // abort if no data points are contained
@@ -1289,7 +1298,9 @@ namespace OpenMS
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
+        {
           current_layer_ = current_layer_ - 1;
+        }
         QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no chromatograms. Aborting!");
         return false;
       }
@@ -1307,12 +1318,6 @@ namespace OpenMS
       }
     }
 
-    // warn if negative intensities are contained
-    if (getMinIntensity(current_layer_) < 0.0)
-    {
-      QMessageBox::warning(this, "Warning", "This dataset contains negative intensities. Use it at your own risk!");
-    }
-
     // overall values update
     recalculateRanges_(0, 1, 2);
     if (layers_.size() == 1)
@@ -1328,6 +1333,12 @@ namespace OpenMS
 
     emit layerActivated(this);
 
+    // warn if negative intensities are contained
+    if (getMinIntensity(current_layer_) < 0.0)
+    {
+      QMessageBox::warning(this, "Warning", "This dataset contains negative intensities. Use it at your own risk!");
+    }
+    
     return true;
   }
 
@@ -1505,7 +1516,7 @@ namespace OpenMS
     // invert 'value' (since the VERTICAL(!) scrollbar's range is negative -- see SpectrumWidget::updateVScrollbar())
     // this is independent on isMzToXAxis()!
     value *= -1;
-    
+
     AreaType new_area = visible_area_;
     if (!isMzToXAxis())
     {
@@ -2311,7 +2322,7 @@ namespace OpenMS
         // risk of iterating through *all* the scans.
 
         const AreaType & area = getVisibleArea();
-        double mz_min_vis = area.minPosition()[0]; 
+        double mz_min_vis = area.minPosition()[0];
         double mz_max_vis = area.maxPosition()[0];
 
         double rt5s_min = getCurrentLayer().getPeakData()->getSpectra()[ indices[indices.size()-1] ].getRT();
@@ -2322,7 +2333,7 @@ namespace OpenMS
         if (!item_added)
         {
           // ok, now lets search the whole visible area (may be large!)
-          double rt_min_vis = area.minPosition()[1]; 
+          double rt_min_vis = area.minPosition()[1];
           double rt_max_vis = area.maxPosition()[1];
           item_added = collectFragmentScansInArea(rt_min_vis, rt_max_vis, mz_min_vis, mz_max_vis, a, msn_scans, msn_meta);
         }
@@ -2895,7 +2906,7 @@ namespace OpenMS
       String status_changed;
       // +Home (MacOSX small keyboard: Fn+ArrowLeft) => increase point size
       if ((e->key() == Qt::Key_Home) && (pen_size_max_ < PEN_SIZE_MAX_LIMIT))
-      { 
+      {
         ++pen_size_max_;
         status_changed = "Max. dot size increased to '" + String(pen_size_max_) + "'";
       }

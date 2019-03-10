@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -317,20 +318,15 @@ namespace OpenMS
       bool has_im = (im_extraction_window > 0.0);
       if (has_im)
       {
-        OpenSwath::BinaryDataArrayPtr im_arr = sptr->getMZArray();
-        bool found = false;
-        for (const auto& arr : sptr->getDataArrays())
+        OpenSwath::BinaryDataArrayPtr im_arr = sptr->getDriftTimeArray();
+        if (im_arr != nullptr)
         {
-          if (arr->description == "Ion Mobility")
-          {
-            im_it = arr->data.begin();
-            found = true;
-          }
+          im_it = im_arr->data.begin();
         }
-        if (!found)
+        else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested ion mobility extraction but no ion mobility array found (looked for 'Ion Mobility').");
+            "Requested ion mobility extraction but no ion mobility array found.");
         }
       }
 
@@ -349,13 +345,18 @@ namespace OpenMS
           continue;
         }
 
-        if (!has_im && used_filter == 1)
+        const bool use_im = (extraction_coordinates[k].ion_mobility >= 0.0 && has_im);
+        if (!use_im && used_filter == 1)
         {
           extract_value_tophat(mz_start, mz_it, mz_end, int_it,
                                extraction_coordinates[k].mz, integrated_intensity, mz_extraction_window, ppm);
         }
-        else if (has_im && used_filter == 1)
+        else if (use_im && used_filter == 1)
         {
+          if (extraction_coordinates[k].ion_mobility < 0)
+          {
+            std::cerr << "WARNING : Drift time of ion is negative!" << std::endl;
+          }
           extract_value_tophat(mz_start, mz_it, mz_end, int_it, im_it,
                                extraction_coordinates[k].mz, extraction_coordinates[k].ion_mobility,
                                integrated_intensity, mz_extraction_window, im_extraction_window, ppm);
@@ -365,7 +366,6 @@ namespace OpenMS
           throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
 
-        // Time is first, intensity is second
         output[k]->getTimeArray()->data.push_back(current_rt);
         output[k]->getIntensityArray()->data.push_back(integrated_intensity);
       }

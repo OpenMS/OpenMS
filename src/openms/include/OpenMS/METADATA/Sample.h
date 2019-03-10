@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,27 +65,31 @@ public:
     /// Names of sample states
     static const std::string NamesOfSampleState[SIZE_OF_SAMPLESTATE];
 
-    ///default constructor
+    /// Default constructor
     Sample();
-    ///copy constructor
+    /// Copy constructor
     Sample(const Sample & source);
-    ///destructor
+    /// Move constructor
+    Sample(Sample&&) = default;
+    /// Destructor
     ~Sample();
 
-    ///assignment operator
+    /// Assignment operator
     Sample & operator=(const Sample & source);
+    /// Move assignment operator
+    Sample& operator=(Sample&&) & = default;
 
     /// Equality operator
     bool operator==(const Sample & rhs) const;
 
-    ///returns the sample name (default: "")
+    /// returns the sample name (default: "")
     const String & getName() const;
-    ///sets the sample name
+    /// sets the sample name
     void setName(const String & name);
 
-    ///returns the sample name (default: "")
+    /// returns the sample name (default: "")
     const String & getOrganism() const;
-    ///sets the sample name
+    /// sets the sample name
     void setOrganism(const String & organism);
 
     /// returns the sample number (default: "")
@@ -126,29 +130,36 @@ public:
     void setSubsamples(const std::vector<Sample> & subsamples);
 
     /**
-        @brief adds a sample treatment before the given position (default is the end of the list). Sample treatments are ordered in the order of application to the sample. If before_position is smaller than 0, the sample treatment is appended to the list.
+        @brief adds a sample treatment before the given position (default is
+        the end of the list). Sample treatments are ordered in the order of
+        application to the sample. If before_position is smaller than 0, the
+        sample treatment is appended to the list.
 
-    @exception Exception::IndexOverflow is thrown if the position is invalid.
-  */
+        @exception Exception::IndexOverflow is thrown if the position is invalid.
+    */
     void addTreatment(const SampleTreatment & treatment, Int before_position = -1);
+
     /**
         @brief returns a mutable reference to the sample treatment at the given position
 
-    @exception Exception::IndexOverflow is thrown if the position is invalid.
-  */
+        @exception Exception::IndexOverflow is thrown if the position is invalid.
+    */
     SampleTreatment & getTreatment(UInt position);
+
     /**
         @brief returns a const reference to the sample treatment at the given position
 
-    @exception Exception::IndexOverflow is thrown if the position is invalid.
-  */
+        @exception Exception::IndexOverflow is thrown if the position is invalid.
+    */
     const SampleTreatment & getTreatment(UInt position) const;
+
     /**
         @brief removes the sample treatment at the given position
 
-    @exception Exception::IndexOverflow is thrown if the position is invalid.
-  */
+        @exception Exception::IndexOverflow is thrown if the position is invalid.
+    */
     void removeTreatment(UInt position);
+
     /// returns the number of sample treatments
     Int countTreatments() const;
 
@@ -162,6 +173,10 @@ protected:
     double volume_;
     double concentration_;
     std::vector<Sample> subsamples_;
+
+    // note: default move constructor / assignment operator will work on this,
+    // since it will move the whole vector over to the new object who will then
+    // own the memory.
     std::list<SampleTreatment *> treatments_;
 
   };

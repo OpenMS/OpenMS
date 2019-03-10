@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ namespace OpenMS
 {
 
   void SwathMapMassCorrection::correctMZ(
-    const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+    const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     std::vector< OpenSwath::SwathMap > & swath_maps,
     const std::string& corr_type,
     const double mz_extr_window,
@@ -58,7 +58,8 @@ namespace OpenMS
     LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << " and window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
     bool is_ppm = bool(corr_type == "quadratic_regression_delta_ppm" ||
-                       corr_type == "weighted_quadratic_regression_delta_ppm");
+                       corr_type == "weighted_quadratic_regression_delta_ppm" ||
+                       corr_type == "regression_delta_ppm");
 
     if (corr_type == "none")
     {
@@ -80,7 +81,7 @@ namespace OpenMS
     {
 
       // we need at least one feature to find the best one
-      auto transition_group = &trgroup_it->second;
+      auto transition_group = trgroup_it->second;
       if (transition_group->getFeatures().size() == 0)
       {
         continue;
@@ -116,7 +117,7 @@ namespace OpenMS
 
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
-      OpenSwath::SpectrumPtr sp = OpenSwathScoring().getAddedSpectra_(used_maps, bestRT, 1);
+      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
       for (std::vector< OpenMS::MRMFeatureFinderScoring::TransitionType >::const_iterator
           tr = transition_group->getTransitions().begin();
           tr != transition_group->getTransitions().end(); ++tr)
@@ -210,6 +211,16 @@ namespace OpenMS
       regression_params.push_back(qr.getA());
       regression_params.push_back(qr.getB());
       regression_params.push_back(qr.getC());
+    }
+    else if (corr_type == "regression_delta_ppm")
+    {
+      // Regression fit using ppm differences
+      double confidence_interval_P(0.0);
+      Math::LinearRegression lr;
+      lr.computeRegression(confidence_interval_P, exp_mz.begin(), exp_mz.end(), delta_ppm.begin());
+      regression_params.push_back(lr.getIntercept());
+      regression_params.push_back(lr.getSlope());
+      regression_params.push_back(0.0);
     }
     else if (corr_type == "weighted_quadratic_regression_delta_ppm")
     {

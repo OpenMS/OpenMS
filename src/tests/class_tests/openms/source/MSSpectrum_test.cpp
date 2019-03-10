@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,11 @@
 using namespace OpenMS;
 using namespace std;
 
+// static_assert(OpenMS::Test::fulfills_rule_of_5<MSSpectrum>(), "Must fulfill rule of 5");
+// static_assert(OpenMS::Test::fulfills_rule_of_6<MSSpectrum>(), "Must fulfill rule of 6");
+// static_assert(OpenMS::Test::fulfills_fast_vector<MSSpectrum>(), "Must have fast vector semantics");
+// static_assert(std::is_nothrow_move_constructible<MSSpectrum>::value, "Must have nothrow move constructible");
+
 START_TEST(MSSpectrum, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -63,28 +68,33 @@ Peak1D p3;
 p3.setIntensity(3.0f);
 p3.setMZ(30.0);
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 MSSpectrum* ptr = nullptr;
 MSSpectrum* nullPointer = nullptr;
 START_SECTION((MSSpectrum()))
+{
   ptr = new MSSpectrum();
   TEST_NOT_EQUAL(ptr, nullPointer)
+}
 END_SECTION
 
 START_SECTION((~MSSpectrum()))
+{
   delete ptr;
+}
 END_SECTION
 
 START_SECTION(([EXTRA] MSSpectrum()))
+{
   MSSpectrum tmp;
   Peak1D peak;
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
   TEST_EQUAL(tmp.size(),1);
-  TEST_REAL_SIMILAR(tmp[0].getMZ(),47.11);
+  TEST_REAL_SIMILAR(tmp[0].getMZ(), 47.11);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
@@ -134,6 +144,17 @@ START_SECTION((void setDriftTime(double dt)))
   TEST_REAL_SIMILAR(s.getDriftTime(),0.451)
 END_SECTION
 
+START_SECTION((double getDriftTimeUnit() const ))
+  MSSpectrum s;
+  TEST_EQUAL(s.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::NONE);
+END_SECTION
+
+START_SECTION((void setDriftTimeUnit(double dt)))
+  MSSpectrum s;
+  s.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::MILLISECOND);
+  TEST_EQUAL(s.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND);
+END_SECTION
+
 START_SECTION((const FloatDataArrays& getFloatDataArrays() const))
   MSSpectrum s;
   TEST_EQUAL(s.getFloatDataArrays().size(),0)
@@ -168,6 +189,7 @@ START_SECTION((IntegerDataArrays& getIntegerDataArrays()))
 END_SECTION
 
 START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
+{
   MSSpectrum s;
   s.push_back(p1);
   s.push_back(p2);
@@ -240,8 +262,7 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   TEST_REAL_SIMILAR(s2.getFloatDataArrays()[0][1], 3.0)
   TEST_EQUAL(s2.getIntegerDataArrays()[0][1], 3)
   TEST_EQUAL(s2.getStringDataArrays()[0][1], "3")
-
-
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
@@ -274,15 +295,17 @@ END_SECTION
 
 
 /////////////////////////////////////////////////////////////
-// Copy constructor, assignement operator, equality
+// Copy constructor, move constructor, assignment operator, move assignment operator, equality
 
 START_SECTION((MSSpectrum(const MSSpectrum& source)))
+{
   MSSpectrum tmp;
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.setMetaValue("label",5.0);
   tmp.setMSLevel(17);
   tmp.setRT(7.0);
   tmp.setDriftTime(8.0);
+  tmp.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::MILLISECOND);
   tmp.setName("bla");
   //peaks
   MSSpectrum::PeakType peak;
@@ -295,20 +318,59 @@ START_SECTION((MSSpectrum(const MSSpectrum& source)))
   TEST_EQUAL(tmp2.getMSLevel(), 17)
   TEST_REAL_SIMILAR(tmp2.getRT(), 7.0)
   TEST_REAL_SIMILAR(tmp2.getDriftTime(), 8.0)
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND);
   TEST_EQUAL(tmp2.getName(),"bla")
   //peaks
   TEST_EQUAL(tmp2.size(),1);
   TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
+}
 END_SECTION
 
+START_SECTION((MSSpectrum(const MSSpectrum&& source)))
+{
+  MSSpectrum tmp;
+  tmp.setRT(9.0);
+  tmp.setDriftTime(5.0);
+  tmp.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::VSSC);
+  tmp.setMSLevel(18);
+  tmp.setName("bla2");
+  tmp.setMetaValue("label2",5.0);
+  tmp.getInstrumentSettings().getScanWindows().resize(2);
+  //peaks
+  MSSpectrum::PeakType peak;
+  peak.getPosition()[0] = 47.11;
+  tmp.push_back(peak);
+  peak.getPosition()[0] = 48.11;
+  tmp.push_back(peak);
+  
+  //copy tmp so we can move one of them
+  MSSpectrum orig = tmp;
+	MSSpectrum tmp2(std::move(tmp));
+
+  TEST_EQUAL(tmp2, orig); // should be equal to the original
+
+  TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),2);
+  TEST_REAL_SIMILAR(tmp2.getMetaValue("label2"), 5.0)
+  TEST_EQUAL(tmp2.getMSLevel(), 18)
+  TEST_REAL_SIMILAR(tmp2.getRT(), 9.0)
+  TEST_REAL_SIMILAR(tmp2.getDriftTime(), 5.0)
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::VSSC);
+  TEST_EQUAL(tmp2.getName(),"bla2")
+  TEST_EQUAL(tmp2.size(),2);
+  TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
+  TEST_REAL_SIMILAR(tmp2[1].getPosition()[0],48.11);
+}
+END_SECTION
 
 START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
+{
   MSSpectrum tmp;
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.setMetaValue("label",5.0);
   tmp.setMSLevel(17);
   tmp.setRT(7.0);
   tmp.setDriftTime(8.0);
+  tmp.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::MILLISECOND);
   tmp.setName("bla");
   //peaks
   MSSpectrum::PeakType peak;
@@ -323,6 +385,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
   TEST_EQUAL(tmp2.getMSLevel(), 17)
   TEST_REAL_SIMILAR(tmp2.getRT(), 7.0)
   TEST_REAL_SIMILAR(tmp2.getDriftTime(), 8.0)
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND);
   TEST_EQUAL(tmp2.getName(),"bla")
   TEST_EQUAL(tmp2.size(),1);
   TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
@@ -335,11 +398,53 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
   TEST_EQUAL(tmp2.getMSLevel(),1)
   TEST_REAL_SIMILAR(tmp2.getRT(), -1.0)
   TEST_REAL_SIMILAR(tmp2.getDriftTime(), -1.0)
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::NONE);
   TEST_EQUAL(tmp2.getName(),"")
   TEST_EQUAL(tmp2.size(),0);
+}
+END_SECTION
+
+START_SECTION((MSSpectrum& operator= (const MSSpectrum&& source)))
+{
+  MSSpectrum tmp;
+  tmp.setRT(9.0);
+  tmp.setDriftTime(5.0);
+  tmp.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::VSSC);
+  tmp.setMSLevel(18);
+  tmp.setName("bla2");
+  tmp.setMetaValue("label2",5.0);
+  tmp.getInstrumentSettings().getScanWindows().resize(2);
+  //peaks
+  MSSpectrum::PeakType peak;
+  peak.getPosition()[0] = 47.11;
+  tmp.push_back(peak);
+  peak.getPosition()[0] = 48.11;
+  tmp.push_back(peak);
+
+  //copy tmp so we can move one of them
+  MSSpectrum orig = tmp;
+
+  //move assignment
+  MSSpectrum tmp2;
+  tmp2 = std::move(tmp);
+
+  TEST_EQUAL(tmp2, orig); // should be equal to the original
+
+  TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),2);
+  TEST_REAL_SIMILAR(tmp2.getMetaValue("label2"), 5.0)
+  TEST_EQUAL(tmp2.getMSLevel(), 18)
+  TEST_REAL_SIMILAR(tmp2.getRT(), 9.0)
+  TEST_REAL_SIMILAR(tmp2.getDriftTime(), 5.0)
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::VSSC);
+  TEST_EQUAL(tmp2.getName(),"bla2")
+  TEST_EQUAL(tmp2.size(),2);
+  TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
+  TEST_REAL_SIMILAR(tmp2[1].getPosition()[0],48.11);
+}
 END_SECTION
 
 START_SECTION((bool operator== (const MSSpectrum& rhs) const))
+{
   MSSpectrum edit, empty;
   
   TEST_EQUAL(edit==empty,true);
@@ -358,6 +463,10 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
 
   edit = empty;
   edit.setDriftTime(5);
+  TEST_EQUAL(empty==edit, false);
+
+  edit = empty;
+  edit.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::MILLISECOND);
   TEST_EQUAL(empty==edit, false);
 
   edit = empty;
@@ -391,9 +500,11 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
   edit.updateRanges();
   edit.clear(false);
   TEST_EQUAL(empty==edit, false);
+}
 END_SECTION
 
 START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
+{
   MSSpectrum edit, empty;
   
   TEST_EQUAL(edit!=empty,false);
@@ -412,6 +523,10 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
 
   edit = empty;
   edit.setDriftTime(5);
+  TEST_EQUAL(edit!=empty,true);
+
+  edit = empty;
+  edit.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::MILLISECOND);
   TEST_EQUAL(edit!=empty,true);
 
   edit = empty;
@@ -445,7 +560,7 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
   edit.updateRanges();
   edit.clear(false);
   TEST_EQUAL(edit!=empty,true);
-
+}
 END_SECTION
 
 
@@ -1136,13 +1251,56 @@ START_SECTION((Size findNearest(CoordinateType mz, CoordinateType left_tolerance
   TEST_EQUAL(tmp2.findNearest(427.3, 1.0, 1.0), -1);
 END_SECTION
 
+START_SECTION( SpectrumSettings::SpectrumType MSSpectrum::getType(const bool query_data) const)
+  
+  // test empty spectrum
+  MSSpectrum edit;
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::UNKNOWN);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::UNKNOWN);
+
+  // easiest: type is explicitly given
+  edit.setType(SpectrumSettings::PROFILE);
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::PROFILE);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::PROFILE);
+
+  // second easiest: type is given in data processing
+  DataProcessing dp;
+  dp.setProcessingActions( { DataProcessing::PEAK_PICKING } );
+  boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+  edit.getDataProcessing().push_back(dp_);
+  // still profile, since DP is only checked when type is unknown
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::PROFILE);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::PROFILE);
+  edit.setType(SpectrumSettings::UNKNOWN);
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::CENTROID);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::CENTROID);
+
+  // third case: estimation from data
+  edit.getDataProcessing().clear();
+  // too few points
+  edit.push_back( { 100.0, 1.0 } );
+  edit.push_back( { 200.0, 1.0 } );
+  edit.push_back( { 300.0, 1.0 } );
+  edit.push_back( { 400.0, 1.0 } );
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::UNKNOWN);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::UNKNOWN);
+  edit.push_back( { 500.0, 1.0 } );
+  edit.push_back( { 600.0, 1.0 } );
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::UNKNOWN); // data is not inspected
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::CENTROID);
+
+
+END_SECTION
+
 START_SECTION(void clear(bool clear_meta_data))
+{
   MSSpectrum edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   edit.resize(1);
   edit.setMetaValue("label",String("bla"));
   edit.setRT(5);
   edit.setDriftTime(6);
+  edit.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::MILLISECOND);
   edit.setMSLevel(5);
   edit.getFloatDataArrays().resize(5);
   edit.getIntegerDataArrays().resize(5);
@@ -1154,6 +1312,7 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(true);
   TEST_EQUAL(edit==MSSpectrum(),true)
+}
 END_SECTION
 
 START_SECTION(([MSSpectrum::RTLess] bool operator()(const MSSpectrum &a, const MSSpectrum &b) const))

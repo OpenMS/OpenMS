@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -339,10 +339,7 @@ namespace OpenMS
     Size lastAA = peptide.sequence.size() -1;
     if (peptide.sequence[lastAA] == 'K')
     {
-      std::cout << " last AA " << peptide.sequence[lastAA]  << std::endl;
       peptide.sequence[lastAA] = 'R';
-      std::cout << " last AA " << peptide.sequence[lastAA]  << std::endl;
-      std::cout << " after " << peptide.sequence << std::endl;
     }
     else if (peptide.sequence[lastAA] == 'R')
     {
@@ -356,11 +353,15 @@ namespace OpenMS
     }
   }
 
-  bool MRMDecoy::hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide) const
+  bool MRMDecoy::hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide, bool checkCterminalAA) const
   {
     for (Size j = 0; j < peptide.mods.size(); j++)
     {
-      if (peptide.mods[j].location == -1 || peptide.mods[j].location == boost::numeric_cast<int>(peptide.sequence.size()))
+      if (peptide.mods[j].location == -1 || peptide.mods[j].location == (int)peptide.sequence.size())
+      {
+        return true;
+      }
+      if (checkCterminalAA && peptide.mods[j].location == (int)peptide.sequence.size() - 1)
       {
         return true;
       }
@@ -432,7 +433,7 @@ namespace OpenMS
       if (method == "pseudo-reverse")
       {
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
-        if (MRMDecoy::hasCNterminalMods_(peptide))
+        if (MRMDecoy::hasCNterminalMods_(peptide, do_switchKR))
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);
@@ -446,7 +447,7 @@ namespace OpenMS
       else if (method == "reverse")
       {
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
-        if (MRMDecoy::hasCNterminalMods_(peptide))
+        if (MRMDecoy::hasCNterminalMods_(peptide, false))
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);
@@ -459,7 +460,12 @@ namespace OpenMS
       else if (method == "shuffle")
       {
         peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts);
-        if (do_switchKR) switchKR(peptide);
+        if (do_switchKR && MRMDecoy::hasCNterminalMods_(peptide, do_switchKR))
+        {
+          LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
+          exclusion_peptides.push_back(peptide.id);
+        }
+        else if (do_switchKR) switchKR(peptide);
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)

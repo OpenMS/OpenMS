@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,12 @@ set(PAYLOAD_PATH ${KNIME_PLUGIN_DIRECTORY}/payload)
 set(PAYLOAD_BIN_PATH ${PAYLOAD_PATH}/bin)
 set(PAYLOAD_LIB_PATH ${PAYLOAD_PATH}/lib)
 set(PAYLOAD_SHARE_PATH ${PAYLOAD_PATH}/share)
+
+# Find Qt5 includes for KNIME packaging
+find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
+exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
 
 # script directory
 set(SCRIPT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake/knime/)
@@ -191,7 +197,7 @@ if (APPLE) ## On APPLE use our script because the executables need to be relinke
     TARGET prepare_knime_payload_libs POST_BUILD
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH}
   )
-else()
+elseif(WIN32)
   ## Assemble common required libraries for win and lnx
   ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
   foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
@@ -207,6 +213,13 @@ else()
 		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::${KNIME_TOOLS_QT5_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
 	)
   endforeach()
+else()
+    foreach (KNIME_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
+        add_custom_command(
+            TARGET prepare_knime_payload_libs POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake
+        )
+    endforeach()
 endif()
 
 if(WIN32) ## Add dynamic libraries if you linked to them.

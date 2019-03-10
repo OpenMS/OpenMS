@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,9 @@ START_SECTION(~ModifiedPeptideGenerator())
 }
 END_SECTION
 
-START_SECTION((static void applyFixedModifications(const std::vector< ResidueModification >::const_iterator &fixed_mods_begin, const std::vector< ResidueModification >::const_iterator& fixed_mods_end, AASequence& peptide)))
+START_SECTION((static void applyFixedModifications(const std::vector< ResidueModification >::const_iterator &fixed_mods_begin,
+                const std::vector< ResidueModification >::const_iterator& fixed_mods_end,
+                AASequence& peptide)))
 {
   // query modification of interest from ModificationsDB
   StringList modNames;

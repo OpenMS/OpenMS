@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,37 +40,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  Gradient::Gradient() :
-    eluents_(),
-    times_(),
-    percentages_()
-  {
-
-  }
-
-  Gradient::Gradient(const Gradient & source) :
-    eluents_(source.eluents_),
-    times_(source.times_),
-    percentages_(source.percentages_)
-  {
-
-  }
 
   Gradient::~Gradient()
   {
 
-  }
-
-  Gradient & Gradient::operator=(const Gradient & source)
-  {
-    if (source == *this)
-      return *this;
-
-    eluents_ = source.eluents_;
-    times_ = source.times_;
-    percentages_ = source.percentages_;
-
-    return *this;
   }
 
   bool Gradient::operator==(const Gradient & rhs) const

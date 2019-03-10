@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -321,8 +321,8 @@ public:
       typename MapType::ChromatogramType TIC = map.getTIC();
       for (typename MapType::ChromatogramType::ConstIterator it = TIC.begin(); it != TIC.end(); ++it)
       {
-        // write rt and intensity.
-        os << precisionWrapper(it->getRT()) << "\t" << precisionWrapper(0) << "\t" << precisionWrapper(it->getIntensity()) << "\n";
+        // write rt, (mz=0) and intensity.
+        os << precisionWrapper(it->getRT()) << "\t0\t" << precisionWrapper(it->getIntensity()) << "\n";
       }
 
       os.close();

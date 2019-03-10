@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -136,6 +136,67 @@ namespace OpenMS
     {
       if (verbose) LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
       return false;
+    }
+    return true;
+  }
+
+  // https://stackoverflow.com/questions/2536524/copy-directory-using-qt
+  bool File::copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option)
+  {
+    QDir source_dir(from_dir);
+    QDir target_dir(to_dir);
+
+    QString canonical_source_dir = source_dir.canonicalPath();
+    QString canonical_target_dir = target_dir.canonicalPath();
+   
+    // check canonical path  
+    if (canonical_source_dir == canonical_target_dir)
+    {
+      LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;;  
+      return false;
+    }
+
+    // make directory if not present 
+    if (!target_dir.exists())
+    {
+      target_dir.mkpath(to_dir);
+    }
+  
+    // copy folder recurively
+    QFileInfoList file_list = source_dir.entryInfoList();
+    for (const QFileInfo& entry : file_list)   
+    {
+      if (entry.fileName() == "." || entry.fileName() == "..")
+      {
+        continue;
+      }
+      if (entry.isDir())
+      {
+        if (!copyDirRecursively(entry.filePath(), target_dir.filePath(entry.fileName()), option))
+        {
+          return false;
+        }
+      }
+      else
+      {
+        if (target_dir.exists(entry.fileName()))
+        {
+          switch (option)
+            {
+              case CopyOptions::CANCEL: 
+                return false;
+              case CopyOptions::SKIP: 
+                LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl; 
+                continue;
+              case CopyOptions::OVERWRITE:
+                target_dir.remove(entry.fileName());
+            }
+        }
+        if (!QFile::copy(entry.filePath(), target_dir.filePath(entry.fileName())))
+        {
+          return false;
+        }
+      }
     }
     return true;
   }

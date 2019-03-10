@@ -20,6 +20,8 @@
         </NODE>
       </NODE>
     </NODE>    
+    <!--
+    === disable these elements for now (Deuterium is available via 'H(2)' anyways) since they cause mem-leaks in ElementsDB (design choice for speed) ===
     <NODE name="Deuterium">
       <ITEM name="Name" value="Deuterium" type="string" />
       <ITEM name="Symbol" value="D" type="string" />
@@ -41,7 +43,8 @@
           <ITEM name="AtomicMass" value="3.01604927" type="float" />
         </NODE>
       </NODE>
-    </NODE>    
+    </NODE>
+    -->
     <NODE name="Helium">
       <ITEM name="Name" value="Helium" type="string"/>
       <ITEM name="Symbol" value="He" type="string"/>
@@ -1202,7 +1205,7 @@
         </NODE>
         <NODE name="208">
           <ITEM name="RelativeAbundance" value="52.4" type="float" />
-          <ITEM name="AtomicMass" value="206.9758969" type="float" />
+          <ITEM name="AtomicMass" value="207.9766538" type="float" />
         </NODE>
       </NODE>
     </NODE>
@@ -1214,6 +1217,121 @@
         <NODE name="209">
           <ITEM name="RelativeAbundance" value="100.0" type="float" />
           <ITEM name="AtomicMass" value="208.9803987" type="float" />
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="Rhenium">
+      <ITEM name="Name" value="Rhenium" type="string" />
+      <ITEM name="Symbol" value="Re" type="string" />
+      <ITEM name="AtomicNumber" value="75" type="int" />
+      <NODE name="Isotopes">
+        <NODE name="185">
+          <ITEM name="RelativeAbundance" value="37.4" type="float" />
+          <ITEM name="AtomicMass" value="184.9529550" type="float" />
+        </NODE>
+        <NODE name="187">
+          <ITEM name="RelativeAbundance" value="62.6" type="float" />
+          <ITEM name="AtomicMass" value="186.9557531" type="float" />
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="Neodymium">
+      <ITEM name="Name" value="Neodymium" type="string" />
+      <ITEM name="Symbol" value="Nd" type="string" />
+      <ITEM name="AtomicNumber" value="60" type="int" />
+      <NODE name="Isotopes">
+        <NODE name="142">
+          <ITEM name="RelativeAbundance" value="27.2" type="float" />
+          <ITEM name="AtomicMass" value="141.9077233" type="float" />
+        </NODE>
+        <NODE name="143">
+          <ITEM name="RelativeAbundance" value="12.2" type="float" />
+          <ITEM name="AtomicMass" value="142.9098143" type="float" />
+        </NODE>
+        <NODE name="144">
+          <ITEM name="RelativeAbundance" value="23.8" type="float" />
+          <ITEM name="AtomicMass" value="143.9100873" type="float" />
+        </NODE>
+        <NODE name="145">
+          <ITEM name="RelativeAbundance" value="8.3" type="float" />
+          <ITEM name="AtomicMass" value="144.9125736" type="float" />
+        </NODE>
+        <NODE name="146">
+          <ITEM name="RelativeAbundance" value="17.2" type="float" />
+          <ITEM name="AtomicMass" value="145.9131169" type="float" />
+        </NODE>
+        <NODE name="148">
+          <ITEM name="RelativeAbundance" value="5.8" type="float" />
+          <ITEM name="AtomicMass" value="147.916893" type="float" />
+        </NODE>
+        <NODE name="150">
+          <ITEM name="RelativeAbundance" value="5.6" type="float" />
+          <ITEM name="AtomicMass" value="149.920891" type="float" />
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="Thorium">
+      <ITEM name="Name" value="Thorium" type="string" />
+      <ITEM name="Symbol" value="Th" type="string" />
+      <ITEM name="AtomicNumber" value="90" type="int" />
+      <NODE name="Isotopes">
+        <NODE name="230">
+          <ITEM name="RelativeAbundance" value="0.02" type="float" />
+          <ITEM name="AtomicMass" value="230.0331338" type="float" />
+        </NODE>
+        <NODE name="232">
+          <ITEM name="RelativeAbundance" value="99.98" type="float" />
+          <ITEM name="AtomicMass" value="232.0380553" type="float" />
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="Lanthanum">
+      <ITEM name="Name" value="Lanthanum" type="string" />
+      <ITEM name="Symbol" value="La" type="string" />
+      <ITEM name="AtomicNumber" value="57" type="int" />
+      <NODE name="Isotopes">
+        <NODE name="138">
+          <ITEM name="RelativeAbundance" value="0.089" type="float" />
+          <ITEM name="AtomicMass" value="137.907112" type="float" />
+        </NODE>
+        <NODE name="139">
+          <ITEM name="RelativeAbundance" value="99.911" type="float" />
+          <ITEM name="AtomicMass" value="138.9063533" type="float" />
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="Samarium">
+      <ITEM name="Name" value="Samarium" type="string" />
+      <ITEM name="Symbol" value="Sm" type="string" />
+      <ITEM name="AtomicNumber" value="62" type="int" />
+      <NODE name="Isotopes">
+        <NODE name="144">
+          <ITEM name="RelativeAbundance" value="3.08" type="float" />
+          <ITEM name="AtomicMass" value="143.911999" type="float" />
+        </NODE>
+        <NODE name="147">
+          <ITEM name="RelativeAbundance" value="15.0" type="float" />
+          <ITEM name="AtomicMass" value="146.9148979" type="float" />
+        </NODE>
+        <NODE name="148">
+          <ITEM name="RelativeAbundance" value="11.25" type="float" />
+          <ITEM name="AtomicMass" value="147.9148227" type="float" />
+        </NODE>
+        <NODE name="149">
+          <ITEM name="RelativeAbundance" value="13.82" type="float" />
+          <ITEM name="AtomicMass" value="148.9171847" type="float" />
+        </NODE>
+        <NODE name="150">
+          <ITEM name="RelativeAbundance" value="7.37" type="float" />
+          <ITEM name="AtomicMass" value="149.9172755" type="float" />
+        </NODE>
+        <NODE name="152">
+          <ITEM name="RelativeAbundance" value="26.74" type="float" />
+          <ITEM name="AtomicMass" value="151.9197324" type="float" />
+        </NODE>
+        <NODE name="154">
+          <ITEM name="RelativeAbundance" value="22.74" type="float" />
+          <ITEM name="AtomicMass" value="153.9222093" type="float" />
         </NODE>
       </NODE>
     </NODE>

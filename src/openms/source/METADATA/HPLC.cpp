@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@ using namespace std;
 
 namespace OpenMS
 {
+
   HPLC::HPLC() :
     instrument_(),
     column_(),
@@ -47,40 +48,10 @@ namespace OpenMS
     comment_(),
     gradient_()
   {
-
-  }
-
-  HPLC::HPLC(const HPLC & source) :
-    instrument_(source.instrument_),
-    column_(source.column_),
-    temperature_(source.temperature_),
-    pressure_(source.pressure_),
-    flux_(source.flux_),
-    comment_(source.comment_),
-    gradient_(source.gradient_)
-  {
-
   }
 
   HPLC::~HPLC()
   {
-
-  }
-
-  HPLC & HPLC::operator=(const HPLC & source)
-  {
-    if (source == *this)
-      return *this;
-
-    instrument_ = source.instrument_;
-    column_ = source.column_;
-    temperature_ = source.temperature_;
-    pressure_ = source.pressure_;
-    flux_ = source.flux_;
-    comment_ = source.comment_;
-    gradient_ = source.gradient_;
-
-    return *this;
   }
 
   bool HPLC::operator==(const HPLC & rhs) const
@@ -175,3 +146,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

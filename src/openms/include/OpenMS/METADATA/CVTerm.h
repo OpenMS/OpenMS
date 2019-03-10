@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,62 +39,60 @@
 
 namespace OpenMS
 {
+
   /**
       @brief Representation of controlled vocabulary term
 
       This class simply stores a CV term, its value and unit if necessary.
 
+      Representation of a CV term used by CVMappings
+
       @ingroup Metadata
   */
-  ///Representation of a CV term used by CVMappings
   class OPENMS_DLLAPI CVTerm
   {
 public:
 
-
     struct Unit
     {
-      Unit()
-      {
-      }
 
-      Unit(const String & p_accession, const String & p_name, const String & p_cv_ref) :
+      /// Default constructor
+      Unit() = default;
+
+      Unit(const String& p_accession, const String& p_name, const String& p_cv_ref) :
         accession(p_accession),
         name(p_name),
         cv_ref(p_cv_ref)
       {
       }
 
-      Unit(const Unit & rhs) :
-        accession(rhs.accession),
-        name(rhs.name),
-        cv_ref(rhs.cv_ref)
-      {
-      }
 
+      /// Copy constructor
+      Unit(const Unit &) = default;
+      
+      /// Move constructor
+      Unit(Unit&&) = default;
+
+
+      /// Destructor
       virtual ~Unit()
       {
       }
 
-      Unit & operator=(const Unit & rhs)
-      {
-        if (this != &rhs)
-        {
-          accession = rhs.accession;
-          name = rhs.name;
-          cv_ref = rhs.cv_ref;
-        }
-        return *this;
-      }
 
-      bool operator==(const Unit & rhs) const
+      /// Assignment operator
+      Unit & operator=(const Unit &) = default;
+      /// Move assignment operator
+      Unit& operator=(Unit&&) & = default;
+
+      bool operator==(const Unit& rhs) const
       {
         return accession == rhs.accession &&
                name == rhs.name &&
                cv_ref == rhs.cv_ref;
       }
 
-      bool operator!=(const Unit & rhs) const
+      bool operator!=(const Unit& rhs) const
       {
         return !(*this == rhs);
       }
@@ -104,64 +102,69 @@ public:
       String cv_ref;
     };
 
-
     /// Default constructor
-    CVTerm();
+    CVTerm() = default;
 
     /// Detailed constructor
-    CVTerm(const String & accession, const String & name, const String & cv_identifier_ref, const String & value, const Unit & unit);
+    CVTerm(const String& accession, const String& name = "", const String& cv_identifier_ref = "", const String& value = "", const Unit& unit = Unit());
 
     /// Copy constructor
-    CVTerm(const CVTerm & rhs);
+    CVTerm(const CVTerm &) = default;
+
+    /// Move constructor
+    CVTerm(CVTerm&&) = default;
 
     /// Destructor
     virtual ~CVTerm();
 
     /// Assignment operator
-    CVTerm & operator=(const CVTerm & rhs);
+    CVTerm & operator=(const CVTerm &) = default;
+
+    /// Move assignment operator
+    CVTerm& operator=(CVTerm&&) & = default;
 
     /** @name Accessors
     */
     //@{
     /// sets the accession string of the term
-    void setAccession(const String & accession);
+    void setAccession(const String& accession);
 
     /// returns the accession string of the term
     const String & getAccession() const;
 
     /// sets the name of the term
-    void setName(const String & name);
+    void setName(const String& name);
 
     /// returns the name of the term
-    const String & getName() const;
+    const String& getName() const;
 
     /// sets the cv identifier reference string, e.g. UO for unit obo
-    void setCVIdentifierRef(const String & cv_identifier_ref);
+    void setCVIdentifierRef(const String& cv_identifier_ref);
 
     /// returns the cv identifier reference string
-    const String & getCVIdentifierRef() const;
+    const String& getCVIdentifierRef() const;
 
     /// set the value of the term
-    void setValue(const DataValue & value);
+    void setValue(const DataValue& value);
 
     /// returns the value of the term
-    const DataValue & getValue() const;
+    const DataValue& getValue() const;
 
     /// sets the unit of the term
-    void setUnit(const Unit & unit);
+    void setUnit(const Unit& unit);
 
     /// returns the unit
-    const Unit & getUnit() const;
+    const Unit& getUnit() const;
     //@}
 
     /** @name Predicates
     */
     //@{
     /// equality operator
-    bool operator==(const CVTerm & rhs) const;
+    bool operator==(const CVTerm& rhs) const;
 
     /// inequality operator
-    bool operator!=(const CVTerm & rhs) const;
+    bool operator!=(const CVTerm& rhs) const;
 
     /// checks whether the term has a value
     bool hasValue() const;

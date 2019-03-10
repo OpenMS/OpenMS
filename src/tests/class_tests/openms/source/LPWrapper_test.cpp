@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,7 +80,7 @@ END_SECTION
 
 
 
-START_SECTION((Int addRow(std::vector< Int > row_indices, std::vector< double > row_values, const String &name)))
+START_SECTION((Int addRow(fewer args)))
 {
   lp.addColumn();
   lp.addRow(indices,values,String("row1"));
@@ -99,7 +99,7 @@ START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< dou
 }
 END_SECTION
 
-START_SECTION((Int addRow(std::vector< Int > &row_indices, std::vector< double > &row_values, const String &name, double lower_bound, double upper_bound, Type type)))
+START_SECTION((Int addRow(all args)))
 {
   lp.addRow(indices,values,String("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfRows(),3);

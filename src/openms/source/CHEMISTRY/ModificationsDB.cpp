@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,25 +104,38 @@ namespace OpenMS
   }
 
 
-  void ModificationsDB::searchModifications(set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
+  void ModificationsDB::searchModifications(set<const ResidueModification*>& mods,
+                                            const String& mod_name_,
+                                            const String& residue,
+                                            ResidueModification::TermSpecificity term_spec) const
   {
     mods.clear();
 
+    String mod_name = mod_name_;
+
     if (!modification_names_.has(mod_name))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       mod_name);
+      // Try to fix things, Skyline for example uses unimod:10 and not UniMod:10 syntax
+      if (mod_name.size() > 6 && mod_name.prefix(6).toLower() == "unimod")
+      {
+        mod_name = "UniMod" + mod_name.substr(6, mod_name.size() - 6);
+      }
+
+      if (!modification_names_.has(mod_name))
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            mod_name);
+      }
     }
 
     const set<const ResidueModification*>& temp = modification_names_[mod_name];
-    for (set<const ResidueModification*>::const_iterator it = temp.begin();
-         it != temp.end(); ++it)
+    for (const auto& it : temp)
     {
-      if (residuesMatch_(residue, *it) && 
-          (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
-           (term_spec == (*it)->getTermSpecificity())))
+      if (residuesMatch_(residue, it) && 
+           (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+            (term_spec == it->getTermSpecificity())))
       {
-        mods.insert(*it);
+        mods.insert(it);
       }
     }
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,17 +39,10 @@ using namespace std;
 namespace OpenMS
 {
 
-  Software::Software() :
+  Software::Software(const String& name, const String& version) :
     CVTermList(),
-    name_(),
-    version_()
-  {
-  }
-
-  Software::Software(const Software & rhs) :
-    CVTermList(rhs),
-    name_(rhs.name_),
-    version_(rhs.version_)
+    name_(name),
+    version_(version)
   {
   }
 
@@ -57,46 +50,39 @@ namespace OpenMS
   {
   }
 
-  Software & Software::operator=(const Software & rhs)
-  {
-    if (&rhs == this)
-      return *this;
-
-    CVTermList::operator=(rhs);
-    name_ = rhs.name_;
-    version_ = rhs.version_;
-
-    return *this;
-  }
-
-  bool Software::operator==(const Software & rhs) const
+  bool Software::operator==(const Software& rhs) const
   {
     return CVTermList::operator==(rhs) &&
            name_ == rhs.name_ &&
            version_ == rhs.version_;
   }
 
-  bool Software::operator!=(const Software & rhs) const
+  bool Software::operator!=(const Software& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & Software::getName() const
+  bool Software::operator<(const Software& rhs) const
+  {
+    return tie(name_, version_) < tie(rhs.name_, rhs.version_);
+  }
+
+  const String& Software::getName() const
   {
     return name_;
   }
 
-  void Software::setName(const String & name)
+  void Software::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & Software::getVersion() const
+  const String& Software::getVersion() const
   {
     return version_;
   }
 
-  void Software::setVersion(const String & version)
+  void Software::setVersion(const String& version)
   {
     version_ = version;
   }

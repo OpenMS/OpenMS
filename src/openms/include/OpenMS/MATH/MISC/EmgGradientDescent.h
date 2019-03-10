@@ -76,7 +76,7 @@ public:
     friend class EmgGradientDescent_friend;
 
     /**
-      @brief Fit the given peak (a MSChromatogram) to the EMG peak model
+      @brief Fit the given peak (either MSChromatogram or MSSpectrum) to the EMG peak model
 
       The method is able to recapitulate the actual peak area of saturated or cutoff peaks.
       In addition, the method is able to fine tune the peak area of well acquired peaks.
@@ -89,37 +89,8 @@ public:
       order (from index 0 to 3): amplitude `h`, mean `mu`, standard deviation `sigma`,
       exponent relaxation time `tau`.
 
-      @note All optimal gradient descent parameters are currently hard coded to allow for a simplified user interface
-
-      @note Cutoff peak: The intensities of the left and right baselines are not equal
-
-      @note Saturated peak: The maximum intensity of the peak is lower than expected due to saturation of the detector
-
-      Inspired by the results found in:
-      Yuri Kalambet, Yuri Kozmin, Ksenia Mikhailova, Igor Nagaev, Pavel Tikhonov
-      Reconstruction of chromatographic peaks using the exponentially modified Gaussian function
-
-      @param[in] input_peak Input peak
-      @param[out] output_peak Output peak
-    */
-    void fitEMGPeakModel(
-      const MSChromatogram& input_peak,
-      MSChromatogram& output_peak
-    ) const;
-
-    /**
-      @brief Fit the given peak (a MSSpectrum) to the EMG peak model
-
-      The method is able to recapitulate the actual peak area of saturated or cutoff peaks.
-      In addition, the method is able to fine tune the peak area of well acquired peaks.
-      The output is a reconstruction of the input peak. Additional points are often added
-      to produce a peak with similar intensities on boundaries' points.
-
-      Metadata will be added to the output peak, containing the optimal parameters
-      for the EMG peak model. This information will be found in a `FloatDataArray`
-      of name "emg_parameters", with the parameters being saved in the following
-      order (from index 0 to 3): amplitude `h`, mean `mu`, standard deviation `sigma`,
-      exponent relaxation time `tau`.
+      If `left_pos` and `right_pos` are passed, then only that part of the peak
+      is taken into consideration.
 
       @note All optimal gradient descent parameters are currently hard coded to allow for a simplified user interface
 
@@ -131,12 +102,18 @@ public:
       Yuri Kalambet, Yuri Kozmin, Ksenia Mikhailova, Igor Nagaev, Pavel Tikhonov
       Reconstruction of chromatographic peaks using the exponentially modified Gaussian function
 
+      @tparam PeakContainerT Either a MSChromatogram or a MSSpectrum
       @param[in] input_peak Input peak
       @param[out] output_peak Output peak
+      @param[in] left_pos RT or MZ value of the first point of interest
+      @param[in] right_pos RT or MZ value of the last point of interest
     */
+    template <typename PeakContainerT>
     void fitEMGPeakModel(
-      const MSSpectrum& input_peak,
-      MSSpectrum& output_peak
+      const PeakContainerT& input_peak,
+      PeakContainerT& output_peak,
+      const double left_pos = 0.0,
+      const double right_pos = 0.0
     ) const;
 
 protected:
@@ -440,12 +417,6 @@ private:
       const double mu,
       const double sigma,
       const double tau
-    ) const;
-
-    template <typename PeakContainerT>
-    void fitEMGPeakModel_(
-      const PeakContainerT& input_peak,
-      PeakContainerT& output_peak
     ) const;
 
     /// Alias for OpenMS::Constants:PI

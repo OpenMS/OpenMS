@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,6 +67,9 @@ public:
       int_range_(rhs.int_range_),
       pos_range_(rhs.pos_range_)
     {}
+
+    /// Move constructor
+    RangeManager(RangeManager&&) noexcept = default;
 
     /// Destructor
     virtual ~RangeManager()

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,90 +57,17 @@ using namespace OpenMS;
   Can convert multiple formats to and from TraML (standardized transition format). The following formats are supported:
 
         <ul>
-          <li> TraML </li>
-          <li> OpenSWATH TSV transition lists </li>
-          <li> OpenSWATH PQP SQLite files </li>
+          <li> @ref OpenMS::TraMLFile "TraML" </li>
+          <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
+          <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
           <li> SpectraST MRM transition lists </li>
           <li> Skyline transition lists </li>
           <li> Spectronaut transition lists </li>
         </ul>
 
-  Transition lists can be either comma- or tab-separated. Modifications should be provided in UniMod format<sup>1</sup>, but can also be provided in TPP format. The following columns are required:
-
-        <ul>
-          <li> PrecursorMz* (float) </li>
-          <li> ProductMz* (float; synonyms: FragmentMz) </li>
-          <li> LibraryIntensity* (float; synonyms: RelativeFragmentIntensity) </li>
-          <li> NormalizedRetentionTime* (float; synonyms: RetentionTime, Tr_recalibrated, iRT, RetentionTimeCalculatorScore) (normalized retention time) </li>
-        </ul>
-
-  For targeted proteomics files, the following additional columns should be provided:
-        <ul>
-          <li> ProteinId** (free text; synonyms: ProteinName) </li>
-          <li> PeptideSequence** (free text, sequence only (no modifications); synonyms: Sequence, StrippedSequence) </li>
-          <li> ModifiedPeptideSequence** (free text, should contain modifications<sup>1</sup>; synonyms: FullUniModPeptideName, FullPeptideName, ModifiedSequence)  </li>
-          <li> PrecursorCharge** (integer, contains the charge of the precursorl synonyms: Charge) </li>
-          <li> ProductCharge** (integer, contains the fragment charge; synonyms: FragmentCharge) </li>
-          <li> FragmentType (free text, contains the type of the fragment, e.g. "b" or "y") </li>
-          <li> FragmentSeriesNumber (integer, e.g. for y7 use "7" here; synonyms: FragmentNumber) </li>
-        </ul>
-
-  OpenSWATH uses grouped transitions to detect candidate analyte signals. These groups are by default generated based on the input, but can also be manually specified:
-
-        <ul>
-          <li> TransitionGroupId (free text, designates the transition group [e.g. peptide] to which this transition belongs; synomys: TransitionGroupName, transition_group_id) </li>
-          <li> TransitionId (free text, needs to be unique for each transition [in this file]; synonyms: TransitionName, transition_name) </li>
-          <li> Decoy (1: decoy, 0: target, i.e. no decoy; determines whether the transition is a decoy transition or not, synomys: decoy, isDecoy) </li>
-          <li> PeptideGroupLabel (free text, designates to which peptide label group (as defined in MS:1000893) the peptide belongs to<sup>2</sup>) </li>
-          <li> DetectingTransition (1: use transition to detect peak group, 0: don't use transition for detection; synonyms: detecting_transition) </li>
-          <li> IdentifyingTransition (1: use transition for peptidoform inference using IPF, 0: don't use transition for identification; synonyms: identifying_transition) </li>
-          <li> QuantifyingTransition (1: use transition to quantify peak group, 0: don't use transition for quantification; synonyms: quantifying_transition) </li>
-        </ul>
-
-  Optionally, the following columns can be specified but they are not actively used by OpenSWATH:
-        <ul>
-          <li> CollisionEnergy (float; synonyms: CE) </li>
-          <li> Annotation (free text, e.g. y7) </li>
-          <li> UniprotId (free text; synonyms: UniprotID) </li>
-          <li> LabelType (free text, optional description of which label was used, e.g. heavy or light) </li>
-        </ul>
-
-  For targeted metabolomics files, the following fields are also supported:
-
-        <ul>
-          <li> CompoundName** (synonyms: CompoundId) </li>
-          <li> SMILES </li>
-          <li> SumFormula </li>
-        </ul>
-
-  Fields indicated with * are strictly required while fields indicated with **
-  are only required in the specific context (proteomics or metabolomics).
-
-<p>
-Remarks:
-</p>
-<ul>
-  <li>
-    1. modifications should be supplied inside the sequence using UniMod
-      identifiers or freetext identifiers that are understood by %OpenMS. <br/>
-      example: PEPT(Phosphorylation)IDE(UniMod:27)A )
-  </li>
-  <li>
-    2. peptide label groups designate groups of peptides that are isotopically
-    modified forms of the same peptide species. For example, the heavy and
-    light forms of the same peptide will both be assigned the same peptide
-    group label.  <br/>
-      example: <br/>
-      PEPTIDEAK -> gets label "PEPTIDEAK_gr1" <br/>
-      PEPTIDEAK[+8] -> gets label "PEPTIDEAK_gr1" <br/>
-      PEPT(Phosphorylation)IDEAK -> gets label "PEPTIDEAK_gr2" <br/>
-      PEPT(Phosphorylation)IDEAK[+8] -> gets label "PEPTIDEAK_gr2" <br/>
-  </li>
-</ul>
-</p>
-
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_TargetedFileConverter.cli
+
   <B>INI file documentation of this tool:</B>
   @htmlinclude UTILS_TargetedFileConverter.html
 

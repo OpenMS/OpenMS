@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,8 +124,7 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
 
   esi_sim.setParameters(esi_param);
 
-  SimTypes::FeatureMapSim esi_features;
-  ConsensusMap cm;
+  SimTypes::FeatureMapSim esi_features, ef2;
   StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
@@ -137,9 +136,16 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
     esi_features.push_back(f);
   }
 
+  ConsensusMap cm;
   SimTypes::MSSimExperiment exp;
   SimTypes::MSSimExperiment::SpectrumType spec;
   exp.addSpectrum(spec);
+
+  /// test exception on invalid intensites
+  ef2 = esi_features;
+  // ...something large to provoke float->int conversion overflow
+  for (auto& e : ef2) e.setIntensity(std::numeric_limits<float>::max());
+  TEST_EXCEPTION(Exception::InvalidValue, esi_sim.ionize(ef2, cm, exp))
 
   esi_sim.ionize(esi_features, cm, exp);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,19 +58,24 @@ using namespace OpenMS;
       <table>
           <tr>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenSwathDecoyGenerator \f$ \longrightarrow \f$</td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathDecoyGenerator \f$ \longrightarrow \f$</td>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathAssayGenerator </td>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_OpenSwathWorkflow </td>
           </tr>
       </table>
   </CENTER>
 
   This module generates "decoy" transitions from a set of real or "target"
   transitions. The idea is to use the decoy transitions in a statistical scoring
-  process to estimate the false hits in an SRM / SWATH experiment.
+  process to estimate the false hits in an SRM / SWATH experiment.  The tool
+  operates on @ref OpenMS::TraMLFile "TraML" files, which can come from @ref
+  UTILS_TargetedFileConverter or any other tool.
 
   There are multiple methods to create the decoy transitions, the simplest ones
   are reverse and pseudo-reverse which reverse the sequence either completely or
@@ -93,6 +98,7 @@ using namespace OpenMS;
 
 
 */
+
 // TODO: could theoretical also produce an annotation in the TraML of what it thinks the ion is?
 
 // We do not want this class to show up in the docu:
@@ -142,7 +148,7 @@ protected:
     registerStringOption_("allowed_fragment_charges", "<type>", "1,2,3,4", "allowed fragment charge states", false, true);
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed", true);
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed", true);
-    registerStringOption_("switchKR", "<true/false>", "false", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
+    registerStringOption_("switchKR", "<true/false>", "true", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
     setValidStrings_("switchKR", ListUtils::create<String>(String("true,false")));
 
     registerFlag_("separate", "set this flag if decoys should not be appended to targets.", true);

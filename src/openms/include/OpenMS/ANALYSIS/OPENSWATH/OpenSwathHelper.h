@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,10 +52,45 @@ public:
 
     /**
       @brief Compute unique precursor identifier
+
+      Uses transition_group_id and isotope number to compute a unique precursor
+      id of the form "groupID_Precursor_ix" where x is the isotope number, e.g.
+      the monoisotopic precursor would become "groupID_Precursor_i0".
+
+      @param[in] transition_group_id Unique id of the transition group (peptide/compound)
+      @param[in] isotope Precursor isotope number
+
+      @return Unique precursor identifier
     */
     static String computePrecursorId(const String& transition_group_id, int isotope)
     {
       return transition_group_id + "_Precursor_i" + String(isotope);
+    }
+
+    /**
+      @brief Compute transition group id
+
+      Uses the unique precursor identifier to compute the transition group id
+      (peptide/compound identifier), reversing the operation performed by
+      computePrecursorId().
+
+      @param[in] precursor_id Precursor identifier as computed by computePrecursorId()
+
+      @return Original transition group id
+    */
+    static String computeTransitionGroupId(const String& precursor_id)
+    {
+      std::vector<String> substrings;
+      precursor_id.split("_", substrings);
+
+      if (substrings.size() == 3) return substrings[0];
+      else if (substrings.size() > 3)
+      {
+        String r;
+        for (Size k = 0; k < substrings.size() - 2; k++) r += substrings[k] + "_";
+        return r.prefix(r.size() - 1);
+      }
+      return "";
     }
 
     /**
@@ -113,8 +148,8 @@ public:
     /**
       @brief Check the map and select transition in one function
 
-      Performs sanity check for input experiment and selects appropriate
-      transitions for the provided SWATH MS2 map.
+      Computes lower and upper offset for the SWATH map and performs some
+      sanity checks (see checkSwathMap()). Then selects transitions.
 
       @param[in] exp Input SWATH map to check
       @param[in] targeted_exp Transition list for selection
@@ -150,12 +185,22 @@ public:
     }
 
     /**
-      @brief Estimate the retention time span of a targeted experiment (returns min/max values as a pair)
+      @brief Computes the min and max retention time value
+      
+      Estimate the retention time span of a targeted experiment by returning
+      the min/max values in retention time as a pair.
+
+      @return A std::pair that contains (min,max)
+
     */
     static std::pair<double,double> estimateRTRange(const OpenSwath::LightTargetedExperiment & exp);
 
     /**
-      @brief Simple method to extract the best Feature for each transition group (e.g. for RT alignment)
+      @brief Returns the feature with the highest score for each transition group.
+      
+      Simple method to extract the best feature for each transition group (e.g.
+      for RT alignment). A quality cutoff can be used to skip some low-quality
+      features altogether.
 
       @param[in] transition_group_map Input data containing the picked and scored map
       @param useQualCutoff Whether to apply a quality cutoff to the data

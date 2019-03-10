@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,6 +55,8 @@ using namespace std;
 
 ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
+//#define DEBUG_IDENTIFICATION_VIEW 1
+
 namespace OpenMS
 {
   SpectraIdentificationViewWidget::SpectraIdentificationViewWidget(const Param&, QWidget* parent) :
@@ -62,7 +64,8 @@ namespace OpenMS
     DefaultParamHandler("SpectraIdentificationViewWidget"),
     ignore_update(false),
     layer_(nullptr),
-    is_ms1_shown_(false)
+    is_ms1_shown_(false),
+    fragment_window_(nullptr)
   {
     // set common defaults
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
@@ -102,7 +105,7 @@ namespace OpenMS
     table_widget_->setColumnWidth(3, 70); // precursor m/z
     table_widget_->setColumnWidth(4, 55); // dissociation
     table_widget_->setColumnHidden(4, true);
-    table_widget_->setColumnWidth(5, 45);
+    table_widget_->setColumnWidth(5, 45); // scan type
     table_widget_->setColumnHidden(5, true);
     table_widget_->setColumnWidth(6, 45);
     table_widget_->setColumnHidden(6, true);
@@ -123,9 +126,6 @@ namespace OpenMS
     table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_widget_->setShowGrid(false);
 
-    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
-    connect(table_widget_, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateData_(QTableWidgetItem*)));
-
     spectra_widget_layout->addWidget(table_widget_);
 
     ////////////////////////////////////
@@ -134,16 +134,15 @@ namespace OpenMS
 
     hide_no_identification_ = new QCheckBox("Only hits", this);
     hide_no_identification_->setChecked(true);
-    connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+
 
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
-    connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+
 
     QPushButton* save_IDs = new QPushButton("Save IDs", this);
     connect(save_IDs, SIGNAL(clicked()), this, SLOT(saveIDs_()));
 
     QPushButton* export_table = new QPushButton("Export table", this);
-    connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
@@ -163,9 +162,14 @@ namespace OpenMS
 
     // header context menu
     table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint &)));
 
+    connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint &)));
     connect(table_widget_, SIGNAL(cellClicked(int, int)), this, SLOT(cellClicked_(int, int)));
+    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
+    connect(table_widget_, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateData_(QTableWidgetItem*)));
+    connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+    connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+    connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
   }
 
   QTableWidget* SpectraIdentificationViewWidget::getTableWidget()
@@ -175,14 +179,16 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
   {
-    if (row >= table_widget_->rowCount() || column >= table_widget_->columnCount())
+    if (row >= table_widget_->rowCount()
+    || column >= table_widget_->columnCount()
+    || table_widget_->horizontalHeaderItem(column) == nullptr)
     {
       return;
     }
 
     int ms2_spectrum_index = table_widget_->item(row, 1)->data(Qt::DisplayRole).toInt();
 
-    if (column == 3) // precursor mz column
+    if (table_widget_->horizontalHeaderItem(column)->text() == "precursor m/z")
     {
       if (!(*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty()) // has precursor
       {
@@ -220,6 +226,77 @@ namespace OpenMS
         }
       }
     }
+    else if (table_widget_->horizontalHeaderItem(column)->text() == "PeakAnnotations")
+    {
+      QTableWidgetItem* current = table_widget_->item(row, column);
+
+      int current_identification_index = table_widget_->item(current->row(), 12)->data(Qt::DisplayRole).toInt();  // peptide id. index
+
+      if (current_identification_index < 0
+       || current_identification_index >= static_cast<int>((*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications().size()))
+       {
+         return;
+       }
+
+      int current_peptide_hit_index = table_widget_->item(current->row(), 13)->data(Qt::DisplayRole).toInt();  // peptide hit index
+
+      const vector<PeptideIdentification>& peptide_ids = (*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications();
+      const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
+
+      if (current_peptide_hit_index < 0
+       || current_peptide_hit_index >= static_cast<int>(phits.size()))
+      {
+        return;
+      }
+      const PeptideHit& hit = phits[current_peptide_hit_index];
+
+      // initialize window, when the table is requested for the first time
+      // afterwards the size will stay at the manually resized window size
+      if (fragment_window_ == nullptr)
+      {
+        fragment_window_ = new QTableWidget();
+        fragment_window_->resize(320, 500);
+
+        fragment_window_->verticalHeader()->setHidden(true); // hide vertical column
+
+        QStringList header_labels;
+        header_labels << "m/z" << "name" << "intensity" << "charge";
+        fragment_window_->setColumnCount(header_labels.size());
+        fragment_window_->setHorizontalHeaderLabels(header_labels);
+
+        QTableWidgetItem* proto_item = new QTableWidgetItem();
+        proto_item->setTextAlignment(Qt::AlignCenter);
+        fragment_window_->setItemPrototype(proto_item);
+        fragment_window_->setSortingEnabled(true);
+        fragment_window_->setWindowTitle(QApplication::translate("tr_fragment_annotation", "Peak Annotations"));
+      }
+
+      // reset table, if a new ID is chosen
+      fragment_window_->setRowCount(0);
+
+      for (const PeptideHit::PeakAnnotation & pa : hit.getPeakAnnotations())
+      {
+        fragment_window_->insertRow(fragment_window_->rowCount());
+        QTableWidgetItem * item = fragment_window_->itemPrototype()->clone();
+        item->setData(Qt::DisplayRole, pa.mz);
+        fragment_window_->setItem(fragment_window_->rowCount() - 1, 0, item);
+        item = fragment_window_->itemPrototype()->clone();
+        item->setData(Qt::DisplayRole, pa.annotation.toQString());
+        fragment_window_->setItem(fragment_window_->rowCount() - 1, 1, item);
+        item = fragment_window_->itemPrototype()->clone();
+        item->setData(Qt::DisplayRole, pa.intensity);
+        fragment_window_->setItem(fragment_window_->rowCount() - 1, 2, item);
+        item = fragment_window_->itemPrototype()->clone();
+        item->setData(Qt::DisplayRole, pa.charge);
+        fragment_window_->setItem(fragment_window_->rowCount() - 1, 3, item);
+      }
+
+      fragment_window_->resizeColumnsToContents();
+      fragment_window_->resizeRowsToContents();
+      fragment_window_->show();
+      fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
+      QApplication::setActiveWindow(fragment_window_);
+    }
   }
 
   void SpectraIdentificationViewWidget::spectrumSelectionChange_(QTableWidgetItem* current, QTableWidgetItem* previous)
@@ -227,7 +304,8 @@ namespace OpenMS
     /*test for previous == 0 is important - without it,
       the wrong spectrum will be selected after finishing
       the execution of a TOPP tool on the whole data */
-    if (current == nullptr || previous == nullptr)
+    if (current == nullptr
+    || previous == nullptr)
     {
       return;
     }
@@ -240,7 +318,7 @@ namespace OpenMS
     if (is_ms1_shown_)
     {
 #ifdef DEBUG_IDENTIFICATION_VIEW
-      cout << "selection Change MS1 deselect: " << layer_->current_spectrum << endl;
+      cout << "selection Change MS1 deselect: " << layer_->getCurrentSpectrumIndex() << endl;
 #endif
       emit spectrumDeselected(int(layer_->getCurrentSpectrumIndex()));
     }
@@ -265,31 +343,34 @@ namespace OpenMS
     }
   }
 
-  void SpectraIdentificationViewWidget::attachLayer(LayerData* cl)
+  void SpectraIdentificationViewWidget::setLayer(LayerData* cl)
   {
     layer_ = cl;
+    updateEntries();
+  }
+
+  LayerData* SpectraIdentificationViewWidget::getLayer()
+  {
+    return layer_;
   }
 
   void SpectraIdentificationViewWidget::updateEntries()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr
+    || layer_->getPeakData()->size() == 0
+    || layer_->type != LayerData::DT_PEAK)
     {
       table_widget_->clear();
       return;
     }
 
-    if (ignore_update)
-    {
-      return;
-    }
+    if (ignore_update) { return; }
 
-    if (!this->isVisible())
-    {
-      return;
-    }
+    if (!isVisible()) { return; }
 
     set<String> common_keys;
+    bool has_peak_annotations(false);
     // determine meta values common to all hits
     if (create_rows_for_commmon_metavalue_->isChecked())
     {
@@ -317,16 +398,26 @@ namespace OpenMS
             set_intersection(current_keys.begin(), current_keys.end(), common_keys.begin(), common_keys.end(), inserter(new_common_keys, new_common_keys.begin()));
             swap(common_keys, new_common_keys);
           }
+          if (!has_peak_annotations && !phits[0].getPeakAnnotations().empty())
+          {
+            has_peak_annotations = true;
+          }
         }
       }
     }
 
     // create header labels (setting header labels must occur after fill)
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "Curated" << "precursor error (|ppm|)" << "XL position (Protein)" << "precursor intensity";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "Curated" << "precursor error (|ppm|)" << "precursor intensity";
     for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
     {
       header_labels << sit->toQString();
+    }
+
+    // add fragment annotation column, if fragment annotations were found in IDs
+    if (has_peak_annotations)
+    {
+      header_labels << "PeakAnnotations";
     }
 
     table_widget_->clear();
@@ -358,25 +449,18 @@ namespace OpenMS
 
     QTableWidgetItem* proto_item = new QTableWidgetItem();
     proto_item->setTextAlignment(Qt::AlignCenter);
-
     table_widget_->setItemPrototype(proto_item);
 
     table_widget_->setSortingEnabled(false);
     table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);
 
-    if (layer_ == nullptr)
-    {
-      return;
-    }
-
-    QTableWidgetItem* item = nullptr;
-    QTableWidgetItem* selected_item = nullptr;
-    Size selected_row = 0;
-
     // generate flat list
+    int selected_row(-1);
     for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
     {
+      QTableWidgetItem* item = nullptr;
+
       const MSSpectrum & spectrum = (*layer_->getPeakData())[i];
       const UInt ms_level = spectrum.getMSLevel();
       const vector<PeptideIdentification>& pi = spectrum.getPeptideIdentifications();
@@ -446,15 +530,12 @@ namespace OpenMS
         // ppm error
         addTextItemToBottomRow_("-", 15, c);
 
-        // cross-link position in Protein
-        addTextItemToBottomRow_("-", 16, c);
-
         // fill precursor information in columns
         if (!precursors.empty())
         {
           const Precursor & first_precursor = precursors.front();
 
-          // set precursor m/z 
+          // set precursor m/z
           item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, first_precursor.getMZ());
           item->setBackgroundColor(c);
@@ -466,8 +547,8 @@ namespace OpenMS
           if (!first_precursor.getActivationMethods().empty())
           {
             QString t;
-            for (auto it = first_precursor.getActivationMethods().begin(); 
-              it != first_precursor.getActivationMethods().end(); 
+            for (auto it = first_precursor.getActivationMethods().begin();
+              it != first_precursor.getActivationMethods().end();
               ++it)
             {
               if (!t.isEmpty()) { t.append(","); }
@@ -486,13 +567,13 @@ namespace OpenMS
           item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, first_precursor.getIntensity());
           item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 17, item);          
+          table_widget_->setItem(table_widget_->rowCount() - 1, 17, item);
         }
-        else 
+        else
         { // has no precursor
           addTextItemToBottomRow_("-", 3, c);
-          addTextItemToBottomRow_("-", 4, c);         
-          addTextItemToBottomRow_("-", 17, c); // precursor intensity
+          addTextItemToBottomRow_("-", 4, c);
+          addTextItemToBottomRow_("-", 16, c); // precursor intensity
         }
 
         // scan mode
@@ -522,12 +603,19 @@ namespace OpenMS
       else
       {
         c = QColor(175, 255, 175); // with identification: light green
-        
+
         for (Size pi_idx = 0; pi_idx != id_count; ++pi_idx)
         {
           for (Size ph_idx = 0; ph_idx != pi[pi_idx].getHits().size(); ++ph_idx)
           {
             const PeptideHit & ph = pi[pi_idx].getHits()[ph_idx];
+
+            // for XL-MS data, do not show the beta peptide hit, as it is largely redundant
+            // and not visualized correctly; "MS:1002510" is the CV term for beta chain
+            if (ph.metaValueExists("xl_chain") && ph.getMetaValue("xl_chain") == "MS:1002510")
+            {
+              continue;
+            }
 
             // add new row at the end of the table
             table_widget_->insertRow(table_widget_->rowCount());
@@ -605,27 +693,6 @@ namespace OpenMS
               addDoubleItemToBottomRow_(ppm_error, 15, c);
             }
 
-            // cross-link position in Protein
-            if (ph.metaValueExists("xl_pos") && ph.getPeptideEvidences().size() > 0)
-            {
-              const vector<PeptideEvidence> pevs = ph.getPeptideEvidences();
-              String positions = "";
-              // positions for all protein accessions, separated by "," just like the accessions themselves
-              for (vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
-              {
-                // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-                Int prot_link_pos = pev->getStart() + int(ph.getMetaValue("xl_pos")) + 1;
-                positions = positions + "," + prot_link_pos;
-              }
-              // remove leading "," of first position
-              positions = positions.suffix(positions.size()-1);
-              addTextItemToBottomRow_(positions.toQString(), 16, c);
-            }
-            else
-            {
-              addTextItemToBottomRow_("-", 16, c);
-            }
-
             // fill precursor information in columns
             if (!precursors.empty()) // has precursor
             {
@@ -640,8 +707,8 @@ namespace OpenMS
               if (!first_precursor.getActivationMethods().empty())
               {
                 QString t;
-                for (auto it = first_precursor.getActivationMethods().begin(); 
-                  it != first_precursor.getActivationMethods().end(); 
+                for (auto it = first_precursor.getActivationMethods().begin();
+                  it != first_precursor.getActivationMethods().end();
                   ++it)
                 {
                   if (!t.isEmpty()) { t.append(","); }
@@ -660,19 +727,19 @@ namespace OpenMS
               item = table_widget_->itemPrototype()->clone();
               item->setData(Qt::DisplayRole, first_precursor.getIntensity());
               item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount() - 1, 17, item);        
+              table_widget_->setItem(table_widget_->rowCount() - 1, 16, item);
             }
             else // has no precursor (leave fields 3 and 4 empty)
             {
               addTextItemToBottomRow_("-", 3, c);
               addTextItemToBottomRow_("-", 4, c);
-              addTextItemToBottomRow_("-", 17, c); // precursor intensity
+              addTextItemToBottomRow_("-", 16, c); // precursor intensity
             }
 
             // add additional meta value columns
             if (create_rows_for_commmon_metavalue_->isChecked())
             {
-              Int current_col = 18;
+              Int current_col = 17;
               for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
               {
                 DataValue dv = ph.getMetaValue(*sit);
@@ -690,7 +757,24 @@ namespace OpenMS
                 table_widget_->setItem(table_widget_->rowCount() - 1, current_col, item);
                 ++current_col;
               }
+              // add peak annotation column
+              if (has_peak_annotations)
+              {
+                addTextItemToBottomRow_("show", current_col, c);
+              }
             }
+
+            // scan mode
+            QString scan_mode;
+            if (spectrum.getInstrumentSettings().getScanMode() > 0)
+            {
+              scan_mode = QString::fromStdString(spectrum.getInstrumentSettings().NamesOfScanMode[spectrum.getInstrumentSettings().getScanMode()]);
+            }
+            else
+            {
+              scan_mode = "-";
+            }
+            addTextItemToBottomRow_(scan_mode, 5, c);
 
             // zoom scan
             QString is_zoom;
@@ -709,21 +793,18 @@ namespace OpenMS
 
       if (i == layer_->getCurrentSpectrumIndex())
       {
-        // just remember it, select later
-        selected_item = item;
-        selected_row = i;
+        selected_row = item->row(); // get model index of selected spectrum
       }
     }
-
 
     table_widget_->setSortingEnabled(true);
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->resizeColumnsToContents();
 
-    if (selected_item)
+    if (selected_row != -1)  // select and scroll down to item
     {
-      // now, select and scroll down to item
-      table_widget_->selectRow(int(selected_row));
+      table_widget_->selectRow(selected_row);
+      QTableWidgetItem* selected_item = table_widget_->item(selected_row, 0);
       selected_item->setSelected(true);
       table_widget_->setCurrentItem(selected_item);
       table_widget_->scrollToItem(selected_item);
@@ -775,7 +856,9 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::exportEntries_()
   {
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr
+      || layer_->getPeakData()->size() == 0
+      || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
@@ -787,10 +870,24 @@ namespace OpenMS
     QStringList header_labels;
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
+      // do not export hidden columns
+      if (table_widget_->isColumnHidden(i))
+      {
+        continue;
+      }
+
       QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
       if (ti != nullptr)
       {
-        header_labels.append(ti->text());
+        // add the format of this complex column to the header
+        if (ti->text() == "PeakAnnotations")
+        {
+          header_labels.append("PeakAnnotations(mz|intensity|charge|annotation;)");
+        }
+        else
+        {
+          header_labels.append(ti->text());
+        }
       }
     }
 
@@ -808,7 +905,63 @@ namespace OpenMS
         strList.clear();
         for (int c = 0; c < table_widget_->columnCount(); ++c)
         {
-          strList << table_widget_->item(r, c)->text();
+          // do not export hidden columns
+          if (table_widget_->isColumnHidden(c))
+          {
+            continue;
+          }
+
+          QTableWidgetItem* ti = table_widget_->item(r, c);
+          if (ti != nullptr)
+          {
+            // column 14 is the "Curated" column of checkboxes
+            if (c == 14)
+            {
+              QString sel("0");
+              if (ti->checkState() == Qt::Checked) // if the box is checked
+              {
+                sel = "1";
+              }
+              strList << sel;
+            }
+            else if (table_widget_->horizontalHeaderItem(c)->text() == "PeakAnnotations") // write out peak annotations instead of the "show" string in the table
+            {
+              int ms2_spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
+              int current_identification_index = table_widget_->item(r, 12)->data(Qt::DisplayRole).toInt();  // peptide id. index
+
+              if (current_identification_index < 0
+               || current_identification_index >= static_cast<int>((*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications().size()))
+               {
+                 continue;
+               }
+
+              int current_peptide_hit_index = table_widget_->item(r, 13)->data(Qt::DisplayRole).toInt();  // peptide hit index
+
+              const vector<PeptideIdentification>& peptide_ids = (*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications();
+              const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
+
+              if (current_peptide_hit_index < 0
+               || current_peptide_hit_index >= static_cast<int>(phits.size()))
+              {
+                continue;
+              }
+              const PeptideHit& hit = phits[current_peptide_hit_index];
+              QString annotation = "";
+
+              for (const PeptideHit::PeakAnnotation & pa : hit.getPeakAnnotations())
+              {
+                annotation += String(pa.mz).toQString() + "|" +
+                                String(pa.intensity).toQString() + "|" +
+                                String(pa.charge).toQString() + "|" +
+                                pa.annotation.toQString() + ";";
+              }
+              strList << annotation;
+            }
+            else
+            {
+              strList << table_widget_->item(r, c)->text();
+            }
+          }
         }
         ts << strList.join("\t") + "\n";
       }
@@ -940,7 +1093,7 @@ namespace OpenMS
 
     // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
     int r = item->row();
-    bool selected = item->checkState() == 2;
+    bool selected = item->checkState() == Qt::Checked;
     int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
     int num_id = table_widget_->item(r, id_col)->text().toInt();
     int num_ph = table_widget_->item(r, ph_col)->text().toInt();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,16 +55,26 @@ namespace OpenMS
 public:
 
     /// Defaults constructor
-    CVTermList();
+    CVTermList() = default;
 
     /// Copy constructor
-    CVTermList(const CVTermList& rhs);
+    CVTermList(const CVTermList&) = default;
+
+    // note: we implement the move constructor ourselves due to a bug in MSVS
+    // 2015/2017 which cannot produce a default move constructor for classes
+    // that contain STL containers (other than vector).
+
+    /// Move constructor
+    CVTermList(CVTermList&&) noexcept;
 
     /// Destructor
     virtual ~CVTermList();
 
     /// Assignment operator
-    CVTermList& operator=(const CVTermList& rhs);
+    CVTermList& operator=(const CVTermList& rhs) & = default;
+
+    /// Move assignment operator
+    CVTermList& operator=(CVTermList&&) & = default;
 
     /** @name Accessors
     */

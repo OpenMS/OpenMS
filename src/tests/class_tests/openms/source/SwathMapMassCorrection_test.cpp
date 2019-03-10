@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,8 @@
 using namespace OpenMS;
 
 typedef OpenSwath::LightTransition TransitionType;
+
+typedef std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> TransitionGroupMapPtrType; 
 
 OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType getData()
 {
@@ -123,8 +125,8 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   addTransitions(transition_group);
 
   // Add one group to the map
-  OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-  transition_group_map["group1"] = transition_group;
+  TransitionGroupMapPtrType transition_group_map; 
+  transition_group_map["group1"] = &transition_group; 
 
   // Create a mock spectrum fitting to the transition group
   boost::shared_ptr<PeakMap > exp(new PeakMap);

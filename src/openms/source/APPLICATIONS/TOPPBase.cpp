@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -135,8 +135,9 @@ namespace OpenMS
   {
     //delete log file if empty
     StringList log_files;
-    if (!getParam_("log").isEmpty())
-      log_files.push_back((String)(getParam_("log")));
+    DataValue topplog = getParam_("log");
+    if (!topplog.isEmpty() && !(topplog.toString().empty()))
+      log_files.push_back(topplog.toString());
     for (Size i = 0; i < log_files.size(); ++i)
     {
       if (File::empty(log_files[i]))
@@ -408,7 +409,7 @@ namespace OpenMS
 
     {
       DataValue const& value_log = getParam_("log");
-      if (!value_log.isEmpty())
+      if (!value_log.isEmpty() && !(value_log.toString() == ""))
       {
         writeDebug_("Log file: " + (String)value_log, 1);
         log_.close();
@@ -1644,7 +1645,11 @@ namespace OpenMS
     LOG_DEBUG << ss.str() << endl;
     writeLog_("Executing: " + String(executable));
     const bool success = qp.waitForFinished(-1); // wait till job is finished
-    
+    if (qp.error() == QProcess::FailedToStart)
+    {
+      LOG_ERROR << "Process '" << String(executable) << "' failed to start. Does it exist? Is it executable?" << std::endl;
+      return EXTERNAL_PROGRAM_ERROR;
+    } 
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {

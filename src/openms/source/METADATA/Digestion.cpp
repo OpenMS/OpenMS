@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,16 +50,6 @@ namespace OpenMS
 
   }
 
-  Digestion::Digestion(const Digestion & source) :
-    SampleTreatment(source),
-    enzyme_(source.enzyme_),
-    digestion_time_(source.digestion_time_),
-    temperature_(source.temperature_),
-    ph_(source.ph_)
-  {
-
-  }
-
   Digestion::~Digestion()
   {
 
@@ -69,20 +59,6 @@ namespace OpenMS
   {
     SampleTreatment * tmp = new Digestion(*this);
     return tmp;
-  }
-
-  Digestion & Digestion::operator=(const Digestion & source)
-  {
-    if (&source == this)
-      return *this;
-
-    SampleTreatment::operator=(source);
-    enzyme_ = source.enzyme_;
-    digestion_time_ = source.digestion_time_;
-    temperature_ = source.temperature_;
-    ph_ = source.ph_;
-
-    return *this;
   }
 
   bool Digestion::operator==(const SampleTreatment & rhs) const
@@ -139,3 +115,4 @@ namespace OpenMS
   }
 
 }
+

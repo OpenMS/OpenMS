@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,9 +86,9 @@ END_SECTION
 ///////////////////////////////////////////////////////////////////////////
 // testing the individual scores that are produced
 // calcXcorrCoelutionScore
-// calcXcorrCoelutionScore_weighted
-// calcXcorrShape_score
-// calcXcorrShape_score_weighted
+// calcXcorrCoelutionWeightedScore
+// calcXcorrShapeScore
+// calcXcorrShapeWeightedScore
 // calcLibraryScore
 START_SECTION([EXTRA] test_scores())
 {
@@ -113,9 +113,9 @@ START_SECTION([EXTRA] test_scores())
   for(Size m =0; m<normalized_library_intensity.size();m++) { normalized_library_intensity[m] /= sumx;}
 
   TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore(), 2.26491106406735)
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore_weighted(normalized_library_intensity), 1.375)
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score(), 0.757687954406132)
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score_weighted(normalized_library_intensity), 0.7130856895)
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionWeightedScore(normalized_library_intensity), 1.375)
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrShapeScore(), 0.757687954406132)
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrShapeWeightedScore(normalized_library_intensity), 0.7130856895)
 
   // numpy
   double library_corr, library_rmsd;
@@ -201,8 +201,9 @@ START_SECTION((virtual void test_dia_scores()))
 
   // Mass deviation score
   double ppm_score = 0, ppm_score_weighted = 0;
+  std::vector<double> ppm_errors;
   diascoring.dia_massdiff_score(transition_group.getTransitions(),
-    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted);
+    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted, ppm_errors);
 
   // Presence of b/y series score
   double bseries_score = 0, yseries_score = 0;
@@ -214,8 +215,15 @@ START_SECTION((virtual void test_dia_scores()))
   TEST_REAL_SIMILAR(isotope_corr, 0.85998565339479)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0599970892071724)
 
-  TEST_REAL_SIMILAR(ppm_score, 1.76388919944981)
+  TEST_REAL_SIMILAR(ppm_score, 1.76388919944981 / 3)
   TEST_REAL_SIMILAR(ppm_score_weighted, 0.484116946070573)
+
+  double ppm_expected[] = {618.30999999999995, 0.17257858483247876, 628.43499999999995, 0.79565530730866774, 628.43499999999995, 0.79565530730866774};
+  for (size_t i = 0; i < ppm_errors.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(ppm_errors[i], ppm_expected[i]);
+  }
+
   TEST_EQUAL(bseries_score, 0)
   TEST_EQUAL(yseries_score, 1)
 

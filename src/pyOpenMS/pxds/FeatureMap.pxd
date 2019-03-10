@@ -21,6 +21,15 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #
         # wrap-instances:
         #   FeatureMap := FeatureMap
+        #
+        # wrap-doc:
+        #   A container for features.
+        #   -----
+        #   A feature map is a container holding features, which represent
+        #   chemical entities (peptides, proteins, small molecules etc.) found
+        #   in an LC-MS/MS experiment.
+        #   -----
+        #   This class supports direct iteration in Python.
 
         FeatureMap() nogil except +
         FeatureMap(FeatureMap &) nogil except +
@@ -66,5 +75,4 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
         libcpp_vector[Feature].iterator begin() nogil except +    # wrap-iter-begin:__iter__(Feature)
         libcpp_vector[Feature].iterator end()   nogil except +    # wrap-iter-end:__iter__(Feature)
-
 

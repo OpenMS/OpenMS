@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -190,7 +190,7 @@ protected:
     /**
       @brief Check if a peptide has C or N terminal modifications
     */
-    bool hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide) const;
+    bool hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide, bool checkCterminalAA) const;
 
     /**
       @brief Find all K, R, P sites in a sequence to be set as fixed

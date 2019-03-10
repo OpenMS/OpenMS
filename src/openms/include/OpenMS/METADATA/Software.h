@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,29 +50,35 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    Software();
+    explicit Software(const String& name = "", const String& version = "");
     /// Copy constructor
-    Software(const Software & source);
+    Software(const Software&) = default;
+    /// Move constructor
+    Software(Software&&) = default;
     /// Destructor
     ~Software() override;
 
     /// Assignment operator
-    Software & operator=(const Software & source);
+    Software& operator=(const Software&) = default;
+    /// Move assignment operator
+    Software& operator=(Software&&)& = default;
 
     /// Equality operator
-    bool operator==(const Software & rhs) const;
-    /// Equality operator
-    bool operator!=(const Software & rhs) const;
+    bool operator==(const Software& rhs) const;
+    /// Unequality operator
+    bool operator!=(const Software& rhs) const;
+    /// Less-than operator (for sorting)
+    bool operator<(const Software& rhs) const;
 
-    /// returns the name of the software
-    const String & getName() const;
-    /// sets the name of the software
-    void setName(const String & name);
+    /// Returns the name of the software
+    const String& getName() const;
+    /// Sets the name of the software
+    void setName(const String& name);
 
-    /// returns the software version
-    const String & getVersion() const;
-    /// sets the software version
-    void setVersion(const String & version);
+    /// Returns the software version
+    const String& getVersion() const;
+    /// Sets the software version
+    void setVersion(const String& version);
 
 protected:
     String name_;

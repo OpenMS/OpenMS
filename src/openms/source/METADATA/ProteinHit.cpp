@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,38 +62,9 @@ namespace OpenMS
   {
   }
 
-  // copy constructor
-  ProteinHit::ProteinHit(const ProteinHit & source) :
-    MetaInfoInterface(source),
-    score_(source.score_),
-    rank_(source.rank_),
-    accession_(source.accession_),
-    sequence_(source.sequence_),
-    coverage_(source.coverage_)
-  {
-  }
-
   // destructor
   ProteinHit::~ProteinHit()
   {
-  }
-
-  // assignment operator
-  ProteinHit & ProteinHit::operator=(const ProteinHit & source)
-  {
-    if (this == &source)
-    {
-      return *this;
-    }
-
-    MetaInfoInterface::operator=(source);
-    score_ = source.score_;
-    rank_  = source.rank_;
-    sequence_ = source.sequence_;
-    accession_ = source.accession_;
-    coverage_ = source.coverage_;
-
-    return *this;
   }
 
   // assignment operator for MetaInfoInterface
@@ -195,3 +166,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

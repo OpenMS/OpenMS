@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,6 +50,7 @@ namespace OpenMS
       tmps.setName( s_list[0].getName() );
       tmps.setRT( s_list[0].getRT() );
       tmps.setDriftTime( s_list[0].getDriftTime() );
+      tmps.setDriftTimeUnit( s_list[0].getDriftTimeUnit() );
       tmps.setMSLevel( s_list[0].getMSLevel() );
 
       next_consumer_->consumeSpectrum(tmps);
@@ -76,6 +77,7 @@ namespace OpenMS
         tmps.setName( s_list[0].getName() );
         tmps.setRT( s_list[0].getRT() );
         tmps.setDriftTime( s_list[0].getDriftTime() );
+        tmps.setDriftTimeUnit( s_list[0].getDriftTimeUnit() );
         tmps.setMSLevel( s_list[0].getMSLevel() );
 
         next_consumer_->consumeSpectrum(tmps);

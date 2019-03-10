@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,21 +51,21 @@ public:
     /// analyzer type
     enum AnalyzerType
     {
-      ANALYZERNULL,                                         ///< Unknown
-      QUADRUPOLE,                                           ///< Quadrupole
-      PAULIONTRAP,                                          ///< Quadrupole ion trap / Paul ion trap
-      RADIALEJECTIONLINEARIONTRAP,          ///< Radial ejection linear ion trap
-      AXIALEJECTIONLINEARIONTRAP,           ///< Axial ejection linear ion trap
-      TOF,                                                          ///< Time-of-flight
-      SECTOR,                                                   ///< Magnetic sector
-      FOURIERTRANSFORM,                                 ///< Fourier transform ion cyclotron resonance mass spectrometer
-      IONSTORAGE,                                           ///< Ion storage
-      ESA,                                                          ///< Electrostatic energy analyzer
-      IT,                                                           ///< Ion trap
-      SWIFT,                                                    ///< Stored waveform inverse fourier transform
-      CYCLOTRON,                                            ///< Cyclotron
-      ORBITRAP,                                                 ///< Orbitrap
-      LIT,                                                          ///< Linear ion trap
+      ANALYZERNULL,                 ///< Unknown
+      QUADRUPOLE,                   ///< Quadrupole
+      PAULIONTRAP,                  ///< Quadrupole ion trap / Paul ion trap
+      RADIALEJECTIONLINEARIONTRAP,  ///< Radial ejection linear ion trap
+      AXIALEJECTIONLINEARIONTRAP,   ///< Axial ejection linear ion trap
+      TOF,                          ///< Time-of-flight
+      SECTOR,                       ///< Magnetic sector
+      FOURIERTRANSFORM,             ///< Fourier transform ion cyclotron resonance mass spectrometer
+      IONSTORAGE,                   ///< Ion storage
+      ESA,                          ///< Electrostatic energy analyzer
+      IT,                           ///< Ion trap
+      SWIFT,                        ///< Stored waveform inverse fourier transform
+      CYCLOTRON,                    ///< Cyclotron
+      ORBITRAP,                     ///< Orbitrap
+      LIT,                          ///< Linear ion trap
       SIZE_OF_ANALYZERTYPE
     };
     /// Names of the analyzer types
@@ -78,10 +78,10 @@ public:
     */
     enum ResolutionMethod
     {
-      RESMETHNULL,                      ///< Unknown
-      FWHM,                                     ///< Full width at half max
+      RESMETHNULL,                  ///< Unknown
+      FWHM,                         ///< Full width at half max
       TENPERCENTVALLEY,             ///< Ten percent valley
-      BASELINE,                             ///< Baseline
+      BASELINE,                     ///< Baseline
       SIZE_OF_RESOLUTIONMETHOD
     };
     /// Names of resolution methods
@@ -91,7 +91,7 @@ public:
     enum ResolutionType
     {
       RESTYPENULL,              ///< Unknown
-      CONSTANT,                     ///< Constant
+      CONSTANT,                 ///< Constant
       PROPORTIONAL,             ///< Proportional
       SIZE_OF_RESOLUTIONTYPE
     };
@@ -102,8 +102,8 @@ public:
     enum ScanDirection
     {
       SCANDIRNULL,              ///< Unknown
-      UP,                               ///< Up
-      DOWN,                             ///< Down
+      UP,                       ///< Up
+      DOWN,                     ///< Down
       SIZE_OF_SCANDIRECTION
     };
     /// Names of direction of scanning
@@ -114,7 +114,7 @@ public:
     {
       SCANLAWNULL,              ///< Unknown
       EXPONENTIAL,              ///< Unknown
-      LINEAR,                       ///< Linear
+      LINEAR,                   ///< Linear
       QUADRATIC,                ///< Quadratic
       SIZE_OF_SCANLAW
     };
@@ -125,9 +125,9 @@ public:
     enum ReflectronState
     {
       REFLSTATENULL,            ///< Unknown
-      ON,                                   ///< On
-      OFF,                                  ///< Off
-      NONE,                                 ///< None
+      ON,                       ///< On
+      OFF,                      ///< Off
+      NONE,                     ///< None
       SIZE_OF_REFLECTRONSTATE
     };
     /// Names of reflectron states
@@ -136,12 +136,16 @@ public:
     /// Constructor
     MassAnalyzer();
     /// Copy constructor
-    MassAnalyzer(const MassAnalyzer & source);
+    MassAnalyzer(const MassAnalyzer &) = default;
+    /// Move constructor
+    MassAnalyzer(MassAnalyzer&&) = default;
     /// Destructor
     ~MassAnalyzer();
 
     /// Assignment operator
-    MassAnalyzer & operator=(const MassAnalyzer & source);
+    MassAnalyzer & operator=(const MassAnalyzer&) = default;
+    /// Move assignment operator
+    MassAnalyzer& operator=(MassAnalyzer&&) & = default;
 
     /// Equality operator
     bool operator==(const MassAnalyzer & rhs) const;
@@ -231,7 +235,7 @@ public:
         - one ion detector
 
         For more complex instruments, the order should be defined.
-*/
+    */
     Int getOrder() const;
     /// sets the order
     void setOrder(Int order);

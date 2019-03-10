@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -205,46 +205,46 @@ namespace OpenMS
     double.
   */
   template <typename FloatingPointType>
-  inline Int writtenDigits(const FloatingPointType& /* unused */ = FloatingPointType());
+  inline constexpr Int writtenDigits(const FloatingPointType& /* unused */ = FloatingPointType());
 
   /// Number of digits commonly used for writing a @c float (a.k.a. precision).
   template <>
-  inline Int writtenDigits<float>(const float&)
+  inline constexpr Int writtenDigits<float>(const float&)
   {
     return std::numeric_limits<float>::digits10;
   }
 
   /// Number of digits commonly used for writing a @c double (a.k.a. precision).
   template <>
-  inline Int writtenDigits<double>(const double&)
+  inline constexpr Int writtenDigits<double>(const double&)
   {
     return std::numeric_limits<double>::digits10;
   }
 
   /// We do not want to bother people who unintentionally provide an int argument to this.
   template <>
-  inline Int writtenDigits<int>(const int&)
+  inline constexpr Int writtenDigits<int>(const int&)
   {
     return std::numeric_limits<int>::digits10;
   }
 
   /// We do not want to bother people who unintentionally provide an unsigned int argument to this.
   template <>
-  inline Int writtenDigits<unsigned int>(const unsigned int&)
+  inline constexpr Int writtenDigits<unsigned int>(const unsigned int&)
   {
     return std::numeric_limits<unsigned int>::digits10;
   }
 
   /// We do not want to bother people who unintentionally provide a long int argument to this.
   template <>
-  inline Int writtenDigits<long int>(const long int&)
+  inline constexpr Int writtenDigits<long int>(const long int&)
   {
     return std::numeric_limits<int>::digits10;
   }
 
   /// We do not want to bother people who unintentionally provide an unsigned long int argument to this.
   template <>
-  inline Int writtenDigits<unsigned long int>(const unsigned long int&)
+  inline constexpr Int writtenDigits<unsigned long int>(const unsigned long int&)
   {
     return std::numeric_limits<unsigned int>::digits10;
   }
@@ -252,7 +252,7 @@ namespace OpenMS
   class DataValue;
   /// DataValue will be printed like double.
   template <>
-  inline Int writtenDigits<DataValue>(const DataValue&)
+  inline constexpr Int writtenDigits<DataValue>(const DataValue&)
   {
     return std::numeric_limits<double>::digits10;
   }
@@ -275,7 +275,7 @@ namespace OpenMS
     http://msdn.microsoft.com/ + search: "long double".
   */
   template <>
-  inline Int writtenDigits<long double>(const long double&)
+  inline constexpr Int writtenDigits<long double>(const long double&)
   {
 #ifndef OPENMS_WINDOWSPLATFORM
     return std::numeric_limits<long double>::digits10;
@@ -291,7 +291,7 @@ namespace OpenMS
    6 according to 27.4.4.1 basic_iosconstructors (C++ Standard).
    */
   template <typename FloatingPointType>
-  inline Int writtenDigits(const FloatingPointType& /* unused */)
+  inline constexpr Int writtenDigits(const FloatingPointType& /* unused */)
   {
     return 6;
   }

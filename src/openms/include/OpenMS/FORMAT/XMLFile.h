@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ public:
       ///Default constructor
       XMLFile();
       /// Constructor that sets the schema location
-      XMLFile(const String & schema_location, const String & version);
+      XMLFile(const String& schema_location, const String& version);
       ///Destructor
       virtual ~XMLFile();
 
@@ -64,14 +64,14 @@ public:
 
         @param filename The name of the file to validate.
         @param os The ostream where error messages should be send.
-       
+
         @exception Exception::FileNotFound is thrown if the file cannot be found
         @exception Exception::NotImplemented is thrown if there is no schema available for the file type
       */
-      bool isValid(const String & filename, std::ostream & os);
+      bool isValid(const String& filename, std::ostream& os);
 
       ///return the version of the schema
-      const String & getVersion() const;
+      const String& getVersion() const;
 
 protected:
       /**
@@ -80,7 +80,7 @@ protected:
         @exception Exception::FileNotFound is thrown if the file is not found
         @exception Exception::ParseError is thrown if an error occurred during the parsing
       */
-      void parse_(const String & filename, XMLHandler * handler);
+      void parse_(const String& filename, XMLHandler* handler);
 
       /**
         @brief Parses the in-memory buffer given by @p buffer using the handler given by @p handler.
@@ -96,7 +96,7 @@ protected:
 
         @exception Exception::UnableToCreateFile is thrown if the file cannot be created
       */
-      void save_(const String & filename, XMLHandler * handler) const;
+      void save_(const String& filename, XMLHandler* handler) const;
 
       /// XML schema file location
       String schema_location_;
@@ -112,11 +112,11 @@ protected:
 
     /**
       @brief Encodes tabs '\t' in the string as &amp;#x9; and returns the encoded string.
-      
+
       @param to_encode The String to encode.
       @return The encoded string.
     */
-    String OPENMS_DLLAPI encodeTab(const String & to_encode);
+    String OPENMS_DLLAPI encodeTab(const String& to_encode);
   }   // namespace Internal
 } // namespace OpenMS
 

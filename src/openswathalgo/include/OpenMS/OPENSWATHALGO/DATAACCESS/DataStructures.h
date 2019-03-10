@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -137,6 +137,7 @@ public:
       return binaryDataArrayPtrs[0];
     }
 
+    /// set time array
     void setTimeArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[0] = data;
@@ -148,6 +149,7 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
+    /// set intensity array
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
@@ -210,6 +212,7 @@ private:
 
     /// list of binary data arrays.
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
+
 public:
     OSSpectrum() :
       defaultArrayLength(2),
@@ -237,6 +240,7 @@ public:
       return binaryDataArrayPtrs[0];
     }
 
+    /// set m/z array
     void setMZArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[0] = data;
@@ -248,9 +252,27 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
+    /// set intensity array
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
+    }
+
+    /// get drift time array (may be null)
+    BinaryDataArrayPtr getDriftTimeArray() const
+    {
+      // The array name starts with "Ion Mobility", but may carry additional
+      // information such as the actual unit in which it was measured (seconds,
+      // milliseconds, volt-second per square centimeter). We currently ignore
+      // the unit but return the correct array.
+      for (auto & bda : binaryDataArrayPtrs)
+      {
+        if (bda->description.find("Ion Mobility") == 0)
+        {
+          return bda;
+        }
+      }
+      return BinaryDataArrayPtr(); // return null
     }
 
     /// non-mutable access to the underlying data arrays

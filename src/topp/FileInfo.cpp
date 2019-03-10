@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -757,36 +757,19 @@ protected:
       map<Size, UInt> counts;
       for (Size i = 0; i != exp.size(); ++i)
       {
-        // read stored metadata
-        auto peak_type = exp[i].getType();
-
-
         const Size level = exp[i].getMSLevel();
-
         ++counts[level];  // count MS level
 
         // annotate peak type (profile / centroided) from meta data
         if (level_annotated_picked.count(level) == 0)
         {
-          // Some conversion software only annotate "MS:1000525 spectrum representation" leading to an UNKNOWN type
-          // Fortunately, some store a data processing item that indicates that the data has been picked
-          if (peak_type == SpectrumSettings::UNKNOWN)
-          {
-            for (auto dp : exp[i].getDataProcessing())
-            {
-              if (dp->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
-              {
-                peak_type = SpectrumSettings::CENTROID;
-              }
-            }
-          }
-          level_annotated_picked[level] = peak_type;
+          level_annotated_picked[level] = exp[i].getType(false);
         }
 
         // estimate peak type once for every level (take a spectrum with enough peaks for stable estimation)
         if (level_estimated_picked.count(level) == 0 && exp[i].size() > 10)
         {
-          level_estimated_picked[level] = PeakTypeEstimator().estimateType(exp[i].begin(), exp[i].end());
+          level_estimated_picked[level] = PeakTypeEstimator::estimateType(exp[i].begin(), exp[i].end());
         }
       }
 
@@ -802,12 +785,12 @@ protected:
       os << "\n";
 
       // basic info
-      os << "Number of spectra: " << exp.size() << "\n";
-      os << "Number of peaks: " << exp.getSize() << "\n"
+      os << "Total number of peaks: " << exp.getSize() << "\n"; // count ALL peaks (also chromatographic)
+      os << "Number of spectra: " << exp.size() << "\n"
          << "\n";
       os_tsv << "number of spectra"
              << "\t" << exp.size() << "\n"
-             << "number of peaks"
+             << "total number of peaks"
              << "\t" << exp.getSize() << "\n";
 
       // output

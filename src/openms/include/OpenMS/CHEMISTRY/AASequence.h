@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,7 @@
 namespace OpenMS
 {
 
-  //forward declarations
+  // forward declarations
   class ResidueModification;
 
   /**
@@ -122,7 +122,7 @@ public:
 
     /** @brief ConstIterator for AASequence
 
-               AASequence constant iterator
+        AASequence constant iterator
     */
     class OPENMS_DLLAPI ConstIterator
     {
@@ -257,7 +257,7 @@ protected:
 
     /** @brief Iterator class for AASequence
 
-            Mutable iterator for AASequence
+        Mutable iterator for AASequence
     */
     class OPENMS_DLLAPI Iterator
     {
@@ -389,18 +389,25 @@ protected:
     /** @name Constructors and Destructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     AASequence();
 
-    /// copy constructor
-    AASequence(const AASequence& rhs);
+    /// Copy constructor
+    AASequence(const AASequence&) = default;
 
-    /// destructor
+    /// Move constructor
+    AASequence(AASequence&&) noexcept = default;
+
+    /// Destructor
     virtual ~AASequence();
     //@}
 
-    /// assignment operator
-    AASequence& operator=(const AASequence& rhs);
+    /// Assignment operator
+    AASequence& operator=(const AASequence&) = default;
+
+    /// Move assignment operator
+    AASequence& operator=(AASequence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
 
     /// check if sequence is empty
     bool empty() const;
@@ -608,6 +615,7 @@ protected:
                                  bool permissive = true);
 
   protected:
+
     std::vector<const Residue*> peptide_;
 
     const ResidueModification* n_term_mod_;

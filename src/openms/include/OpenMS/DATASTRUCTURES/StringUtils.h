@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,9 +38,11 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <QtCore/QString>
 #include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/karma.hpp>
 
 #include <string>
 #include <vector>
@@ -53,65 +55,162 @@ namespace OpenMS
   namespace StringConversions
   {
 
-    /// toString functions (for floating point types)
+    // Karma full precision float policy
+    template <typename T> 
+    class BK_PrecPolicy : public boost::spirit::karma::real_policies<T>
+    {
+    public:
+      static unsigned int precision(T) { return writtenDigits<T>(T()); }
+    };
+    typedef boost::spirit::karma::real_generator<float, BK_PrecPolicy<float> > BK_PrecPolicyFloat_type;
+    const BK_PrecPolicyFloat_type BK_PrecPolicyFloat;
+    typedef boost::spirit::karma::real_generator<double, BK_PrecPolicy<double> > BK_PrecPolicyDouble_type;
+    const BK_PrecPolicyDouble_type BK_PrecPolicyDouble;
+    typedef boost::spirit::karma::real_generator<long double, BK_PrecPolicy<long double> > BK_PrecPolicyLongDouble_type;
+    const BK_PrecPolicyLongDouble_type BK_PrecPolicyLongDouble;
+    
+    // toString functions (single argument)
+
+    /// fallback template for general purpose using Boost::Karma; more specializations below
+    /// does NOT clear the input string @p target, so appending is as efficient as possible
     template <typename T>
-    inline String floatToString(T f)
+    inline void append(const T& i, String& target)
     {
-      std::stringstream s;
-      s.precision(writtenDigits(f));
-      s << f;
-      return s.str();
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, i);
     }
 
-    /// toString functions (single argument)
+    /// fallback template for general purpose using Boost::Karma; more specializations below
     template <typename T>
-    inline String toString(T i)
+    inline String toString(const T& i)
     {
-      std::stringstream s;
-      s << i;
-      return s.str();
+      //std::stringstream s;
+      //s << i;
+      //return s.str();
+      String str;
+      append(i, str);
+      return str;
+    }
+    
+
+    /// low precision (3 fractional digits) conversion to string (Karma default)
+    /// does NOT clear the input string @p target, so appending is as efficient as possible
+    inline void appendLowP(float f, String& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, f);
+    }
+    /// low precision (3 fractional digits) conversion to string (Karma default)
+    inline String toStringLowP(float f)
+    {
+      String str;
+      appendLowP(f, str);
+      return str;
     }
 
-    template <>
-    inline String toString<const char>(const char c)
+
+    /// low precision (3 fractional digits) conversion to string (Karma default)
+    /// does NOT clear the input string @p target, so appending is as efficient as possible
+    inline void appendLowP(double d, String& target)
     {
-      return std::string(1,c);
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, d);
+    }
+    /// low precision (3 fractional digits) conversion to string (Karma default)
+    inline String toStringLowP(double d)
+    {
+      String str;
+      appendLowP(d, str);
+      return str;
     }
 
-    template <>
+
+    /// low precision (3 fractional digits) conversion to string (Karma default)
+    inline void appendLowP(long double ld, String& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, ld);
+    }
+    /// low precision (3 fractional digits) conversion to string (Karma default)
+    inline String toStringLowP(long double ld)
+    {
+      String str;
+      appendLowP(ld, str);
+      return str;
+    }
+
+
+
+    /// high precision (6 fractional digits) conversion to String
+    inline void append(float f, String& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, BK_PrecPolicyFloat, f);
+    }
+    /// high precision (6 fractional digits) conversion to String
+    inline String toString(float f)
+    {
+      String str;
+      append(f, str);
+      return str;
+    }
+
+
+
+    /// high precision (15 fractional digits) conversion to String
+    inline void append(double d, String& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, BK_PrecPolicyDouble, d);
+    }
+    /// high precision (15 fractional digits) conversion to String
+    inline String toString(double d)
+    {
+      String str;
+      append(d, str);
+      return str;
+    }
+
+
+    /// high precision (15 fractional digits) conversion to String
+    inline void append(long double ld, String& target)
+    {
+      std::back_insert_iterator<std::string> sink(target);
+      boost::spirit::karma::generate(sink, BK_PrecPolicyLongDouble, ld);
+    }
+    /// high precision (15 fractional digits) conversion to String
+    inline String toString(long double ld)
+    {
+      String str;
+      append(ld, str);
+      return str;
+    }
+
+    
+    inline void append(const DataValue& d, bool full_precision, String& target)
+    {
+      target += d.toString(full_precision);
+    }
+    inline String toString(const DataValue& d, bool full_precision)
+    {
+      return d.toString(full_precision);
+    }
+
+
+
+    inline String toString(const char c)
+    {
+      return std::string(1, c);
+    }
+
     inline String toString(const std::string& s)
     {
       return s;
     }
 
-    template <>
     inline String toString(const char* s)
     {
       return std::string(s);
-    }
-
-    template <>
-    inline String toString(float f)
-    {
-      return floatToString(f);
-    }
-
-    template <>
-    inline String toString(double f)
-    {
-      return floatToString(f);
-    }
-
-    template <>
-    inline String toString(long double f)
-    {
-      return floatToString(f);
-    }
-
-    template <>
-    inline String toString(const DataValue& d)
-    {
-      return d.toString();
     }
 
     /// Other toString functions (different number of arguments)
@@ -124,7 +223,7 @@ namespace OpenMS
     {
       String res;
       size_t count = 0;
-      while (count < length && *(s + count) != 0)
+      while (count < length)
       {
         res += *(s + count);
         ++count;
@@ -200,26 +299,6 @@ public:
       return this_s;
     }
 
-    /*
-    /// Constructor from char* (only @p length characters)
-    static String toString(const char * s, size_t length)
-    {
-      std::string res;
-      size_t count = 0;
-      while (count < length && *(s + count) != 0)
-      {
-        res += *(s + count);
-        ++count;
-      }
-      return String(res);
-    }
-
-    /// Constructor from char (repeats the char @p len times)
-    static String toString(size_t len, char c)
-    {
-      return String(std::string(len, c));
-    }
-    */
 
     static bool hasPrefix(const String & this_s, const String & string)
     {
@@ -710,22 +789,43 @@ public:
       return ret;
     }
 
-    static double toDouble(const String& this_s)
+    /**
+      @brief convert String (leading and trailing whitespace allowed) to double
+
+      @p s Input string which represents a double, e.g. " 12.3 "
+      @return A double representation of @p s
+      @throws Exception::ConversionError if the string is not completely explained by the double (whitespaces are allowed)
+    */
+    static double toDouble(const String& s)
     {
       double ret;
       // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
       // so don't change this unless you have benchmarks for all platforms!
-      String::ConstIterator it = this_s.begin();
-      if (!boost::spirit::qi::phrase_parse(it, this_s.end(), parse_double_, boost::spirit::ascii::space, ret))
+      String::ConstIterator it = s.begin();
+      if (!boost::spirit::qi::phrase_parse(it, s.end(), parse_double_, boost::spirit::ascii::space, ret))
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + this_s + "' to a double value");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + s + "' to a double value");
       }
       // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
-      if (it != this_s.end())
+      if (it != s.end())
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Prefix of string '") + this_s + "' successfully converted to a double value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Prefix of string '") + s + "' successfully converted to a double value. Additional characters found at position " + (int)(distance(s.begin(), it) + 1));
       }
       return ret;
+    }
+
+    /// Reads a double from an iterator position.
+    /// The begin iterator is modified (advanced) if parsing was successful.
+    /// The @p target only contains a valid result if the functions returns true (i.e. parsing succeeded).
+    /// Whitespaces before and after the double are NOT consumed!
+    template <typename IteratorT>
+    static bool extractDouble(IteratorT& begin, const IteratorT& end, double& target)
+    {
+      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
+      // so don't change this unless you have benchmarks for all platforms!
+
+      // qi::parse() does not consume whitespace before or after the double (qi::parse_phrase() would).
+      return boost::spirit::qi::parse(begin, end, parse_double_, target);
     }
 
 

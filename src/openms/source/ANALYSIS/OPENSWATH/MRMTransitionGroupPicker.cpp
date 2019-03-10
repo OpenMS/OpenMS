@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,8 +156,8 @@ namespace OpenMS
     {
       for (Size k = 0; k < picked_chroms[i].size(); ++k)
       {
-        const double left_rt = picked_chroms[i].getFloatDataArrays()[1][k];
-        const double right_rt = picked_chroms[i].getFloatDataArrays()[2][k];
+        const double left_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][k];
+        const double right_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][k];
         const double local_peak_width = right_rt - left_rt;
         LOG_DEBUG << "findWidestPeakIndices(): local_peak_width=" << local_peak_width << std::endl;
         if (local_peak_width > max_width)

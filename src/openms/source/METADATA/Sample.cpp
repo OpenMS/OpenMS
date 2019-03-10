@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/Sample.h>
+
 #include <OpenMS/METADATA/SampleTreatment.h>
 
 using namespace std;
@@ -63,31 +64,24 @@ namespace OpenMS
     concentration_(source.concentration_),
     subsamples_(source.subsamples_)
   {
-    //delete old treatments
-    for (list<SampleTreatment *>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
-    {
-      delete(*it);
-    }
+    // delete old treatments
+    for (auto& it : treatments_) delete it;
     treatments_.clear();
-    //copy treatments
-    for (list<SampleTreatment *>::const_iterator it = source.treatments_.begin(); it != source.treatments_.end(); ++it)
-    {
-      treatments_.push_back((*it)->clone());
-    }
+    // copy treatments
+    for (const auto & it : source.treatments_) treatments_.push_back(it->clone());
   }
 
   Sample::~Sample()
   {
-    for (list<SampleTreatment *>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
-    {
-      delete(*it);
-    }
+    for (auto& it : treatments_) delete it;
   }
 
   Sample & Sample::operator=(const Sample & source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     name_ = source.name_;
     number_ = source.number_;
@@ -99,17 +93,12 @@ namespace OpenMS
     concentration_ = source.concentration_;
     subsamples_ = source.subsamples_;
     MetaInfoInterface::operator=(source);
-    //delete old treatments
-    for (list<SampleTreatment *>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
-    {
-      delete(*it);
-    }
+
+    // delete old treatments
+    for (auto& it : treatments_) delete it;
     treatments_.clear();
-    //copy treatments
-    for (list<SampleTreatment *>::const_iterator it = source.treatments_.begin(); it != source.treatments_.end(); ++it)
-    {
-      treatments_.push_back((*it)->clone());
-    }
+    // copy treatments
+    for (const auto & it : source.treatments_) treatments_.push_back(it->clone());
 
     return *this;
   }
@@ -133,12 +122,14 @@ namespace OpenMS
       return false;
     }
 
-    //treatments
-    list<SampleTreatment *>::const_iterator it2 = rhs.treatments_.begin();
-    for (list<SampleTreatment *>::const_iterator it = treatments_.begin(); it != treatments_.end(); ++it, ++it2)
+    // treatments
+    auto it2 = rhs.treatments_.begin();
+    for (auto it = treatments_.begin(); it != treatments_.end(); ++it, ++it2)
     {
       if (*it != *it2)
+      {
         return false;
+      }
     }
     return true;
   }
@@ -310,3 +301,4 @@ namespace OpenMS
   }
 
 }
+

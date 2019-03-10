@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
@@ -134,7 +135,7 @@ START_SECTION(const Param& getParameters() const)
   TargetedSpectraExtractor tse;
   Param params = tse.getParameters();
   TEST_EQUAL(params.getValue("rt_window"), 30.0)
-  TEST_EQUAL(params.getValue("min_score"), 0.7)
+  TEST_EQUAL(params.getValue("min_select_score"), 0.7)
   TEST_EQUAL(params.getValue("mz_tolerance"), 0.1)
   TEST_EQUAL(params.getValue("mz_unit_is_Da"), "true")
   TEST_EQUAL(params.getValue("SavitzkyGolayFilter:frame_length"), 15)
@@ -143,11 +144,13 @@ START_SECTION(const Param& getParameters() const)
   TEST_EQUAL(params.getValue("use_gauss"), "true")
   TEST_EQUAL(params.getValue("PeakPickerHiRes:signal_to_noise"), 1.0)
   TEST_EQUAL(params.getValue("peak_height_min"), 0.0)
-  TEST_EQUAL(params.getValue("peak_height_max"), 4e6)
+  TEST_EQUAL(params.getValue("peak_height_max"), std::numeric_limits<double>::max())
   TEST_EQUAL(params.getValue("fwhm_threshold"), 0.0)
   TEST_EQUAL(params.getValue("tic_weight"), 1.0)
   TEST_EQUAL(params.getValue("fwhm_weight"), 1.0)
   TEST_EQUAL(params.getValue("snr_weight"), 1.0)
+  TEST_EQUAL(params.getValue("top_matches_to_report"), 5)
+  TEST_EQUAL(params.getValue("min_match_score"), 0.8)
 }
 END_SECTION
 
@@ -157,16 +160,18 @@ START_SECTION(void getDefaultParameters(Param& params) const)
   Param params;
   tse.getDefaultParameters(params);
   TEST_EQUAL(params.getValue("rt_window"), 30.0)
-  TEST_EQUAL(params.getValue("min_score"), 0.7)
+  TEST_EQUAL(params.getValue("min_select_score"), 0.7)
   TEST_EQUAL(params.getValue("mz_tolerance"), 0.1)
   TEST_EQUAL(params.getValue("mz_unit_is_Da"), "true")
   TEST_EQUAL(params.getValue("use_gauss"), "true")
   TEST_EQUAL(params.getValue("peak_height_min"), 0.0)
-  TEST_EQUAL(params.getValue("peak_height_max"), 4e6)
+  TEST_EQUAL(params.getValue("peak_height_max"), std::numeric_limits<double>::max())
   TEST_EQUAL(params.getValue("fwhm_threshold"), 0.0)
   TEST_EQUAL(params.getValue("tic_weight"), 1.0)
   TEST_EQUAL(params.getValue("fwhm_weight"), 1.0)
   TEST_EQUAL(params.getValue("snr_weight"), 1.0)
+  TEST_EQUAL(params.getValue("top_matches_to_report"), 5)
+  TEST_EQUAL(params.getValue("min_match_score"), 0.8)
 }
 END_SECTION
 
@@ -338,6 +343,11 @@ START_SECTION(void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_s
   ++it;
   TEST_REAL_SIMILAR(it->getMZ(), 112.033)
   TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
+
+  MSSpectrum unordered;
+  unordered.emplace_back(Peak1D(10.0, 100.0));
+  unordered.emplace_back(Peak1D(9.0, 100.0));
+  TEST_EXCEPTION(Exception::IllegalArgument, tse.pickSpectrum(unordered, picked_spectrum));
 }
 END_SECTION
 
@@ -466,6 +476,9 @@ START_SECTION(void scoreSpectra(
   TEST_REAL_SIMILAR(features[19].getMetaValue("inverse_avgFWHM"), 2.02868912178847)
   TEST_REAL_SIMILAR(features[19].getMetaValue("avgSNR"), 1.94235549504842)
   TEST_REAL_SIMILAR(features[19].getMetaValue("avgFWHM"), 0.492929147822516)
+
+  features.pop_back();
+  TEST_EXCEPTION(Exception::InvalidSize, tse.scoreSpectra(annotated_spectra, picked_spectra, features, scored_spectra));
 }
 END_SECTION
 
@@ -557,10 +570,10 @@ START_SECTION(void selectSpectra(
   const bool compute_features = true
 ) const)
 {
-  const double min_score = 15.0;
+  const double min_select_score = 15.0;
   TargetedSpectraExtractor tse;
   Param params = tse.getParameters();
-  params.setValue("min_score", min_score);
+  params.setValue("min_select_score", min_select_score);
   params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
@@ -599,7 +612,7 @@ START_SECTION(void selectSpectra(
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
     TEST_EQUAL(selected_spectra[i].getName(), selected_features[i].getMetaValue("transition_name"))
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0], selected_features[i].getIntensity())
-    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
+    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_select_score, true)
   }
 
   vector<MSSpectrum>::const_iterator it;
@@ -609,6 +622,9 @@ START_SECTION(void selectSpectra(
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
   it = findSpectrumByName(selected_spectra, "asp-L.asp-L_m2-2");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
+
+  features.pop_back();
+  TEST_EXCEPTION(Exception::InvalidSize, tse.selectSpectra(scored, features, selected_spectra, selected_features));
 }
 END_SECTION
 
@@ -617,10 +633,10 @@ START_SECTION(void selectSpectra(
   std::vector<MSSpectrum>& selected_spectra
 ) const)
 {
-  const double min_score = 15.0;
+  const double min_select_score = 15.0;
   TargetedSpectraExtractor tse;
   Param params = tse.getParameters();
-  params.setValue("min_score", min_score);
+  params.setValue("min_select_score", min_select_score);
   params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
@@ -653,7 +669,7 @@ START_SECTION(void selectSpectra(
   for (Size i = 0; i < selected_spectra.size(); ++i)
   {
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
-    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
+    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_select_score, true)
   }
 
   vector<MSSpectrum>::const_iterator it;
@@ -676,7 +692,7 @@ START_SECTION(void extractSpectra(
 {
   TargetedSpectraExtractor tse;
   Param params = tse.getParameters();
-  params.setValue("min_score", 15.0);
+  params.setValue("min_select_score", 15.0);
   params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
@@ -708,7 +724,7 @@ START_SECTION(void extractSpectra(
 {
   TargetedSpectraExtractor tse;
   Param params = tse.getParameters();
-  params.setValue("min_score", 15.0);
+  params.setValue("min_select_score", 15.0);
   params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
@@ -729,6 +745,228 @@ START_SECTION(void extractSpectra(
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
+
+START_SECTION(void matchSpectrum(
+  const MSSpectrum& input_spectrum,
+  const MSExperiment& library,
+  Comparator& cmp,
+  std::vector<Match>& matches
+))
+{
+  // MS Library offered by: MoNa - MassBank of North America
+  // Title: GC-MS Spectra
+  // http://mona.fiehnlab.ucdavis.edu/downloads
+  // https://creativecommons.org/licenses/by/4.0/legalcode
+  // Changes made: Only a very small subset of spectra is reproduced
+
+  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
+  const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
+  MzMLFile mzml;
+  MSExperiment gcms_experiment;
+  TransitionTSVFile tsv_reader;
+  TargetedExperiment targeted_exp;
+  mzml.load(gcms_fullscan_path, gcms_experiment);
+  Param tsv_params = tsv_reader.getParameters();
+  tsv_params.setValue("retentionTimeInterpretation", "seconds");
+  tsv_reader.setParameters(tsv_params);
+  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
+  TargetedSpectraExtractor tse;
+  Param params = tse.getParameters();
+  params.setValue("rt_window", 2.0);
+  params.setValue("min_select_score", 0.1);
+  params.setValue("GaussFilter:gaussian_width", 0.1);
+  params.setValue("PeakPickerHiRes:signal_to_noise", 0.01);
+  params.setValue("top_matches_to_report", 2);
+  params.setValue("min_match_score", 0.51);
+  tse.setParameters(params);
+
+  TEST_EQUAL(gcms_experiment.getSpectra().size(), 11)
+
+  vector<MSSpectrum> extracted_spectra;
+  FeatureMap extracted_features;
+  tse.extractSpectra(gcms_experiment, targeted_exp, extracted_spectra, extracted_features);
+
+  TEST_EQUAL(extracted_spectra.size(), 18)
+
+  MSExperiment library;
+  MSPGenericFile mse(msp_path, library);
+
+  TEST_EQUAL(library.getSpectra().size(), 21)
+
+  vector<TargetedSpectraExtractor::Match> matches;
+
+  TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
+  std::map<String,DataValue> options = {
+    {"bin_size", 1.0},
+    {"peak_spread", 0.0},
+    {"bin_offset", 0.4}
+  };
+  cmp.init(library.getSpectra(), options);
+
+  tse.matchSpectrum(extracted_spectra[0], cmp, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
+  TEST_EQUAL(matches[0].score >= matches[1].score, true)
+
+  tse.matchSpectrum(extracted_spectra[4], cmp, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
+  TEST_EQUAL(matches[0].score >= matches[1].score, true)
+
+  tse.matchSpectrum(extracted_spectra[8], cmp, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
+  TEST_EQUAL(matches[0].score >= matches[1].score, true)
+
+  tse.matchSpectrum(extracted_spectra[9], cmp, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
+  TEST_EQUAL(matches[0].score >= matches[1].score, true)
+
+  tse.matchSpectrum(extracted_spectra[13], cmp, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
+  TEST_EQUAL(matches[0].score >= matches[1].score, true)
+
+  tse.matchSpectrum(extracted_spectra[17], cmp, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
+  TEST_EQUAL(matches[0].score >= matches[1].score, true)
+}
+END_SECTION
+
+START_SECTION(void targetedMatching(
+  const std::vector<MSSpectrum>& spectra,
+  Comparator& cmp,
+  FeatureMap& features
+))
+{
+  // MS Library offered by: MoNa - MassBank of North America
+  // Title: GC-MS Spectra
+  // http://mona.fiehnlab.ucdavis.edu/downloads
+  // https://creativecommons.org/licenses/by/4.0/legalcode
+  // Changes made: Only a very small subset of spectra is reproduced
+
+  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
+  const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
+  MzMLFile mzml;
+  MSExperiment gcms_experiment;
+  TransitionTSVFile tsv_reader;
+  TargetedExperiment targeted_exp;
+  mzml.load(gcms_fullscan_path, gcms_experiment);
+  Param tsv_params = tsv_reader.getParameters();
+  tsv_params.setValue("retentionTimeInterpretation", "seconds");
+  tsv_reader.setParameters(tsv_params);
+  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
+  TargetedSpectraExtractor tse;
+  Param params = tse.getParameters();
+  params.setValue("rt_window", 2.0);
+  params.setValue("min_select_score", 0.1);
+  params.setValue("GaussFilter:gaussian_width", 0.1);
+  params.setValue("PeakPickerHiRes:signal_to_noise", 0.01);
+  params.setValue("top_matches_to_report", 2);
+  params.setValue("min_match_score", 0.51);
+  tse.setParameters(params);
+
+  TEST_EQUAL(gcms_experiment.getSpectra().size(), 11)
+
+  vector<MSSpectrum> extracted_spectra;
+  FeatureMap extracted_features;
+  tse.extractSpectra(gcms_experiment, targeted_exp, extracted_spectra, extracted_features);
+
+  TEST_EQUAL(extracted_spectra.size(), 18)
+
+  MSExperiment library;
+  MSPGenericFile mse(msp_path, library);
+
+  TEST_EQUAL(library.getSpectra().size(), 21)
+
+  TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
+  std::map<String,DataValue> options = {
+    {"bin_size", 1.0},
+    {"peak_spread", 0.0},
+    {"bin_offset", 0.4}
+  };
+  cmp.init(library.getSpectra(), options);
+
+  tse.targetedMatching(extracted_spectra, cmp, extracted_features);
+
+  TEST_STRING_EQUAL(extracted_features[0].getMetaValue("spectral_library_name"), "beta-D-(+)-Glucose")
+  TEST_REAL_SIMILAR(extracted_features[0].getMetaValue("spectral_library_score"), 0.946971)
+  String comments = "\"accession=PR010079\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=180.06339\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=1882.4\" \"retention time=459.562 sec\" \"derivative formula=C22H55NO6Si5\" \"derivative mass=569.28757\" \"derivatization type=5 TMS; 1 MEOX\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OCC(O1)C(O)C(O)C(O)C(O)1\" \"cas=492-61-5\" \"chebi=15903\" \"kegg=C00221\" \"pubchem=3521\" \"InChI=InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12-2/h2-11H,1H2/t2-,3-,4+,5-,6-/m1/s1\" \"molecular formula=C6H12O6\" \"total exact mass=180.06338810399998\" \"SMILES=C(C1C(C(C(C(O)O1)O)O)O)O\" \"InChIKey=WQZGKKKJIJFFOK-VFUOTHLCSA-N\"";
+  TEST_STRING_EQUAL(extracted_features[0].getMetaValue("spectral_library_comments"), comments)
+
+  TEST_STRING_EQUAL(extracted_features[5].getMetaValue("spectral_library_name"), "Adonitol")
+  TEST_REAL_SIMILAR(extracted_features[5].getMetaValue("spectral_library_score"), 0.891443)
+  comments = "\"accession=PR010134\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=152.06847\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=1710.9\" \"retention time=416.034 sec\" \"derivative formula=C20H52O5Si5\" \"derivative mass=512.26611\" \"derivatization type=5 TMS\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OCC([H])(O)C([H])(O)C([H])(O)CO\" \"cas=488-81-3\" \"chebi=15963\" \"kegg=C00474\" \"pubchem=3757\" \"InChI=InChI=1S/C5H12O5/c6-1-3(8)5(10)4(9)2-7/h3-10H,1-2H2/t3-,4+,5-\" \"molecular formula=C5H12O5\" \"total exact mass=152.06847348399998\" \"SMILES=C(C(C(C(CO)O)O)O)O\" \"InChIKey=HEBKCHPVOIAQTA-ZXFHETKHSA-N\"";
+  TEST_STRING_EQUAL(extracted_features[5].getMetaValue("spectral_library_comments"), comments)
+
+  TEST_STRING_EQUAL(extracted_features[10].getMetaValue("spectral_library_name"), "BENZENE-1,2,4,5-TETRACARBOXYLIC ACID TETRA(TRIMETHYLSILYL) ESTER")
+  TEST_REAL_SIMILAR(extracted_features[10].getMetaValue("spectral_library_score"), 0.887661)
+  comments = "\"accession=JP000601\" \"author=KOGA M, UNIV. OF OCCUPATIONAL AND ENVIRONMENTAL HEALTH\" \"license=CC BY-NC-SA\" \"exact mass=542.16437\" \"instrument=JEOL JMS-01-SG\" \"instrument type=EI-B\" \"ms level=MS1\" \"ionization energy=70 eV\" \"ion type=[M]+*\" \"ionization mode=positive\" \"SMILES=C[Si](C)(C)OC(=O)c(c1)c(C(=O)O[Si](C)(C)C)cc(C(=O)O[Si](C)(C)C)c(C(=O)O[Si](C)(C)C)1\" \"InChI=InChI=1S/C22H38O8Si4/c1-31(2,3)27-19(23)15-13-17(21(25)29-33(7,8)9)18(22(26)30-34(10,11)12)14-16(15)20(24)28-32(4,5)6/h13-14H,1-12H3\" \"molecular formula=C22H38O8Si4\" \"total exact mass=542.164374296\" \"SMILES=C[Si](C)(C)OC(C1=CC(=C(C=C1C(=O)O[Si](C)(C)C)C(=O)O[Si](C)(C)C)C(=O)O[Si](C)(C)C)=O\" \"InChIKey=BKFGZLAJFGESBT-UHFFFAOYSA-N\"";
+  TEST_STRING_EQUAL(extracted_features[10].getMetaValue("spectral_library_comments"), comments)
+}
+END_SECTION
+
+START_SECTION(void untargetedMatching(
+  const std::vector<MSSpectrum>& spectra,
+  Comparator& cmp,
+  FeatureMap& features
+))
+{
+  // MS Library offered by: MoNa - MassBank of North America
+  // Title: GC-MS Spectra
+  // http://mona.fiehnlab.ucdavis.edu/downloads
+  // https://creativecommons.org/licenses/by/4.0/legalcode
+  // Changes made: Only a very small subset of spectra is reproduced
+
+  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
+  MzMLFile mzml;
+  MSExperiment gcms_experiment;
+  TargetedExperiment targeted_exp;
+  mzml.load(gcms_fullscan_path, gcms_experiment);
+  TargetedSpectraExtractor tse;
+  Param params = tse.getParameters();
+  params.setValue("top_matches_to_report", 2);
+  params.setValue("min_match_score", 0.51);
+  tse.setParameters(params);
+
+  TEST_EQUAL(gcms_experiment.getSpectra().size(), 11)
+
+  MSExperiment library;
+  MSPGenericFile mse(msp_path, library);
+
+  TEST_EQUAL(library.getSpectra().size(), 21)
+
+  TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
+  std::map<String,DataValue> options = {
+    {"bin_size", 1.0},
+    {"peak_spread", 0.0},
+    {"bin_offset", 0.4}
+  };
+  cmp.init(library.getSpectra(), options);
+
+  FeatureMap features;
+  tse.untargetedMatching(gcms_experiment.getSpectra(), cmp, features);
+
+  TEST_STRING_EQUAL(features[0].getMetaValue("spectral_library_name"), "")
+  TEST_REAL_SIMILAR(features[0].getMetaValue("spectral_library_score"), 0.0)
+  TEST_STRING_EQUAL(features[0].getMetaValue("spectral_library_comments"), "")
+
+  TEST_STRING_EQUAL(features[1].getMetaValue("spectral_library_name"), "D-Glucose-6-phosphate")
+  TEST_REAL_SIMILAR(features[1].getMetaValue("spectral_library_score"), 0.691226)
+  String comments = "\"accession=PR010050\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=260.02972\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=2300.2\" \"retention time=538.069 sec\" \"derivative formula=C25H64NO9PSi6\" \"derivative mass=721.29343\" \"derivatization type=6 TMS; 1 MEOX\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O\" \"cas=54010-71-8\" \"InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1\" \"molecular formula=C6H13O9P\" \"total exact mass=260.029718626\" \"SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O\" \"InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N\"";
+  TEST_STRING_EQUAL(features[1].getMetaValue("spectral_library_comments"), comments)
+
+  TEST_STRING_EQUAL(features[6].getMetaValue("spectral_library_name"), "2,3-Pyridinedicarboxylic acid")
+  TEST_REAL_SIMILAR(features[6].getMetaValue("spectral_library_score"), 0.54155)
+  comments = "\"accession=PR010082\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=167.02186\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=1721.2\" \"retention time=422.998 sec\" \"derivative formula=C13H21NO4Si2\" \"derivative mass=311.10091\" \"derivatization type=2 TMS\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(=O)c(c1)c(ncc1)C(O)=O\" \"cas=89-00-9\" \"chebi=16675\" \"kegg=C03722\" \"pubchem=6487\" \"InChI=InChI=1S/C7H5NO4/c9-6(10)4-2-1-3-8-5(4)7(11)12/h1-3H,(H,9,10)(H,11,12)\" \"molecular formula=C7H5NO4\" \"total exact mass=167.02185764\" \"SMILES=C1=CC(=C(C(=O)O)N=C1)C(=O)O\" \"InChIKey=GJAWHXHKYYXBSV-UHFFFAOYSA-N\"";
+  TEST_STRING_EQUAL(features[6].getMetaValue("spectral_library_comments"), comments)
+
+  TEST_STRING_EQUAL(features[10].getMetaValue("spectral_library_name"), "D-Glucose-6-phosphate")
+  TEST_REAL_SIMILAR(features[10].getMetaValue("spectral_library_score"), 0.922175)
+  comments = "\"accession=PR010050\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=260.02972\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=2300.2\" \"retention time=538.069 sec\" \"derivative formula=C25H64NO9PSi6\" \"derivative mass=721.29343\" \"derivatization type=6 TMS; 1 MEOX\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O\" \"cas=54010-71-8\" \"InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1\" \"molecular formula=C6H13O9P\" \"total exact mass=260.029718626\" \"SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O\" \"InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N\"";
+  TEST_STRING_EQUAL(features[10].getMetaValue("spectral_library_comments"), comments)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,6 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <iomanip>
 #include <iterator>
 #include <ostream>
 #include <vector>
@@ -55,21 +54,45 @@ namespace OpenMS
   template <typename T>
   inline std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
   {
-    // handle precision settings
-    const std::streamsize prec_save = os.precision();
-    os.precision(writtenDigits(T()));
-
     os << "[";
 
     if (!v.empty())
     {
-      std::copy(v.begin(), v.end() - 1, std::ostream_iterator<T>(os, ", "));
-      os << v.back();
+      for (auto it = v.begin(); it < v.end() - 1; ++it)
+      { // convert to String manually, since this is much faster than ostreams build-in conversion; 
+        // If T is a String, the compiler will (hopefully) elide the copy
+        os << String(*it) << ", ";
+      }
+      os << String(v.back());
     }
 
     os << "]";
-    // set precision settings back to original values
-    os.precision(prec_save);
+    return os;
+  }
+
+  template<typename T>
+  struct VecLowPrecision
+  {
+    const std::vector<T>& value;
+    VecLowPrecision(const std::vector<T>& v) : value(v) {}
+  };
+  /// modified version of the stream operator (works for vectors of float, double, long double) which prints only
+  /// three fractional digits; usage 'os << VecLowPrecision(my_vec);'
+  template <typename T>
+  inline std::ostream& operator<<(std::ostream& os, const VecLowPrecision<T>& val)
+  {
+    os << "[";
+    const auto& v = val.value;
+    if (!v.empty())
+    {
+      for (auto it = v.begin(); it < v.end() - 1; ++it)
+      { // convert to String manually, since this is much faster than ostreams build-in conversion; 
+        os << String(*it, false) << ", ";
+      }
+      os << String(v.back(), false);
+    }
+
+    os << "]";
     return os;
   }
 

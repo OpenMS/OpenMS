@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CONCEPT/Factory.h>
-
+#include <OpenMS/FORMAT/MSNumpressCoder.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -329,10 +329,11 @@ protected:
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
     setValidStrings_("peak_options:numpress:masstime", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
-    registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (default 10 ppm at 100 m/z; set to 0.5 for pic or negative to disable check and speed up conversion)", false);
+    registerDoubleOption_("peak_options:numpress:lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
     registerStringOption_("peak_options:numpress:intensity", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in intensity dimension (recommended: slof or pic)", false);
     setValidStrings_("peak_options:numpress:intensity", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
-    registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic or negative to disable check and speed up conversion)", false);
+    registerStringOption_("peak_options:numpress:float_da", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms for the float data arrays (recommended: slof or pic)", false);
+    setValidStrings_("peak_options:numpress:float_da", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
 
     registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties");
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
@@ -543,21 +544,25 @@ protected:
     bool indexed_file = getStringOption_("peak_options:indexed_file") == "true";
     bool zlib_compression = getStringOption_("peak_options:zlib_compression") == "true";
 
-
-    MSNumpressCoder::NumpressConfig npconfig_mz;
-    MSNumpressCoder::NumpressConfig npconfig_int;
+    //-----------------------------------
+    // MS Numpress options
+    //-----------------------------------
+    MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
     npconfig_mz.estimate_fixed_point = true; // critical
     npconfig_int.estimate_fixed_point = true; // critical
-    npconfig_mz.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:masstime_error");
-    npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
+    npconfig_fda.estimate_fixed_point = true; // critical
+    // npconfig_mz.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:masstime_error");
+    // npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
+    // npconfig_fda.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
     npconfig_mz.setCompression(getStringOption_("peak_options:numpress:masstime"));
     npconfig_int.setCompression(getStringOption_("peak_options:numpress:intensity"));
-    if (getStringOption_("peak_options:numpress:masstime") == "linear")
-    {
-      npconfig_mz.linear_fp_mass_acc = getDoubleOption_("peak_options:numpress:masstime_error"); // set the desired mass accuracy
-    }
+    npconfig_fda.setCompression(getStringOption_("peak_options:numpress:float_da"));
+    double mass_acc = getDoubleOption_("peak_options:numpress:lossy_mass_accuracy");
+    npconfig_mz.linear_fp_mass_acc = mass_acc; // set the desired mass accuracy
 
-    //id-filtering parameters
+    //-----------------------------------
+    // ID-filtering parameters
+    //-----------------------------------
     bool remove_annotated_features = getFlag_("id:remove_annotated_features");
     bool remove_unannotated_features = getFlag_("id:remove_unannotated_features");
     bool remove_unassigned_ids = getFlag_("id:remove_unassigned_ids");
@@ -567,7 +572,7 @@ protected:
     bool keep_best_score_id = getFlag_("id:keep_best_score_id");
     bool remove_clashes = getFlag_("id:remove_clashes");
 
-    //convert bounds to numbers
+    // convert bounds to numbers
     try
     {
       //rt
@@ -643,6 +648,7 @@ protected:
       // numpress compression
       f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
       f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+      f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
 
       MapType exp;
       f.load(in, exp);
@@ -694,7 +700,7 @@ protected:
       {
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true)), exp.end());
       }
-      
+
 
       // remove by scan mode (might be a lot of spectra)
       String remove_mode = getStringOption_("spectra:remove_mode");

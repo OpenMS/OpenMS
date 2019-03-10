@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ public:
 
           @param filename The sqMass filename
       */
-      MzMLSqliteSwathHandler(String filename) :
+      MzMLSqliteSwathHandler(const String& filename) :
         filename_(filename)
       {}
 
@@ -92,11 +92,9 @@ public:
           @return A list of spectral indices for the provided SWATH window
 
       */
-      std::vector<int> readSpectraForWindow(OpenSwath::SwathMap swath_map);
+      std::vector<int> readSpectraForWindow(const OpenSwath::SwathMap & swath_map);
 
 protected:
-
-      sqlite3* openDB();
 
       String filename_;
 

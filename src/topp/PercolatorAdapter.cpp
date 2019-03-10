@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <iostream>
 #include <cmath>
@@ -138,17 +139,27 @@ protected:
       {
         // peptide sequence
         StringList pep;
-        row[4].split(".", pep);
-        //TODO test pep size 3
-        peptide = pep[1];
-        preAA = pep[0]=="-"?'[':pep[0].c_str()[0];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
-        postAA = pep[2]=="-"?']':pep[2].c_str()[0]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
+        std::size_t left_dot = row[4].find_first_of('.');
+        std::size_t right_dot = row[4].find_last_of('.');
+      
+        OPENMS_PRECONDITION(left_dot < right_dot, "Peptide sequence encoding must have dot notation (e.g., A.PEPTIDER.C).")
+ 
+        // retrieve pre and post AA, e.g., A and C in A.PEPTIDE.C
+        preAA = (row[4][left_dot - 1] == '-') ? '[' : row[4][left_dot - 1];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
+        postAA = (row[4][right_dot + 1] == '-') ? ']' : row[4][right_dot + 1]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
+
+        // retrieve sequence between dots, e.g., PEPTIDE
+        peptide = row[4].substr(left_dot + 1, (right_dot - 1) - (left_dot + 1) + 1);
+
         // SVM-score
         score = row[1].toDouble();
+
         // q-Value
         qvalue = row[2].toDouble();
+
         // PEP
         posterior_error_prob = row[3].toDouble();
+
         // scannr. as written in preparePIN
         PSMId = row[0];
         proteinIds = vector<String>(row.begin()+5,row.end());
@@ -202,7 +213,8 @@ protected:
   {
     static const bool is_required(true);
     static const bool is_advanced_option(true);
-    
+    static const bool force_openms_format(true);
+        
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", !is_required);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
     registerInputFileList_("in_decoy", "<files>", StringList(), "Input decoy file(s) in case of separate searches", !is_required);
@@ -211,6 +223,9 @@ protected:
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("mzid,idXML,osw"));
+    registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pin", ListUtils::create<String>("tab"), !force_openms_format);
+
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
     setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
     String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin";
@@ -228,6 +243,8 @@ protected:
     registerFlag_("peptide-level-fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
     registerFlag_("protein-level-fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy-pattern to set the Fasta file and decoy pattern.");
     registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: Either \"ms1\", \"ms2\" or \"transition\"; the data level selected for scoring.", !is_required);
+    registerStringOption_("score_type", "<type>", "q-value", "Type of the peptide main score", false);
+    setValidStrings_("score_type", ListUtils::create<String>("q-value,pep,svm"));
 
     //Advanced parameters
     registerFlag_("generic-feature-set", "Use only generic (i.e. not search engine specific) features. Generating search engine specific features for common search engines by PSMFeatureExtractor will typically boost the identification rate significantly.", is_advanced_option);
@@ -394,6 +411,13 @@ protected:
       double exp_mass = it->getMZ();
       for (vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
       {
+        if (jt->getPeptideEvidences().empty())
+        {
+          LOG_WARN << "PSM (PeptideHit) without protein reference found. " 
+                   << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong enzyme settings)." 
+                   << "Will skip this PSM." << endl;
+          continue;
+        }
         PeptideHit hit(*jt); // make a copy of the hit to store temporary features
         hit.setMetaValue("SpecId", scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
@@ -416,8 +440,18 @@ protected:
         
         double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
         hit.setMetaValue("CalcMass", calc_mass);
-        
-        
+
+        if (hit.metaValueExists("IsotopeError"))  // MSGFPlus
+        {
+          float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+        else if (hit.metaValueExists("isotope_error")) // e.g. SimpleSearchEngine /RNPxlSearch
+        {
+          float isoErr = hit.getMetaValue("isotope_error").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+                
         hit.setMetaValue("ExpMass", exp_mass);
         hit.setMetaValue("mass", exp_mass);
         
@@ -431,10 +465,14 @@ protected:
         {
            hit.setMetaValue("charge" + String(i), charge == i);
         }
-        
-        bool enzN = isEnz_(hit.getPeptideEvidences().front().getAABefore(), unmodified_sequence.prefix(1)[0], enz);
+
+        // just first peptide evidence
+        char aa_before = hit.getPeptideEvidences().front().getAABefore();
+        char aa_after = hit.getPeptideEvidences().front().getAAAfter();
+
+        bool enzN = isEnz_(aa_before, unmodified_sequence.prefix(1)[0], enz);
         hit.setMetaValue("enzN", enzN);
-        bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], hit.getPeptideEvidences().front().getAAAfter(), enz);
+        bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], aa_after, enz);
         hit.setMetaValue("enzC", enzC);
         int enzInt = countEnzymatic_(unmodified_sequence, enz);
         hit.setMetaValue("enzInt", enzInt);
@@ -447,24 +485,14 @@ protected:
         
         //peptide
         String sequence = "";
-        // just first peptide evidence
-        String aa_before(hit.getPeptideEvidences().front().getAABefore());
-        String aa_after(hit.getPeptideEvidences().front().getAAAfter());
-        aa_before = aa_before=="["?'-':aa_before;
-        aa_after = aa_after=="]"?'-':aa_after;
+
+        aa_before = aa_before == '[' ? '-' : aa_before;
+        aa_after = aa_after == ']' ? '-' : aa_after;
+
         sequence += aa_before;
-        // In OpenMS sequence nomenclature, dots are set only for modified N/C-term modifications, e.g. .(Dimethyl)VGDMYTSSDIFDSVR
-        // In Percolator sequence nomenclature, dots are always present for all N/C-term modifications, e.g. R.(Dimethyl)VGDMYTSSDIFDSVR.F
-        // Consequently, dots need only be added for unmodified N/C-termini.
-        if (hit.getSequence().getNTerminalModificationName().empty())
-        {
-          sequence += ".";
-        }
+        sequence += "."; 
         sequence += hit.getSequence().toString();
-        if (hit.getSequence().getCTerminalModificationName().empty())
-        {
-          sequence += ".";
-        }
+        sequence += "."; 
         sequence += aa_after;
         
         hit.setMetaValue("Peptide", sequence);
@@ -504,6 +532,8 @@ protected:
       csv_file.getRow(i, row);
       PercolatorResult res(row);
       String spec_ref = res.PSMId + res.peptide;
+      writeDebug_("PSM identifier in pout file: " + spec_ref, 10);
+
       // retain only the best result in the unlikely case that a PSMId+peptide combination occurs multiple times
       if (pep_map.find(spec_ref) == pep_map.end())
       {
@@ -759,7 +789,16 @@ protected:
     String temp_directory_body = makeAutoRemoveTempDirectory_();
     
     String txt_designator = File::getUniqueName();
-    String pin_file(temp_directory_body + txt_designator + "_pin.tab");
+    String pin_file;
+    if (getStringOption_("out_pin").empty())
+    {
+      pin_file = temp_directory_body + txt_designator + "_pin.tab";
+    }
+    else
+    {
+      pin_file = getStringOption_("out_pin");
+    }
+    
     String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
     String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tab");
     String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tab");
@@ -1000,8 +1039,10 @@ protected:
       for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
       {
         it->setIdentifier(run_identifier);
-        it->setScoreType("q-value");
-        it->setHigherScoreBetter(false);
+
+        const String scoreType = getStringOption_("score_type");
+        it->setScoreType(scoreType);
+        it->setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = getScanIdentifier_(it, all_peptide_ids.begin());
         
@@ -1011,18 +1052,45 @@ protected:
           String peptide_sequence = hit->getSequence().toString();
           String psm_identifier = scan_identifier + peptide_sequence;
           
+          writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);        
+ 
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
           if (pr != pep_map.end())
           {
             hit->setMetaValue("MS:1001492", pr->second.score);  // svm score
             hit->setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
             hit->setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
-            hit->setScore(pr->second.qvalue);
+
+            if (scoreType == "q-value")
+            {
+              hit->setScore(pr->second.qvalue);
+            }
+            else if (scoreType == "pep")
+            {
+              hit->setScore(pr->second.posterior_error_prob);
+            }
+            else if (scoreType == "svm")
+            {
+              hit->setScore(pr->second.score);
+            }
+
             ++cnt;
           }
           else
           {
-            hit->setScore(1.0); // set q-value to 1.0 if hit not found in results
+            LOG_WARN << "Identifier " << psm_identifier << " not found in peptide map." << endl;
+            hit->setMetaValue("MS:1001492", 0.0);  // svm score
+            hit->setMetaValue("MS:1001491", 1.0);  // percolator q value
+            hit->setMetaValue("MS:1001493", 1.0);  // percolator pep
+
+            if (scoreType == "q-value" || scoreType == "pep")
+            {
+              hit->setScore(1.0); // set q-value or PEP to 1.0 if hit not found in results
+            }
+            else if (scoreType == "svm")
+            {
+              hit->setScore(0.0); // set SVM score to 0.0 if hit not found in results
+            }
           }
         }
       }

@@ -50,6 +50,8 @@ MRMFeatureQCFile.h
 MS2File.h
 MSNumpressCoder.h
 MSPFile.h
+MSPGenericFile.h
+MSstatsFile.h
 MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h
@@ -78,6 +80,7 @@ SequestOutfile.h
 SpecArrayFile.h
 SVOutStream.h
 SwathFile.h
+SqliteConnector.h
 SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h

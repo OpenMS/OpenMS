@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,7 +31,9 @@
 // $Maintainer: Timo Sachsenberg, Petra Gutenbrunner $
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/ANALYSIS/ID/AScore.h>
+
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 
@@ -472,7 +474,7 @@ namespace OpenMS
   }
   
   /// Computes number of phospho events in a sequence
-  Size AScore::numberOfPhosphoEvents_(const String sequence) const 
+  Size AScore::numberOfPhosphoEvents_(const String& sequence) const 
   {
     Size cnt_phospho_events = 0;
     
@@ -485,7 +487,7 @@ namespace OpenMS
   }
     
   /// Create variant of the peptide with all phosphorylations removed
-  AASequence AScore::removePhosphositesFromSequence_(const String sequence) const 
+  AASequence AScore::removePhosphositesFromSequence_(const String& sequence) const 
   {
     String seq(sequence);
     seq.substitute("(Phospho)", "");

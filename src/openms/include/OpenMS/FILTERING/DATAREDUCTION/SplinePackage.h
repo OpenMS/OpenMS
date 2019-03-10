@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,13 +45,13 @@
 namespace OpenMS
 {
 /**
- * @brief fundamental data structure for SplineSpectrum
+ * @brief fundamental data structure for SplineInterpolatedPeaks
  *
- * In many cases, data points in MS spectra are not equidistant in m/z but consist of packages of
- * data points separated by wide m/z ranges with zero intensity. SplinePackage contains the
- * spline fit of a single set of such data points.
+ * In many cases, data points in MS spectra (or chromatograms) are not equidistant in m/z (or RT)
+ * but consist of packages of data points separated by wide m/z (or RT) ranges with zero intensity.
+ * SplinePackage contains the spline fit of a single set of such data points.
  *
- * @see SplineSpectrum
+ * @see SplineInterpolatedPeaks
  */
 class OPENMS_DLLAPI SplinePackage
 {
@@ -59,7 +59,7 @@ public:
 /**
  * @brief constructor
  */
-SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling);
+SplinePackage(std::vector<double> pos, std::vector<double> intensity);
 
 /**
  * @brief destructor
@@ -67,42 +67,44 @@ SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scal
 ~SplinePackage();
 
 /**
- * @brief returns the minimum m/z for which the spline fit is valid
+ * @brief returns the minimum position for which the spline fit is valid
  */
-double getMzMin() const;
+double getPosMin() const;
 
 /**
- * @brief returns the maximum m/z for which the spline fit is valid
+ * @brief returns the maximum position for which the spline fit is valid
  */
-double getMzMax() const;
+double getPosMax() const;
 
 /**
- * @brief returns a sensible m/z step width for the package
+ * @brief returns a sensible position step width for the package
  */
-double getMzStepWidth() const;
+double getPosStepWidth() const;
 
 /**
- * @brief returns true if m/z in [mzMin:mzMax] interval else false
+ * @brief returns true if position in [posMin:posMax] interval else false
  */
-bool isInPackage(double mz) const;
+bool isInPackage(double pos) const;
 
 /**
- * @brief returns interpolated intensity @ position mz
+ * @brief returns interpolated intensity @ position pos
  */
-double eval(double mz) const;
+double eval(double pos) const;
 
 private:
 /**
- * @brief m/z limits of the package in the raw data spectrum
+ * @brief position limits of the package in the raw data spectrum
  */
-double mz_min_;
-double mz_max_;
+double pos_min_;
+double pos_max_;
 
 /**
- * @brief sensible m/z step width with which to scan through the package
- * (raw data spacing times a scaling factor typically <1)
+ * @brief sensible position step width with which to scan through the package
+ * 
+ * @note The step width is rescaled individually in each navigator.
+ * @see SplineInterpolatedPeaks::Navigator::getNextPos()
  */
-double mz_step_width_;
+double pos_step_width_;
 
 /**
  * @brief spline object for interpolation of intensity profile

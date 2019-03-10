@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,38 +39,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  Identification::Identification() :
-    MetaInfoInterface(),
-    id_(),
-    creation_date_()
-  {
-  }
-
-  Identification::Identification(const Identification & rhs) :
-    MetaInfoInterface(rhs),
-    id_(rhs.id_),
-    creation_date_(rhs.creation_date_),
-    spectrum_identifications_(rhs.spectrum_identifications_)
-  {
-  }
-
   Identification::~Identification()
   {
-  }
-
-  Identification & Identification::operator=(const Identification & rhs)
-  {
-    if (this == &rhs)
-    {
-      return *this;
-    }
-
-    MetaInfoInterface::operator=(rhs);
-    id_ = rhs.id_;
-    creation_date_ = rhs.creation_date_;
-    spectrum_identifications_ = rhs.spectrum_identifications_;
-
-    return *this;
   }
 
   // Equality operator
@@ -114,3 +84,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

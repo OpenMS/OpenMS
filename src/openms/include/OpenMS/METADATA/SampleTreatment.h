@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,19 +52,25 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+
     /**
         @brief Constructor.
 
         Use a unique type string for each treatment type
     */
-    SampleTreatment(const String & type);
+    explicit SampleTreatment(const String & type);
+
     /**
         @brief Copy constructor
 
         @note Do not forget to call it when you derive a class from SampleTreatment!
     */
-    SampleTreatment(const SampleTreatment &);
-    /// destructor
+    SampleTreatment(const SampleTreatment &) = default;
+
+    /// Move constructor
+    SampleTreatment(SampleTreatment&&) = default;
+
+    /// Destructor
     virtual ~SampleTreatment();
 
     /**
@@ -72,7 +78,10 @@ public:
 
         @note Do not forget to call it when you derive a class from SampleTreatment!
     */
-    SampleTreatment & operator=(const SampleTreatment &);
+    SampleTreatment & operator=(const SampleTreatment &) = default;
+
+    /// Move assignment operator
+    SampleTreatment& operator=(SampleTreatment&&) & = default;
 
     /**
         @brief Equality operator
@@ -81,7 +90,7 @@ public:
         They check the type and cast the reference to the right type if the type matches.
 
     @note Do not forget to call it when you derive a class from SampleTreatment!
-  */
+    */
     virtual bool operator==(const SampleTreatment & rhs) const;
 
     /**
@@ -89,7 +98,7 @@ public:
 
         The type_ has to be set in the default constructor.
         It is used to determine the kind of sample treatment, when only a pointer to this base class is available.
-        */
+    */
     const String & getType() const;
 
     /// returns the description of the sample treatment

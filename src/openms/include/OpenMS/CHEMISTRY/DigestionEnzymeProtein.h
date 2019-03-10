@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,20 +45,25 @@ namespace OpenMS
 
       @brief Representation of a digestion enzyme for proteins (protease)
   */
-  class OPENMS_DLLAPI DigestionEnzymeProtein: public DigestionEnzyme
+  class OPENMS_DLLAPI DigestionEnzymeProtein :
+    public DigestionEnzyme
   {
   public:
 
     /** @name Constructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     DigestionEnzymeProtein();
 
-    /// copy constructor
-    DigestionEnzymeProtein(const DigestionEnzymeProtein& enzyme);
+    /// Copy constructor
+    DigestionEnzymeProtein(const DigestionEnzymeProtein&) = default;
 
-    /// detailed constructor
+    /// Move constructor
+    DigestionEnzymeProtein(DigestionEnzymeProtein&&) = default;
+
+    /// Detailed constructor
     explicit DigestionEnzymeProtein(const String& name,
                                     const String& cleavage_regex,
                                     const std::set<String>& synonyms = std::set<String>(),
@@ -72,15 +77,18 @@ namespace OpenMS
                                     Int msgf_id = -1,
                                     Int omssa_id = -1);
 
-    /// destructor
+    /// Destructor
     ~DigestionEnzymeProtein() override;
     //@}
 
     /** @name Assignment
      */
     //@{
-    /// assignment operator
-    DigestionEnzymeProtein& operator=(const DigestionEnzymeProtein& enzyme);
+    /// Assignment operator
+    DigestionEnzymeProtein& operator=(const DigestionEnzymeProtein&) = default;
+
+    /// Move assignment operator
+    DigestionEnzymeProtein& operator=(DigestionEnzymeProtein&&) & = default;
     //@}
 
     /** Accessors

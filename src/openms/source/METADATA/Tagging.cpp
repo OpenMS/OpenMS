@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,35 +48,16 @@ namespace OpenMS
     type_ = "Tagging";
   }
 
-  Tagging::Tagging(const Tagging & source) :
-    Modification(source),
-    mass_shift_(source.mass_shift_),
-    variant_(source.variant_)
-  {
-    //????
-  }
-
   Tagging::~Tagging()
   {
-    //????
-  }
-
-  Tagging & Tagging::operator=(const Tagging & source)
-  {
-    if (&source == this)
-      return *this;
-
-    Modification::operator=(source);
-    mass_shift_ = source.mass_shift_;
-    variant_ = source.variant_;
-
-    return *this;
   }
 
   bool Tagging::operator==(const SampleTreatment & rhs) const
   {
     if (type_ != rhs.getType())
+    {
       return false;
+    }
 
     const Tagging * tmp = dynamic_cast<const Tagging *>(&rhs);
     return Modification::operator==(rhs)
@@ -111,3 +92,4 @@ namespace OpenMS
   }
 
 }
+

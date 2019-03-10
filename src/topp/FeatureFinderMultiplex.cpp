@@ -46,7 +46,6 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -94,9 +93,7 @@ using namespace boost::math;
 
 /**
   @page TOPP_FeatureFinderMultiplex FeatureFinderMultiplex
-
   @brief Detects peptide pairs in LC-MS data and determines their relative abundance.
-
 <CENTER>
   <table>
     <tr>
@@ -113,27 +110,19 @@ using namespace boost::math;
     </tr>
   </table>
 </CENTER>
-
   FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we outline the algorithm.
-
   <b>Algorithm</b>
-
   The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f). In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a). It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance. Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5. The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
-
   We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c). Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
   - all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold,
   - the intensity profiles in neighbourhoods around all six m/z positions show a good correlation and
   - the relative intensity ratios within a peptide agree up to a factor with the ratios of a theoretic averagine model.
-
   Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
-
   @image html SILACAnalyzer_algorithm.png
-
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FeatureFinderMultiplex.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_FeatureFinderMultiplex.html
-
 */
 
 // We do not want this class to show up in the docu:
@@ -185,10 +174,7 @@ public:
    * @param map    feature map for output
    */
   void writeFeatureMap_(const String& filename, FeatureMap& map) const
-  {
-    map.sortByPosition();
-    map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    
+  {    
     FeatureXMLFile file;
     file.store(filename, map);
   }
@@ -200,77 +186,12 @@ public:
    * @param map    consensus map for output
    */
   void writeConsensusMap_(const String& filename, ConsensusMap& map) const
-  {
-    Param params = getParam_();
-    
-    // construct sample_labels
-    std::vector<std::vector<String> > samples_labels;
-    std::vector<String> temp_samples;
-    
-    String labels(getParam_().getValue("algorithm:labels"));
-    boost::replace_all(labels, "[]", "no_label");
-    boost::replace_all(labels, "()", "no_label");
-    boost::replace_all(labels, "{}", "no_label");
-    boost::split(temp_samples, labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
-    
-    for (unsigned i = 0; i < temp_samples.size(); ++i)
-    {
-      if (!temp_samples[i].empty())
-      {
-        if (temp_samples[i]=="no_label")
-        {
-          vector<String> temp_labels;
-          temp_labels.push_back("no_label");
-          samples_labels.push_back(temp_labels);
-        }
-        else
-        {
-          vector<String> temp_labels;
-          boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
-          samples_labels.push_back(temp_labels);
-        }
-      }
-    }
-
-    if (samples_labels.empty())
-    {
-      vector<String> temp_labels;
-      temp_labels.push_back("no_label");
-      samples_labels.push_back(temp_labels);
-    }
-
-    // prepare map
-    map.sortByPosition();
-    map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    map.setExperimentType("labeled_MS1");
-    
-    // annotate maps
-    for (unsigned i = 0; i < samples_labels.size(); ++i)
-    {
-      ConsensusMap::ColumnHeader& desc = map.getColumnHeaders()[i];
-      desc.filename = getParam_().getValue("in");;
-      desc.setMetaValue("channel_id", i);
-      
-      if (getParam_().getValue("algorithm:knock_out") == "true")
-      {
-        // With knock-outs present, the correct labels can only be determined during ID mapping.
-        // For now, we simply store a unique identifier.
-        std::stringstream stream;
-        stream << "label " << i;
-        desc.label = stream.str();
-      }
-      else
-      {
-        String label_string;
-        for (unsigned j = 0; j < samples_labels[i].size(); ++j)
-        {
-          label_string.append(samples_labels[i][j]);
-        }
-        desc.label = label_string;
-      }
-    }
-    
+  {     
     ConsensusXMLFile file;
+    for (auto & ch : map.getColumnHeaders())
+    {
+      ch.second.filename = getStringOption_("in");
+    }
     file.store(filename, map);
   }
   
@@ -318,7 +239,7 @@ public:
     algorithm.setLogType(this->log_type_);
     // run feature detection algorithm
     algorithm.run(exp, true);
-    
+
     // write feature and consensus maps
     if (!(out_.empty()))
     {

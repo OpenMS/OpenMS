@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 #include <OpenMS/METADATA/DataProcessing.h>
 
-
 using namespace std;
 
 namespace OpenMS
@@ -63,40 +62,17 @@ namespace OpenMS
     "Conversion to DTA format"
   };
 
-  DataProcessing::DataProcessing() :
-    MetaInfoInterface(),
-    software_(),
-    processing_actions_(),
-    completion_time_()
-  {
-
-  }
-
-  DataProcessing::DataProcessing(const DataProcessing & rhs) :
-    MetaInfoInterface(rhs),
-    software_(rhs.software_),
-    processing_actions_(rhs.processing_actions_),
-    completion_time_(rhs.completion_time_)
-  {
-
-  }
-
   DataProcessing::~DataProcessing()
   {
 
   }
 
-  DataProcessing & DataProcessing::operator=(const DataProcessing & rhs)
+  DataProcessing::DataProcessing(DataProcessing&& rhs) noexcept :
+    MetaInfoInterface(std::move(rhs)),
+    software_(std::move(rhs.software_)),
+    processing_actions_(std::move(rhs.processing_actions_)),
+    completion_time_(std::move(rhs.completion_time_))
   {
-    if (&rhs == this)
-      return *this;
-
-    MetaInfoInterface::operator=(rhs);
-    software_ = rhs.software_;
-    processing_actions_ = rhs.processing_actions_;
-    completion_time_ = rhs.completion_time_;
-
-    return *this;
   }
 
   bool DataProcessing::operator==(const DataProcessing & rhs) const
@@ -153,3 +129,4 @@ namespace OpenMS
   }
 
 }
+

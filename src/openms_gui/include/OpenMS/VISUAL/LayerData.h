@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ namespace OpenMS
   copy of the actual raw data and *different* from the one retrieved through
   getPeakData()[index]. Any changes to applied to getCurrentSpectrum() are
   non-persistent and will be gone the next time the cache is updated.
-  Persistant changes can be applied to getPeakDataMuteable() and will be
+  Persistent changes can be applied to getPeakDataMuteable() and will be
   available on the next cache update.
 
   @note Layer is mainly used as a member variable of SpectrumCanvas which holds
@@ -108,6 +108,7 @@ public:
       P_PROJECTIONS,   ///< Peaks: Show projections
       C_ELEMENTS,      ///< Consensus features: Show elements
       I_PEPTIDEMZ,     ///< Identifications: m/z source
+      I_LABELS,        ///< Identifications: Show labels (not sequences)
       SIZE_OF_FLAGS
     };
 
@@ -117,11 +118,11 @@ public:
     /// Label used in visualization
     enum LabelType
     {
-      L_NONE,             ///< No label is displayed
-      L_INDEX,            ///< The element number is used
-      L_META_LABEL,       ///< The 'label' meta information is used
-      L_ID,               ///< The best peptide hit of the first identification run is used
-      L_ID_ALL,           ///< All peptide hits of the first identification run are used
+      L_NONE,          ///< No label is displayed
+      L_INDEX,         ///< The element number is used
+      L_META_LABEL,    ///< The 'label' meta information is used
+      L_ID,            ///< The best peptide hit of the first identification run is used
+      L_ID_ALL,        ///< All peptide hits of the first identification run are used
       SIZE_OF_LABEL_TYPE
     };
 

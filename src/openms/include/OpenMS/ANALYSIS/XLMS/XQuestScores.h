@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 #include <vector>
 
 namespace OpenMS
@@ -52,16 +53,16 @@ namespace OpenMS
   public:
    /**
     * @brief compute a simple and fast to compute pre-score for a cross-link spectrum match
-    * @param number of experimental peaks matched to theoretical common ions from the alpha peptide
+    * @param number of experimental peaks matched to theoretical linear ions from the alpha peptide
     * @param number of theoretical ions from the alpha peptide
-    * @param number of experimental peaks matched to theoretical common ions from the beta peptide
+    * @param number of experimental peaks matched to theoretical linear ions from the beta peptide
     * @param number of theoretical ions from the beta peptide
     */
     static float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta);
 
    /**
     * @brief compute a simple and fast to compute pre-score for a mono-link spectrum match
-    * @param number of experimental peaks matched to theoretical common ions from the alpha peptide
+    * @param number of experimental peaks matched to theoretical linear ions from the alpha peptide
     * @param number of theoretical ions from the alpha peptide
     */
     static float preScore(Size matched_alpha, Size ions_alpha);
@@ -77,8 +78,17 @@ namespace OpenMS
     */
     static double matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum = false, Size n_charges = 1);
 
-    static double logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
+    static double matchOddsScoreSimpleSpec(const std::vector< SimpleTSGXLMS::SimplePeak >& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum = false, Size n_charges = 1);
 
+
+    /**
+     * @brief compute the logOccupancyProb score, similar to the match_odds, a score based on the probability of getting the given number of matched peaks by chance
+     * @param theoretical_spec theoretical spectrum, sorted by position
+     * @param matched_size number of matched peaks between experimental and theoretical spectra
+     * @param fragment_mass_tolerance the tolerance of the alignment
+     * @param fragment_mass_tolerance_unit the tolerance unit of the alignment, true = ppm, false = Da
+     */
+    static double logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
 
    /**
     * @brief compute the weighted total ion current score for a cross-link. Reimplementation from xQuest.
@@ -106,23 +116,23 @@ namespace OpenMS
 
    /**
     * @brief computes sum of peak intensities of matched peaks for either the alpha or the beta peptide
-    * @param alignment between common alpha or beta ions and common experimental peaks
+    * @param alignment between linear alpha or beta ions and linear experimental peaks
     * @param alignment between xlink alpha or beta ions and xlink experimental peaks
-    * @param experimental common ion spectrum
+    * @param experimental linear ion spectrum
     * @param experimental xlink spectrum
     */
-    static double matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
+    static double matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_linear, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks);
 
    /**
     * @brief computes sum of peak intensities of all matched peaks
-    * @param alignment between common alpha ions and common experimental peaks
-    * @param alignment between common beta ions and common experimental peaks
+    * @param alignment between linear alpha ions and linear experimental peaks
+    * @param alignment between linear beta ions and linear experimental peaks
     * @param alignment between xlink alpha ions and xlink experimental peaks
     * @param alignment between xlink beta ions and xlink experimental peaks
-    * @param experimental common ion spectrum
+    * @param experimental linear ion spectrum
     * @param experimental xlink spectrum
     */
-    static double totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
+    static double totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks);
 
    /**
     * @brief computes a crude cross-correlation between two spectra. Crude, because it uses a static binsize based on a tolerance in Da and it uses equal intensities for all peaks
@@ -133,7 +143,13 @@ namespace OpenMS
     */
     static std::vector< double > xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance);
 
+    /**
+     * @brief computes a crude dot product between two spectra. Crude, because it uses a static binsize based on a tolerance in Da and it uses equal intensities for all peaks
+     * @param spec1 first spectrum
+     * @param spec2 second spectrum
+     * @param tolerance tolerance or binsize in Da
+     */
+    static double xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance);
   };
 
 }
-

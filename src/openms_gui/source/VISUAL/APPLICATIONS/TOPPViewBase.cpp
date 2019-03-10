@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
@@ -445,7 +446,7 @@ namespace OpenMS
     group_unassigned_2d_ = new QActionGroup(dm_unassigned_2d_);
     menu = new QMenu(dm_unassigned_2d_);
     StringList options = ListUtils::create<String>(
-      "Don't show,Show by precursor m/z,Show by peptide mass");
+      "Don't show,Show by precursor m/z,Show by peptide mass,Show label meta data");
     for (StringList::iterator opt_it = options.begin(); opt_it != options.end();
          ++opt_it)
     {
@@ -681,11 +682,18 @@ namespace OpenMS
   // static
   bool TOPPViewBase::containsIMData(const MSSpectrum& s)
   {
-    if (s.getFloatDataArrays().empty() || s.getFloatDataArrays()[0].getName() != "Ion Mobility")
+    if (!s.getFloatDataArrays().empty() &&
+        (s.getFloatDataArrays()[0].getName() == "Ion Mobility" ||
+         s.getFloatDataArrays()[0].getName().find("Ion Mobility") == 0 ||
+         s.getFloatDataArrays()[0].getName() == "ion mobility array" ||
+         s.getFloatDataArrays()[0].getName() == "mean inverse reduced ion mobility array" ||
+         s.getFloatDataArrays()[0].getName() == "ion mobility drift time")
+
+        )
     {
-      return false;
+      return true;
     }
-    return true;
+    return false;
   }
 
   float TOPPViewBase::estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans)
@@ -1265,13 +1273,13 @@ namespace OpenMS
                 peak_map_sptr->getSpectrum(k) = on_disc_peaks->getSpectrum(k);
               }
             }
-            for (Size k = 0; k < indexed_mzml_file_.getNrChromatograms(); k++)
+            for (Size k = 0; k < indexed_mzml_file_.getNrChromatograms() && !cache_ms2_on_disc; k++)
             {
               peak_map_sptr->getChromatogram(k) = on_disc_peaks->getChromatogram(k);
             }
 
             // Load at least one spectrum into memory (TOPPView assumes that at least one spectrum is in memory)
-            if (cache_ms1_on_disc) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
+            if (cache_ms1_on_disc && peak_map_sptr->getNrSpectra() > 0) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
           }
         }
 
@@ -1280,6 +1288,7 @@ namespace OpenMS
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
         }
+        LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in SpectrumCanvas::addLayer
@@ -1799,18 +1808,28 @@ namespace OpenMS
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
       set = true;
     }
     else if (action->text().toStdString() == "Show by precursor m/z")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
       set = true;
     }
     else if (action->text().toStdString() == "Show by peptide mass")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
+      set = true;
+    }
+    else if (action->text().toStdString() == "Show label meta data")
+    {
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, true);
       set = true;
     }
 
@@ -2029,7 +2048,7 @@ namespace OpenMS
 
       if (spectra_identification_view_widget_)
       {
-        spectra_identification_view_widget_->attachLayer(nullptr);
+        spectra_identification_view_widget_->setLayer(nullptr);
         // remove all entries
         QTableWidget* w = spectra_identification_view_widget_->getTableWidget();
         for (int i = w->rowCount() - 1; i >= 0; --i)
@@ -2054,8 +2073,10 @@ namespace OpenMS
 
     if (spectra_identification_view_widget_->isVisible())
     {
-      spectra_identification_view_widget_->attachLayer(&cc->getCurrentLayer());
-      spectra_identification_view_widget_->updateEntries();
+      if (&cc->getCurrentLayer() != spectra_identification_view_widget_->getLayer())
+      {
+        spectra_identification_view_widget_->setLayer(&cc->getCurrentLayer());
+      }
     }
   }
 
@@ -2821,6 +2842,9 @@ namespace OpenMS
 
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
+    // store active sub window
+    QMdiSubWindow* old_active = ws_->activeSubWindow();
+    
     String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid *.bz2 *.gz);;";
     String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d);;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
 
@@ -2841,6 +2865,9 @@ namespace OpenMS
       file_names = dialog.selectedFiles();
     }
 
+    // restore active sub window
+    ws_->setActiveSubWindow(old_active);
+    
     return file_names;
   }
 
@@ -3537,6 +3564,7 @@ namespace OpenMS
     tmpe->sortSpectra();
     tmpe->updateRanges();
     tmpe->setMetaValue("is_ion_mobility", "true");
+    tmpe->setMetaValue("ion_mobility_unit", "ms");
 
     // open new 2D widget
     Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
@@ -3547,6 +3575,12 @@ namespace OpenMS
       return;
     }
     w->xAxis()->setLegend(String("Ion Mobility [ms]"));
+
+    if (im_arr.getName().find("1002815") != std::string::npos)
+    {
+      w->xAxis()->setLegend(String("Ion Mobility [1/K0]"));
+      tmpe->setMetaValue("ion_mobility_unit", "1/K0");
+    }
 
     String caption = layer.name;
     caption += " (Ion Mobility Scan " + String(spidx) + ")";
@@ -3693,7 +3727,15 @@ namespace OpenMS
 
       if (layer.isIonMobilityData())
       {
-        w->canvas()->openglwidget()->setYLabel("Ion Mobility [ms]");
+        // Determine ion mobility unit (default is milliseconds)
+        String unit = "ms";
+        if (exp_sptr->metaValueExists("ion_mobility_unit"))
+        {
+          unit = exp_sptr->getMetaValue("ion_mobility_unit");
+        }
+        String label = "Ion Mobility [" + unit + "]";
+
+        w->canvas()->openglwidget()->setYLabel(label.c_str());
       }
 
       if (!w->canvas()->addLayer(exp_sptr, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,21 +46,29 @@ namespace OpenMS
   struct OPENMS_DLLAPI ScanWindow :
     public MetaInfoInterface
   {
-    ///Default constructor
-    ScanWindow();
-    ///Copy constructor
-    ScanWindow(const ScanWindow & source);
-    ///Equality operator
-    bool operator==(const ScanWindow & source) const;
-    ///Equality operator
-    bool operator!=(const ScanWindow & source) const;
-    ///Assignment operator
-    ScanWindow & operator=(const ScanWindow & source);
+    /// Default constructor
+    ScanWindow() = default;
+    /// Copy constructor
+    ScanWindow(const ScanWindow &) = default;
+    /// Move constructor
+    ScanWindow(ScanWindow&&) = default;
+    /// Destructor
+    ~ScanWindow() {}
 
-    ///Begin of the window
-    double begin;
-    ///End of the window
-    double end;
+    /// Equality operator
+    bool operator==(const ScanWindow & source) const;
+    /// Equality operator
+    bool operator!=(const ScanWindow & source) const;
+
+    /// Assignment operator
+    ScanWindow & operator=(const ScanWindow &) = default;
+    /// Move assignment operator
+    ScanWindow& operator=(ScanWindow&&) & = default;
+
+    /// Begin of the window
+    double begin = 0.0;
+    /// End of the window
+    double end = 0.0;
   };
 
 } // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,6 +71,7 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 {
   MSExperiment experiment;
   ptr->load(input_filepath, experiment);
+  TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "UV_VIS_2")
   TEST_EQUAL(experiment.getMetaValue("mzml_id"), "20171013_C61_ISO_P1_GA1")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "HM_metode_ZorBax_0,02%_Acetic_acid_ver6")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getSoftware().getName(), "New ProcMethod")

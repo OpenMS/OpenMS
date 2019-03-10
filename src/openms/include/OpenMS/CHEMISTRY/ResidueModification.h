@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,21 +129,29 @@ public:
     /** @name Constructors and Destructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     ResidueModification();
 
-    /// copy constructor
-    ResidueModification(const ResidueModification& modification);
+    /// Copy constructor
+    ResidueModification(const ResidueModification&) = default;
 
-    /// destructor
+    /// Move constructor
+    ResidueModification(ResidueModification&&) = default;
+
+    /// Destructor
     virtual ~ResidueModification();
     //@}
 
     /** @name Assignment operator
     */
     //@{
-    /// assignment operator
-    ResidueModification& operator=(const ResidueModification& modification);
+
+    /// Assignment operator
+    ResidueModification& operator=(const ResidueModification&) = default;
+
+    /// Move assignment operator
+    ResidueModification& operator=(ResidueModification&&) & = default;
     //@}
 
     /** @name Accessors
@@ -333,6 +341,9 @@ public:
 
     /// inequality operator
     bool operator!=(const ResidueModification& modification) const;
+
+    /// less operator
+    bool operator<(const ResidueModification& modification) const;
     //@}
 
 protected:

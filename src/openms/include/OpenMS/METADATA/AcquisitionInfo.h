@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,14 +58,18 @@ private:
 
 public:
     /// Constructor
-    AcquisitionInfo();
+    AcquisitionInfo() = default;
     /// Copy constructor
-    AcquisitionInfo(const AcquisitionInfo& source);
+    AcquisitionInfo(const AcquisitionInfo&) = default;
+    /// Move constructor
+    AcquisitionInfo(AcquisitionInfo&&) = default;
     /// Destructor
-    ~AcquisitionInfo();
+    ~AcquisitionInfo() = default;
 
     /// Assignment operator
-    AcquisitionInfo& operator=(const AcquisitionInfo& source);
+    AcquisitionInfo& operator=(const AcquisitionInfo&) = default;
+    /// Move assignment operator
+    AcquisitionInfo& operator=(AcquisitionInfo&&) & = default;
 
     /// Equality operator
     bool operator==(const AcquisitionInfo& rhs) const;

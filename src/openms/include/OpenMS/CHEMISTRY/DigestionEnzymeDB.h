@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,6 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <boost/unordered_map.hpp>
 #include <set>
 
 namespace OpenMS
@@ -98,11 +97,12 @@ namespace OpenMS
     /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
     const DigestionEnzymeType* getEnzyme(const String& name) const
     {
-      if (enzyme_names_.find(name) == enzyme_names_.end())
+      auto pos = enzyme_names_.find(name);
+      if (pos == enzyme_names_.end())
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
       }
-      return enzyme_names_.at(name);
+      return pos->second;
     }
 
     /// returns a pointer to the enzyme with cleavage regex
@@ -259,7 +259,7 @@ namespace OpenMS
       return;
     }
 
-    boost::unordered_map<String, const DigestionEnzymeType*> enzyme_names_;  // index by names
+    Map<String, const DigestionEnzymeType*> enzyme_names_; // index by names
 
     Map<String, const DigestionEnzymeType*> enzyme_regex_; // index by regex
 

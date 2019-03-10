@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,6 +93,10 @@ public:
     /** Start the stop watch.
             The stop watch is started. If the stop watch is already running, <b>false</b>
             is returned.
+
+            If the watch holds data from previous measurements, these will be reset before starting up,
+            i.e. it is not possible to resume by start(), stop(), start().
+
             @return bool <b>false</b> if the stop watch was already running, <b>true</b> otherwise
     */
     bool start();
@@ -225,7 +229,7 @@ public:
     /**
       custom string formatting of time, using only the minimal number of units required (e.g., does not report hours when seconds suffice).
     */
-    static String toString(double time);
+    static String toString(const double time);
 
 private:
 

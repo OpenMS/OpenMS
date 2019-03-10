@@ -5,7 +5,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 --------------------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -47,17 +47,17 @@ from PythonCheckerLib import create_pxd_file_map
 # Try non-standard libs
 try:
     import yaml
-    from breathe.parser.eoxygen.compound import parse as doxygen_parse
+    import breathe
     from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
     from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
-except ImportError:
+except ImportError as e:
     print ("You need to install a few packages for this library to work")
     print ("Please use:")
     print (" pip install breathe")
     print (" pip install pyyaml")
     print (" pip install autowrap")
     print (" pip install Cython")
-    raise ImportError
+    raise e
 
 # Try breathe parser
 try:
@@ -83,7 +83,6 @@ def handle_member_definition(mdef, pxd_class, cnt):
     cnt :
         A count object to keep track of how many functions we wrapped
     """
-    pxd_class_methods_str = str([ str(m) for m in pxd_class.methods.keys()])
 
     tres = TestResult()
     protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
@@ -131,7 +130,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
             true_cppname = '"%s::%s"' % (comp_name, mdef.get_name())
             enumr  = "\n"
             enumr += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
-            enumr += "    \n"
+            enumr += "\n"
             enumr += '    cdef enum %s %s:\n' % (mdef.get_name(), true_cppname)
             for val in mdef.get_enumvalue():
                 enumr += "        %s\n" % val.get_name()
@@ -177,12 +176,28 @@ def handle_member_definition(mdef, pxd_class, cnt):
                 tres.setPassed(True)
 
         else:
+
+            # Missing method, lets remove false positives (destructors, operators, etc)
             cnt.public_methods_missing += 1
             if mdef.name.find("~") != -1:
                 # destructor
                 cnt.public_methods_missing_nowrapping += 1
                 tres.setPassed(True)
                 tres.setMessage("Cannot wrap destructor")
+            elif mdef.definition == mdef.name:
+                # constructor
+                find_match = False
+                for kk in pxd_class.methods:
+                    if kk.split("_")[-1] == mdef.name:
+                        find_match = True
+                if find_match:
+                    cnt.public_methods_missing_nowrapping += 1
+                    tres.setPassed(True)
+                    tres.setMessage("Renamed constructor")
+                else:
+                    tres.setPassed(False)
+                    tres.setMessage(" -- TODO missing constructor in PXD: %s nogil except +" % mdef.format_definition_for_cython())
+
             elif (mdef.name.find("operator") != -1 or
                   mdef.name.find("begin") != -1 or
                   mdef.name.find("end") != -1):
@@ -395,7 +410,7 @@ class DoxygenXMLFile(object):
         preferred_classname = comp_name.split("::")[-1]
         cldef  = "\n"
         cldef += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
-        cldef += "    \n"
+        cldef += "\n"
 
         inherit_txt = ""
         true_cppname = '"%s"' % comp_name
@@ -408,6 +423,10 @@ class DoxygenXMLFile(object):
         else:
             targs = [p.get_declname() for p in compound.templateparamlist.get_param()]
             cldef += '    cdef cppclass %s[%s]%s:\n' % (preferred_classname, ",".join(targs), inherit_txt)
+        cldef += '        #\n'
+        cldef += '        # wrap-doc:\n'
+        cldef += '        #     ADD PYTHON DOCUMENTATION HERE\n'
+        cldef += '        #\n'
         if len(parent_classes) > 0:
             cldef += '        # wrap-inherits:\n'
         for p in parent_classes:
@@ -425,6 +444,7 @@ class DoxygenXMLFile(object):
         default_ctor = False
         copy_ctor = False
         enum = ""
+        static_methods = ""
         imports_needed = {}
         for mdef in dfile.iterMemberDef():
             if mdef.kind == "enum" and mdef.prot == "public":
@@ -439,7 +459,11 @@ class DoxygenXMLFile(object):
 
             if mdef.kind == "variable" and mdef.prot == "public":
                 # print ("var", mdef.name)
-                methods += "        %s\n" % mdef.format_definition_for_cython(False)
+                # cannot wrap const member variables
+                if mdef.definition.find("const") == -1:
+                    methods += "        %s\n" % mdef.format_definition_for_cython(False)
+                else:
+                    methods += "        # const # %s\n" % mdef.format_definition_for_cython(False)
             elif mdef.kind == "function" and mdef.prot == "public":
                 if mdef.definition == mdef.name:
                     # Means we have a constructor
@@ -461,13 +485,19 @@ class DoxygenXMLFile(object):
                 if declaration.find("operator=(") != -1:
                     # assignment operator, cannot be overriden in Python
                     continue
+                if mdef.definition.find("static") != -1:
+                    methods += "        # TODO: static # %s nogil except +\n" % declaration
+                    static_methods += "        %s nogil except + # wrap-attach:%s\n" % (declaration, preferred_classname)
+                    continue
                 methods += "        %s nogil except +\n" % declaration
 
         # Build up the whole file
         res  = DoxygenCppFunction.generate_imports(imports_needed) # add default cimport
         res += includes
         res += cldef
-        if default_ctor:
+        # We need to create a default ctor in any case, however we do not need
+        # to *wrap* the copy constructor even though we need to have one for Cython
+        if True: # not default_ctor:
             res += "        %s() nogil except +\n" % comp_name.split("::")[-1]
         if not copy_ctor:
             res += "        %s(%s) nogil except + #wrap-ignore\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
@@ -476,6 +506,14 @@ class DoxygenXMLFile(object):
         res += methods
         res += enum
         res += "\n"
+        if len(static_methods) > 0:
+            res += "\n"
+            res += "# COMMENT: wrap static methods\n"
+            res += 'cdef extern from "<%s>" namespace "%s::%s":\n' % (internal_file_name, namespace, preferred_classname)
+            res += "\n"
+            res += static_methods
+            res += "\n"
+
         return res
 
     def iterMemberDef(self):
@@ -594,18 +632,26 @@ class DoxygenCppFunction(object):
         if len(self.get_argsstring()) == 0:
             arguments = ""
 
-        # remove returned references
+        # remove returned references and const values (Cython cannot deal with those at the moment)
         return_type = "".join(c_return_type)
         return_type = return_type.replace("&", "")
+        return_type = return_type.replace("const", "")
+        return_type = return_type.strip()
         cpp_def = return_type + " " + function_name + arguments
+
+        # Handle comments
         cpp_def = cpp_def.replace("///", "#")
         cpp_def = cpp_def.replace("//", "#")
+
+        # Add nogil
         if replace_nogil:
             cpp_def = cpp_def.replace(";", "nogil except +")
             cpp_def = cpp_def.replace("const;", "nogil except +")
         else:
             cpp_def = cpp_def.replace("const;", "")
             cpp_def = cpp_def.replace(";", "")
+
+        # Replace common names from OpenMS, templates, STL constructs etc
         # TODO handle static ...
         cpp_def = cpp_def.replace("static", "")
         cpp_def = cpp_def.replace("MSSpectrum<>", "MSSpectrum")
@@ -621,7 +667,6 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("operator]", "operator>")
         cpp_def = cpp_def.replace("operator[", "operator<")
         cpp_def = cpp_def.replace("operator__[]", "operator[]")
-        cpp_def = cpp_def.replace("const ", "")
 
         # Note that template arguments cannot be typedefs but need to be basic types
         cpp_def = cpp_def.replace("[ DoubleReal ]", "[ double ]")
@@ -634,6 +679,11 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment")
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum")
         cpp_def = cpp_def.replace("PeakMap", "MSExperiment")
+
+        # Handle const
+        cpp_def = cpp_def.replace("const String", "constXXXString")
+        cpp_def = cpp_def.replace("const ", "")
+        cpp_def = cpp_def.replace("constXXXString", "const String")
 
         # Alert the user to potential problems and comment out potential
         # dangerous things (raw pointers, iterators)
@@ -1045,7 +1095,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
     # Iterate through all xml files generated by doxygen (these are all the
     # classes available in OpenMS)
-    for class_cntr, f in enumerate(xml_files):
+    for f in xml_files:
 
         # Only look out for one specific pxd file (see option --generate_pxd_for)
         if len(generate_pxd) > 0:
@@ -1163,6 +1213,10 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
         # Parse the pxd files corresponding to this doxygen XML file
         try:
+            # Raise a (dummy) exception to actually produce a PXD file for a
+            # specific class if requested by the user.
+            if len(generate_pxd) > 0:
+                raise PXDFileParseError ("dummy")
             pxd_class = PXDFile.parse_multiple_files(pxdfiles, comp_name)
             pxdfile = pxd_class.pxdfile
         except PXDFileParseError as e:

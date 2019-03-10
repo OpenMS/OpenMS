@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -299,6 +299,11 @@ protected:
       f.getOptions().addMSLevel(2);
       f.load(exp_name, exp);
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
+      // if no primary run is assigned, the mzML file is the (unprocessed) primary file
+      if (primary_ms_run_path_.empty())
+      {
+        primary_ms_run_path_.push_back(exp_name);
+      }
 
       if (exp.getSpectra().empty())
       {
