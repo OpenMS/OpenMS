@@ -169,7 +169,7 @@ namespace OpenMS
         String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
         if (integer_mass)
         {
-          bs += "n[" + sign + String(std::round(nominal_mass)) + "]";
+          bs += String("n[") + sign + int(std::round(nominal_mass)) + "]";
         }
         else
         {
@@ -195,7 +195,7 @@ namespace OpenMS
           if (aa == "X") {nominal_mass = r.getMonoWeight(Residue::Internal); sign = "";} // cannot have delta mass for X
           if (integer_mass)
           {
-            bs += aa + "[" + sign + String(std::round(nominal_mass)) + "]"; 
+            bs += aa + String("[") + sign + int(std::round(nominal_mass)) + "]"; 
           }
           else
           {
@@ -227,7 +227,7 @@ namespace OpenMS
         String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
         if (integer_mass)
         {
-          bs += "c[" + sign + String(std::round(nominal_mass)) + "]";
+          bs += String("c[") + sign + int(std::round(nominal_mass)) + "]";
         }
         else
         {
