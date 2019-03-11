@@ -88,7 +88,6 @@ namespace OpenMS
     }
     else if (enzyme_->getName() == UnspecificCleavage) // unspecific cleavage
     {
-      max_length = missed_cleavages_;
       result.reserve(rna.size() * (max_length - min_length + 1));
       for (Size i = 0; i <= rna.size() - min_length; ++i)
       {
