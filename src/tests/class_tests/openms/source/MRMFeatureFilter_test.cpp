@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2018.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -171,8 +171,8 @@ START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature 
   subordinate.setMetaValue("native_id","component1.2.Light");
   subordinate.setMetaValue("LabelType","Light");
   subordinates.push_back(subordinate);
-  // component_1.setPeptideRef("component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  // component_1.setPeptideRef("component_group1");
+  component_1.setSubordinates(subordinates);
   // // transition group 2
   // // transition 1
   // subordinate.setMetaValue("native_id","component2.1.Heavy")
@@ -182,7 +182,7 @@ START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature 
   // subordinate.setMetaValue("native_id","component2.1.Light")
   // subordinate.setMetaValue("LabelType","Light");
   // subordinates.push_back(subordinate);
-  
+
   // make the targeted experiment
   TargetedExperiment transitions;
   ReactionMonitoringTransition transition;
@@ -239,7 +239,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   const TargetedExperiment & transitions))
 {
   /** FilterFeatureMap Test 1: basic ability to flag or filter transitions or transition groups */
-  
+
   MRMFeatureFilter mrmff;
 
   //make the FeatureMap
@@ -271,8 +271,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",500); //should fail
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
   // transition group 2
@@ -292,11 +292,11 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",1000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group2"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group2");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
-  
+
   // make the targeted experiment
   TargetedExperiment transitions;
   ReactionMonitoringTransition transition;
@@ -344,7 +344,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   MRMFeatureQC::ComponentQCs cqcs;
   std::pair<double,double> lbub(501, 4e6);
   // transition group 1
-  cgqcs.component_group_name =  "component_group1";    
+  cgqcs.component_group_name =  "component_group1";
   cgqcs.n_heavy_l = 1;
   cgqcs.n_heavy_u = 1;
   cgqcs.n_light_l = 2;
@@ -363,7 +363,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.ion_ratio_u = 10.0;
   cgqcs.ion_ratio_feature_name = "peak_apex_int";
   // transition 1
-  cqcs.component_name = "component1.1.Heavy";   
+  cqcs.component_name = "component1.1.Heavy";
   cqcs.retention_time_l = 2.0;
   cqcs.retention_time_u = 3.0;
   cqcs.intensity_l = 500;
@@ -372,7 +372,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.overall_quality_u = 500;
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
   // transition 2
-  cqcs.component_name = "component1.1.Light";   
+  cqcs.component_name = "component1.1.Light";
   cqcs.retention_time_l = 2.0;
   cqcs.retention_time_u = 3.0;
   cqcs.intensity_l = 500;
@@ -381,7 +381,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.overall_quality_u = 500;
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
   // transition 3
-  cqcs.component_name = "component1.2.Light";   
+  cqcs.component_name = "component1.2.Light";
   cqcs.retention_time_l = 2.0;
   cqcs.retention_time_u = 3.0;
   cqcs.intensity_l = 500;
@@ -392,7 +392,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   qc_criteria.component_group_qcs.push_back(cgqcs);
   qc_criteria.component_qcs.push_back(cqcs);
   // transition group 2
-  cgqcs.component_group_name =  "component_group2";    
+  cgqcs.component_group_name =  "component_group2";
   cgqcs.n_heavy_l = 1;
   cgqcs.n_heavy_u = 1;
   cgqcs.n_light_l = 2; //should fail
@@ -411,7 +411,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.ion_ratio_u = 10.0;
   cgqcs.ion_ratio_feature_name = "peak_apex_int";
   // transition 1
-  cqcs.component_name = "component2.1.Heavy";   
+  cqcs.component_name = "component2.1.Heavy";
   cqcs.retention_time_l = 2.0;
   cqcs.retention_time_u = 3.0;
   cqcs.intensity_l = 500;
@@ -420,7 +420,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.overall_quality_u = 500;
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
   // transition 2
-  cqcs.component_name = "component2.1.Light";   
+  cqcs.component_name = "component2.1.Light";
   cqcs.retention_time_l = 2.0;
   cqcs.retention_time_u = 3.0;
   cqcs.intensity_l = 500;
@@ -430,7 +430,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
   qc_criteria.component_group_qcs.push_back(cgqcs);
   qc_criteria.component_qcs.push_back(cqcs);
-  
+
   //test flag mode
   Param params;
   params.setValue("flag_or_filter", "flag");
@@ -456,7 +456,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[1].getMetaValue("QC_transition_group_score"), 0.777777777777778);
   TEST_REAL_SIMILAR(components[1].getSubordinates()[0].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[1].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
-  
+
   //test filter mode
   params.setValue("flag_or_filter", "filter");
   mrmff.setParameters(params);
@@ -503,11 +503,11 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
-  
+
   // make the targeted experiment
   TargetedExperiment transitions;
   ReactionMonitoringTransition transition;
@@ -540,7 +540,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   MRMFeatureQC::ComponentQCs cqcs;
   std::pair<double,double> lbub(500, 4e6);
   // transition group 1
-  cgqcs.component_group_name =  "component_group1";    
+  cgqcs.component_group_name =  "component_group1";
   cgqcs.n_heavy_l = 1;
   cgqcs.n_heavy_u = 1;
   cgqcs.n_light_l = 1;
@@ -559,7 +559,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.ion_ratio_u = 2.0;
   cgqcs.ion_ratio_feature_name = "peak_apex_int";
   // transition 1
-  cqcs.component_name = "component1.1.Heavy";   
+  cqcs.component_name = "component1.1.Heavy";
   cqcs.retention_time_l = 2.0;
   cqcs.retention_time_u = 3.0;
   cqcs.intensity_l = 500;
@@ -569,7 +569,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
   cqcs.meta_value_qc["peak_area"] = lbub;
   // transition 2
-  cqcs.component_name = "component1.1.Light";   
+  cqcs.component_name = "component1.1.Light";
   cqcs.retention_time_l = 2.0;
   cqcs.retention_time_u = 3.0;
   cqcs.intensity_l = 500;
@@ -578,7 +578,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.overall_quality_u = 500;
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
   // transition 3
-  cqcs.component_name = "component1.2.Light";   
+  cqcs.component_name = "component1.2.Light";
   cqcs.retention_time_l = 2.0;
   cqcs.retention_time_u = 3.0;
   cqcs.intensity_l = 500;
@@ -588,7 +588,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
   qc_criteria.component_group_qcs.push_back(cgqcs);
   qc_criteria.component_qcs.push_back(cqcs);
-  
+
   //test all possible comparisons
   Param params;
   params.setValue("flag_or_filter", "flag");
@@ -605,7 +605,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 1.0);
   components.clear();
-  
+
   // RT
   // transition group 1
   // transition 1
@@ -632,10 +632,10 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
-  subordinates.clear();  
+  subordinates.clear();
   mrmff.FilterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
@@ -645,7 +645,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_STRING_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_message").toStringList()[0], "retention_time");
 
   components.clear();
-  
+
   // Intensity
   // transition group 1
   // transition 1
@@ -672,8 +672,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
   mrmff.FilterFeatureMap(components, qc_criteria, transitions);
@@ -688,7 +688,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 0.75);
   components.clear();
-  
+
   // OverallQuality
   // transition group 1
   // transition 1
@@ -715,8 +715,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
   mrmff.FilterFeatureMap(components, qc_criteria, transitions);
@@ -731,7 +731,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 0.75);
   components.clear();
-  
+
   // MetaValue
   // transition group 1
   // transition 1
@@ -758,8 +758,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",400); //should fail
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
   mrmff.FilterFeatureMap(components, qc_criteria, transitions);
@@ -775,7 +775,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 0.75);
   components.clear();
-  
+
   // n_heavy
   // transition group 1
   // transition 1
@@ -799,8 +799,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
   mrmff.FilterFeatureMap(components, qc_criteria, transitions);
@@ -815,7 +815,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 1.0);
   components.clear();
-  
+
   // n_light
   // transition group 1
   // transition 1
@@ -842,8 +842,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
   mrmff.FilterFeatureMap(components, qc_criteria, transitions);
@@ -858,7 +858,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 1.0);
   components.clear();
-  
+
   // n_transitions
   // transition group 1
   // transition 1
@@ -877,8 +877,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
   mrmff.FilterFeatureMap(components, qc_criteria, transitions);
@@ -891,7 +891,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   components.clear();
-  
+
   // ion_ratio_pair
   // transition group 1
   // transition 1
@@ -918,8 +918,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",500);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("PeptideRef", "component_group1"); 
-  component_1.setSubordinates(subordinates); 
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
   components.push_back(component_1);
   subordinates.clear();
   mrmff.FilterFeatureMap(components, qc_criteria, transitions);

@@ -85,19 +85,19 @@ namespace OpenMS
     report_tic_ = param_.getValue("report_tic").toBool();
   }
 
-  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, 
+  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features,
     const MRMFeatureQC& filter_criteria,
     const TargetedExperiment & transitions
   )
-  {     
+  {
     // initialize QC variables
     FeatureMap features_filtered;
 
     // bool qc_pass;
-    String concentration_units;// iterate through each component_group/feature     
+    String concentration_units;// iterate through each component_group/feature
 
     for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
-    {      
+    {
       String component_group_name = (String)features[feature_it].getMetaValue("PeptideRef");
       // std::cout << "component_group_name" << component_group_name << std::endl; //debugging
 
@@ -112,7 +112,7 @@ namespace OpenMS
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
       {
-        String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
+        String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id");
         // std::cout << "component_name" << component_name << std::endl; //debugging
         bool c_qc_pass = true;
         StringList c_qc_fail_message_vec;
@@ -204,7 +204,7 @@ namespace OpenMS
             // ion ratio QC
             for (size_t sub_it2 = 0; sub_it2 < features[feature_it].getSubordinates().size(); ++sub_it2)
             {
-              String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
+              String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id");
               // find the ion ratio pair
               if (filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_1 != ""
                 && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_2 != ""
@@ -237,9 +237,9 @@ namespace OpenMS
             }
           }
         }
-        
+
         UInt c_tests_count{0};
-        // iterate through feature/sub-feature QCs/filters        
+        // iterate through feature/sub-feature QCs/filters
         for (size_t c_qc_it = 0; c_qc_it < filter_criteria.component_qcs.size(); ++c_qc_it)
         {
           if (filter_criteria.component_qcs[c_qc_it].component_name == component_name)
@@ -330,12 +330,12 @@ namespace OpenMS
         Feature feature_filtered(features[feature_it]);
         feature_filtered.setSubordinates(subordinates_filtered);
         features_filtered.push_back(feature_filtered);
-      }   
+      }
       else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() == 0)
       {
         // do nothing
         // std::cout << "omitted failing feature" << std::endl; //debugging
-      }   
+      }
       else if (cg_qc_pass && flag_or_filter_ == "flag")
       {
         features[feature_it].setMetaValue("QC_transition_group_pass", true);
@@ -345,7 +345,7 @@ namespace OpenMS
       {
         // do nothing
         // std::cout << "omitted failing feature" << std::endl; //debugging
-      }   
+      }
       else if (!cg_qc_pass && flag_or_filter_ == "flag")
       {
         features[feature_it].setMetaValue("QC_transition_group_pass", false);
@@ -359,7 +359,7 @@ namespace OpenMS
       features = features_filtered;
     }
   }
-  
+
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature & component_group,
     const TargetedExperiment & transitions)
@@ -384,7 +384,7 @@ namespace OpenMS
       // count labels and transition types
       String label_type = (String)component_group.getSubordinates()[cg_it].getMetaValue("LabelType");
       if (label_type == "Heavy")
-      { 
+      {
         ++n_heavy;
       }
       else if (label_type == "Light")
@@ -416,7 +416,7 @@ namespace OpenMS
 
     return output;
   }
-  
+
   double MRMFeatureFilter::calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
   {
     double ratio = 0.0;
@@ -497,7 +497,7 @@ namespace OpenMS
     // std::cout << "value: " << (String)value << " lb: " << (String)value_l << " ub: " << (String)value_u << std::endl; //debugging
     return value >= value_l && value <= value_u;
   }
-  
+
   //TODO: Future addition to allow for generating a QcML attachment for QC reporting
   // void MRMFeatureFilter::FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment)
   // {
