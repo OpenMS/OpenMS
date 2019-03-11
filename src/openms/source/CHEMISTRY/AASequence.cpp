@@ -94,15 +94,15 @@ namespace OpenMS
     if (seq.hasNTerminalModification())
     {
       const ResidueModification& mod = *(seq.getNTerminalModification());
-      double nominal_mass = mod.getDiffMonoMass();
-      String sign = (nominal_mass > 0) ? "+" : "";
+      double nominal_mass = Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass();
+
       if (mod.getUniModRecordId() > -1)
       {
         bs += ".(" + mod.getUniModAccession() + ")";
       }
       else
       {
-        bs += ".[" + sign + String(mod.getDiffMonoMass()) + "]";
+        bs += ".[" + String(nominal_mass) + "]";
       }
     }
 
@@ -113,16 +113,15 @@ namespace OpenMS
       if (r.isModified())
       {
         const ResidueModification& mod = *(r.getModification());
-        double nominal_mass = mod.getDiffMonoMass();
-        String sign = (nominal_mass > 0) ? "+" : "";
-        if (aa == "X") {nominal_mass = r.getMonoWeight(Residue::Internal); sign = "";} // cannot have delta mass for X
+        double nominal_mass = nominal_mass = r.getMonoWeight(Residue::Internal);
+
         if (mod.getUniModRecordId() > -1)
         {
           bs += aa + "(" + mod.getUniModAccession() + ")";
         }
         else
         {
-          bs += aa + "[" + sign + String(nominal_mass) + "]";
+          bs += aa + "[" + String(nominal_mass) + "]";
         }
       }
       else  // amino acid not modified
@@ -134,15 +133,15 @@ namespace OpenMS
     if (seq.hasCTerminalModification())
     {
       const ResidueModification& mod = *(seq.getCTerminalModification());
+      double nominal_mass = Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass();
+
       if (mod.getUniModRecordId() > -1)
       {
         bs += ".(" + mod.getUniModAccession() + ")";
       }
       else
       {
-        double nominal_mass = mod.getDiffMonoMass();
-        String sign = (nominal_mass > 2) ? "+" : "";
-        bs += ".[" + sign + String(nominal_mass) + "]";
+        bs += ".[" + String(nominal_mass) + "]";
       }
     }
     return bs;
@@ -1163,10 +1162,22 @@ namespace OpenMS
         ResidueModification * new_mod = new ResidueModification();
         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
         new_mod->setFullName(residue_name); // display name
-        new_mod->setDiffMonoMass(mass);
         new_mod->setTermSpecificity(ResidueModification::N_TERM);
-        // new_mod->setMonoMass(mass);
-        // new_mod->setAverageMass(mass);
+
+        // set masses
+        if (delta_mass)
+        {
+          new_mod->setMonoMass(mass + Residue::getInternalToNTerm().getMonoWeight());
+          // new_mod->setAverageMass(mass + residue->getAverageWeight());
+          new_mod->setDiffMonoMass(mass);
+        }
+        else
+        {
+          new_mod->setMonoMass(mass);
+          // new_mod->setAverageMass(mass);
+          new_mod->setDiffMonoMass(mass - Residue::getInternalToNTerm().getMonoWeight());
+        }
+
         mod_db->addModification(new_mod);
         aas.n_term_mod_ = new_mod;
       }
@@ -1189,10 +1200,22 @@ namespace OpenMS
         ResidueModification * new_mod = new ResidueModification();
         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
         new_mod->setFullName(residue_name); // display name
-        new_mod->setDiffMonoMass(mass);
         new_mod->setTermSpecificity(ResidueModification::C_TERM);
-        // new_mod->setMonoMass(mass);
-        // new_mod->setAverageMass(mass);
+
+        // set masses
+        if (delta_mass)
+        {
+          new_mod->setMonoMass(mass + Residue::getInternalToCTerm().getMonoWeight());
+          // new_mod->setAverageMass(mass + residue->getAverageWeight());
+          new_mod->setDiffMonoMass(mass);
+        }
+        else
+        {
+          new_mod->setMonoMass(mass);
+          // new_mod->setAverageMass(mass);
+          new_mod->setDiffMonoMass(mass - Residue::getInternalToCTerm().getMonoWeight());
+        }
+
         mod_db->addModification(new_mod);
         aas.c_term_mod_ = new_mod;
       }
