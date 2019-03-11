@@ -57,6 +57,12 @@ namespace OpenMS
     buildResidueNames_();
   }
 
+  ResidueDB* ResidueDB::getInstance()
+  {
+    static ResidueDB* db_ = new ResidueDB;
+    return db_;
+  }
+
   ResidueDB::~ResidueDB()
   {
     clear_();
@@ -76,12 +82,8 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
-    Residue* r(nullptr);
-    #pragma omp critical (ResidueDB)
-    {
-      r = residue_by_one_letter_code_[one_letter_code];
-    } 
-    return r;
+    // no lock required here because read only and array is initialized in thread-safe constructor
+    return residue_by_one_letter_code_[one_letter_code];
   }
 
   Size ResidueDB::getNumberOfResidues() const
@@ -115,7 +117,10 @@ namespace OpenMS
       }
     } 
 
-    if (s.empty()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue set cannot be found: '" + residue_set + "'");
+    if (s.empty()) 
+    {
+      cout << "Residue set cannot be found: '" + residue_set + "'" << endl;
+    }
     return s;
   }
 
@@ -123,21 +128,11 @@ namespace OpenMS
   {
     #pragma omp critical (ResidueDB)
     {
-      clearResidues_();
       readResiduesFromFile_(file_name);
       buildResidueNames_();
     }     
   }
-/*
-  void ResidueDB::addResidue(const Residue& residue)
-  {
-    #pragma omp critical (ResidueDB)
-    {
-      Residue* r = new Residue(residue);
-      addResidue_(r);
-    }
-  }
-*/
+
   void ResidueDB::addResidue_(Residue* r)
   {
     vector<String> names;
@@ -160,8 +155,6 @@ namespace OpenMS
       for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
       {
         residue_names_[*it] = r;
-        residue_by_one_letter_code_[(unsigned char)(r->getOneLetterCode()[0])] = r;
-        // was: residue_by_one_letter_code_[(unsigned char)((*it)[0])] = r;
       }
       residues_.insert(r);
       const_residues_.insert(r);
@@ -184,12 +177,13 @@ namespace OpenMS
         mod_names.push_back(*it);
       }
 
-      for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
+      for (const String& n : names)
       {
-        for (vector<String>::const_iterator mod_it = mod_names.begin(); mod_it != mod_names.end(); ++mod_it)
+        if (n.empty()) continue;
+        for (const String& m : mod_names)
         {
-          if ( mod_it->empty() || it->empty() ) continue;
-          residue_mod_names_[*it][*mod_it] = r;
+          if (m.empty()) continue;
+          residue_mod_names_[n][m] = r;
         }
       }
     }
@@ -231,6 +225,10 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "");
     }
 
+    // clear names and lookup
+    clearResidues_();
+    clearResidueModifications_();
+
     try
     {
       vector<String> split;
@@ -251,6 +249,7 @@ namespace OpenMS
           residues_.insert(res_ptr);
           const_residues_.insert(res_ptr);
           prefix = split[0] + split[1];
+          residue_by_one_letter_code_[res_ptr->getOneLetterCode()[0]] = res_ptr;
         }
 
         String value = it->value;
@@ -262,6 +261,7 @@ namespace OpenMS
       res_ptr = parseResidue_(values);
       residues_.insert(res_ptr);
       const_residues_.insert(res_ptr);
+      residue_by_one_letter_code_[res_ptr->getOneLetterCode()[0]] = res_ptr;
     }
     catch (Exception::BaseException& e)
     {
@@ -272,20 +272,31 @@ namespace OpenMS
   void ResidueDB::clear_()
   {
     clearResidues_();
-    //clearResidueModifications_();
+    clearResidueModifications_();
   }
 
   void ResidueDB::clearResidues_()
   {
-    set<Residue*>::iterator it;
-    for (it = residues_.begin(); it != residues_.end(); ++it)
+    // initialize lookup table to null pointer
+    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
     {
-      delete *it;
+      residue_by_one_letter_code_[i] = nullptr;
     }
 
+    for (auto& r : residues_) { delete r; }
     residues_.clear();
     residue_names_.clear();
     const_residues_.clear();
+    residues_by_set_.clear();
+    residue_sets_.clear();
+  }
+
+  void ResidueDB::clearResidueModifications_()
+  {
+    for (auto& r : modified_residues_) { delete r; }
+    modified_residues_.clear();
+    residue_mod_names_.clear();
+    const_modified_residues_.clear();
   }
 
   Residue* ResidueDB::parseResidue_(Map<String, String>& values)
@@ -438,19 +449,18 @@ namespace OpenMS
     return res_ptr;
   }
 
-  const set<String>& ResidueDB::getResidueSets() const
-  { 
-    return residue_sets_;
+  const set<String> ResidueDB::getResidueSets() const
+  {
+    set<String> rs;
+    #pragma omp critical (ResidueDB)
+    {
+      rs = residue_sets_; 
+    }
+    return rs;
   }
 
   void ResidueDB::buildResidueNames_()
   {
-    // initialize lookup table to null pointer
-    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
-    {
-      residue_by_one_letter_code_[i] = nullptr;
-    }
-
     set<Residue*>::iterator it;
     for (it = residues_.begin(); it != residues_.end(); ++it)
     {
@@ -462,8 +472,6 @@ namespace OpenMS
       if ((*it)->getOneLetterCode() != "")
       {
         residue_names_[(*it)->getOneLetterCode()] = *it;
-        const unsigned char l = (*it)->getOneLetterCode()[0];
-        residue_by_one_letter_code_[l] = *it;
       }
       if ((*it)->getShortName() != "")
       {

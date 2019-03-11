@@ -13,16 +13,17 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         ModificationsDB(ModificationsDB) nogil except + #wrap-ignore
 
         Size getNumberOfModifications() nogil except +
-        ResidueModification getModification(Size index) nogil except +
 
         void searchModifications(libcpp_set[ const ResidueModification * ] & mods,
                                  const String& mod_name,
                                  const String& residue,
                                  TermSpecificity term_spec) nogil except +
 
-        ResidueModification getModification(const String & mod_name) nogil except +
+        ResidueModification * getModification(Size index) nogil except +
 
-        ResidueModification getModification(const String & mod_name,
+        ResidueModification * getModification(const String & mod_name) nogil except +
+
+        ResidueModification * getModification(const String & mod_name,
                                             const String & residue,
                                             TermSpecificity term_spec) nogil except +
 
