@@ -49,7 +49,7 @@ using namespace std;
 namespace OpenMS
 {
   bool ModificationsDB::is_instantiated_ = false;
-  
+
 
   ModificationsDB::ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
   {
@@ -131,9 +131,9 @@ namespace OpenMS
     const set<const ResidueModification*>& temp = modification_names_[mod_name];
     for (const auto& it : temp)
     {
-      if (residuesMatch_(residue, it) && 
+      if (residuesMatch_(residue, it) &&
            (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
-            (term_spec == it->getTermSpecificity())))
+             (term_spec == it->getTermSpecificity())))
       {
         mods.insert(it);
       }
@@ -210,7 +210,7 @@ namespace OpenMS
          it != mods_.end(); ++it)
     {
       if ((fabs((*it)->getDiffMonoMass() - mass) <= max_error) &&
-          residuesMatch_(residue, *it) && 
+          residuesMatch_(residue, *it) &&
           ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
@@ -246,7 +246,7 @@ namespace OpenMS
       // first matching UniMod entry)
       double mass_error = fabs(mono_mass - mass);
       if ((mass_error < min_error) &&
-          residuesMatch_(residue, *it) && 
+          residuesMatch_(residue, *it) &&
           ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
@@ -270,7 +270,7 @@ namespace OpenMS
       // first matching UniMod entry)
       double mass_error = fabs((*it)->getDiffMonoMass() - mass);
       if ((mass_error < min_error) &&
-          residuesMatch_(residue, *it) && 
+          residuesMatch_(residue, *it) &&
           ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
@@ -645,8 +645,8 @@ namespace OpenMS
 
     // residues match if they are equal or they match everything (X/.)
     bool matching =  (
-             (curr_mod->getOrigin() == residue[0]) ||
              residue.empty() ||
+             (curr_mod->getOrigin() == residue[0]) ||
              (residue == "X") ||
              (curr_mod->getOrigin() == 'X') ||
              (residue == ".") );
@@ -660,7 +660,8 @@ namespace OpenMS
          curr_mod->getOrigin() == 'X' &&
          !residue.empty() &&
          String(curr_mod->getOrigin()) != residue );
-    return matching && ! non_matching_user_defined;
+
+    return matching && !non_matching_user_defined;
   }
 
 } // namespace OpenMS
