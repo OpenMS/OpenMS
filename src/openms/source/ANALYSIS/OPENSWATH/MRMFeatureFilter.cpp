@@ -93,8 +93,6 @@ namespace OpenMS
     // initialize QC variables
     FeatureMap features_filtered;
 
-    String delim = ";";
-
     // bool qc_pass;
     String concentration_units;// iterate through each component_group/feature     
 
@@ -108,7 +106,7 @@ namespace OpenMS
       // initialize the new feature and subordinates
       std::vector<Feature> subordinates_filtered;
       bool cg_qc_pass = true;
-      std::vector<String> cg_qc_fail_message_vec;
+      StringList cg_qc_fail_message_vec;
       UInt cg_tests_count{0};
 
       // iterate through each component/sub-feature
@@ -117,7 +115,7 @@ namespace OpenMS
         String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
         // std::cout << "component_name" << component_name << std::endl; //debugging
         bool c_qc_pass = true;
-         std::vector<String> c_qc_fail_message_vec;
+        StringList c_qc_fail_message_vec;
 
         // iterate through multi-feature/multi-sub-feature QCs/filters
         // iterate through component_groups
@@ -233,7 +231,7 @@ namespace OpenMS
               if (!checkMetaValue(features[feature_it], kv.first, kv.second.first, kv.second.second, metavalue_exists))
               {
                 cg_qc_pass = false;
-                cg_qc_fail_message_vec.push_back("metaValue[" + kv.first + "]");
+                cg_qc_fail_message_vec.push_back(kv.first);
               }
               if (metavalue_exists) ++cg_tests_count;
             }
@@ -289,7 +287,7 @@ namespace OpenMS
               if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second, metavalue_exists))
               {
                 c_qc_pass = false;
-                c_qc_fail_message_vec.push_back("metaValue[" + kv.first + "]");
+                c_qc_fail_message_vec.push_back(kv.first);
               }
               if (metavalue_exists) ++c_tests_count;
             }
@@ -308,7 +306,7 @@ namespace OpenMS
         else if (c_qc_pass && flag_or_filter_ == "flag")
         {
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_pass", true);
-          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", "");
+          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", StringList());
         }
         else if (!c_qc_pass && flag_or_filter_ == "filter")
         {
@@ -318,8 +316,7 @@ namespace OpenMS
         else if (!c_qc_pass && flag_or_filter_ == "flag")
         {
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_pass", false);
-          String c_qc_fail_message = uniqueJoin(c_qc_fail_message_vec, delim);
-          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", c_qc_fail_message);
+          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", getUniqueSorted(c_qc_fail_message_vec));
         }
       }
 
@@ -342,7 +339,7 @@ namespace OpenMS
       else if (cg_qc_pass && flag_or_filter_ == "flag")
       {
         features[feature_it].setMetaValue("QC_transition_group_pass", true);
-        features[feature_it].setMetaValue("QC_transition_group_message", "");
+        features[feature_it].setMetaValue("QC_transition_group_message", StringList());
       }
       else if (!cg_qc_pass && flag_or_filter_ == "filter")
       {
@@ -352,8 +349,7 @@ namespace OpenMS
       else if (!cg_qc_pass && flag_or_filter_ == "flag")
       {
         features[feature_it].setMetaValue("QC_transition_group_pass", false);
-        String cg_qc_fail_message = uniqueJoin(cg_qc_fail_message_vec, delim);
-        features[feature_it].setMetaValue("QC_transition_group_message", cg_qc_fail_message);
+        features[feature_it].setMetaValue("QC_transition_group_message", getUniqueSorted(cg_qc_fail_message_vec));
       }
     }
 
@@ -487,25 +483,12 @@ namespace OpenMS
     return check;
   }
 
-  String MRMFeatureFilter::uniqueJoin(std::vector<String>& str_vec, String& delim)
+  StringList MRMFeatureFilter::getUniqueSorted(const StringList& messages) const
   {
-    //remove duplicates
-    std::sort(str_vec.begin(), str_vec.end());
-    str_vec.erase(std::unique(str_vec.begin(), str_vec.end()), str_vec.end());
-    //concatenate
-    String str_cat = "";
-    for (auto str : str_vec)
-    {
-      str_cat = str_cat + str + delim;
-    }
-    // std::cout << str_cat << std::endl; //debugging
-    //remove trailing delimm
-    if (str_cat != "")
-    {
-      str_cat = str_cat.substr(0, str_cat.length() - delim.length());
-    }
-    // std::cout << str_cat << std::endl; //debugging
-    return str_cat;
+    StringList unique {messages};
+    std::sort(unique.begin(), unique.end());
+    unique.erase(std::unique(unique.begin(), unique.end()), unique.end());
+    return unique;
   }
 
   template <typename T>

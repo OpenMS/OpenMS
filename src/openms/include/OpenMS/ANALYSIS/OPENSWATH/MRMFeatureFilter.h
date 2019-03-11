@@ -165,14 +165,13 @@ public:
       const TargetedExperiment & transitions);
     
     /**
-      @brief Sorts, removes duplicates, and concatenates a list of Strings
+      @brief Sorts the messages and returns a copy without duplicates
 
-      @param str_vec vector of Strings
-      @param delim token to separate Strings in the list
+      @param[in] messages A StringList containing the failure messages
 
-      @return A concatenated string.
+      @return A copy of the input, without duplicates
     */ 
-    String uniqueJoin(std::vector<String>& str_vec, String& delim);
+    StringList getUniqueSorted(const StringList& messages) const;
 
 private:
     template <typename T>
