@@ -1145,16 +1145,16 @@ namespace OpenMS
   
   FeatureMap& FeatureFinderMultiplexAlgorithm::getFeatureMap()
   {
-    return(feature_map_);
+    return feature_map_;
   }
   
   ConsensusMap& FeatureFinderMultiplexAlgorithm::getConsensusMap()
   {
-    return(consensus_map_);
+    return consensus_map_;
   }
   
   MSExperiment& FeatureFinderMultiplexAlgorithm::getBlacklist()
   {
-    return(exp_blacklist_);
+    return exp_blacklist_;
   }
 }
