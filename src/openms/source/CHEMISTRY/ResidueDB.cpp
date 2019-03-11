@@ -109,19 +109,17 @@ namespace OpenMS
     set<const Residue*> s;
     #pragma omp critical (ResidueDB)
     {
-      // TODO: throwing an exception in parallel loops will lead to problems
-      // better to just return empty set and handle outside.
-      if (!residues_by_set_.has(residue_set))
+      if (residues_by_set_.has(residue_set))
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue set cannot be found: '" + residue_set + "'");
+        s = residues_by_set_[residue_set];
       }
-      s = residues_by_set_[residue_set];
     } 
 
+    if (s.empty()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue set cannot be found: '" + residue_set + "'");
     return s;
   }
 
-  void ResidueDB::setResidues(const String& file_name)
+  void ResidueDB::setResidues_(const String& file_name)
   {
     #pragma omp critical (ResidueDB)
     {
@@ -152,9 +150,9 @@ namespace OpenMS
       names.push_back(r->getShortName());
     }
     set<String> synonyms = r->getSynonyms();
-    for (set<String>::iterator it = synonyms.begin(); it != synonyms.end(); ++it)
+    for (const String & s : synonyms)
     {
-      names.push_back(*it);
+      names.push_back(s);
     }
 
     if (!r->isModified())
@@ -203,12 +201,8 @@ namespace OpenMS
     bool found = false;
     #pragma omp critical (ResidueDB)
     {
-      if (residue_names_.find(res_name) != residue_names_.end())
-      {
-        found = true;
-      }
+      found = residue_names_.find(res_name) != residue_names_.end();
     }  
-
     return found;
   }
 
@@ -217,11 +211,8 @@ namespace OpenMS
     bool found = false;
     #pragma omp critical (ResidueDB)
     {
-      if (const_residues_.find(residue) != const_residues_.end() ||
-          const_modified_residues_.find(residue) != const_modified_residues_.end())
-      {
-        found = true;
-      }
+      found = (const_residues_.find(residue) != const_residues_.end() ||
+          const_modified_residues_.find(residue) != const_modified_residues_.end());
     } 
     return found;
   }
@@ -264,7 +255,6 @@ namespace OpenMS
         String value = it->value;
         String key = it.getName();
         values[key] = value;
-
       }
 
       // add last residue
@@ -493,40 +483,45 @@ namespace OpenMS
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
     // terminal mods. don't apply to residue (side chain), so don't consider them:
-    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
-    return getModifiedResidue(getResidue(mod.getOrigin()), mod.getFullId());
+    const ResidueModification* mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
+    auto r = getResidue(mod->getOrigin());
+    return getModifiedResidue(r, mod->getFullId());
   }
 
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
     OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
+
     // search if the mod already exists
-    const String& res_name = residue->getName();
-    Residue* res;
+    const String & res_name = residue->getName();
+    Residue* res(nullptr);
     #pragma omp critical (ResidueDB)
     {
-      //TODO: get rid of exception
-      if (residue_names_.find(res_name) == residue_names_.end())
+      if (residue_names_.find(res_name) != residue_names_.end())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("Residue with name " + res_name + " was not registered in residue DB, register first!").c_str());
-      }
-      // terminal mods. don't apply to residue (side chain), so don't consider them:
-      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
-      const String& id = mod.getId().empty() ? mod.getFullId() : mod.getId();
+        // terminal modifications don't apply to residues (side chain), so only consider internal ones
+        const ResidueModification* mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
 
-      if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
-      {
-        res = residue_mod_names_[res_name][id];
+        // check if modification in ResidueDB
+        if (mod != nullptr)
+        {
+          const String& id = mod->getId().empty() ? mod->getFullId() : mod->getId();
+
+          // check if modified residue is already present in ResidueDB
+          if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
+          {
+            res = residue_mod_names_[res_name][id];
+          }
+          else
+          {
+            // create and register this modified residue
+            res = new Residue(*residue_names_[res_name]);
+            res->setModification_(*mod);
+            addResidue_(res);
+          }
+        }
       }
-      else
-      {
-        // create and register this modified residue
-        res = new Residue(*residue_names_[res_name]);
-        res->setModification_(mod);
-        addResidue_(res);
-      } 
-    } 
+    }
     return res;
   }
 

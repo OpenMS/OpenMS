@@ -193,10 +193,9 @@ protected:
   
   String makeModString_(const String& mod_name)
   {
-    ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
-    String residue = mod.getOrigin();
-    
-    return String(residue +  " " + mod.getDiffMonoMass());    
+    const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
+    const String& residue = mod->getOrigin();
+    return String(residue +  " " + mod->getDiffMonoMass());    
   }
  
   ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in,

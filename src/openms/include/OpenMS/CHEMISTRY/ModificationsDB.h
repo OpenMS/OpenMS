@@ -76,11 +76,7 @@ public:
     /// Returns a pointer to the modifications DB (singleton)
     inline static ModificationsDB* getInstance(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo")
     {
-      static ModificationsDB* db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
-      }
+      static ModificationsDB* db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
       return db_;
     }
 
@@ -94,10 +90,8 @@ public:
 
     /**
        @brief Returns the modification with the given index
-
-       @throw Exception::IndexOverflow if the index is too large
     */
-    const ResidueModification& getModification(Size index) const;
+    const ResidueModification* getModification(Size index) const;
 
     /**
        @brief Collects all modifications which have the given name as synonym
@@ -106,8 +100,6 @@ public:
        If @p term_spec is set, only modifications with matching term specificity are considered.
        The resulting set of modifications may be empty if no modification exists that fulfills the criteria.
 
-       @throw Exception::ElementNotFound if no modification named @p mod_name exists
-       @throw Exception::InvalidValue if no residue named @p residue exists
     */
     void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
@@ -119,25 +111,24 @@ public:
 
        If more than one matching modification is found, the first one is returned with a warning.
 
-       @throw Exception::ElementNotFound if no modification named @p mod_name exists (via searchModifications())
-       @throw Exception::InvalidValue if no matching modification exists
+       Returns nullptr if no modification named @p mod_name exists (via searchModifications()) or if no matching modification exists
     */
-    const ResidueModification& getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
+    const ResidueModification* getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /// Returns true if the modification exists
     bool has(String modification) const;
 
     /**
        @brief Add a new modification to ModificationsDB.
-       @throw Exception::InvalidValue if modification already exists (based on its fullID)
+       Will skip adding if modification already exists (based on its fullID)
     */
     void addModification(ResidueModification * new_mod);
 
     /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given
 
-       @throw Exception::ElementNotFound if not exactly one matching modification was found
-       @throw Exception::InvalidValue if no matching residue or modification were found
+       return numeric_limits<Size>::max() if not exactly one matching modification was found
+       or no matching residue or modification were found
     */
     Size findModificationIndex(const String& mod_name) const;
 
@@ -149,25 +140,6 @@ public:
     */
     void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
 
-    /** @brief Returns the best matching modification for the given mass and residue
-
-        Query the modifications DB to get the best matching modification with
-        the given mass at the given residue (NULL pointer means no result,
-        maybe the maximal error tolerance needs to be increased). Possible
-        input for CAM modification would be a mass of 160 and a residue of
-        "C".
-
-        @note If there are multiple possible matches with equal masses, it
-        will choose the _first_ match which defaults to the first matching
-        UniMod entry.
-
-        @param residue The residue at which the modifications occurs
-        @param mass The monoisotopic mass of the residue including the mass of the modification
-        @param max_error The maximal mass error in the modification search
-
-        @return A pointer to the best matching modification (or NULL if none was found)
-    */
-    const ResidueModification* getBestModificationByMonoMass(double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
 
     /** @brief Returns the best matching modification for the given delta mass and residue
 

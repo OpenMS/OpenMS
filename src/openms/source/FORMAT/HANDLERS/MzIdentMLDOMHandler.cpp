@@ -970,34 +970,34 @@ namespace OpenMS
                     {
                       if (spci->second.front().getAccession() == "MS:1001189")  // nterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
-                        mod = m.getFullId();
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
+                        mod = m->getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1001190")  // cterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
-                        mod = m.getFullId();
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
+                        mod = m->getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1002057")  // pro nterm
                       {
                         // TODO: add support for protein N-terminal modifications in unimod
-                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::N_TERM);
-                        mod = m.getFullId();
+                        // ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::N_TERM);
+                        mod = m->getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1002058")  // pro cterm
                       {
                         // TODO: add support for protein C-terminal modifications in unimod
-                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::C_TERM);
-                        mod = m.getFullId();
+                        // ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::C_TERM);
+                        mod = m->getFullId();
                       }
                     }
                   }
                   else  // anywhere
                   {
-                    ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r);
-                    mod = m.getFullId();
+                    const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r);
+                    mod = m->getFullId();
                   }
 
                   if (fixedMod)
@@ -2432,55 +2432,71 @@ namespace OpenMS
                     }
                     else if (index == static_cast<SignedSize>(aas.size() + 1))
                     {
-                      try // does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
+                      // TODO: does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
+                      if (cvname == "unknown modification")
                       {
-                        if (cvname == "unknown modification")
+                        const String & cvvalue = cv.getValue();
+                        if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                         {
-                          const String & cvvalue = cv.getValue();
-                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
-                          {
-                            aas.setCTerminalModification(cvvalue);
-                          }
+                          aas.setCTerminalModification(cvvalue);
                         }
                         else
+                        {
+                          LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
+                        }
+                      }
+                      else
+                      {
+                        if (ModificationsDB::getInstance()->has(cvname))
                         {
                           aas.setCTerminalModification(cvname);
                         }
-                        cvp = cvp->getNextElementSibling();
-                        continue;
+                        else
+                        {
+                          LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
+                        }
                       }
-                      catch (...)
-                      {
-                        // TODO Residue and AASequence should use CrossLinksDB as well
-                      }
+                      cvp = cvp->getNextElementSibling();
+                      continue;
                     }
                     else
                     {
-                      try
+                      if (cvname == "unknown modification")
                       {
-                        if (cvname == "unknown modification")
+                        const String & cvvalue = cv.getValue();
+                        if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                         {
-                          const String & cvvalue = cv.getValue();
-                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
-                          {
-                            aas.setModification(index - 1, cvvalue); //TODO @mths,Timo : do this via UNIMOD accessions
-                          }
+                          aas.setModification(index - 1, cvvalue); 
                         }
                         else
                         {
-                          aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
+                          LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
                         }
-                        cvp = cvp->getNextElementSibling();
-                        continue;
                       }
-                      catch (Exception::BaseException& e)
+                      else
                       {
+                        if (ModificationsDB::getInstance()->has(cvname))
+                        {
+                          aas.setModification(index - 1, cvname);
+                        }
+                        else
+                        {
+                          LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
+                        }
+                      }
+                      cvp = cvp->getNextElementSibling();
+                      continue;
+/* TODO enetz: look up in XLDB and remvoe this ha
                         // this is a bad hack to avoid a long list of warnings in the case of XL-MS data
                         if ( !(String(e.getMessage()).hasSubstring("'DSG'") || String(e.getMessage()).hasSubstring("'DSS'") || String(e.getMessage()).hasSubstring("'EDC'")) || String(e.getMessage()).hasSubstring("'BS3'") || String(e.getMessage()).hasSubstring("'BS2G'") )
                         {
                           LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << endl;
                         }
-                      }
+*/
                     }
                   }
                 }
@@ -2617,7 +2633,7 @@ namespace OpenMS
 
                       // now use the new modification
                       Size mod_idx = mod_db->findModificationIndex(residue_name);
-                      const ResidueModification* res_mod = &mod_db->getModification(mod_idx);
+                      const ResidueModification* res_mod = mod_db->getModification(mod_idx);
 
                       // Set a modification on the given AA
                       // Note: this calls setModification_ on a new Residue which changes its
@@ -2752,34 +2768,34 @@ namespace OpenMS
         current_pep->appendChild(current_seq);
         if (peps->second.hasNTerminalModification())
         {
-          const ResidueModification& mod = *(peps->second.getNTerminalModification());
+          const ResidueModification* mod = peps->second.getNTerminalModification();
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode("0"));
-          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-          String origin = mod.getOrigin();
+          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
+          String origin = mod->getOrigin();
           if (origin == "X") origin = ".";
           current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(origin.c_str()));
-          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
           current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
-          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));
 
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);
         }
         if (peps->second.hasCTerminalModification())
         {
-          const ResidueModification& mod = *(peps->second.getCTerminalModification());
+          const ResidueModification* mod = peps->second.getCTerminalModification();
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(peps->second.size() + 1).c_str()));
-          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-          String origin = mod.getOrigin();
+          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
+          String origin = mod->getOrigin();
           if (origin == "X") origin = ".";
           current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(origin.c_str()));
-          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
           current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
-          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));
 
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);

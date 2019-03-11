@@ -57,13 +57,13 @@ START_TEST(ModificationsDB, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(bool ModificationsDB::isInstantiated())
-{
-  bool instantiated = ModificationsDB::isInstantiated();
-  TEST_EQUAL(instantiated, false);
-}
+START_SECTION(bool ModificationsDB::isInstantiated())	
+{	
+  bool instantiated = ModificationsDB::isInstantiated();	
+  TEST_EQUAL(instantiated, false);	
+}	
 END_SECTION
-
+	
 ModificationsDB* ptr = nullptr;
 ModificationsDB* nullPointer = nullptr;
 
@@ -74,11 +74,11 @@ START_SECTION(ModificationsDB* getInstance())
 }
 END_SECTION
 
-START_SECTION(bool ModificationsDB::isInstantiated())
-{
-  bool instantiated = ModificationsDB::isInstantiated();
-  TEST_EQUAL(instantiated, true);
-}
+START_SECTION(bool ModificationsDB::isInstantiated())	
+{	
+  bool instantiated = ModificationsDB::isInstantiated();	
+  TEST_EQUAL(instantiated, true);	
+}	
 END_SECTION
 
 START_SECTION(Size getNumberOfModifications() const)
@@ -87,7 +87,7 @@ START_SECTION(Size getNumberOfModifications() const)
 END_SECTION
 
 START_SECTION(const ResidueModification& getModification(Size index) const)
-	TEST_EQUAL(ptr->getModification(0).getId().size() > 0, true)
+	TEST_EQUAL(ptr->getModification(0)->getId().size() > 0, true)
 END_SECTION
 
   START_SECTION((void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
@@ -233,16 +233,16 @@ END_SECTION
 
 START_SECTION((const ResidueModification& getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
 {
-  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getFullId(), "Carboxymethyl (C)");
-  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getId(), "Carboxymethyl");
+  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)")->getFullId(), "Carboxymethyl (C)");
+  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)")->getId(), "Carboxymethyl");
 
-  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE).getId(), "Phospho");
-  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE).getFullId(), "Phospho (S)");
+  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE)->getId(), "Phospho");
+  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE)->getFullId(), "Phospho (S)");
 
   // terminal mod:
-  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM).getId(), "NIC");
-  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM).getFullId(), "NIC (N-term)");
-  TEST_EQUAL(ptr->getModification("Acetyl", "", ResidueModification::N_TERM).getFullId(), "Acetyl (N-term)");
+  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM)->getId(), "NIC");
+  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM)->getFullId(), "NIC (N-term)");
+  TEST_EQUAL(ptr->getModification("Acetyl", "", ResidueModification::N_TERM)->getFullId(), "Acetyl (N-term)");
 }
 END_SECTION
 

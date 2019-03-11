@@ -136,9 +136,6 @@ public:
     /// returns all residue sets that are registered which this instance
     const std::set<String>& getResidueSets() const;
 
-    /// sets the residues from given file
-    void setResidues(const String& filename);
-
     /// adds a residue, i.e. a unknown residue, where only the weight is known
     void addResidue(const Residue& residue);
     //@}
@@ -166,6 +163,8 @@ public:
     //@}
 
 protected:
+    /// sets the residues from given file
+    void setResidues_(const String& filename);
 
     /** @name Private Constructors
     */
