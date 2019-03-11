@@ -249,7 +249,7 @@ namespace OpenMS
           residues_.insert(res_ptr);
           const_residues_.insert(res_ptr);
           prefix = split[0] + split[1];
-          residue_by_one_letter_code_[res_ptr->getOneLetterCode()[0]] = res_ptr;
+          residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;
         }
 
         String value = it->value;
@@ -261,7 +261,7 @@ namespace OpenMS
       res_ptr = parseResidue_(values);
       residues_.insert(res_ptr);
       const_residues_.insert(res_ptr);
-      residue_by_one_letter_code_[res_ptr->getOneLetterCode()[0]] = res_ptr;
+      residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;
     }
     catch (Exception::BaseException& e)
     {
