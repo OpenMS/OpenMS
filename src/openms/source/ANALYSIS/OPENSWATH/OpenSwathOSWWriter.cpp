@@ -168,7 +168,7 @@ namespace OpenMS
       score = feature.getMetaValue(score_name).toString();
     }
 
-    return(score);
+    return score;
   }
 
   std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, std::string score_name) const
@@ -192,7 +192,7 @@ namespace OpenMS
       }
     }
 
-    return(separated_scores);
+    return separated_scores;
   }
 
   String OpenSwathOSWWriter::prepareLine(const OpenSwath::LightCompound& /* pep */,
