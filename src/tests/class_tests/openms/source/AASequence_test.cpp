@@ -892,7 +892,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     AASequence test_seq = AASequence::fromString("PEPTN[1600.230654]IDE");
     TEST_EQUAL(test_seq.size(), 8)
     TEST_EQUAL(test_seq.toString(), "PEPTN[1600.230654]IDE")
-    TEST_STRING_SIMILAR(test_seq.toUniModString(), "PEPTN[+1486.1877258086]IDE")
+    TEST_STRING_SIMILAR(test_seq.toUniModString(), "PEPTN[1600.230654]IDE")
     TEST_STRING_SIMILAR(test_seq.toBracketString(false, false), "PEPTN[1600.230654]IDE")
     TEST_STRING_SIMILAR(test_seq.toBracketString(false, true), "PEPTN[+1486.1877258086]IDE")
     TEST_EQUAL(test_seq.toUnmodifiedString(), "PEPTNIDE")
@@ -903,7 +903,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     AASequence test_other = AASequence::fromString(test_seq.toString());
     TEST_EQUAL(test_other.size(), 8)
     TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
-    TEST_STRING_SIMILAR(test_other.toUniModString(), "PEPTN[+1486.1877258086]IDE")
+    TEST_STRING_SIMILAR(test_other.toUniModString(), "PEPTN[1600.230654]IDE")
     TEST_STRING_SIMILAR(test_other.toBracketString(false, false), "PEPTN[1600.230654]IDE")
     TEST_STRING_SIMILAR(test_other.toBracketString(false, true), "PEPTN[+1486.1877258086]IDE")
     TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
@@ -916,7 +916,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     test_other = AASequence::fromString(test_seq.toBracketString(false));
     TEST_EQUAL(test_other.size(), 8)
     TEST_STRING_SIMILAR(test_other.toString(), "PEPTN[1600.230654]IDE")
-    TEST_STRING_SIMILAR(test_other.toUniModString(), "PEPTN[+1486.1877258086]IDE")
+    TEST_STRING_SIMILAR(test_other.toUniModString(), "PEPTN[1600.230654]IDE")
     TEST_STRING_SIMILAR(test_other.toBracketString(false, false), "PEPTN[1600.230654]IDE")
     TEST_STRING_SIMILAR(test_other.toBracketString(false, true), "PEPTN[+1486.1877258086]IDE")
     TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
@@ -929,7 +929,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     test_other = AASequence::fromString(test_seq.toBracketString(false, true));
     TEST_EQUAL(test_other.size(), 8)
     TEST_STRING_SIMILAR(test_other.toString(), "PEPTN[+1486.1877258086]IDE")
-    TEST_STRING_SIMILAR(test_other.toUniModString(), "PEPTN[+1486.1877258086]IDE")
+    TEST_STRING_SIMILAR(test_other.toUniModString(), "PEPTN[1600.230654]IDE")
     TEST_STRING_SIMILAR(test_other.toBracketString(false, false), "PEPTN[1600.230654]IDE")
     TEST_STRING_SIMILAR(test_other.toBracketString(false, true), "PEPTN[+1486.1877258086]IDE")
     TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
@@ -941,10 +941,10 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
 
   // test N-terminal modification
   {
-    AASequence test_seq = AASequence::fromString("[+1600.230654]IDE");
+    AASequence test_seq = AASequence::fromString(".[1601.2384790319]IDE");
     TEST_EQUAL(test_seq.size(), 3)
-    TEST_STRING_SIMILAR(test_seq.toString(), ".[+1600.230654]IDE")
-    TEST_STRING_SIMILAR(test_seq.toUniModString(), ".[+1600.230654]IDE")
+    TEST_STRING_SIMILAR(test_seq.toString(), ".[1601.2384790319]IDE")
+    TEST_STRING_SIMILAR(test_seq.toUniModString(), ".[1601.2384790319]IDE")
     TEST_STRING_SIMILAR(test_seq.toBracketString(false, false), "n[1601.2384790319]IDE") // an extra H for the N-terminus
     TEST_STRING_SIMILAR(test_seq.toBracketString(false, true), "n[+1600.230654]IDE")
     TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
@@ -953,14 +953,14 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     // test that we can re-read the string
     AASequence test_other = AASequence::fromString(test_seq.toString());
     TEST_EQUAL(test_other.size(), 3)
-    TEST_STRING_SIMILAR(test_other.toString(), ".[+1600.230654]IDE")
+    TEST_STRING_SIMILAR(test_other.toString(), ".[1601.2384790319]IDE")
 
     TEST_EQUAL(test_seq, test_other) // the peptides should be equal
 
     // test that we can re-read the string from UniModString
     test_other = AASequence::fromString(test_seq.toUniModString());
     TEST_EQUAL(test_other.size(), 3)
-    TEST_STRING_SIMILAR(test_other.toString(), ".[+1600.230654]IDE")
+    TEST_STRING_SIMILAR(test_other.toString(), ".[1601.2384790319]IDE")
 
     TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
 
@@ -969,20 +969,30 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     TEST_EQUAL(test_other.size(), 3)
     TEST_STRING_SIMILAR(test_other.toString(), ".[1600.230654]IDE")
 
-    // TODO: nice featuer would be if the two peptides would be equal 
     test_other = AASequence::fromString(test_seq.toBracketString(false, false));
     TEST_EQUAL(test_other.size(), 3)
-    // TEST_EQUAL(test_other.toString(), ".[+1600.230654]IDE")
     // TEST_EQUAL(test_seq, test_other) // the peptides should be equal
-    // TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
+    TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
+
+    // read from delta string
+    {
+      AASequence test_seq = AASequence::fromString("n[+1600.230654]IDE");
+      TEST_EQUAL(test_seq.size(), 3)
+      TEST_STRING_SIMILAR(test_seq.toString(), ".[+1600.230654]IDE")
+      TEST_STRING_SIMILAR(test_seq.toUniModString(), ".[1601.2384790319]IDE")
+      TEST_STRING_SIMILAR(test_seq.toBracketString(false, false), "n[1601.2384790319]IDE") // an extra H for the N-terminus
+      TEST_STRING_SIMILAR(test_seq.toBracketString(false, true), "n[+1600.230654]IDE")
+      TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
+      TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_half.getMonoWeight() + 1600.230654)
+    }
   }
 
   // test C-terminal modification
   {
-    AASequence test_seq = AASequence::fromString("IDE.[+1600.230654]");
+    AASequence test_seq = AASequence::fromString("IDE.[1617.2333940319]");
     TEST_EQUAL(test_seq.size(), 3)
-    TEST_STRING_SIMILAR(test_seq.toString(), "IDE.[+1600.230654]")
-    TEST_STRING_SIMILAR(test_seq.toUniModString(), "IDE.[+1600.230654]")
+    TEST_STRING_SIMILAR(test_seq.toString(), "IDE.[1617.2333940319]")
+    TEST_STRING_SIMILAR(test_seq.toUniModString(), "IDE.[1617.2333940319]")
     TEST_STRING_SIMILAR(test_seq.toBracketString(false, false), "IDEc[1617.2333940319]") // an extra OH for C-terminus
     TEST_STRING_SIMILAR(test_seq.toBracketString(false, true), "IDEc[+1600.230654]")
     TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
@@ -991,14 +1001,14 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     // test that we can re-read the string
     AASequence test_other = AASequence::fromString(test_seq.toString());
     TEST_EQUAL(test_other.size(), 3)
-    TEST_EQUAL(test_other.toString(), "IDE.[+1600.230654]")
+    TEST_EQUAL(test_other.toString(), "IDE.[1617.2333940319]")
 
     TEST_EQUAL(test_seq, test_other) // the peptides should be equal
 
     // test that we can re-read the UniModString
     test_other = AASequence::fromString(test_seq.toUniModString());
     TEST_EQUAL(test_other.size(), 3)
-    TEST_STRING_SIMILAR(test_other.toString(), "IDE.[1600.230654]")
+    TEST_STRING_SIMILAR(test_other.toString(), "IDE.[1617.2333940319]")
 
     TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
 
@@ -1007,12 +1017,22 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     TEST_EQUAL(test_other.size(), 3)
     TEST_STRING_SIMILAR(test_other.toString(), "IDE.[1600.230654]")
 
-    // TODO: nice featuer would be if the two peptides would be equal 
     test_other = AASequence::fromString(test_seq.toBracketString(false, false));
     TEST_EQUAL(test_other.size(), 3)
-    // TEST_EQUAL(test_other.toString(), "IDE.[+1600.230654]")
     // TEST_EQUAL(test_seq, test_other) // the peptides should be equal
-    // TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
+    TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
+
+    // read from delta string
+    {
+      AASequence test_seq = AASequence::fromString("IDEc[+1600.230654]");
+      TEST_EQUAL(test_seq.size(), 3)
+      TEST_STRING_SIMILAR(test_seq.toString(), "IDE.[+1600.230654]")
+      TEST_STRING_SIMILAR(test_seq.toUniModString(), "IDE.[1617.2333940319]")
+      TEST_STRING_SIMILAR(test_seq.toBracketString(false, false), "IDEc[1617.2333940319]") // an extra OH for C-terminus
+      TEST_STRING_SIMILAR(test_seq.toBracketString(false, true), "IDEc[+1600.230654]")
+      TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
+      TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_half.getMonoWeight() + 1600.230654)
+    }
   }
 
   // test from #2320
@@ -1316,7 +1336,7 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL( AASequence::fromString(".DFPIANGEM.c[-30]"), AASequence::fromString(".DFPIANGEM.(UniMod:10)") )
   TEST_EQUAL( AASequence::fromString(".DFPIANGEM.c[-29.99]"), AASequence::fromString(".DFPIANGEM.(UniMod:10)") )
 
-  // TO FIX: this is an ambigous case, toBracketString produces the "absolute"
+  // TO FIX: this is an ambiguous case, toBracketString produces the "absolute"
   // mass of the n terminal "AA" but its mass is negative, therefore when
   // parsing it would be interpreted as a delta mass and its off by one!
   TEST_EQUAL( AASequence::fromString(".DFPIANGEM(UniMod:10)").toBracketString(true), "DFPIANGEMc[-13]") // absolute
@@ -1333,7 +1353,7 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(AASequence::fromString("n[-17].CFPIANGER."), AASequence::fromString("(UniMod:385).CFPIANGER."))
   TEST_EQUAL(AASequence::fromString("n[-17.026].CFPIANGER."), AASequence::fromString("(UniMod:385).CFPIANGER."))
 
-  // TO FIX: this is an ambigous case, toBracketString produces the "absolute"
+  // TO FIX: this is an ambiguous case, toBracketString produces the "absolute"
   // mass of the n terminal "AA" but its mass is negative, therefore when
   // parsing it would be interpreted as a delta mass and its off by one!
   TEST_EQUAL(AASequence::fromString("(UniMod:385)CFPIANGER.").toBracketString(true), "n[-16]CFPIANGER") // absolute
@@ -1346,7 +1366,7 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(AASequence::fromString("(UniMod:1009).CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
   TEST_EQUAL(AASequence::fromString("(UniMod:1009)CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER.")) 
 
-  // This case is non-ambigous since we have absolute mass (13) and relative mass (+12)
+  // This case is non-ambiguous since we have absolute mass (13) and relative mass (+12)
   TEST_EQUAL(AASequence::fromString("n[13].CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
   TEST_EQUAL(AASequence::fromString("n[13.0078250319].CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
   TEST_EQUAL(AASequence::fromString("n[+12.00].CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
