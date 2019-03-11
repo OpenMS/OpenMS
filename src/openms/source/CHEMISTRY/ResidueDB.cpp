@@ -128,7 +128,7 @@ namespace OpenMS
       buildResidueNames_();
     }     
   }
-
+/*
   void ResidueDB::addResidue(const Residue& residue)
   {
     #pragma omp critical (ResidueDB)
@@ -137,7 +137,7 @@ namespace OpenMS
       addResidue_(r);
     }
   }
-
+*/
   void ResidueDB::addResidue_(Residue* r)
   {
     vector<String> names;

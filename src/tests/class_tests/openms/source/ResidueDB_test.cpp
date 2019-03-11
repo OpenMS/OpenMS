@@ -119,24 +119,6 @@ START_SECTION(void setResidues(const String& filename))
 	NOT_TESTABLE // this method is hard to test, just provided for convenience
 END_SECTION
 
-START_SECTION(void addResidue(const Residue& residue))
-	TEST_EQUAL(ptr->hasResidue("UGU"), false)
-	TEST_EQUAL(ptr->hasResidue("$"), false)
-	TEST_EQUAL(ptr->hasResidue("$hortName"), false)
-	TEST_EQUAL(ptr->hasResidue("MyLittleUGUResidue"), false)
-	Residue res;
-	res.setShortName("$hortName");
-	res.setOneLetterCode("$");
-	res.setThreeLetterCode("UGU");
-	res.setName("MyLittleUGUResidue");
-	res.setFormula(EmpiricalFormula("C3H4O4"));
-	ptr->addResidue(res);
-	TEST_EQUAL(ptr->hasResidue("UGU"), true)
-	TEST_EQUAL(ptr->hasResidue("$"), true)
-	TEST_EQUAL(ptr->hasResidue("$hortName"), true)
-	TEST_EQUAL(ptr->hasResidue("MyLittleUGUResidue"), true)
-END_SECTION
-
 START_SECTION(ResidueIterator beginResidue())
 	ResidueDB::ResidueIterator it = ptr->beginResidue();
 	Size count(0);

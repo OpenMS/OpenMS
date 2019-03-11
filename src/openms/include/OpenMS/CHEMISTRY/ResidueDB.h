@@ -136,8 +136,6 @@ public:
     /// returns all residue sets that are registered which this instance
     const std::set<String>& getResidueSets() const;
 
-    /// adds a residue, i.e. a unknown residue, where only the weight is known
-    void addResidue(const Residue& residue);
     //@}
 
     /** @name Predicates
