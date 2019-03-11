@@ -944,8 +944,12 @@ namespace OpenMS
       {
         // old ambiguous notation: Modification might be at last amino acid or at C-terminus
         const ResidueModification* term_mod = mod_db->getModification(mod, res, ResidueModification::C_TERM);
-        aas.c_term_mod_ = term_mod;
-        if (term_mod == nullptr)
+
+        if (term_mod != nullptr)
+        {
+          aas.c_term_mod_ = term_mod;
+        }
+        else
         {
           cout << "Residue with name " + res + " was not registered in residue DB, register first!" << endl;
         }

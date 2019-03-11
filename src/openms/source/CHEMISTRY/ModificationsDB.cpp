@@ -570,9 +570,9 @@ namespace OpenMS
     }
 
     // now use the term and all synonyms to build the database
-    for (multimap<String, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
+    #pragma omp critical(OpenMS_ModificationsDB)
     {
-      #pragma omp critical(OpenMS_ModificationsDB)
+      for (multimap<String, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
       {
         // check whether a unimod definition already exists, then simply add synonyms to it
         if (it->second.getUniModRecordId() > 0)
