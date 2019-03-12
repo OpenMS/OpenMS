@@ -102,4 +102,8 @@ The most important CMake variables are:
          be built in place!</b>
    </td>
   </tr>
+  <tr>
+    <td valign="top">\c Qt5_DIR</td>
+    <td>Additional search path for the Qt5-cmake-files. </td>
+  <\tr>
 </table>
