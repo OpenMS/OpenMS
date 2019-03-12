@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 
 #include <vector>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -113,7 +114,8 @@ protected:
     void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
     /// Add data from ProteinGroups to a MetaInfoInterface
-    void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name, const std::map<String, UInt>& accession_to_id);
+    void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
+                           const String& group_name, const std::unordered_map<std::string, UInt>& accession_to_id);
 
     /// Read and store ProteinGroup data
     void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name);
@@ -122,20 +124,20 @@ protected:
       * Helper function to create the XML string for the amino acids before and after the peptide position in a protein.
       * Can be reused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
       */
-    static String createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes);
+    static std::ostream& createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes, std::ostream& os);
 
     /**
       * Helper function to create the XML string for the position of the peptide in a protein.
       * Can be reused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
       */
-    static String createPositionXMLString_(const std::vector<PeptideEvidence> & pes);
+    static std::ostream& createPositionXMLString_(const std::vector<PeptideEvidence> & pes, std::ostream& os);
 
 
     /**
       * Helper function to write out fragment annotations as user param fragment_annotation
       */  
     static void writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
-                                          std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent); 
+                                          const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent); 
 
     /**
       * Helper function to parse fragment annotations from string
@@ -170,7 +172,7 @@ protected:
     /// Temporary peptide evidences
     std::vector<PeptideEvidence> peptide_evidences_;
     /// Map from protein id to accession
-    std::map<String, String> proteinid_to_accession_;
+    std::unordered_map<std::string, String> proteinid_to_accession_;
     /// Document identifier
     String* document_id_;
     /// true if a prot id is contained in the current run

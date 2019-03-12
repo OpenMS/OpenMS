@@ -32,6 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 
@@ -39,92 +40,161 @@ using namespace std;
 
 namespace OpenMS
 {
-  void RNaseDigestion::setEnzyme(const String& enzyme_name)
+  void RNaseDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
-    enzyme_ = RNaseDB::getInstance()->getEnzyme(enzyme_name);
+    EnzymaticDigestion::setEnzyme(enzyme);
+
+    const DigestionEnzymeRNA* rnase =
+      dynamic_cast<const DigestionEnzymeRNA*>(enzyme_);
+    String five_prime_code = rnase->getFivePrimeGain();
+    if (five_prime_code == "p") five_prime_code = "5'-p";
+    String three_prime_code = rnase->getThreePrimeGain();
+    if (three_prime_code == "p") three_prime_code = "3'-p";
+
+    static RibonucleotideDB* ribo_db = RibonucleotideDB::getInstance();
+    five_prime_gain_ = five_prime_code.empty() ?
+      nullptr : ribo_db->getRibonucleotide(five_prime_code);
+    three_prime_gain_ = three_prime_code.empty() ?
+      nullptr : ribo_db->getRibonucleotide(three_prime_code);
+
+    cuts_after_regex_.assign(rnase->getCutsAfterRegEx());
+    cuts_before_regex_.assign(rnase->getCutsBeforeRegEx());
   }
 
-  void RNaseDigestion::digest(const String& rna, vector<String>& output,
-                              Size min_length, Size max_length) const
+
+  void RNaseDigestion::setEnzyme(const String& enzyme_name)
   {
-    // initialization
-    output.clear();
-    if (rna.empty() || ((rna.size() == 1) && (rna[0] == 'p'))) return;
+    setEnzyme(RNaseDB::getInstance()->getEnzyme(enzyme_name));
+  }
 
-    // handle terminal phosphates in input:
-    bool has_5prime_p = (rna[0] == 'p');
-    bool has_3prime_p = (rna[rna.size() - 1] == 'p');
-    // mark sequence ends:
-    String temp_rna = "^" + rna.substr(has_5prime_p, rna.size() - has_5prime_p -
-                                       has_3prime_p) + "$";
 
-    // beginning positions of "naive" fragments:
-    vector<int> fragment_pos = tokenize_(temp_rna);
-    // after "^" or before "$" aren't valid cleavages:
-    if (fragment_pos.size() > 1)
+  vector<pair<Size, Size>> RNaseDigestion::getFragmentPositions_(
+    const NASequence& rna, Size min_length, Size max_length) const
+  {
+    if (min_length == 0) min_length = 1;
+    if ((max_length == 0) || (max_length > rna.size()))
     {
-      if (fragment_pos[1] == 1)
+      max_length = rna.size();
+    }
+
+    vector<pair<Size, Size>> result;
+    if (enzyme_->getName() == NoCleavage) // no cleavage
+    {
+      Size length = rna.size();
+      if ((length >= min_length) && (length <= max_length))
       {
-        fragment_pos.erase(fragment_pos.begin() + 1);
+        result.emplace_back(0, length);
       }
-      if (fragment_pos.back() == (int)temp_rna.size() - 1)
+    }
+    else if (enzyme_->getName() == UnspecificCleavage) // unspecific cleavage
+    {
+      result.reserve(rna.size() * (max_length - min_length + 1));
+      for (Size i = 0; i <= rna.size() - min_length; ++i)
       {
-        fragment_pos.resize(fragment_pos.size() - 1);
+        const Size right = std::min(i + max_length, rna.size());
+        for (Size j = i + min_length; j <= right; ++j)
+        {
+          result.emplace_back(i, j - i);
+        }
+      }
+    }
+    else // proper enzyme cleavage
+    {
+      vector<Size> fragment_pos(1, 0);
+      for (Size i = 1; i < rna.size(); ++i)
+      {
+        if (boost::regex_search(rna[i - 1]->getCode(), cuts_after_regex_) &&
+            boost::regex_search(rna[i]->getCode(), cuts_before_regex_))
+        {
+          fragment_pos.push_back(i);
+        }
+      }
+      fragment_pos.push_back(rna.size());
+
+      // "fragment_pos" has at least two elements (zero and "rna.size()"):
+      for (Size start_it = 0; start_it < fragment_pos.size() - 1; ++start_it)
+      {
+        Size start_pos = fragment_pos[start_it];
+        for (Size offset = 0; offset <= missed_cleavages_; ++offset)
+        {
+          Size end_it = start_it + offset + 1;
+          if (end_it >= fragment_pos.size()) break;
+          Size end_pos = fragment_pos[end_it];
+
+          Size length = end_pos - start_pos;
+          if ((length >= min_length) && (length <= max_length))
+          {
+            result.emplace_back(start_pos, length);
+          }
+        }
       }
     }
 
-    vector<StringView> unmod_output;
-    // don't apply length filters yet, because we modified the original string:
-    digestAfterTokenize_(fragment_pos, temp_rna, unmod_output);
+    return result;
+  }
 
-    String three_prime_gain =
-      dynamic_cast<const DigestionEnzymeRNA*>(enzyme_)->getThreePrimeGain();
-    String five_prime_gain =
-      dynamic_cast<const DigestionEnzymeRNA*>(enzyme_)->getFivePrimeGain();
+  void RNaseDigestion::digest(const NASequence& rna, vector<NASequence>& output,
+                              Size min_length, Size max_length) const
+  {
+    output.clear();
+    if (rna.empty()) return;
 
-    for (vector<StringView>::iterator it = unmod_output.begin();
-         it != unmod_output.end(); ++it)
+    vector<pair<Size, Size>> positions = getFragmentPositions_(rna, min_length,
+                                                               max_length);
+
+    for (const auto& pos : positions)
     {
-      String fragment = it->getString();
-      Size actual_length = fragment.size();
-      bool is_5prime_end = (fragment[0] == '^');
-      bool is_3prime_end = (fragment[fragment.size() - 1] == '$');
-      if (is_5prime_end) // original 5' end -> no 5' enzyme mod
+      NASequence fragment = rna.getSubsequence(pos.first, pos.second);
+      if (pos.first > 0)
       {
-        actual_length--; // don't count the "^"
-        if (has_5prime_p)
-        {
-          fragment[0] = 'p';
-        }
-        else
-        {
-          fragment = fragment.substr(1);
-        }
+        fragment.setFivePrimeMod(five_prime_gain_);
       }
-      else
+      if (pos.first + pos.second < rna.size())
       {
-        fragment = five_prime_gain + fragment;
+        fragment.setThreePrimeMod(three_prime_gain_);
       }
-      if (is_3prime_end) // original 3' end -> no 3' enzyme mod
+      output.push_back(fragment);
+    }
+  }
+
+
+  void RNaseDigestion::digest(IdentificationData& id_data, Size min_length,
+                              Size max_length) const
+  {
+    for (IdentificationData::ParentMoleculeRef parent_ref =
+           id_data.getParentMolecules().begin(); parent_ref !=
+           id_data.getParentMolecules().end(); ++parent_ref)
+    {
+      if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
       {
-        actual_length--; // don't count the "$"
-        if (has_3prime_p)
-        {
-          fragment[fragment.size() - 1] = 'p';
-        }
-        else
-        {
-          fragment = fragment.substr(0, fragment.size() - 1);
-        }
-      }
-      else
-      {
-        fragment += three_prime_gain;
+        continue;
       }
 
-      if ((actual_length >= min_length) && (actual_length <= max_length))
+      NASequence rna = NASequence::fromString(parent_ref->sequence);
+      vector<pair<Size, Size>> positions =
+        getFragmentPositions_(rna, min_length, max_length);
+
+      for (const auto& pos : positions)
       {
-        output.push_back(fragment);
+        NASequence fragment = rna.getSubsequence(pos.first, pos.second);
+        if (pos.first > 0)
+        {
+          fragment.setFivePrimeMod(five_prime_gain_);
+        }
+        if (pos.first + pos.second < rna.size())
+        {
+          fragment.setThreePrimeMod(three_prime_gain_);
+        }
+        IdentificationData::IdentifiedOligo oligo(fragment);
+        Size end_pos = pos.first + pos.second; // past-the-end position!
+        IdentificationData::MoleculeParentMatch match(pos.first, end_pos - 1);
+        match.left_neighbor = (pos.first > 0) ? rna[pos.first - 1]->getCode() :
+          IdentificationData::MoleculeParentMatch::LEFT_TERMINUS;
+        match.right_neighbor = (end_pos < rna.size()) ?
+          rna[end_pos]->getCode() :
+          IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS;
+        oligo.parent_matches[parent_ref].insert(match);
+        id_data.registerIdentifiedOligo(oligo);
       }
     }
   }

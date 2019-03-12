@@ -65,7 +65,9 @@ START_SECTION(~ModifiedPeptideGenerator())
 }
 END_SECTION
 
-START_SECTION((static void applyFixedModifications(const std::vector< ResidueModification >::const_iterator &fixed_mods_begin, const std::vector< ResidueModification >::const_iterator& fixed_mods_end, AASequence& peptide)))
+START_SECTION((static void applyFixedModifications(const std::vector< ResidueModification >::const_iterator &fixed_mods_begin,
+                const std::vector< ResidueModification >::const_iterator& fixed_mods_end,
+                AASequence& peptide)))
 {
   // query modification of interest from ModificationsDB
   StringList modNames;

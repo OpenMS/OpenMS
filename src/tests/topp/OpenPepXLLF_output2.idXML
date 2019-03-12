@@ -22,7 +22,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="1"/>
 				<UserParam type="int" name="MS:1001029" value="270"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-12-07T15:34:43" search_engine="OpenPepXL" search_engine_version="2.4.0-feature-OPXL-speedup-by-simplification-2018-12-07" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-02-11T13:22:55" search_engine="OpenPepXL" search_engine_version="2.4.0-fix-OPXL-decoy-metavalue-2019-02-11" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|P02769|ALBU_BOVIN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -242,6 +242,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="532"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="1"/>
 				<UserParam type="string" name="accessions_beta" value="sp|P02769|ALBU_BOVIN"/>
+				<UserParam type="string" name="xl_target_decoy" value="decoy"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="425.202880859375" RT="295.44109999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=560" >
@@ -298,6 +299,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="276"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="280"/>
 				<UserParam type="string" name="accessions_beta" value="-"/>
+				<UserParam type="string" name="xl_target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="660.549926757813" RT="311.9448" spectrum_reference="controllerType=0 controllerNumber=1 scan=600" >
@@ -403,6 +405,7 @@
 				<UserParam type="string" name="XL_Protein_position_alpha" value="532"/>
 				<UserParam type="string" name="XL_Protein_position_beta" value="1"/>
 				<UserParam type="string" name="accessions_beta" value="sp|P02769|ALBU_BOVIN"/>
+				<UserParam type="string" name="xl_target_decoy" value="decoy"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="547.988830566406" RT="312.95569999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=603" >

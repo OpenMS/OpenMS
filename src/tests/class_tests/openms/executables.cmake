@@ -76,6 +76,8 @@ set(metadata_executables_list
   HPLC_test
   DocumentIDTagger_test
   Identification_test
+  IdentificationData_test
+  IdentificationDataConverter_test
   IdentificationHit_test
   InstrumentSettings_test
   Instrument_test
@@ -194,6 +196,8 @@ set(format_executables_list
   MzIdentMLValidator_test
   MzMLFile_test
   MzMLSpectrumDecoder_test
+  MzMLSqliteHandler_test
+  MzMLSqliteSwathHandler_test
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
@@ -377,12 +381,17 @@ set(chemistry_executables_list
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
+  ModifiedNASequenceGenerator_test
   CrossLinksDB_test
+  NASequence_test
   ProteaseDB_test
   ProteaseDigestion_test
   ResidueDB_test
   ResidueModification_test
   Residue_test
+  Ribonucleotide_test
+  RibonucleotideDB_test
+  RNaseDigestion_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
   SvmTheoreticalSpectrumGenerator_test
