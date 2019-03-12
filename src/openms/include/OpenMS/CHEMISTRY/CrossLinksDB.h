@@ -46,11 +46,7 @@ namespace OpenMS
     /// Returns a pointer to the modifications DB (singleton)
     inline static CrossLinksDB* getInstance()
     {
-      static CrossLinksDB* db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new CrossLinksDB;
-      }
+      static CrossLinksDB* db_ = new CrossLinksDB;
       return db_;
     }
 
