@@ -4,10 +4,13 @@ from DataValue cimport *
 from Feature cimport *
 from UniqueIdInterface cimport *
 from ProteinIdentification cimport *
+from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
 
-    cdef cppclass ProteinHit:
+    cdef cppclass ProteinHit(MetaInfoInterface):
+        # wrap-inherits:
+        #    MetaInfoInterface
 
         ProteinHit() nogil except +
         ProteinHit(double score, UInt rank, String accession, String sequence) nogil except +
@@ -32,21 +35,6 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
 
         bool operator==(ProteinHit) nogil except +
         bool operator!=(ProteinHit) nogil except +
-        bool isMetaEmpty() nogil except +
-        void clearMetaInfo() nogil except +
 
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
 
 

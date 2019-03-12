@@ -53,28 +53,17 @@ def _testMetaInfoInterface(what):
     what.getKeys(keys)
     assert len(keys) and all(isinstance(k, bytes) for k in keys)
     assert what.getMetaValue(keys[0]) == 42
-    keys = []
-    what.getKeysAsIntegers(keys)
-    assert len(keys) and all(isinstance(k, (long, int)) for k in keys)
 
     assert what.metaValueExists("key")
     what.removeMetaValue("key")
 
-    what.setMetaValue(1024, 42)
-    assert what.getMetaValue(1024) == 42
-
     keys = []
     what.getKeys(keys)
     assert what.getMetaValue(keys[0]) == 42
-    keys = []
-    what.getKeysAsIntegers(keys)
-    assert len(keys) and all(isinstance(k, (long, int)) for k in keys)
 
     what.clearMetaInfo()
     keys = []
     what.getKeys(keys)
-    assert len(keys) == 0
-    what.getKeysAsIntegers(keys)
     assert len(keys) == 0
 
 
