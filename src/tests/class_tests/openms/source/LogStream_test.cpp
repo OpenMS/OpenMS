@@ -72,6 +72,27 @@ class TestTarget
   bool notified;
 };
 
+// -----------------------------------
+//  Temporary measure to fix logging
+// -----------------------------------
+#define STRINGIFY(a) #a
+
+#define OPENMS_THREAD_CRITICAL(name) \
+    _Pragma( STRINGIFY( omp critical (name) ) )
+
+#define LOG_INFO \
+  OPENMS_THREAD_CRITICAL(oms_log) \
+  Log_info
+
+#define LOG_DEBUG \
+  OPENMS_THREAD_CRITICAL(oms_log) \
+  Log_debug << __FILE__ << "(" << __LINE__ << "): "
+
+// #define LOG_INFO \
+//   Log_info
+//
+// #define LOG_DEBUG \
+//   Log_debug << __FILE__ << "(" << __LINE__ << "): "
 
 START_TEST(LogStream, "$Id$")
 
@@ -87,12 +108,11 @@ START_SECTION(([EXTRA] OpenMP - test))
   Log_info.insert(stream_by_logger);
   Log_info.remove(cout);
 
-
   {
-    // create a long strong that is of similar length as the buffer length in
+    // create a long string that is of similar length as the buffer length in
     // to ensure buffering and flushing works correctly LogStream.cpp
     std::string long_str;
-    for (int k = 0; k < 32768/2; k++) long_str += char(k);
+    for (int k = 0; k < 32768/2; k++) if (char(k) != 0) long_str += char(k);
 
     #ifdef _OPENMP
     omp_set_num_threads(8);
