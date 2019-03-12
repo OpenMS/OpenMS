@@ -86,15 +86,14 @@ public:
         double mass = .0;
         int charge;
         int isotopeIndex = -1;
-        double score;
+        //double score;
 
-        LogMzPeak() : orgPeak(nullptr), logMz(-1000), charge(0), isotopeIndex(0), score(0) {}
+        LogMzPeak() : orgPeak(nullptr), logMz(-1000), charge(0), isotopeIndex(0) {}
 
-        explicit LogMzPeak(Peak1D &peak) : orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(0), isotopeIndex(0),
-                                           score(0) {}
+        explicit LogMzPeak(Peak1D &peak) : orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(0), isotopeIndex(0){}
 
         LogMzPeak(Peak1D &peak, int c, int i) : orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(c),
-                                                isotopeIndex(i), score(0) {}
+                                                isotopeIndex(i){}
 
         double getMass() {
             if (mass <= 0) mass = exp(logMz) * charge;
