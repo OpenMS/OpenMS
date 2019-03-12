@@ -89,13 +89,18 @@ START_SECTION(([EXTRA] OpenMP - test))
 
 
   {
+    // create a long strong that is of similar length as the buffer length in
+    // to ensure buffering and flushing works correctly LogStream.cpp
+    std::string long_str;
+    for (int k = 0; k < 32768/2; k++) long_str += char(k);
+
     #ifdef _OPENMP
-	omp_set_num_threads(8);
+    omp_set_num_threads(8);
     #pragma omp parallel for
     #endif
     for (int i=0;i<10000;++i)
     {
-      LOG_DEBUG << "1\n";
+      LOG_DEBUG << long_str << "1\n";
       LOG_DEBUG << "2" << endl;
       LOG_INFO << "1\n";
       LOG_INFO << "2" << endl;
