@@ -15,10 +15,9 @@
 // Note: benefits from being tuned for specific architecture. Could do this with #ifdef...s for AVX512, etc.
 const unsigned long int ALLOCATION_ALIGNMENT = 512;
 
-// TODO: write aligned_realloc, which postprocesses with posix_memalign.
-
 template <typename T>
 T* aligned_malloc(unsigned long num_elements) {
+  /* Aligned malloc makes operations safe for AVX, etc. but results in a slowdown of roughly 3x
   #ifdef _WIN32
     T*result = (T*)_aligned_malloc(ALLOCATION_ALIGNMENT, num_elements*sizeof(T));
     assert(result != NULL);
@@ -29,6 +28,10 @@ T* aligned_malloc(unsigned long num_elements) {
     assert(result != NULL);
     return (T*)result;
   #endif
+  */
+  T*result = (T*)malloc(num_elements*sizeof(T));
+  assert(result != NULL);
+  return result;
 }
 
 template <typename T>
