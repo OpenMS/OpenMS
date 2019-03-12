@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include "boost/dynamic_bitset.hpp"
 #include <iostream>
+#include <iomanip>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <QDirIterator>
@@ -538,15 +539,16 @@ protected:
         }
 
 
-        //fs << fixed << setprecision(4);
+
 
         fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.spec->getNativeID() << "\t"
            << pg.massCntr << "\t"
-           << m << "\t" << nm << "\t" << (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
-           << intensity << "\t" << pg.spec->getRT()
+           <<fixed << setprecision(3) << m << "\t" << nm << "\t" <<
+           (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
+           <<fixed << setprecision(1) << intensity << "\t" << pg.spec->getRT()
            << "\t" << pg.peaks.size() << "\t";
 
-
+        fs<<fixed << setprecision(2);
         for (auto &p : pg.peaks) {
             fs << p.orgPeak->getMZ() << ";";
         }
@@ -563,6 +565,7 @@ protected:
             fs << p.isotopeIndex << ";";
         }
         fs << "\t";
+        fs<<fixed << setprecision(1);
         for (auto &p : pg.peaks) {
             fs << p.orgPeak->getIntensity() << ";";
         }
