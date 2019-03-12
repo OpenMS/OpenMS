@@ -72,24 +72,6 @@ class TestTarget
   bool notified;
 };
 
-// -----------------------------------
-//  Temporary measure to fix logging
-// -----------------------------------
-#define STRINGIFY(a) #a
-
-#define OPENMS_THREAD_CRITICAL(name) \
-    _Pragma( STRINGIFY( omp critical (name) ) )
-
-#undef LOG_INFO
-#define LOG_INFO \
-  OPENMS_THREAD_CRITICAL(oms_log) \
-  Log_info
-
-#undef LOG_DEBUG
-#define LOG_DEBUG \
-  OPENMS_THREAD_CRITICAL(oms_log) \
-  Log_debug << __FILE__ << "(" << __LINE__ << "): "
-
 START_TEST(LogStream, "$Id$")
 
 /////////////////////////////////////////////////////////////

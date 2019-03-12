@@ -42,6 +42,28 @@
 #include <cstring>
 
 /**
+    @brief General helper macros
+
+    @{
+*/
+
+#define STRINGIFY(a) #a
+
+#ifdef _OPENMP
+
+#define OPENMS_THREAD_CRITICAL(name) \
+    _Pragma( STRINGIFY( omp critical (name) ) )
+
+#else
+
+#define OPENMS_THREAD_CRITICAL(name) 
+
+#endif
+
+/** @} */ // end of helpers
+
+
+/**
     @defgroup Conditions Condition macros
 
     @brief Macros used for to enforce preconditions and postconditions.
