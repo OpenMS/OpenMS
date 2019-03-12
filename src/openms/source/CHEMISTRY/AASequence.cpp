@@ -113,7 +113,7 @@ namespace OpenMS
       if (r.isModified())
       {
         const ResidueModification& mod = *(r.getModification());
-        double nominal_mass = nominal_mass = r.getMonoWeight(Residue::Internal);
+        double nominal_mass = r.getMonoWeight(Residue::Internal);
 
         if (mod.getUniModRecordId() > -1)
         {
