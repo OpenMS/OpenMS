@@ -188,7 +188,7 @@ protected:
         registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
         registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
-        registerDoubleOption_("minIsoScore", "<score 0-1>", .6, "minimum isotope cosine score threshold (0-1)", false,
+        registerDoubleOption_("minIsoScore", "<score 0-1>", .5, "minimum isotope cosine score threshold (0-1)", false,
                               true);
         registerDoubleOption_("maxRTDelta", "<maximum RT between masses for feature finding>", 60.0,
                               "maximum RT between masses for feature finding", false, true);
