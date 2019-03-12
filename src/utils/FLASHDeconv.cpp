@@ -399,7 +399,8 @@ protected:
         //cout<<map.size();
         for (auto &mt : m_traces) {
             auto mass = mt.getCentroidMZ();
-            fsf << fixed << setprecision(4) << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
+
+            fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
                 << getNominalMass(mass) << "\t"
                 << mt.begin()->getRT() << "\t"
                 << mt.rbegin()->getRT() << "\t"
@@ -537,7 +538,7 @@ protected:
         }
 
 
-        fs << fixed << setprecision(4);
+        //fs << fixed << setprecision(4);
 
         fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.spec->getNativeID() << "\t"
            << pg.massCntr << "\t"
@@ -567,7 +568,7 @@ protected:
         }
         fs << "\t" << pg.chargeDistributionScore << "\t" << pg.isotopeCosineScore << "\n";
 
-        fsm << fixed << setprecision(4) << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
+        fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
     }
 
     void printProgress(float progress) {
