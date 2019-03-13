@@ -918,7 +918,7 @@ protected:
 
       // there should be only one precursor and MS2 should contain at least a
       // few peaks to be considered (at least one per nucleotide in the chain):
-      if ((precursors.size() != 1) || ((s_it->size() < search_param.min_length) || ((s_it->size() > search_param.max_length)&& (search_param.max_length!=0) ) ))
+      if ((precursors.size() != 1) || (s_it->size() < search_param.min_length))
       {
         continue;
       }
