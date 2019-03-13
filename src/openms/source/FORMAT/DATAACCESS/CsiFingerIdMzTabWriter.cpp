@@ -57,10 +57,10 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
    
-    // extract mz, rt and nativeID from coressponding specturm.ms 
+    // extract mz, rt and nativeID corresponding to spectrum.ms
     String ext_nid;
-    String ext_mz;
-    String ext_rt;
+    double ext_mz = 0.0;
+    double ext_rt = 0.0;
     const String sirius_spectrum_ms = *it + "/spectrum.ms";
     ifstream spectrum_ms_file(sirius_spectrum_ms);
     if (spectrum_ms_file)
@@ -68,22 +68,23 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
       const OpenMS::String nid_prefix = "##nid ";
       const OpenMS::String rt_prefix = "#rt ";
       const OpenMS::String pmass_prefix = ">parentmass ";
-      String line;
+      std::string line;
+      std::string::size_type sz;
       while (getline(spectrum_ms_file, line))
       {
         if (line.find(pmass_prefix,0) == 0)
         {
-           String pmass = line.erase(line.find(pmass_prefix), pmass_prefix.size());
-           ext_mz = pmass;
+           std::string pmass = line.erase(line.find(pmass_prefix), pmass_prefix.size());
+           ext_mz = std::stod(pmass, &sz);
         }
         if (line.find(rt_prefix,0) == 0)
         {
-           String rt = line.erase(line.find(rt_prefix), rt_prefix.size());
-           ext_rt = rt;
+           std::string rt = line.erase(line.find(rt_prefix), rt_prefix.size());
+           ext_rt = std::stod(rt, &sz);
         }
         if (line.find(nid_prefix, 0) == 0)
         {
-           String nid = line.erase(line.find(nid_prefix), nid_prefix.size());
+           std::string nid = line.erase(line.find(nid_prefix), nid_prefix.size());
            ext_nid = nid;
         }
         if (line == ">ms1peaks")
@@ -92,7 +93,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         }
       }
       spectrum_ms_file.close();
-    }
+    } 
    
     const std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
 
@@ -208,6 +209,14 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
               uri.push_back(MzTabString(hit.links[k]));
             }  
 
+            smsr.exp_mass_to_charge = MzTabDouble(id.mz);
+
+            vector<MzTabDouble> v_rt;
+            MzTabDoubleList rt_list;
+            v_rt.push_back(MzTabDouble(id.rt));
+            rt_list.set(v_rt);
+            smsr.retention_time = rt_list;
+            
             MzTabOptionalColumnEntry rank;
             rank.first = "rank";
             rank.second = MzTabString(hit.rank);
@@ -224,14 +233,6 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             featureId.first = "featureId";
             featureId.second = MzTabString(id.feature_id);
 
-            MzTabOptionalColumnEntry mz;
-            mz.first = "mz";
-            mz.second = MzTabString(id.mz);
-
-            MzTabOptionalColumnEntry rt;
-            rt.first = "rt";
-            rt.second = MzTabString(id.rt);
-
             MzTabOptionalColumnEntry native_id;
             native_id.first = "native_id";
             native_id.second = MzTabString(id.native_id);
@@ -240,8 +241,6 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
             smsr.opt_.push_back(featureId);
-            smsr.opt_.push_back(mz);
-            smsr.opt_.push_back(rt);
             smsr.opt_.push_back(native_id);
             smsd.push_back(smsr);
           } 

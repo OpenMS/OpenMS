@@ -82,9 +82,9 @@ namespace OpenMS
 
     struct SiriusAdapterIdentification
     {
-      String mz;
-      String rt;
-      String native_id;
+      double mz;
+      double rt;
+      OpenMS::String native_id;
       int scan_index;
       int scan_number;
       OpenMS::String feature_id;
