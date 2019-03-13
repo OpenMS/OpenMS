@@ -5084,12 +5084,6 @@ def testModificationsDB():
 
     ###
 
-    m = mdb.getBestModificationByMonoMass(80, 20, "T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None
-    assert m.getId() == "MOD:00439"
-    assert m.getFullName() == "O-phospho-L-threonine with neutral loss of phosphate", m.getFullName() # something crazy
-    assert m.getUniModAccession() == "" # no unimod for crazyness ...
-
     m = mdb.getBestModificationByMonoMass(147, 20, "M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None
     assert m.getUniModAccession() == "", m.getUniModAccession()
