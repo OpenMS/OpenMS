@@ -77,7 +77,7 @@
     # Update repo list for the thirdparty repository EPEL
     sudo yum repolist
     # Get installable contrib libraries
-    sudo yum install qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg python-devel boost-devel \
+    sudo yum install qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg-devel python-devel boost-devel \
         libsvm-devel glpk-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel
     </pre>
     </td>
