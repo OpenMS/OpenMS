@@ -912,7 +912,7 @@ namespace OpenMS
       if (m == nullptr)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
-          "Cannot convert string to peptide modification. No N-terminal modification matches to term specificty and origin.");
+          "Cannot convert string to peptide modification. No N-terminal modification matches to term specificity and origin.");
       }
       aas.n_term_mod_ = m;
       return mod_end;
