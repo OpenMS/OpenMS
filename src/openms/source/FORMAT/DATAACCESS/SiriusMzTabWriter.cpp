@@ -59,6 +59,44 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
+   
+    // extract mz, rt and nativeID corresponding to spectrum.ms
+    String ext_nid;
+    String ext_mz;
+    String ext_rt;
+    const String sirius_spectrum_ms = *it + "/spectrum.ms";
+    ifstream spectrum_ms_file(sirius_spectrum_ms);
+    if (spectrum_ms_file)
+    {
+      const OpenMS::String nid_prefix = "##nid ";
+      const OpenMS::String rt_prefix = "#rt ";
+      const OpenMS::String pmass_prefix = ">parentmass ";
+      String line;
+      while (getline(spectrum_ms_file, line))
+      {
+        if (line.find(pmass_prefix,0) == 0)
+        {
+           String pmass = line.erase(line.find(pmass_prefix), pmass_prefix.size());
+           ext_mz = pmass;
+        }
+        if (line.find(rt_prefix,0) == 0)
+        {
+           String rt = line.erase(line.find(rt_prefix), rt_prefix.size());
+           ext_rt = rt;
+        }
+        if (line.find(nid_prefix, 0) == 0)
+        {
+           String nid = line.erase(line.find(nid_prefix), nid_prefix.size());
+           ext_nid = nid;
+        }
+        if (line == ">ms1peaks")
+        {
+           break; // only run till >ms1peaks
+        }
+      }
+      spectrum_ms_file.close();
+    }
+
     // extract data from summary_sirius.csv
     const std::string pathtosiriuscsv = *it + "/summary_sirius.csv";
 
@@ -114,6 +152,9 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
           sirius_id.hits.push_back(sirius_hit);
         }
 
+        sirius_id.mz = ext_mz;
+        sirius_id.rt = ext_rt;
+        sirius_id.native_id = ext_nid;
         sirius_id.scan_index = scan_index;
         sirius_id.scan_number = scan_number;
         // check if results were assigned to a feature
@@ -188,6 +229,18 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
             featureId.first = "featureId";
             featureId.second = MzTabString(id.feature_id);
 
+            MzTabOptionalColumnEntry mz;
+            mz.first = "mz";
+            mz.second = MzTabString(id.mz);
+
+            MzTabOptionalColumnEntry rt;
+            rt.first = "rt";
+            rt.second = MzTabString(id.rt);
+
+            MzTabOptionalColumnEntry native_id;
+            native_id.first = "native_id";
+            native_id.second = MzTabString(id.native_id);
+
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(explainedPeaks);
@@ -195,6 +248,9 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
             smsr.opt_.push_back(featureId);
+            smsr.opt_.push_back(mz);
+            smsr.opt_.push_back(rt);
+            smsr.opt_.push_back(native_id);
             smsd.push_back(smsr);
           }
         }  
