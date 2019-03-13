@@ -697,7 +697,7 @@ protected:
         while (massBinIndex != unionedMassBins.npos) {
             int isoOff = 0;
             PeakGroup pg;
-            vector<Size> isoMassBins;
+            //vector<Size> isoMassBins;
             for (int j = 0; j < chargeRange; j++) {
                 int charge = j + minCharge;
                 double &mzToMassOffset = mzToMassOffsets[j];
@@ -757,7 +757,10 @@ protected:
                                 LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, i * d);
                                 pg.push_back(p);
                                 auto bin = getBinNumber(p.logMz + mzToMassOffset, 0, binWidth);
-                                if (massBinIndex != bin) isoMassBins.push_back(bin);
+                                if (massBinIndex != bin){
+                                    unionedMassBins[bin] = false;
+                                    massBins[bin] = false;
+                                }
                             }
                             if (!isotopePeakPresent) break;
                             if (d < 0) {
@@ -769,11 +772,6 @@ protected:
             }
 
             if (!pg.peaks.empty()) {
-                for (auto &i :isoMassBins) {
-                    if (i >= unionedMassBins.size()) continue;
-                    unionedMassBins[i] = false;
-                    massBins[i] = false;
-                }
                 for (LogMzPeak &p : pg.peaks) {
                     p.isotopeIndex -= isoOff;
                 }
