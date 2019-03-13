@@ -224,6 +224,12 @@
   \endcode
   to the CMake options.
 
+  If CMake has problems finding Qt5 (Qt5SvgConfig.cmake is usually the first to fail), you might consider adding:
+  \code
+  -DQt5_DIR=/PATH/TO/qt/5.9.7/gcc_64/lib/cmake/Qt5
+  \endcode
+  to the CMake options, where <tt>/PATH/TO/qt/5.9.7/gcc_64</tt> depends on your system settings and Qt version.
+
   When configuring %OpenMS, consider setting <tt>WITH_GUI=Off</tt> and
   <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
   OpenGL and you may not have an X server.
