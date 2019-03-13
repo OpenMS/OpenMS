@@ -52,7 +52,9 @@ namespace OpenMS
 
     /**
       @brief Adds modifications from a given file in OBO format
-
+      
+      @note readFromOBOFile should be called in a single threaded context with
+      no other threads accessing the CrossLinkDB
       @throw Exception::ParseError if the file cannot be parsed correctly
     */
     void readFromOBOFile(const String& filename);

@@ -153,7 +153,7 @@ START_SECTION([EXTRA] multithreaded example)
   std::vector<OpenMS::UInt64> ids;
   ids.reserve(nofIdsToGenerate);
 #pragma omp parallel for
-  for (int i = 0; i < nofIdsToGenerate; ++i)
+  for (int i = 0; i < static_cast<int>(nofIdsToGenerate); ++i)
   {
     OpenMS::UInt64 tmp = OpenMS::UniqueIdGenerator::getUniqueId();
 #pragma omp critical (add_test)
