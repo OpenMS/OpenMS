@@ -55,7 +55,7 @@ public:
         int chargeDistributionScoreThreshold;
         double maxRTDelta;
         vector<Byte> hCharges{2, 3, 5, 7};
-        int numOverlappedScans = 20;
+        int numOverlappedScans = 5;
         int threads = 1;
     };
 
@@ -190,12 +190,12 @@ protected:
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)",
                            false, true);
 
-        registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
+        registerDoubleOption_("maxM", "<max mass>", 120000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
-        registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
+        registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
         registerDoubleOption_("minIsoScore", "<score 0-1>", .5, "minimum isotope cosine score threshold (0-1)", false,
                               true);
-        registerDoubleOption_("maxRTDelta", "<maximum RT between masses for feature finding>", 60.0,
+        registerDoubleOption_("maxRTDelta", "<maximum RT between masses for feature finding>", 30.0,
                               "maximum RT between masses for feature finding", false, true);
 
         //registerDoubleOption_("maxRTDelta", "<max RT delta>", 10.0, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
@@ -453,8 +453,10 @@ protected:
             for (Size k = 0; k < param.hCharges.size(); k++) {
                 auto &hc = param.hCharges[k];
                 float n = (float) (hc / 2);
-                auto harmonicFilter = log(1.0 / (i + n / hc + param.minCharge));
-                hBinOffsets[i][k] = (long) floor((filter[i] - harmonicFilter) * param.binWidth);
+                auto harmonicFilter = log(1.0 / (i - n / hc + param.minCharge));
+                hBinOffsets[i][k] = (long) round((filter[i] - harmonicFilter) * param.binWidth);
+                //harmonicFilter = log(1.0 / (i - n / hc + param.minCharge));
+                //hBinOffsets[i][k+1] = (long) floor((filter[i] - harmonicFilter) * param.binWidth);
             }
         }
 
@@ -1028,12 +1030,16 @@ protected:
         int chargeRange = param.chargeRange;
         int hChargeSize = (int) param.hCharges.size();
         double binWidth = param.binWidth;
-        int minContinuousChargePeakPairCount = param.minContinuousChargePeakPairCount;
+        int minContinuousChargePeakPairCount = param.minContinuousChargePeakPairCount ;
+        long mzBinSize = (long)mzBins.size();
 
         Byte *maxChargeRanges = new Byte[mzBins.size()];
         fill_n(maxChargeRanges, mzBins.size(), 0);
         Byte *prevCharges = new Byte[massBins.size()];
         fill_n(prevCharges, massBins.size(), chargeRange + 2);
+        //Byte *_continuousChargePeakPairCount = new Byte[massBins.size()];
+        //fill_n(_continuousChargePeakPairCount, massBins.size(), 0);
+
 
         auto mzBinIndex = mzBins.find_first();
         while (mzBinIndex != mzBins.npos) {
@@ -1044,6 +1050,7 @@ protected:
                 if (hasHarmony[massBinIndex]) {
                     continue;
                 }
+
                 auto cd = prevCharges[massBinIndex] - j;
                 prevCharges[massBinIndex] = j;
 
@@ -1051,10 +1058,11 @@ protected:
                     auto &hbOffsets = hBinOffsets[j];
                     for (int k = 0; k < hChargeSize; k++) {
                         long hbi = mzBinIndex - hbOffsets[k];// + rand() % 100000 - 50000 ;
-                        if (hbi < 3 || (Size) (hbi + 2) > mzBins.size()) continue;
 
-                        for (int i = -3; i <= 2; i++) {
-                            if (mzBins[hbi + i]) {
+                        for (int i = -2; i <= 2; i++) {
+                            auto bin = hbi + i;
+                            if(bin <0 || bin > mzBinSize) continue;
+                            if (mzBins[bin]) {
                                 hasHarmony[massBinIndex] = true;
                                 isQualified[massBinIndex] = false;
                                 break;
@@ -1062,15 +1070,25 @@ protected:
                         }
                         if (hasHarmony[massBinIndex]) break;
                     }
-
                     if (hasHarmony[massBinIndex]) continue;
+
                     if (++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakPairCount) {
                         isQualified[massBinIndex] = true;
                         maxChargeRanges[mzBinIndex] = (Byte) (j + 1);
                     }
                 } else {
                     ++noneContinuousChargePeakPairCount[massBinIndex];
+                   // _continuousChargePeakPairCount[massBinIndex] = 0;
                 }
+
+                /*_continuousChargePeakPairCount[massBinIndex]++;
+                continuousChargePeakPairCount[massBinIndex] = continuousChargePeakPairCount[massBinIndex] > _continuousChargePeakPairCount[massBinIndex]?
+                                                              continuousChargePeakPairCount[massBinIndex] : _continuousChargePeakPairCount[massBinIndex];
+
+                if (continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakPairCount) {
+                        isQualified[massBinIndex] = true;
+                        maxChargeRanges[mzBinIndex] = (Byte) (j + 1);
+                }*/
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
@@ -1170,15 +1188,21 @@ protected:
     }
 
     bool isIntensitiesQualified(double *perChargeIntensities, double *perIsotopeIntensities, const Parameter &param) {
+        int maxSetIntensityCounter = 0;
         int setIntensityCounter = 0;
         for (int i = 1; i < param.chargeRange; i++) {
-            if (perChargeIntensities[i - 1] > 0 && perChargeIntensities[i] > 0)
-                setIntensityCounter++;
+            if (perChargeIntensities[i] > 0 && perChargeIntensities[i-1] > 0) {
+                setIntensityCounter = 0;
+                continue;
+            }
+            setIntensityCounter++;
+            maxSetIntensityCounter =
+                    maxSetIntensityCounter > setIntensityCounter ? maxSetIntensityCounter : setIntensityCounter;
         }
-        if (setIntensityCounter < param.minContinuousChargePeakPairCount) return false;
+        if (maxSetIntensityCounter < param.minContinuousChargePeakPairCount) return false;
 
+        maxSetIntensityCounter = 0;
         setIntensityCounter = 0;
-        int maxSetIntensityCounter = 0;
         for (int i = 0; i < param.maxIsotopeCount; i++) {
             if (perIsotopeIntensities[i] <= 0) {
                 setIntensityCounter = 0;
