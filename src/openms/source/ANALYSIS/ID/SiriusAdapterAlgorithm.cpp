@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,108 +41,270 @@
 #include <QDirIterator>
 
 #include <fstream>
+#include <include/OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
-    SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
-      DefaultParamHandler("SiriusAdapterAlgorithm")
-    {      
-      // adapter parameters (preprocessing)
-      defaults_.setValue("preprocessing:filter_by_num_masstraces", 1, "Features have to have at least x MassTraces. To use this parameter feature_only is neccessary");
-      defaults_.setMinInt("preprocessing:filter_by_num_masstraces", 1);
-      defaults_.setValue("preprocessing:precursor_mz_tolerance", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)");
-      defaults_.setValue("preprocessing:precursor_mz_tolerance_unit", "Da", "Unit of the precursor_mz_tolerance");
-      defaults_.setValidStrings("preprocessing:precursor_mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
-      defaults_.setValue("preprocessing:precursor_rt_tolerance", 5, "Tolerance window (left and right) for precursor selection [seconds]");
-      defaults_.setValue("preprocessing:isotope_pattern_iterations", 3, "Number of iterations that should be performed to extract the C13 isotope pattern. If no peak is found (C13 distance) the function will abort. Be careful with noisy data - since this can lead to wrong isotope patterns.", ListUtils::create<String>("advanced"));
-      // adapter flags
-      defaults_.setValue("preprocessing:feature_only", "false", "Uses the feature information from in_featureinfo to reduce the search space to MS2 associated with a feature.");
-      defaults_.setValidStrings("preprocessing:feature_only", ListUtils::create<String>("true,false"));
-      defaults_.setValue("preprocessing:no_masstrace_info_isotope_pattern", "false", "Use this flag if the masstrace information from a feature should be discarded and the isotope_pattern_iterations should be used instead.", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("preprocessing:no_masstrace_info_isotope_pattern", ListUtils::create<String>("true,false"));
-      defaults_.setSectionDescription("preprocessing", "Preprocessing");
+    using SiriusName = String;
+    using OpenMSName = String;
+    using DefaultValue = DataValue;
+    using Description = String;
 
-      // parameters for SIRIUS (sirius)
-      defaults_.setValue("sirius:profile", "qtof", "Specify the used analysis profile");
-      defaults_.setValidStrings("sirius:profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
-      defaults_.setValue("sirius:candidates", 5, "The number of candidates in the SIRIUS output.");
-      defaults_.setMinInt("sirius:candidates", 1);
-      defaults_.setValue("sirius:database", "all", "search formulas in given database");
-      defaults_.setValidStrings("sirius:database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
-      defaults_.setValue("sirius:noise", 0, "median intensity of noise peaks");
-      defaults_.setMinInt("sirius:noise", 0);
-      defaults_.setValue("sirius:ppm_max", 10, "allowed ppm for decomposing masses");
-      defaults_.setValue("sirius:isotope", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring. Use 'omit' to ignore isotope pattern.");
-      defaults_.setValidStrings("sirius:isotope", ListUtils::create<String>("score,filter,both,omit"));
-      defaults_.setValue("sirius:elements", "CHNOP[5]S[8]Cl[1]", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1].");
-      defaults_.setValue("sirius:compound_timeout", 10, "Time out in seconds per compound. To disable the timeout set the value to 0");
-      defaults_.setMinInt("sirius:compound_timeout", 0);
-      defaults_.setValue("sirius:tree_timeout", 0, "Time out in seconds per fragmentation tree computation.");
-      defaults_.setMinInt("sirius:tree_timeout", 0);
-      defaults_.setValue("sirius:top_n_hits", 10, "The number of top hits for each compound written to the CSI:FingerID output");
-      defaults_.setMinInt("sirius:top_n_hits", 1);
-      defaults_.setValue("sirius:cores", 1, "The number of cores SIRIUS is allowed to use on the system");
-      defaults_.setMinInt("sirius:cores", 1);
-      // sirius flags
-      defaults_.setValue("sirius:auto_charge", "false", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.");
-      defaults_.setValidStrings("sirius:auto_charge", ListUtils::create<String>("true,false"));
-      defaults_.setValue("sirius:ion_tree", "false", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("sirius:ion_tree", ListUtils::create<String>("true,false"));
-      defaults_.setValue("sirius:no_recalibration", "false", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("sirius:no_recalibration", ListUtils::create<String>("true,false"));
-      defaults_.setValue("sirius:most_intense_ms2", "false", "SIRIUS uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("sirius:most_intense_ms2", ListUtils::create<String>("true,false"));
-      defaults_.setSectionDescription("sirius", "Parameters for SIRIUS and CSI:FingerID");
+    SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
+      DefaultParamHandler("SiriusAdapterAlgorithm"),
+      preprocessing(Preprocessing(this)),
+      nightsky_config(Config(this)),
+      nightsky_sirius(Sirius(this))
+    {
+      // Defines the Parameters for Preprocessing and NightSky subtools
+      preprocessing.parameters();
+      nightsky_config.parameters();
+      nightsky_sirius.parameters();
 
       defaultsToParam_();
     }
-    
-    String SiriusAdapterAlgorithm::getFeatureOnly() { return feature_only_; }
-    String SiriusAdapterAlgorithm::getNoMasstraceInfoIsotopePattern() { return no_masstrace_info_isotope_pattern_; }
-    String SiriusAdapterAlgorithm::getConverterMode() { return converter_mode_; }
-    int SiriusAdapterAlgorithm::getIsotopePatternIterations() { return isotope_pattern_iterations_; }
-    int SiriusAdapterAlgorithm::getCandidates() { return candidates_; }
-    int SiriusAdapterAlgorithm::getTopNHits() { return top_n_hits_; }
-     
-    void SiriusAdapterAlgorithm::updateMembers_()
-    {
-      // adapter parameters (preprocessing)
-      filter_by_num_masstraces_ = param_.getValue("preprocessing:filter_by_num_masstraces");
-      precursor_mz_tolerance_ = param_.getValue("preprocessing:precursor_mz_tolerance");
-      precursor_mz_tolerance_unit_ = param_.getValue("preprocessing:precursor_mz_tolerance_unit");
-      precursor_rt_tolerance_ = param_.getValue("preprocessing:precursor_rt_tolerance");
-      isotope_pattern_iterations_ = param_.getValue("preprocessing:isotope_pattern_iterations");
-      // flags
-      feature_only_ = param_.getValue("preprocessing:feature_only");
-      no_masstrace_info_isotope_pattern_ = param_.getValue("preprocessing:no_masstrace_info_isotope_pattern");
-      
-      // parameters for SIRIUS (sirius)
-      profile_ = param_.getValue("sirius:profile");
-      candidates_ = param_.getValue("sirius:candidates");
-      database_ = param_.getValue("sirius:database");
-      noise_ = param_.getValue("sirius:noise");
-      ppm_max_ = param_.getValue("sirius:ppm_max");
-      isotope_ = param_.getValue("sirius:isotope");
-      elements_ = param_.getValue("sirius:elements");
-      compound_timeout_ = param_.getValue("sirius:compound_timeout");
-      tree_timeout_ = param_.getValue("sirius:tree_timeout");
-      top_n_hits_ = param_.getValue("sirius:top_n_hits");
-      cores_ = param_.getValue("sirius:cores");
-      // flags
-      auto_charge_ = param_.getValue("sirius:auto_charge");
-      ion_tree_ = param_.getValue("sirius:ion_tree");
-      no_recalibration_ = param_.getValue("sirius:no_recalibration");
-      most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
-    }   
 
-    std::pair<String, String> SiriusAdapterAlgorithm::checkSiriusExecutablePath(String& executable)
+    void SiriusAdapterAlgorithm::Preprocessing::parameters()
+    {
+      parameter(
+              OpenMSName("filter_by_num_masstraces"),
+              DefaultValue(1),
+              Description("Number of mass traces each feature has to have to be included. "
+                          "To use this parameter, setting the feature_only flag is necessary"))
+          .withMinInt(1);
+
+      parameter(
+              OpenMSName("precursor_mz_tolerance"),
+              DefaultValue(0.005),
+              Description("Tolerance window for precursor selection (Feature selection in regard to the precursor)"));
+
+      parameter(
+              OpenMSName("precursor_mz_tolerance_unit"),
+              DefaultValue("Da"),
+              Description("Unit of the precursor_mz_tolerance"))
+          .withValidStrings({"Da", "ppm"});
+
+      parameter(
+              OpenMSName("precursor_rt_tolerance"),
+              DefaultValue(5),
+              Description("Tolerance window (left and right) for precursor selection [seconds]"));
+
+      //  defaults_.setValue".", ListUtils::create<String>("advanced"));
+      parameter(
+              OpenMSName("isotope_pattern_iterations"),
+              DefaultValue(3),
+              Description("Number of iterations that should be performed to extract the C13 isotope pattern. "
+                          "If no peak is found (C13 distance) the function will abort. "
+                          "Be careful with noisy data - since this can lead to wrong isotope patterns"));
+
+      flag(OpenMSName("feature_only"),
+           Description("Uses the feature information from in_featureinfo to reduce the search space to MS2 "
+                          "associated with a feature"));
+
+      flag(OpenMSName("no_masstrace_info_isotope_pattern"),
+           Description("Use this flag if the masstrace information from a feature should be discarded "
+                       "and the isotope_pattern_iterations should be used instead"));
+    }
+
+
+    void SiriusAdapterAlgorithm::Config::parameters()
+    {
+      parameter(
+              SiriusName("NoiseIntensity"),
+              DefaultValue(0),
+              Description("median intensity of noise peaks"))
+         .withMinInt(0);
+
+      // TODO These parameters are currently missing
+      // defaults_.setValue("sirius:isotope", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring. Use 'omit' to ignore isotope pattern.");
+      // defaults_.setValidStrings("sirius:isotope", ListUtils::create<String>("score,filter,both,omit"));
+      // defaults_.setValue("sirius:top_n_hits", 10, "The number of top hits for each compound written to the CSI:FingerID output");
+      // defaults_.setMinInt("sirius:top_n_hits", 1);
+      // defaults_.setValue("sirius:cores", 1, "The number of cores SIRIUS is allowed to use on the system");
+      // defaults_.setMinInt("sirius:cores", 1);
+      // defaults_.setValue("sirius:auto_charge", "false", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.");
+      // defaults_.setValidStrings("sirius:auto_charge", ListUtils::create<String>("true,false"));
+      // defaults_.setValue("sirius:ion_tree", "false", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", ListUtils::create<String>("advanced"));
+      // defaults_.setValidStrings("sirius:ion_tree", ListUtils::create<String>("true,false"));
+      // defaults_.setValue("sirius:most_intense_ms2", "false", "SIRIUS uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", ListUtils::create<String>("advanced"));
+      // defaults_.setValidStrings("sirius:most_intense_ms2", ListUtils::create<String>("true,false"));
+    }
+
+    void SiriusAdapterAlgorithm::Sirius::parameters()
+    {
+      // --ppm-max=<ppmMax>
+      // Maximum allowed mass deviation in ppm for decomposing masses.
+      parameter(
+              SiriusName("ppm-max"),
+              DefaultValue(10),
+              Description("Maximum allowed mass deviation in ppm for decomposing masses"));
+
+      // --ppm-max-ms2=<ppmMaxMs2>
+      // Maximum allowed mass deviation in ppm for decomposing masses in MS2.
+      // If not specified, the same value as for the MS1 is used.
+      parameter(
+              SiriusName("ppm-max-ms2"),
+              DefaultValue(10),
+              Description("Maximum allowed mass deviation in ppm for decomposing masses in MS2."
+                          "If not specified, the same value as for the MS1 is used."));
+
+      // --tree-timeout=<treeTimeout>
+      // Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time.
+      // Default: 0
+      parameter(
+              SiriusName("tree-timeout"),
+              DefaultValue(0),
+              Description("Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time"))
+         .withMinInt(0);
+
+      //--compound-timeout=<instanceTimeout>
+      // Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.
+      // Default: 0
+      parameter(
+              SiriusName("compound-timeout"),
+              DefaultValue(0),
+              Description(
+                      "Maximal computation time in seconds for a single compound. 0 for an infinite amount of time."))
+         .withMinInt(0);
+
+      // --no-recalibration
+      // Disable Recalibration of input Spectra
+      flag(
+              SiriusName("no-recalibration"),
+              Description("Disable Recalibration of input Spectra"));
+
+      // -p, --profile=<profile>
+      // Name of the configuration profile. Some of the default profiles are: 'qtof', 'orbitrap', 'fticr'.
+      parameter(
+              SiriusName("profile"),
+              DefaultValue("qtof"),
+              Description("Name of the configuration profile"))
+         .withValidStrings({"qtof", "orbitrap", "fticr"});
+
+      // -f, --formula, --formulas=<formula>
+      // Specify the neutral molecular formula of the measured compound to compute its tree or a list of candidate
+      // formulas the method should discriminate. Omit this option if you want to consider all possible
+      // molecular formulas
+      parameter(
+              SiriusName("formula"),
+              DefaultValue(""),
+              Description("Specify the neutral molecular formula of the measured "
+                          "compound to compute its tree or a list of candidate "
+                          "formulas the method should discriminate. Omit this "
+                          "option if you want to consider all possible molecular formulas"));
+
+      // -I, --ions-enforced=<ionsEnforced>
+      // the iontype/adduct of the MS/MS data.
+      // Example: [M+H]+, [M-H]-, [M+Cl]-, [M+Na]+, [M]+.
+      // You can also provide a comma separated list of adducts.
+      parameter(
+              SiriusName("ions-enforced"),
+              DefaultValue(-1),
+              Description("the iontype/adduct of the MS/MS data. Example: [M+H]+, "
+                          "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a comma separated list of adducts"));
+
+      //-c, --candidates=<numberOfCandidates>
+      //         Number of formula candidates in the output.
+      parameter(
+              SiriusName("candidates"),
+              DefaultValue(5),
+              Description("The number of formula candidates in the SIRIUS output"))
+         .withMinInt(1);
+
+      // --candidates-per-ion=<numberOfCandidatesPerIon>
+      //        Minimum number of candidates in the output for each
+      // ionization. Set to force output of results for each
+      // possible ionization, even if not part of highest
+      // ranked results.
+      parameter(
+              SiriusName("candidates-per-ion"),
+              DefaultValue(-1),
+              Description("Minimum number of candidates in the output for each "
+                          "ionization. Set to force output of results for each "
+                          "possible ionization, even if not part of highest "
+                          "ranked results. -1 omits parameter in Sirius."));
+
+      // -e, --elements-considered=<detectableElements>
+      //        Set the allowed elements for rare element detection.
+      //        Write SBrClBSe to allow the elements S,Br,Cl,B and Se.
+      parameter(
+              SiriusName("elements-considered"),
+              DefaultValue(""),
+              Description("Set the allowed elements for rare element detection. "
+                          "Write SBrClBSe to allow the elements S,Br,Cl,B and Se."));
+
+      // -E, --elements-enforced=<enforcedElements>
+      // Enforce elements for molecular formula determination.
+      // Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the
+      // minimal and maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1-2]. When one number is
+      // given then it is interpreted as upper bound. Default is CHNOP
+      parameter(
+              SiriusName("elements-enforced"),
+              DefaultValue(""),
+              Description("Enforce elements for molecular formula determination. "
+                          "Write CHNOPSCl to allow the elements C, H, N, O, P, S "
+                          "and Cl. Add numbers in brackets to restrict the "
+                          "minimal and maximal allowed occurrence of these "
+                          "elements: CHNOP[5]S[8]Cl[1-2]. When one number is "
+                          "given then it is interpreted as upper bound. Default is CHNOP"));
+
+      // --no-isotope-score=<isotopeHandling>
+      //         Disable isotope pattern score.
+      flag(SiriusName("no-isotope-score"),
+           Description("Disable isotope pattern score."));
+
+      // --no-isotope-filter
+      // Disable molecular formula filter. When filtering is enabled, molecular formulas are excluded if their
+      // theoretical isotope pattern does not match the theoretical one, even if their MS/MS pattern has high score.
+      flag(SiriusName("no-isotope-filter"),
+           Description("Disable molecular formula filter. When filtering is enabled, molecular formulas are "
+                      "excluded if their theoretical isotope pattern does not match the theoretical one, even if "
+                      "their MS/MS pattern has high score."));
+
+      // -i, --ions-considered=<ionsConsidered>
+      //  the iontype/adduct of the MS/MS data. Example: [M+H]+,
+      // [M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a
+      // comma separated list of adducts.
+      parameter(
+              SiriusName("ions-considered"),
+              DefaultValue(""),
+              Description("the iontype/adduct of the MS/MS data. "
+                          "Example: [M+H]+, [M-H]-, [M+Cl]-, [M+Na]+, [M]+. "
+                          "You can also provide a comma separated list of adducts."));
+    }
+
+
+    void SiriusAdapterAlgorithm::updateExistingParameter(const OpenMS::Param &param)
+    {
+      for (auto it = param.begin(); it != param.end(); ++it)
+      {
+        const String name = it.getName();
+        if (hasFullNameParameter(name))
+        {
+          vector<String> tags(it->tags.begin(), it->tags.end());
+          param_.setValue(name, it->value, it->description, tags);
+        }
+      }
+    }
+
+    bool SiriusAdapterAlgorithm::hasFullNameParameter(const OpenMS::String &name) const
+    {
+      for (auto it = param_.begin(); it != param_.end(); ++it)
+      {
+        if (it.getName() == name)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    String SiriusAdapterAlgorithm::determineSiriusExecutable(String &executable)
     { 
-      std::pair<String, String> executable_workdir;
       // if executable was not provided
       if (executable.empty())
       {
-        const QProcessEnvironment env;
-        const String& qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
+        const String& qsiriuspathenv = QProcessEnvironment::systemEnvironment().value("SIRIUS_PATH");
         if (qsiriuspathenv.empty())
         {
           throw Exception::InvalidValue(__FILE__,
@@ -153,17 +315,9 @@ namespace OpenMS
         }
         executable = qsiriuspathenv;
       }
-
-      // normalize file path
-      QString exe = executable.toQString();
-      QFileInfo file_info(exe);
-      exe = file_info.canonicalFilePath();
-  
-      LOG_WARN << "Executable is: " + String(exe) << std::endl;
-      const String path_to_executable = File::path(exe);
-      executable_workdir = std::make_pair(exe.toStdString(), path_to_executable);
-      
-      return executable_workdir;
+      const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
+      LOG_WARN << "Executable is: " + exe << std::endl;
+      return exe;
     }
 
     SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct()
@@ -181,7 +335,6 @@ namespace OpenMS
                                                      const MSExperiment& spectra,
                                                      std::vector<FeatureMap>& v_fp,
                                                      KDTreeFeatureMaps& fp_map_kd,
-                                                     const SiriusAdapterAlgorithm& sirius_algo,
                                                      FeatureMapping::FeatureToMs2Indices& feature_mapping)
     {
       // if fileparameter is given and should be not empty
@@ -194,13 +347,11 @@ namespace OpenMS
           FeatureMap feature_map;
           fxml.load(featureinfo, feature_map);
           
-          bool feature_only = (sirius_algo.feature_only_ == "true") ? true : false;
-          unsigned int num_masstrace_filter = sirius_algo.filter_by_num_masstraces_;
-          double precursor_mz_tol = sirius_algo.precursor_mz_tolerance_;
-          double precursor_rt_tol = sirius_algo.precursor_rt_tolerance_;
-          bool ppm_prec = (sirius_algo.precursor_mz_tolerance_unit_ == "true") ? true : false; 
-          
-          if (num_masstrace_filter != 1 && !feature_only)
+          UInt num_masstrace_filter = getFilterByNumMassTraces();
+          double precursor_mz_tol = getPrecursorMzTolerance();
+          double precursor_rt_tol = getPrecursorRtTolerance();
+
+          if (num_masstrace_filter != 1 && !isFeatureOnly())
           {
             num_masstrace_filter = 1;
             LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
@@ -223,7 +374,7 @@ namespace OpenMS
                                                                     fp_map_kd,
                                                                     precursor_mz_tol,
                                                                     precursor_rt_tol,
-                                                                    ppm_prec);
+                                                                    precursorMzToleranceUnitIsPPM());
         }
         else
         {
@@ -235,14 +386,12 @@ namespace OpenMS
       }
     }   
 
-    void SiriusAdapterAlgorithm::checkFeatureSpectraNumber(const String& featureinfo,
-                                                           const FeatureMapping::FeatureToMs2Indices& feature_mapping, 
-                                                           const MSExperiment& spectra,
-                                                           const SiriusAdapterAlgorithm& sirius_algo)
+    void SiriusAdapterAlgorithm::logFeatureSpectraNumber(const String &featureinfo,
+                                                         const FeatureMapping::FeatureToMs2Indices &feature_mapping,
+                                                         const MSExperiment &spectra)
     {
-      bool feature_only = (sirius_algo.feature_only_ == "true") ? true : false;
-      // number of features to be processed 
-      if (feature_only && !featureinfo.empty())
+      // number of features to be processed
+      if (isFeatureOnly() && !featureinfo.empty())
       {
         LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
       }
@@ -253,108 +402,96 @@ namespace OpenMS
       } 
       else
       {
-        int count_ms2 = 0;
-        for (auto spec_it : spectra)
-        {
-          if (spec_it.getMSLevel() == 2)
-          {
-            count_ms2++;
-          }
-        }
+        long count_ms2 = count_if(spectra.begin(), spectra.end(),
+                [](const MSSpectrum &spectrum) { return spectrum.getMSLevel() == 2; });
+
         LOG_INFO << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
       }
-    } 
+    }
 
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
-                                                                   const String& tmp_out_dir,
-                                                                   String& executable,
-                                                                   const String& out_csifingerid,
-                                                                   const SiriusAdapterAlgorithm& sirius_algo)
+                                                                         const String& tmp_out_dir,
+                                                                               String& executable,
+                                                                         const String& out_csifingerid)
     {
-      // assemble SIRIUS parameters
-      QStringList process_params;
-      process_params << "-p" << sirius_algo.profile_.toQString()
-                     << "-e" << sirius_algo.elements_.toQString()
-                     << "-d" << sirius_algo.database_.toQString()
-                     << "-s" << sirius_algo.isotope_.toQString()
-                     << "--noise" << QString::number(sirius_algo.noise_)
-                     << "--candidates" << QString::number(sirius_algo.candidates_)
-                     << "--ppm-max" << QString::number(sirius_algo.ppm_max_)
-                     << "--compound-timeout" << QString::number(sirius_algo.compound_timeout_)
-                     << "--tree-timeout" << QString::number(sirius_algo.tree_timeout_)
-                     << "--processors" << QString::number(sirius_algo.cores_)
-                     << "--quiet"
-                     << "--output" << tmp_out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
-  
-      // add flags 
-      if (sirius_algo.no_recalibration_ == "true")
+      // Get the command line parameters from all the subtools
+      QStringList config_params = nightsky_config.getCommandLine();
+      QStringList sirius_params = nightsky_sirius.getCommandLine();
+
+      const bool run_csifingerid = ! out_csifingerid.empty();
+
+      // Structure of the command line passed to NightSky
+      QStringList command_line = QStringList({tmp_ms_file.toQString(), "config"}) + config_params + sirius_params + QStringList("sirius");
+
+      if (run_csifingerid)
       {
-        process_params << "--no-recalibration";
+        command_line << "fingerid";
       }
-      if (!out_csifingerid.empty())
+
+      LOG_INFO << "Running NightSky with the following command line parameters: " << endl;
+      for (const auto &param: command_line)
       {
-        process_params << "--fingerid";
+        LOG_INFO << param.toStdString() << " ";
       }
-      if (sirius_algo.ion_tree_ == "true")
-      {
-        process_params << "--iontree";
-      }
-      if (sirius_algo.auto_charge_ == "true")
-      {
-        process_params << "--auto-charge";
-      }
-      if (sirius_algo.most_intense_ms2_ == "true")
-      {
-        process_params << "--mostintense-ms2";
-      }
-  
-      process_params << tmp_ms_file.toQString();
-  
-      // the actual process
-      QProcess qp;
-      std::pair<String, String> exe_wd = SiriusAdapterAlgorithm::checkSiriusExecutablePath(executable);
-      QString exe = exe_wd.first.toQString();
-      QString wd = exe_wd.second.toQString(); 
-      qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
-      qp.start(exe, process_params); // does automatic escaping etc... start
-      std::stringstream ss;
-      ss << "COMMAND: " << String(exe);
-      for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
-      {
-          ss << " " << it->toStdString();
-      }
-      LOG_DEBUG << ss.str() << std::endl;
-      LOG_WARN << "Executing: " + String(exe) << std::endl;
-      LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
-      const bool success = qp.waitForFinished(-1); // wait till job is finished
-  
-      if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
-      {
-        LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
-        const QString sirius_stdout(qp.readAllStandardOutput());
-        const QString sirius_stderr(qp.readAllStandardError());
-        LOG_WARN << String(sirius_stdout) << std::endl;
-        LOG_WARN << String(sirius_stderr) << std::endl;
-        LOG_WARN << String(qp.exitCode()) << std::endl;
+      LOG_INFO << endl;
+
+
+        // the actual process
+        QProcess qp;
+        QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
+
+        //since library paths are relative to sirius executable path
+        qp.setWorkingDirectory(File::path(executable).toQString());
+        qp.start(executable_qstring, command_line); // does automatic escaping etc... start
+        const bool success = qp.waitForFinished(-1);
+
+        if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
+        {
+          LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
+          const QString sirius_stdout(qp.readAllStandardOutput());
+          const QString sirius_stderr(qp.readAllStandardError());
+          LOG_WARN << String(sirius_stdout) << std::endl;
+          LOG_WARN << String(sirius_stderr) << std::endl;
+          LOG_WARN << String(qp.exitCode()) << std::endl;
+          qp.close();
+
+          throw Exception::InvalidValue(__FILE__,
+                                        __LINE__,
+                                        OPENMS_PRETTY_FUNCTION,
+                                        "FATAL: External invocation of Sirius failed!",
+                                         "");
+        }
         qp.close();
 
-        throw Exception::InvalidValue(__FILE__,
-                                      __LINE__, 
-                                      OPENMS_PRETTY_FUNCTION, 
-                                      "FATAL: External invocation of Sirius failed!",
-                                       "");
-      }
-      qp.close();
-      
-      // extract path to subfolders (sirius internal folder structure)
-      std::vector<String> subdirs;
-      QDirIterator it(tmp_out_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
-      while (it.hasNext())
-      {
-        subdirs.push_back(it.next());
-      }
+       //extract path to subfolders (sirius internal folder structure)
+       std::vector<String> subdirs;
+        QDirIterator it(tmp_out_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+        while (it.hasNext())
+        {
+          subdirs.push_back(it.next());
+        }
       return subdirs;
+    }
+
+
+    SiriusAdapterAlgorithm::ParameterModifier SiriusAdapterAlgorithm::ParameterSection::parameter(
+            const String &parameter_name,
+            const DataValue &default_value,
+            const String &parameter_description)
+    {
+      const String full_parameter = toFullParameter(parameter_name);
+      openms_to_sirius[full_parameter] = parameter_name;
+      enclose->defaults_.setValue(full_parameter, default_value, parameter_description);
+      return ParameterModifier(full_parameter, enclose);
+    }
+
+  void SiriusAdapterAlgorithm::ParameterSection::flag(
+            const OpenMS::String &parameter_name,
+            const OpenMS::String &parameter_description)
+    {
+      parameter(parameter_name, DefaultValue("false"), parameter_description)
+        .withValidStrings({"true", "false"});
     }
 } // namespace OpenMS
 

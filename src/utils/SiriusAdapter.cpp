@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,7 +73,7 @@ using namespace std;
 
   If you want to use the software with the Gurobi solver or CPLEX instead of GLPK, please follow the instructions in the sirius manual.
 
-  Internal procedure in SiriusAdpater \n
+  Internal procedure in SiriusAdapter \n
   1. Input mzML (and optional featureXML) \n
   2. Preprocessing (see below)\n
   3. Parsed by SiriusMSConverter into (sirius internal) .ms format \n
@@ -114,6 +114,8 @@ class TOPPSiriusAdapter :
       })
     {}
 
+private:
+  SiriusAdapterAlgorithm algorithm;
 
 protected:
 
@@ -146,7 +148,8 @@ protected:
     registerFlag_("converter_mode", "Use this flag in combination with the out_ms file to only convert the input mzML and featureXML to an .ms file. Without further SIRIUS processing.", true);
 
     addEmptyLine_();
-    registerFullParam_(SiriusAdapterAlgorithm().getDefaults());
+
+    registerFullParam_(algorithm.getDefaults());
   }
 
   ExitCodes main_(int, const char **) override
@@ -154,8 +157,6 @@ protected:
     //-------------------------------------------------------------
     // Parsing parameters
     //-------------------------------------------------------------
-
-    // param SiriusAdapter
     String executable = getStringOption_("executable");
     String in = getStringOption_("in");
     String out_sirius = getStringOption_("out_sirius");
@@ -165,16 +166,9 @@ protected:
     String sirius_workspace_directory = getStringOption_("out_workspace_directory");
     bool converter_mode = getFlag_("converter_mode");
 
-    // param SiriusAdapterAlgorithm
-    Param combined; 
-    SiriusAdapterAlgorithm sirius_algo;
-    Param preprocessing = getParam_().copy("preprocessing", false);
-    Param sirius = getParam_().copy("sirius", false);
-    combined.insert("", preprocessing);
-    combined.insert("", sirius);
-    sirius_algo.setParameters(combined);
+    algorithm.updateExistingParameter(getParam_());
 
-    writeDebug_("Parameters passed to SiriusAdapterAlgorithm", combined, 3);
+    writeDebug_("Parameters passed to SiriusAdapterAlgorithm", algorithm.getParameters(), 3);
 
     //-------------------------------------------------------------
     // Calculations
@@ -194,30 +188,23 @@ protected:
     vector<FeatureMap> v_fp; // copy FeatureMap via push_back
     KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
     FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
-    SiriusAdapterAlgorithm::preprocessingSirius(featureinfo,
-                                                spectra,
-                                                v_fp,
-                                                fp_map_kd,
-                                                sirius_algo,
-                                                feature_mapping);
+    algorithm.preprocessingSirius(featureinfo,
+                                  spectra,
+                                  v_fp,
+                                  fp_map_kd,
+                                  feature_mapping);
 
     // returns Log of feature and/or spectra number
-    SiriusAdapterAlgorithm::checkFeatureSpectraNumber(featureinfo,
-                                                      feature_mapping,
-                                                      spectra,
-                                                      sirius_algo);
+    algorithm.logFeatureSpectraNumber(featureinfo, feature_mapping, spectra);
 
     // write msfile and store the compound information in CompoundInfo Object
     vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
-    bool feature_only = (sirius_algo.getFeatureOnly() == "true") ? true : false;
-    bool no_mt_info = (sirius_algo.getNoMasstraceInfoIsotopePattern() == "true") ? true : false;
-    int isotope_pattern_iterations = sirius_algo.getIsotopePatternIterations();
     SiriusMSFile::store(spectra,
                         tmp_ms_file,
                         feature_mapping,
-                        feature_only,
-                        isotope_pattern_iterations,
-                        no_mt_info,
+                        algorithm.isFeatureOnly(),
+                        algorithm.getIsotopePatternIterations(),
+                        algorithm.isNoMasstraceInfoIsotopePattern(),
                         v_cmpinfo);
 
     // converter_mode enabled (only needed for SiriusAdapter)
@@ -225,17 +212,13 @@ protected:
     {
       QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
       LOG_WARN << "SiriusAdapter was used in converter mode and is terminated after openms preprocessing. \n"
-                  "If you would like to run SIRIUS internally please disable the converter mode." << std::endl; 
+                  "If you would like to run SIRIUS internally please disable the converter mode." << std::endl;
       return EXECUTION_OK;
     }
 
     // calls Sirius and returns vector of paths to sirius folder structure
     std::vector<String> subdirs;
-    subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(tmp_ms_file,
-                                                         tmp_out_dir,
-                                                         executable,
-                                                         out_csifingerid,
-                                                         sirius_algo);
+    subdirs = algorithm.callSiriusQProcess(tmp_ms_file, tmp_out_dir, executable, out_csifingerid);
 
     //-------------------------------------------------------------
     // writing output
@@ -245,21 +228,22 @@ protected:
     std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
 
     // convert sirius_output to mztab and store file
-    int candidates = sirius_algo.getCandidates();
+    const int candidates = algorithm.getNumberOfCandidates();
     MzTab sirius_result;
     MzTabFile siriusfile;
     SiriusMzTabWriter::read(subdirs, in, candidates, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
+    // TODO Currently CSI:FingerID parameters are not yet finalized
     // convert sirius_output to mztab and store file
-    if (!out_csifingerid.empty())
-    {
-      int top_n_hits = sirius_algo.getTopNHits();
-      MzTab csi_result;
-      MzTabFile csifile;
-      CsiFingerIdMzTabWriter::read(subdirs, in, top_n_hits, csi_result);
-      csifile.store(out_csifingerid, csi_result);
-    }
+//    if (!out_csifingerid.empty())
+//    {
+//      int top_n_hits = sirius_algo.getTopNHits();
+//      MzTab csi_result;
+//      MzTabFile csifile;
+//      CsiFingerIdMzTabWriter::read(subdirs, in, top_n_hits, csi_result);
+//      csifile.store(out_csifingerid, csi_result);
+//    }
 
     // should the sirius workspace be retained
     if (!sirius_workspace_directory.empty())
@@ -294,12 +278,12 @@ protected:
     }
     else
     {
-      if (tmp_dir.empty() == false)
+      if ( ! tmp_dir.empty())
       {
         writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 0);
         File::removeDir(tmp_dir.toQString());
       }
-      if (tmp_ms_file.empty() == false)
+      if ( ! tmp_ms_file.empty() )
       {
         writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
         File::remove(tmp_ms_file); // remove msfile
