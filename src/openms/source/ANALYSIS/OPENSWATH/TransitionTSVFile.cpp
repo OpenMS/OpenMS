@@ -1379,7 +1379,7 @@ namespace OpenMS
     mytransition.identifying_transition = it->isIdentifyingTransition();
     mytransition.quantifying_transition = it->isQuantifyingTransition();
 
-    return(mytransition);
+    return mytransition;
   }
 
   void TransitionTSVFile::writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
