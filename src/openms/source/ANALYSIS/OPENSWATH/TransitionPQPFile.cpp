@@ -110,6 +110,7 @@ namespace OpenMS
                   "NULL AS CompoundName, " \
                   "NULL AS SMILES, " \
                   "NULL AS SumFormula, " \
+                  "NULL AS Adducts, " \
                   "PRECURSOR.CHARGE AS precursor_charge, " \
                   "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
                   "NULL AS label_type, " \
@@ -159,6 +160,7 @@ namespace OpenMS
                   "COMPOUND.COMPOUND_NAME AS CompoundName, " \
                   "COMPOUND.SMILES AS SMILES, " \
                   "COMPOUND.SUM_FORMULA AS SumFormula, " \
+                  "COMPOUND.ADDUCTS AS Adducts, " \
                   "PRECURSOR.CHARGE AS precursor_charge, " \
                   "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
                   "NULL AS label_type, " \
@@ -207,24 +209,25 @@ namespace OpenMS
       Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
       Sql::extractValue<std::string>(&mytransition.SMILES, stmt, 13);
       Sql::extractValue<std::string>(&mytransition.SumFormula, stmt, 14);
-      Sql::extractValueIntStr(&mytransition.precursor_charge, stmt, 15);
-      Sql::extractValue<std::string>(&mytransition.peptide_group_label, stmt, 16);
-      Sql::extractValue<std::string>(&mytransition.label_type, stmt, 17);
-      Sql::extractValueIntStr(&mytransition.fragment_charge, stmt, 18);
-      Sql::extractValue<int>(&mytransition.fragment_nr, stmt, 19);
-      Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 20);
-      Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 21);
-      Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 22);
-      Sql::extractValue<std::string>(&mytransition.uniprot_id, stmt, 23);
-      Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 24);
-      Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 25);
-      Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 26);
+      Sql::extractValue<std::string>(&mytransition.Adducts, stmt, 15);
+      Sql::extractValueIntStr(&mytransition.precursor_charge, stmt, 16);
+      Sql::extractValue<std::string>(&mytransition.peptide_group_label, stmt, 17);
+      Sql::extractValue<std::string>(&mytransition.label_type, stmt, 18);
+      Sql::extractValueIntStr(&mytransition.fragment_charge, stmt, 19);
+      Sql::extractValue<int>(&mytransition.fragment_nr, stmt, 20);
+      Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 21);
+      Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 22);
+      Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
+      Sql::extractValue<std::string>(&mytransition.uniprot_id, stmt, 24);
+      Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
+      Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
+      Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
       if (sqlite3_column_type( stmt, 27 ) != SQLITE_NULL)
       {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 27 ))).split('|', mytransition.peptidoforms);
+        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 28 ))).split('|', mytransition.peptidoforms);
       }
       // optional attributes only present in newer file versions
-      if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 28);
+      if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);
 
       transition_list.push_back(mytransition);
       sqlite3_step( stmt );
@@ -281,6 +284,7 @@ namespace OpenMS
       "COMPOUND_NAME TEXT NOT NULL," \
       "SUM_FORMULA TEXT NOT NULL," \
       "SMILES TEXT NOT NULL," \
+      "ADDUCTS TEXT NOT NULL," \
       "DECOY INT NOT NULL);" \
 
       // precursor_compound_mapping table
@@ -536,12 +540,19 @@ namespace OpenMS
     std::stringstream insert_compound_sql;
     for (const auto& it : compound_map)
     {
+      String adducts;
       const auto& compound = targeted_exp.getCompoundByRef(it.first);
-      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, DECOY) VALUES (" <<
+      if (compound.metaValueExists("Adducts"))
+      {
+        adducts = compound.getMetaValue("Adducts");
+      }
+      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
         it.second << ",'" <<
         compound.id << "','" <<
         compound.molecular_formula << "','" <<
-        compound.smiles_string << "'," << 0 << "); ";
+        compound.smiles_string << "','" <<
+        adducts << "'," <<
+        0 << "); ";
     }
 
     // OpenSWATH: Prepare decoy updates

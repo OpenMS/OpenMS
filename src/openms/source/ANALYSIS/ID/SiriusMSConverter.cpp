@@ -228,9 +228,14 @@ namespace OpenMS
           }
         }
 
-        String query_id = "_" + String(feature_id) + 
+        // construct query_id; remove spaces from string
+        std::string des_wo_space = description;
+        des_wo_space.erase(std::remove_if(des_wo_space.begin(), des_wo_space.end(), ::isspace), des_wo_space.end());
+
+        String query_id = "_" + String(feature_id) +
                           String("-" + String(scan_number) + "-") +
-                          description + String(ind);
+                          String(des_wo_space) +
+                          String(ind);
 
         if (writecompound)
         {

@@ -99,7 +99,6 @@ namespace OpenMS
     
     String SiriusAdapterAlgorithm::getFeatureOnly() { return feature_only_; }
     String SiriusAdapterAlgorithm::getNoMasstraceInfoIsotopePattern() { return no_masstrace_info_isotope_pattern_; }
-    String SiriusAdapterAlgorithm::getConverterMode() { return converter_mode_; }
     int SiriusAdapterAlgorithm::getIsotopePatternIterations() { return isotope_pattern_iterations_; }
     int SiriusAdapterAlgorithm::getCandidates() { return candidates_; }
     int SiriusAdapterAlgorithm::getTopNHits() { return top_n_hits_; }

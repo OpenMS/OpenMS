@@ -195,6 +195,7 @@ protected:
       double precursor_mz;
       double precursor_rt;
       double precursor_int;
+      int precursor_charge;
       double transition_quality_score; // here precursor intensity will be used at first, till a better scoring is available
       String compound_name;
       String compound_adduct;
@@ -316,6 +317,7 @@ protected:
 
         double highest_precursor_mz = 0.0;
         float highest_precursor_int = 0.0;
+        int highest_precursor_charge = 0;
         MSSpectrum highest_precursor_int_spectrum;
         MSSpectrum transition_spectrum;
         String native_id;
@@ -342,6 +344,7 @@ protected:
           // only spectra with precursors are in the map, therefore no need to check for their presence
           double precursor_mz = precursor[0].getMZ();
           float precursor_int = precursor[0].getIntensity();
+          int precursor_charge = precursor[0].getCharge();
 
           native_id = spectrum.getNativeID();
 
@@ -351,6 +354,7 @@ protected:
             highest_precursor_int = precursor_int;
             highest_precursor_mz = precursor_mz;
             highest_precursor_int_spectrum = spectrum;
+            highest_precursor_charge = precursor_charge;
           }
           transition_spectrum = highest_precursor_int_spectrum;
         }
@@ -487,8 +491,8 @@ protected:
         else
         {
           // TODO: if this is concatenated -> Elements are not read correctly e.g. "02,"
-          // In this case use only the first sumformula of the element maybe safe the other ones someware else
-          //adduct = ListUtils::concatenate(v_adduct, ",");
+          // In this case use only the first sumformula of the element maybe safe the other ones somewhere else
+          // adduct = ListUtils::concatenate(v_adduct, ",");
           adduct = v_adduct[0];
           cmp.setMetaValue("Adducts", adduct);
         }
@@ -540,7 +544,8 @@ protected:
         pts.precursor_mz = highest_precursor_mz;
         pts.precursor_rt = feature_rt;
         pts.precursor_int = highest_precursor_int;
-        //pts.transition_quality = ;
+        pts.precursor_charge = highest_precursor_charge;
+        //pts.transition_quality =
         pts.compound_name = description;
         pts.compound_adduct = adduct;
         pts.potential_cmp = cmp;
@@ -577,6 +582,7 @@ protected:
         double feature_rt;
         feature_rt = it->first.rt;
         description = it->first.des;
+        int charge = it->first.charge;
 
         // use annotated metadata
         sumformula = it->second.getMetaValue("annotated_sumformula");
@@ -697,6 +703,7 @@ protected:
         pts.precursor_mz = (use_exact_mass && exact_mass_precursor != 0.0)  ? exact_mass_precursor : it->first.pmass;
         pts.precursor_rt = it->first.rt;
         pts.precursor_int = 0;
+        pts.precursor_charge = charge;
         //pts.transition_quality = ;
         pts.compound_name = description;
         pts.compound_adduct = adduct;
