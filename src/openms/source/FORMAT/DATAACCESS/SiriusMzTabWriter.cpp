@@ -59,9 +59,8 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
-   
-    // extract mz, rt and nativeID corresponding to spectrum.ms
-    String ext_nid;
+    // extract mz, rt and nativeID of the corresponding precursor spectrum in the spectrum.ms file
+    string ext_nid;
     double ext_mz = 0.0;
     double ext_rt = 0.0;
     const String sirius_spectrum_ms = *it + "/spectrum.ms";
@@ -75,17 +74,17 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
       std::string::size_type sz;
       while (getline(spectrum_ms_file, line))
       {
-        if (line.find(pmass_prefix,0) == 0)
+        if (line.compare(pmass_prefix) == 1)
         {
            std::string pmass = line.erase(line.find(pmass_prefix), pmass_prefix.size());
            ext_mz = std::stod(pmass, &sz);
         }
-        if (line.find(rt_prefix,0) == 0)
+        if (line.compare(rt_prefix) == 1)
         {
            std::string rt = line.erase(line.find(rt_prefix), rt_prefix.size());
            ext_rt = std::stod(rt, &sz);
         }
-        if (line.find(nid_prefix, 0) == 0)
+        if (line.compare(nid_prefix) == 1)
         {
            std::string nid = line.erase(line.find(nid_prefix), nid_prefix.size());
            ext_nid = nid;
