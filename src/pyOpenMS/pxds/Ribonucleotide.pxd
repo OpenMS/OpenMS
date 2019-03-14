@@ -85,7 +85,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
         String getHTMLCode() nogil except +
 
         # Set the terminal specificity
-        #void setTermSpecificity(TermSpecificityNuc term_spec) nogil except +
+        void setTermSpecificity(TermSpecificityNuc term_spec) nogil except +
 
         # Get the terminal specificity
         TermSpecificityNuc getTermSpecificity() nogil except +

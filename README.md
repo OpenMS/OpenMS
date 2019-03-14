@@ -45,16 +45,19 @@ Features
 - Support for most MS identification and quantification workflows (targeted, DIA, label-free, isobaric and stable isotope)
 - Support for all major platforms (Windows [XP, 7, 8, 10], macOS and Linux)
 
-Licence
--------
-OpenMS is released under the [three clause BSD licence](LICENSE).
-
-Authors
--------
-The file [AUTHORS](AUTHORS) contains a list of all authors who worked on OpenMS.
-
 Documentation
 -------------
 Users and developers should start by reading the [OpenMS wiki](https://github.com/OpenMS/OpenMS/wiki) and consult the [current documentation](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/nightly/html/index.html) (or use the [latest release documentation](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)).
 Documentation for the Python bindings pyOpenMS can be found on the [pyOpenMS online documentation](https://pyopenms.readthedocs.io).
 
+Citation
+--------
+Please cite:
+
+Rost HL, Sachsenberg T, Aiche S, Bielow C et al. OpenMS: a flexible open-source software platform for mass spectrometry data analysis. Nat Meth. 2016; 13, 9: 741-748. doi:10.1038/nmeth.3959.
+
+The file [AUTHORS](AUTHORS) contains a list of all authors who worked on OpenMS.
+
+Licence
+-------
+OpenMS is released under the [three clause BSD licence](LICENSE).

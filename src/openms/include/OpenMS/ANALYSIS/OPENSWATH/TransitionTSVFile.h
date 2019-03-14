@@ -66,6 +66,7 @@ namespace OpenMS
 
   For targeted proteomics files, the following additional columns should be provided:
         <table>
+          <tr> <td BGCOLOR="#EBEBEB">GeneName**</td> <td>free text; </td><td> Gene name (unique gene identifier)</td></tr>
           <tr> <td BGCOLOR="#EBEBEB">ProteinId**</td> <td>free text; synonyms: ProteinName</td><td> Protein identifier</td></tr>
           <tr> <td BGCOLOR="#EBEBEB">PeptideSequence**</td> <td>free text</td> <td> sequence only (no modifications); synonyms: Sequence, StrippedSequence</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">ModifiedPeptideSequence**</td> <td>free text</td> <td> should contain modifications<sup>1</sup>; synonyms: FullUniModPeptideName, FullPeptideName, ModifiedSequence</td>  </tr>
@@ -163,6 +164,7 @@ protected:
       bool decoy = false; ///< Whether the transition is a decoy transition
       String PeptideSequence; ///< Peptide sequence (only AA sequence)
       String ProteinName; ///< Protein identifier
+      String GeneName; ///< Gene identifier
       String Annotation; ///< Fragment ion annotation
       String FullPeptideName; ///< Full peptide sequence with UniMod modifications
       String CompoundName; ///< Compound name (for metabolomics)

@@ -33,8 +33,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         unsigned int getMSLevel() nogil except +
         void setMSLevel(unsigned int) nogil except +
 
-        libcpp_string getName() nogil except +
-        void setName(libcpp_string) nogil except +
+        String getName() nogil except +
+        void setName(String) nogil except +
 
         Size size() nogil except +
         void reserve(size_t n) nogil except + 

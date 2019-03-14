@@ -48,24 +48,24 @@ using namespace std;
 
 ///////////////////////////
 
-class Test: public SampleTreatment
+class ST_Test: public SampleTreatment
 {
   public:
-    Test():
-    SampleTreatment("Test")
+    ST_Test():
+    SampleTreatment("ST_Test")
     {
     }
 
-    Test(const Test& source):
+    ST_Test(const ST_Test& source):
     SampleTreatment(source)
     {
     }
 
-    ~Test() override
+    ~ST_Test() override
     {
     }
 
-    Test& operator = (const Test& source)
+    ST_Test& operator = (const ST_Test& source)
     {
       if (&source != this)
       {
@@ -76,7 +76,7 @@ class Test: public SampleTreatment
 
     SampleTreatment* clone() const override
     {
-      return new Test(*this);
+      return new ST_Test(*this);
     }
 
     bool operator== (const SampleTreatment& rhs) const override
@@ -86,7 +86,7 @@ class Test: public SampleTreatment
         return false;
       }
 
-      const Test* tmp = dynamic_cast<const Test*>(&rhs);
+      const ST_Test* tmp = dynamic_cast<const ST_Test*>(&rhs);
       return SampleTreatment::operator==(*tmp);
     }
 };
@@ -98,10 +98,10 @@ START_TEST(SampleTreatment, "$Id$")
 
 TOLERANCE_ABSOLUTE(0.001)
 
-Test* dv_ptr = nullptr;
-Test* dv_nullPointer = nullptr;
+ST_Test* dv_ptr = nullptr;
+ST_Test* dv_nullPointer = nullptr;
 START_SECTION((SampleTreatment(const String& type)))
-	dv_ptr = new Test;
+	dv_ptr = new ST_Test;
   TEST_NOT_EQUAL(dv_ptr, dv_nullPointer)
 END_SECTION
 
@@ -110,23 +110,23 @@ START_SECTION((~SampleTreatment()))
 END_SECTION
 
 START_SECTION(const String& getType() const)
-	Test s;
-	TEST_EQUAL(s.getType(),"Test")
+	ST_Test s;
+	TEST_EQUAL(s.getType(),"ST_Test")
 END_SECTION
 
 START_SECTION((const String& getComment() const))
-	Test s;
+	ST_Test s;
 	TEST_EQUAL(s.getComment(),"")
 END_SECTION
 
 START_SECTION(void setComment(const String& comment))
-	Test s;
+	ST_Test s;
 	s.setComment("blubb");
 	TEST_EQUAL(s.getComment(),"blubb");
 END_SECTION
 
 START_SECTION([EXTRA] MetaInfo)
-	Test s;
+	ST_Test s;
 	//empty
 	TEST_EQUAL(s.isMetaEmpty(),true)
 
@@ -138,19 +138,19 @@ START_SECTION([EXTRA] MetaInfo)
 END_SECTION
 
 START_SECTION((SampleTreatment(const SampleTreatment&)))
-	Test s;
+	ST_Test s;
 	//set
 	s.setComment("TTEST");
 	s.setMetaValue("origin",String("horse"));
 	//copy
-	Test s2(s);
+	ST_Test s2(s);
 	//get
 	TEST_EQUAL(s2.getComment(),"TTEST")
 	TEST_EQUAL(s.getMetaValue("origin"),"horse")
 END_SECTION
 
 START_SECTION((SampleTreatment& operator=(const SampleTreatment&)))
-	Test s,s2;
+	ST_Test s,s2;
 	//set
 	s.setComment("TTEST");
 	s.setMetaValue("origin",String("horse"));
@@ -162,10 +162,10 @@ START_SECTION((SampleTreatment& operator=(const SampleTreatment&)))
 END_SECTION
 
 START_SECTION((virtual SampleTreatment* clone() const=0))
-	Test s;
+	ST_Test s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
-	Test* dp;
+	ST_Test* dp;
 
 	//set
 	s.setComment("TTEST");
@@ -174,7 +174,7 @@ START_SECTION((virtual SampleTreatment* clone() const=0))
 	//assign
 	st1 = &s;
 	st = st1->clone();
-	dp = dynamic_cast<Test*>(st);
+	dp = dynamic_cast<ST_Test*>(st);
 
 	//get
 	TEST_EQUAL(dp->getComment(),"TTEST")
@@ -182,7 +182,7 @@ START_SECTION((virtual SampleTreatment* clone() const=0))
 END_SECTION
 
 START_SECTION((bool operator== (const SampleTreatment& rhs) const))
-	Test edit,empty;
+	ST_Test edit,empty;
 
 	edit.setComment("bla");
 	TEST_EQUAL(edit==empty, false);
