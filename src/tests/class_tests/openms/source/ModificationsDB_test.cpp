@@ -245,9 +245,9 @@ START_SECTION((const ResidueModification& getModification(const String& mod_name
   TEST_EQUAL(ptr->getModification("Acetyl", "", ResidueModification::N_TERM)->getFullId(), "Acetyl (N-term)");
 
   // missing modification (returns nullptr)
-  TEST_EQUAL(ptr->getModification("MISSING"), nullptr);
-  TEST_EQUAL(ptr->getModification("MISSING", "", ResidueModification::N_TERM), nullptr);
-  TEST_EQUAL(ptr->getModification("MISSING", "", ResidueModification::C_TERM), nullptr);	
+  TEST_EQUAL(ptr->getModification("MISSING"), nullPointer);
+  TEST_EQUAL(ptr->getModification("MISSING", "", ResidueModification::N_TERM), nullPointer);
+  TEST_EQUAL(ptr->getModification("MISSING", "", ResidueModification::C_TERM), nullPointer);	
 }
 END_SECTION
 
