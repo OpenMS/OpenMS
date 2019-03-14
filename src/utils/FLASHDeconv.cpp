@@ -18,9 +18,14 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
+//#include <Eigen/Dense>
+//#include <cmath>
+
+
 
 using namespace OpenMS;
 using namespace std;
+//using namespace Eigen;
 
 class FLASHDeconv :
         public TOPPBase {
@@ -49,7 +54,7 @@ public:
         double isotopeCosineThreshold;
         int chargeDistributionScoreThreshold;
         double maxRTDelta;
-        int hCharges[4] = {2, 3, 5, 7};
+        vector<Byte> hCharges{2, 3, 5, 7};
         int numOverlappedScans = 20;
         int threads = 1;
     };
@@ -437,31 +442,20 @@ protected:
     }
 
     vector<PeakGroup> Deconvolution(MSExperiment &map, Parameter &param,
-                                    PrecalcularedAveragine &averagines, int &specCntr, int &qspecCntr, int &massCntr
-            //,fstream &fsmm
-    ) {
+                                    PrecalcularedAveragine &averagines, int &specCntr, int &qspecCntr, int &massCntr) {
 
-        /*int ms1cntr = 0;
-        for (auto it = map.begin(); it != map.end(); ++it) {
-            if (it->getMSLevel() != 1) continue;
-            ms1cntr++;
-        }
-        double rtd = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1cntr;
-        param.numOverlappedScans = (int)(10/rtd);
-        cout<<param.numOverlappedScans<<endl;
-*/
         double *filter = new double[param.chargeRange];
-        vector<double *> harmonicFilters;
-        for (auto hc : param.hCharges) {
-            double *harmonicFilter = new double[param.chargeRange];
-            for (int i = 0; i < param.chargeRange; i++) {
-                float n = (float) (hc / 2);
-                harmonicFilter[i] = log(1.0 / (i + n / hc + param.minCharge));
-            }
-            harmonicFilters.push_back(harmonicFilter);
-        }
+        long **hBinOffsets = new long *[param.chargeRange];
+
         for (int i = 0; i < param.chargeRange; i++) {
             filter[i] = log(1.0 / (i + param.minCharge)); // should be descending, and negative!
+            hBinOffsets[i] = new long[param.hCharges.size()];
+            for (Size k = 0; k < param.hCharges.size(); k++) {
+                auto &hc = param.hCharges[k];
+                float n = (float) (hc / 2);
+                auto harmonicFilter = log(1.0 / (i + n / hc + param.minCharge));
+                hBinOffsets[i][k] = (long) floor((filter[i] - harmonicFilter) * param.binWidth);
+            }
         }
 
         float prevProgress = .0;
@@ -486,7 +480,7 @@ protected:
             specCntr++;
 
             auto logMzPeaks = getLogMzPeaks(*it, param.intensityThreshold);
-            auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, harmonicFilters,
+            auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, hBinOffsets,
                                                         prevMassBinVector, prevMinBinLogMassVector,
                     //fsmm,
                     //(it->getRT() > 360 && it->getRT() < 380),
@@ -602,7 +596,7 @@ protected:
                 }
             }
             */
-        for(auto & peak: spec){
+        for (auto &peak: spec) {
             if (peak.getIntensity() <= threshold) continue;
             LogMzPeak logMzPeak(peak);
             logMzPeaks.push_back(logMzPeak);
@@ -613,7 +607,7 @@ protected:
 
 
     vector<PeakGroup>
-    getPeakGroupsFromSpectrum(vector<LogMzPeak> &logMzPeaks, double *filter, vector<double *> &hFilters,
+    getPeakGroupsFromSpectrum(vector<LogMzPeak> &logMzPeaks, double *filter, long **hBinOffsets,
                               vector<vector<Size>> &prevMassBinVector,
                               vector<double> &prevMinBinLogMassVector,
             //fstream &fsmm,
@@ -630,7 +624,7 @@ protected:
         boost::dynamic_bitset<> massBins(massBinNumber);
         int chargeRange = getMassBins(massBins, mzBins, massBinMinValue,
                                       mzBinMinValue, filter,
-                                      hFilters,
+                                      hBinOffsets,
                                       param);
         auto u = getUnionMassBin(massBins, massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, param);
         auto peakGroups = getPeakGroupsWithMassBins(u, massBins, logMzPeaks, massBinMinValue, filter, chargeRange,
@@ -749,7 +743,7 @@ protected:
                             double centerLogMzMin = centerLogMz - tol;
                             double centerLogMzMax = centerLogMz + tol;
                             bool isotopePeakPresent = false;
-                            for (;peakIndex >= 0 && peakIndex < logMzPeakSize; peakIndex += d) {
+                            for (; peakIndex >= 0 && peakIndex < logMzPeakSize; peakIndex += d) {
                                 double &observedLogMz = logMzPeaks[peakIndex].logMz;
                                 if (observedLogMz < centerLogMzMin) { if (d < 0) { break; } else { continue; }}
                                 if (observedLogMz > centerLogMzMax) { if (d < 0) { continue; } else { break; }}
@@ -757,7 +751,7 @@ protected:
                                 LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, i * d);
                                 pg.push_back(p);
                                 auto bin = getBinNumber(p.logMz + mzToMassOffset, 0, binWidth);
-                                if (massBinIndex != bin){
+                                if (massBinIndex != bin) {
                                     unionedMassBins[bin] = false;
                                     massBins[bin] = false;
                                 }
@@ -986,7 +980,7 @@ protected:
     int getMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
                     double &massBinMinValue, double &mzBinMinValue,
                     double *filter,
-                    vector<double *> &hFilters,
+                    long **hBinOffsets,
                     const Parameter &param) {
 
         long *binOffsets = new long[param.chargeRange];
@@ -1004,7 +998,7 @@ protected:
         fill_n(noneContinuousChargePeakPairCount, massBins.size(), 0);
 
         auto maxChargeRanges = getInitialMassBins(massBins, mzBins, isQualified, continuousChargePeakPairCount,
-                                                  noneContinuousChargePeakPairCount, filter, hFilters, binOffsets,
+                                                  noneContinuousChargePeakPairCount, hBinOffsets, binOffsets,
                                                   param,
                                                   binThresholdMinMass, binNumber);
 
@@ -1025,14 +1019,14 @@ protected:
                              boost::dynamic_bitset<> &isQualified,
                              Byte *continuousChargePeakPairCount,
                              Byte *noneContinuousChargePeakPairCount,
-                             double *filter, vector<double *> &hFilters,
+                             long **hBinOffsets,
                              long *binOffsets,
                              const Parameter &param,
                              long binStart, long binEnd) {
 
-        vector<long *> hBinOffsets;
         boost::dynamic_bitset<> hasHarmony(massBins.size());
         int chargeRange = param.chargeRange;
+        int hChargeSize = (int) param.hCharges.size();
         double binWidth = param.binWidth;
         int minContinuousChargePeakPairCount = param.minContinuousChargePeakPairCount;
 
@@ -1041,17 +1035,8 @@ protected:
         Byte *prevCharges = new Byte[massBins.size()];
         fill_n(prevCharges, massBins.size(), chargeRange + 2);
 
-        for (auto &hf : hFilters) {
-            long *hbinOffsets = new long[param.chargeRange];
-            for (int i = 0; i < param.chargeRange; i++) {
-                hbinOffsets[i] = (long) floor((filter[i] - hf[i]) * binWidth);
-            }
-            hBinOffsets.push_back(hbinOffsets);
-        }
-
         auto mzBinIndex = mzBins.find_first();
         while (mzBinIndex != mzBins.npos) {
-            auto &maxChargeRange = maxChargeRanges[mzBinIndex];
             for (Byte j = 0; j < chargeRange; j++) {
                 long massBinIndex = mzBinIndex + binOffsets[j];
                 if (massBinIndex < binStart) continue;
@@ -1063,8 +1048,9 @@ protected:
                 prevCharges[massBinIndex] = j;
 
                 if (cd == 1) {
-                    for (auto &hbOffsets : hBinOffsets) {
-                        long hbi = mzBinIndex - hbOffsets[j];// + rand() % 100000 - 50000 ;
+                    auto &hbOffsets = hBinOffsets[j];
+                    for (int k = 0; k < hChargeSize; k++) {
+                        long hbi = mzBinIndex - hbOffsets[k];// + rand() % 100000 - 50000 ;
                         if (hbi < 3 || (Size) (hbi + 2) > mzBins.size()) continue;
 
                         for (int i = -3; i <= 2; i++) {
@@ -1080,7 +1066,7 @@ protected:
                     if (hasHarmony[massBinIndex]) continue;
                     if (++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakPairCount) {
                         isQualified[massBinIndex] = true;
-                        maxChargeRange = (Byte) (j + 1);
+                        maxChargeRanges[mzBinIndex] = (Byte) (j + 1);
                     }
                 } else {
                     ++noneContinuousChargePeakPairCount[massBinIndex];
