@@ -60,33 +60,32 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
     // extract mz, rt and nativeID of the corresponding precursor spectrum in the spectrum.ms file
-    string ext_nid;
+    String ext_nid;
     double ext_mz = 0.0;
     double ext_rt = 0.0;
     const String sirius_spectrum_ms = *it + "/spectrum.ms";
     ifstream spectrum_ms_file(sirius_spectrum_ms);
     if (spectrum_ms_file)
     {
-      const OpenMS::String nid_prefix = "##nid ";
-      const OpenMS::String rt_prefix = "#rt ";
-      const OpenMS::String pmass_prefix = ">parentmass ";
-      std::string line;
-      std::string::size_type sz;
+      const String nid_prefix = "##nid ";
+      const String rt_prefix = "#rt ";
+      const String pmass_prefix = ">parentmass ";
+      String line;
       while (getline(spectrum_ms_file, line))
       {
-        if (line.compare(pmass_prefix) == 1)
+        if (line.hasPrefix(pmass_prefix))
         {
-           std::string pmass = line.erase(line.find(pmass_prefix), pmass_prefix.size());
-           ext_mz = std::stod(pmass, &sz);
+           String pmass = line.erase(line.find(pmass_prefix), pmass_prefix.size());
+           ext_mz = pmass.toDouble();
         }
-        if (line.compare(rt_prefix) == 1)
+        if (line.hasPrefix(rt_prefix))
         {
-           std::string rt = line.erase(line.find(rt_prefix), rt_prefix.size());
-           ext_rt = std::stod(rt, &sz);
+           String rt = line.erase(line.find(rt_prefix), rt_prefix.size());
+           ext_rt = rt.toDouble();
         }
-        if (line.compare(nid_prefix) == 1)
+        if (line.hasPrefix(nid_prefix))
         {
-           std::string nid = line.erase(line.find(nid_prefix), nid_prefix.size());
+           String nid = line.erase(line.find(nid_prefix), nid_prefix.size());
            ext_nid = nid;
         }
         if (line == ">ms1peaks")
