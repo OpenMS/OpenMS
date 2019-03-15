@@ -134,12 +134,21 @@ class NucleicAcidSearchEngine :
 public:
   NucleicAcidSearchEngine() :
     TOPPBase("NucleicAcidSearchEngine", "Annotate nucleic acid identifications to MS/MS spectra.", false),
-    fragment_ion_codes_(ListUtils::create<String>("a-B,a,b,c,d,w,x,y,z"))
+    fragment_ion_codes_({"a-B", "a", "b", "c", "d", "w", "x", "y", "z"}),
+    ambiguous_mods_(), consider_ambiguous_mods_(false)
   {
+    ambiguous_mods_["mA?"] = {"Am", "mA"};
+    ambiguous_mods_["mC?"] = {"Cm", "mC"};
+    ambiguous_mods_["mG?"] = {"Gm", "mG"};
+    ambiguous_mods_["mU?"] = {"Um", "mU"};
   }
 
 protected:
   vector<String> fragment_ion_codes_;
+  /// ambiguity codes that represent multiple mods:
+  map<String, vector<String>> ambiguous_mods_;
+  bool consider_ambiguous_mods_;
+
 
   void registerOptionsAndFlags_()
   {
@@ -265,8 +274,8 @@ protected:
 
   // query modified residues from database
   set<ConstRibonucleotidePtr> getModifications_(
-    const set<String>& mod_names, map<String, vector<String>> ambig_mods =
-    map<String, vector<String>>())
+    const set<String>& mod_names, const map<String, vector<String>>&
+    ambig_mods = map<String, vector<String>>())
   {
     set<ConstRibonucleotidePtr> modifications;
     auto db_ptr = RibonucleotideDB::getInstance();
@@ -275,6 +284,7 @@ protected:
       auto pos = ambig_mods.find(m); // handle ambiguity codes
       if (pos != ambig_mods.end())
       {
+        consider_ambiguous_mods_ = true;
         for (const String& sub_mod : pos->second)
         {
           modifications.insert(db_ptr->getRibonucleotide(sub_mod));
@@ -633,6 +643,68 @@ protected:
   }
 
 
+  void resolveAmbiguousMods_(HitsByScore& hits,
+                             const map<String, String>& reverse_ambig_mods)
+  {
+    OPENMS_PRECONDITION(hits.size() > 1, "more than one hit expected");
+    auto previous_it = hits.begin();
+    // If the current hit is an ambiguity variant of the previous one, combine
+    // both into one hit. For example, if we have two hits with these sequences:
+    // 1. "AUC[mA]Gp", 2. "AUC[Am]Gp"
+    // The result should be: 1. "AUC[mA?]Gp" (note ambiguity code), 2. removed.
+    for (auto hit_it = ++hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    {
+      double previous_score = previous_it->first;
+      NASequence& previous_seq = previous_it->second.sequence;
+      const NASequence& current_seq = hit_it->second.sequence;
+      if ((hit_it->first != previous_score) ||
+          (current_seq.size() != previous_seq.size())) // different hits
+      {
+        previous_it = hit_it;
+        ++hit_it;
+        continue;
+      }
+      bool remove_current = true;
+      NASequence replacement; // potential replacement sequence for previous hit
+      for (Size i = 0; i < current_seq.size(); ++i)
+      {
+        if (previous_seq[i]->getCode() == current_seq[i]->getCode()) continue;
+        auto pos_current = reverse_ambig_mods.find(current_seq[i]->getCode());
+        if (pos_current == reverse_ambig_mods.end())
+        {
+          // difference is not due to an ambiguous mod. - don't combine hits:
+          remove_current = false;
+          break;
+        }
+        // is this ribonucleotide in the previous hit already ambiguous?
+        const String& ambig_code = pos_current->second;
+        if (previous_seq[i]->getCode() == ambig_code) continue;
+        // if not, should we replace it with an ambiguous mod.?
+        auto pos_previous = reverse_ambig_mods.find(previous_seq[i]->getCode());
+        if ((pos_previous == reverse_ambig_mods.end()) ||
+            (pos_previous->second != ambig_code)) // mods don't match
+        {
+          remove_current = false;
+          break;
+        }
+        if (replacement.empty()) replacement = previous_seq;
+        replacement[i] = RibonucleotideDB::getInstance()->
+          getRibonucleotide(ambig_code);
+      }
+      if (remove_current) // current hit is redundant -> remove it
+      {
+        if (!replacement.empty()) previous_seq = replacement;
+        hit_it = hits.erase(hit_it);
+      }
+      else
+      {
+        previous_it = hit_it;
+        ++hit_it;
+      }
+    }
+  }
+
+
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
@@ -641,6 +713,19 @@ protected:
     IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
     IdentificationData::ScoreTypeRef score_ref =
       id_data.getScoreTypes().begin();
+
+    map<String, String> reverse_ambig_mods; // map: specific code -> ambig. code
+    if (consider_ambiguous_mods_)
+    {
+      // constraint: each mod. can only occur in one ambiguity group!
+      for (const auto& pair : ambiguous_mods_)
+      {
+        for (const auto& mod : pair.second)
+        {
+          reverse_ambig_mods[mod] = pair.first;
+        }
+      }
+    }
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -657,6 +742,11 @@ protected:
       IdentificationData::DataQueryRef query_ref;
 #pragma omp critical (id_data_access)
       query_ref = id_data.registerDataQuery(query);
+
+      if (consider_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
+      {
+        resolveAmbiguousMods_(annotated_hits[scan_index], reverse_ambig_mods);
+      }
 
       // create full oligo hit structure from annotated hits
       for (const auto& pair : annotated_hits[scan_index])
@@ -852,17 +942,10 @@ protected:
     search_param.variable_mods.insert(var_mod_names.begin(),
                                       var_mod_names.end());
 
-    // ambiguity codes that represent multiple mods:
-    map<String, vector<String>> ambig_mods;
-    ambig_mods["mA?"] = {"Am", "mA"};
-    ambig_mods["mC?"] = {"Cm", "mC"};
-    ambig_mods["mG?"] = {"Gm", "mG"};
-    ambig_mods["mU?"] = {"Um", "mU"};
-
     set<ConstRibonucleotidePtr> fixed_modifications =
       getModifications_(search_param.fixed_mods);
     set<ConstRibonucleotidePtr> variable_modifications =
-      getModifications_(search_param.variable_mods, ambig_mods);
+      getModifications_(search_param.variable_mods, ambiguous_mods_);
 
     // @TODO: add slots for these to "IdentificationData::DBSearchParam"?
     IntList precursor_isotopes = (use_avg_mass ? vector<Int>(1, 0) :
