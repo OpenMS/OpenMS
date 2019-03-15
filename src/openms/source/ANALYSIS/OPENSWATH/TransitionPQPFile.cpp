@@ -602,14 +602,23 @@ namespace OpenMS
     for (const auto& it : compound_map)
     {
       String adducts;
+      String compound_name;
       const auto& compound = targeted_exp.getCompoundByRef(it.first);
       if (compound.metaValueExists("Adducts"))
       {
         adducts = compound.getMetaValue("Adducts");
       }
+      if (compound.metaValueExists("CompoundName"))
+      {
+        compound_name = compound.getMetaValue("CompoundName");
+      }
+      else
+      {
+        compound_name = compound.id;
+      }
       insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
         it.second << ",'" <<
-        compound.id << "','" <<
+        compound_name << "','" <<
         compound.molecular_formula << "','" <<
         compound.smiles_string << "','" <<
         adducts << "'," <<

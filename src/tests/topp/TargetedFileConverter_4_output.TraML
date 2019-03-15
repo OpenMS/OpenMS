@@ -7,7 +7,7 @@
   <CompoundList>
     <Compound id="compound_2">
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C5H11NO2"/>
-      <userParam name="CompoundName" type="xsd:string" value="compound_2"/>
+      <userParam name="CompoundName" type="xsd:string" value="valine"/>
       <userParam name="Adducts" type="xsd:string" value=""/>
       <RetentionTimeList>
         <RetentionTime>
@@ -18,7 +18,7 @@
     <Compound id="compound_1">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="-1"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C11H21NO7"/>
-      <userParam name="CompoundName" type="xsd:string" value="compound_1"/>
+      <userParam name="CompoundName" type="xsd:string" value="N-(1-Deoxy-1-fructosyl)valine"/>
       <userParam name="Adducts" type="xsd:string" value=""/>
       <RetentionTimeList>
         <RetentionTime>
