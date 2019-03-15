@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -287,6 +287,26 @@ START_SECTION((CVTermList(const CVTermList &rhs)))
   cv_term_list.addCVTerm(cv_term);
   CVTermList cv_term_list3(cv_term_list);
   TEST_EQUAL(cv_term_list == cv_term_list3, true)
+}
+END_SECTION
+
+START_SECTION((CVTermList(const CVTermList &&rhs)))
+{
+  CVTermList cv_term_list;
+  cv_term_list.setMetaValue("blubb2", "blubbe");
+
+	CVTermList orig = cv_term_list;
+	CVTermList cv_term_list2(std::move(cv_term_list));
+
+  TEST_EQUAL(orig == cv_term_list2, true)
+  CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
+  CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
+  cv_term_list2.addCVTerm(cv_term);
+
+  orig = cv_term_list2;
+  CVTermList cv_term_list3(std::move(cv_term_list2));
+  TEST_EQUAL(orig == cv_term_list3, true)
+  TEST_EQUAL(cv_term_list3.getCVTerms().size(), 1)
 }
 END_SECTION
 

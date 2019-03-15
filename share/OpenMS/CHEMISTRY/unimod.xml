@@ -216,7 +216,7 @@
          <umod:xref>
             <umod:text>PNAS 2006 103: 18574-18579</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1073/pnas.0608995103</umod:url>
+            <umod:url>https://doi.org/10.1073/pnas.0608995103</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Amidated" full_name="Amidation" username_of_poster="unimod"
@@ -1111,7 +1111,7 @@
          <umod:xref>
             <umod:text>C.-H. Feng, C.-Y. Lu, Analytica Chimica Acta 684 (2011) 80–86</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1016/j.aca.2010.10.042</umod:url>
+            <umod:url>https://doi.org/10.1016/j.aca.2010.10.042</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Pyridylacetyl" full_name="pyridylacetyl" username_of_poster="unimod"
@@ -3455,7 +3455,7 @@
          <umod:xref>
             <umod:text>Rapid Communications in Mass Spectrometry, Volume 15, Issue 24 , Pages 2387 - 2392</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/rcm.517</umod:url>
+            <umod:url>https://doi.org/10.1002/rcm.517</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Agilent Lys Tag 4H Reagent Kit</umod:text>
@@ -3485,7 +3485,7 @@
          <umod:xref>
             <umod:text>Rapid Communications in Mass Spectrometry, Volume 15, Issue 24 , Pages 2387 - 2392</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/rcm.517</umod:url>
+            <umod:url>https://doi.org/10.1002/rcm.517</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Agilent Lys Tag 4H Reagent Kit</umod:text>
@@ -6141,7 +6141,7 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          <umod:xref>
             <umod:text>Mapping PARP-1 auto-ADP-ribosylation sites by liquid chromatography-tandem mass spectrometry</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/pr301219h</umod:url>
+            <umod:url>https://doi.org/10.1021/pr301219h</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>ADP</umod:text>
@@ -6166,7 +6166,7 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          <umod:xref>
             <umod:text>Identification of the ADP-ribosylation sites in the PARP-1 automodification domain: analysis and implications</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/ja906135d</umod:url>
+            <umod:url>https://doi.org/10.1021/ja906135d</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Structure</umod:text>
@@ -6176,7 +6176,7 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          <umod:xref>
             <umod:text>P-T modification of Lysine</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1093/nar/gkq463</umod:url>
+            <umod:url>https://doi.org/10.1093/nar/gkq463</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>AA0237</umod:text>
@@ -15126,7 +15126,7 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          <umod:xref>
             <umod:text>Biochemistry 2005 vol 44 pp 1833-1845</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/bi048228c</umod:url>
+            <umod:url>https://doi.org/10.1021/bi048228c</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Label:13C(5)" full_name="13C(5) Silac label" username_of_poster="unimod"
@@ -15338,7 +15338,7 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          <umod:xref>
             <umod:text>B. Schilling, C.B. Yoo, C.J. Collins, B.W. Gibson, Determining Cysteine Oxidation Status Using Differential Alkylation, Int. J. Mass Spectrom., 2004, 236 (1-3), 117-121</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1016/j.ijms.2004.06.004</umod:url>
+            <umod:url>https://doi.org/10.1016/j.ijms.2004.06.004</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="NEM:2H(5)" full_name="D5 N-ethylmaleimide on cysteines"
@@ -15422,7 +15422,7 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          <umod:xref>
             <umod:text>Weibin Chen et. al., Anal. Chem.2007, 79,1583-1590</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/ac061670b</umod:url>
+            <umod:url>https://doi.org/10.1021/ac061670b</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Sadagopan, N. and Watson, J. T., Journal of the American Society For Mass Spectrometry 11 107-119 (2000)</umod:text>
@@ -15451,14 +15451,14 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
          <umod:xref>
             <umod:text>Ong, S-E, I. Kratchmarova, and M. Mann (2003). J Proteome Research 2: 173-181</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/pr0255708</umod:url>
+            <umod:url>https://doi.org/10.1021/pr0255708</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Peng J, Schwartz D, Elias JE, Thoreen CC, Cheng D, Marsischky G, Roelofs J, Finley D, Gygi SP.
 
 Nat Biotechnol. 2003 Aug;21(8):921-6</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1038/nbt849</umod:url>
+            <umod:url>https://doi.org/10.1038/nbt849</umod:url>
          </umod:xref>
          <umod:misc_notes>The two glycine residues left on SILAC labeled ubiquitinylated lysine after tryptic digestion</umod:misc_notes>
       </umod:mod>
@@ -15545,7 +15545,7 @@ Nat Biotechnol. 2003 Aug;21(8):921-6</umod:text>
          <umod:xref>
             <umod:text>PLoS ONE 5(11): e14056</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1371/journal.pone.0014056</umod:url>
+            <umod:url>https://doi.org/10.1371/journal.pone.0014056</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Dihydroxyimidazolidine" full_name="Dihydroxy methylglyoxal adduct"
@@ -15565,7 +15565,7 @@ Nat Biotechnol. 2003 Aug;21(8):921-6</umod:text>
          <umod:xref>
             <umod:text>J. Mass. Spectrom.  2007; 42:89-100.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/jms.1144</umod:url>
+            <umod:url>https://doi.org/10.1002/jms.1144</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="DFDNB" full_name="Addition of DFDNB crosslinker"
@@ -15835,7 +15835,7 @@ Nat Biotechnol. 2003 Aug;21(8):921-6</umod:text>
          <umod:xref>
             <umod:text>Wohlschlegel, J. A. et al., J Proteome Res. 5 761 2006</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/pr050451o</umod:url>
+            <umod:url>https://doi.org/10.1021/pr050451o</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="cGMP" full_name="S-guanylation" username_of_poster="atsushiirie"
@@ -16014,7 +16014,7 @@ Nat Biotechnol. 2003 Aug;21(8):921-6</umod:text>
 
 antiserum and mass spectrometric analysis</umod:text>
             <umod:source>Misc. URL</umod:source>
-            <umod:url>http://dx.doi.org/10.1007/s00726-014-1879-8</umod:url>
+            <umod:url>https://doi.org/10.1007/s00726-014-1879-8</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Label:13C(1)2H(3)" full_name="SILAC" username_of_poster="msalek"
@@ -16980,7 +16980,7 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
          <umod:xref>
             <umod:text>Fluorescence depletion mechanisms in super-resolving STED microscopy</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1016/j.cplett.2007.06.017</umod:url>
+            <umod:url>https://doi.org/10.1016/j.cplett.2007.06.017</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="AMTzHexNAc2" full_name="Photocleavable Biotin + GalNAz on O-GlcNAc"
@@ -17006,7 +17006,7 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
          <umod:xref>
             <umod:text>Enrichment and site-mapping of O-Linked N-Acetylglucosamine by a combination of chemical/enzymatic tagging, photochemical cleavage, and electron transfer dissociation (ETD) mass spectrometry</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1074/mcp.M900268-MCP200</umod:url>
+            <umod:url>https://doi.org/10.1074/mcp.M900268-MCP200</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Ethyl+Deamidated"
@@ -18209,7 +18209,7 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
          <umod:xref>
             <umod:text>Formation of E-Formyllysine on Silver-stained Proteins</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1074/mcp.M600279-MCP200</umod:url>
+            <umod:url>https://doi.org/10.1074/mcp.M600279-MCP200</umod:url>
          </umod:xref>
          <umod:misc_notes>formaldeyde induced formation of thioproline</umod:misc_notes>
       </umod:mod>
@@ -18336,7 +18336,7 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
          <umod:xref>
             <umod:text>C.-H. Feng, C.-Y. Lu, Analytica Chimica Acta 684 (2011) 80–86</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1016/j.aca.2010.10.042</umod:url>
+            <umod:url>https://doi.org/10.1016/j.aca.2010.10.042</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Ahx2+Hsl"
@@ -18379,7 +18379,7 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
          <umod:xref>
             <umod:text>Quantification of Protein Sulfenic Acid Modifications Using Isotope-Coded Dimedone and Iododimedone</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/anie.201007175</umod:url>
+            <umod:url>https://doi.org/10.1002/anie.201007175</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="ICDID:2H(6)" full_name="Isotope-Coded Dimedone heavy form"
@@ -18400,7 +18400,7 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
          <umod:xref>
             <umod:text>Quantification of Protein Sulfenic Acid Modifications Using Isotope-Coded Dimedone and Iododimedone</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/anie.201007175</umod:url>
+            <umod:url>https://doi.org/10.1002/anie.201007175</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Xlink:EGS" full_name="Monolink of EGS crosslinker to Lys or N-terminus"
@@ -18818,7 +18818,7 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
 
 antiserum and mass spectrometric analysis</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1007/s00726-014-1879-8</umod:url>
+            <umod:url>https://doi.org/10.1007/s00726-014-1879-8</umod:url>
          </umod:xref>
          <umod:misc_notes>Deoxyhypusine synthase catalyzes the formation of a deoxyhypusine by transferring an aminobutyl moiety from spermidine onto a conserved lysine residue within the eIF5A</umod:misc_notes>
       </umod:mod>
@@ -23002,7 +23002,7 @@ Glushchenko A. V., Jacobsen D. W. Antioxid. Redox Signal. 2007. V. 9. P. 1883–
          <umod:xref>
             <umod:text>J. Proteome Res., 2009, 8 (2), pp 900–906</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/pr8005155</umod:url>
+            <umod:url>https://doi.org/10.1021/pr8005155</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Dicarbamidomethyl" full_name="Double Carbamidomethylation"
@@ -23694,7 +23694,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Anal. Chem., 2010, 82 (7), pp 2817–2825</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/ac902778d</umod:url>
+            <umod:url>https://doi.org/10.1021/ac902778d</umod:url>
          </umod:xref>
          <umod:misc_notes>Different channels have the same nominal mass but slightly different exact masses.</umod:misc_notes>
       </umod:mod>
@@ -23725,7 +23725,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Anal. Chem., 2010, 82 (7), pp 2817–2825</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/ac902778d</umod:url>
+            <umod:url>https://doi.org/10.1021/ac902778d</umod:url>
          </umod:xref>
          <umod:misc_notes>Different channels have the same nominal mass but slightly different exact masses.</umod:misc_notes>
       </umod:mod>
@@ -23756,7 +23756,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Anal. Chem., 2010, 82 (7), pp 2817–2825</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/ac902778d</umod:url>
+            <umod:url>https://doi.org/10.1021/ac902778d</umod:url>
          </umod:xref>
          <umod:misc_notes>Different channels have the same nominal mass but slightly different exact masses.</umod:misc_notes>
       </umod:mod>
@@ -23785,7 +23785,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Anal. Chem., 2010, 82 (7), pp 2817–2825</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1021/ac902778d</umod:url>
+            <umod:url>https://doi.org/10.1021/ac902778d</umod:url>
          </umod:xref>
          <umod:misc_notes>Different channels have the same nominal mass but slightly different exact masses.</umod:misc_notes>
       </umod:mod>
@@ -24027,7 +24027,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Identification of 67 Histone Marks and Histone Lysine Crotonylation as a New Type of Histone Modification, Tan et al., Cell 146(6) 1016–1028 2011</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1016/j.cell.2011.08.008</umod:url>
+            <umod:url>https://doi.org/10.1016/j.cell.2011.08.008</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="O-Et-N-diMePhospho" full_name="O-ethyl, N-dimethyl phosphate"
@@ -24772,12 +24772,12 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Revival of deuterium-labeled reagents for protein quantitation, Zeng D. and Li S.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1039/b906335h</umod:url>
+            <umod:url>https://doi.org/10.1039/b906335h</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Novel and cost-effective 6-plex isobaric tagging reagent, DiART, is effective for identification and relative quantification of complex protein mixtures using PQD fragmentation, Ramsubramaniam N. et al.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/jms.3249</umod:url>
+            <umod:url>https://doi.org/10.1002/jms.3249</umod:url>
          </umod:xref>
          <umod:misc_notes>Different tags have the same nominal mass but slightly different exact masses. Use this modification for all tags for quantitation purposes. Monoisotopic masses of the fragment ions to be quantified are 114.12827, 115.12531, 116.14082, 117.13786, 118.14752, 119.14456</umod:misc_notes>
       </umod:mod>
@@ -24811,12 +24811,12 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Revival of deuterium-labeled reagents for protein quantitation, Zeng D. and Li S.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1039/b906335h</umod:url>
+            <umod:url>https://doi.org/10.1039/b906335h</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Novel and cost-effective 6-plex isobaric tagging reagent, DiART, is effective for identification and relative quantification of complex protein mixtures using PQD fragmentation, Ramsubramaniam N. et al.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/jms.3249</umod:url>
+            <umod:url>https://doi.org/10.1002/jms.3249</umod:url>
          </umod:xref>
          <umod:misc_notes>Different tags have the same nominal mass but slightly different exact masses.</umod:misc_notes>
       </umod:mod>
@@ -24852,12 +24852,12 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Novel and cost-effective 6-plex isobaric tagging reagent, DiART, is effective for identification and relative quantification of complex protein mixtures using PQD fragmentation, Ramsubramaniam N. et al.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/jms.3249</umod:url>
+            <umod:url>https://doi.org/10.1002/jms.3249</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Revival of deuterium-labeled reagents for protein quantitation, Zeng D. and Li S.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1039/b906335h</umod:url>
+            <umod:url>https://doi.org/10.1039/b906335h</umod:url>
          </umod:xref>
          <umod:misc_notes>Different tags have the same nominal mass but slightly different exact masses.</umod:misc_notes>
       </umod:mod>
@@ -24892,12 +24892,12 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Revival of deuterium-labeled reagents for protein quantitation, Zeng D. and Li S.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1039/b906335h</umod:url>
+            <umod:url>https://doi.org/10.1039/b906335h</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Novel and cost-effective 6-plex isobaric tagging reagent, DiART, is effective for identification and relative quantification of complex protein mixtures using PQD fragmentation, Ramsubramaniam N. et al.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/jms.3249</umod:url>
+            <umod:url>https://doi.org/10.1002/jms.3249</umod:url>
          </umod:xref>
          <umod:misc_notes>Different tags have the same nominal mass but slightly different exact masses.</umod:misc_notes>
       </umod:mod>
@@ -24932,12 +24932,12 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:xref>
             <umod:text>Revival of deuterium-labeled reagents for protein quantitation, Zeng D. and Li S.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1039/b906335h</umod:url>
+            <umod:url>https://doi.org/10.1039/b906335h</umod:url>
          </umod:xref>
          <umod:xref>
             <umod:text>Novel and cost-effective 6-plex isobaric tagging reagent, DiART, is effective for identification and relative quantification of complex protein mixtures using PQD fragmentation, Ramsubramaniam N. et al.</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1002/jms.3249</umod:url>
+            <umod:url>https://doi.org/10.1002/jms.3249</umod:url>
          </umod:xref>
          <umod:misc_notes>Different tags have the same nominal mass but slightly different exact masses.</umod:misc_notes>
       </umod:mod>
@@ -25391,7 +25391,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
 
 antiserum and mass spectrometric analysis</umod:text>
             <umod:source>Misc. URL</umod:source>
-            <umod:url>http://dx.doi.org/10.1007/s00726-014-1879-8</umod:url>
+            <umod:url>https://doi.org/10.1007/s00726-014-1879-8</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="Biotin:Thermo-21330" full_name="Biotin_PEG4"
@@ -37856,7 +37856,7 @@ antiserum and mass spectrometric analysis</umod:text>
          <umod:xref>
             <umod:text>Photo-cross-linking and high-resolution mass spectrometry for assignment of RNRNA-binding sites in RNRNA-binding proteins</umod:text>
             <umod:source>Journal</umod:source>
-            <umod:url>http://dx.doi.org/10.1038/nmeth.3092</umod:url>
+            <umod:url>https://doi.org/10.1038/nmeth.3092</umod:url>
          </umod:xref>
       </umod:mod>
       <umod:mod title="GEE" full_name="transamidation of glycine ethyl ester to glutamine"

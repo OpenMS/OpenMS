@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,15 +29,62 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 
 namespace OpenMS
 {
-    void OPENMS_DLLAPI FunctionSpectrumNOP (MSSpectrum & /* s */) {;}
+  /**
+        @brief Constructor
+      */
+      MSDataTransformingConsumer::MSDataTransformingConsumer()
+       : lambda_spec_(nullptr),
+         lambda_chrom_(nullptr),
+         lambda_exp_settings_(nullptr)
+      {
+      }
 
-    void OPENMS_DLLAPI FunctionChromatogramNOP (MSChromatogram & /* s */) {;}
+      /// Default destructor
+      MSDataTransformingConsumer::~MSDataTransformingConsumer()
+      {
+      }
 
+      void MSDataTransformingConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */)
+      {
+      }
+
+      void MSDataTransformingConsumer::consumeSpectrum(SpectrumType& s)
+      {
+        // apply the given function to it (unless nullptr)
+        if (lambda_spec_) lambda_spec_(s);
+      }
+
+      void MSDataTransformingConsumer::setSpectraProcessingFunc( std::function<void (SpectrumType&)> f_spec )
+      {
+        lambda_spec_ = f_spec;
+      }
+
+      void MSDataTransformingConsumer::consumeChromatogram(ChromatogramType & c)
+      {
+        // apply the given function to it (unless nullptr)
+        if (lambda_chrom_) lambda_chrom_(c);
+      }
+
+      void MSDataTransformingConsumer::setChromatogramProcessingFunc( std::function<void (ChromatogramType&)> f_chrom )
+      {
+        lambda_chrom_ = f_chrom;
+      }
+      
+      void MSDataTransformingConsumer::setExperimentalSettingsFunc( std::function<void (const OpenMS::ExperimentalSettings&)> f_exp_settings )
+      {
+        lambda_exp_settings_ = f_exp_settings;
+      }
+
+      void MSDataTransformingConsumer::setExperimentalSettings(const OpenMS::ExperimentalSettings& es)
+      { 
+        // apply the given function to it (unless nullptr)
+        if (lambda_exp_settings_) lambda_exp_settings_(es);        
+      }
 } // namespace OpenMS

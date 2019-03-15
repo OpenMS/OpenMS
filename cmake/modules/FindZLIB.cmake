@@ -101,7 +101,7 @@ list(APPEND _ZLIB_SEARCHES _ZLIB_SEARCH_NORMAL)
 
 set(_ZLIB_NAMES_RELEASE zlibstatic z zlib zdll zlib1)
 set(_ZLIB_NAMES_DEBUG zlibstaticd zlibd zlibd1)
-
+	
 # handle debug and release
 include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
 

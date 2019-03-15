@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,11 @@
 
 using namespace OpenMS;
 using namespace std;
+
+// static_assert(OpenMS::Test::fulfills_rule_of_5<ScanWindow>(), "Must fulfill rule of 5");
+// static_assert(OpenMS::Test::fulfills_rule_of_6<ScanWindow>(), "Must fulfill rule of 6");
+// static_assert(OpenMS::Test::fulfills_fast_vector<ScanWindow>(), "Must have fast vector semantics");
+// static_assert(std::is_nothrow_move_constructible<ScanWindow>::value, "Must have nothrow move constructible");
 
 START_TEST(ScanWindow, "$Id$")
 

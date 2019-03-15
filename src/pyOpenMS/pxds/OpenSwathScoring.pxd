@@ -40,10 +40,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         void getNormalized_library_intensities_(libcpp_vector[LightTransition] transitions,
                                                 libcpp_vector[double] normalized_library_intensity) nogil except +
 
-        # TODO OpenSwath::SpectrumAccessPtr swath_map, 
-        shared_ptr[OSSpectrum] getAddedSpectra_(shared_ptr[ SpectrumAccessOpenMS ] swath_map,
-                                                double RT, int nr_spectra_to_add) nogil except +
-
     cdef cppclass OpenSwath_Scores_Usage:
 
         OpenSwath_Scores_Usage() nogil except +
@@ -63,6 +59,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         bool use_ms1_fullscan
         bool use_sonar_scores
         bool use_uis_scores
+        bool use_total_mi_score_
+        bool use_mi_score_
+        bool use_ms1_mi
 
     cdef cppclass OpenSwath_Scores:
 
@@ -97,8 +96,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         double weighted_xcorr_shape
         double weighted_massdev_score
        
-        double xcorr_ms1_coelution_score
-        double xcorr_ms1_shape_score
+        double ms1_xcorr_coelution_score
+        double ms1_xcorr_shape_score
         double ms1_ppm_score
         double ms1_isotope_correlation
         double ms1_isotope_overlap
@@ -116,4 +115,3 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
 
         double dotprod_score_dia
         double manhatt_score_dia
-

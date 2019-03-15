@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,11 @@
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_OSWFILE_H
-#define OPENMS_FORMAT_OSWFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <sqlite3.h>
 
 #include <map>
 
@@ -80,14 +78,7 @@ public:
     */
     void write(const std::string& in_osw, const std::string& osw_level, const std::map< std::string, std::vector<double> >& features);
 
-private:
-    /**
-    @brief Helper function for writing OSW SQLite files
-    */
-    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName);
-
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_OSWFILE_H

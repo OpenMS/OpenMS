@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -54,7 +53,7 @@ namespace OpenMS
   /**
 
     @brief The MRMFeatureFilter either flags components and/or transitions that do not pass the QC criteria or filters out
-      components and/or transitions that do not pass the QC criteria. 
+      components and/or transitions that do not pass the QC criteria.
 
     @htmlinclude OpenMS_MRMFeatureFilter.parameters
 
@@ -73,6 +72,13 @@ public:
     ~MRMFeatureFilter() override;
     //@}
 
+    /**
+      @brief Get the class' default parameters
+
+      @param[out] params Output parameters
+    */
+    void getDefaultParameters(Param& params) const;
+
     /// Synchronize members with param class
     void updateMembers_() override;
 
@@ -83,10 +89,10 @@ public:
       @param filter_criteria MRMFeatureQC class defining QC parameters
       @param transitions transitions from a TargetedExperiment
 
-    */    
+    */
     void FilterFeatureMap(FeatureMap& features, const MRMFeatureQC& filter_criteria,
       const TargetedExperiment & transitions);
-    
+
     /**
       @brief Converts a FeatureMap to a qcMLFile::Attachment
 
@@ -95,7 +101,7 @@ public:
 
     */
     void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment);
-    
+
     /**
       @brief Calculates the ion ratio between two transitions
 
@@ -105,9 +111,9 @@ public:
        e.g., peak_apex, peak_area
 
       @return The ratio.
-    */ 
+    */
     double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name);
-    
+
     /**
       @brief Calculates the retention time difference between two features
 
@@ -115,9 +121,9 @@ public:
       @param component_2 Second eluting component
 
       @return The difference.
-    */ 
+    */
     double calculateRTDifference(Feature & component_1, Feature & component_2);
-    
+
     /**
       @brief Calculates the resolution between two features
 
@@ -125,7 +131,7 @@ public:
       @param component_2 component 2
 
       @return The difference.
-    */ 
+    */
     double calculateResolution(Feature & component_1, Feature & component_2);
 
     /**
@@ -154,19 +160,18 @@ public:
       @param transitions transitions from a TargetedExperiment
 
       @return Map of labels/transition types and their corresponding number.
-    */ 
+    */
     std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
       const TargetedExperiment & transitions);
-    
+
     /**
-      @brief Sorts, removes duplicates, and concatenates a list of Strings
+      @brief Sorts the messages and returns a copy without duplicates
 
-      @param str_vec vector of Strings
-      @param delim token to seperate Strings in the list
+      @param[in] messages A StringList containing the failure messages
 
-      @return A concatenated string.
-    */ 
-    String uniqueJoin(std::vector<String>& str_vec, String& delim);
+      @return A copy of the input, without duplicates
+    */
+    StringList getUniqueSorted(const StringList& messages) const;
 
 private:
     template <typename T>
@@ -192,7 +197,4 @@ private:
     std::map<std::vector<String>,std::vector<QcMLFile::QualityParameter>> multi_component_group_qc_report_;
   };
 }
-
-#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
-
 

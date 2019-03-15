@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,8 +141,7 @@ protected:
           String(raw_matched_whitelist[i]) + " does not have the format String1:String2");
       }
 
-      std::pair<std::string, std::string> tmp_tuple(tmp[0], tmp[1]);
-      parsed_matched_whitelist.push_back(tmp_tuple);
+      parsed_matched_whitelist.emplace_back(tmp[0], tmp[1]);
     }
 
     fsc.setAcceptableRelative(acceptable_ratio);

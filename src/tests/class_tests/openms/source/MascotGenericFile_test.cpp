@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,19 +94,19 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
 
   vector<String> strings;
   strings.push_back("BEGIN IONS\n"
-                    "TITLE=1998_25.379_index=0_test\n" // different from input!
-                    "PEPMASS=1998\n"
-                    "RTINSECONDS=25.379\n"
+                    "TITLE=1998.0_25.379000000000001_index=0_test\n" // different from input!
+                    "PEPMASS=1998.0\n"
+                    "RTINSECONDS=25.379000000000001\n"
                     "SCANS=0");
-  strings.push_back("1 1\n"
-                    "2 4\n"
-                    "3 9\n"
-                    "4 16\n"
-                    "5 25\n"
-                    "6 36\n"
-                    "7 49\n"
-                    "8 64\n"
-                    "9 81\n"
+  strings.push_back("1.0 1.0\n"
+                    "2.0 4.0\n"
+                    "3.0 9.0\n"
+                    "4.0 16.0\n"
+                    "5.0 25.0\n"
+                    "6.0 36.0\n"
+                    "7.0 49.0\n"
+                    "8.0 64.0\n"
+                    "9.0 81.0\n"
                     "END IONS\n");
   strings.push_back("MODS=Carbamidomethyl (C)\n");
   strings.push_back("MODS=Phospho (ST)\n");

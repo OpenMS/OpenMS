@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,29 +79,39 @@ namespace OpenMS
 
   LPWrapper::~LPWrapper()
   {
+#if COINOR_SOLVER == 1
+    delete model_;
+#endif
+    glp_delete_prob(lp_problem_);
   }
 
-  Int LPWrapper::addRow(std::vector<Int> row_indices, std::vector<double> row_values, const String& name) // return index
+  Int LPWrapper::addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values, const String& name) // return index
   {
     if (row_indices.size() != row_values.size())
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
+    }
 
     if (solver_ == SOLVER_GLPK)
     {
-      Int index = glp_add_rows(lp_problem_, 1);
+      std::vector<Int> row_indices_ = row_indices;
+      std::vector<double> row_values_ = row_values;
+      const Int index = glp_add_rows(lp_problem_, 1);
       // glpk accesses arrays beginning at index 1-> we have to insert an empty value at the front
-      row_indices.insert(row_indices.begin(), -1);
-      row_values.insert(row_values.begin(), -1);
-      for (Size i = 0; i < row_indices.size(); ++i)
-        row_indices[i] += 1; //std::cout << row_indices[i]
-      glp_set_mat_row(lp_problem_, index, (int)row_indices.size() - 1, &(row_indices[0]), &(row_values[0]));
+      row_indices_.insert(row_indices_.begin(), -1);
+      row_values_.insert(row_values_.begin(), -1);
+      for (Int& row_index : row_indices_)
+      {
+        ++row_index;
+      }
+      glp_set_mat_row(lp_problem_, index, row_indices_.size() - 1, row_indices_.data(), row_values_.data());
       glp_set_row_name(lp_problem_, index, name.c_str());
       return index - 1;
     }
 #if COINOR_SOLVER == 1
     if (solver_ == SOLVER_COINOR)
     {
-      model_->addRow((int)row_indices.size(), &(row_indices[0]), &(row_values[0]), -COIN_DBL_MAX, COIN_DBL_MAX, name.c_str());
+      model_->addRow(row_indices.size(), row_indices.data(), row_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, name.c_str());
       return model_->numberRows() - 1;
     }
 #endif
@@ -127,26 +137,36 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
-  Int LPWrapper::addColumn(std::vector<Int> column_indices, std::vector<double> column_values, const String& name)
+  Int LPWrapper::addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name)
   {
+    if (column_indices.empty())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Column indices for Row are empty");
+    }
     if (column_indices.size() != column_values.size())
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
+    }
     if (solver_ == SOLVER_GLPK)
     {
-      Int index = glp_add_cols(lp_problem_, 1);
+      std::vector<Int> column_indices_ = column_indices;
+      std::vector<double> column_values_ = column_values;
+      const Int index = glp_add_cols(lp_problem_, 1);
       // glpk accesses arrays beginning at index 1-> we have to insert an empty value at the front
-      column_indices.insert(column_indices.begin(), -1);
-      column_values.insert(column_values.begin(), -1);
-      for (Size i = 0; i < column_indices.size(); ++i)
-        column_indices[i] += 1;
-      glp_set_mat_col(lp_problem_, index, (int)column_indices.size() - 1, &(column_indices[0]), &(column_values[0]));
+      column_indices_.insert(column_indices_.begin(), -1);
+      column_values_.insert(column_values_.begin(), -1);
+      for (Int& column_index : column_indices_)
+      {
+        ++column_index;
+      }
+      glp_set_mat_col(lp_problem_, index, column_indices_.size() - 1, column_indices_.data(), column_values_.data());
       glp_set_col_name(lp_problem_, index, name.c_str());
       return index - 1;
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == SOLVER_COINOR)
     {
-      model_->addColumn((Int)column_indices.size(), &column_indices[0], &column_values[0], -COIN_DBL_MAX, COIN_DBL_MAX, 0.0, name.c_str());
+      model_->addColumn(column_indices.size(), column_indices.data(), column_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, 0.0, name.c_str());
       return model_->numberColumns() - 1;
     }
 #endif
@@ -154,10 +174,10 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
-  Int LPWrapper::addRow(std::vector<Int>& row_indices, std::vector<double>& row_values, const String& name, double lower_bound,
-                        double upper_bound, Type type)
+  Int LPWrapper::addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values,
+                        const String& name, double lower_bound, double upper_bound, Type type)
   {
-    Int index = addRow(row_indices, row_values, name);
+    const Int index = addRow(row_indices, row_values, name);
 
     if (solver_ == LPWrapper::SOLVER_GLPK)
       glp_set_row_bnds(lp_problem_, index + 1, type, lower_bound, upper_bound);
@@ -188,10 +208,10 @@ namespace OpenMS
     return index; // in addRow index is decreased already
   }
 
-  Int LPWrapper::addColumn(std::vector<Int>& column_indices, std::vector<double>& column_values, const String& name,
-                           double lower_bound, double upper_bound, Type type) //return index
+  Int LPWrapper::addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values,
+                           const String& name, double lower_bound, double upper_bound, Type type) //return index
   {
-    Int index = addColumn(column_indices, column_values, name);
+    const Int index = addColumn(column_indices, column_values, name);
 
     if (solver_ == LPWrapper::SOLVER_GLPK)
       glp_set_col_bnds(lp_problem_, index + 1, type, lower_bound, upper_bound);
@@ -243,10 +263,10 @@ namespace OpenMS
     }
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
-      Int length = glp_get_mat_row(lp_problem_, row_index + 1, nullptr, nullptr); // get row length
-      double* values = new double[length + 1];
-      Int* indices = new Int[length + 1];
-      glp_get_mat_row(lp_problem_, row_index + 1, indices, values);
+      const Int length = glp_get_mat_row(lp_problem_, row_index + 1, nullptr, nullptr); // get row length
+      std::vector<double> values(length + 1);
+      std::vector<Int> indices(length + 1);
+      glp_get_mat_row(lp_problem_, row_index + 1, indices.data(), values.data());
       bool found = false;
       for (Int i = 1; i <= length; ++i)
       {
@@ -259,8 +279,8 @@ namespace OpenMS
       }
       if (!found) // if this entry wasn't existing before we have to enter it
       {
-        Int* n_indices = new Int[length + 2];
-        double* n_values = new double[length + 2];
+        std::vector<Int> n_indices(length + 2);
+        std::vector<double> n_values(length + 2);
         for (Int i = 0; i <= length; ++i)
         {
           n_indices[i] = indices[i];
@@ -269,14 +289,12 @@ namespace OpenMS
         // now add new value
         n_indices[length + 1] = column_index + 1; // glpk starts reading at pos 1
         n_values[length + 1] = value;
-        glp_set_mat_row(lp_problem_, row_index + 1, length, n_indices, n_values);
-        delete[] n_indices;
-        delete[] n_values;
+        glp_set_mat_row(lp_problem_, row_index + 1, length, n_indices.data(), n_values.data());
       }
       else
-        glp_set_mat_row(lp_problem_, row_index + 1, length, indices, values);
-      delete[] indices;
-      delete[] values;
+      {
+        glp_set_mat_row(lp_problem_, row_index + 1, length, indices.data(), values.data());
+      }
     }
 #if COINOR_SOLVER == 1
     if (solver_ == SOLVER_COINOR)
@@ -292,26 +310,27 @@ namespace OpenMS
     }
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
-      Int length = glp_get_mat_row(lp_problem_, row_index + 1, nullptr, nullptr);
-      double* values = new double[length + 1];
-      Int* indices = new Int[length + 1];
-      glp_get_mat_row(lp_problem_, row_index + 1, indices, values);
+      const Int length = glp_get_mat_row(lp_problem_, row_index + 1, nullptr, nullptr);
+      std::vector<double> values(length + 1);
+      std::vector<Int> indices(length + 1);
+      glp_get_mat_row(lp_problem_, row_index + 1, indices.data(), values.data());
       for (Int i = 1; i <= length; ++i)
       {
         if (indices[i] == column_index + 1)
           return values[i];
       }
-      delete[] indices;
-      delete[] values;
       return 0.;
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == SOLVER_COINOR)
+    {
       return model_->getElement(row_index, column_index);
-
+    }
 #endif
     else
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
+    }
   }
 
   void LPWrapper::setColumnName(Int index, const String& name)
@@ -509,11 +528,14 @@ namespace OpenMS
 
 #if COINOR_SOLVER == 1
     else if (solver_ == SOLVER_COINOR)
+    {
       return model_->getRowName(index);
-
+    }
 #endif
     else
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
+    }
   }
 
   Int LPWrapper::getRowIndex(const String& name)
@@ -525,8 +547,9 @@ namespace OpenMS
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == SOLVER_COINOR)
+    {
       return model_->row(name.c_str());
-
+    }
 #endif
     else
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
@@ -558,11 +581,13 @@ namespace OpenMS
     return solver_;
   }
 
-  void LPWrapper::readProblem(String filename, String format) // format=(LP,MPS,GLPK)
+  void LPWrapper::readProblem(const String& filename, const String& format) // format=(LP,MPS,GLPK)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
+      // delete old model and create a new model in its place (using same ptr)
       glp_erase_prob(lp_problem_);
+      
       if (format == "LP")
       {
         glp_read_lp(lp_problem_, nullptr, filename.c_str());
@@ -581,11 +606,15 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR && format == "MPS")
     {
+      // delete old model and create a new model in its place (using same ptr)
+      delete model_;
       model_ = new CoinModel(filename.c_str());
     }
 #endif
     else
+    {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
   }
 
   void LPWrapper::writeProblem(const String& filename, const WriteFormat format) const
@@ -615,7 +644,9 @@ namespace OpenMS
         model_->writeMps(filename.c_str());
       }
       else
+      {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid LP format, allowed is MPS");
+      }
     }
 #endif
   }
@@ -772,7 +803,7 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
     {
-      double* obj = model_->objectiveArray();
+      double const * const obj = model_->objectiveArray();
       double obj_val = 0.;
       for (Int i = 0; i < model_->numberColumns(); ++i)
       {
@@ -782,7 +813,9 @@ namespace OpenMS
     }
 #endif
     else
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
+    }
   }
 
   double LPWrapper::getColumnValue(Int index)
@@ -808,8 +841,8 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
       return model_->getColumnUpper(index);
-
 #endif
+
     else
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
@@ -822,8 +855,8 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
       return model_->getColumnLower(index);
-
 #endif
+
     else
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
@@ -894,7 +927,6 @@ namespace OpenMS
 
   Int LPWrapper::getNumberOfNonZeroEntriesInRow(Int idx)
   {
-
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
     /* Non-zero coefficient count in the row. */
@@ -904,23 +936,22 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
     {
-      Int n_cols =  getNumberOfColumns();
-      Int* ind = new Int[n_cols];
-      double* values = new double[n_cols];
+      const Int n_cols = getNumberOfColumns();
+      std::vector<Int> ind(n_cols);
+      std::vector<double> values(n_cols);
       Int nonzeroentries = 0;
-      model_->getRow(idx, ind, values);
+      model_->getRow(idx, ind.data(), values.data());
       for (Int i = 0; i < n_cols; i++)
       {
-        nonzeroentries += values[i] != 0 ? 1 : 0; 
+        nonzeroentries += values[i] != 0 ? 1 : 0;
       }
-      delete[] ind;   
-      delete[] values;   
-
       return nonzeroentries;
     }
 #endif
     else
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
+    }
   }
 
   void LPWrapper::getMatrixRow(Int idx, std::vector<Int>& indexes)
@@ -928,36 +959,33 @@ namespace OpenMS
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
       Int size = getNumberOfNonZeroEntriesInRow(idx);
-      int* ind =  new int[size + 1];
-      glp_get_mat_row(lp_problem_, idx + 1, ind, nullptr);
+      std::vector<int> ind(size + 1);
+      glp_get_mat_row(lp_problem_, idx + 1, ind.data(), nullptr);
       indexes.clear();
       for (Int i = 1; i <= size; ++i)
       {
         indexes.push_back(ind[i] - 1);
       }
-      delete[] ind;
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
     {
       indexes.clear();
-
-      Int n_cols =  getNumberOfColumns();
-      Int* ind = new Int[n_cols];
-      double* values = new double[n_cols];
-        
-      model_->getRow(idx, ind, values);
-      for (Int i = 0; i < n_cols; i++)//or ++i ???
+      Int n_cols = getNumberOfColumns();
+      std::vector<Int> ind(n_cols);
+      std::vector<double> values(n_cols);
+      model_->getRow(idx, ind.data(), values.data());
+      for (Int i = 0; i < n_cols; ++i)
       {
         if (values[i] != 0)
-          indexes.push_back(ind[i]); 
+          indexes.push_back(ind[i]);
       }
-      delete[] ind;   
-      delete[] values;   
     }
 #endif
     else
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
+    }
   }
 
 } // namespace

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -172,8 +172,8 @@ namespace OpenMS
       }
 
       // sort ratios map-wise and take median
-      for (ConsensusMap::FileDescriptions::const_iterator it_file = consensus_map.getFileDescriptions().begin();
-           it_file != consensus_map.getFileDescriptions().end();
+      for (ConsensusMap::ColumnHeaders::const_iterator it_file = consensus_map.getColumnHeaders().begin();
+           it_file != consensus_map.getColumnHeaders().end();
            ++it_file)
       {
         if (ratios.has(it_file->first))

@@ -3,7 +3,6 @@ set(directory source/APPLICATIONS/TOPP)
 
 ### list all filenames of the directory here
 set(TOPP_executables
-AdditiveSeries
 BaselineFilter
 CometAdapter
 CompNovo
@@ -32,6 +31,7 @@ FileFilter
 FileInfo
 FileMerger
 GenericWrapper
+GNPSExport
 HighResPrecursorMassCorrector
 IDConflictResolver
 IDFileConverter
@@ -52,6 +52,7 @@ MapAlignerSpectrum
 MapNormalizer
 MapRTTransformer
 MapStatistics
+MaRaClusterAdapter
 MascotAdapter
 MascotAdapterOnline
 MassTraceExtractor

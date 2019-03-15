@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,11 +124,12 @@ namespace OpenMS
     if (use_ppm_) // the above prediction is the ppm error
     { // ... so we convert to actual mass diff
       predict = Math::ppmToMass(-predict, mz) + mz;
-    } else
+    }
+    else
     {
       predict = (-predict) + mz;
     }
-    return(predict);
+    return predict;
   }
 
   bool MZTrafoModel::train( const CalibrationData& cd, MODELTYPE md, bool use_RANSAC, double rt_left /*= -std::numeric_limits<double>::max()*/, double rt_right /*= std::numeric_limits<double>::max() */ )

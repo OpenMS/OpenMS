@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
-#define OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -43,13 +42,14 @@
 
 namespace OpenMS
 {
+
   /**
     @brief Used to load and store TransformationXML files
 
     This class is used to load and store documents that implement the schema of
     TransformationXML files.
 
-    A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
     @ingroup FileIO
   */
@@ -101,4 +101,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H

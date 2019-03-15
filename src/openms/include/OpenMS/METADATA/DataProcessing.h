@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_DATAPROCESSING_H
-#define OPENMS_METADATA_DATAPROCESSING_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/Software.h>
@@ -84,14 +83,23 @@ public:
     static const std::string NamesOfProcessingAction[SIZE_OF_PROCESSINGACTION];
 
     /// Constructor
-    DataProcessing();
+    DataProcessing() = default;
     /// Copy constructor
-    DataProcessing(const DataProcessing & source);
+    DataProcessing(const DataProcessing &) = default;
+
+    // note: we implement the move constructor ourselves due to a bug in MSVS
+    // 2015/2017 which cannot produce a default move constructor for classes
+    // that contain STL containers (other than vector).
+
+    /// Move constructor
+    DataProcessing(DataProcessing&&) noexcept;
     /// Destructor
     ~DataProcessing();
 
     /// Assignment operator
-    DataProcessing & operator=(const DataProcessing & source);
+    DataProcessing & operator=(const DataProcessing &) = default;
+    /// Move assignment operator
+    DataProcessing& operator=(DataProcessing&&) & = default;
 
     /// Equality operator
     bool operator==(const DataProcessing & rhs) const;
@@ -129,4 +137,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_DATAPROCESSING_H

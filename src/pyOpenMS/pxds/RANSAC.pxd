@@ -1,4 +1,5 @@
 from Types cimport *
+from String cimport *
 from RANSACModelLinear cimport *
 from RANSACModelQuadratic cimport *
 
@@ -18,7 +19,7 @@ cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math":
         RANSACParam(RANSACParam) nogil except + # wrap-ignore
         RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d) nogil except +
 
-        libcpp_string toString() nogil except +
+        String toString() nogil except +
 
         size_t n #; //< data points; The minimum number of data points required to fit the model
         size_t k # ; //< iterations; The maximum number of iterations allowed in the algorithm 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -116,7 +116,7 @@ protected:
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
-      setValidFormats_("out", ListUtils::create<String>("tsv"));
+      setValidFormats_("out", ListUtils::create<String>("mzTab"));
     }
 
 
@@ -558,7 +558,7 @@ protected:
          // MzTabString uri; // Location of the protein’s source entry.
          // MzTabStringList go_terms; // List of GO terms for the protein.
             double coverage = hit.getCoverage();
-            protein_row.protein_coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
+            protein_row.coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
          // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
 
             // create and fill opt_ columns for protein hit user values
@@ -805,18 +805,18 @@ protected:
       MzTab mztab;
       vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
       vector<String> var_mods, fixed_mods;
-      MzTabString db, db_version;
+      MzTabString db, db_version; 
       if (!prot_ids.empty())
       {
-        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
+        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters(); 
         var_mods = sp.variable_modifications;
         fixed_mods = sp.fixed_modifications;
         db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
         db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
       }
 
-      // determine number of channels
-      Size n_study_variables = consensus_map.getFileDescriptions().size();
+      // determine number of quant. columns
+      Size n_study_variables = consensus_map.getColumnHeaders().size();
 
       MzTabMetaData meta_data;
 
@@ -832,13 +832,25 @@ protected:
       meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
       meta_data.peptide_search_engine_score[1] = MzTabParameter();
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
-      MzTabMSRunMetaData ms_run;
+
       StringList ms_runs;
-      consensus_map.getPrimaryMSRunPath(ms_runs);
-      for (Size i = 0; i != ms_runs.size(); ++i)
+      consensus_map.getPrimaryMSRunPath(ms_runs); 
+
+      // condense consecutive unique MS runs to get the different MS files
+      auto it = std::unique(ms_runs.begin(), ms_runs.end());
+      ms_runs.resize(std::distance(ms_runs.begin(), it)); 
+
+      // set run meta data
+      Size run_index{1};
+      for (auto const & m : ms_runs)
       {
-        ms_run.location = MzTabString(ms_runs[i]);
-        meta_data.ms_run[i + 1] = ms_run;
+        MzTabMSRunMetaData mztab_run_metadata;
+        mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
+        mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
+        mztab_run_metadata.location = MzTabString(m);
+        meta_data.ms_run[run_index] = mztab_run_metadata;
+        LOG_DEBUG << "Adding MS run for file: " << m << endl;
+        ++run_index;
       }
 
       mztab.setMetaData(meta_data);
@@ -907,7 +919,7 @@ protected:
         rts.push_back(MzTabDouble(c.getRT()));
         rt_list.set(rts);
         row.retention_time = rt_list;
-        MzTabDoubleList rt_window;
+        MzTabDoubleList rt_window;  
         row.retention_time_window = rt_window;
         row.charge = MzTabInteger(c.getCharge());
         row.best_search_engine_score[1] = MzTabDouble();

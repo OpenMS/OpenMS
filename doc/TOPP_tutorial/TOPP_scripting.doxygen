@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -477,18 +477,19 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 			For more information about the theory behind this technique, please refer to
 			Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>
 			Please note that this algorithm features no "modelling stage", since the structure
-			of the isotopic pattern is explicitly coded by the wavelet itself.  
+			of the isotopic pattern is explicitly coded by the wavelet itself.
 			The algorithm also works for 2D maps (in combination with the so-called <I>sweep-line</I> technique (Schulz-Trieglaff et al.:
 			"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry Data" (2007))).
-			The algorithm can be executed on (several) high-speed CUDA graphics cards. 
+			The algorithm could originally be executed on (several) high-speed CUDA graphics cards. 
 			Tests on real-world data sets revealed potential speedups beyond factors of 200 (using 2 NVIDIA Tesla cards in parallel).
+            Support for CUDA was removed in OpenMS due to maintenance overhead.
 			Please refer to Hussong et al.: "Highly accelerated feature detection in proteomics data sets using modern graphics processing units" (2009)
 			for more details on the implementation.
 			
 			<B>Seeding:</B>
 			<BR>Identification of regions of interest by convolving the signal with the wavelet function.
 			<BR>A score, measuring the closeness of the transform to a theoretically determined output function, 
-					finally distinguishes potential features from noise.  			
+					finally distinguishes potential features from noise.
 			
 			<B>Extension:</B>
 			<BR>

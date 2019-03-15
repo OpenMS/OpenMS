@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -138,12 +138,10 @@ namespace OpenMS
 
     if (mass >= 0)
     {
-      key += "+" + String(Math::round(mass));
+      key += "+";
     }
-    else
-    {
-      key += String(Math::round(mass));
-    }
+    key += String(int(Math::round(mass)));
+
 
     String line = "";
     line += origin.toUpper();

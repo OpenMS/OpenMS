@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -69,76 +69,6 @@ if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_
 endif()
 
 #------------------------------------------------------------------------------
-# CONCEPT
-add_custom_target(CONCEPT_TEST)
-add_dependencies(CONCEPT_TEST ${concept_executables_list})
-
-#------------------------------------------------------------------------------
-# DATASTRUCTURES
-add_custom_target(DATASTRUCTURES_TEST)
-add_dependencies(DATASTRUCTURES_TEST ${datastructures_executables_list})
-
-#------------------------------------------------------------------------------
-# METADATA
-add_custom_target(METADATA_TEST)
-add_dependencies(METADATA_TEST ${metadata_executables_list})
-
-#------------------------------------------------------------------------------
-# SYSTEM
-add_custom_target(SYSTEM_TEST)
-add_dependencies(SYSTEM_TEST ${system_executables_list})
-
-#------------------------------------------------------------------------------
-# KERNEL
-add_custom_target(KERNEL_TEST)
-add_dependencies(KERNEL_TEST ${kernel_executables_list})
-
-#------------------------------------------------------------------------------
-# FORMAT
-add_custom_target(FORMAT_TEST)
-add_dependencies(FORMAT_TEST ${format_executables_list})
-
-#------------------------------------------------------------------------------
-# MATH
-add_custom_target(MATH_TEST)
-add_dependencies(MATH_TEST ${math_executables_list})
-
-#------------------------------------------------------------------------------
-# FILTERING
-add_custom_target(FILTERING_TEST)
-add_dependencies(FILTERING_TEST ${filtering_executables_list})
-
-#------------------------------------------------------------------------------
-# COMPARISON
-add_custom_target(COMPARISON_TEST)
-add_dependencies(COMPARISON_TEST ${comparison_executables_list})
-
-#------------------------------------------------------------------------------
-# CHEMISTRY
-add_custom_target(CHEMISTRY_TEST)
-add_dependencies(CHEMISTRY_TEST ${chemistry_executables_list})
-
-#------------------------------------------------------------------------------
-# ANALYSIS
-add_custom_target(ANALYSIS_TEST)
-add_dependencies(ANALYSIS_TEST ${analysis_executables_list})
-
-#------------------------------------------------------------------------------
-# APPLICATIONS
-add_custom_target(APPLICATIONS_TEST)
-add_dependencies(APPLICATIONS_TEST ${applications_executables_list})
-
-#------------------------------------------------------------------------------
-# TRANSFORMATIONS
-add_custom_target(TRANSFORMATIONS_TEST)
-add_dependencies(TRANSFORMATIONS_TEST ${transformations_executables_list})
-
-#------------------------------------------------------------------------------
-# SIMULATION
-add_custom_target(SIMULATION_TEST)
-add_dependencies(SIMULATION_TEST ${simulation_executables_list})
-
-#------------------------------------------------------------------------------
 # QT dependencies
 find_package(Qt5 COMPONENTS Core Network REQUIRED)
 if (NOT Qt5Network_FOUND)
@@ -176,12 +106,6 @@ endforeach()
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
   set(${CMAKE_CXX_FLAGS_RELEASE} ${_TMP_CMAKE_CXX_FLAGS_RELEASE})
 endif()
-
-#------------------------------------------------------------------------------
-# all target that we require to show up in the targets list
-# and in the nightly build log (to test if they can be build properly)
-add_custom_target(extra_targets ALL)
-add_dependencies(extra_targets Tutorials_build)
 
 #------------------------------------------------------------------------------
 # add filenames to Visual Studio solution tree

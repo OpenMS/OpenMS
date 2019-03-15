@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
+
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
@@ -46,27 +47,6 @@ namespace OpenMS
     file_path_(),
     file_type_(FileTypes::UNKNOWN)
   {
-  }
-
-  DocumentIdentifier::DocumentIdentifier(const DocumentIdentifier & source) :
-    id_(source.id_),
-    file_path_(source.file_path_),
-    file_type_(source.file_type_)
-  {
-  }
-
-  DocumentIdentifier & DocumentIdentifier::operator=(const DocumentIdentifier & source)
-  {
-    if (&source == this)
-    {
-      return *this;
-    }
-
-    id_ = source.id_;
-    file_type_ = source.file_type_;
-    file_path_ = source.file_path_;
-
-    return *this;
   }
 
   DocumentIdentifier::~DocumentIdentifier()
@@ -127,3 +107,4 @@ namespace OpenMS
   }
 
 }
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,9 @@ START_SECTION((virtual ~PeptideIdentification()))
   delete ptr;
 END_SECTION
 
+// Copy Constructor
 START_SECTION((PeptideIdentification(const PeptideIdentification& source)))
+{
   PeptideIdentification hits;
   hits.setSignificanceThreshold(peptide_significance_threshold);
   hits.setHits(peptide_hits);
@@ -96,6 +98,42 @@ START_SECTION((PeptideIdentification(const PeptideIdentification& source)))
   TEST_EQUAL(hits.getIdentifier(),"id")
   TEST_EQUAL(hits.getScoreType(),"score_type")
   TEST_EQUAL(hits.isHigherScoreBetter(),false)
+}
+END_SECTION
+
+// Move Constructor
+START_SECTION((PeptideIdentification(PeptideIdentification&& source) noexcept))
+{
+  // Ensure that PeptideIdentification has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(PeptideIdentification(std::declval<PeptideIdentification&&>())), true)
+
+  PeptideIdentification hits;
+  hits.setSignificanceThreshold(peptide_significance_threshold);
+  hits.setHits(peptide_hits);
+  hits.setMetaValue("label",17);
+  hits.setIdentifier("id");
+  hits.setScoreType("score_type");
+  hits.setHigherScoreBetter(false);
+
+  PeptideIdentification example(hits);
+
+  PeptideIdentification hits2(std::move(example));
+
+  TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
+  TEST_EQUAL(hits.getHits().size() == 1, true)
+  TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)
+  TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
+  TEST_EQUAL(hits.getIdentifier(),"id")
+  TEST_EQUAL(hits.getScoreType(),"score_type")
+  TEST_EQUAL(hits.isHigherScoreBetter(),false)
+
+  // the move source should be empty
+  TEST_EQUAL(example.getHits().empty(), true)
+  TEST_EQUAL(example.isMetaEmpty(), true)
+  TEST_EQUAL(example.getIdentifier().empty(), true)
+  TEST_EQUAL(example.getScoreType().empty(), true)
+}
 END_SECTION
 
 START_SECTION((PeptideIdentification& operator=(const PeptideIdentification& source)))

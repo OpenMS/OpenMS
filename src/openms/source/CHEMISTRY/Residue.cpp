@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  // residue
   Residue::Residue() :
     name_("unknown"),
     average_weight_(0.0f),
@@ -82,68 +81,8 @@ namespace OpenMS
     }
   }
 
-  Residue::Residue(const Residue& residue) :
-    name_(residue.name_),
-    short_name_(residue.short_name_),
-    synonyms_(residue.synonyms_),
-    three_letter_code_(residue.three_letter_code_),
-    one_letter_code_(residue.one_letter_code_),
-    formula_(residue.formula_),
-    internal_formula_(residue.internal_formula_),
-    average_weight_(residue.average_weight_),
-    mono_weight_(residue.mono_weight_),
-    modification_(residue.modification_),
-    loss_names_(residue.loss_names_),
-    loss_formulas_(residue.loss_formulas_),
-    NTerm_loss_names_(residue.NTerm_loss_names_),
-    NTerm_loss_formulas_(residue.NTerm_loss_formulas_),
-    loss_average_weight_(residue.loss_average_weight_),
-    loss_mono_weight_(residue.loss_mono_weight_),
-    low_mass_ions_(residue.low_mass_ions_),
-    pka_(residue.pka_),
-    pkb_(residue.pkb_),
-    pkc_(residue.pkc_),
-    gb_sc_(residue.gb_sc_),
-    gb_bb_l_(residue.gb_bb_l_),
-    gb_bb_r_(residue.gb_bb_r_),
-    residue_sets_(residue.residue_sets_)
-  {
-  }
-
   Residue::~Residue()
   {
-  }
-
-  Residue& Residue::operator=(const Residue& residue)
-  {
-    if (this != &residue)
-    {
-      name_ = residue.name_;
-      short_name_ = residue.short_name_;
-      synonyms_ = residue.synonyms_;
-      three_letter_code_ = residue.three_letter_code_;
-      one_letter_code_ = residue.one_letter_code_;
-      formula_ = residue.formula_;
-      internal_formula_ = residue.internal_formula_;
-      average_weight_ = residue.average_weight_;
-      mono_weight_ = residue.mono_weight_;
-      modification_ = residue.modification_;
-      loss_names_ = residue.loss_names_;
-      loss_formulas_ = residue.loss_formulas_;
-      NTerm_loss_names_ = residue.NTerm_loss_names_;
-      NTerm_loss_formulas_ = residue.NTerm_loss_formulas_;
-      loss_average_weight_ = residue.loss_average_weight_;
-      loss_mono_weight_ = residue.loss_mono_weight_;
-      low_mass_ions_ = residue.low_mass_ions_;
-      pka_ = residue.pka_;
-      pkb_ = residue.pkb_;
-      pkc_ = residue.pkc_;
-      gb_sc_ = residue.gb_sc_;
-      gb_bb_l_ = residue.gb_bb_l_;
-      gb_bb_r_ = residue.gb_bb_r_;
-      residue_sets_ = residue.residue_sets_;
-    }
-    return *this;
   }
 
   void Residue::setName(const String& name)
@@ -466,31 +405,31 @@ namespace OpenMS
       return mono_weight_;
 
     case Internal:
-      return mono_weight_ - getInternalToFull().getMonoWeight();
+      return mono_weight_ - internal_to_full_monoweight_;
 
     case NTerminal:
-      return mono_weight_ + (getInternalToNTerm() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_nterm_monoweight_;
 
     case CTerminal:
-      return mono_weight_ + (getInternalToCTerm() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_cterm_monoweight_;
 
     case BIon:
-      return mono_weight_ + (getInternalToBIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_b_monoweight_;
 
     case AIon:
-      return mono_weight_ + (getInternalToAIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_a_monoweight_;
 
     case CIon:
-      return mono_weight_ + (getInternalToCIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_c_monoweight_;
 
     case XIon:
-      return mono_weight_ + (getInternalToXIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_x_monoweight_;
 
     case YIon:
-      return mono_weight_ + (getInternalToYIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_y_monoweight_;
 
     case ZIon:
-      return mono_weight_ + (getInternalToZIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_z_monoweight_;
 
     default:
       cerr << "Residue::getMonoWeight: unknown ResidueType" << endl;
@@ -692,6 +631,22 @@ namespace OpenMS
   bool Residue::isInResidueSet(const String& residue_set)
   {
     return residue_sets_.find(residue_set) != residue_sets_.end();
+  }
+
+  char Residue::residueTypeToIonLetter(const Residue::ResidueType& res_type)
+  {
+    switch (res_type)
+    {
+      case Residue::AIon: return 'a';
+      case Residue::BIon: return 'b';
+      case Residue::CIon: return 'c';
+      case Residue::XIon: return 'x';
+      case Residue::YIon: return 'y';
+      case Residue::ZIon: return 'z';
+      default:
+       cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
+    }
+    return ' ';
   }
 
   ostream& operator<<(ostream& os, const Residue& residue)

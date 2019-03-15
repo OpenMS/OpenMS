@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,11 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-
-#include <OpenMS/CONCEPT/LogStream.h>
+#include <cstdint>
 #include <fstream>
-
 #include <QDir>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -45,42 +49,380 @@ using namespace std;
 namespace OpenMS
 {
   // precursor correction (highest intensity)
-  Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum& spectrum1, double left_tolerance, double right_tolerance)
+  Int getHighestIntensityPeakInMZRange(double test_mz,
+                                       const MSSpectrum& spectrum1,
+                                       double tolerance,
+                                       bool ppm)
   {
-    MSSpectrum::ConstIterator left = spectrum1.MZBegin(test_mz - left_tolerance);
-    MSSpectrum::ConstIterator right = spectrum1.MZEnd(test_mz + right_tolerance);
+
+    // get tolerance window and left/right iterator
+    pair<double, double> tolerance_window = Math::getTolWindow(test_mz, tolerance, ppm);
+
+    // Here left has to be smaller than right
+    OPENMS_PRECONDITION(tolerance_window.first < tolerance_window.second, "Left has to be smaller than right");
+
+    MSSpectrum::ConstIterator left = spectrum1.MZBegin(tolerance_window.first);
+    MSSpectrum::ConstIterator right = spectrum1.MZBegin(tolerance_window.second);
 
     // no MS1 precursor peak in +- tolerance window found
-    if (left == right || left->getMZ() > test_mz + right_tolerance)
+    if (left == right)
     {
       return -1;
     }
 
-    MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
-
-    if (max_intensity_it == right)
-    {
-      return -1;
-    }
+    MSSpectrum::ConstIterator max_intensity_it = max_element(left, right, Peak1D::IntensityLess());
 
     return max_intensity_it - spectrum1.begin();
   }
 
-  void SiriusMSFile::store(const PeakMap &spectra, const OpenMS::String & msfile, const map<size_t, StringList> & map_precursor_to_adducts)
+  // extract precursor isotope pattern if no feature information is available
+  vector<Peak1D> extractPrecursorIsotopePattern(const double& precursor_mz,
+                                                const MSSpectrum& precursor_spectrum,
+                                                int& iterations,
+                                                const int& charge)
   {
+    vector<Peak1D> isotopes;
+    int peak_index;
+    Peak1D peak;
+
+    // monoisotopic_trace
+    peak_index = getHighestIntensityPeakInMZRange(precursor_mz, precursor_spectrum, 10, true);
+    if (peak_index != -1)
+    {
+      peak = precursor_spectrum[peak_index];
+      isotopes.push_back(peak);
+    }
+
+    // further isotope_traces with the mass error of 1 ppm
+    double massdiff = Constants::C13C12_MASSDIFF_U;
+
+    // depending on the charge different MASSDIFF
+    if (charge != 0)
+    {
+      massdiff = massdiff/std::abs(charge);
+    }
+
+    while (peak_index != -1 && iterations > 0)
+    {
+      // check for isotope trace with one ppm error
+      peak_index = getHighestIntensityPeakInMZRange(peak.getMZ() + massdiff, precursor_spectrum, 1, true);
+      if (peak_index != -1)
+      {
+        peak = precursor_spectrum[peak_index];
+        isotopes.push_back(peak);
+      }
+      --iterations;
+    }
+    return isotopes;
+  }
+
+  void writeMsFile_(ofstream& os,
+                    const PeakMap& spectra,
+                    const vector<size_t>& ms2_spectra_index,
+                    const SiriusMSFile::AccessionInfo& ainfo,
+                    const StringList& adducts,
+                    const String& description,
+                    const String& sumformula,
+                    const vector<pair<double,double>>& f_isotopes,
+                    int& feature_charge,
+                    uint64_t& feature_id,
+                    const double& feature_rt,
+                    const double& feature_mz,
+                    bool& writecompound,
+                    const bool& no_masstrace_info_isotope_pattern,
+                    const int& isotope_pattern_iterations,
+                    int& count_skipped_spectra,
+                    int& count_assume_mono,
+                    int& count_no_ms1,
+                    std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
+  {
+    SiriusMSFile::CompoundInfo cmpinfo;
+    for (const size_t& ind : ms2_spectra_index)
+    {
+      // construct compound info structure
+      const MSSpectrum &current_ms2 = spectra[ind];
+      const double current_rt = current_ms2.getRT();
+
+      const String native_id = current_ms2.getNativeID();
+      const int scan_number = SpectrumLookup::extractScanNumber(native_id, ainfo.native_id_accession);
+
+      const vector<Precursor> &precursor = current_ms2.getPrecursors();
+
+      IonSource::Polarity p = current_ms2.getInstrumentSettings().getPolarity(); //charge
+
+      // there should be only one precursor and MS2 should contain peaks to be considered
+      if (precursor.size() == 1 && !current_ms2.empty())
+      {
+        // read precursor charge
+        int precursor_charge = precursor[0].getCharge();
+
+        // sirius supports only single charged ions (+1; -1)
+        // if charge = 0, it will be allocted to +1; -1 depending on Polarity
+        if (precursor_charge > 1 || precursor_charge < -1)
+        {
+          ++count_skipped_spectra;
+          continue;
+        }
+
+        // set precursor charge for msfile
+        // no charge annotated - assume mono-charged
+        if (precursor_charge == 0)
+        {
+          precursor_charge = 1;
+          ++count_assume_mono;
+        }
+        // negative mode - make sure charges are < 0
+        if (p == IonSource::Polarity::NEGATIVE) { precursor_charge = -(std::abs(precursor_charge)); }
+
+        // set feature_charge for msfile if feature information is available
+        // no charge annotated - assume mono-charged
+        if (feature_id != 0 && feature_charge == 0)
+        {
+          feature_charge = 1;
+          ++count_assume_mono;
+        }
+        // negative mode - make sure charges are < 0
+        if (p == IonSource::Polarity::NEGATIVE) { feature_charge = -(std::abs(feature_charge)); }
+
+        // get m/z and intensity of precursor != MS1 spectrum
+        double precursor_mz = precursor[0].getMZ();
+        float precursor_int = precursor[0].getIntensity();
+
+        // extract collision energy
+        double collision = precursor[0].getActivationEnergy();
+
+        // find corresponding ms1 spectra (precursor)
+        PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum((spectra.begin() + ind));
+
+        double test_mz = precursor_mz;
+        double precursor_rt = 0.0;
+
+        vector<Peak1D> isotopes;
+        isotopes.clear();
+        vector<Peak1D> precursor_spec;
+
+        // getPrecursorSpectrum returns past-the-end iterator if spectrum is not found.
+        if (s_it2 == spectra.end() || s_it2->getMSLevel() != 1)
+        {
+          ++count_no_ms1;
+        }
+        // get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
+        else
+        {
+          const MSSpectrum &precursor_spectrum = *s_it2;
+          precursor_rt = precursor_spectrum.getRT();
+          int interations = isotope_pattern_iterations;
+          // extract precursor isotope pattern via C13 isotope distance
+          if (feature_id != 0 && feature_charge != 0)
+          {
+            isotopes = extractPrecursorIsotopePattern(test_mz, precursor_spectrum, interations, feature_charge);
+          }
+          else
+          {
+            isotopes = extractPrecursorIsotopePattern(test_mz, precursor_spectrum, interations, precursor_charge);
+          }
+          for (Size i = 0; i < precursor_spectrum.size(); ++i)
+          {
+            const Peak1D &peak = precursor_spectrum[i];
+            precursor_spec.push_back(peak);
+          }
+        }
+
+        String query_id = "_" + String(feature_id) + 
+                          String("-" + String(scan_number) + "-") +
+                          description + String(ind);
+
+        if (writecompound)
+        {
+          // write internal unique .ms data as sirius input
+          os << fixed;
+          os << ">compound " << query_id << "\n";
+          cmpinfo.cmp = query_id;
+
+          if (!f_isotopes.empty() && !no_masstrace_info_isotope_pattern)
+          {
+            os << ">parentmass " << f_isotopes[0].first << fixed << "\n";
+            cmpinfo.pmass = f_isotopes[0].first;
+          }
+          else if (!isotopes.empty())
+          {
+            os << ">parentmass " << isotopes[0].getMZ() << fixed << "\n";
+            cmpinfo.pmass = isotopes[0].getMZ();
+          }
+          else
+          {
+            os << ">parentmass " << precursor_mz << fixed << "\n";
+            cmpinfo.pmass = precursor_mz;
+          }
+  
+          if (!adducts.empty())
+          {
+            os << ">ionization " << ListUtils::concatenate(adducts, ',') << "\n";
+            cmpinfo.ionization = ListUtils::concatenate(adducts, ',');
+          }
+
+          if (sumformula != "UNKNOWN")
+          {
+            os << ">formula " << sumformula << "\n";
+            cmpinfo.formula = sumformula;
+          }
+
+          if (feature_charge != 0)
+          {
+            os << ">charge " << feature_charge << "\n";
+            cmpinfo.charge = feature_charge;
+          }
+          else
+          {
+            os << ">charge " << precursor_charge << "\n";
+            cmpinfo.charge = precursor_charge;
+          }
+
+          if (feature_rt != 0)
+          {
+            os << ">rt " << feature_rt << "\n";
+            cmpinfo.rt = feature_rt;
+          }
+          else if (precursor_rt != 0.0)
+          {
+            os << ">rt " << precursor_rt << "\n";
+            cmpinfo.rt = precursor_rt;
+          }
+          else
+          {
+            os << ">rt " << current_rt << "\n";
+            cmpinfo.rt = current_rt;
+          }
+          
+          if (feature_mz != 0 && feature_id != 0)
+          {
+            os << "##fmz " << String(feature_mz) << "\n";
+            os << "##fid " << String(feature_id) << "\n";
+            cmpinfo.fmz = feature_mz;
+            cmpinfo.fid = String(feature_id);
+          }
+          os << "##des " << String(description) << "\n";
+          os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
+          os << "##source file " << ainfo.sf_path << endl;
+          os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
+          cmpinfo.des = String(description);
+          cmpinfo.specref_format = String("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
+          cmpinfo.source_file = ainfo.sf_path;
+          cmpinfo.source_format = String("[MS, " + ainfo.sf_accession + ", "+ ainfo.sf_type + ",]" );
+
+          // use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
+          Size num_isotopes = isotopes.size();
+          Size num_f_isotopes = f_isotopes.size();
+
+          if (num_f_isotopes > 0 && !no_masstrace_info_isotope_pattern)
+          {
+            os << ">ms1merged" << endl;
+            // m/z and intensity have to be higher than 1e-10
+            for (auto it = f_isotopes.begin(); it != f_isotopes.end(); ++it)
+            {
+              os << it->first << " " << it->second << "\n";
+            }
+          }
+          else if (num_isotopes > 0) // if ms1 spectrum was present
+          {
+            os << ">ms1merged" << endl;
+            for (auto it = isotopes.begin(); it != isotopes.end(); ++it)
+            {
+              os << it->getMZ() << " " << it->getIntensity() << "\n";
+            }
+          }
+          else
+          {
+            if (precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
+            {
+              os << ">ms1merged" << "\n" << precursor_mz << " " << precursor_int << "\n\n";
+            }
+          }
+        }
+
+        // if a feature_id is present compound should only be written once
+        // since every ms2 belongs to the same feature
+        if (feature_id != 0)
+        {
+          writecompound = false;
+        }
+
+        if (!precursor_spec.empty())
+        {
+          os << ">ms1peaks" << endl;
+          for (auto iter = precursor_spec.begin(); iter != precursor_spec.end(); ++iter)
+          {
+            os << iter->getMZ() << " " << iter->getIntensity() << "\n";
+          }
+        }
+
+        // if collision energy was given - write it into .ms file if not use ms2 instead
+        if (collision == 0.0)
+        {
+          os << ">ms2peaks" << "\n";
+        }
+        else
+        {
+          os << ">collision" << " " << collision << "\n";
+        }
+        os << "##nid " << native_id << endl;
+        os << "##scan " << ind << endl;
+        os << "##specref " << "ms_run[1]:" << native_id << endl;
+
+        cmpinfo.native_ids.push_back(native_id);
+        cmpinfo.scan_indices.push_back(ind);
+        cmpinfo.specrefs.push_back(String("ms_run[1]:" + native_id));
+
+        // single spectrum peaks
+        for (Size i = 0; i < current_ms2.size(); ++i)
+        {
+          const Peak1D &peak = current_ms2[i];
+          double mz = peak.getMZ();
+          float intensity = peak.getIntensity();
+
+          // intensity has to be higher than zero
+          if (intensity != 0)
+          {
+            os << mz << " " << intensity << "\n";
+          }
+        }
+      }
+    }
+    v_cmpinfo.push_back(cmpinfo);
+  }
+
+  void SiriusMSFile::store(const PeakMap& spectra,
+                           const OpenMS::String& msfile,
+                           const FeatureMapping::FeatureToMs2Indices& feature_mapping,
+                           const bool& feature_only,
+                           const int& isotope_pattern_iterations,
+                           const bool no_masstrace_info_isotope_pattern,
+                           std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
+  {
+    const map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
+    const vector<size_t> & unassigned_ms2 = feature_mapping.unassignedMS2;
+
+    bool use_feature_information = false;
+    bool use_unassigend_ms2 = false;
+    bool no_feautre_information = false;
+
+    // Three different possible .ms formats
+    // feature information is used (adduct, masstrace_information (FFM+MAD || FFM+AMS || FMM+MAD+AMS [AMS preferred])
+    if (!assigned_ms2.empty()) use_feature_information = true;
+    // feature information was provided and unassigend ms2 should be used (feature only parameter)
+    if (!unassigned_ms2.empty() && !feature_only) use_unassigend_ms2 = true;
+    // no feature information was provided (mzml input only)
+    if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feautre_information = true;
+
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
-    int count_to_pos = 0; // count if charge 0 -> +1
-    int count_to_neg = 0; // count if charge 0 -> -1
+    int count_assume_mono = 0; // count if mono charge was assumend and set to current ion mode
     int count_no_ms1 = 0; // count if no precursor was found
+    int count_skipped_features = 0; // features skipped due to charge
 
     // check for all spectra at the beginning if spectra are centroided
     // determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
     SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
 
-    // extract native id type accession (e.g. MS:1000768) corresponding to native id type (Thermo nativeID format)
-    const String native_id_type_accession = spectra.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
-    LOG_DEBUG << "native_id_type_accession: " << native_id_type_accession << std::endl;
-  
     if (spectrum_type == SpectrumSettings::PROFILE)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra are needed. Please use PeakPicker to convert the spectra.");
@@ -91,230 +433,229 @@ namespace OpenMS
 
     // create temporary input file (.ms)
     os.open(msfile.c_str());
-    if (!os)
+     if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msfile);
     }
     os.precision(12);
 
-    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
+    AccessionInfo ainfo;
+
+    // sourcefile 
+    ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
+    ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+ 
+    // extract accession by name
+    std::set<String> terms;
+    ControlledVocabulary cv;
+    cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
+    cv.getAllChildTerms(terms, "MS:1000560");
+    for (std::set<String>::const_iterator it = terms.begin(); it != terms.end(); ++it)
     {
-      // process only MS2 spectra
-      if (s_it->getMSLevel() != 2)
+      if (cv.getTerm(*it).name == ainfo.sf_type)
       {
-        continue;
+          cv.getTerm(*it);
+          ainfo.sf_accession = cv.getTerm(*it).id;
       }
+    }  
+    // native_id
+    ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
+    ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
 
-      const MSSpectrum& spectrum = *s_it;
+    StringList adducts;
+    String description = "UNKNOWN";
+    String sumformula = "UNKNOWN";
+    uint64_t feature_id;
+    int feature_charge;
+    double feature_rt;
+    double feature_mz;
+    vector<pair<double, double>> f_isotopes;
+    f_isotopes.clear();
 
-      int scan_index = s_it - spectra.begin();
-      String native_id = spectrum.getNativeID();
-      int scan_number = SpectrumLookup::extractScanNumber(native_id, native_id_type_accession);     
-      
-      // extract adducts for given precursor
-      StringList adducts;
-      if (map_precursor_to_adducts.find(scan_index) != map_precursor_to_adducts.end())
+    // if feature information is available to this first (write features in one compound)
+    if (use_feature_information)
+    { 
+      for (auto it = assigned_ms2.begin();
+                it != assigned_ms2.end();
+                ++it)
       {
-        adducts = map_precursor_to_adducts.at(scan_index);
-      }
+        const BaseFeature* feature = it->first;
+        const vector<size_t> feature_associated_ms2 = it->second;
+        
+        // reset feature information with each iteration
+        f_isotopes.clear();
+        adducts.clear();
 
-      const vector<Precursor>& precursor = spectrum.getPrecursors();
+        feature_id = feature->getUniqueId();
+        feature_charge = feature->getCharge();
+        feature_rt = feature->getRT();
+        feature_mz = feature->getMZ();
 
-      IonSource::Polarity p = spectrum.getInstrumentSettings().getPolarity(); //charge
-
-      // there should be only one precursor and MS2 should contain peaks to be considered
-      if (precursor.size() == 1 && !spectrum.empty())
-      {
-        // needed later for writing in ms file
-        int int_charge = 0;
-
-        // read precursor charge
-        int precursor_charge = precursor[0].getCharge();
-
-        // sirius supports only single charged ions (+1; -1)
-        // if charge = 0, it will be allocted to +1; -1 depending on Polarity
-        if (precursor_charge > 1 || precursor_charge <= -1)
+        // multiple charged compounds are not allowed in sirius
+        if (feature_charge > 1 || feature_charge < -1)
         {
-          count_skipped_spectra = count_skipped_spectra + 1;
+          ++count_skipped_features;
           continue;
         }
-        // set charge value for msfile
-        if (p == IonSource::Polarity::POSITIVE && precursor_charge == +1)
+
+        // ffm featureXML
+        if (feature->metaValueExists("adducts"))
         {
-          int_charge = +1;
+          adducts = feature->getMetaValue("adducts");
         }
-        if (p == IonSource::Polarity::NEGATIVE && precursor_charge == -1)
+        if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
         {
-          int_charge = -1;
-        }
-        if (p == IonSource::Polarity::POSITIVE && precursor_charge == 0)
-        {
-          int_charge = +1;
-          count_to_pos = count_to_pos + 1;
-        }
-        if (p == IonSource::Polarity::NEGATIVE && precursor_charge == 0)
-        {
-          int_charge = -1;
-          count_to_neg = count_to_neg +1;
-        }
-
-        // get m/z and intensity of precursor != MS1 spectrum
-        double precursor_mz = precursor[0].getMZ();
-        float precursor_int = precursor[0].getIntensity();
-
-        // extract collision energy
-        double collision = precursor[0].getActivationEnergy(); 
-        
-        // find corresponding ms1 spectra (precursor)
-        PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum(s_it);
-
-        double test_mz = precursor_mz;
-
-        vector<Peak1D> isotopes;
-        isotopes.clear();
-
-        if (s_it2->getMSLevel() != 1)
-        {
-          count_no_ms1 = count_no_ms1 +1;
-        }
-        // get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
-        else
-        {
-          const MSSpectrum& spectrum1 = *s_it2;
-
-          // 0.2 Da left and right of the precursor m/z - we do not expect metabolites with charge 5 or higher.
-          Int mono_index = getHighestIntensityPeakInMZRange(test_mz, spectrum1, 0.2, 0.2);
-
-          if (mono_index != -1)
+          vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
+          vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
+          if (masstrace_centroid_mz.size() == masstrace_intensity.size())
           {
-            const Peak1D& max_mono_peak = spectrum1[mono_index];
-            isotopes.push_back(max_mono_peak);
-
-            // make sure the 13C isotopic peak is picked up by doubling the (fractional) mass difference (approx. 1.0066)
-            const double C13_dd = 2.0 * (Constants::C13C12_MASSDIFF_U - 1.0);
-            Int iso1_index = getHighestIntensityPeakInMZRange(max_mono_peak.getMZ() + Constants::C13C12_MASSDIFF_U, spectrum1, 0, C13_dd);
-
-            if (iso1_index != -1)
+            for (Size i = 0; i < masstrace_centroid_mz.size(); ++i)
             {
-              const Peak1D& iso1_peak = spectrum1[iso1_index];
-              isotopes.push_back(iso1_peak);
-              Int iso2_index = getHighestIntensityPeakInMZRange(iso1_peak.getMZ() + Constants::C13C12_MASSDIFF_U, spectrum1, 0, C13_dd);
-
-              if (iso2_index != -1)
-              {
-                const Peak1D& iso2_peak = spectrum1[iso2_index];
-                isotopes.push_back(iso2_peak);
-              }
+              pair<double, double> masstrace_mz_int(masstrace_centroid_mz[i],masstrace_intensity[i]);
+              f_isotopes.push_back(masstrace_mz_int);
             }
           }
         }
 
-        String query_id = String("-" + String(scan_number) +"-") + String("unknown") + String(scan_index);
-
-        // write internal unique .ms data as sirius input
-        os << fixed;
-        os << ">compound " << query_id << "\n";
-        if (adducts.empty() == false)
+        // always get the first one if multiple hits were provided
+        // prefer adducts from AccurateMassSearch if MAD and AMS were performed
+        if (!feature->getPeptideIdentifications().empty() && !feature->getPeptideIdentifications()[0].getHits().empty())
         {
-          os << ">ionization " << ListUtils::concatenate(adducts, ',') << "\n";
-        }
-
-        if (isotopes.empty() == false)
-        {
-          os << ">parentmass " << isotopes[0].getMZ() << fixed << "\n";
-        }
-        else
-        {
-          os << ">parentmass " << precursor_mz << fixed << "\n";
-        }
-
-        os << ">charge " << int_charge << "\n\n";
-
-        // Use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
-        Size no_isotopes = isotopes.size();
-
-        if ( no_isotopes > 0) // if ms1 spectrum was present
-        {
-          os << ">ms1" << endl;
-          // m/z and intensity have to be higher than 1e-10
-          // the intensity of the peaks of the isotope pattern have to be smaller than the one before
-
-          double threshold = 1e-10;
-
-          double first_mz = isotopes[0].getMZ();
-          double first_intensity = isotopes[0].getIntensity();
-
-          if (first_mz > threshold && first_intensity > threshold)
-          {
-            os << first_mz << " " << first_intensity << endl;
-          }
-
-          if (no_isotopes > 1)
-          {
-            double second_mz = isotopes[1].getMZ();
-            double second_intensity = isotopes[1].getIntensity();
-
-            if (second_mz > threshold && second_intensity > threshold && second_intensity < first_intensity && first_intensity > threshold)
-            {
-              os << second_mz << " " << second_intensity << endl;
-            }
-
-            if (no_isotopes > 2)
-            {
-              double third_mz = isotopes[2].getMZ();
-              double third_intensity = isotopes[2].getIntensity();
-
-              if (third_mz > threshold && third_intensity > threshold && third_intensity < second_intensity && second_intensity > threshold)
-              {
-                os << third_mz << " " << third_intensity << endl;
-              }
-            }
-          }
-          os << endl;
+           String adduct;
+           description = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
+           sumformula = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("chemical_formula");
+           adduct = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("modifications");
+           // change format of description [name] to name
+           description.erase(remove_if(begin(description),
+                                       end(description),
+                                       [](char c) { return c == '[' || c == ']'; }), end(description));
+           // change format of adduct information M+H;1+ -> [M+H]1+
+           String adduct_prefix = adduct.prefix(';').trim();
+           String adduct_suffix = adduct.suffix(';').trim();
+           adduct = "[" + adduct_prefix + "]" + adduct_suffix;
+           adducts.insert(adducts.begin(), adduct);
         }
         else
         {
-          if (precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
-          {
-            os << ">ms1" << "\n"
-                << precursor_mz << " " << precursor_int << "\n\n";
-          }
+          // reset description and sumformula to UNKNOWN
+          description = "UNKNOWN";
+          sumformula = "UNKNOWN";
         }
 
-        // if collision energy was given - write it into .ms file if not use ms2 instead
-        if (collision == 0.0)
-        {
-          os << ">ms2" << "\n";
-        }
-        else
-        {
-          os << ">collision" << " " << collision << "\n";
-        }
+        bool writecompound = true;
+        // call function to writeMsFile to os
+        writeMsFile_(os,
+                    spectra,
+                    feature_associated_ms2,
+                    ainfo,
+                    adducts,
+                    description,
+                    sumformula,
+                    f_isotopes,
+                    feature_charge,
+                    feature_id,
+                    feature_rt,
+                    feature_mz,
+                    writecompound,
+                    no_masstrace_info_isotope_pattern,
+                    isotope_pattern_iterations,
+                    count_skipped_spectra,
+                    count_assume_mono,
+                    count_no_ms1,
+                    v_cmpinfo);
 
-        // single spectrum peaks
-        for (Size i = 0; i < spectrum.size(); ++i)
-        {
-          const Peak1D& peak = spectrum[i];
-          double mz = peak.getMZ();
-          float intensity = peak.getIntensity();
-
-          // intensity has to be higher than zero
-          if (intensity != 0)
-          {
-            os << mz << " " << intensity << "\n";
-          }
         }
-        os << endl;
-      }
     }
+
+    // if not mappend information available (e.g. empty featurexml or only a few features)
+    if (use_unassigend_ms2)
+    {
+      // no feature information was provided
+      bool writecompound = true;
+      f_isotopes.clear();
+      adducts.clear();
+      feature_charge = 0;
+      feature_id = 0;
+      feature_mz = 0;
+      feature_rt = 0;
+
+      writeMsFile_(os,
+                   spectra,
+                   unassigned_ms2,
+                   ainfo,
+                   adducts,
+                   description,
+                   sumformula,
+                   f_isotopes,
+                   feature_charge,
+                   feature_id,
+                   feature_rt,
+                   feature_mz,
+                   writecompound,
+                   no_masstrace_info_isotope_pattern,
+                   isotope_pattern_iterations,
+                   count_skipped_spectra,
+                   count_assume_mono,
+                   count_no_ms1,
+                   v_cmpinfo);
+    }
+
+    if (no_feautre_information)
+    {
+      // no feature information was provided
+      bool writecompound = true;
+      f_isotopes.clear();
+      adducts.clear();
+      feature_charge = 0;
+      feature_id = 0;
+      feature_mz = 0;
+      feature_rt = 0;
+
+      // fill vector with index of all ms2 of the mzml
+      vector<size_t> all_ms2;
+
+      for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
+      {
+        // process only MS2 spectra
+        if (s_it->getMSLevel() != 2)
+        {
+          continue;
+        }
+
+        int scan_index = s_it - spectra.begin();
+
+        all_ms2.push_back(scan_index);
+      }
+
+      writeMsFile_(os,
+                   spectra,
+                   all_ms2,
+                   ainfo,
+                   adducts,
+                   description,
+                   sumformula,
+                   f_isotopes,
+                   feature_charge,
+                   feature_id,
+                   feature_rt,
+                   feature_mz,
+                   writecompound,
+                   no_masstrace_info_isotope_pattern,
+                   isotope_pattern_iterations,
+                   count_skipped_spectra,
+                   count_assume_mono,
+                   count_no_ms1,
+                   v_cmpinfo);
+    }
+
     os.close();
 
     LOG_WARN << "No MS1 spectrum for this precursor. Occurred " << count_no_ms1 << " times." << endl;
     LOG_WARN << count_skipped_spectra << " spectra were skipped due to precursor charge below -1 and above +1." << endl;
-    LOG_WARN << "Charge of 0 was set to +1 due to positive polarity " << count_to_pos << " times."<< endl;
-    LOG_WARN << "Charge of 0 was set to -1 due to negative polarity " << count_to_neg << " times." << endl;
+    LOG_WARN << "Mono charge assumed and set to charge 1 with respect to current polarity " << count_assume_mono << " times."<< endl;
+    LOG_WARN << count_skipped_features << " features were skipped due to feature charge below -1 and above +1." << endl;
 
   }
-}
+} // namespace OpenMS
 
 /// @endcond

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -77,9 +77,9 @@ endif()
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
 
-# FFSuperHirn requires linking against SuperHirn
+# FFSuperHirn requires linking against SuperHirn and pthread (needs find_package (Threads REQUIRED))
 include_directories(SYSTEM ${SuperHirn_INCLUDE_DIRECTORIES})
-target_link_libraries(FeatureFinderSuperHirn SuperHirn)
+target_link_libraries(FeatureFinderSuperHirn SuperHirn ${CMAKE_THREAD_LIBS_INIT})
 
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}

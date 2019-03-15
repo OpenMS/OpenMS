@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSESGENERATOR_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSESGENERATOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -44,6 +43,8 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <ostream>
+
 
 namespace OpenMS
 {
@@ -104,7 +105,7 @@ namespace OpenMS
      * sample 1:    no_label    
      * sample 2:    Lys8    Arg10
      */
-    void printSamplesLabelsList() const;
+    void printSamplesLabelsList(std::ostream &stream) const;
     
     /**
      * @brief write the list of all mass patterns
@@ -114,12 +115,16 @@ namespace OpenMS
      * mass shift 2:    0 (no_label)    10.0083 (Arg10)    
      * mass shift 3:    0 (no_label)    16.0284 (Lys8,Lys8)    
      * mass shift 4:    0 (no_label)    18.0225 (Arg10,Lys8)    
-     * mass shift 5:    0 (no_label)    20.0165 (Arg10,Arg10)    
+     * mass shift 5:    0 (no_label)    20.0165 (Arg10,Arg10)   
+     * 
+     * @param stream    output stream 
      */
-    void printDeltaMassesList() const;
+    void printDeltaMassesList(std::ostream &stream) const;
     
     /**
      * @brief returns the list of mass shift patterns
+     * 
+     * @param stream    output stream 
      */
     std::vector<MultiplexDeltaMasses> getDeltaMassesList();
     
@@ -228,4 +233,3 @@ namespace OpenMS
   
 }
 
-#endif /* MULTIPLEXDELTAMASSESGENERATOR_H */

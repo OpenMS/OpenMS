@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -263,6 +263,76 @@ START_SECTION((static double toDouble(const String &this_s)))
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" 1234.45 911.0"))     // '911.0' is not explained...
   // incorrect type
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" abc "))
+}
+END_SECTION
+
+
+START_SECTION((template <typename IteratorT> static bool extractDouble(IteratorT& begin, const IteratorT& end, double& target)))
+{
+  double d;
+  {
+    std::string ss("12345.45  ");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 12345.45)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 8); // was the iterator advanced?
+  }
+
+  {
+    std::string ss("+1234.45!");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 1234.45)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 8); // was the iterator advanced?
+  }
+  {
+    d = 0;
+    std::string ss("  -123.45");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), false);
+    TEST_REAL_SIMILAR(d, 0)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 0); // was the iterator advanced?
+  }
+  {
+    std::string ss("15.0e6");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 15.0e6)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 6); // was the iterator advanced?
+  }
+  {
+    // try two doubles in a single stream (should stop after the first)
+    std::string ss("-5.0	9.1");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, -5.0)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 4); // was the iterator advanced?
+    auto it2 = ss.begin() + 5;
+    TEST_EQUAL(StringUtils::extractDouble(it2, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 9.1)
+    TEST_EQUAL((int)std::distance(ss.begin(), it2), 8); // was the iterator advanced?
+  }
+  {
+    // explicitly test X.FeY vs XeY since some compilers implementation of the native operator>> stop reading at 'e' if no '.F' was seen
+    std::string ss("15.0e6 x");   
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 15.0e6)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 6); // was the iterator advanced?
+  }
+  {
+    std::string ss("16e6!");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 16e+06)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 4); // was the iterator advanced?
+  }
+  {
+    std::string ss("!noNumber");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), false);
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 0); // was the iterator advanced?
+  }
 }
 END_SECTION
 

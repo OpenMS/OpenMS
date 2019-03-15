@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,9 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/Base64.h>
 
 namespace OpenMS
 {
@@ -44,11 +46,17 @@ namespace OpenMS
     {
       String error_message_;
       if (mode == 0)
+      {
         error_message_ =  String("While loading '") + "': " + msg;
+      }
       else if (mode == 1)
+      {
         error_message_ =  String("While storing '") + "': " + msg;
+      }
       if (line != 0 || column != 0)
+      {
         error_message_ += String("( in line ") + line + " column " + column + ")";
+      }
       LOG_WARN << error_message_ << std::endl;
     }
 
@@ -72,7 +80,8 @@ namespace OpenMS
       {
         return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002748\" name=\"MS-Numpress short logged float compression followed by zlib compression\" />";
       }
-    } else
+    }
+    else
     {
       if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
       {
@@ -96,9 +105,10 @@ namespace OpenMS
     return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
   }
 
-  void MzMLHandlerHelper::writeFooter_(std::ostream& os, const PeakFileOptions& options_, 
-    std::vector< std::pair<std::string, long> > & spectra_offsets,
-    std::vector< std::pair<std::string, long> > & chromatograms_offsets)
+  void MzMLHandlerHelper::writeFooter_(std::ostream& os,
+                                       const PeakFileOptions& options_, 
+                                       const std::vector< std::pair<std::string, long> > & spectra_offsets,
+                                       const std::vector< std::pair<std::string, long> > & chromatograms_offsets)
   {
     os << "\t</run>\n";
     os << "</mzML>";
@@ -110,13 +120,14 @@ namespace OpenMS
       long indexlistoffset = os.tellp();
       os << "\n";
       // NOTE: indexList is required, so we need to write one 
+      // NOTE: the spectra and chromatogram ids are user-supplied, so better XML-escape them!
       os << "<indexList count=\"" << indexlists << "\">\n";
       if (!spectra_offsets.empty())
       {
         os << "\t<index name=\"spectrum\">\n";
         for (Size i = 0; i < spectra_offsets.size(); i++)
         {
-          os << "\t\t<offset idRef=\"" << spectra_offsets[i].first << "\">" << spectra_offsets[i].second << "</offset>\n";
+          os << "\t\t<offset idRef=\"" << XMLHandler::writeXMLEscape(spectra_offsets[i].first) << "\">" << spectra_offsets[i].second << "</offset>\n";
         }
         os << "\t</index>\n";
       }
@@ -125,7 +136,7 @@ namespace OpenMS
         os << "\t<index name=\"chromatogram\">\n";
         for (Size i = 0; i < chromatograms_offsets.size(); i++)
         {
-          os << "\t\t<offset idRef=\"" << chromatograms_offsets[i].first << "\">" << chromatograms_offsets[i].second << "</offset>\n";
+          os << "\t\t<offset idRef=\"" << XMLHandler::writeXMLEscape(chromatograms_offsets[i].first) << "\">" << chromatograms_offsets[i].second << "</offset>\n";
         }
         os << "\t</index>\n";
       }
@@ -135,7 +146,7 @@ namespace OpenMS
         // and at least one offset element is required so we need to handle
         // the case where no spectra/chromatograms are present.
         os << "\t<index name=\"dummy\">\n";
-          os << "\t\t<offset idRef=\"dummy\">-1</offset>\n";
+        os << "\t\t<offset idRef=\"dummy\">-1</offset>\n";
         os << "\t</index>\n";
       }
       os << "</indexList>\n";
@@ -143,7 +154,7 @@ namespace OpenMS
       os << "<fileChecksum>";
 
       // TODO calculate checksum here:
-      //  SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.
+      // SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.
       String sha1_checksum = "0";
       os << sha1_checksum << "</fileChecksum>\n";
 
@@ -291,7 +302,10 @@ namespace OpenMS
   }
 
   bool MzMLHandlerHelper::handleBinaryDataArrayCVParam(std::vector<BinaryData>& data,
-    const String& accession, const String& value, const String& name, const String& unit_accession)
+                                                       const String& accession,
+                                                       const String& value,
+                                                       const String& name,
+                                                       const String& unit_accession)
   {
     //MS:1000518 ! binary data type
     if (accession == "MS:1000523") //64-bit float

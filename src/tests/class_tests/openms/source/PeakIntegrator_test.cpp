@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,23 @@
 using namespace OpenMS;
 using namespace std;
 
+class PeakIntegratorTest : PeakIntegrator
+{
+  public:
+  // make protected member public
+  template <typename PeakContainerConstIteratorT>
+  double findPosAtPeakHeightPercent(
+      PeakContainerConstIteratorT it_left,  // must not be past the end
+      PeakContainerConstIteratorT it_right, // might be past the end
+      PeakContainerConstIteratorT it_end,   // definitely past-the-end
+      const double peak_height,
+      const double percent,
+      const bool is_left_half)
+    {
+      return findPosAtPeakHeightPercent_(it_left, it_right, it_end, peak_height, percent, is_left_half);
+    }
+};
+
 START_TEST(PeakIntegrator, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -55,7 +72,7 @@ const double right = 3.022891666;
 
 // Toy chromatogram
 // data is taken from raw LC-MS/MS data points acquired for L-Glutamate in RBCs
-vector<double> position = {
+const vector<double> position = {
   2.23095,2.239716667,2.248866667,2.25765,2.266416667,
   2.275566667,2.2847,2.293833333,2.304066667,2.315033333,2.325983333,2.336566667,
   2.3468,2.357016667,2.367283333,2.377183333,2.387083333,2.39735,2.40725,2.4175,
@@ -73,7 +90,11 @@ vector<double> position = {
   3.190133333,3.198016667,3.205916667,3.213166667
 };
 
-vector<double> intensity = {
+const vector<double> position_2 = {
+  2270.93, 2272.86, 2273.16
+};
+
+const vector<double> intensity = {
   1447,2139,1699,755,1258,1070,944,1258,1573,1636,
   1762,1447,1133,1321,1762,1133,1447,2391,692,1636,2957,1321,1573,1196,1258,881,
   1384,2076,1133,1699,1384,692,1636,1133,1573,1825,1510,2391,4342,10382,17618,
@@ -82,6 +103,10 @@ vector<double> intensity = {
   6733,6481,5726,6921,6670,5537,4971,4719,4782,5097,5789,4279,5411,4530,3524,
   2139,3335,3083,4342,4279,3083,3649,4216,4216,3964,2957,2202,2391,2643,3524,
   2328,2202,3649,2706,3020,3335,2580,2328,2894,3146,2769,2517
+};
+
+const vector<double> intensity_2 = {
+  410430.0, 166125.0, 896669.0
 };
 
 const double left_past_5 = position[41];   // 2.64065
@@ -101,10 +126,22 @@ for (Size i = 0; i < position.size(); ++i)
   spectrum.push_back(Peak1D(position[i], intensity[i]));
 }
 
+MSChromatogram chromatogram_2;
+MSSpectrum spectrum_2;
+for (Size i = 0; i < position_2.size(); ++i)
+{
+  chromatogram_2.push_back(ChromatogramPeak(position_2[i], intensity_2[i]));
+  spectrum_2.push_back(Peak1D(position_2[i], intensity_2[i]));
+}
+
 MSChromatogram::ConstIterator chrom_left_it = chromatogram.RTBegin(left);
 MSChromatogram::ConstIterator chrom_right_it = chromatogram.RTEnd(right) - 1;
+MSChromatogram::ConstIterator chrom_right_1pt_it = chromatogram.RTEnd(2.477966667) - 1;
+MSChromatogram::ConstIterator chrom_right_2pt_it = chromatogram.RTEnd(2.488216667) - 1;
 MSSpectrum::ConstIterator spec_left_it = spectrum.MZBegin(left);
 MSSpectrum::ConstIterator spec_right_it = spectrum.MZEnd(right) - 1;
+MSSpectrum::ConstIterator spec_right_1pt_it = spectrum.MZEnd(2.477966667) - 1;
+MSSpectrum::ConstIterator spec_right_2pt_it = spectrum.MZEnd(2.488216667) - 1;
 
 // To test a chromatogram with missing (5,10,50)% peak's height points
 MSChromatogram::ConstIterator chrom_left_past_5_it = chromatogram.RTBegin(left_past_5);
@@ -134,6 +171,7 @@ constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
 constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
 constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MIN = "vertical_division_min";
 constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MAX = "vertical_division_max";
+
 
 START_SECTION(PeakIntegrator())
 {
@@ -402,6 +440,23 @@ START_SECTION(PeakArea integratePeak(
   PeakIntegrator::PeakArea pa;
   MSChromatogram::ConstIterator it;
 
+  params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
+  ptr->setParameters(params);
+  STATUS("Integration type: simpson")
+  
+  pa = ptr->integratePeak(chromatogram_2, 2270.93, 2273.16);
+  TEST_REAL_SIMILAR(pa.area, -665788.77663627)    // TO DO: Simpson rule results in negative area for strictly positive input.
+}
+END_SECTION
+
+START_SECTION(PeakArea integratePeak(
+  const MSChromatogram& chromatogram, const double left, const double right
+) const)
+{
+  Param params = ptr->getParameters();
+  PeakIntegrator::PeakArea pa;
+  MSChromatogram::ConstIterator it;
+
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
   STATUS("Integration type: intensity_sum")
@@ -410,7 +465,7 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = chromatogram.RTBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
@@ -424,11 +479,17 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = chromatogram.RTBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
   }
+
+  STATUS("Integration type: trapezoid (1 point)")
+  pa = ptr->integratePeak(chromatogram, left, 2.478);
+  TEST_REAL_SIMILAR(pa.area, 0.0)
+  TEST_REAL_SIMILAR(pa.height, 881.0)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -438,7 +499,7 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = chromatogram.RTBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
@@ -449,11 +510,23 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = chromatogram.RTBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
   }
+
+  STATUS("Integration type: simpson (1 point)")
+  pa = ptr->integratePeak(chromatogram, left, 2.478);
+  TEST_REAL_SIMILAR(pa.area, 0.0)
+  TEST_REAL_SIMILAR(pa.height, 881.0)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+
+  STATUS("Integration type: simpson (2 points)")
+  pa = ptr->integratePeak(chromatogram, left, 2.489);
+  TEST_REAL_SIMILAR(pa.area, 11.6081250000001)
+  TEST_REAL_SIMILAR(pa.height, 1384)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.488216667)
 }
 END_SECTION
 
@@ -473,7 +546,7 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = chromatogram.RTBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
@@ -487,11 +560,17 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = chromatogram.RTBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
   }
+
+  STATUS("Integration type: trapezoid (1 point)")
+  pa = ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_1pt_it);
+  TEST_REAL_SIMILAR(pa.area, 0.0)
+  TEST_REAL_SIMILAR(pa.height, 881.0)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -501,7 +580,7 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = chromatogram.RTBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
@@ -513,11 +592,23 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = chromatogram.RTBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
   }
+
+  STATUS("Integration type: simpson (1 point)")
+  pa = ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_1pt_it);
+  TEST_REAL_SIMILAR(pa.area, 0.0)
+  TEST_REAL_SIMILAR(pa.height, 881.0)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+
+  STATUS("Integration type: simpson (2 points)")
+  pa = ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_2pt_it);
+  TEST_REAL_SIMILAR(pa.area, 11.6081250000001)
+  TEST_REAL_SIMILAR(pa.height, 1384)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.488216667)
 }
 END_SECTION
 
@@ -537,7 +628,7 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = spectrum.MZBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
@@ -551,11 +642,17 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = spectrum.MZBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
   }
+
+  STATUS("Integration type: trapezoid (1 point)")
+  pa = ptr->integratePeak(spectrum, left, 2.478);
+  TEST_REAL_SIMILAR(pa.area, 0.0)
+  TEST_REAL_SIMILAR(pa.height, 881.0)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -565,7 +662,7 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = spectrum.MZBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
@@ -576,11 +673,23 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = spectrum.MZBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
   }
+
+  STATUS("Integration type: simpson (1 point)")
+  pa = ptr->integratePeak(spectrum, left, 2.478);
+  TEST_REAL_SIMILAR(pa.area, 0.0)
+  TEST_REAL_SIMILAR(pa.height, 881.0)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+
+  STATUS("Integration type: simpson (2 points)")
+  pa = ptr->integratePeak(spectrum, left, 2.489);
+  TEST_REAL_SIMILAR(pa.area, 11.6081250000001)
+  TEST_REAL_SIMILAR(pa.height, 1384)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.488216667)
 }
 END_SECTION
 
@@ -600,7 +709,7 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = spectrum.MZBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
@@ -614,11 +723,17 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = spectrum.MZBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
   }
+
+  STATUS("Integration type: trapezoid (1 point)")
+  pa = ptr->integratePeak(spectrum, spec_left_it, spec_right_1pt_it);
+  TEST_REAL_SIMILAR(pa.area, 0.0)
+  TEST_REAL_SIMILAR(pa.height, 881.0)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -628,7 +743,7 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = spectrum.MZBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
@@ -640,11 +755,23 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
   it = spectrum.MZBegin(left);
-  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  for (Size i = 0; i < pa.hull_points.size(); i += 4, it +=4)
   {
     TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
     TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
   }
+
+  STATUS("Integration type: simpson (1 point)")
+  pa = ptr->integratePeak(spectrum, spec_left_it, spec_right_1pt_it);
+  TEST_REAL_SIMILAR(pa.area, 0.0)
+  TEST_REAL_SIMILAR(pa.height, 881.0)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+
+  STATUS("Integration type: simpson (2 points)")
+  pa = ptr->integratePeak(spectrum, spec_left_it, spec_right_2pt_it);
+  TEST_REAL_SIMILAR(pa.area, 11.6081250000001)
+  TEST_REAL_SIMILAR(pa.height, 1384)
+  TEST_REAL_SIMILAR(pa.apex_pos, 2.488216667)
 }
 END_SECTION
 
@@ -845,6 +972,28 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   psm = ptr->calculatePeakShapeMetrics(spectrum, spec_left_few_it, spec_right_few_it, pa.height, pa.apex_pos);
   TEST_REAL_SIMILAR(psm.start_position_at_5, left_few)
   TEST_REAL_SIMILAR(psm.end_position_at_5, right_few)
+}
+END_SECTION
+
+START_SECTION([EXTRA]  template <typename PeakContainerConstIteratorT> double findPosAtPeakHeightPercent_(...))
+{
+  PeakIntegratorTest pit;
+  double pos = pit.findPosAtPeakHeightPercent(spectrum.begin(), spectrum.end(), spectrum.end(), 0.0, 0.0, true);
+  TEST_EQUAL(pos, spectrum[0].getPos()); // find first non-zero peak
+
+  pos = pit.findPosAtPeakHeightPercent(spectrum.begin(), spectrum.end(), spectrum.end(), 0.0, 0.0, false);
+  TEST_EQUAL(pos, spectrum.back().getPos()); // find non-zero peak from end
+
+  // corner cases: just a single point in range
+  pos = pit.findPosAtPeakHeightPercent(spectrum.begin(), spectrum.begin() + 1, spectrum.begin() + 1, 0.0, 0.0, false);
+  TEST_EQUAL(pos, spectrum[0].getPos()); // return the only peak there is
+  pos = pit.findPosAtPeakHeightPercent(spectrum.begin(), spectrum.begin() + 1, spectrum.begin() + 1, 0.0, 0.0, true);
+  TEST_EQUAL(pos, spectrum[0].getPos()); // return the only peak there is
+
+
+  // corner cases: empty range
+  TEST_EXCEPTION(Exception::InvalidRange, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, false))
+  TEST_EXCEPTION(Exception::InvalidRange, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, true))
 }
 END_SECTION
 

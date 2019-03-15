@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,10 +42,11 @@ namespace OpenMS
   // Empty vector initialized to maximum supported dimensionality.
   const BinnedSpectrum::SparseVectorType BinnedSpectrum::EmptySparseVector(numeric_limits<BinnedSpectrum::SparseVectorIndexType>::max());
 
-  BinnedSpectrum::BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread) :
+  BinnedSpectrum::BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread, float offset) :
     bin_spread_(spread), 
     bin_size_(size),
     unit_ppm_(unit_ppm),
+    offset_(offset),
     bins_()
   {
     precursors_ = ps.getPrecursors();
@@ -137,9 +138,9 @@ namespace OpenMS
   // static
   bool BinnedSpectrum::isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b)
   {
-    // check if bin size (and unit) are equal
-    return std::tie(a.unit_ppm_, a.bin_size_) 
-        == std::tie(b.unit_ppm_, b.bin_size_);
+    // check if bin size, offset (and unit) are equal
+    return std::tie(a.unit_ppm_, a.bin_size_, a.offset_) 
+        == std::tie(b.unit_ppm_, b.bin_size_, b.offset_);
   }
 
   bool BinnedSpectrum::operator!=(const BinnedSpectrum& rhs) const

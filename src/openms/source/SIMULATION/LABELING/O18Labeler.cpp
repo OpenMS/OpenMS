@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -213,10 +213,10 @@ namespace OpenMS
     features_to_simulate.push_back(final_feature_map);
 
     consensus_.setProteinIdentifications(final_feature_map.getProteinIdentifications());
-    ConsensusMap::FileDescription map_description;
+    ConsensusMap::ColumnHeader map_description;
     map_description.label = "Simulation (Labeling Consensus)";
     map_description.size = features_to_simulate.size();
-    consensus_.getFileDescriptions()[0] = map_description;
+    consensus_.getColumnHeaders()[0] = map_description;
   }
 
   Feature O18Labeler::mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const

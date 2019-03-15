@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,18 +69,20 @@ using namespace OpenMS;
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathDecoyGenerator </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathDecoyGenerator  </td>
           </tr>
       </table>
   </CENTER>
 
   This module generates assays for targeted proteomics using a set of rules
   that was found to improve the sensitivity and selectivity for detection
-  of typical peptides (Schubert et al., 2015). The tool operates on TraML
-  files, which can come from TargetedFileConverter or any other tool. In a
-  first step, the tool will annotate all transitions according to the
-  predefined criteria. In a second step, the transitions will be filtered
-  to improve sensitivity for detection of peptides.
+  of typical peptides (Schubert et al., 2015). The tool operates on @ref
+  OpenMS::TraMLFile "TraML" files, which can come from @ref
+  UTILS_TargetedFileConverter or any other tool. In a first step, the tool will
+  annotate all transitions according to the predefined criteria. In a second
+  step, the transitions will be filtered to improve sensitivity for detection
+  of peptides.
 
   Optionally, theoretical identification transitions can be generated when
   the TraML will be used for IPF scoring in OpenSWATH.
@@ -319,7 +321,10 @@ protected:
           uis_swathes.push_back(std::make_pair((precursor_lower_mz_limit+(i*precursor_mz_threshold)),(precursor_lower_mz_limit+((i+1)*precursor_mz_threshold))));
         }
       }
-      else {uis_swathes = swathes;}
+      else
+      {
+        uis_swathes = swathes;
+      }
       
       LOG_INFO << "Generating identifying transitions for IPF" << std::endl;
       assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, uis_seed, disable_decoy_transitions);

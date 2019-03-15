@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,11 +66,11 @@ namespace OpenMS
 
   void SILACLabeler::updateMembers_()
   {
-    medium_channel_lysine_label_ = param_.getValue("medium_channel:modification_lysine");
-    medium_channel_arginine_label_ = param_.getValue("medium_channel:modification_arginine");
+    medium_channel_lysine_label_ = (String)param_.getValue("medium_channel:modification_lysine");
+    medium_channel_arginine_label_ = (String)param_.getValue("medium_channel:modification_arginine");
 
-    heavy_channel_lysine_label_ = param_.getValue("heavy_channel:modification_lysine");
-    heavy_channel_arginine_label_ = param_.getValue("heavy_channel:modification_arginine");
+    heavy_channel_lysine_label_ = (String)param_.getValue("heavy_channel:modification_lysine");
+    heavy_channel_arginine_label_ = (String)param_.getValue("heavy_channel:modification_arginine");
   }
 
   bool SILACLabeler::canModificationBeApplied_(const String& modification_id, const String& aa) const
@@ -435,10 +435,10 @@ namespace OpenMS
     features_to_simulate.push_back(final_feature_map);
 
     consensus_.setProteinIdentifications(final_feature_map.getProteinIdentifications());
-    ConsensusMap::FileDescription map_description;
+    ConsensusMap::ColumnHeader map_description;
     map_description.label = "Simulation (Labeling Consensus)";
     map_description.size = features_to_simulate.size();
-    consensus_.getFileDescriptions()[0] = map_description;
+    consensus_.getColumnHeaders()[0] = map_description;
   }
 
   Feature SILACLabeler::mergeFeatures_(Feature& labeled_feature, const String& unmodified_feature_sequence, Map<String, Feature>& feature_index, Int index_channel_id, Int labeled_channel_id) const

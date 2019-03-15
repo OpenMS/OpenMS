@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,12 @@
 // $Authors: Hannes Roest
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // forward declarations
 struct sqlite3;
@@ -155,7 +154,7 @@ public:
           @brief Get spectral indices around a specific retention time
 
           @param RT The retention time
-          @param deltaRT Tolerance window around RT (if zero, the first spectrum *after* RT is returned)
+          @param deltaRT Tolerance window around RT (if less or equal than zero, only the first spectrum *after* RT is returned)
           @param indices Spectra to consider (if empty, all spectra are considered)
           @return The indices of the spectra within RT +/- deltaRT
       */
@@ -171,9 +170,9 @@ protected:
 
       void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const;
 
-      void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms) const;
+      void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices = {}) const;
 
-      void prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra) const;
+      void prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices = {}) const;
       //@}
 
 public:
@@ -198,9 +197,11 @@ public:
 
           @note It is required to call this function first before writing any
                 data to disk, otherwise the tables will not be set up!
+
+          @note Be careful with this function, calling this on an existing file
+                will delete the file!
       */
       void createTables();
-      void createIndices();
 
       /**
           @brief Writes a set of spectra to disk
@@ -228,11 +229,7 @@ public:
 
 protected:
 
-      void executeBlobBind_(sqlite3 *db, String& prepare_statement, std::vector<String>& data);
-
-      void executeSql_(sqlite3 *db, const std::stringstream& statement);
-
-      sqlite3* openDB() const;
+      void createIndices_();
       //@}
 
       String filename_;
@@ -259,5 +256,4 @@ protected:
   } // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,11 +28,10 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lukas Zimmermann $
+// $Maintainer: Eugen Netz $
 // $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -100,12 +99,39 @@ namespace OpenMS
       //Docu in base class
       virtual void writeTo(std::ostream& os) override;
 
+      // TODO move these to StringUtils?
+      /**
+        * @brief splits the @input string at the nth occurence of the @separator
+
+          If the separator does not occur in the input string n times, then the first output string will be the entire input string
+          and the second one will be empty.
+
+        * @return StringList with two elements, the two parts of the input without the nth separator
+      */
+      static StringList splitByNth(const String& input, const char separator, const Size n);
+
+      /**
+        * @brief counts occurences of the @separator and splits the @input string into two at the middle
+
+          If the separator occurs 5 times in the input string, the string will be split at the 3rd occurence.
+          If 7 times, then at the 4th.
+          The separator has to occur in the string an uneven number of times.
+          If the separator occurs once, the string will be split at this one instance.
+          If this one occurence is at the beginning or end, one of the result strings will be empty.
+
+        * @exception Exception::IllegalArgument is thrown if the @separator does not occur in the @input string an uneven number of times and at least once
+        * @return StringList with two elements, the two halves of the input without the middle separator
+      */
+      static StringList splitByMiddle(const String& input, const char separator);
+
     private:
+
 
       // Decoy string used by xQuest
       String decoy_string_;
       int spectrum_index_light_;
       int spectrum_index_heavy_;
+      String cross_linker_name_;
 
       // Main data structures that are populated during loading the file
       std::vector< PeptideIdentification >* pep_ids_;
@@ -161,7 +187,9 @@ namespace OpenMS
       inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time);
 
       /**
-       * @brief Assignes all meta values stored in the peptide_id_attributes member to an meta info interface
+       * @brief Assigns all meta values stored in the peptide_id_attributes
+       * member to an meta info interface
+       *
        * @param meta_info_interface Where the meta values from the peptide_id_attributes member should be assigned to
        */
       void addMetaValues_(MetaInfoInterface & meta_info_interface);
@@ -183,4 +211,3 @@ namespace OpenMS
     };
   } // namespace Internal
 } // namespace OpenMS
-#endif // OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H

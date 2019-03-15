@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,10 +37,13 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
 
+#include <OpenMS/FORMAT/SqliteConnector.h>
+
 #include <sqlite3.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <QtCore/QFileInfo>
 
@@ -51,10 +54,34 @@
 #include <omp.h>
 #endif
 
+#include <cmath>
+
 namespace OpenMS
 {
+
   namespace Internal
   {
+
+    namespace Sql = Internal::SqliteHelper;
+
+    /*
+     * @brief Helper function to concatenate integers with ","
+     *
+     * @param The integers to concatenate
+     * 
+     */
+    String integerConcatenateHelper(const std::vector<int> & indices)
+    {
+      String tmp;
+      // each element has a size of the "," character plus n digits in base10 
+      tmp.reserve( int(log10(indices.size())+2) * indices.size() );
+      for (Size k = 0; k < indices.size(); k++)
+      {
+        tmp += String(indices[k]) + ",";
+      }
+      tmp.resize(tmp.size() - 1); // remove last ","
+      return tmp;
+    }
 
     /*
      *
@@ -159,7 +186,7 @@ namespace OpenMS
           // intensity
           if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (typename ContainerT::iterator it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
+          for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
             it->setIntensity(*data_it);
           }
@@ -171,12 +198,12 @@ namespace OpenMS
           if (boost::is_same<ContainerT, MSChromatogram>::value) 
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                "Found m/z data type for spectra (instead of retention time)");
+                "Found m/z data type for chromatogram (instead of retention time)");
           }
 
           if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (typename ContainerT::iterator it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
+          for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
             it->setMZ(*data_it);
           }
@@ -188,11 +215,11 @@ namespace OpenMS
           if (boost::is_same<ContainerT, MSSpectrum >::value) 
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                "Found retention time data type for spectra (instead of m/z)");
+                "Found retention time data type for spectrum (instead of m/z)");
           }
           if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (typename ContainerT::iterator it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
+          for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
             it->setMZ(*data_it);
           }
@@ -212,20 +239,10 @@ namespace OpenMS
       {
         if (cont_data[k] < 2)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Spectrum/Chromatogram ") + k + " does not have 2 data arrays.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              String("Spectrum/Chromatogram ") + k + " does not have 2 data arrays.");
         }
       }
-    }
-
-    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
-    {
-      int i;
-      for (i=0; i<argc; i++)
-      {
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-      }
-      printf("\n");
-      return(0);
     }
 
     // the cost for initialization and copy should be minimal
@@ -242,28 +259,14 @@ namespace OpenMS
     {
     }
 
-    sqlite3* MzMLSqliteHandler::openDB() const
-    {
-      sqlite3 *db;
-      int rc;
-
-      // Open database
-      rc = sqlite3_open(filename_.c_str(), &db);
-      if (rc)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
-      }
-      return db;
-    }
-
     void MzMLSqliteHandler::readExperiment(MSExperiment & exp, bool meta_only) const
     {
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
+      sqlite3 *db = conn.getDB();
 
       Size nr_results = 0;
       if (write_full_meta_)
       {
-        sqlite3_stmt * stmt;
         std::string select_sql;
         select_sql = "SELECT " \
                       "RUN.ID as run_id," \
@@ -274,7 +277,8 @@ namespace OpenMS
                       "LEFT JOIN RUN_EXTRA ON RUN.ID = RUN_EXTRA.RUN_ID " \
                       ";";
 
-        sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
+        sqlite3_stmt * stmt;
+        conn.executePreparedStatement(&stmt, select_sql);
         sqlite3_step( stmt );
 
         // read data (throw exception if we find multiple runs)
@@ -282,7 +286,8 @@ namespace OpenMS
         {
           if (nr_results > 0)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "More than one run found, cannot read both into memory");
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "More than one run found, cannot read both into memory");
           }
 
           const void * raw_text = sqlite3_column_blob(stmt, 3);
@@ -310,13 +315,17 @@ namespace OpenMS
         // free memory
         sqlite3_finalize(stmt);
 
-        if (nr_results == 0) {LOG_WARN << "Warning: no meta data found, fall back to inference from SQL data structures." << std::endl;}
+        if (nr_results == 0)
+        {
+          LOG_WARN << "Warning: no meta data found, fall back to inference from SQL data structures." << std::endl;
+        }
       }
 
       bool exp_empty = (exp.getNrChromatograms() == 0 && exp.getNrSpectra() == 0);
       if (!write_full_meta_ || nr_results == 0 || exp_empty)
       {
-        // creates the spectra and chromatograms but does not fill them with data (provides option to return meta-data only)
+        // creates the spectra and chromatograms but does not fill them with
+        // data (provides option to return meta-data only)
         std::vector<MSChromatogram> chromatograms;
         std::vector<MSSpectrum> spectra;
         prepareChroms_(db, chromatograms);
@@ -327,158 +336,137 @@ namespace OpenMS
 
       if (meta_only) 
       {
-        // free up connection
-        sqlite3_close(db);
         return;
       }
 
       populateChromatogramsWithData_(db, exp.getChromatograms());
       populateSpectraWithData_(db, exp.getSpectra());
-
-      // free up connection
-      sqlite3_close(db);
     }
 
     void MzMLSqliteHandler::readSpectra(std::vector<MSSpectrum> & exp, const std::vector<int> & indices, bool meta_only) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index")
 
-      sqlite3 *db = openDB();
-
-      // creates the spectra but does not fill them with data (provides option to return meta-data only)
-      std::vector<MSSpectrum> spectra;
-      prepareSpectra_(db, spectra);
-      for (Size k = 0; k < indices.size(); k++)
+      // creates the spectra but does not fill them with data (provides option
+      // to return meta-data only)
+      SqliteConnector conn(filename_);
+      prepareSpectra_(conn.getDB(), exp, indices);
+      if (indices.size() != exp.size())
       {
-        exp.push_back(spectra[indices[k]]); // TODO make more efficient
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            String("Illegal spectral indices detected ") + integerConcatenateHelper(indices) + \
+            " for file of size " + getNrSpectra());
       }
 
-      if (meta_only) {return;}
+      if (meta_only)
+      {
+        return;
+      }
 
-      populateSpectraWithData_(db, exp, indices);
-
-      // free up connection
-      sqlite3_close(db);
+      populateSpectraWithData_(conn.getDB(), exp, indices);
     }
 
-    void MzMLSqliteHandler::readChromatograms(std::vector<MSChromatogram> & exp, const std::vector<int> & indices, bool meta_only) const
+    void MzMLSqliteHandler::readChromatograms(std::vector<MSChromatogram> & exp,
+                                              const std::vector<int> & indices,
+                                              bool meta_only) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index")
-      sqlite3 *db = openDB();
 
-      // creates the spectra but does not fill them with data (provides option to return meta-data only)
-      std::vector<MSChromatogram> chroms;
-      prepareChroms_(db, chroms);
-
-      for (Size k = 0; k < indices.size(); k++)
+      // creates the chromatograms but does not fill them with data (provides
+      // option to return meta-data only)
+      SqliteConnector conn(filename_);
+      prepareChroms_(conn.getDB(), exp, indices);
+      if (indices.size() != exp.size())
       {
-        exp.push_back(chroms[indices[k]]); // TODO make more efficient
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            String("Illegal chromatogram indices detected ") + integerConcatenateHelper(indices) + \
+            " for file of size " + getNrChromatograms());
       }
-      if (meta_only) {return;}
 
-      populateChromatogramsWithData_(db, exp, indices);
+      if (meta_only)
+      {
+        return;
+      }
 
-      // free up connection
-      sqlite3_close(db);
+      populateChromatogramsWithData_(conn.getDB(), exp, indices);
     }
 
     Size MzMLSqliteHandler::getNrSpectra() const
     {
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
+
+      int ret(0);
       sqlite3_stmt * stmt;
-
-      Size ret(0);
-      std::string select_sql;
-      select_sql = "SELECT COUNT(*) FROM SPECTRUM;";
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
+      conn.executePreparedStatement(&stmt, "SELECT COUNT(*) FROM SPECTRUM;");
       sqlite3_step(stmt);
-      if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) ret = sqlite3_column_int(stmt, 0);
-
-      // free memory and free up connection
+      Sql::extractValue<int>(&ret, stmt, 0);
       sqlite3_finalize(stmt);
-      sqlite3_close(db);
 
-      return ret;
+      return (Size)ret;
     }
 
-    std::vector<size_t> MzMLSqliteHandler::getSpectraIndicesbyRT(double RT, double deltaRT, const std::vector<int> & indices) const
+    std::vector<size_t> MzMLSqliteHandler::getSpectraIndicesbyRT(double RT,
+                                                                 double deltaRT,
+                                                                 const std::vector<int> & indices) const
     {
       // this is necessary for some applications such as the m/z correction
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
 
-      std::vector<size_t> result;
-      sqlite3_stmt * stmt;
-      std::string select_sql;
-
-      select_sql = "SELECT " \
-                   "SPECTRUM.ID as spec_id " \
-                   "FROM SPECTRUM ";
+      String select_sql = "SELECT " \
+                          "SPECTRUM.ID as spec_id " \
+                          "FROM SPECTRUM ";
 
       if (deltaRT > 0.0)
       {
-        select_sql += "WHERE RETENTION_TIME BETWEEN ";
-        select_sql += String(RT - deltaRT) + " AND " + String(RT + deltaRT) + " ";
+        select_sql += " WHERE RETENTION_TIME BETWEEN " + String(RT - deltaRT) + " AND " + String(RT + deltaRT);
       }
       else
       {
-        select_sql += "WHERE RETENTION_TIME >= ";
-        select_sql += String(RT) + " ";
+        select_sql += " WHERE RETENTION_TIME >= " + String(RT);
       }
 
+      // restrict by a given set of indices
       if (!indices.empty())
       {
-        select_sql += String(" AND SPECTRUM.ID IN (");
-        for (Size k = 0; k < indices.size()-1; k++)
-        {
-          select_sql += String(indices[k]) + ",";
-        }
-        select_sql += String(indices[indices.size()-1]) + ") ";
+        select_sql += " AND SPECTRUM.ID IN (" + integerConcatenateHelper(indices) + ")";
       }
 
       if (deltaRT <= 0.0) {select_sql += " LIMIT 1";} // only take the first spectrum larger than RT
-      select_sql += ";";
+      select_sql += " ;";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
+      // Execute SQL statement
+      sqlite3_stmt * stmt;
+      conn.executePreparedStatement(&stmt, select_sql);
       sqlite3_step(stmt);
 
+      std::vector<size_t> result;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
-        MSSpectrum spec;
         result.push_back( sqlite3_column_int(stmt, 0) );
-        sqlite3_step( stmt );
+        sqlite3_step(stmt);
       }
-
-      // free memory and free up connection
       sqlite3_finalize(stmt);
-      sqlite3_close(db);
+      
       return result;
     }
 
     Size MzMLSqliteHandler::getNrChromatograms() const
     {
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
+      int ret(0);
+
       sqlite3_stmt * stmt;
-
-      Size ret(0);
-      std::string select_sql;
-      select_sql = "SELECT COUNT(*) FROM CHROMATOGRAM;";
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
-      sqlite3_step( stmt );
-      if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) ret = sqlite3_column_int(stmt, 0);
-
-      // free memory and free up connection
+      conn.executePreparedStatement(&stmt, "SELECT COUNT(*) FROM CHROMATOGRAM;");
+      sqlite3_step(stmt);
+      Sql::extractValue<int>(&ret, stmt, 0);
       sqlite3_finalize(stmt);
-      sqlite3_close(db);
 
-      return ret;
+      return (Size)ret;
     }
 
     void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms) const
     {
-      int rc;
-      sqlite3_stmt * stmt;
       std::string select_sql;
-
       select_sql = "SELECT " \
                     "CHROMATOGRAM.ID as chrom_id," \
                     "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
@@ -491,65 +479,40 @@ namespace OpenMS
 
 
       // Execute SQL statement
-      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
-      if (rc != SQLITE_OK)
-      {
-        std::cerr << "SQL error after sqlite3_prepare" << std::endl;
-        std::cerr << "Prepared statement " << select_sql << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      }
-
+      sqlite3_stmt * stmt;
+      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
       populateContainer_sub_< MSChromatogram > (stmt, chromatograms);
-
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices) const
+    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db,
+                                                           std::vector<MSChromatogram>& chromatograms,
+                                                           const std::vector<int> & indices) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == chromatograms.size(), "Chromatograms and indices need to have the same length.")
 
-      int rc;
-      sqlite3_stmt * stmt;
-      std::string select_sql;
-
-      select_sql = "SELECT " \
-                    "CHROMATOGRAM.ID as chrom_id," \
-                    "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
-                    "DATA.COMPRESSION as data_compression," \
-                    "DATA.DATA_TYPE as data_type," \
-                    "DATA.DATA as binary_data " \
-                    "FROM CHROMATOGRAM " \
-                    "INNER JOIN DATA ON CHROMATOGRAM.ID = DATA.CHROMATOGRAM_ID " \
-                    "WHERE CHROMATOGRAM.ID IN (";
-
-      for (Size k = 0; k < indices.size()-1; k++)
-      {
-        select_sql += String(indices[k]) + ",";
-      }
-
-      select_sql += String(indices[indices.size()-1]) + ");";
+      String select_sql = "SELECT " \
+                          "CHROMATOGRAM.ID as chrom_id," \
+                          "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
+                          "DATA.COMPRESSION as data_compression," \
+                          "DATA.DATA_TYPE as data_type," \
+                          "DATA.DATA as binary_data " \
+                          "FROM CHROMATOGRAM " \
+                          "INNER JOIN DATA ON CHROMATOGRAM.ID = DATA.CHROMATOGRAM_ID " \
+                          "WHERE CHROMATOGRAM.ID IN (";
+      select_sql += integerConcatenateHelper(indices) + ");";
 
       // Execute SQL statement
-      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
-      if (rc != SQLITE_OK)
-      {
-        std::cerr << "SQL error after sqlite3_prepare" << std::endl;
-        std::cerr << "Prepared statement " << select_sql << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      }
-
+      sqlite3_stmt * stmt;
+      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
       populateContainer_sub_< MSChromatogram > (stmt, chromatograms);
-
       sqlite3_finalize(stmt);
     }
 
     void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra) const
     {
-      sqlite3_stmt * stmt;
-      int rc;
       std::string select_sql;
-
       select_sql = "SELECT " \
                     "SPECTRUM.ID as spec_id," \
                     "SPECTRUM.NATIVE_ID as spec_native_id," \
@@ -560,62 +523,41 @@ namespace OpenMS
                     "INNER JOIN DATA ON SPECTRUM.ID = DATA.SPECTRUM_ID " \
                     ";";
 
-
       // Execute SQL statement
-      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
-      if (rc != SQLITE_OK)
-      {
-        std::cerr << "SQL error after sqlite3_prepare" << std::endl;
-        std::cerr << "Prepared statement " << select_sql << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      }
-
+      sqlite3_stmt * stmt;
+      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
       populateContainer_sub_< MSSpectrum> (stmt, spectra);
-
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const
+    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db,
+                                                     std::vector<MSSpectrum>& spectra,
+                                                     const std::vector<int> & indices) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == spectra.size(), "Spectra and indices need to have the same length.")
 
-      sqlite3_stmt * stmt;
-      int rc;
-      std::string select_sql;
-
-      select_sql = "SELECT " \
-                    "SPECTRUM.ID as spec_id," \
-                    "SPECTRUM.NATIVE_ID as spec_native_id," \
-                    "DATA.COMPRESSION as data_compression," \
-                    "DATA.DATA_TYPE as data_type," \
-                    "DATA.DATA as binary_data " \
-                    "FROM SPECTRUM " \
-                    "INNER JOIN DATA ON SPECTRUM.ID = DATA.SPECTRUM_ID " \
-                    "WHERE SPECTRUM.ID IN (";
-
-      for (Size k = 0; k < indices.size()-1; k++)
-      {
-        select_sql += String(indices[k]) + ",";
-      }
-
-      select_sql += String(indices[indices.size()-1]) + ");";
+      String select_sql = "SELECT " \
+                          "SPECTRUM.ID as spec_id," \
+                          "SPECTRUM.NATIVE_ID as spec_native_id," \
+                          "DATA.COMPRESSION as data_compression," \
+                          "DATA.DATA_TYPE as data_type," \
+                          "DATA.DATA as binary_data " \
+                          "FROM SPECTRUM " \
+                          "INNER JOIN DATA ON SPECTRUM.ID = DATA.SPECTRUM_ID " \
+                          "WHERE SPECTRUM.ID IN (";
+      select_sql += integerConcatenateHelper(indices) + ");";
 
       // Execute SQL statement
-      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
-      if (rc != SQLITE_OK)
-      {
-        std::cerr << "SQL error after sqlite3_prepare" << std::endl;
-        std::cerr << "Prepared statement " << select_sql << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      }
-
+      sqlite3_stmt * stmt;
+      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
       populateContainer_sub_< MSSpectrum > (stmt, spectra);
-
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms) const
+    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db,
+                                           std::vector<MSChromatogram>& chromatograms,
+                                           const std::vector<int> & indices) const
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -639,12 +581,11 @@ namespace OpenMS
                     "INNER JOIN PRODUCT ON CHROMATOGRAM.ID = PRODUCT.CHROMATOGRAM_ID " \
                     ";";
 
-      /// TODO : do we want to support reading a subset of the data (e.g. only chromatograms xx - yy)
-      ///   readChromatograms_(db, stmt, chromatograms);
-      /// }
-
-      /// void readChromatograms_(sqlite3 *db, sqlite3_stmt* stmt, std::vector<MSChromatogram >& chromatograms)
-      /// {
+      if (!indices.empty())
+      {
+        select_sql += String("WHERE CHROMATOGRAM.ID IN (") + integerConcatenateHelper(indices) + ")";
+      }
+      select_sql += ";";
 
       // See https://www.sqlite.org/c3ref/column_blob.html
       // The pointers returned are valid until a type conversion occurs as
@@ -654,20 +595,16 @@ namespace OpenMS
       // from sqlite3_column_blob(), sqlite3_column_text(), etc. into
       // sqlite3_free().
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
+      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
       sqlite3_step( stmt );
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         MSChromatogram chrom;
-
-        // int chrom_id = sqlite3_column_int(stmt, 0);
-        const unsigned char * native_id = sqlite3_column_text(stmt, 1);
-        chrom.setNativeID( std::string(reinterpret_cast<const char*>(native_id), sqlite3_column_bytes(stmt, 1)));
-        String peptide_sequence;
-
         OpenMS::Precursor precursor;
         OpenMS::Product product;
+
+        chrom.setNativeID(String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 1 ))));
         if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 2));
         if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) precursor.setDriftTime(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 4));
@@ -675,9 +612,7 @@ namespace OpenMS
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
         if (sqlite3_column_type(stmt, 7) != SQLITE_NULL) 
         {
-          const unsigned char * pepseq = sqlite3_column_text(stmt, 7);
-          peptide_sequence = std::string(reinterpret_cast<const char*>(pepseq), sqlite3_column_bytes(stmt, 7));
-          precursor.setMetaValue("peptide_sequence", peptide_sequence);
+          precursor.setMetaValue("peptide_sequence", String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 7 ))));
         }
         // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
         if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 9));
@@ -699,9 +634,11 @@ namespace OpenMS
 
       // free memory
       sqlite3_finalize(stmt);
-  }
+    }
 
-    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra) const
+    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db,
+                                            std::vector<MSSpectrum>& spectra,
+                                            const std::vector<int> & indices) const
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -725,8 +662,13 @@ namespace OpenMS
                     "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
                     "FROM SPECTRUM " \
                     "LEFT JOIN PRECURSOR ON SPECTRUM.ID = PRECURSOR.SPECTRUM_ID " \
-                    "LEFT JOIN PRODUCT ON SPECTRUM.ID = PRODUCT.SPECTRUM_ID " \
-                    ";";
+                    "LEFT JOIN PRODUCT ON SPECTRUM.ID = PRODUCT.SPECTRUM_ID ";
+
+      if (!indices.empty())
+      {
+        select_sql += String("WHERE SPECTRUM.ID IN (") + integerConcatenateHelper(indices) + ")";
+      }
+      select_sql += ";";
 
       // See https://www.sqlite.org/c3ref/column_blob.html
       // The pointers returned are valid until a type conversion occurs as
@@ -736,22 +678,18 @@ namespace OpenMS
       // from sqlite3_column_blob(), sqlite3_column_text(), etc. into
       // sqlite3_free().
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
+      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
       sqlite3_step( stmt );
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         MSSpectrum spec;
-
-        const unsigned char * native_id = sqlite3_column_text(stmt, 1);
-        spec.setNativeID( std::string(reinterpret_cast<const char*>(native_id), sqlite3_column_bytes(stmt, 1)));
-        String peptide_sequence;
-
-        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) spec.setMSLevel(sqlite3_column_int(stmt, 2));
-        if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) spec.setRT(sqlite3_column_double(stmt, 3));
-
         OpenMS::Precursor precursor;
         OpenMS::Product product;
+
+        spec.setNativeID(String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1))));
+        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) spec.setMSLevel(sqlite3_column_int(stmt, 2));
+        if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) spec.setRT(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 4));
         if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) precursor.setDriftTime(sqlite3_column_double(stmt, 5));
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 6));
@@ -759,9 +697,7 @@ namespace OpenMS
         if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
         if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) 
         {
-          const unsigned char * pepseq = sqlite3_column_text(stmt, 9);
-          peptide_sequence = std::string(reinterpret_cast<const char*>(pepseq), sqlite3_column_bytes(stmt, 9));
-          precursor.setMetaValue("peptide_sequence", peptide_sequence);
+          precursor.setMetaValue("peptide_sequence", String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 9 ))));
         }
         // if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 10));
         if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 11));
@@ -793,7 +729,6 @@ namespace OpenMS
 
     void MzMLSqliteHandler::writeExperiment(const MSExperiment & exp)
     {
-
       // write run level information
       writeRunLevelInformation(exp, write_full_meta_, run_id_);
 
@@ -804,10 +739,7 @@ namespace OpenMS
 
     void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id)
     {
-      sqlite3 *db = openDB();
-
-      // store run information
-      char *zErrMsg = nullptr;
+      SqliteConnector conn(filename_);
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_run_sql;
@@ -815,9 +747,9 @@ namespace OpenMS
       std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
           run_id << ",'" << native_id << "','" << native_id << "'); ";
-      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
-      executeSql_(db, insert_run_sql);
-      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
+      conn.executeStatement("BEGIN TRANSACTION");
+      conn.executeStatement(insert_run_sql);
+      conn.executeStatement("END TRANSACTION");
 
       if (write_full_meta)
       {
@@ -850,10 +782,9 @@ namespace OpenMS
         std::string encoded_string;
         OpenMS::ZlibCompression::compressString(output, encoded_string);
         data.push_back(encoded_string);
-        // data.push_back(output); // in case you need to debug ... 
-        executeBlobBind_(db, prepare_statement, data);
+        // data.push_back(output); // in case you need to debug on the uncompressed string ...
+        conn.executeBindStatement(prepare_statement, data);
       }
-      sqlite3_close(db);
     }
 
     void MzMLSqliteHandler::createTables()
@@ -862,7 +793,7 @@ namespace OpenMS
       QFile file (filename_.toQString());
       file.remove();
 
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
 
       // Create SQL structure
       char const *create_sql =
@@ -934,24 +865,12 @@ namespace OpenMS
         ");";
 
       // Execute SQL statement
-      char *zErrMsg = nullptr;
-      int rc;
-      rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
-      if (rc != SQLITE_OK)
-      {
-        sqlite3_free(zErrMsg);
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-            zErrMsg);
-      }
-      sqlite3_close(db);
-
-      createIndices();
+      conn.executeStatement(create_sql);
+      createIndices_();
     }
 
-    void MzMLSqliteHandler::createIndices()
+    void MzMLSqliteHandler::createIndices_()
     {
-      sqlite3 *db = openDB();
-
       // Create SQL structure
       char const *create_sql =
 
@@ -974,16 +893,8 @@ namespace OpenMS
         "CREATE INDEX precursor_sp_idx ON DATA(SPECTRUM_ID);";
 
       // Execute SQL statement
-      char *zErrMsg = nullptr;
-      int rc;
-      rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
-      if (rc != SQLITE_OK)
-      {
-        sqlite3_free(zErrMsg);
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-            zErrMsg);
-      }
-      sqlite3_close(db);
+      SqliteConnector conn(filename_);
+      conn.executeStatement(create_sql);
     }
 
     void MzMLSqliteHandler::writeSpectra(const std::vector<MSSpectrum>& spectra)
@@ -991,9 +902,7 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (spectra.empty()) return;
 
-      char *zErrMsg = nullptr;
-
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_spectra_sql;
@@ -1085,18 +994,24 @@ namespace OpenMS
       {
         const MSSpectrum& spec = spectra[k];
         int polarity = (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE); // 1 = positive
-        insert_spectra_sql << "INSERT INTO SPECTRUM(ID, RUN_ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" << 
-          spec_id_ << "," << 
+        insert_spectra_sql << "INSERT INTO SPECTRUM(ID, RUN_ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" <<
+          spec_id_ << "," <<
           run_id_ << ",'" <<
-          spec.getNativeID() << "'," << 
-          spec.getMSLevel() << "," << 
-          spec.getRT() << "," << 
+          spec.getNativeID() << "'," <<
+          spec.getMSLevel() << "," <<
+          spec.getRT() << "," <<
           polarity << "); ";
 
         if (!spec.getPrecursors().empty())
         {
-          if (spec.getPrecursors().size() > 1) std::cout << "WARNING cannot store more than first precursor" << std::endl;
-          if (spec.getPrecursors()[0].getActivationMethods().size() > 1) std::cout << "WARNING cannot store more than one activation method" << std::endl;
+          if (spec.getPrecursors().size() > 1)
+          {
+            std::cout << "WARNING cannot store more than first precursor" << std::endl;
+          }
+          if (spec.getPrecursors()[0].getActivationMethods().size() > 1)
+          {
+            std::cout << "WARNING cannot store more than one activation method" << std::endl;
+          }
 
           OpenMS::Precursor prec = spec.getPrecursors()[0];
           // see src/openms/include/OpenMS/METADATA/Precursor.h for activation modes
@@ -1109,7 +1024,9 @@ namespace OpenMS
           if (prec.metaValueExists("peptide_sequence"))
           {
             pepseq = prec.getMetaValue("peptide_sequence");
-            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
+            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " <<
+                "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " <<
+                "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
               spec_id_ << "," << prec.getCharge() << "," << prec.getMZ() <<
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
               "," << prec.getDriftTime() << 
@@ -1118,7 +1035,8 @@ namespace OpenMS
           }
           else
           {
-            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD) VALUES (" << 
+            insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " << 
+              "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD) VALUES (" <<
               spec_id_ << "," << prec.getCharge() << "," << prec.getMZ() << 
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() << 
               "," << prec.getDriftTime() <<
@@ -1130,9 +1048,13 @@ namespace OpenMS
 
         if (!spec.getProducts().empty())
         {
-          if (spec.getProducts().size() > 1) std::cout << "WARNING cannot store more than first product" << std::endl;
+          if (spec.getProducts().size() > 1)
+          {
+            std::cout << "WARNING cannot store more than first product" << std::endl;
+          }
           OpenMS::Product prod = spec.getProducts()[0];
-          insert_product_sql << "INSERT INTO PRODUCT (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
+          insert_product_sql << "INSERT INTO PRODUCT (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " << 
+            "ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
             spec_id_ << "," << 0 << "," << prod.getMZ() << 
             "," << prod.getIsolationWindowLowerOffset() << "," << prod.getIsolationWindowUpperOffset() << "); ";
           nr_products++;
@@ -1168,13 +1090,13 @@ namespace OpenMS
         }
         spec_id_++;
 
-        if (sql_it > sql_batch_size_) // flush as sqlite can only handle so many bind_blob statments
+        if (sql_it > sql_batch_size_) // flush as sqlite can only handle so many bind_blob statements
         {
           // prevent writing of empty data which would throw an SQL exception
           if (!data.empty())
           {
             prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-            executeBlobBind_(db, prepare_statement, data);
+            conn.executeBindStatement(prepare_statement, data);
           }
 
           data.clear();
@@ -1188,18 +1110,14 @@ namespace OpenMS
       if (!data.empty())
       {
         prepare_statement.resize( prepare_statement.size() -1 );
-        executeBlobBind_(db, prepare_statement, data);
+        conn.executeBindStatement(prepare_statement, data);
       }
 
-      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-      executeSql_(db, insert_spectra_sql);
-      if (nr_precursors > 0) executeSql_(db, insert_precursor_sql);
-      if (nr_products > 0) executeSql_(db, insert_product_sql);
-
-      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-      sqlite3_close(db);
+      conn.executeStatement("BEGIN TRANSACTION");
+      conn.executeStatement(insert_spectra_sql);
+      if (nr_precursors > 0) conn.executeStatement(insert_precursor_sql);
+      if (nr_products > 0) conn.executeStatement(insert_product_sql);
+      conn.executeStatement("END TRANSACTION");
     }
 
     void MzMLSqliteHandler::writeChromatograms(const std::vector<MSChromatogram >& chroms)
@@ -1207,9 +1125,7 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (chroms.empty()) return;
 
-      char *zErrMsg = nullptr;
-
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_chrom_sql;
@@ -1311,7 +1227,9 @@ namespace OpenMS
         if (prec.metaValueExists("peptide_sequence"))
         {
           pepseq = prec.getMetaValue("peptide_sequence");
-          insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
+          insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " <<
+            "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " << 
+            "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
             chrom_id_ << "," << prec.getCharge() << "," << prec.getMZ() << 
             "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
             "," << prec.getDriftTime() << 
@@ -1320,7 +1238,8 @@ namespace OpenMS
         }
         else
         {
-          insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD) VALUES (" << 
+          insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " << 
+            "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, ACTIVATION_METHOD) VALUES (" << 
             chrom_id_ << "," << prec.getCharge() << "," << prec.getMZ() << 
             "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
             "," << prec.getDriftTime() << 
@@ -1329,7 +1248,8 @@ namespace OpenMS
         }
 
         OpenMS::Product prod = chrom.getProduct();
-        insert_product_sql << "INSERT INTO PRODUCT (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
+        insert_product_sql << "INSERT INTO PRODUCT (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " << 
+          "ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
           chrom_id_ << "," << 0 << "," << prod.getMZ() << 
           "," << prod.getIsolationWindowLowerOffset() << "," << prod.getIsolationWindowUpperOffset() << "); ";
 
@@ -1363,13 +1283,13 @@ namespace OpenMS
         }
         chrom_id_++;
 
-        if (sql_it > sql_batch_size_) // flush as sqlite can only handle so many bind_blob statments
+        if (sql_it > sql_batch_size_) // flush as sqlite can only handle so many bind_blob statements
         {
           // prevent writing of empty data which would throw an SQL exception
           if (!data.empty())
           {
             prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-            executeBlobBind_(db, prepare_statement, data);
+            conn.executeBindStatement(prepare_statement, data);
           }
 
           data.clear();
@@ -1382,74 +1302,15 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (!data.empty())
       {
-        prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-        executeBlobBind_(db, prepare_statement, data);
+        prepare_statement.resize(prepare_statement.size() -1); // remove last ","
+        conn.executeBindStatement(prepare_statement, data);
       }
 
-      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-      executeSql_(db, insert_chrom_sql);
-      executeSql_(db, insert_precursor_sql);
-      executeSql_(db, insert_product_sql);
-
-      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-      sqlite3_close(db);
-    }
-
-    void MzMLSqliteHandler::executeBlobBind_(sqlite3 *db, String& prepare_statement, std::vector<String>& data)
-    {
-      int rc;
-
-      // The calling procedure is responsible for deleting the compiled SQL statement using sqlite3_finalize() after it has finished with it.
-      sqlite3_stmt *stmt = nullptr;
-      const char *curr_loc;
-      rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), &stmt, &curr_loc);
-      if (rc != SQLITE_OK)
-      {
-        std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
-        std::cerr << "Prepared statement " << prepare_statement << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      }
-
-      for (Size k = 0; k < data.size(); k++)
-      {
-        // Fifth argument is a destructor for the blob.
-        // SQLITE_STATIC because the statement is finalized
-        // before the buffer is freed:
-        rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), data[k].size(), SQLITE_STATIC);
-        if (rc != SQLITE_OK)
-        {
-          std::cerr << "SQL error after sqlite3_bind_blob at iteration " << k << std::endl;
-          std::cerr << "Prepared statement " << prepare_statement << std::endl;
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-        } 
-      }
-
-      rc = sqlite3_step(stmt);
-      if (rc != SQLITE_DONE)
-      {
-        std::cerr << "SQL error after sqlite3_step" << std::endl;
-        std::cerr << "Prepared statement " << prepare_statement << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      }
-
-      // free memory again
-      sqlite3_finalize(stmt);
-    }
-
-    void MzMLSqliteHandler::executeSql_(sqlite3 *db, const std::stringstream& statement)
-    {
-      char *zErrMsg = nullptr;
-      std::string insert_str = statement.str();
-      int rc = sqlite3_exec(db, insert_str.c_str(), callback, nullptr, &zErrMsg);
-      if (rc != SQLITE_OK)
-      {
-        std::cerr << "Error message after sqlite3_exec" << std::endl;
-        std::cerr << "Prepared statement " << statement.str() << std::endl;
-        sqlite3_free(zErrMsg);
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, zErrMsg);
-      }
+      conn.executeStatement("BEGIN TRANSACTION");
+      conn.executeStatement(insert_chrom_sql);
+      conn.executeStatement(insert_precursor_sql);
+      conn.executeStatement(insert_product_sql);
+      conn.executeStatement("END TRANSACTION");
     }
 
   } // namespace Internal

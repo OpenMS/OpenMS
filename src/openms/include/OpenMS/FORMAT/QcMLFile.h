@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_QCMLFILE_H
-#define OPENMS_FORMAT_QCMLFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -47,9 +46,11 @@
 namespace OpenMS
 {
   /**
-      @brief File adapter for QcML files
+      @brief File adapter for QcML files used to load and store QcML files
 
       This Class is supposed to internally collect the data for the qcML File
+
+      A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
       @ingroup FileIO
   */
@@ -59,6 +60,7 @@ namespace OpenMS
     public ProgressLogger
   {
 public:
+
     /// Representation of a quality parameter
     struct OPENMS_DLLAPI QualityParameter
     {
@@ -205,4 +207,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_QCMLFILE_H

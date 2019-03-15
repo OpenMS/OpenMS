@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -145,7 +145,7 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "5.0.0")
+SET(QT_MIN_VERSION "5.5.0")
 
 # find qt
 ## TODO Use the component variable during install time 
@@ -155,7 +155,9 @@ find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt5Core_FOUND)
   message(STATUS "QT5Core not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+ELSE()
+  message(STATUS "Found Qt ${Qt5Core_VERSION}")
 ENDIF()
 
 
@@ -165,5 +167,10 @@ add_definitions(${Qt5Network_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
 
+#------------------------------------------------------------------------------
+# PTHREAD
+#------------------------------------------------------------------------------
+# at least FFSuperHirn requires linking against pthread
+find_package (Threads REQUIRED)
 
 #------------------------------------------------------------------------------

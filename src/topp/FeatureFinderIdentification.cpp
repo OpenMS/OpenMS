@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
-
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -261,11 +262,16 @@ protected:
       if (keep_chromatograms)
       {
         addDataProcessing_(
-          ffid_algo.getChromatograms(), 
+          ffid_algo.getChromatograms(),
           getProcessingInfo_(DataProcessing::FILTERING));
         MzMLFile().store(chrom_out, ffid_algo.getChromatograms());
         ffid_algo.getChromatograms().clear(true);
       }
+
+      // annotate mzML file
+      StringList feature_msfile_ref;
+      feature_msfile_ref.push_back("file://" + in);
+      features.setPrimaryMSRunPath(feature_msfile_ref);
 
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
     }

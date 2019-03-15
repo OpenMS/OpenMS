@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow, Andreas Bertsch, Lars Nilse $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
-#define OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
@@ -41,8 +40,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -455,11 +453,7 @@ public:
       if (spectrum_type == "automatic")
       {
         Size idx = spectra_to_average_over.begin()->first; // index of first spectrum to be averaged
-        type = exp[idx].getType();
-        if (type == SpectrumSettings::UNKNOWN)
-        {
-          type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
-        }
+        type = exp[idx].getType(true);
       }
       else if (spectrum_type == "profile")
       {
@@ -751,13 +745,13 @@ protected:
         // loop over spectra in blocks
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          SplineSpectrum spline(exp[it2->first]);
-          SplineSpectrum::Navigator nav = spline.getNavigator();
+          SplineInterpolatedPeaks spline(exp[it2->first]);
+          SplineInterpolatedPeaks::Navigator nav = spline.getNavigator();
 
           // loop over m/z positions
           for (Size i = 0; i < mz_positions.size(); ++i)
           {
-            if ((spline.getMzMin() < mz_positions[i]) && (mz_positions[i] < spline.getMzMax()))
+            if ((spline.getPosMin() < mz_positions[i]) && (mz_positions[i] < spline.getPosMax()))
             {
               intensities[i] += nav.eval(mz_positions[i]) * (it2->second); // spline-interpolated intensity * weight
             }
@@ -924,4 +918,3 @@ protected:
   };
 
 }
-#endif //OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H

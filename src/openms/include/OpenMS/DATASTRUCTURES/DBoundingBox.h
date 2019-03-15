@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DBOUNDINGBOX_H
-#define OPENMS_DATASTRUCTURES_DBOUNDINGBOX_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -223,4 +222,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DBOUNDINGBOX_H

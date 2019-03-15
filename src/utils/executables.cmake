@@ -4,6 +4,7 @@ set(directory source/APPLICATIONS/UTILS)
 ### list all filenames of the directory here
 set(UTILS_executables
 AccurateMassSearch
+AssayGeneratorMetabo
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector
@@ -13,6 +14,7 @@ DeMeanderize
 Digestor
 DigestorMotif
 ERPairFinder
+FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
@@ -31,9 +33,11 @@ MetaProSIP
 MRMPairFinder
 MSFraggerAdapter
 MSSimulator
+MSstatsConverter
 MultiplexResolver
 MzMLSplitter
 NovorAdapter
+NucleicAcidSearchEngine
 OpenMSInfo
 OpenPepXL
 OpenPepXLLF
@@ -47,7 +51,7 @@ QCImporter
 QCMerger
 QCShrinker
 RNADigestor
-RNPxl
+RNAMassCalculator
 RNPxlXICFilter
 RNPxlSearch
 RTEvaluation

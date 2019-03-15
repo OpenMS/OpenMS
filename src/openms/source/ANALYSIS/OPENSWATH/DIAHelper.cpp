@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
@@ -50,23 +50,21 @@ namespace OpenMS
   namespace DIAHelpers
   {
     // for SWATH -- get the theoretical b and y series masses for a sequence
-    void getBYSeries(AASequence& a, //
+    void getBYSeries(const AASequence& a, //
                      std::vector<double>& bseries, //
                      std::vector<double>& yseries, //
-                     TheoreticalSpectrumGenerator * generator,
-                     UInt charge
-                     )
+                     TheoreticalSpectrumGenerator const * generator,
+                     UInt charge)
     {
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      //too slow!
-      //TheoreticalSpectrumGenerator generator;
-      //Param p;
-      //p.setValue("add_metainfo", "true",
-      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      //generator.setParameters(p);
+
+      if (a.empty()) return;
+      
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
 
+      // Data array is present if AASequence is not empty
       const PeakSpectrum::StringDataArray& ion_name = spec.getStringDataArrays()[0];
 
       for (Size i = 0; i != spec.size(); ++i)
@@ -83,18 +81,14 @@ namespace OpenMS
     } // end getBYSeries
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
-    void getTheorMasses(AASequence& a, std::vector<double>& masses,
-                        TheoreticalSpectrumGenerator * generator,
+    void getTheorMasses(const AASequence& a,
+                        std::vector<double>& masses,
+                        TheoreticalSpectrumGenerator const * generator,
                         UInt charge)
     {
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.      
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      //too slow!
-      //TheoreticalSpectrumGenerator generator;
-      //Param p;
-      //p.setValue("add_metainfo", "false",
-      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      //p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-      //generator.setParameters(p);
+
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
       for (PeakSpectrum::iterator it = spec.begin();
@@ -104,31 +98,31 @@ namespace OpenMS
       }
     } // end getBYSeries
 
-    void getAveragineIsotopeDistribution(double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec, double charge,
-                                         int nr_isotopes, double mannmass)
+    void getAveragineIsotopeDistribution(const double product_mz,
+                                         std::vector<std::pair<double, double> >& isotopesSpec,
+                                         const double charge,
+                                         const int nr_isotopes,
+                                         const double mannmass)
     {
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
       // create the theoretical distribution
-      IsotopeDistribution d;
+      CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
-      d.setMaxIsotope(nr_isotopes);
-      //std::cout << product_mz * charge << std::endl;
-      d.estimateFromPeptideWeight(product_mz * charge);
+      auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;
       for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
-        isotopesSpec.push_back(std::make_pair(mass, it->second));
+        isotopesSpec.push_back(std::make_pair(mass, it->getIntensity()));
         mass += mannmass;
       }
     } //end of dia_isotope_corr_sub
 
     //simulate spectrum from AASequence
-    void simulateSpectrumFromAASequence(AASequence& aa,
+    void simulateSpectrumFromAASequence(const AASequence& aa,
                                         std::vector<double>& firstIsotopeMasses, //[out]
                                         std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                                        TheoreticalSpectrumGenerator * generator, double charge)
+                                        TheoreticalSpectrumGenerator const * generator, double charge)
     {
       getTheorMasses(aa, firstIsotopeMasses, generator, charge);
       for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)

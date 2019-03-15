@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DRANGE_H
-#define OPENMS_DATASTRUCTURES_DRANGE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -106,11 +105,14 @@ public:
     {
     }
 
-    /// Copy constructor.
+    /// Copy constructor
     DRange(const DRange& range) :
       Base(range)
     {
     }
+
+    /// Move constructor
+    DRange(DRange&&) noexcept = default;
 
     /// Copy constructor for the base class
     DRange(const Base& range) :
@@ -346,4 +348,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_DRANGE_H

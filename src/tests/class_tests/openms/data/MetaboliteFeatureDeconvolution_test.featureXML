@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.7" id="fm_6995089216872835842" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="24">
+		<feature id="f_15">
+			<position dim="0">100</position>
+			<position dim="1">301.007276</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+H; all adducts/masses according to Fiehn MS-Adduct-Calculator"/>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">100</position>
+			<position dim="1">318.033823</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+NH4"/>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">100</position>
+			<position dim="1">322.989218</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+Na"/>
+		</feature>
+		<feature id="f_3">
+			<position dim="0">100</position>
+			<position dim="1">338.963158</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+			<userParam type="string" name="label" value="M+K"/>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">100</position>
+			<position dim="1">151.007276</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+2H"/>
+		</feature>
+		<feature id="f_5">
+			<position dim="0">100</position>
+			<position dim="1">159.520550</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+H+NH4"/>
+		</feature>
+		<feature id="f_6">
+			<position dim="0">100</position>
+			<position dim="1">161.998247</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+H+Na"/>
+		</feature>
+		<feature id="f_7">
+			<position dim="0">100</position>
+			<position dim="1">169.985217</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<userParam type="string" name="label" value="M+H+K"/>
+		</feature>
+		<feature id="f_8">
+			<position dim="0">100</position>
+			<position dim="1">172.989218</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+2Na"/>
+		</feature>
+		<feature id="f_9">
+			<position dim="0">100</position>
+			<position dim="1">101.007276</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+3H"/>
+		</feature>
+		<feature id="f_10">
+			<position dim="0">100</position>
+			<position dim="1">108.334590</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+2H+Na"/>
+		</feature>
+		<feature id="f_11">
+			<position dim="0">100</position>
+			<position dim="1">115.661904</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+H+2Na; Fiehn contained wrong 1 after decimal point!"/>
+		</feature>
+		<feature id="f_12">
+			<position dim="0">100</position>
+			<position dim="1">122.989218</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+3Na"/>
+		</feature>
+		<feature id="f_13">
+			<position dim="0">100</position>
+			<position dim="1">342.033823</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+ACN+H (C2H3N)"/>
+		</feature>
+		<feature id="f_14">
+			<position dim="0">100</position>
+			<position dim="1">344.971160</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+2Na-H. If Na-H not considered as neutral adduct this will lead to split of f_ 8,11,12,14 from other positive mode features, with adduct explanations not matching larger group."/>
+		</feature>
+		<feature id="f_100">
+			<position dim="0">102</position>
+			<position dim="1">298.992724</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M-H"/>
+		</feature>
+		<feature id="f_101">
+			<position dim="0">102</position>
+			<position dim="1">148.992724</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<userParam type="string" name="label" value="M-2H. FFM only knows of positive charges."/>
+		</feature>
+		<feature id="f_102">
+			<position dim="0">102</position>
+			<position dim="1">280.981610</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M-H2O-H"/>
+		</feature>
+		<feature id="f_103">
+			<position dim="0">102</position>
+			<position dim="1">320.974666</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+			<userParam type="string" name="label" value="M+Na-2H. FFM only knows of positive charges."/>
+		</feature>
+		<feature id="f_104">
+			<position dim="0">102</position>
+			<position dim="1">334.969402</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+			<userParam type="string" name="label" value="M+Cl. FFM only knows of positive charges."/>
+		</feature>
+		<feature id="f_105">
+			<position dim="0">102</position>
+			<position dim="1">336.948606</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+K-2H"/>
+		</feature>
+		<feature id="f_106">
+			<position dim="0">102</position>
+			<position dim="1">378.918885</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+Br"/>
+		</feature>
+		<feature id="f_107">
+			<position dim="0">102</position>
+			<position dim="1">98.992724</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M-3H"/>
+		</feature>
+		<feature id="f_108">
+			<position dim="0">102</position>
+			<position dim="1">344.998201</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="label" value="M+FA-H (CH2O2)"/>
+		</feature>
+	</featureList>
+</featureMap>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,28 +38,47 @@ namespace OpenMS
 {
 
 
-  OpenSwathTSVWriter::OpenSwathTSVWriter(String output_filename, 
-                       String input_filename,
-                       bool ms1_scores, 
-                       bool sonar, 
-                       bool uis_scores) :
-      ofs(output_filename.c_str()),
-      input_filename_(input_filename),
-      doWrite_(!output_filename.empty()),
-      use_ms1_traces_(ms1_scores),
-      sonar_(sonar),
-      enable_uis_scoring_(uis_scores)
-      {}
+  OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename, 
+                                         const String& input_filename,
+                                         bool ms1_scores, 
+                                         bool sonar, 
+                                         bool uis_scores) :
+    ofs(output_filename.c_str()),
+    input_filename_(input_filename),
+    doWrite_(!output_filename.empty()),
+    use_ms1_traces_(ms1_scores),
+    sonar_(sonar),
+    enable_uis_scoring_(uis_scores)
+    {
+    }
 
-    bool OpenSwathTSVWriter::isActive()
+    bool OpenSwathTSVWriter::isActive() const
     {
       return doWrite_;
     }
 
     void OpenSwathTSVWriter::writeHeader()
     {
-      ofs << "transition_group_id\tpeptide_group_label\trun_id\tfilename\tRT\tid\tSequence\tFullPeptideName" <<
-        "\tCharge\tm/z\tIntensity\tProteinName\tdecoy\tassay_rt\tdelta_rt\tleftWidth" <<
+      ofs << "transition_group_id" << "\t" 
+          << "peptide_group_label" << "\t"
+          << "run_id" << "\t"
+          << "filename"<< "\t"\
+          << "RT" << "\t"
+          << "id" << "\t"
+          << "Sequence"<< "\t"
+          << "MC" << "\t"
+          << "FullPeptideName" << "\t"
+          << "Charge" << "\t"
+          << "m/z" << "\t"
+          << "masserror_ppm" << "\t"
+          << "Intensity" << "\t"
+          << "ProteinName" << "\t"
+          << "GeneName" << "\t"
+          << "decoy" << "\t"
+          << "assay_rt" <<"\t"
+          << "delta_rt" << "\t"
+          << "rt_fwhm" << "\t"
+          << "leftWidth" <<
         "\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier\tinitialPeakQuality" <<
         "\trightWidth\trt_score\tsn_ratio\ttotal_xic\tvar_bseries_score\tvar_dotprod_score" <<
         "\tvar_intensity_score\tvar_isotope_correlation_score\tvar_isotope_overlap_score" <<
@@ -84,31 +103,31 @@ namespace OpenMS
       ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation";
       if (enable_uis_scoring_)
       {
-        ofs << "\tuis_target_transition_names"
-            << "\tuis_target_var_ind_log_intensity"
-            << "\tuis_target_num_transitions"
-            << "\tuis_target_var_ind_xcorr_coelution"
-            << "\tuis_target_main_var_ind_xcorr_shape"
-            << "\tuis_target_var_ind_log_sn_score"
-            << "\tuis_target_var_ind_massdev_score"
-            << "\tuis_target_var_ind_isotope_correlation"
-            << "\tuis_target_var_ind_isotope_overlap"
-            << "\tuis_decoy_transition_names"
-            << "\tuis_decoy_var_ind_log_intensity"
-            << "\tuis_decoy_num_transitions"
-            << "\tuis_decoy_var_ind_xcorr_coelution"
-            << "\tuis_decoy_main_var_ind_xcorr_shape"
-            << "\tuis_decoy_var_ind_log_sn_score"
-            << "\tuis_decoy_var_ind_massdev_score"
-            << "\tuis_decoy_var_ind_isotope_correlation"
-            << "\tuis_decoy_var_ind_isotope_overlap";
+        ofs << "\t" << "uis_target_transition_names"
+            << "\t" << "uis_target_var_ind_log_intensity"
+            << "\t" << "uis_target_num_transitions"
+            << "\t" << "uis_target_var_ind_xcorr_coelution"
+            << "\t" << "uis_target_main_var_ind_xcorr_shape"
+            << "\t" << "uis_target_var_ind_log_sn_score"
+            << "\t" << "uis_target_var_ind_massdev_score"
+            << "\t" << "uis_target_var_ind_isotope_correlation"
+            << "\t" << "uis_target_var_ind_isotope_overlap"
+            << "\t" << "uis_decoy_transition_names"
+            << "\t" << "uis_decoy_var_ind_log_intensity"
+            << "\t" << "uis_decoy_num_transitions"
+            << "\t" << "uis_decoy_var_ind_xcorr_coelution"
+            << "\t" << "uis_decoy_main_var_ind_xcorr_shape"
+            << "\t" << "uis_decoy_var_ind_log_sn_score"
+            << "\t" << "uis_decoy_var_ind_massdev_score"
+            << "\t" << "uis_decoy_var_ind_isotope_correlation"
+            << "\t" << "uis_decoy_var_ind_isotope_overlap";
       }
       ofs << "\n";
     }
 
     String OpenSwathTSVWriter::prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition * transition,
-        const FeatureMap& output, const String id)
+        const FeatureMap& output, const String id) const
     {
         String result = "";
         String decoy = "0"; // 0 = false
@@ -117,42 +136,31 @@ namespace OpenMS
           decoy = "1";
         }
 
+        // iterator over MRMFeatures
         for (FeatureMap::const_iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
         {
-
-          char intensity_char[40];
-          char intensity_apex_char[40];
-          String aggr_Peak_Area = "";
-          String aggr_Peak_Apex = "";
-          String aggr_Fragment_Annotation = "";
-          String aggr_prec_Peak_Area = "";
-          String aggr_prec_Peak_Apex = "";
-          String aggr_prec_Fragment_Annotation = "";
+          StringList aggr_Peak_Area, aggr_Peak_Apex, aggr_Fragment_Annotation;
+          StringList aggr_prec_Peak_Area, aggr_prec_Peak_Apex, aggr_prec_Fragment_Annotation;
+          StringList rt_fwhm;
+          String gene_name;
           for (std::vector<Feature>::const_iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
           {
-            sprintf(intensity_char, "%f", sub_it->getIntensity());
-            sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
-            if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
+            if (sub_it->metaValueExists("FeatureLevel"))
             {
-              aggr_Peak_Area += (String)intensity_char + ";";
-              aggr_Peak_Apex += (String)intensity_apex_char + ";";
-              aggr_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
+              if (sub_it->getMetaValue("FeatureLevel") == "MS2")
+              {
+                aggr_Peak_Area.push_back((String)sub_it->getIntensity());
+                aggr_Peak_Apex.push_back(String((double)sub_it->getMetaValue("peak_apex_int")));
+                aggr_Fragment_Annotation.push_back((String)sub_it->getMetaValue("native_id"));
+                rt_fwhm.push_back((String)sub_it->getMetaValue("width_at_50"));
+              }
+              else if (sub_it->getMetaValue("FeatureLevel") == "MS1")
+              {
+                aggr_prec_Peak_Area.push_back((String)sub_it->getIntensity());
+                aggr_prec_Peak_Apex.push_back(String((double)sub_it->getMetaValue("peak_apex_int")));
+                aggr_prec_Fragment_Annotation.push_back((String)sub_it->getMetaValue("native_id"));
+              }
             }
-            else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
-            {
-              aggr_prec_Peak_Area += (String)intensity_char + ";";
-              aggr_Peak_Apex += (String)intensity_apex_char + ";";
-              aggr_prec_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
-            }
-          }
-          if (!feature_it->getSubordinates().empty())
-          {
-            aggr_Peak_Area = aggr_Peak_Area.substr(0, aggr_Peak_Area.size() - 1);
-            aggr_Peak_Apex = aggr_Peak_Apex.substr(0, aggr_Peak_Apex.size() - 1);
-            aggr_Fragment_Annotation = aggr_Fragment_Annotation.substr(0, aggr_Fragment_Annotation.size() - 1);
-            aggr_prec_Peak_Area = aggr_prec_Peak_Area.substr(0, aggr_prec_Peak_Area.size() - 1);
-            aggr_prec_Peak_Apex = aggr_prec_Peak_Apex.substr(0, aggr_prec_Peak_Apex.size() - 1);
-            aggr_prec_Fragment_Annotation = aggr_prec_Fragment_Annotation.substr(0, aggr_prec_Fragment_Annotation.size() - 1);
           }
 
           String full_peptide_name = "";
@@ -175,9 +183,11 @@ namespace OpenMS
           // Compute peptide group label (use the provided label or use the
           // transition group).
           String group_label = pep.peptide_group_label;
-          if (group_label.empty()) group_label = id;
-          if (group_label == "light") group_label = id; // legacy fix since there are many TraMLs floating around which have "light" in there
-          if (group_label == "NA") group_label = id; // legacy fix since there are many TraMLs floating around which have "NA" in there
+          // legacy fix since there are many TraMLs floating around which have "light"/"NA" in there
+          if (group_label.empty() || group_label == "light" || group_label == "NA")
+          {
+            group_label = id;
+          }
 
           // If a protein is present, take the first one
           String protein_name = "";
@@ -186,25 +196,39 @@ namespace OpenMS
             protein_name = pep.protein_refs[0];
           }
 
-          String line = "";
-          line += id + "_run0"
+          String main_var = "0";
+          if (feature_it->metaValueExists("main_var_xx_swath_prelim_score"))
+          {
+            main_var = (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score");
+          }
+          else if (feature_it->metaValueExists("main_var_xx_lda_prelim_score"))
+          {
+            main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
+          }
+
+          String line = 
+            id + "_run0"
             + "\t" + group_label
             + "\t" + "0"
             + "\t" + input_filename_
             + "\t" + (String)feature_it->getRT()
             + "\t" + "f_" + feature_it->getUniqueId()  // TODO might not be unique!!!
             + "\t" + (String)pep.sequence
+            + "\t" + (feature_it->metaValueExists("missedCleavages") ? (String)feature_it->getMetaValue("missedCleavages") : "")
             + "\t" + full_peptide_name
             + "\t" + (String)pep.charge
             + "\t" + (String)transition->precursor_mz
+            + "\t" + (feature_it->metaValueExists("masserror_ppm") ? ListUtils::concatenate(feature_it->getMetaValue("masserror_ppm").toDoubleList(), ";") : "")
             + "\t" + (String)feature_it->getIntensity()
             + "\t" + protein_name
+            + "\t" + gene_name
             + "\t" + decoy
             // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
             + "\t" + (String)feature_it->getMetaValue("assay_rt")
             + "\t" + (String)feature_it->getMetaValue("delta_rt")
+            + "\t" + ListUtils::concatenate(rt_fwhm, ";")
             + "\t" + (String)feature_it->getMetaValue("leftWidth")
-            + "\t" + (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score")
+            + "\t" + main_var
             + "\t" + (String)feature_it->getMetaValue("norm_RT")
             + "\t" + (String)feature_it->getMetaValue("nr_peaks")
             + "\t" + (String)feature_it->getMetaValue("peak_apices_sum")
@@ -260,9 +284,9 @@ namespace OpenMS
             }
             if (use_ms1_traces_)
             {
-              line += "\t" + aggr_prec_Peak_Area + "\t" + aggr_prec_Peak_Apex + "\t" + aggr_prec_Fragment_Annotation;
+              line += "\t" + ListUtils::concatenate(aggr_prec_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_prec_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_prec_Fragment_Annotation, ";");
             }
-            line += "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation;
+            line += "\t" + ListUtils::concatenate(aggr_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_Fragment_Annotation, ";");
             if (enable_uis_scoring_)
             {
               line += "\t" + (String)feature_it->getMetaValue("id_target_transition_names")
@@ -284,16 +308,16 @@ namespace OpenMS
               + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_correlation")
               + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_overlap");
             }
-            line += "\n";          result += line;
+            line += "\n";
+            result += line;
         } // end of iteration
       return result;
     }
 
-    void OpenSwathTSVWriter::writeLines(std::vector<String> to_output)
+    void OpenSwathTSVWriter::writeLines(const std::vector<String>& to_output)
     {
-      for (Size i = 0; i < to_output.size(); i++) { ofs << to_output[i]; }
+      for (const auto& s : to_output) ofs << s;
     }
 
 }
-
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_RNASEDB_H
-#define OPENMS_CHEMISTRY_RNASEDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
@@ -48,7 +47,7 @@ namespace OpenMS
 
     @brief Database for enzymes that digest RNA (RNases)
 
-    The enzymes stored in this DB are defined in an XML file under share/CHEMISTRY/Enzymes_RNA.xml.
+    The enzymes stored in this DB are defined in an XML file under "share/CHEMISTRY/Enzymes_RNA.xml".
   */
   class OPENMS_DLLAPI RNaseDB: public DigestionEnzymeDB<DigestionEnzymeRNA, RNaseDB>
   {
@@ -61,4 +60,3 @@ namespace OpenMS
   };
 }
 
-#endif

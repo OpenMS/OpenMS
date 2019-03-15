@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -171,7 +171,7 @@ START_SECTION((static Int extractScanNumber(const String&,
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000771"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000772"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000776"), 42);
-  TEST_EQUAL(SpectrumLookup::extractScanNumber("experiment=42", "MS:1000770"), 42);
+  TEST_EQUAL(SpectrumLookup::extractScanNumber("sample=1 period=1 cycle=42 experiment=1", "MS:1000770"), 42001);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("file=42", "MS:1000773"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("file=42", "MS:1000775"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("index=42", "MS:1000774"), 42);

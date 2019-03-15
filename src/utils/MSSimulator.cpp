@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -312,9 +312,9 @@ protected:
       writeLog_(String("Storing charged consensus features in: ") + cxml_out);
 
       ConsensusMap& charge_consensus = ms_simulation.getChargeConsensus();
-      charge_consensus.getFileDescriptions()[0].filename = fxml_out;
-      charge_consensus.getFileDescriptions()[0].size = ms_simulation.getSimulatedFeatures().size();
-      charge_consensus.getFileDescriptions()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
+      charge_consensus.getColumnHeaders()[0].filename = fxml_out;
+      charge_consensus.getColumnHeaders()[0].size = ms_simulation.getSimulatedFeatures().size();
+      charge_consensus.getColumnHeaders()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
 
       ConsensusXMLFile().store(cxml_out, charge_consensus);
     }
@@ -326,8 +326,8 @@ protected:
 
       // set file name for all (sub)feature maps
       ConsensusMap& labeling_consensus = ms_simulation.getLabelingConsensus();
-      for (ConsensusMap::FileDescriptions::iterator fdI = labeling_consensus.getFileDescriptions().begin();
-           fdI != labeling_consensus.getFileDescriptions().end();
+      for (ConsensusMap::ColumnHeaders::iterator fdI = labeling_consensus.getColumnHeaders().begin();
+           fdI != labeling_consensus.getColumnHeaders().end();
            ++fdI)
       {
         fdI->second.filename = fxml_out;

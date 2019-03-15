@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -488,8 +488,8 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
   TEST_EQUAL(fix_mods.size(), reread_fix_mods.size())
   TEST_EQUAL(var_mods.size(), reread_var_mods.size())
 
-  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), reread_fix_mods[0]) != var_mods.end(), true)
-  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), "Carbamidometyhl (C)") != var_mods.end(), true)
+  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), reread_fix_mods[0]) != fix_mods.end(), true)
+  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), "Carbamidomethyl (C)") != fix_mods.end(), true)
 
   for (size_t i = 0; i < reread_var_mods.size(); ++i)
   {

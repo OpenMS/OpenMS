@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,10 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
-#define OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
+#pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 #include <vector>
 
@@ -61,42 +60,46 @@ namespace OpenMS
   public:
 
     /**
-     * @brief Annotate a Swath map using a Swath window file specifying the individual windows
-     *
-     * @note It is assumed that the files in the swath_maps vector are in the
-     * same order as the windows in the provided file (usually from lowest to
-     * highest).
-     *
-     * @param filename The filename of the tab delimited file
-     * @param swath_maps The list of SWATH maps (assumed to be in the same order as in the file)
-     * @param doSort Sort the windows after reading in ascending order
-     * @throw Exception::IllegalArgument if the maps in the file and the provided input maps to not match
-     *
-     */
-    static void annotateSwathMapsFromFile(const std::string & filename,
-      std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort);
+       @brief Annotate a Swath map using a Swath window file specifying the individual windows
+     
+       @note It is assumed that the files in the swath_maps vector are in the
+       same order as the windows in the provided file (usually from lowest to
+       highest).
+
+       @param filename The filename of the tab delimited file
+       @param swath_maps The list of SWATH maps (assumed to be in the same order as in the file)
+       @param do_sort Sort the windows after reading in ascending order
+       @param force Force overriding the window boundaries, even if the new boundaries are wider than the data boundaries
+       
+       @throw Exception::IllegalArgument if the number of maps in the file and the provided input maps to not match, or if the new boundaries are outside of the data boundaries (unless force==true)
+    */
+    static void annotateSwathMapsFromFile(const std::string& filename,
+                                          std::vector<OpenSwath::SwathMap>& swath_maps,
+                                          bool do_sort,
+                                          bool force);
 
     /**
-     * @brief Reading a tab delimited file specifying the SWATH windows
-     *
-     * The file must of be tab delimited and of the following format:
-     *    window_lower window_upper
-     *    400 425
-     *    425 450
-     *    ...
-     *
-     * Note that the first line is a header and will be skipped.
-     *
-     * @param filename The filename of the tab delimited file
-     * @param swath_prec_lower_ The output vector for the window start
-     * @param swath_prec_upper_ The output vector for the window end
+      @brief Reading a tab delimited file specifying the SWATH windows
+     
+      The file must of be tab delimited and of the following format:
+         window_lower window_upper
+         400 425
+         425 450
+         ...
+     
+      Note that the first line is a header and will be skipped.
+     
+      @param filename The filename of the tab delimited file
+      @param swath_prec_lower The output vector for the window start
+      @param swath_prec_upper The output vector for the window end
+
+      @throw Exception::InvalidValue if window's start >= end
+
      *
      */
-    static void readSwathWindows(const std::string & filename,
-      std::vector<double> & swath_prec_lower_,
-      std::vector<double> & swath_prec_upper_ );
+    static void readSwathWindows(const std::string& filename,
+                                 std::vector<double>& swath_prec_lower,
+                                 std::vector<double>& swath_prec_upper);
   };
 }
-
-#endif // OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
 

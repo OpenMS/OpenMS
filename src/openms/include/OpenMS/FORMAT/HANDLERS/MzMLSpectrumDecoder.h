@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLSPECTRUMDECODER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLSPECTRUMDECODER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -67,15 +66,14 @@ namespace OpenMS
   {
   protected:
 
-    bool skip_xml_checks_;
+    bool skip_xml_checks_; ///< Whether to skip some XML checks (e.g. removing whitespace inside base64 arrays) and be fast instead
       
     typedef Internal::MzMLHandlerHelper::BinaryData BinaryData;
 
     /**
       @brief decode binary data
 
-      @TODO Duplicated code from MzMLHandler, need to clean up
-      see void MzMLHandler<MapType>::fillData_() 
+      @todo Duplicated code from MzMLHandler, need to clean up see MzMLHandler::fillData_() 
 
     */
     OpenMS::Interfaces::SpectrumPtr decodeBinaryDataSpectrum_(std::vector<BinaryData> & data);
@@ -87,8 +85,7 @@ namespace OpenMS
     /**
       @brief decode binary data
 
-      @TODO Duplicated code from MzMLHandler, need to clean up
-      see void MzMLHandler<MapType>::fillData_() 
+      @todo Duplicated code from MzMLHandler, need to clean up see MzMLHandler::fillData_() 
 
     */
     OpenMS::Interfaces::ChromatogramPtr decodeBinaryDataChrom_(std::vector<BinaryData> & data);
@@ -193,5 +190,4 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_FORMAT_HANDLERS_MZMLSPECTRUMDECODER_H
 

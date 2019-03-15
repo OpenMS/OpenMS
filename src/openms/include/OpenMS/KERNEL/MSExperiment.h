@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MSEXPERIMENT_H
-#define OPENMS_KERNEL_MSEXPERIMENT_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -113,36 +112,36 @@ public:
     /// Non-mutable iterator
     typedef std::vector<SpectrumType>::const_iterator ConstIterator;
     /// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<PeakT, PeakT &, PeakT *, Iterator, SpectrumType::Iterator> AreaIterator;
+    typedef Internal::AreaIterator<PeakT, PeakT&, PeakT*, Iterator, SpectrumType::Iterator> AreaIterator;
     /// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<const PeakT, const PeakT &, const PeakT *, ConstIterator, SpectrumType::ConstIterator> ConstAreaIterator;
+    typedef Internal::AreaIterator<const PeakT, const PeakT&, const PeakT*, ConstIterator, SpectrumType::ConstIterator> ConstAreaIterator;
     //@}
 
     /// @name Delegations of calls to the vector of MSSpectra
     // Attention: these refer to the spectra vector only!
     //@{
-    typedef Base::value_type value_type; 
-    typedef Base::iterator iterator; 
-    typedef Base::const_iterator const_iterator; 
+    typedef Base::value_type value_type;
+    typedef Base::iterator iterator;
+    typedef Base::const_iterator const_iterator;
 
     inline Size size() const
     {
-      return spectra_.size(); 
+      return spectra_.size();
     }
 
     inline void resize(Size s)
     {
-      spectra_.resize(s); 
+      spectra_.resize(s);
     }
 
     inline bool empty() const
     {
-      return spectra_.empty(); 
+      return spectra_.empty();
     }
 
     inline void reserve(Size s)
     {
-      spectra_.reserve(s); 
+      spectra_.reserve(s);
     }
 
     inline SpectrumType& operator[] (Size n)
@@ -155,7 +154,7 @@ public:
       return spectra_[n];
     }
 
-    inline Iterator begin() 
+    inline Iterator begin()
     {
       return spectra_.begin();
     }
@@ -165,7 +164,7 @@ public:
       return spectra_.begin();
     }
 
-    inline Iterator end() 
+    inline Iterator end()
     {
       return spectra_.end();
     }
@@ -186,8 +185,14 @@ public:
     /// Copy constructor
     MSExperiment(const MSExperiment & source);
 
+    /// Move constructor
+    MSExperiment(MSExperiment&&) = default;
+
     /// Assignment operator
     MSExperiment & operator=(const MSExperiment & source);
+
+    /// Move assignment operator
+    MSExperiment& operator=(MSExperiment&&) & = default;
 
     /// Assignment operator
     MSExperiment & operator=(const ExperimentalSettings & source);
@@ -207,7 +212,7 @@ public:
       supports push_back(), end() and back()
     */
     template <class Container>
-    void get2DData(Container & cont) const
+    void get2DData(Container& cont) const
     {
       for (typename Base::const_iterator spec = spectra_.begin(); spec != spectra_.end(); ++spec)
       {
@@ -292,12 +297,12 @@ public:
       @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
       @param add_mass_traces If true, each container element is searched for the metavalue
                              "num_of_masstraces".
-                             If found, "masstrace_intensity_<X>" (X>=0) meta values are added as data points (with 13C spacing).
+                             If found, "masstrace_intensity" (X>=0) meta values are added as data points (with 13C spacing).
                              This is useful for, e.g., FF-Metabo output.
                              Note that the actual feature will NOT be added if mass traces are found (since MT0 is usually identical)
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
-      retention time (in debug AND release mode) OR a "masstrace_intensity_<X>" value is expected but not found
+      retention time (in debug AND release mode) OR a "masstrace_intensity" value is expected but not found
          
     */
     template <bool add_mass_traces, class Container>
@@ -410,13 +415,13 @@ public:
 
       RT is dimension 0, m/z is dimension 1
     */
-    const AreaType & getDataRange() const;
+    const AreaType& getDataRange() const;
 
     /// returns the total number of peaks
     UInt64 getSize() const;
 
     /// returns an array of MS levels
-    const std::vector<UInt> & getMSLevels() const;
+    const std::vector<UInt>& getMSLevels() const;
 
     ///@}
 
@@ -456,10 +461,10 @@ public:
     bool clearMetaDataArrays();
 
     /// returns the meta information of this experiment (const access)
-    const ExperimentalSettings & getExperimentalSettings() const;
+    const ExperimentalSettings& getExperimentalSettings() const;
 
     /// returns the meta information of this experiment (mutable access)
-    ExperimentalSettings & getExperimentalSettings();
+    ExperimentalSettings& getExperimentalSettings();
 
     /// get the file path to the first MS run
     void getPrimaryMSRunPath(StringList& toFill) const;
@@ -472,39 +477,49 @@ public:
     ConstIterator getPrecursorSpectrum(ConstIterator iterator) const;
 
     /// Swaps the content of this map with the content of @p from
-    void swap(MSExperiment & from);
+    void swap(MSExperiment& from);
 
     /// sets the spectrum list
-    void setSpectra(const std::vector<MSSpectrum> & spectra);
+    void setSpectra(const std::vector<MSSpectrum>& spectra);
 
     /// adds a spectrum to the list
-    void addSpectrum(const MSSpectrum & spectrum);
+    void addSpectrum(const MSSpectrum& spectrum);
+
+    void addSpectrum(MSSpectrum&& spectrum)
+    {
+      spectra_.push_back(std::forward<MSSpectrum>(spectrum));
+    }
 
     /// returns the spectrum list
-    const std::vector<MSSpectrum> & getSpectra() const;
+    const std::vector<MSSpectrum>& getSpectra() const;
 
     /// returns the spectrum list (mutable)
-    std::vector<MSSpectrum> & getSpectra();
+    std::vector<MSSpectrum>& getSpectra();
 
     /// sets the chromatogram list
-    void setChromatograms(const std::vector<MSChromatogram > & chromatograms);
+    void setChromatograms(const std::vector<MSChromatogram>& chromatograms);
 
     /// adds a chromatogram to the list
-    void addChromatogram(const MSChromatogram & chromatogram);
+    void addChromatogram(const MSChromatogram& chromatogram);
+
+    void addChromatogram(MSChromatogram&& chrom)
+    {
+      chromatograms_.push_back(std::forward<MSChromatogram>(chrom));
+    }
 
     /// returns the chromatogram list
-    const std::vector<MSChromatogram > & getChromatograms() const;
+    const std::vector<MSChromatogram>& getChromatograms() const;
 
     /// returns the chromatogram list (mutable)
-    std::vector<MSChromatogram > & getChromatograms();
+    std::vector<MSChromatogram>& getChromatograms();
 
     /// @name Easy Access interface
     //@{
-    /// returns a single chromatogram 
-    MSChromatogram & getChromatogram(Size id);
+    /// returns a single chromatogram
+    MSChromatogram& getChromatogram(Size id);
 
-    /// returns a single spectrum 
-    MSSpectrum & getSpectrum(Size id);
+    /// returns a single spectrum
+    MSSpectrum& getSpectrum(Size id);
 
     /// get the total number of spectra available
     Size getNrSpectra() const;
@@ -525,7 +540,6 @@ public:
 
 protected:
 
-
     /// MS levels of the data
     std::vector<UInt> ms_levels_;
     /// Number of all data points
@@ -538,13 +552,13 @@ protected:
     std::vector<SpectrumType> spectra_;
 
 private:
-   
+
     /// Helper class to add either general data points in set2DData or use mass traces from meta values
     template<typename ContainerValueType, bool addMassTraces>
     struct ContainerAdd_
     {
       static void addData_(SpectrumType* spectrum, const ContainerValueType* item);
-      static void addData_(SpectrumType* spectrum, const ContainerValueType* item, const StringList& store_metadata_names);      
+      static void addData_(SpectrumType* spectrum, const ContainerValueType* item, const StringList& store_metadata_names);
     };
 
     template<typename ContainerValueType>
@@ -599,7 +613,7 @@ private:
     };
 
     /*
-      @brief Append a spectrum to current MSExperiment 
+      @brief Append a spectrum to current MSExperiment
 
       @param rt RT of new spectrum
       @return Pointer to newly created spectrum
@@ -607,23 +621,22 @@ private:
     SpectrumType* createSpec_(PeakType::CoordinateType rt);
 
     /*
-      @brief Append a spectrum including floatdata arrays to current MSExperiment 
+      @brief Append a spectrum including floatdata arrays to current MSExperiment
 
       @param rt RT of new spectrum
       @param metadata_names Names of floatdata arrays attached to this spectrum
       @return Pointer to newly created spectrum
     */
     SpectrumType* createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names);
-  
+
   };
 
-  
+
   /// Print the contents to a stream.
-  std::ostream & operator<<(std::ostream & os, const MSExperiment & exp);
+  std::ostream& operator<<(std::ostream& os, const MSExperiment& exp);
 
 } // namespace OpenMS
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#endif // OPENMS_KERNEL_MSEXPERIMENT_H
 

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -44,14 +44,17 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 #
 # prefix a variable with 'CF_' if it is used to configure a file!
 # e.g., CF_LibOpenMSExport
-set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}" CACHE INTERNAL "OpenMS VERSION" FORCE)
+
+# Version should not have unescaped "_" because it is used in the Latex tutorials
+set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION}" CACHE INTERNAL "OpenMS VERSION" FORCE)
+set(CF_OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION_FULLSTRING}" CACHE INTERNAL "OpenMS version with additional identifier" FORCE)
 
 #------------------------------------------------------------------------------
 # En/disable assertions
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-	set(CF_OPENMS_ASSERTIONS 1)
+    set(CF_OPENMS_ASSERTIONS 1)
 else()
-	set(CF_OPENMS_ASSERTIONS 0)
+    set(CF_OPENMS_ASSERTIONS 0)
 endif()
 set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 
@@ -104,12 +107,10 @@ if(APPLE)
                            ${CoreServices_LIBRARY})
 endif()
 
-if (TBB_FOUND)
- list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
+if (OPENMP_FOUND)
+  list(APPEND OPENMS_DEP_LIBRARIES OpenMP::OpenMP_CXX)
 endif()
-if (MSVC) ## TODO check if necessary, does it need to go to OpenMS_GUI?
-	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
-endif()
+
 if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
@@ -120,18 +121,18 @@ if (OPENMS_CONTRIB_LIBS)
 endif()
 
 foreach (includedir
-	     ${SEQAN_INCLUDE_DIRS}
-	     ${SQLite_INCLUDE_DIR}
-	     ${LIBSVM_INCLUDE_DIRS}
-	     ${EIGEN3_INCLUDE_DIR}
-	     ${WM5_INCLUDE_DIRS}
-	     ${CRAWDAD_INCLUDE_DIRS}
-	     ${COIN_INCLUDE_DIRS}
-	     ${GLPK_INCLUDE_DIRS}
-	     ${ZLIB_INCLUDE_DIRS}
-	     ${BZIP2_INCLUDE_DIR}
-	     ${XercesC_INCLUDE_DIRS}
-	     ${Boost_INCLUDE_DIRS})
+         ${SEQAN_INCLUDE_DIRS}
+         ${SQLite_INCLUDE_DIR}
+         ${LIBSVM_INCLUDE_DIRS}
+         ${EIGEN3_INCLUDE_DIR}
+         ${WM5_INCLUDE_DIRS}
+         ${CRAWDAD_INCLUDE_DIRS}
+         ${COIN_INCLUDE_DIRS}
+         ${GLPK_INCLUDE_DIRS}
+         ${ZLIB_INCLUDE_DIRS}
+         ${BZIP2_INCLUDE_DIR}
+         ${XercesC_INCLUDE_DIRS}
+         ${Boost_INCLUDE_DIRS})
   if (${includedir} MATCHES "${OPENMS_CONTRIB_INCLUDE_DIRS}.*")
     list(APPEND INCLUDES_FROM_CONTRIB ${includedir})
   else()
@@ -146,15 +147,16 @@ openms_add_library(TARGET_NAME  OpenMS
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-		   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
+                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY} ${ISOSPEC_INCLUDE_DIRECTORY} 
                    EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS}
-		                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
-				     ${INCLUDES_FROM_CONTRIB}
-				     ${INCLUDES_FROM_SYSTEM}
+                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
+                                     ${INCLUDES_FROM_CONTRIB}
+                                     ${INCLUDES_FROM_SYSTEM}
                                      ${Qt5Core_INCLUDE_DIRS}
                                      ${Qt5Network_INCLUDE_DIRS}
-                   LINK_LIBRARIES OpenSwathAlgo
-                                  ${OPENMS_DEP_LIBRARIES}
+                                     ${JSON_INCLUDE_DIRECTORY}
+                                     LINK_LIBRARIES OpenSwathAlgo 
+                                     ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
                    
 #------------------------------------------------------------------------------

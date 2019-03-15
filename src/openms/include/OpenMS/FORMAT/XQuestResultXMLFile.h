@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,11 +28,10 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lukas Zimmermann $
+// $Maintainer: Eugen Netz $
 // $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
-#define OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -43,6 +42,16 @@
 namespace OpenMS
 {
 
+  /**
+    @brief Used to load and store xQuest result files
+
+    These files are used to store results derived from chemical cross-linking
+    coupled to MS experiments.
+
+    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
+
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI XQuestResultXMLFile :
     public Internal::XMLFile,
     public ProgressLogger
@@ -98,7 +107,11 @@ public:
       * @param CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out.
       * @param The spectra, that were searched as a PeakMap. The indices in spectrum_pairs correspond to spectra in this map.
       */
-      static void writeXQuestXMLSpec(String out_file, String base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
+    static void writeXQuestXMLSpec(const String& out_file, const String& base_name,
+                                   const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra,
+                                   const std::vector< std::pair<Size, Size> >& spectrum_pairs,
+                                   const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms,
+                                   const PeakMap& spectra);
 
      /**
       * @brief Writes spec.xml output containing spectra for visualization. This version of the function is meant to be used for label-free linkers.
@@ -107,11 +120,14 @@ public:
       * @param CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out.
       * @param The spectra, that were searched as a PeakMap.
       */
-      static void writeXQuestXMLSpec(String out_file, String base_name, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
+    static void writeXQuestXMLSpec(const String& out_file, const String& base_name,
+                                   const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms,
+                                   const PeakMap& spectra);
 
 
 
 private:
+
      /**
       * @brief Transforms a PeakSpectrum into a base 64 encoded string, which is the format used in spec.xml for xQuest.
       * @param The spectrum
@@ -133,4 +149,3 @@ private:
     double max_score_; // Maximum score encountered in file
   };
 } // namespace OpenMS
-#endif // OPENMS_FORMAT_XQUESTRESULTXMLFILE_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,9 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <QtCore/QString>
 
@@ -48,7 +49,9 @@ namespace OpenMS
 
   // default ctor
   DataValue::DataValue() :
-    value_type_(EMPTY_VALUE), unit_("")
+    value_type_(EMPTY_VALUE),
+    unit_type_(OTHER),
+    unit_(-1)
   {
   }
 
@@ -62,118 +65,121 @@ namespace OpenMS
   //    ctor for all supported types a DataValue object can hold
   //--------------------------------------------------------------------
   DataValue::DataValue(long double p) :
-    value_type_(DOUBLE_VALUE), unit_("")
+    value_type_(DOUBLE_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(double p) :
-    value_type_(DOUBLE_VALUE), unit_("")
+    value_type_(DOUBLE_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(float p) :
-    value_type_(DOUBLE_VALUE), unit_("")
+    value_type_(DOUBLE_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(short int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned short int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(long int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned long int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(long long p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned long long p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(const char* p) :
-    value_type_(STRING_VALUE), unit_("")
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const string& p) :
-    value_type_(STRING_VALUE), unit_("")
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const QString& p) :
-    value_type_(STRING_VALUE), unit_("")
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const String& p) :
-    value_type_(STRING_VALUE), unit_("")
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const StringList& p) :
-    value_type_(STRING_LIST), unit_("")
+    value_type_(STRING_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.str_list_ = new StringList(p);
   }
 
   DataValue::DataValue(const IntList& p) :
-    value_type_(INT_LIST), unit_("")
+    value_type_(INT_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.int_list_ = new IntList(p);
   }
 
   DataValue::DataValue(const DoubleList& p) :
-    value_type_(DOUBLE_LIST), unit_("")
+    value_type_(DOUBLE_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_list_ = new DoubleList(p);
   }
 
   //--------------------------------------------------------------------
-  //                       copy constructor
+  //                   copy and move constructors
   //--------------------------------------------------------------------
   DataValue::DataValue(const DataValue& p) :
-    value_type_(p.value_type_), data_(p.data_)
+    value_type_(p.value_type_),
+    unit_type_(p.unit_type_),
+    unit_(p.unit_),
+    data_(p.data_)
   {
     if (value_type_ == STRING_VALUE)
     {
@@ -191,14 +197,22 @@ namespace OpenMS
     {
       data_.dou_list_ = new DoubleList(*(p.data_.dou_list_));
     }
-
-    if (p.hasUnit())
-    {
-      unit_ = p.unit_;
-    }
   }
 
-  void DataValue::clear_()
+  DataValue::DataValue(DataValue&& rhs) noexcept :
+    value_type_(std::move(rhs.value_type_)),
+    unit_type_(std::move(rhs.unit_type_)),
+    unit_(std::move(rhs.unit_)),
+    data_(std::move(rhs.data_))
+  {
+    // clean up rhs, take ownership of data_
+    // NOTE: value_type_ == EMPTY_VALUE implies data_ is empty and can be reset
+    rhs.value_type_ = EMPTY_VALUE;
+    rhs.unit_type_ = OTHER;
+    rhs.unit_ = -1;
+  }
+
+  void DataValue::clear_() noexcept
   {
     if (value_type_ == STRING_LIST)
     {
@@ -218,17 +232,20 @@ namespace OpenMS
     }
 
     value_type_ = EMPTY_VALUE;
-    unit_ = "";
+    unit_type_ = OTHER;
+    unit_ = -1;
   }
 
   //--------------------------------------------------------------------
-  //                      assignment operator
+  //                    copy and move assignment operators
   //--------------------------------------------------------------------
   DataValue& DataValue::operator=(const DataValue& p)
   {
     // Check for self-assignment
     if (this == &p)
+    {
       return *this;
+    }
 
     // clean up
     clear_();
@@ -256,13 +273,35 @@ namespace OpenMS
     }
 
     // copy type
-    value_type_     = p.value_type_;
+    value_type_ = p.value_type_;
+    unit_type_ = p.unit_type_;
+    unit_ = p.unit_;
 
-    // copy unit if necessary
-    if (p.hasUnit())
+    return *this;
+  }
+
+  /// Move assignment operator
+  DataValue& DataValue::operator=(DataValue&& rhs) noexcept
+  {
+    // Check for self-assignment
+    if (this == &rhs)
     {
-      unit_ = p.unit_;
+      return *this;
     }
+
+    // clean up *this
+    clear_();
+
+    // assign values to *this
+    data_ = rhs.data_;
+    value_type_ = rhs.value_type_;
+    unit_type_ = rhs.unit_type_;
+    unit_ = rhs.unit_;
+
+    // clean up rhs 
+    rhs.value_type_ = EMPTY_VALUE;
+    rhs.unit_type_ = OTHER;
+    rhs.unit_ = -1;
 
     return *this;
   }
@@ -610,26 +649,29 @@ namespace OpenMS
   }
 
   // Convert DataValues to String
-  String DataValue::toString() const
+  String DataValue::toString(bool full_precision) const
   {
-    stringstream ss;
+    std::stringstream ss;
     switch (value_type_)
     {
-    case DataValue::EMPTY_VALUE: break;
+      case DataValue::EMPTY_VALUE: break;
 
-    case DataValue::STRING_VALUE: return *(data_.str_);
+      case DataValue::STRING_VALUE: return *(data_.str_);
 
-    case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
+      case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
 
-    case DataValue::INT_LIST: ss << *(data_.int_list_); break;
+      case DataValue::INT_LIST: ss << *(data_.int_list_); break;
 
-    case DataValue::DOUBLE_LIST: ss << *(data_.dou_list_); break;
+      case DataValue::DOUBLE_LIST: 
+        if (full_precision) ss << *(data_.dou_list_);
+        else ss << VecLowPrecision<double>(*(data_.dou_list_));
+        break;
 
-    case DataValue::INT_VALUE: ss << data_.ssize_; break;
+      case DataValue::INT_VALUE: return String(data_.ssize_);
 
-    case DataValue::DOUBLE_VALUE: ss << precisionWrapper(data_.dou_); break;
+      case DataValue::DOUBLE_VALUE: return String(data_.dou_, full_precision);
 
-    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to String");
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to String");
     }
     return ss.str();
   }
@@ -676,7 +718,7 @@ namespace OpenMS
 
   bool operator==(const DataValue& a, const  DataValue& b)
   {
-    if (a.value_type_ == b.value_type_)
+    if (a.value_type_ == b.value_type_ && a.unit_type_ == b.unit_type_ && a.unit_ == b.unit_)
     {
       switch (a.value_type_)
       {
@@ -753,6 +795,7 @@ namespace OpenMS
 
   // ----------------- Output operator ----------------------
 
+  /// for doubles or lists of doubles, you get full precision. Use DataValue::toString(false) if you only need low precision
   std::ostream& operator<<(std::ostream& os, const DataValue& p)
   {
     switch (p.value_type_)
@@ -765,9 +808,9 @@ namespace OpenMS
 
     case DataValue::DOUBLE_LIST: os << *(p.data_.dou_list_); break;
 
-    case DataValue::INT_VALUE: os << p.data_.ssize_; break;
+    case DataValue::INT_VALUE: os << String(p.data_.ssize_); break; // using our String conversion (faster than os)
 
-    case DataValue::DOUBLE_VALUE: os << precisionWrapper(p.data_.dou_); break;
+    case DataValue::DOUBLE_VALUE: os << String(p.data_.dou_); break; // using our String conversion (faster than os)
 
     case DataValue::EMPTY_VALUE: break;
     }
@@ -776,12 +819,12 @@ namespace OpenMS
 
   // ----------------- Unit methods ----------------------
 
-  const String& DataValue::getUnit() const
+  const int32_t& DataValue::getUnit() const
   {
     return unit_;
   }
 
-  void DataValue::setUnit(const OpenMS::String& unit)
+  void DataValue::setUnit(const int32_t& unit)
   {
     unit_ = unit;
   }

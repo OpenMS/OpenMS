@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_3332699010107892018" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_6408859317243173796" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="OpenSwathWorkflow" version="version_string" />
 		<processingAction name="Quantitation" />
@@ -9,10 +9,10 @@
 		<feature id="f_4835329514588776807">
 			<position dim="0">99.9999997019768</position>
 			<position dim="1">510.05</position>
-			<intensity>0</intensity>
+			<intensity>12972.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.529182</overallquality>
+			<overallquality>0.233235</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_4835329514588776807_17749660155506638460">
@@ -28,36 +28,66 @@
 					<UserParam type="float" name="logSN" value="0.754007783737623"/>
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
+				<feature id="f_4835329514588776807_7804704400743266335">
+					<position dim="0">99.9999997019768</position>
+					<position dim="1">511.0533548378</position>
+					<intensity>1179.29</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDEE_Precursor_i1"/>
+					<UserParam type="float" name="peak_apex_int" value="119.682678222656"/>
+					<UserParam type="float" name="logSN" value="0.754007772665974"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
+				<feature id="f_4835329514588776807_15004869347769368353">
+					<position dim="0">99.9999997019768</position>
+					<position dim="1">512.0567096756</position>
+					<intensity>0</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDEE_Precursor_i2"/>
+					<UserParam type="float" name="peak_apex_int" value="0"/>
+					<UserParam type="float" name="logSN" value="0"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
 			</subordinate>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDEE"/>
 			<UserParam type="float" name="leftWidth" value="10"/>
 			<UserParam type="float" name="rightWidth" value="190"/>
 			<UserParam type="float" name="total_xic" value="0"/>
-			<UserParam type="float" name="peak_apices_sum" value="0"/>
-			<UserParam type="float" name="sn_ratio" value="2.12550151956495"/>
-			<UserParam type="float" name="var_log_sn_score" value="0.754007783737623"/>
+			<UserParam type="float" name="peak_apices_sum" value="1316.50946044922"/>
+			<UserParam type="float" name="sn_ratio" value="1.41700100519903"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.348542670093634"/>
 			<UserParam type="float" name="delta_rt" value="-60.0000002980232"/>
 			<UserParam type="float" name="assay_rt" value="160"/>
 			<UserParam type="float" name="norm_RT" value="0.499999998509884"/>
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="0.00300000001490116"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.023933009041013"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105802182403"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105827150454"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.529182237972428"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.233234946367855"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="0.233234946367855"/>
+			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="510.05"/>
+			<UserParam type="float" name="ms1_area_intensity" value="12972.2163085938"/>
+			<UserParam type="float" name="ms1_apex_intensity" value="1316.50946044922"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
-		<feature id="f_7804704400743266335">
+		<feature id="f_3332699010107892018">
 			<position dim="0">99.9999997019768</position>
 			<position dim="1">500.01</position>
-			<intensity>0</intensity>
+			<intensity>16510.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.529182</overallquality>
+			<overallquality>0.233235</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_7804704400743266335_15004869347769368353">
+				<feature id="f_3332699010107892018_13440783915218733453">
 					<position dim="0">99.9999997019768</position>
 					<position dim="1">500.01</position>
 					<intensity>11792.9</intensity>
@@ -70,24 +100,54 @@
 					<UserParam type="float" name="logSN" value="0.754007783737623"/>
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
+				<feature id="f_3332699010107892018_15916652588957785155">
+					<position dim="0">99.9999997019768</position>
+					<position dim="1">501.0133548378</position>
+					<intensity>4717.17</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDEF_Precursor_i1"/>
+					<UserParam type="float" name="peak_apex_int" value="478.730712890625"/>
+					<UserParam type="float" name="logSN" value="0.754007772665974"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
+				<feature id="f_3332699010107892018_15157403601844400700">
+					<position dim="0">99.9999997019768</position>
+					<position dim="1">502.0167096756</position>
+					<intensity>0</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDEF_Precursor_i2"/>
+					<UserParam type="float" name="peak_apex_int" value="0"/>
+					<UserParam type="float" name="logSN" value="0"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
 			</subordinate>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDEF"/>
 			<UserParam type="float" name="leftWidth" value="10"/>
 			<UserParam type="float" name="rightWidth" value="190"/>
 			<UserParam type="float" name="total_xic" value="0"/>
-			<UserParam type="float" name="peak_apices_sum" value="0"/>
-			<UserParam type="float" name="sn_ratio" value="2.12550151956495"/>
-			<UserParam type="float" name="var_log_sn_score" value="0.754007783737623"/>
+			<UserParam type="float" name="peak_apices_sum" value="1675.55749511719"/>
+			<UserParam type="float" name="sn_ratio" value="1.41700100519903"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.348542670093634"/>
 			<UserParam type="float" name="delta_rt" value="-60.0000002980232"/>
 			<UserParam type="float" name="assay_rt" value="160"/>
 			<UserParam type="float" name="norm_RT" value="0.499999998509884"/>
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="0.00300000001490116"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.0195308594010019"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503425907342"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503419790631"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.50000005099749"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.529182237972428"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.233234946367855"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="0.233234946367855"/>
+			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="500.01"/>
+			<UserParam type="float" name="ms1_area_intensity" value="16510.09375"/>
+			<UserParam type="float" name="ms1_apex_intensity" value="1675.55749511719"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 	</featureList>

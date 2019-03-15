@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ using namespace std;
   Beausoleil <em>et al.</em> in order to localize the most probable phosphorylation sites.
 
   For details, see:\n
-  Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based
+  Beausoleil <em>et al.</em>: <a href="https://doi.org/10.1038/nbt1240">A probability-based
   approach for high-throughput protein phosphorylation analysis and site localization</a> 
   (Nat. Biotechnol., 2006, PMID: 16964243).
   

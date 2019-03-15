@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,9 @@ namespace OpenMS
   {
 
     XMLHandler::XMLHandler(const String & filename, const String & version) :
-      error_message_(""),
       file_(filename),
-      version_(version)
+      version_(version),
+      load_detail_(LD_ALLDATA)
     {
     }
 
@@ -167,22 +167,37 @@ namespace OpenMS
       return error_message_;
     }
 
-    void XMLHandler::writeUserParam_(const String & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const
+    /// handlers which support partial loading, implement this method
+    /// @throws Exception::NotImplemented
+    XMLHandler::LOADDETAIL XMLHandler::getLoadDetail() const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    /// handlers which support partial loading, implement this method
+    /// @throws Exception::NotImplemented
+    void XMLHandler::setLoadDetail(const LOADDETAIL /*d*/)
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
     {
       std::vector<String> keys;
       meta.getKeys(keys);
 
+      String val;
+      String p_prefix = String(indent, '\t') + "<" + writeXMLEscape(tag_name) + " type=\"";
       for (Size i = 0; i != keys.size(); ++i)
       {
-        os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"";
+        os << p_prefix;
 
-        DataValue d = meta.getMetaValue(keys[i]);
-        String val;
+        const DataValue& d = meta.getMetaValue(keys[i]);
         // determine type
         if (d.valueType() == DataValue::STRING_VALUE || d.valueType() == DataValue::EMPTY_VALUE)
         {
           os << "string";
-          val = d;
+          val = writeXMLEscape(d);
         }
         else if (d.valueType() == DataValue::INT_VALUE)
         {
@@ -207,16 +222,15 @@ namespace OpenMS
         else if (d.valueType() == DataValue::STRING_LIST)
         {
           os << "stringList";
-          StringList sld = d;
           // concatenate manually, as operator<< inserts spaces, which are bad
           // for reconstructing the list
-          val = "[" + ListUtils::concatenate(sld, ",") + "]";
+          val = "[" + writeXMLEscape(ListUtils::concatenate(d.toStringList(), ",")) + "]";
         }
         else
         {
           throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
-        os << "\" name=\"" << keys[i] << "\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+        os << "\" name=\"" << keys[i] << "\" value=\"" << val << "\"/>\n";
       }
     }
 

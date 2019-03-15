@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QtCore/QProcess>
+#include <QProcessEnvironment>
 
 #include <algorithm>
 #include <fstream>
@@ -181,8 +181,9 @@ protected:
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported (MS-GF+ parameter '-n')", false);
     setMinInt_("matches_per_spec", 1);
 
-    registerFlag_("add_features", "Output additional features - needed e.g. by Percolator (default: basic scores only; MS-GF+ parameter '-addFeatures')", false);
-
+    registerStringOption_("add_features", "<true/false>", "true", "Output additional features (MS-GF+ parameter '-addFeatures'). This is required by Percolator and hence by default enabled.", false, false);
+    setValidStrings_("add_features", ListUtils::create<String>("true,false"));
+    
     registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
     setMinInt_("max_mods", 0);
 
@@ -298,6 +299,11 @@ protected:
       f.getOptions().addMSLevel(2);
       f.load(exp_name, exp);
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
+      // if no primary run is assigned, the mzML file is the (unprocessed) primary file
+      if (primary_ms_run_path_.empty())
+      {
+        primary_ms_run_path_.push_back(exp_name);
+      }
 
       if (exp.getSpectra().empty())
       {
@@ -448,7 +454,7 @@ protected:
 
     // create temporary directory (and modifications file, if necessary):
     String temp_dir, mzid_temp, mod_file;
-    temp_dir = makeTempDirectory_();
+    temp_dir = makeAutoRemoveTempDirectory_();
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)
@@ -509,7 +515,7 @@ protected:
                    << "-minCharge" << QString::number(min_precursor_charge)
                    << "-maxCharge" << QString::number(max_precursor_charge)
                    << "-n" << QString::number(getIntOption_("matches_per_spec"))
-                   << "-addFeatures" << QString::number(int(getFlag_("add_features")))
+                   << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
                    << "-thread" << QString::number(getIntOption_("threads"));
 
     if (!mod_file.empty())
@@ -523,11 +529,11 @@ protected:
 
     // run MS-GF+ process and create the .mzid file
 
-    int status = QProcess::execute(java_executable.toQString(), process_params);
-    if (status != 0)
+    writeLog_("Running MSGFPlus search...");
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+    if (exit_code != EXECUTION_OK)
     {
-      writeLog_("Fatal error: Running MS-GF+ returned an error code '" + String(status) + "'. Does the MS-GF+ executable (.jar file) exist?");
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
 
     //-------------------------------------------------------------
@@ -553,11 +559,11 @@ protected:
                        << "-showQValue" << "1"
                        << "-showDecoy" << "1"
                        << "-unroll" << "1";
-        status = QProcess::execute(java_executable.toQString(), process_params);
-        if (status != 0)
+        writeLog_("Running MzIDToTSVConverter...");
+        exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+        if (exit_code != 0)
         {
-          writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code '" + String(status) + "'.");
-          return EXTERNAL_PROGRAM_ERROR;
+          return exit_code;
         }
 
         // initialize map
@@ -751,8 +757,6 @@ protected:
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }
-
-    removeTempDirectory_(temp_dir);
 
     return EXECUTION_OK;
   }

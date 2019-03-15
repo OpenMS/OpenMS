@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,16 @@ namespace OpenMS
     {
       return true;
     }
+    if (key.hasSuffix(":CutsAfter"))
+    {
+      setCutsAfterRegEx(value);
+      return true;
+    }
+    if (key.hasSuffix(":CutsBefore"))
+    {
+      setCutsBeforeRegEx(value);
+      return true;
+    }
     if (key.hasSuffix(":ThreePrimeGain"))
     {
       setThreePrimeGain(value);
@@ -57,6 +67,26 @@ namespace OpenMS
       return true;
     }
     return false;
+  }
+
+  void DigestionEnzymeRNA::setCutsAfterRegEx(const String& value)
+  {
+    cuts_after_regex_ = value;
+  }
+
+  String DigestionEnzymeRNA::getCutsAfterRegEx() const
+  {
+    return cuts_after_regex_;
+  }
+
+  void DigestionEnzymeRNA::setCutsBeforeRegEx(const String& value)
+  {
+    cuts_before_regex_ = value;
+  }
+
+  String DigestionEnzymeRNA::getCutsBeforeRegEx() const
+  {
+    return cuts_before_regex_;
   }
 
   void DigestionEnzymeRNA::setThreePrimeGain(const String& value)

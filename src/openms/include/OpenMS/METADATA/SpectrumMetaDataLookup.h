@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SPECTRUMMETADATALOOKUP_H
-#define OPENMS_METADATA_SPECTRUMMETADATALOOKUP_H
+#pragma once
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
@@ -46,6 +45,7 @@
 
 namespace OpenMS
 {
+
   /**
     @brief Helper class for looking up spectrum meta data
 
@@ -177,6 +177,18 @@ namespace OpenMS
         precursor_charge(0), ms_level(0), scan_number(-1), native_id("")
       {
       }
+
+      /// Copy constructor
+      SpectrumMetaData(const SpectrumMetaData &) = default;
+      /// Move constructor
+      SpectrumMetaData(SpectrumMetaData&&) = default;
+      /// Destructor
+      ~SpectrumMetaData() = default;
+
+      /// Assignment operator
+      SpectrumMetaData & operator=(const SpectrumMetaData &) = default;
+      /// Move assignment operator
+      SpectrumMetaData& operator=(SpectrumMetaData&&) & = default;
     };
 
     /// Constructor
@@ -317,4 +329,3 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif // OPENMS_METADATA_SPECTRUMMETADATALOOKUP_H

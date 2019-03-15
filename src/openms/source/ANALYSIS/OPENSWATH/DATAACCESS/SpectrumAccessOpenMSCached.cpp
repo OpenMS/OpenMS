@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,55 +35,36 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 
 namespace OpenMS
 {
 
-  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(String filename)
+  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const String& filename) :
+    CachedmzML(filename)
   {
-    filename_cached_ = filename + ".cached";
-    filename_ = filename;
-
-    // Create the index from the given file
-    CachedmzML cache;
-    cache.createMemdumpIndex(filename_cached_);
-    spectra_index_ = cache.getSpectraIndex();
-    chrom_index_ = cache.getChromatogramIndex();;
-
-    // open the filestream
-    ifs_.open(filename_cached_.c_str(), std::ios::binary);
-
-    // load the meta data from disk
-    MzMLFile().load(filename, meta_ms_experiment_);
   }
 
   SpectrumAccessOpenMSCached::~SpectrumAccessOpenMSCached()
   {
-    ifs_.close();
   }
 
   SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs) :
-    meta_ms_experiment_(rhs.meta_ms_experiment_),
-    ifs_(rhs.filename_cached_.c_str(), std::ios::binary),
-    filename_(rhs.filename_),
-    spectra_index_(rhs.spectra_index_),
-    chrom_index_(rhs.chrom_index_)
+    CachedmzML(rhs)
   {
+    // this only copies the indices and meta-data
   }
 
-  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSCached::lightClone() const 
+  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSCached::lightClone() const
   {
     return boost::shared_ptr<SpectrumAccessOpenMSCached>(new SpectrumAccessOpenMSCached(*this));
   }
 
-  OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id) 
+  OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id)
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
     OPENMS_PRECONDITION(id < (int)getNrSpectra(), "Id cannot be larger than number of spectra");
 
-    OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     int ms_level = -1;
     double rt = -1.0;
 
@@ -95,11 +76,9 @@ namespace OpenMS
         "Error while changing position of input stream pointer.", filename_cached_);
     }
 
-    CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
-
     OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-    sptr->setMZArray(mz_array);
-    sptr->setIntensityArray(intensity_array);
+    sptr->getDataArrays() = Internal::CachedMzMLHandler::readSpectrumFast(ifs_, ms_level, rt);
+
     return sptr;
   }
 
@@ -114,13 +93,10 @@ namespace OpenMS
     return meta;
   }
 
-  OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id) 
+  OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id)
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
     OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of chromatograms");
-
-    OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
 
     if ( !ifs_.seekg(chrom_index_[id]) )
     {
@@ -130,11 +106,8 @@ namespace OpenMS
         "Error while changing position of input stream pointer.", filename_cached_);
     }
 
-    CachedmzML::readChromatogramFast(rt_array, intensity_array, ifs_);
-
     OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
-    cptr->setTimeArray(rt_array);
-    cptr->setIntensityArray(intensity_array);
+    cptr->getDataArrays() = Internal::CachedMzMLHandler::readChromatogramFast(ifs_);
     return cptr;
   }
 
@@ -190,3 +163,4 @@ namespace OpenMS
   }
 
 } //end namespace OpenMS
+

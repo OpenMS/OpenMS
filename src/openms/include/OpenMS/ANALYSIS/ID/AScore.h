@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_ASCORE_H
-#define OPENMS_ANALYSIS_ID_ASCORE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -172,10 +171,10 @@ namespace OpenMS
     double computeCumulativeScore_(Size N, Size n, double p) const;
     
     /// Computes number of phospho events in a sequence
-    Size numberOfPhosphoEvents_(const String sequence) const;
+    Size numberOfPhosphoEvents_(const String& sequence) const;
     
     /// Create variant of the peptide with all phosphorylations removed
-    AASequence removePhosphositesFromSequence_(const String sequence) const;
+    AASequence removePhosphositesFromSequence_(const String& sequence) const;
     
     /// Create theoretical spectra with all combinations with the number of phosphorylation events
     std::vector<PeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size>>& permutations, const AASequence& seq_without_phospho) const;
@@ -203,5 +202,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_ASCORE_H
 

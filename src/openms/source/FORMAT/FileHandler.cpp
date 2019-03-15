@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -303,6 +303,9 @@ namespace OpenMS
     if (all_simple.hasSubstring("<mascot_search_results"))
       return FileTypes::MASCOTXML;
 
+    if (all_simple.hasPrefix("{"))
+      return FileTypes::JSON;
+
     //FASTA file
     // .. check this fairly early on, because other file formats might be less specific
     {
@@ -407,6 +410,13 @@ namespace OpenMS
       {
         return FileTypes::MS2;
       }
+    }
+
+    // mzTab file format
+    for (Size i = 0; i != complete_file.size(); ++i) {
+        if (complete_file[i].hasSubstring("MTD\tmzTab-version")) {
+            return FileTypes::MZTAB;
+        }
     }
 
     // msInspect file (.tsv)

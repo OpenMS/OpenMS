@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,27 +41,8 @@ namespace OpenMS
 
   MetaInfoRegistry MetaInfo::registry_ = MetaInfoRegistry();
 
-  MetaInfo::MetaInfo()
-  {
-  }
-
-  MetaInfo::MetaInfo(const MetaInfo & rhs)
-  {
-    *this = rhs;
-  }
-
   MetaInfo::~MetaInfo()
   {
-  }
-
-  MetaInfo & MetaInfo::operator=(const MetaInfo & rhs)
-  {
-    if (this == &rhs)
-      return *this;
-
-    index_to_value_ = rhs.index_to_value_;
-
-    return *this;
   }
 
   bool MetaInfo::operator==(const MetaInfo & rhs) const
@@ -76,7 +57,7 @@ namespace OpenMS
 
   const DataValue & MetaInfo::getValue(const String & name) const
   {
-    map<UInt, DataValue>::const_iterator it = index_to_value_.find(registry_.getIndex(name));
+    MapType::const_iterator it = index_to_value_.find(registry_.getIndex(name));
     if (it != index_to_value_.end())
     {
       return it->second;
@@ -86,7 +67,7 @@ namespace OpenMS
 
   const DataValue & MetaInfo::getValue(UInt index) const
   {
-    map<UInt, DataValue>::const_iterator it = index_to_value_.find(index);
+    MapType::const_iterator it = index_to_value_.find(index);
     if (it != index_to_value_.end())
     {
       return it->second;
@@ -97,13 +78,25 @@ namespace OpenMS
   void MetaInfo::setValue(const String & name, const DataValue & value)
   {
     UInt index = registry_.registerName(name); // no-op if name is already registered
-    index_to_value_[index] = value;
+    setValue(index, value);
   }
 
   void MetaInfo::setValue(UInt index, const DataValue & value)
   {
     // @TODO: check if that index is registered in MetaInfoRegistry?
-    index_to_value_[index] = value;
+    auto it = index_to_value_.find(index);
+    if ( it != index_to_value_.end()) 
+    {
+      it->second = value; 
+    }
+    else
+    {
+      // Note; we need to create a copy of data value here and can't use the const &
+      // The underlying flat_map invalidates references to it if inserting
+      // an element leads to relocation (e.g, in constructs like: m.insert(1, m[2]));)
+      DataValue tmp = value;
+      index_to_value_.insert(std::make_pair(index, tmp));
+    }
   }
 
   MetaInfoRegistry & MetaInfo::registry()
@@ -128,7 +121,7 @@ namespace OpenMS
 
   void MetaInfo::removeValue(const String & name)
   {
-    map<UInt, DataValue>::iterator it = index_to_value_.find(registry_.getIndex(name));
+    MapType::iterator it = index_to_value_.find(registry_.getIndex(name));
     if (it != index_to_value_.end())
     {
       index_to_value_.erase(it);
@@ -137,7 +130,7 @@ namespace OpenMS
 
   void MetaInfo::removeValue(UInt index)
   {
-    map<UInt, DataValue>::iterator it = index_to_value_.find(index);
+    MapType::iterator it = index_to_value_.find(index);
     if (it != index_to_value_.end())
     {
       index_to_value_.erase(it);
@@ -148,7 +141,7 @@ namespace OpenMS
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;
-    for (map<UInt, DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+    for (MapType::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
     {
       keys[i++] = registry_.getName(it->first);
     }
@@ -158,7 +151,7 @@ namespace OpenMS
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;
-    for (map<UInt, DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+    for (MapType::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
     {
       keys[i++] = it->first;
     }
@@ -175,3 +168,4 @@ namespace OpenMS
   }
 
 } //namespace
+

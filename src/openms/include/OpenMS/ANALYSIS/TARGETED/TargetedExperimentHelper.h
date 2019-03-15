@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENTHELPER_H
-#define OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENTHELPER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -52,6 +51,7 @@
 
 namespace OpenMS
 {
+
   /**
     @brief This class stores helper structures that are used in multiple
     classes of the TargetedExperiment (e.g. ReactionMonitoringTransition and
@@ -156,20 +156,20 @@ public:
 
       enum class RTUnit : std::int8_t
       {
-        SECOND = 0,        // RT stored in seconds
-        MINUTE,            // RT stored in minutes
-        UNKNOWN,           // no stored annotation
+        SECOND = 0,        ///< RT stored in seconds
+        MINUTE,            ///< RT stored in minutes
+        UNKNOWN,           ///< no stored annotation
         SIZE_OF_RTUNIT
       };
 
       enum class RTType : std::int8_t
       {
-        LOCAL = 0,        // undefined local chromatography
-        NORMALIZED,       // standardized reference chromatography
-        PREDICTED,        // predicted by referenced software
-        HPINS,            // H-PINS "The de facto standard providing the retention times"
-        IRT,              // iRT retention time standard
-        UNKNOWN,          // no stored annotation
+        LOCAL = 0,        ///< undefined local chromatography
+        NORMALIZED,       ///< standardized reference chromatography
+        PREDICTED,        ///< predicted by referenced software
+        HPINS,            ///< H-PINS "The de facto standard providing the retention times"
+        IRT,              ///< iRT retention time standard
+        UNKNOWN,          ///< no stored annotation
         SIZE_OF_RTTYPE
       };
 
@@ -224,7 +224,7 @@ public:
                retention_time_ == rhs.retention_time_;
       }
 
-      bool isRTset() const 
+      bool isRTset() const
       {
         return retention_time_set_;
       }
@@ -252,6 +252,11 @@ private:
       // double retention_time_upper;
     };
 
+    /**
+      @brief Base class to represent either a peptide or a compound
+
+      Stores retention time, identifiers, charge and precursor ion mobility drift time.
+    */
     class OPENMS_DLLAPI PeptideCompound :
       public CVTermList
     {
@@ -332,12 +337,16 @@ public:
 
       //@{
 
-      /// Get compound or peptide retentiontime
+      /// Check whether compound or peptide has an annotated retention time
       bool hasRetentionTime() const
       {
         return (!rts.empty() && rts[0].isRTset());
       }
 
+      /** @brief Gets compound or peptide retention time
+       *
+       * @note Ensure that retention time is present by calling hasRetentionTime() 
+      */
       double getRetentionTime() const
       {
         if (!hasRetentionTime())
@@ -381,6 +390,12 @@ protected:
 
     };
 
+    /**
+      @brief Represents a compound (small molecule)
+
+      Also stores its theoretical mass, SMILES string and molecular formula
+
+    */
     class OPENMS_DLLAPI Compound :
       public PeptideCompound
     {
@@ -427,6 +442,12 @@ protected:
 
     };
 
+    /**
+      @brief Represents a peptide (amino acid sequence)
+
+      Also stores information about the sequence, a linked protein and modified amino acids.
+
+    */
     class OPENMS_DLLAPI Peptide :
       public PeptideCompound
     {
@@ -635,6 +656,12 @@ protected:
 
     };
 
+    /**
+      @brief Product ion interpretation
+
+      The interpretation of a MS product ion (mostly has functions for peptides at the moment). Can store information about the ion type, 
+
+    */
     struct OPENMS_DLLAPI Interpretation :
       public CVTermListInterface
     {
@@ -663,11 +690,11 @@ protected:
       };
       */
 
-      typedef Residue::ResidueType IonType; // Interpretation IonType
+      typedef Residue::ResidueType IonType; ///< Interpretation IonType
 
-      unsigned char ordinal; // MS:1000903 (product ion series ordinal)
-      unsigned char rank; // MS:1000926 (product interpretation rank)
-      IonType iontype; // which type of ion (b/y/z/ ...), see Residue::ResidueType
+      unsigned char ordinal; ///< MS:1000903 : product ion series ordinal (e.g. 8 for a y8 ion)
+      unsigned char rank; ///< MS:1000926 : product interpretation rank (e.g. 1 for the most likely rank)
+      IonType iontype; ///< which type of ion (b/y/z/ ...), see Residue::ResidueType
 
       // Constructor
       Interpretation() :
@@ -718,6 +745,12 @@ protected:
 
     };
 
+    /**
+      @brief Represents a product ion
+
+      A product ion entry in the TraML file format
+
+    */
     struct OPENMS_DLLAPI TraMLProduct :
       public CVTermListInterface
     {
@@ -786,9 +819,9 @@ protected:
         return configuration_list_;
       }
 
-      void addConfiguration(const Configuration configuration)
+      void addConfiguration(const Configuration& configuration)
       {
-        return configuration_list_.push_back(configuration);
+        configuration_list_.push_back(configuration);
       }
 
       const std::vector<Interpretation> & getInterpretationList() const
@@ -796,9 +829,9 @@ protected:
         return interpretation_list_;
       }
 
-      void addInterpretation(const Interpretation interpretation)
+      void addInterpretation(const Interpretation& interpretation)
       {
-        return interpretation_list_.push_back(interpretation);
+        interpretation_list_.push_back(interpretation);
       }
 
       void resetInterpretations()
@@ -807,11 +840,11 @@ protected:
       }
 
 private:
-      int charge_;
-      bool charge_set_;
-      double mz_;
-      std::vector<Configuration> configuration_list_;
-      std::vector<Interpretation> interpretation_list_;
+      int charge_; ///< Product ion charge
+      bool charge_set_; ///< Whether product ion charge is set or not
+      double mz_; ///< Product ion m/z
+      std::vector<Configuration> configuration_list_; ///< Product ion configurations used
+      std::vector<Interpretation> interpretation_list_;  ///< Procution ion interpretation
 
     };
 
@@ -825,4 +858,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENTHELPER_H

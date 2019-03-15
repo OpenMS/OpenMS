@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -99,9 +99,7 @@ namespace OpenMS
     // construct outer hull if required
     if (outer_points_.empty() && map_points_.size() > 0)
     {
-
       // walk the outer hull
-      outer_points_.clear();
       outer_points_.reserve(map_points_.size() * 2);
 
       // traverse lower m/z's of RT scans

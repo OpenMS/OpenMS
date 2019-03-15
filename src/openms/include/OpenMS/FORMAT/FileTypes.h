@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FILETYPES_H
-#define OPENMS_FORMAT_FILETYPES_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -86,6 +85,7 @@ namespace OpenMS
       PNG,                ///< Portable Network Graphics (.png)
       XMASS,              ///< XMass Analysis file (fid)
       TSV,                ///< msInspect file (.tsv)
+      MZTAB,              ///< mzTab file (.mzTab)
       PEPLIST,            ///< specArray file (.peplist)
       HARDKLOER,          ///< hardkloer file (.hardkloer)
       KROENIK,            ///< kroenik file (.kroenik)
@@ -102,13 +102,15 @@ namespace OpenMS
       MRM,                ///< SpectraST MRM List
       SQMASS,             ///< SqLite format for mass and chromatograms
       PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB
+      MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
       PSMS,               ///< Percolator tab-delimited output (PSM level)
       PIN,                ///< Percolator tab-delimited input (PSM level)
       PARAMXML,           ///< internal format for writing and reading parameters (also used as part of CTD)
       SPLIB,              ///< SpectraST binary spectral library file (sptxt is the equivalent text-based format, similar to the MSP format)
-      NOVOR,               ///< Novor custom parameter file
+      NOVOR,              ///< Novor custom parameter file
       XQUESTXML,          ///< xQuest XML file format for protein-protein cross-link identifications (.xquest.xml)
+      JSON,               ///< JavaScript Object Notation file (.json)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
@@ -138,4 +140,3 @@ private:
 
 } //namespace OpenMS
 
-#endif //OPENMS_FORMAT_FILETYPES_H

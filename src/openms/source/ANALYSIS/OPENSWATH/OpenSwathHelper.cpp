@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,18 +56,18 @@ namespace OpenMS
   void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
                                       double& lower, double& upper)
   {
-    if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
+    if (swath_map.empty() || swath_map[0].getPrecursors().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Swath map has no Spectra");
     }
-    const std::vector<Precursor> first_prec = swath_map[0].getPrecursors();
+    const std::vector<Precursor>& first_prec = swath_map[0].getPrecursors();
     lower = first_prec[0].getMZ() - first_prec[0].getIsolationWindowLowerOffset();
     upper = first_prec[0].getMZ() + first_prec[0].getIsolationWindowUpperOffset();
     UInt expected_mslevel = swath_map[0].getMSLevel();
 
     for (Size index = 0; index < swath_map.size(); index++)
     {
-      const std::vector<Precursor> prec = swath_map[index].getPrecursors();
+      const std::vector<Precursor>& prec = swath_map[index].getPrecursors();
       if (prec.size() != 1)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " does not have exactly one precursor.");
@@ -124,7 +124,7 @@ namespace OpenMS
     }
   }
 
-  std::pair<double,double> OpenSwathHelper::estimateRTRange(OpenSwath::LightTargetedExperiment & exp)
+  std::pair<double,double> OpenSwathHelper::estimateRTRange(const OpenSwath::LightTargetedExperiment & exp)
   {
     if (exp.getCompounds().empty()) 
     {
@@ -142,17 +142,16 @@ namespace OpenMS
   }
 
   std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
-      OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+      const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
       bool useQualCutoff, double qualCutoff)
   {
     std::map<std::string, double> result;
-    for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-        trgroup_it != transition_group_map.end(); ++trgroup_it)
+    for (const auto & trgroup_it : transition_group_map)
     {
-      if (trgroup_it->second.getFeatures().empty() ) {continue;}
+      if (trgroup_it.second.getFeatures().empty() ) {continue;}
 
       // Find the feature with the highest score
-      const MRMFeature & bestf = trgroup_it->second.getBestFeature();
+      auto bestf = trgroup_it.second.getBestFeature();
 
       // Skip if we did not find a feature or do not exceed a certain quality
       if (useQualCutoff && bestf.getOverallQuality() < qualCutoff ) 
@@ -161,7 +160,7 @@ namespace OpenMS
       }
 
       // If we have a found a best feature, add it to the vector
-      String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
+      String pepref = trgroup_it.second.getTransitions()[0].getPeptideRef();
       result[ pepref ] = bestf.getRT();
     }
     return result;

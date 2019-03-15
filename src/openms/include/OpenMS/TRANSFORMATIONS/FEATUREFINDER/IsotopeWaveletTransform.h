@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
@@ -257,43 +256,6 @@ protected:
 
     virtual void initializeScan(const MSSpectrum& c_ref, const UInt c = 0);
 
-#ifdef OPENMS_HAS_CUDA
-    /** @brief Sets up all necessary arrays with correct boundaries and 'worst-case' sizes.
-        * @param scan The scan under consideration. */
-    virtual int initializeScanCuda(const MSSpectrum& scan, const UInt c = 0);
-
-    /** @brief Clean up. */
-    virtual void finalizeScanCuda();
-
-    /** @brief Computes The isotope wavelet transform of charge state (@p c+1) on a CUDA compatible GPU.
-        * @param c_trans Contains the reference spectrum (already by call) as well as the transformed intensities.
-        * @param c The charge state minus 1 (e.g. c=2 means charge state 3)*/
-    virtual void getTransformCuda(TransSpectrum& c_trans, const UInt c);
-
-    /** @brief Essentially the same as its namesake CPU-version, but on a CUDA compatible GPU device.
-* @param candidates A isotope wavelet transformed spectrum. Entry "number i" in this vector must correspond to the
-    * charge-"(i-1)"-transform of its mass signal. (This is exactly the output of the function @see getTransforms.)
-    * @param c The corresponding charge state minus 1 (e.g. c=2 means charge state 3)
-    * @param scan_index The index of the scan (w.r.t. to some map) currently under consideration.
-    * @param ampl_cutoff The thresholding parameter. This parameter is the only (and hence a really important)
-    * parameter of the isotope wavelet transform. On the basis of @p ampl_cutoff the program tries to distinguish between
-    * noise and signal. Please note that it is not a "simple" hard thresholding parameter in the sense of drawing a virtual
-    * line in the spectrum, which is then used as a guillotine cut. Maybe you should play around a bit with this parameter to
-    * get a feeling about its range. For peptide mass fingerprints on small data sets (like single MALDI-scans e.g.), it
-    * makes sense to start @p ampl_cutoff=0 or even @p ampl_cutoff=-1,
-    * indicating no thresholding at all. Note that also ampl_cutoff=0 triggers (a moderate) thresholding based on the
-    * average intensity in the wavelet transform.
-    * * @param check_PPMs If enabled, the algorithm will check each monoisotopic mass candidate for its plausibility
-    * by computing the ppm difference between this mass and the averagine model. */
-    virtual void identifyChargeCuda(const TransSpectrum& candidates, const UInt scan_index, const UInt c,
-                                    const double ampl_cutoff, const bool check_PPMs);
-
-    /** Sorts the associated spectrum @p by increasing intensities.
-        * @param sorted The spectrum to be sorted. */
-    virtual int sortCuda(MSSpectrum& sorted);
-#endif
-
-
     /** @brief A function keeping track of currently open and closed sweep line boxes.
         * This function is used by the isotope wavelet feature finder and must be called for each processed scan.
         * @param map The original map containing the data set to be analyzed.
@@ -302,9 +264,6 @@ protected:
         * @param RT_votes_cutoff See the IsotopeWaveletFF class. */
     void updateBoxStates(const PeakMap& map, const Size scan_index, const UInt RT_interleave,
                          const UInt RT_votes_cutoff, const Int front_bound = -1, const Int end_bound = -1);
-
-
-    void mergeFeatures(IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff);
 
 
     /** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
@@ -2209,5 +2168,4 @@ protected:
 
 #pragma clang diagnostic pop
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
 

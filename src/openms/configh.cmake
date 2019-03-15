@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -156,17 +156,6 @@ CHECK_INCLUDE_FILE_CXX("sys/types.h" OPENMS_HAS_SYS_TYPES_H)
 CHECK_INCLUDE_FILE_CXX("sys/times.h" OPENMS_HAS_SYS_TIMES_H)
 CHECK_INCLUDE_FILE_CXX("sys/time.h"  OPENMS_HAS_SYS_TIME_H)
 CHECK_INCLUDE_FILE_CXX("stdint.h"  OPENMS_HAS_STDINT_H)
-
-#------------------------------------------------------------------------------
-# check for libc++ bug
-try_run(_stream_bug_run_result_var _stream_bug_compile_var
-        ${CMAKE_BINARY_DIR}
-        ${OPENMS_HOST_DIRECTORY}/cmake/modules/check_string_stream_bug.cxx)
-
-# set stream variable
-if(NOT _stream_bug_run_result_var)
-  set(OPENMS_HAS_STREAM_EXTRACTION_BUG "1")
-endif()
 
 #------------------------------------------------------------------------------
 # check if certain c++ functions exist

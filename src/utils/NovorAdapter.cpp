@@ -50,8 +50,9 @@
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QDir>
-#include <QtCore/QProcess>
+#include <QProcessEnvironment>
+#include <QFileInfo>
+
 #include <fstream>
 
 using namespace OpenMS;
@@ -82,7 +83,6 @@ using namespace std;
 
 
     This tool can be used for de novo sequencing of peptides from MS/MS data.
-    Please use MS2-Spectra only. If filtering is needed please use the @ref TOPP_FileFilter.
 
     Novor must be installed before this wrapper can be used. This wrapper was successfully tested with version v1.06.0634 (stable).
     
@@ -136,8 +136,8 @@ protected:
     // mass error tolerance
     registerDoubleOption_("fragment_mass_tolerance", "<double>", 0.5, "Fragmentation error tolerance  (Da)", false);
     registerDoubleOption_("precursor_mass_tolerance", "<double>" , 15.0, "Precursor error tolerance  (ppm or Da)", false);
-    registerStringOption_("precursor_error_units", "<choice>", "Da", "Unit of precursor mass tolerance", false);
-    setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
+    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
+    setValidStrings_("precursor_error_units", ListUtils::create<String>("ppm,Da"));
     // post-translational-modification
     registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications", false);
     setValidStrings_("variable_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)"));
@@ -154,23 +154,6 @@ protected:
    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
 
-  }
-
-  // remove temporary folder 
-  void removeTempDir_(const QString& tmp_dir)
-  {
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + ". Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (tmp_dir.isEmpty() == false)
-      {
-        writeDebug_("Deleting temporary directory '" + String(tmp_dir) + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::removeDir(tmp_dir);
-      }
-    }
   }
 
   void createParamFile_(ofstream& os)
@@ -249,8 +232,7 @@ protected:
     //-------------------------------------------------------------
     
     //tmp_dir
-    const String tmp_dir = makeTempDirectory_();
-    writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
+    String tmp_dir = makeAutoRemoveTempDirectory_();
 
     // parameter file
     String tmp_param = tmp_dir + "param.txt";    
@@ -261,6 +243,7 @@ protected:
     MzMLFile f;
     MSExperiment exp;
     f.setLogType(log_type_);
+    f.getOptions().setMSLevels( {2} );
     f.load(in, exp);
  
     String tmp_mgf = tmp_dir + "tmp_mgf.mgf"; 
@@ -282,58 +265,14 @@ protected:
                    << "-o" << tmp_out.toQString()               
                    << "-p" << tmp_param.toQString()
                    << tmp_mgf.toQString();
-    
-    QProcess qp;
-    qp.setWorkingDirectory(path_to_executable);
-    qp.start(java_executable.toQString(), process_params);
 
-    // check if process has started    
-    if (!qp.waitForStarted(-1))
-    {
-      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to start." << std::endl;
-      const QString novor_stdout(qp.readAllStandardOutput());
-      const QString novor_stderr(qp.readAllStandardError());
-      writeLog_(novor_stdout);
-      writeLog_(novor_stderr);
-      writeLog_(String(qp.exitCode()));
-      return EXTERNAL_PROGRAM_ERROR;
-    } 
-   
-    // check if process has finised
-    if (!qp.waitForFinished(-1))
-    {
-      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to finish." << std::endl;
-      const QString novor_stdout(qp.readAllStandardOutput());
-      const QString novor_stderr(qp.readAllStandardError());
-      writeLog_(novor_stdout);
-      writeLog_(novor_stderr);
-      writeLog_(String(qp.exitCode()));
-      return EXTERNAL_PROGRAM_ERROR;
-    } 
 
-    // see if process was successfull
-    if (qp.exitStatus() != 0 || qp.exitCode() != 0)
+    // print novor command line
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, path_to_executable);
+    if (exit_code != EXECUTION_OK)
     {
-      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter  has failed. Error code was: " << qp.exitCode() << std::endl;
-      const QString novor_stdout(qp.readAllStandardOutput());
-      const QString novor_stderr(qp.readAllStandardError());
-      writeLog_(novor_stdout);
-      writeLog_(novor_stderr);
-      writeLog_(String(qp.exitCode()));
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
-
-    qp.close();
- 
-    // novor command line
-    std::stringstream ss;
-    ss << "COMMAND: " << java_executable;
-    for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
-    {
-        ss << " " << it->toStdString();
-    }
-    LOG_DEBUG << ss.str() << endl;
-
 
     //-------------------------------------------------------------
     // writing output
@@ -383,15 +322,16 @@ protected:
 
       // extract version from comment 
       // #              v1.06.0634 (stable)
+      // v1.06.0634 (stable)
       vector<ProteinIdentification> protein_ids;
       StringList versionrow;
       csv.getRow(2, versionrow);
-      versionrow[0].suffix('#').trim();
-        
+      String version = versionrow[0].substr(versionrow[0].find("v."));
+      
       protein_ids = vector<ProteinIdentification>(1);
       protein_ids[0].setDateTime(DateTime::now());
       protein_ids[0].setSearchEngine("Novor");
-      protein_ids[0].setSearchEngineVersion(versionrow[0]);
+      protein_ids[0].setSearchEngineVersion(version);
 
       ProteinIdentification::SearchParameters search_parameters;
       search_parameters.db = "denovo";
@@ -418,9 +358,6 @@ protected:
     {
       writeLog_("Novor output is empty! No IdXML output was generated.");
     } 
-
-   // remove tempdir
-   removeTempDir_(tmp_dir.toQString());
 
    return EXECUTION_OK;
   }

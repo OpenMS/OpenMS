@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 
 using namespace OpenMS;
@@ -47,20 +48,23 @@ START_TEST(OPXLSpectrumProcessingAlgorithms, "$Id$")
 TheoreticalSpectrumGeneratorXLMS specGen;
 Param param = specGen.getParameters();
 param.setValue("add_isotopes", "false");
-param.setValue("add_metainfo", "false");
+param.setValue("add_metainfo", "true");
 param.setValue("add_first_prefix_ion", "false");
 param.setValue("y_intensity", 10.0, "Intensity of the y-ions");
+param.setValue("add_a_ions", "false");
+param.setValue("add_losses", "false");
+param.setValue("add_precursor_peaks", "false");
+param.setValue("add_k_linked_ions", "false");
 specGen.setParameters(param);
 
 PeakSpectrum theo_spec_1, theo_spec_2, exp_spec_1, exp_spec_2;
-specGen.getCommonIonSpectrum(exp_spec_1, AASequence::fromString("PEPTIDE"), 2, true, 3);
-specGen.getCommonIonSpectrum(exp_spec_2, AASequence::fromString("PEPTEDI"), 3, true, 3);
+AASequence peptide = AASequence::fromString("PEPTIDE");
+AASequence peptedi = AASequence::fromString("PEPTEDI");
+specGen.getLinearIonSpectrum(exp_spec_1, peptide, 2, true, 3);
+specGen.getLinearIonSpectrum(exp_spec_2, peptedi, 3, true, 3);
 
-param.setValue("add_metainfo", "true");
-specGen.setParameters(param);
-
-specGen.getCommonIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 3, true, 3);
-specGen.getCommonIonSpectrum(theo_spec_2, AASequence::fromString("PEPTEDI"), 4, true, 3);
+specGen.getLinearIonSpectrum(theo_spec_1, peptide, 3, true, 3);
+specGen.getLinearIonSpectrum(theo_spec_2, peptedi, 4, true, 3);
 
 START_SECTION(static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spectrum, PeakSpectrum & second_spectrum))
 
@@ -84,32 +88,86 @@ START_SECTION(static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spe
 
 END_SECTION
 
-START_SECTION(static void getSpectrumAlignment(std::vector <std::pair <Size, Size> >& alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0))
+START_SECTION(static void getSpectrumAlignmentFastCharge(
+      std::vector<std::pair<Size, Size> > & alignment, double fragment_mass_tolerance,
+      bool fragment_mass_tolerance_unit_ppm,
+      const PeakSpectrum& theo_spectrum,
+      const PeakSpectrum& exp_spectrum,
+      const DataArrays::IntegerDataArray& theo_charges,
+      const DataArrays::IntegerDataArray& exp_charges,
+      DataArrays::FloatDataArray& ppm_error_array,
+      double intensity_cutoff = 0.0))
+
   std::vector <std::pair <Size, Size> > alignment1;
   std::vector <std::pair <Size, Size> > alignment2;
 
   theo_spec_1.sortByPosition();
 
-  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment1, theo_spec_1, exp_spec_1, 50, true);
-  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment2, theo_spec_2, exp_spec_2, 50, true);
+  // slightly shift one of the exp spectra to get non-zero ppm error values
+  PeakSpectrum exp_spec_3 = exp_spec_2;
+  for (Peak1D p : exp_spec_3)
+  {
+    p.setMZ(p.getMZ() + 0.00001);
+  }
+
+  auto theo_2_it = getDataArrayByName(theo_spec_2.getIntegerDataArrays(), "Charges");
+  DataArrays::IntegerDataArray theo_2_charges = *theo_2_it;
+  auto exp_3_it = getDataArrayByName(exp_spec_3.getIntegerDataArrays(), "Charges");
+  DataArrays::IntegerDataArray exp_3_charges = *exp_3_it;
+  DataArrays::IntegerDataArray dummy_charges;
+
+  DataArrays::FloatDataArray dummy_array;
+  DataArrays::FloatDataArray ppm_error_array;
+  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment1, 50, true, theo_spec_1, exp_spec_1, dummy_charges, dummy_charges, dummy_array);
+  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment2, 50, true, theo_spec_2, exp_spec_3, theo_2_charges, exp_3_charges, ppm_error_array);
 
   TEST_EQUAL(alignment1.size(), 15)
   TEST_EQUAL(alignment2.size(), 15)
   for (Size i = 0; i < alignment2.size(); i++)
   {
-    TEST_REAL_SIMILAR(theo_spec_2[alignment2[i].first].getMZ(), exp_spec_2[alignment2[i].second].getMZ())
+    TEST_REAL_SIMILAR(theo_spec_2[alignment2[i].first].getMZ(), exp_spec_3[alignment2[i].second].getMZ())
+    TEST_REAL_SIMILAR((theo_spec_2[alignment2[i].first].getMZ() - exp_spec_3[alignment2[i].second].getMZ()) / theo_spec_2[alignment2[i].first].getMZ() / 1e-6, ppm_error_array[i])
   }
 
 END_SECTION
 
 START_SECTION(static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false))
 
-  // this is basically testing, that nothing weird happens to an already deisotoped spectrum
-  // TODO expand tests, use spectra with isotopic patterns
-  // maybe read in one of the OPXL test files?
-  PeakSpectrum deisotoped_spec = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(theo_spec_2, 1, 3, 50, true);
+  Param param = specGen.getParameters();
+  param.setValue("add_isotopes", "true");
+  // TODO more than 2 not possible yet, update test after that is implemented
+  param.setValue("max_isotope", 3);
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_losses", "false");
+  param.setValue("add_precursor_peaks", "false");
+  param.setValue("add_k_linked_ions", "false");
+  specGen.setParameters(param);
 
-  TEST_EQUAL(deisotoped_spec.size(), theo_spec_2.size())
+  PeakSpectrum theo_spec_3;
+  AASequence peptide2 = AASequence::fromString("PEPTIDEVIDER");
+  specGen.getLinearIonSpectrum(theo_spec_3, peptide2, 3, true, 5);
+
+  PeakSpectrum deisotoped_spec = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(theo_spec_3, 1, 5, 50, true, true, 2);
+  std::vector<int> charge_counts(5, 0);
+
+  // since only two isotopic peaks are possible, the deisotoped spectrum must be half the size
+  TEST_EQUAL(deisotoped_spec.size(), theo_spec_3.size() / 2)
+  auto deiso_charges_it = getDataArrayByName(deisotoped_spec.getIntegerDataArrays(), "Charges");
+  DataArrays::IntegerDataArray deiso_charges = *deiso_charges_it;
+  auto deiso_iso_it = getDataArrayByName(deisotoped_spec.getIntegerDataArrays(), "NumIsoPeaks");
+  DataArrays::IntegerDataArray deiso_iso = *deiso_iso_it;
+
+  for (Size i = 0; i < deisotoped_spec.size(); ++i)
+  {
+    charge_counts[deiso_charges[i]-1]++;
+    TEST_EQUAL(deiso_iso[i], 2)
+  }
+  // 55 peaks, 11 for each charge from 1 to 5
+  TEST_EQUAL(charge_counts[0], 11)
+  TEST_EQUAL(charge_counts[1], 11)
+  TEST_EQUAL(charge_counts[2], 11)
+  TEST_EQUAL(charge_counts[3], 11)
+  TEST_EQUAL(charge_counts[4], 11)
 
 END_SECTION
 

@@ -1,13 +1,10 @@
 graft pyopenms/share
 prune pyopenms/share/OpenMS/examples
 include pyopenms/*.dll
+include pyopenms/*.dylib
+include pyopenms/*.so
 include pyopenms/*.txt
-include pyopenms/libOpenMS.*
-include pyopenms/libOpenSwathAlgo.*
-include pyopenms/libSuperHirn.*
-include pyopenms/Qt*Core*
-include pyopenms/Qt*Network*
-include pyopenms/libz.*
+include pyopenms/Qt*/*
 exclude pyopenms/*.cpp
 global-exclude pyopenms.cpp
 global-exclude HMDB2StructMapping.tsv

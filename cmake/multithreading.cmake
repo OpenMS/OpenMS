@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -36,36 +36,26 @@
 # This cmake files bundles all the multithreading related stuff of the OpenMS
 # build system.
 
-#------------------------------------------------------------------------------
-# TBB
-#------------------------------------------------------------------------------
-set(MT_TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
-set(MT_TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries directory.")
-message(STATUS "Intel TBB: ${MT_ENABLE_TBB}")
-if (MT_ENABLE_TBB)
-  find_package(TBB)
-  if (NOT TBB_FOUND)
-    message(FATAL_ERROR "TBB not found but requested.")
-  endif()
-endif()
-
-if (TBB_FOUND)
-  INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
-  add_compile_options(/DOPENMS_HAS_TBB)
-endif()
 
 #------------------------------------------------------------------------------
 # OpenMP
 #------------------------------------------------------------------------------
+message(STATUS "OpenMP support requested: ${MT_ENABLE_OPENMP}")
+
 if (MT_ENABLE_OPENMP)
-	find_package(OpenMP)
+  find_package(OpenMP)
 endif()
-message(STATUS "OpenMP: ${MT_ENABLE_OPENMP}")
 
 if (OPENMP_FOUND)
-  # do NOT use add_definitions() here, because RC.exe on windows will fail
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-	if (NOT MSVC)
-		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-	endif()
+  # For CMake < 3.9, we need to make the OpenMP target ourselves
+  # from https://cliutils.gitlab.io/modern-cmake/chapters/packages/OpenMP.html
+  if(NOT TARGET OpenMP::OpenMP_CXX)
+    find_package(Threads REQUIRED)
+    add_library(OpenMP::OpenMP_CXX IMPORTED INTERFACE)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
+    # Only works if the same flag is passed to the linker; use CMake 3.9+ otherwise (Intel, AppleClang)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
+  endif()
 endif()

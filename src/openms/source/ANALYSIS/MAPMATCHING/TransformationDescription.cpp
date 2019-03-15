@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -212,10 +212,12 @@ namespace OpenMS
     if (do_sort) sort(diffs.begin(), diffs.end());
   }
 
-  void TransformationDescription::printSummary(ostream& os) const
+  TransformationDescription::TransformationStatistics TransformationDescription::getStatistics() const
   {
-    os << "Number of data points (x/y pairs): " << data_.size() << "\n";
-    if (data_.empty()) return;
+    TransformationDescription::TransformationStatistics s;
+
+    if (data_.empty()) return s;
+
     // x/y data ranges:
     double xmin, xmax, ymin, ymax;
     xmin = xmax = data_[0].first;
@@ -228,20 +230,57 @@ namespace OpenMS
       if (ymin > it->second) ymin = it->second;
       if (ymax < it->second) ymax = it->second;
     }
-    os << "Data range (x): " << xmin << " to " << xmax
-       << "\nData range (y): " << ymin << " to " << ymax << "\n";
+
+    s.xmin = xmin;
+    s.xmax = xmax;
+    s.ymin = ymin;
+    s.ymax = ymax;
+
+    // deviations:
+    vector<double> diffs;
+    getDeviations(diffs);
+    bool no_model = (model_type_ == "none") || (model_type_ == "identity");
+
+    for (const Size p : s.percents)
+    {
+      Size index = p / 100.0 * diffs.size() - 1;
+      s.percentiles_before[p] = diffs[index];
+    }
+
+    // if we have a model, calculate deviations after applying the model
+    // else set the same values
+    if (!no_model) { getDeviations(diffs, true); }
+  
+    for (const Size p : s.percents)
+    {
+      Size index = p / 100.0 * diffs.size() - 1;
+      s.percentiles_after[p] = diffs[index];
+    }
+
+    return s;
+  }
+
+  void TransformationDescription::printSummary(ostream& os) const
+  {
+    const TransformationStatistics s = getStatistics();
+
+    os << "Number of data points (x/y pairs): " << data_.size() << "\n";
+    if (data_.empty()) return;
+
+    os << "Data range (x): " << s.xmin << " to " << s.xmax
+       << "\nData range (y): " << s.ymin << " to " << s.ymax << "\n";
+
     // deviations:
     vector<double> diffs;
     getDeviations(diffs);
     bool no_model = (model_type_ == "none") || (model_type_ == "identity");
     os << String("Summary of x/y deviations") +
       (no_model ? "" : " before transformation") + ":\n";
-    Size percents[] = {100, 99, 95, 90, 75, 50, 25};
-    for (Size i = 0; i < 7; ++i)
+
+    for (Size p : s.percents)
     {
-      Size index = percents[i] / 100.0 * diffs.size() - 1;
-      os << "- " << setw(3) << percents[i] << "% of data points within (+/-)"
-         << diffs[index] << "\n";
+      os << "- " << setw(3) << p << "% of data points within (+/-)"
+         << s.percentiles_before.at(p) << "\n";
     }
     if (no_model)
     {
@@ -252,11 +291,11 @@ namespace OpenMS
     getDeviations(diffs, true);
     os << "Summary of x/y deviations after applying '" << model_type_
        << "' transformation:\n";
-    for (Size i = 0; i < 7; ++i)
+
+    for (Size p : s.percents)
     {
-      Size index = percents[i] / 100.0 * diffs.size() - 1;
-      os << "- " << setw(3) << percents[i] << "% of data points within (+/-)"
-         << diffs[index] << "\n";
+      os << "- " << setw(3) << p << "% of data points within (+/-)"
+         << s.percentiles_after.at(p) << "\n";
     }
     os << endl;
   }

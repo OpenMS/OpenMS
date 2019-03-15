@@ -16,9 +16,14 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>" namespa
         RNPxlModificationsGenerator(RNPxlModificationsGenerator) nogil except + 
 
         RNPxlModificationMassesResult initModificationMassesRNA(
-            StringList target_nucleotides, StringList mappings,
-            StringList restrictions, StringList modifications,
-            String sequence_restriction, bool cysteine_adduct, Int max_length) nogil except +
+            StringList target_nucleotides,
+            StringList nt_groups,
+            libcpp_set[char] can_xl,
+            StringList mappings,
+            StringList modifications,
+            String sequence_restriction, 
+            bool cysteine_adduct, 
+            Int max_length) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>" namespace "OpenMS":
 

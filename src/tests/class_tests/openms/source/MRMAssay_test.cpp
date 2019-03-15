@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,17 +54,17 @@ class MRMAssay_test :
   public MRMAssay
 {
 public:
-  std::vector<std::string> getMatchingPeptidoforms_test(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold)
+  std::vector<std::string> getMatchingPeptidoforms_test(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold)
   {
     return getMatchingPeptidoforms_(fragment_ion, ions, mz_threshold);
   }
 
-  int getSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
+  int getSwath_test(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz)
   {
     return getSwath_(swathes, precursor_mz);
   }
 
-  bool isInSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz)
+  bool isInSwath_test(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz)
   {
     return isInSwath_(swathes, precursor_mz, product_mz);
   }
@@ -110,7 +110,7 @@ START_SECTION(~MRMAssay())
 
 END_SECTION
 
-START_SECTION(std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold); )
+START_SECTION(std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold); )
 {
   MRMAssay_test mrma;
 
@@ -421,7 +421,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
   double precursor_mz_threshold2 = 0.05;
   double product_mz_threshold2 = 0.05;
@@ -443,7 +443,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-  TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 }
 
 END_SECTION
@@ -503,7 +503,7 @@ START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment& exp, double l
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
 }
 
@@ -530,7 +530,7 @@ START_SECTION(void detectingTransitions(OpenMS::TargetedExperiment& exp, int min
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
 }
 
@@ -601,7 +601,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
@@ -626,7 +626,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-  TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
 }
 
@@ -696,7 +696,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
@@ -722,7 +722,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-  TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
   std::vector<String> fragment_types3;
   fragment_types3.push_back(String("y"));
@@ -748,7 +748,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test3);
   traml.store(test3, targeted_exp3);
 
-  TEST_FILE_EQUAL(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
+  TEST_FILE_SIMILAR(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
 }
 
 END_SECTION
