@@ -55,7 +55,7 @@ public:
         int chargeDistributionScoreThreshold;
         double maxRTDelta;
         vector<Byte> hCharges{2, 3, 5, 7};
-        int numOverlappedScans = 5;
+        int numOverlappedScans = 20;
         int threads = 1;
     };
 
@@ -187,7 +187,7 @@ protected:
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)",
+        registerIntOption_("minCDScore", "<score 0,1,2,...>", 1, "minimum charge distribution score threshold (>= 0)",
                            false, true);
 
         registerDoubleOption_("maxM", "<max mass>", 120000.0, "maximum mass (Da)", false, false);
@@ -195,7 +195,7 @@ protected:
         registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
         registerDoubleOption_("minIsoScore", "<score 0-1>", .5, "minimum isotope cosine score threshold (0-1)", false,
                               true);
-        registerDoubleOption_("maxRTDelta", "<maximum RT between masses for feature finding>", 30.0,
+        registerDoubleOption_("maxRTDelta", "<maximum RT between masses for feature finding>", 20.0,
                               "maximum RT between masses for feature finding", false, true);
 
         //registerDoubleOption_("maxRTDelta", "<max RT delta>", 10.0, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
@@ -454,7 +454,7 @@ protected:
                 auto &hc = param.hCharges[k];
                 float n = (float) (hc / 2);
                 auto harmonicFilter = log(1.0 / (i - n / hc + param.minCharge));
-                hBinOffsets[i][k] = (long) round((filter[i] - harmonicFilter) * param.binWidth);
+                hBinOffsets[i][k] = (long) floor((filter[i] - harmonicFilter) * param.binWidth);
                 //harmonicFilter = log(1.0 / (i - n / hc + param.minCharge));
                 //hBinOffsets[i][k+1] = (long) floor((filter[i] - harmonicFilter) * param.binWidth);
             }
@@ -1059,7 +1059,7 @@ protected:
                     for (int k = 0; k < hChargeSize; k++) {
                         long hbi = mzBinIndex - hbOffsets[k];// + rand() % 100000 - 50000 ;
 
-                        for (int i = -2; i <= 2; i++) {
+                        for (int i = -3; i <= 2; i++) {
                             auto bin = hbi + i;
                             if(bin <0 || bin > mzBinSize) continue;
                             if (mzBins[bin]) {
@@ -1106,7 +1106,7 @@ protected:
                          long binStart, long binEnd) {
         int maxChargeRange = 0;
         auto mzBinIndex = mzBins.find_first();
-        const int minChargeScore = -3;
+        const int minChargeScore = -1;
 
         while (mzBinIndex != mzBins.npos) {
             long maxIndex = -1;
@@ -1191,7 +1191,12 @@ protected:
         int maxSetIntensityCounter = 0;
         int setIntensityCounter = 0;
         for (int i = 1; i < param.chargeRange; i++) {
-            if (perChargeIntensities[i] > 0 && perChargeIntensities[i-1] > 0) {
+
+            //if (perChargeIntensities[i] > 0 && perChargeIntensities[i-1] > 0) {
+            //    setIntensityCounter ++;
+            //    continue;
+            //}
+            if(perChargeIntensities[i] <= 0){
                 setIntensityCounter = 0;
                 continue;
             }
