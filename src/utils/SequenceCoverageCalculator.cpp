@@ -268,7 +268,8 @@ protected:
     }
     else
     {
-      ret = outputTo_(LOG_INFO);
+      // directly use Log_info (no need for protecting output stream in non-parallel section)
+      ret = outputTo_(Log_info);
     }
 
     return ret;

@@ -1589,7 +1589,8 @@ protected:
     else if (out == "" && out_tsv != "")
     {
       ofstream os_tsv(out_tsv.c_str());
-      ret = outputTo_(LOG_INFO, os_tsv);
+      // directly use Log_info (no need for protecting output stream in non-parallel section)
+      ret = outputTo_(Log_info, os_tsv);
       os_tsv.close();
     }
     else
@@ -1597,7 +1598,8 @@ protected:
       // Output stream with null output
       boost::iostreams::filtering_ostream os_tsv;
       os_tsv.push(boost::iostreams::null_sink());
-      ret = outputTo_(LOG_INFO, os_tsv);
+      // directly use Log_info (no need for protecting output stream in non-parallel section)
+      ret = outputTo_(Log_info, os_tsv);
     }
     return ret;
   }
