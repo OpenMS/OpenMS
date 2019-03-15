@@ -1062,7 +1062,6 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
       }
     }
 
-    std::vector<String> CompoundList;
     for (Size i = 0; i < exp.getCompounds().size(); ++i)
     {
       TargetedExperiment::Compound compound = exp.getCompounds()[i];
