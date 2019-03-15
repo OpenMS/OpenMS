@@ -540,18 +540,18 @@ START_SECTION(void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp,
 {
   TraMLFile traml;
   TargetedExperiment targeted_exp;
-  String in = "MRMAssay_detectingTransitionsCompound_input.TraML";
+  String in = "MRMAssay_detectingTransistionCompound_input.TraML";
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
   MRMAssay mrma;
 
   int min_transitions = 3;
   int max_transitions = 6;
 
-  String out1 = "MRMAssay_detectingTransitionsCompound_output.TraML";
+  String out1 = "MRMAssay_detectingTransitionCompound_output.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.detectingTransitions(targeted_exp1, min_transitions, max_transitions);
+  mrma.detectingTransitionsCompound(targeted_exp1, min_transitions, max_transitions);
 
   String test1;
   NEW_TMP_FILE(test1);

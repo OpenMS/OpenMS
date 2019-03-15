@@ -244,7 +244,7 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="141.069877" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
+     </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.48932012916"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="C11H8"/>
