@@ -378,14 +378,14 @@ namespace OpenMS
       peptidoforms.split('|', mytransition.peptidoforms);
 
       //// Targeted Metabolomics
-      !extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict) &&
-      !extractName(mytransition.CompoundName, "CompoundId", tmp_line, header_dict);
+      extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict);
       extractName(mytransition.SumFormula, "SumFormula", tmp_line, header_dict);
       extractName(mytransition.SMILES, "SMILES", tmp_line, header_dict);
       extractName(mytransition.Adducts, "Adducts", tmp_line, header_dict);
 
       //// Meta
       extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict);
+      
       // UniprotId
       !extractName(mytransition.uniprot_id, "UniprotId", tmp_line, header_dict) &&
       !extractName(mytransition.uniprot_id, "UniprotID", tmp_line, header_dict);

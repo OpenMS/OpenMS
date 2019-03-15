@@ -170,7 +170,7 @@ namespace OpenMS
                   "TRANSITION.DECOY AS decoy, " \
                   "NULL AS PeptideSequence, " \
                   "NULL AS ProteinName, " \
-                  "NULL AS Annotation, " \
+                  "TRANSITION.ANNOTATION AS Annotation, " \
                   "NULL AS FullPeptideName, " \
                   "COMPOUND.COMPOUND_NAME AS CompoundName, " \
                   "COMPOUND.SMILES AS SMILES, " \
@@ -355,6 +355,7 @@ namespace OpenMS
       "PRODUCT_MZ REAL NOT NULL," \
       "CHARGE INT NULL," \
       "TYPE CHAR(1) NULL," \
+      "ANNOTATION TEXT NULL," \
       "ORDINAL INT NULL," \
       "DETECTING INT NOT NULL," \
       "IDENTIFYING INT NOT NULL," \
@@ -467,12 +468,13 @@ namespace OpenMS
       }
 
       // OpenSWATH: Insert transition data
-      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, " <<
+      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
         "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
         transition.transition_name << "'," <<
         transition.product << "," <<
         transition_charge << ",'" <<
-        transition.fragment_type<< "'," <<
+        transition.fragment_type << "','" <<
+        transition.Annotation <<"'," <<
         transition.fragment_nr << "," <<
         transition.detecting_transition << "," <<
         transition.identifying_transition << "," <<
