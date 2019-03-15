@@ -218,6 +218,8 @@ protected:
 
     registerTOPPSubsection_("oligo", "Oligonucleotide Options");
     registerIntOption_("oligo:min_size", "<num>", 5, "Minimum size an oligonucleotide must have after digestion to be considered in the search", false);
+    registerIntOption_("oligo:max_size", "<num>", 0, "Maximum size an oligonucleotide must have after digestion to be considered in the search, leave at 0 for no limit", false);
+
     registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages", false, false);
 
     StringList all_enzymes;
@@ -278,16 +280,17 @@ protected:
     return modifications;
   }
 
-  // check for minimum size
+  // check for minimum and maximum size
   class HasInvalidLength
   {
     Size min_size_;
+    Size max_size_;
   public:
-    explicit HasInvalidLength(Size min_size)
-      : min_size_(min_size)
+    explicit HasInvalidLength(Size min_size, Size max_size)
+      : min_size_(min_size), max_size_(max_size)
     {
     }
-    bool operator()(const NASequence& s) { return s.size() < min_size_; }
+    bool operator()(const NASequence& s) { return (s.size() < min_size_ || s.size() > max_size_); }
   };
 
   // turn an adduct string (param. "precursor:potential_adducts") into a formula
@@ -844,6 +847,7 @@ protected:
     search_param.fragment_tolerance_ppm =
       (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
     search_param.min_length = getIntOption_("oligo:min_size");
+    search_param.max_length = getIntOption_("oligo:max_size");
 
     StringList fixed_mod_names = getStringList_("modifications:fixed");
     search_param.fixed_mods.insert(fixed_mod_names.begin(),
@@ -1005,8 +1009,9 @@ protected:
     RNaseDigestion digestor;
     digestor.setEnzyme(search_param.digestion_enzyme);
     digestor.setMissedCleavages(search_param.missed_cleavages);
-    // set minimum size of oligo after digestion
+    // set minimum and maximum size of oligo after digestion
     Size min_oligo_length = getIntOption_("oligo:min_size");
+    Size max_oligo_length = getIntOption_("oligo:max_size");
 
     IdentificationData id_data;
     vector<String> primary_files;
@@ -1018,7 +1023,7 @@ protected:
     LOG_INFO << "Performing in-silico digestion..." << endl;
     IdentificationDataConverter::importSequences(
       id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
-    digestor.digest(id_data, min_oligo_length);
+    digestor.digest(id_data, min_oligo_length, max_oligo_length);
 
     String msg =  "scoring oligonucleotide models against spectra...";
     progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), msg);
