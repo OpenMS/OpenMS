@@ -258,6 +258,8 @@ protected:
         int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0, total_featureCntr = 0;
         double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
         fstream fs, fsm, fsf;
+        MSExperiment map;
+        MzMLFile mzml;
 
         if (!isOutPathDir) {
             fs.open(outfilePath + ".tsv", fstream::out);
@@ -276,8 +278,6 @@ protected:
             double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
             cout << "Processing : " << infile.toStdString() << endl;
 
-            MSExperiment map;
-            MzMLFile mzml;
             mzml.setLogType(log_type_);
             mzml.load(infile, map);
 
@@ -348,7 +348,6 @@ protected:
             total_elapsed_cpu_secs += elapsed_cpu_secs;
             total_elapsed_wall_secs += elapsed_wall_secs;
             peakGroups.clear();
-
         }
 
         cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " << total_elapsed_wall_secs
