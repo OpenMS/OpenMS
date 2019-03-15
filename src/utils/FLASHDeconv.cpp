@@ -318,9 +318,10 @@ protected:
                 writePeakGroup(pg, param, fs, fsm);
             cout << "done\n";
 
-            if (param.maxRTDelta > 0 && !peakGroups.empty()) {
+            if (param.maxRTDelta > 0 && !peakGroups.empty() && specCntr > 0 && map.size() > 1) {
                 findFeatures(map, featureCntr, fsf, specCntr, param);
             }
+
 
             cout << "In this run, FLASHDeconv found " << massCntr << " masses in " << qspecCntr
                  << " MS1 spectra out of "
@@ -346,6 +347,8 @@ protected:
             }
             total_elapsed_cpu_secs += elapsed_cpu_secs;
             total_elapsed_wall_secs += elapsed_wall_secs;
+            peakGroups.clear();
+
         }
 
         cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " << total_elapsed_wall_secs
@@ -401,7 +404,7 @@ protected:
 
         vector<MassTrace> m_traces;
         mtdet.run(map, m_traces);  // m_traces : output of this function
-        //cout<<map.size();
+
         for (auto &mt : m_traces) {
             auto mass = mt.getCentroidMZ();
 
@@ -515,8 +518,11 @@ protected:
                 Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);//
                 it->push_back(tp);
             }
+            peakGroups.clear();
+            filteredPeakGroups.clear();
             if (param.maxRTDelta > 0) it->sortByPosition();
         }
+
         printProgress(1);
         return allPeakGroups;
     }
@@ -644,6 +650,8 @@ protected:
         }
         prevMassBinVector.push_back(mb);
         prevMinBinLogMassVector.push_back(massBinMinValue);
+        //mzBins.~dynamic_bitset();
+        //massBins.~dynamic_bitset();
         return peakGroups;
     }
 
@@ -1007,11 +1015,10 @@ protected:
         auto maxChargeRange = getFinalMassBins(massBins, mzBins, isQualified,
                                                continuousChargePeakPairCount, noneContinuousChargePeakPairCount,
                                                binOffsets, maxChargeRanges, binThresholdMinMass, binNumber);
-
         delete[] noneContinuousChargePeakPairCount;
         delete[] continuousChargePeakPairCount;
         delete[] maxChargeRanges;
-
+       // isQualified.~dynamic_bitset();
         return maxChargeRange;
     }
 
@@ -1029,7 +1036,7 @@ protected:
         boost::dynamic_bitset<> hasHarmony(massBins.size());
         int chargeRange = param.chargeRange;
         int hChargeSize = (int) param.hCharges.size();
-        double binWidth = param.binWidth;
+        //double binWidth = param.binWidth;
         int minContinuousChargePeakPairCount = param.minContinuousChargePeakPairCount ;
         long mzBinSize = (long)mzBins.size();
 
@@ -1093,6 +1100,7 @@ protected:
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
 
+        //hasHarmony.~dynamic_bitset();
         delete[] prevCharges;
         return maxChargeRanges;
     }
