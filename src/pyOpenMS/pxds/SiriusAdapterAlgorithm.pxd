@@ -16,7 +16,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
         String getFeatureOnly() nogil except +
         String getNoMasstraceInfoIsotopePattern() nogil except +
-        String getConverterMode() nogil except +
         Int getIsotopePatternIterations() nogil except +
         Int getCandidates() nogil except +
         Int getTopNHits() nogil except +

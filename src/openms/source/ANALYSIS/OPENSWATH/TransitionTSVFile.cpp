@@ -1148,8 +1148,8 @@ namespace OpenMS
 
     compound.molecular_formula = tr_it->SumFormula;
     compound.smiles_string = tr_it->SMILES;
-    compound.setMetaValue("CompoundName", tr_it->CompoundName);
     compound.setMetaValue("Adducts", tr_it->Adducts);
+    compound.setMetaValue("CompoundName", tr_it->CompoundName);
 
     // does this apply to compounds as well?
     if (!tr_it->label_type.empty())
