@@ -378,15 +378,15 @@ namespace OpenMS
       peptidoforms.split('|', mytransition.peptidoforms);
 
       //// Targeted Metabolomics
-      !extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict) &&
-      !extractName(mytransition.CompoundName, "CompoundId", tmp_line, header_dict);
-      extractName(mytransition.Adducts, "Adducts", tmp_line, header_dict);
+      extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict);
       extractName(mytransition.SumFormula, "SumFormula", tmp_line, header_dict);
       extractName(mytransition.SMILES, "SMILES", tmp_line, header_dict);
+      extractName(mytransition.Adducts, "Adducts", tmp_line, header_dict);
 
       //// Meta
 
       extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict);
+      
       // UniprotId
       !extractName(mytransition.uniprot_id, "UniprotId", tmp_line, header_dict) &&
       !extractName(mytransition.uniprot_id, "UniprotID", tmp_line, header_dict);
@@ -1135,7 +1135,7 @@ namespace OpenMS
   {
     // the following attributes will be stored as meta values (userParam):
     //  - CompoundName (name of the compound)
-    //  - Adducts
+    //  - Adducts (adduct associated to the compound)
     // the following attributes will be stored as CV values (CV):
     // - label type
     // the following attributes will be stored as attributes:
@@ -1150,6 +1150,7 @@ namespace OpenMS
     compound.smiles_string = tr_it->SMILES;
     compound.setMetaValue("Adducts", tr_it->Adducts);
     compound.setMetaValue("CompoundName", tr_it->CompoundName);
+    compound.setMetaValue("Adducts", tr_it->Adducts);
 
     // does this apply to compounds as well?
     if (!tr_it->label_type.empty())

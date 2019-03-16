@@ -1234,6 +1234,20 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_TargetedFileConverter_test_4_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_4")
   set_tests_properties("TOPP_TargetedFileConverter_test_4" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_3")
 
+  # Metabolomics with Adducts PQP/TSV/TraML conversion
+  add_test("TOPP_TargetedFileConverter_test_10_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_10_input.pqp  -out TargetedFileConverter_10_output.TraML.tmp -out_type TraML -legacy_traml_id)
+  add_test("TOPP_TargetedFileConverter_test_10" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in TargetedFileConverter_10_output.TraML.tmp -in_type TraML -out TargetedFileConverter_10_output.tsv.tmp -out_type tsv)
+  add_test("TOPP_TargetedFileConverter_test_10_out1" ${DIFF} -in1 TargetedFileConverter_10_output.tsv.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_10_output.tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_test_10_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_10")
+  set_tests_properties("TOPP_TargetedFileConverter_test_10" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_10_prepare")
+
+  add_test("TOPP_TargetedFileConverter_test_11_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_11_input.TraML -out TargetedFileConverter_11_output.pqp.tmp -out_type pqp)
+  add_test("TOPP_TargetedFileConverter_test_11" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in TargetedFileConverter_11_output.pqp.tmp -in_type pqp -out TargetedFileConverter_11_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_11_out1" ${DIFF} -whitelist "id=" -in1 TargetedFileConverter_11_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_11_input.TraML)
+  set_tests_properties("TOPP_TargetedFileConverter_test_11_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_11")
+  set_tests_properties("TOPP_TargetedFileConverter_test_11" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_11_prepare")
+
+
   # Proteomics PQP/TSV/TraML peptidoforms conversion
   add_test("TOPP_TargetedFileConverter_test_8_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_8_input.tsv -out TargetedFileConverter_8_output.TraML.tmp -out_type TraML)
   add_test("TOPP_TargetedFileConverter_test_8" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in TargetedFileConverter_8_output.TraML.tmp -in_type TraML -out TargetedFileConverter_8_output.tsv.tmp -out_type tsv)

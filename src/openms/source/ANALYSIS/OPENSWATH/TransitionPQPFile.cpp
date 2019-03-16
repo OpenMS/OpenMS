@@ -170,7 +170,7 @@ namespace OpenMS
                   "TRANSITION.DECOY AS decoy, " \
                   "NULL AS PeptideSequence, " \
                   "NULL AS ProteinName, " \
-                  "NULL AS Annotation, " \
+                  "TRANSITION.ANNOTATION AS Annotation, " \
                   "NULL AS FullPeptideName, " \
                   "COMPOUND.COMPOUND_NAME AS CompoundName, " \
                   "COMPOUND.SMILES AS SMILES, " \
@@ -238,7 +238,7 @@ namespace OpenMS
       Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
       Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
-      if (sqlite3_column_type( stmt, 27 ) != SQLITE_NULL)
+      if (sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
       {
         String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 28 ))).split('|', mytransition.peptidoforms);
       }
@@ -355,6 +355,7 @@ namespace OpenMS
       "PRODUCT_MZ REAL NOT NULL," \
       "CHARGE INT NULL," \
       "TYPE CHAR(1) NULL," \
+      "ANNOTATION TEXT NULL," \
       "ORDINAL INT NULL," \
       "DETECTING INT NOT NULL," \
       "IDENTIFYING INT NOT NULL," \
@@ -467,12 +468,13 @@ namespace OpenMS
       }
 
       // OpenSWATH: Insert transition data
-      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, " <<
+      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
         "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
         transition.transition_name << "'," <<
         transition.product << "," <<
         transition_charge << ",'" <<
-        transition.fragment_type<< "'," <<
+        transition.fragment_type << "','" <<
+        transition.Annotation <<"'," <<
         transition.fragment_nr << "," <<
         transition.detecting_transition << "," <<
         transition.identifying_transition << "," <<
@@ -600,14 +602,23 @@ namespace OpenMS
     for (const auto& it : compound_map)
     {
       String adducts;
+      String compound_name;
       const auto& compound = targeted_exp.getCompoundByRef(it.first);
       if (compound.metaValueExists("Adducts"))
       {
         adducts = compound.getMetaValue("Adducts");
       }
+      if (compound.metaValueExists("CompoundName"))
+      {
+        compound_name = compound.getMetaValue("CompoundName");
+      }
+      else
+      {
+        compound_name = compound.id;
+      }
       insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
         it.second << ",'" <<
-        compound.id << "','" <<
+        compound_name << "','" <<
         compound.molecular_formula << "','" <<
         compound.smiles_string << "','" <<
         adducts << "'," <<

@@ -988,8 +988,7 @@ namespace OpenMS
     exp.setTransitions(transitions);
   }
 
-  // TODO: e.g add bool removePrecursorTransitions (ms2)
-  void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
+void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {
     CompoundVectorType compounds;
     std::vector<String> compound_ids;
@@ -1022,7 +1021,7 @@ namespace OpenMS
         {
           LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
         }
-   
+
         // Sort by intensity, reverse and delete all elements after max_transitions to find the best candidates
         std::sort(LibraryIntensity.begin(), LibraryIntensity.end());
         std::reverse(LibraryIntensity.begin(), LibraryIntensity.end());
@@ -1063,7 +1062,6 @@ namespace OpenMS
       }
     }
 
-    std::vector<String> CompoundList;
     for (Size i = 0; i < exp.getCompounds().size(); ++i)
     {
       TargetedExperiment::Compound compound = exp.getCompounds()[i];
