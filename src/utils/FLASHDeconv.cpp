@@ -619,23 +619,25 @@ protected:
                               vector<double> &prevMinBinLogMassVector,
             //fstream &fsmm,
                               const Parameter &param) {
-        double massBinMaxValue = std::min(
+        double massBinMaxValue = min(
                 logMzPeaks[logMzPeaks.size() - 1].logMz -
                 filter[param.chargeRange - param.minContinuousChargePeakPairCount - 1],
                 log(param.maxMass));
+
         double massBinMinValue = logMzPeaks[0].logMz - filter[param.minContinuousChargePeakPairCount];
         double mzBinMinValue = logMzPeaks[0].logMz;
         double mzBinMaxValue = logMzPeaks[logMzPeaks.size() - 1].logMz;
         Size massBinNumber = getBinNumber(massBinMaxValue, massBinMinValue, param.binWidth) + 1;
         auto mzBins = getMzBins(logMzPeaks, mzBinMinValue, mzBinMaxValue, param.binWidth);
         boost::dynamic_bitset<> massBins(massBinNumber);
-        int chargeRange = getMassBins(massBins, mzBins, massBinMinValue,
+        auto chargeRanges = getMassBins(massBins, mzBins, massBinMinValue,
                                       mzBinMinValue, filter,
                                       hBinOffsets,
                                       param);
         auto u = getUnionMassBin(massBins, massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, param);
-        auto peakGroups = getPeakGroupsWithMassBins(u, massBins, logMzPeaks, massBinMinValue, filter, chargeRange,
+        auto peakGroups = getPeakGroupsWithMassBins(u, massBins, logMzPeaks, mzBinMinValue, massBinMinValue, filter, chargeRanges,
                                                     param);
+
         // prev mass update here.
         if (prevMassBinVector.size() >= (Size) param.numOverlappedScans) {
             prevMassBinVector.erase(prevMassBinVector.begin());
@@ -678,20 +680,21 @@ protected:
     vector<PeakGroup> getPeakGroupsWithMassBins(boost::dynamic_bitset<> &unionedMassBins,//double &binScoreThreshold,
                                                 boost::dynamic_bitset<> &massBins,
                                                 vector<LogMzPeak> &logMzPeaks,
+                                                double &mzBinMinValue,
                                                 double &massBinMinValue,
-                                                double *filter, int &chargeRange,
+                                                double *filter, Byte *chargeRanges,
                                                 const Parameter &param) {
         double binWidth = param.binWidth;
         double tol = param.tolerance;
         int minCharge = param.minCharge;
 
         int logMzPeakSize = (int) logMzPeaks.size();
-        int *currentPeakIndex = new int[chargeRange];
-        fill_n(currentPeakIndex, chargeRange, 0); //
+        int *currentPeakIndex = new int[param.chargeRange];
+        fill_n(currentPeakIndex, param.chargeRange, 0); //
 
-        double *mzToMassOffsets = new double[chargeRange];
-        for (int j = 0; j < chargeRange; j++) {
-            mzToMassOffsets[j] = -filter[j] - massBinMinValue;
+        long *binOffsets = new long[param.chargeRange];
+        for (int i = 0; i < param.chargeRange; i++) {
+            binOffsets[i] = (long) round((mzBinMinValue - filter[i] - massBinMinValue) * param.binWidth);
         }
 
         vector<PeakGroup> peakGroups;
@@ -700,43 +703,28 @@ protected:
         while (massBinIndex != unionedMassBins.npos) {
             int isoOff = 0;
             PeakGroup pg;
+            int chargeRange = chargeRanges[massBinIndex];
+            chargeRange = chargeRange == 0 ? param.chargeRange - 1 : chargeRange;
             //vector<Size> isoMassBins;
-            for (int j = 0; j < chargeRange; j++) {
+            for (int j = 0; j <= chargeRange; j++) {
                 int charge = j + minCharge;
-                double &mzToMassOffset = mzToMassOffsets[j];
+                long &binOffset = binOffsets[j];
                 auto &cpi = currentPeakIndex[j];
                 double maxIntensity = 0.0;
                 int maxIntensityPeakIndex = 0;
 
                 while (cpi < logMzPeakSize - 1) {
-                    auto mass = logMzPeaks[cpi].logMz + mzToMassOffset;
-                    if (mass >= 0) {
-                        auto bi = getBinNumber(mass, 0, binWidth);
-                        if (bi == massBinIndex) {
-                            /*if (logMzPeaks[cpi].logMz - logMzPeaks[cpi - 1].logMz < tol) {
-                                if (logMzPeaks[cpi].orgPeak->getIntensity() <
-                                    logMzPeaks[cpi - 1].orgPeak->getIntensity()) {
-                                    cpi++;
-                                    continue;
-                                }
-                            }
-
-                            if (logMzPeaks[cpi + 1].logMz - logMzPeaks[cpi].logMz < tol) {
-                                if (logMzPeaks[cpi].orgPeak->getIntensity() <
-                                    logMzPeaks[cpi + 1].orgPeak->getIntensity()) {
-                                    cpi++;
-                                    continue;
-                                }
-                            }*/
-                            auto intensity = logMzPeaks[cpi].orgPeak->getIntensity();
-                            if (intensity > maxIntensity) {
-                                maxIntensity = intensity;
-                                maxIntensityPeakIndex = cpi;
-                            }
-                        } else if (bi > massBinIndex) {
-                            break;
+                    auto bi = getBinNumber(logMzPeaks[cpi].logMz, mzBinMinValue, binWidth) + binOffset;
+                    if (bi == massBinIndex) {
+                        auto intensity = logMzPeaks[cpi].orgPeak->getIntensity();
+                        if (intensity > maxIntensity) {
+                            maxIntensity = intensity;
+                            maxIntensityPeakIndex = cpi;
                         }
+                    } else if (bi > massBinIndex) {
+                        break;
                     }
+
                     cpi++;
                 }
 
@@ -759,7 +747,7 @@ protected:
                                 isotopePeakPresent = true;
                                 LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, i * d);
                                 pg.push_back(p);
-                                auto bin = getBinNumber(p.logMz + mzToMassOffset, 0, binWidth);
+                                auto bin = getBinNumber(p.logMz, mzBinMinValue, binWidth) + binOffset;
                                 if (massBinIndex != bin) {
                                     unionedMassBins[bin] = false;
                                     massBins[bin] = false;
@@ -773,9 +761,10 @@ protected:
                     }
                 }
             }
-
+            //cout<<pg.peaks.size()<<endl;
             if (!pg.peaks.empty()) {
                 for (LogMzPeak &p : pg.peaks) {
+                    //cout<<p.orgPeak->getMZ()<<" " << p.charge<< " " << p.isotopeIndex << endl;
                     p.isotopeIndex -= isoOff;
                 }
                 peakGroups.push_back(pg);
@@ -986,7 +975,7 @@ protected:
     }*/
 
 
-    int getMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
+    Byte* getMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
                     double &massBinMinValue, double &mzBinMinValue,
                     double *filter,
                     long **hBinOffsets,
@@ -1009,16 +998,17 @@ protected:
         auto maxChargeRanges = getInitialMassBins(massBins, mzBins, isQualified, continuousChargePeakPairCount,
                                                   noneContinuousChargePeakPairCount, hBinOffsets, binOffsets,
                                                   param,
+                                                  //massBinMinValue,
                                                   binThresholdMinMass, binNumber);
 
-        auto maxChargeRange = getFinalMassBins(massBins, mzBins, isQualified,
+        auto maxChargeRanges2 = getFinalMassBins(massBins, mzBins, isQualified,
                                                continuousChargePeakPairCount, noneContinuousChargePeakPairCount,
                                                binOffsets, maxChargeRanges, binThresholdMinMass, binNumber);
         delete[] noneContinuousChargePeakPairCount;
         delete[] continuousChargePeakPairCount;
         delete[] maxChargeRanges;
-       // isQualified.~dynamic_bitset();
-        return maxChargeRange;
+        // isQualified.~dynamic_bitset();
+        return maxChargeRanges2;
     }
 
 
@@ -1030,22 +1020,22 @@ protected:
                              long **hBinOffsets,
                              long *binOffsets,
                              const Parameter &param,
+                             //double &massBinMinValue,
                              long binStart, long binEnd) {
 
         boost::dynamic_bitset<> hasHarmony(massBins.size());
         int chargeRange = param.chargeRange;
         int hChargeSize = (int) param.hCharges.size();
         //double binWidth = param.binWidth;
-        int minContinuousChargePeakPairCount = param.minContinuousChargePeakPairCount ;
-        long mzBinSize = (long)mzBins.size();
+        int minContinuousChargePeakPairCount = param.minContinuousChargePeakPairCount;
+        long mzBinSize = (long) mzBins.size();
 
         Byte *maxChargeRanges = new Byte[mzBins.size()];
         fill_n(maxChargeRanges, mzBins.size(), 0);
         Byte *prevCharges = new Byte[massBins.size()];
-        fill_n(prevCharges, massBins.size(), chargeRange + 2);
+        fill_n(prevCharges, massBins.size(), (Byte)(chargeRange + 2));
         //Byte *_continuousChargePeakPairCount = new Byte[massBins.size()];
         //fill_n(_continuousChargePeakPairCount, massBins.size(), 0);
-
 
         auto mzBinIndex = mzBins.find_first();
         while (mzBinIndex != mzBins.npos) {
@@ -1067,7 +1057,7 @@ protected:
 
                         for (int i = -3; i <= 2; i++) {
                             auto bin = hbi + i;
-                            if(bin <0 || bin > mzBinSize) continue;
+                            if (bin < 0 || bin > mzBinSize) continue;
                             if (mzBins[bin]) {
                                 hasHarmony[massBinIndex] = true;
                                 isQualified[massBinIndex] = false;
@@ -1078,23 +1068,15 @@ protected:
                     }
                     if (hasHarmony[massBinIndex]) continue;
 
+
                     if (++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakPairCount) {
                         isQualified[massBinIndex] = true;
-                        maxChargeRanges[mzBinIndex] = (Byte) (j + 1);
                     }
                 } else {
                     ++noneContinuousChargePeakPairCount[massBinIndex];
-                   // _continuousChargePeakPairCount[massBinIndex] = 0;
+                    maxChargeRanges[mzBinIndex]= std::max(maxChargeRanges[mzBinIndex], j);
                 }
-
-                /*_continuousChargePeakPairCount[massBinIndex]++;
-                continuousChargePeakPairCount[massBinIndex] = continuousChargePeakPairCount[massBinIndex] > _continuousChargePeakPairCount[massBinIndex]?
-                                                              continuousChargePeakPairCount[massBinIndex] : _continuousChargePeakPairCount[massBinIndex];
-
-                if (continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakPairCount) {
-                        isQualified[massBinIndex] = true;
-                        maxChargeRanges[mzBinIndex] = (Byte) (j + 1);
-                }*/
+                //maxChargeRanges[mzBinIndex]= std::max(maxChargeRanges[mzBinIndex], j);
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
@@ -1104,23 +1086,24 @@ protected:
         return maxChargeRanges;
     }
 
-    int getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
+    Byte* getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
                          boost::dynamic_bitset<> &isQualified,
                          Byte *continuousChargePeakPairCount,
                          Byte *noneContinuousChargePeakPairCount,
                          long *binOffsets,
                          Byte *chargeRanges,
                          long binStart, long binEnd) {
-        int maxChargeRange = 0;
+        Byte* maxChargeRanges = new Byte[massBins.size()];
+        fill_n(maxChargeRanges, massBins.size(), 0);
         auto mzBinIndex = mzBins.find_first();
         const int minChargeScore = -1;
 
         while (mzBinIndex != mzBins.npos) {
             long maxIndex = -1;
             int max = minChargeScore;
-            int maxCharge = 0;
+            Byte maxCharge = 0;
 
-            for (Byte j = 0; j < chargeRanges[mzBinIndex]; j++) {
+            for (Byte j = 0; j <= chargeRanges[mzBinIndex]; j++) {
                 long massBinIndex = mzBinIndex + binOffsets[j];
                 if (massBinIndex < binStart) continue;
                 if (massBinIndex >= binEnd) break;
@@ -1135,11 +1118,11 @@ protected:
             }
             if (maxIndex > 0) {
                 massBins[maxIndex] = true;
-                maxChargeRange = maxChargeRange < maxCharge ? maxCharge : maxChargeRange;
+                maxChargeRanges[maxIndex]= std::max(maxChargeRanges[maxIndex], maxCharge);
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
-        return maxChargeRange + 1;
+        return maxChargeRanges;
     }
 
 
@@ -1203,7 +1186,7 @@ protected:
             //    setIntensityCounter ++;
             //    continue;
             //}
-            if(perChargeIntensities[i] <= 0){
+            if (perChargeIntensities[i] <= 0) {
                 setIntensityCounter = 0;
                 continue;
             }
