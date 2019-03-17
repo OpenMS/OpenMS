@@ -1122,6 +1122,8 @@ protected:
         const int minChargeScore = -1;
         long binEnd = (long) massBins.size();
 
+        auto toSkip = (isQualified | unionPrevMassBins).flip();
+
         while (mzBinIndex != mzBins.npos) {
             long maxIndex = -1;
             int max = minChargeScore;
@@ -1131,9 +1133,7 @@ protected:
                 long massBinIndex = mzBinIndex + binOffsets[j];
                 if (massBinIndex < binStart) continue;
                 if (massBinIndex >= binEnd) break;
-                if (!isQualified[massBinIndex]) {
-                    if(!unionPrevMassBins[massBinIndex])continue;
-                }
+                if (toSkip[massBinIndex]) continue;
 
                 int t = continuousChargePeakPairCount[massBinIndex] - noneContinuousChargePeakPairCount[massBinIndex];//
                 if (max <= t) {
