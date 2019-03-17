@@ -416,6 +416,7 @@ protected:
                 << mt.getMaxIntensity(false) << "\t"
                 << mt.computePeakArea() << "\n";
         }
+        fsf.flush();
     }
 
     void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false) {
@@ -570,6 +571,8 @@ protected:
         fs << "\t" << pg.chargeDistributionScore << "\t" << pg.isotopeCosineScore << "\n";
 
         fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
+        fs.flush();
+        fsm.flush();
     }
 
     void printProgress(float progress) {
@@ -1064,7 +1067,7 @@ protected:
                     for (int k = 0; k < hChargeSize; k++) {
                         long hbi = mzBinIndex - hbOffsets[k];// + rand() % 100000 - 50000 ;
 
-                        for (int i = -3; i <= 2; i++) {
+                        for (int i = -2; i <= 2; i++) {
                             auto bin = hbi + i;
                             if (bin < 0 || bin > mzBinSize) continue;
                             if (mzBins[bin]) {
