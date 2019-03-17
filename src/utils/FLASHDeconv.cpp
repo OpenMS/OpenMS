@@ -46,7 +46,7 @@ public:
 
         double intensityThreshold;// advanced parameters
         int chargeRange;
-        int minContinuousChargePeakPairCount;
+        int minContinuousChargePeakCount;
 
         int minContinuousIsotopeCount;
         int maxIsotopeCount;
@@ -99,6 +99,9 @@ public:
 
         LogMzPeak(Peak1D &peak, int c, int i) : orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(c),
                                                 isotopeIndex(i) {}
+        ~LogMzPeak(){
+
+        }
 
         double getMass() {
             if (mass <= 0) mass = exp(logMz) * charge;
@@ -127,6 +130,10 @@ public:
         double isotopeCosineScore = .0;
         int massIndex, specIndex, massCntr;
         MSSpectrum *spec;
+
+        ~PeakGroup(){
+
+        }
 
         void push_back(LogMzPeak &p) {
             peaks.push_back(p);
@@ -179,7 +186,7 @@ protected:
         registerIntOption_("minC", "<min charge>", 2, "minimum charge state", false, false);
         registerIntOption_("maxC", "<max charge>", 60, "maximum charge state", false, false);
         registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
-        registerIntOption_("minCC", "<min continuous charge peak pair count>", 3,
+        registerIntOption_("minCC", "<min continuous charge peak count>", 3,
                            "minimum number of peaks of continuous charges per mass", false, true);
         //registerIntOption_("minCC", "<min charge count>", 4,
         //                  "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))",
@@ -210,7 +217,7 @@ protected:
         param.tolerance = getDoubleOption_("tol") * 1e-6;
         param.binWidth = 2.0 / param.tolerance;
         param.intensityThreshold = getDoubleOption_("minInt");
-        param.minContinuousChargePeakPairCount = getIntOption_("minCC");
+        param.minContinuousChargePeakCount = getIntOption_("minCC");
         //param.minChargeCount = getIntOption_("minCC");
         param.minContinuousIsotopeCount = getIntOption_("minIC");
         param.maxIsotopeCount = getIntOption_("maxIC");
@@ -298,7 +305,6 @@ protected:
             }
 
             //param.numOverlappedScans = param.numOverlappedScans > param.maxNumOverlappedScans ? param.maxNumOverlappedScans : param.numOverlappedScans;
-            //cout<<param.numOverlappedScans<<endl;
             cout << "Running FLASHDeconv ... " << endl;
             auto begin = clock();
             auto t_start = chrono::high_resolution_clock::now();
@@ -624,10 +630,10 @@ protected:
                               const Parameter &param) {
         double massBinMaxValue = min(
                 logMzPeaks[logMzPeaks.size() - 1].logMz -
-                filter[param.chargeRange - param.minContinuousChargePeakPairCount - 1],
+                filter[param.chargeRange - param.minContinuousChargePeakCount - 1],
                 log(param.maxMass));
 
-        double massBinMinValue = logMzPeaks[0].logMz - filter[param.minContinuousChargePeakPairCount];
+        double massBinMinValue = logMzPeaks[0].logMz - filter[param.minContinuousChargePeakCount];
         double mzBinMinValue = logMzPeaks[0].logMz;
         double mzBinMaxValue = logMzPeaks[logMzPeaks.size() - 1].logMz;
         Size massBinNumber = getBinNumber(massBinMaxValue, massBinMinValue, param.binWidth) + 1;
@@ -642,7 +648,8 @@ protected:
         auto mzBins = getMzBins(logMzPeaks, mzBinMinValue, mzBinMaxValue, param.binWidth);
         boost::dynamic_bitset<> massBins(massBinNumber);
 
-        auto unionPrevMassBins = getUnionMassBin(massBins, massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, param);
+        auto unionPrevMassBins = getUnionMassBin(massBins, massBinMinValue, prevMassBinVector, prevMinBinLogMassVector,
+                                                 param);
         auto perMassChargeRanges = getMassBins(massBins, mzBins, massBinMinValue,
                                                binOffsets,
                                                hBinOffsets,
@@ -872,7 +879,7 @@ protected:
             setBinIndex = massBins.find_next(setBinIndex);
         }
         int massCounter = 0;
-        int binScoreThreshold = param.minContinuousChargePeakPairCount;
+        int binScoreThreshold = param.minContinuousChargePeakCount;
         for (int i = param.chargeRange; i >= 0; i--) {
             massCounter += binScoreDist[i];
             if (massCounter >= param.maxMassCount * 2) {
@@ -898,7 +905,7 @@ protected:
 
         //int minN2 = 3;
         int *minChargeCount = new int[param.chargeRange];
-        // int* minContinuousChargePeakPairCount = new int[param.chargeRange];
+        // int* minContinuousChargePeakCount = new int[param.chargeRange];
         Size binNumber = massBins.size();
         Size binThresholdMinMass = getBinNumber(log(param.minMass), massBinMinValue, param.tolerance);
         double tol = param.tolerance;
@@ -1012,10 +1019,10 @@ protected:
         fill_n(noneContinuousChargePeakPairCount, massBins.size(), 0);
 
         getInitialMassBins(massBins, mzBins, isQualified, continuousChargePeakPairCount,
-                                                         noneContinuousChargePeakPairCount, hBinOffsets, binOffsets,
-                                                         param,
+                           noneContinuousChargePeakPairCount, hBinOffsets, binOffsets,
+                           param,
                 //massBinMinValue,
-                                                         binThresholdMinMass);
+                           binThresholdMinMass);
 
         auto perMassChargeRanges = getFinalMassBins(massBins, mzBins, isQualified, unionPrevMassBins,
                                                     continuousChargePeakPairCount, noneContinuousChargePeakPairCount,
@@ -1029,22 +1036,22 @@ protected:
     }
 
 
-     void getInitialMassBins(boost::dynamic_bitset<> &massBins,
-                             boost::dynamic_bitset<> &mzBins,
-                             boost::dynamic_bitset<> &isQualified,
-                             Byte *continuousChargePeakPairCount,
-                             Byte *noneContinuousChargePeakPairCount,
-                             long **hBinOffsets,
-                             long *binOffsets,
-                             const Parameter &param,
+    void getInitialMassBins(boost::dynamic_bitset<> &massBins,
+                            boost::dynamic_bitset<> &mzBins,
+                            boost::dynamic_bitset<> &isQualified,
+                            Byte *continuousChargePeakPairCount,
+                            Byte *noneContinuousChargePeakPairCount,
+                            long **hBinOffsets,
+                            long *binOffsets,
+                            const Parameter &param,
             //double &massBinMinValue,
-                             long &binStart) {
+                            long &binStart) {
 
         boost::dynamic_bitset<> hasHarmony(massBins.size());
         int chargeRange = param.chargeRange;
         int hChargeSize = (int) param.hCharges.size();
         //double binWidth = param.binWidth;
-        int minContinuousChargePeakPairCount = param.minContinuousChargePeakPairCount;
+        int minContinuousChargePeakPairCount = param.minContinuousChargePeakCount;
         long mzBinSize = (long) mzBins.size();
         long binEnd = (long) massBins.size();
 
@@ -1084,22 +1091,17 @@ protected:
                     }
                     if (hasHarmony[massBinIndex]) continue;
 
-                    if (++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakPairCount) {
-                        isQualified[massBinIndex] = true;
-                    }
+                    isQualified[massBinIndex] = ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakPairCount;
                 } else {
                     ++noneContinuousChargePeakPairCount[massBinIndex];
                     //if(maxChargeRanges[mzBinIndex] == 0) maxChargeRanges[mzBinIndex] = j;// std::max(maxChargeRanges[mzBinIndex], j);
                 }
-
                 //maxChargeRanges[mzBinIndex]= std::max(maxChargeRanges[mzBinIndex], j);
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
 
-        //hasHarmony.~dynamic_bitset();
         delete[] prevCharges;
-        //return maxChargeRanges;
     }
 
     Byte **getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
@@ -1112,6 +1114,7 @@ protected:
                             long binStart) {
 
         int chargeRange = param.chargeRange;
+        int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
         Byte *maxChargeRanges = new Byte[massBins.size()];
         fill_n(maxChargeRanges, massBins.size(), 0);
 
@@ -1135,6 +1138,8 @@ protected:
                 if (massBinIndex >= binEnd) break;
                 if (toSkip[massBinIndex]) continue;
 
+                //auto &cc = continuousChargePeakPairCount[massBinIndex];
+                //if (cc < minContinuousChargePeakCount) continue;
                 int t = continuousChargePeakPairCount[massBinIndex] - noneContinuousChargePeakPairCount[massBinIndex];//
                 if (max <= t) {
                     max = t;
@@ -1143,7 +1148,7 @@ protected:
                 }
             }
             if (maxIndex > 0) {
-                if(isQualified[maxIndex]) massBins[maxIndex] = true;
+                if (isQualified[maxIndex]) massBins[maxIndex] = true;
                 maxChargeRanges[maxIndex] = std::max(maxChargeRanges[maxIndex], maxCharge);
                 minChargeRanges[maxIndex] = std::min(minChargeRanges[maxIndex], maxCharge);
             }
@@ -1225,7 +1230,7 @@ protected:
             maxSetIntensityCounter =
                     maxSetIntensityCounter > setIntensityCounter ? maxSetIntensityCounter : setIntensityCounter;
         }
-        if (maxSetIntensityCounter < param.minContinuousChargePeakPairCount) return false;
+        if (maxSetIntensityCounter < param.minContinuousChargePeakCount) return false;
 
         maxSetIntensityCounter = 0;
         setIntensityCounter = 0;
