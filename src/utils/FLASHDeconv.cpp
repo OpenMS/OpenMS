@@ -641,12 +641,15 @@ protected:
 
         auto mzBins = getMzBins(logMzPeaks, mzBinMinValue, mzBinMaxValue, param.binWidth);
         boost::dynamic_bitset<> massBins(massBinNumber);
+
+        auto unionPrevMassBins = getUnionMassBin(massBins, massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, param);
         auto perMassChargeRanges = getMassBins(massBins, mzBins, massBinMinValue,
                                                binOffsets,
                                                hBinOffsets,
+                                               unionPrevMassBins,
                                                param);
-        auto u = getUnionMassBin(massBins, massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, param);
-        auto peakGroups = getPeakGroupsWithMassBins(u, massBins, logMzPeaks, mzBinMinValue,
+        auto unionMassBins = unionPrevMassBins | massBins;
+        auto peakGroups = getPeakGroupsWithMassBins(unionMassBins, massBins, logMzPeaks, mzBinMinValue,
                                                     binOffsets, perMassChargeRanges,
                                                     param);
 
@@ -670,7 +673,7 @@ protected:
                                             vector<vector<Size>> &prevMassBinVector,
                                             vector<double> &prevMassBinMinValue,
                                             const Parameter &param) {
-        boost::dynamic_bitset<> u(massBins);
+        boost::dynamic_bitset<> u(massBins.size());
         if (u.size() == 0) return u;
         for (Size i = 0; i < prevMassBinVector.size(); i++) {
             auto &pmb = prevMassBinVector[i];
@@ -715,10 +718,10 @@ protected:
             int maxChargeRange = maxChargeRanges[massBinIndex];
             int minChargeRange = minChargeRanges[massBinIndex];
 
-            if (maxChargeRange == 0) {
+            /*if (maxChargeRange == 0) {
                 maxChargeRange = param.chargeRange - 1;
                 minChargeRange = 0;
-            }
+            }*/
             //vector<Size> isoMassBins;
             for (int j = minChargeRange; j <= maxChargeRange; j++) {
                 int charge = j + minCharge;
@@ -995,6 +998,7 @@ protected:
                        long *binOffsets,
             //double *filter,
                        long **hBinOffsets,
+                       boost::dynamic_bitset<> &unionPrevMassBins,
                        const Parameter &param) {
 
         long binThresholdMinMass = (long) getBinNumber(log(param.minMass), massBinMinValue, param.binWidth);
@@ -1013,7 +1017,7 @@ protected:
                 //massBinMinValue,
                                                          binThresholdMinMass);
 
-        auto perMassChargeRanges = getFinalMassBins(massBins, mzBins, isQualified,
+        auto perMassChargeRanges = getFinalMassBins(massBins, mzBins, isQualified, unionPrevMassBins,
                                                     continuousChargePeakPairCount, noneContinuousChargePeakPairCount,
                                                     binOffsets,
                                                     param,
@@ -1100,6 +1104,7 @@ protected:
 
     Byte **getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
                             boost::dynamic_bitset<> &isQualified,
+                            boost::dynamic_bitset<> &unionPrevMassBins,
                             Byte *continuousChargePeakPairCount,
                             Byte *noneContinuousChargePeakPairCount,
                             long *binOffsets,
@@ -1126,7 +1131,9 @@ protected:
                 long massBinIndex = mzBinIndex + binOffsets[j];
                 if (massBinIndex < binStart) continue;
                 if (massBinIndex >= binEnd) break;
-                if (!isQualified[massBinIndex]) continue;
+                if (!isQualified[massBinIndex]) {
+                    if(!unionPrevMassBins[massBinIndex])continue;
+                }
 
                 int t = continuousChargePeakPairCount[massBinIndex] - noneContinuousChargePeakPairCount[massBinIndex];//
                 if (max <= t) {
@@ -1136,7 +1143,7 @@ protected:
                 }
             }
             if (maxIndex > 0) {
-                massBins[maxIndex] = true;
+                if(isQualified[maxIndex]) massBins[maxIndex] = true;
                 maxChargeRanges[maxIndex] = std::max(maxChargeRanges[maxIndex], maxCharge);
                 minChargeRanges[maxIndex] = std::min(minChargeRanges[maxIndex], maxCharge);
             }
