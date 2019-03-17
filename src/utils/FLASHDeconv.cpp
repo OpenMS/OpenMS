@@ -190,7 +190,7 @@ protected:
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 1, "minimum charge distribution score threshold (>= 0)",
                            false, true);
 
-        registerDoubleOption_("maxM", "<max mass>", 120000.0, "maximum mass (Da)", false, false);
+        registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
         registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
         registerDoubleOption_("minIsoScore", "<score 0-1>", .5, "minimum isotope cosine score threshold (0-1)", false,
