@@ -132,7 +132,7 @@ public:
         MSSpectrum *spec;
 
         ~PeakGroup(){
-
+            vector<LogMzPeak>().swap(peaks);
         }
 
         void push_back(LogMzPeak &p) {
@@ -346,6 +346,11 @@ protected:
                 total_massCntr += massCntr;
                 total_featureCntr += featureCntr;
             } else {
+                cout << "So far, FLASHDeconv found " << massCntr << " masses in " << qspecCntr
+                     << " MS1 spectra out of "
+                     << specCntr << endl;
+                if (featureCntr > 0) cout << "Mass tracer found " << featureCntr << " features" << endl;
+
                 total_specCntr = specCntr;
                 total_qspecCntr = qspecCntr;
                 total_massCntr = massCntr;
@@ -422,6 +427,7 @@ protected:
                 << mt.getMaxIntensity(false) << "\t"
                 << mt.computePeakArea() << "\n";
         }
+        vector<MassTrace>().swap(m_traces);
         fsf.flush();
     }
 
@@ -1110,7 +1116,7 @@ protected:
                             long binStart) {
 
         int chargeRange = param.chargeRange;
-        int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
+//        int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
         Byte *maxChargeRanges = new Byte[massBins.size()];
         fill_n(maxChargeRanges, massBins.size(), 0);
 
