@@ -1,14 +1,21 @@
 # This file contains OpenMS- and user-defined RNA modifications.
 # It is read in addition to the Modomics data file ("Modomics.tsv") and uses the same format.
+# Monoisotopic and average masses may be missing (0.0) and are then computed from the sum formula.
 # For terminal modifications, the "new_nomenclature" value has to end in "N" and contain either "33" (3'-terminal mod.) or "55" (5'-terminal mod.).
 name	short_name	new_nomenclature	originating_base	rnamods_abbrev	html_abbrev	formula	monoisotopic_mass	average_mass
-3' terminal phosphate	3'-p	33N	pppN			H2PO3	0.0	0.0
-5' terminal phosphate	5'-p	55N	pppN			H2PO3	0.0	0.0
-unspecified methyladenosine ("m?A")	mA		A			C11O4N5H15	0.0	0.0
-unspecified methylcytidine ("m?C")	mC		C			C10O5N3H15	0.0	0.0
-unspecified methylguanosine ("m?G")	mG		G			C11O5N5H15	0.0	0.0
-unspecified methyl[pseudo]uridine ("m?U")	mU		U			C10O6N2H14	0.0	0.0
-unspecified methyladenosine ("m?A" or "Am")	mA?		A			C11O4N5H15	0.0	0.0
-unspecified methylcytidine ("m?C" or "Cm")	mC?		C			C10O5N3H15	0.0	0.0
-unspecified methylguanosine ("m?G" or "Gm")	mG?		G			C11O5N5H15	0.0	0.0
-unspecified methyl[pseudo]uridine ("m?U" or "Um")	mU?		U			C10O6N2H14	0.0	0.0
+3' terminal phosphate	3'-p	33N	pppN	p	p	H2PO3	0.0	0.0
+5' terminal phosphate	5'-p	55N	pppN	p	p	H2PO3	0.0	0.0
+unspecified methyladenosine ("m_A")	mA		A	a	a	C11O4N5H15	0.0	0.0
+unspecified methylcytidine ("m_C")	mC		C	c	c	C10O5N3H15	0.0	0.0
+unspecified methylguanosine ("m_G")	mG		G	g	g	C11O5N5H15	0.0	0.0
+unspecified methyl[pseudo]uridine ("m_U")	mU		U	u	u	C10O6N2H14	0.0	0.0
+unspecified thiouridine ("s_U")	sU		U	s	s	C9O5N2H12S1	0.0	0.0
+unspecified 2'-O-dimethyladenosine ("m_Am")	mAm		A	ä	&auml;	C12O4N5H17	0.0	0.0
+unspecified 2'-O-dimethylcytidine ("m_Cm")	mCm		C	ë	&euml;	C11O5N3H17	0.0	0.0
+unspecified 2'-O-dimethylguanosine ("m_Gm")	mGm		G	ö	&ouml;	C12O5N5H17	0.0	0.0
+unspecified 2'-O-dimethyluridine ("m_Um")	mUm		U	ü	&uuml;	C11O6N2H16	0.0	0.0
+unspecified methyladenosine ("m_A" or "Am")	mA?		A			C11O4N5H15	0.0	0.0
+unspecified methylcytidine ("m_C" or "Cm")	mC?		C			C10O5N3H15	0.0	0.0
+unspecified methylguanosine ("m_G" or "Gm")	mG?		G			C11O5N5H15	0.0	0.0
+unspecified methyl[pseudo]uridine ("m_U" or "Um")	mU?		U			C10O6N2H14	0.0	0.0
+unspecified methylinosine ("m1I" or "Im")	mI?		A			C11O5N4H14	0.0	0.0
