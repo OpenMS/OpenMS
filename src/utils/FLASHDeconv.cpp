@@ -265,8 +265,6 @@ protected:
         int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0, total_featureCntr = 0;
         double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
         fstream fs, fsm, fsf;
-        MSExperiment map;
-        MzMLFile mzml;
 
         if (!isOutPathDir) {
             fs.open(outfilePath + ".tsv", fstream::out);
@@ -281,6 +279,8 @@ protected:
             if (isOutPathDir) {
                 specCntr = qspecCntr = massCntr = featureCntr = 0;
             }
+            MSExperiment map;
+            MzMLFile mzml;
 
             double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
             cout << "Processing : " << infile.toStdString() << endl;
@@ -358,6 +358,7 @@ protected:
             }
             total_elapsed_cpu_secs += elapsed_cpu_secs;
             total_elapsed_wall_secs += elapsed_wall_secs;
+
             vector<PeakGroup>().swap(peakGroups);
         }
 
@@ -502,14 +503,17 @@ protected:
                     //fsmm,
                     //(it->getRT() > 360 && it->getRT() < 380),
                                                         param);
-            if (param.maxRTDelta > 0) it->clear(false);
+            if (param.maxRTDelta > 0){
+                it->clear(false);
+                //it->shrink_to_fit();
+            }
 
             if (peakGroups.empty()) continue;
 
             auto filteredPeakGroups = scoreAndFilterPeakGroups(peakGroups, averagines, param);
 
             if (filteredPeakGroups.empty()) continue;
-
+            vector<PeakGroup>().swap(peakGroups);
             //prevPgs = peakGroups;
             qspecCntr++;
             for (auto &pg : filteredPeakGroups) {
@@ -530,11 +534,13 @@ protected:
                 Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);//
                 it->push_back(tp);
             }
+            vector<PeakGroup>().swap(filteredPeakGroups);
             if (param.maxRTDelta > 0) it->sortByPosition();
         }
 
         printProgress(1);
-        return allPeakGroups;
+        allPeakGroups.shrink_to_fit();
+        return allPeakGroups; // TODO
     }
 
     void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs, fstream &fsm) {
@@ -621,7 +627,7 @@ protected:
             LogMzPeak logMzPeak(peak);
             logMzPeaks.push_back(logMzPeak);
         }
-
+        logMzPeaks.shrink_to_fit();
         return logMzPeaks;
     }
 
@@ -677,6 +683,9 @@ protected:
         }
         prevMassBinVector.push_back(mb);
         prevMinBinLogMassVector.push_back(massBinMinValue);
+
+        prevMassBinVector.shrink_to_fit();
+        prevMinBinLogMassVector.shrink_to_fit();
         return peakGroups;
     }
 
@@ -1196,6 +1205,8 @@ protected:
         }
         if (filteredPeakGroups.empty()) return filteredPeakGroups;
         filterPeakGroupsByIntensity(peakGroups, intensities, param);
+        vector<double>().swap(intensities);
+        filteredPeakGroups.shrink_to_fit();
         return filteredPeakGroups;
     }
 
