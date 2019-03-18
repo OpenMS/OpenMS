@@ -81,10 +81,6 @@ public:
     typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
-    // TODO: CompoundStuff
-    typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
-    typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > CompoundTransitionMapType;
-
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > CompoundTransitionMapType;
 
