@@ -54,39 +54,37 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
 
-  for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
+  for (auto it : sirius_output_paths)
   {
    
     // extract mz, rt and nativeID of the corresponding precursor spectrum in the spectrum.ms file
     String ext_nid;
     double ext_mz = 0.0;
     double ext_rt = 0.0;
-    const String sirius_spectrum_ms = *it + "/spectrum.ms";
+    const String sirius_spectrum_ms = it + "/spectrum.ms";
     ifstream spectrum_ms_file(sirius_spectrum_ms);
     if (spectrum_ms_file)
     {
-      const String nid_prefix = "##nid ";
-      const String rt_prefix = "#rt ";
-      const String pmass_prefix = ">parentmass ";
+      const String nid_prefix = "##nid";
+      const String rt_prefix = "#rt";
+      const String pmass_prefix = ">parentmass";
+      const String ms1peaks = ">ms1peaks";
       String line;
       while (getline(spectrum_ms_file, line))
       {
         if (line.hasPrefix(pmass_prefix))
         {
-           String pmass = line.erase(line.find(pmass_prefix), pmass_prefix.size());
-           ext_mz = pmass.toDouble();
+           ext_mz = String(line.erase(line.find(pmass_prefix), pmass_prefix.size())).toDouble();
         }
-        if (line.hasPrefix(rt_prefix))
+        else if (line.hasPrefix(rt_prefix))
         {
-           String rt = line.erase(line.find(rt_prefix), rt_prefix.size());
-           ext_rt = rt.toDouble();
+           ext_rt = String(line.erase(line.find(rt_prefix), rt_prefix.size())).toDouble();
         }
-        if (line.compare(nid_prefix) == 1)
+        else if (line.hasPrefix(nid_prefix))
         {
-           String nid = line.erase(line.find(nid_prefix), nid_prefix.size());
-           ext_nid = nid;
+           ext_nid = line.erase(line.find(nid_prefix), nid_prefix.size());
         }
-        if (line == ">ms1peaks")
+        else if (line.hasPrefix(ms1peaks))
         {
            break; // only run till >ms1peaks
         }
@@ -94,7 +92,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
       spectrum_ms_file.close();
     } 
    
-    const std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
+    const std::string pathtocsicsv = it + "/summary_csi_fingerid.csv";
 
     ifstream file(pathtocsicsv);
 
@@ -212,29 +210,15 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
             vector<MzTabDouble> v_rt;
             MzTabDoubleList rt_list;
-            v_rt.push_back(MzTabDouble(id.rt));
+            v_rt.emplace_back(id.rt);
             rt_list.set(v_rt);
             smsr.retention_time = rt_list;
             
-            MzTabOptionalColumnEntry rank;
-            rank.first = "rank";
-            rank.second = MzTabString(hit.rank);
-
-            MzTabOptionalColumnEntry compoundId;
-            compoundId.first = "compoundId";
-            compoundId.second = MzTabString(id.scan_index);
-
-            MzTabOptionalColumnEntry compoundScanNumber;
-            compoundScanNumber.first = "compoundScanNumber";
-            compoundScanNumber.second = MzTabString(id.scan_number);
-
-            MzTabOptionalColumnEntry featureId;
-            featureId.first = "featureId";
-            featureId.second = MzTabString(id.feature_id);
-
-            MzTabOptionalColumnEntry native_id;
-            native_id.first = "native_id";
-            native_id.second = MzTabString(id.native_id);
+            MzTabOptionalColumnEntry rank = make_pair("rank", MzTabString(hit.rank));
+            MzTabOptionalColumnEntry compoundId = make_pair("compoundId", MzTabString(id.scan_index));
+            MzTabOptionalColumnEntry compoundScanNumber = make_pair("compoundScanNumber", MzTabString(id.scan_number));
+            MzTabOptionalColumnEntry featureId = make_pair("featureId", MzTabString(id.feature_id));
+            MzTabOptionalColumnEntry native_id = make_pair("native_id", MzTabString(id.native_id));
 
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);
