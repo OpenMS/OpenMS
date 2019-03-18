@@ -89,7 +89,8 @@ public:
     Size getNumberOfModifications() const;
 
     /**
-       @brief Returns the modification with the given index
+       @brief Returns the modification with the given index.
+       note: out-of-bounds check is only performed in debug mode.
     */
     const ResidueModification* getModification(Size index) const;
 
@@ -99,7 +100,6 @@ public:
        If @p residue is set, only modifications with matching residue of origin are considered.
        If @p term_spec is set, only modifications with matching term specificity are considered.
        The resulting set of modifications may be empty if no modification exists that fulfills the criteria.
-
     */
     void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
@@ -111,7 +111,8 @@ public:
 
        If more than one matching modification is found, the first one is returned with a warning.
 
-       Returns nullptr if no modification named @p mod_name exists (via searchModifications()) or if no matching modification exists
+       @throw Exception::ElementNotFound if no modification named @p mod_name exists (via searchModifications())
+       @throw Exception::InvalidValue if no matching modification exists
     */
     const ResidueModification* getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
@@ -129,6 +130,8 @@ public:
 
        return numeric_limits<Size>::max() if not exactly one matching modification was found
        or no matching residue or modification were found
+
+       @throw Exception::ElementNotFound if not exactly one matching modification was found. 
     */
     Size findModificationIndex(const String& mod_name) const;
 

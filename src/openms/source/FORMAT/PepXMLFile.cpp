@@ -1215,12 +1215,12 @@ namespace OpenMS
       // check if the modification is uniquely defined:
       if (!aa_mod.description.empty())
       {
-        const ResidueModification* r = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec);
-        if (r)
-        {
+	try
+	{
+          const ResidueModification* r = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec);
           desc = r->getFullId();
-        }
-        else
+	}
+        catch (Exception::BaseException)
         {
           error(LOAD, "Modification '" + aa_mod.description + "' of residue '" + aa_mod.aminoacid + "' could not be matched. Trying by modification mass.");
         }
@@ -1469,12 +1469,12 @@ namespace OpenMS
       // fixed modifications
       for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
       {
-        const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
+        bool mass_only = it->aminoacid == "" ? true : false;
 
-        if (residue == nullptr)
+        if (mass_only)
         {
           double new_mass = it->massdiff.toDouble();
-          if (it->aminoacid == "" && it->terminus =="n")
+          if (it->terminus == "n")
           {
             vector<String> mods;
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::N_TERM);
@@ -1496,7 +1496,7 @@ namespace OpenMS
                     it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
             }
           }
-          else if (it->aminoacid == "" && it->terminus =="c")
+          else if (it->terminus == "c")
           {
             vector<String> mods;
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::C_TERM);
@@ -1526,6 +1526,8 @@ namespace OpenMS
         }
         else
         {
+          const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
+
           double new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
           vector<String> mods;
           ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, it->aminoacid, ResidueModification::ANYWHERE);

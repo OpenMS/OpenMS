@@ -76,7 +76,7 @@ START_SECTION((bool hasResidue(const String& name) const))
 END_SECTION
 
 START_SECTION(bool hasResidue(const Residue* residue) const)
-	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("BLUBB")), false)
+	TEST_EXCEPTION(Exception::InvalidValue, ptr->hasResidue(ptr->getResidue("BLUBB")))
 	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("LYS")), true)
 	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("K")), true)
 END_SECTION

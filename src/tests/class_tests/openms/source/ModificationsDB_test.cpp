@@ -244,10 +244,10 @@ START_SECTION((const ResidueModification& getModification(const String& mod_name
   TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM)->getFullId(), "NIC (N-term)");
   TEST_EQUAL(ptr->getModification("Acetyl", "", ResidueModification::N_TERM)->getFullId(), "Acetyl (N-term)");
 
-  // missing modification (returns nullptr)
-  TEST_EQUAL(ptr->getModification("MISSING"), nullPointer);
-  TEST_EQUAL(ptr->getModification("MISSING", "", ResidueModification::N_TERM), nullPointer);
-  TEST_EQUAL(ptr->getModification("MISSING", "", ResidueModification::C_TERM), nullPointer);	
+  // missing modification (exception)
+  TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING"));
+  TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING", "", ResidueModification::N_TERM));
+  TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING", "", ResidueModification::C_TERM));	
 }
 END_SECTION
 

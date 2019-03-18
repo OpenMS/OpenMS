@@ -70,13 +70,21 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const String& name) const
   {
-    Residue* r(nullptr);
+    if (name.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No residue specified.", "");
+    }
 
+    Residue* r(nullptr);
     #pragma omp critical (ResidueDB)
     {   
       auto it = residue_names_.find(name);
       if (it != residue_names_.end()) r = it->second;
-    } 
+    }
+    if (r == nullptr)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue not found: ", name);
+    }
     return r;
   }
 
@@ -491,7 +499,7 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
-    // terminal mods. don't apply to residue (side chain), so don't consider them:
+    // throws if modification is not part of ModificationsDB
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
     auto r = getResidue(mod->getOrigin());
     return getModifiedResidue(r, mod->getFullId());
@@ -503,15 +511,28 @@ namespace OpenMS
     // search if the mod already exists
     const String & res_name = residue->getName();
     Residue* res(nullptr);
+    bool residue_found(true), mod_found(true);
     #pragma omp critical (ResidueDB)
     {
-      if (residue_names_.find(res_name) != residue_names_.end())
+      if (residue_names_.find(res_name) == residue_names_.end())
       {
-        // terminal modifications don't apply to residues (side chain), so only consider internal ones
-        const ResidueModification* mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
+        residue_found = false;
+      }
+      else
+      {
+        const ResidueModification* mod;
+        try
+        {
+          // terminal modifications don't apply to residues (side chain), so only consider internal ones
+          mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
+        }
+        catch (...)
+        {
+          mod_found = false;
+        }
 
         // check if modification in ResidueDB
-        if (mod != nullptr)
+        if (mod_found)
         {
           const String& id = mod->getId().empty() ? mod->getFullId() : mod->getId();
 
@@ -530,6 +551,17 @@ namespace OpenMS
         }
       }
     }
+
+    // throwing (uncaught) exceptions needs to happen outside of critical section (see OpenMP reference manual)
+    if (!residue_found)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue not found: ", res_name);
+    }
+    else if (!mod_found)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification not found: ", modification);
+    }
+    
     return res;
   }
 

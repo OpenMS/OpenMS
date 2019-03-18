@@ -373,6 +373,11 @@ namespace OpenMS
           {
             warning(LOAD, "location of modification not defined!");
           }
+          if (mods.empty()) 
+          {
+            String message = String("Modification '") + accession + "' is unknown.";
+            throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
+          }
         }
       }
     }
@@ -986,9 +991,12 @@ namespace OpenMS
                 {
                   if (mods[s].hasSubstring(jt->getMetaValue("xl_mod")))
                   {
-                    const ResidueModification* mod = xl_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
-                    
-                    if (mod == nullptr)
+                    const ResidueModification* mod;
+                    try
+                    {
+                      mod = xl_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
+                    }
+                    catch (...)
                     {
                       if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                       {
@@ -1653,7 +1661,8 @@ namespace OpenMS
         }
         else
         {
-          LOG_WARN << String("Registered ") + (fixed ? "fixed" : "variable") + " modification '" << *it << "' is unknown and will be ignored." << std::endl;
+          String message = String("Registered ") + (fixed ? "fixed" : "variable") + " modification '" + *it + "' is unknown and will be ignored.";
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
         }
       }
     }

@@ -310,12 +310,12 @@ END_SECTION
 
 
 START_SECTION(void setModification(const String& name))
-    e_ptr->setOneLetterCode("M"); // we need M for this mod
-    TEST_EQUAL(e_ptr->getModificationName(), "")
-    TEST_EQUAL(e_ptr->getModification(), 0)
-    e_ptr->setModification("Oxidation");
-    TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
-    TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
+	e_ptr->setOneLetterCode("M"); // we need M for this mod
+	TEST_EQUAL(e_ptr->getModificationName(), "")
+	TEST_EQUAL(e_ptr->getModification(), 0)
+	e_ptr->setModification("Oxidation");
+	TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
+	TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
 	e_ptr->setOneLetterCode("B");
 END_SECTION
 

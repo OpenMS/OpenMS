@@ -35,6 +35,9 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 project("OpenMS_host")
 
+# required for cmake < 3.13 if ccache is used
+set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
+
 #------------------------------------------------------------------------------
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
@@ -43,8 +46,6 @@ SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 # Set C++ version
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
