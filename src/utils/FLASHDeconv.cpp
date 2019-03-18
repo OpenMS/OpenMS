@@ -328,13 +328,13 @@ protected:
                 findFeatures(map, featureCntr, fsf, specCntr, param);
             }
 
-
-            cout << "In this run, FLASHDeconv found " << massCntr << " masses in " << qspecCntr
-                 << " MS1 spectra out of "
-                 << specCntr << endl;
-            if (featureCntr > 0) cout << "Mass tracer found " << featureCntr << " features" << endl;
-
             if (isOutPathDir) {
+                cout << "In this run, FLASHDeconv found " << massCntr << " masses in " << qspecCntr
+                     << " MS1 spectra out of "
+                     << specCntr << endl;
+                if (featureCntr > 0) cout << "Mass tracer found " << featureCntr << " features" << endl;
+
+
                 fsm << "];";
                 fsm.close();
 
@@ -353,7 +353,7 @@ protected:
             }
             total_elapsed_cpu_secs += elapsed_cpu_secs;
             total_elapsed_wall_secs += elapsed_wall_secs;
-            peakGroups.clear();
+            vector<PeakGroup>().swap(peakGroups);
         }
 
         cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " << total_elapsed_wall_secs
@@ -524,8 +524,6 @@ protected:
                 Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);//
                 it->push_back(tp);
             }
-            peakGroups.clear();
-            filteredPeakGroups.clear();
             if (param.maxRTDelta > 0) it->sortByPosition();
         }
 
@@ -1094,9 +1092,7 @@ protected:
                     isQualified[massBinIndex] = ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakPairCount;
                 } else {
                     ++noneContinuousChargePeakPairCount[massBinIndex];
-                    //if(maxChargeRanges[mzBinIndex] == 0) maxChargeRanges[mzBinIndex] = j;// std::max(maxChargeRanges[mzBinIndex], j);
                 }
-                //maxChargeRanges[mzBinIndex]= std::max(maxChargeRanges[mzBinIndex], j);
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
@@ -1138,8 +1134,6 @@ protected:
                 if (massBinIndex >= binEnd) break;
                 if (toSkip[massBinIndex]) continue;
 
-                //auto &cc = continuousChargePeakPairCount[massBinIndex];
-                //if (cc < minContinuousChargePeakCount) continue;
                 int t = continuousChargePeakPairCount[massBinIndex] - noneContinuousChargePeakPairCount[massBinIndex];//
                 if (max <= t) {
                     max = t;
