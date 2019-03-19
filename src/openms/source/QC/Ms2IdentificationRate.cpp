@@ -32,36 +32,106 @@
 // $Authors: Patricia Scheil, Swenja Wagner, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/Ms2IdentificationRate.h>
+//#include <OpenMS/QC/Ms2IdentificationRate.h>
+#include <include/OpenMS/QC/Ms2IdentificationRate.h>
 #include <algorithm>
+#include <iostream>
+
 
 namespace OpenMS
 {
-public:
-  void compute(std::vector<PeptideIdentification> const & pep_identification, MSExperiment const & exp)
+
+  Ms2IdentificationRate::Ms2IdentificationRate(){};
+
+  Int64 Ms2IdentificationRate::countPeptideId_(std::vector<PeptideIdentification> peptide_id)
   {
+    Int64 counter{};
+    counter = count_if(peptide_id.begin(), peptide_id.end(), [] (PeptideIdentification const & x)
+    {
+      if ( !x.getHits().empty() )
+      {
+        if (x.getHits()[0].metaValueExists("target_decoy") )
+        {
+          if (x.getHits()[0].getMetaValue("target_decoy") == "target")
+          {
+            return true;
+          }
+        }
+      }
+    });
+    return counter;
+  }
+
+  //computes number of peptide identifications, number of ms2 spectra and ratio
+  //data is stored in vector of structs
+  void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file)
+  {
+    try
+    {
+      //checks if data exists
+      if (feature_map.empty())
+      {
+        throw "FeatureMap is empty";
+      }
+      if (exp.empty())
+      {
+        throw "MSExperiment is empty";
+      }
+
+    }
+    
+    catch (char const * e)
+    {
+      std::cout << "Empty data: " << e << std::endl;
+    }
+
+    if (file == "default")
+    {
+      std::cout << "There is no filename, you can enter it now: " << std::endl;
+      std::cin >> file;
+    }
+
     //count ms2 spectra
-    size_t ms2_level_counter{};
-    for auto spec : exp.getSpectra()
-  {
+    Int64 ms2_level_counter{};
+
+    for (auto const &spec : exp.getSpectra())
+    {
       if (spec.getMSLevel() == 2)
       {
         ms2_level_counter += 1;
       }
-  }
+    }
 
     //count peptideIdentifications
-    size_t peptide_identification_counter{};
-    peptide_identification_counter = count_if(pep_identification.begin(), pep_identification.end(), metaValueExists("target"));
+    Int64 peptide_identification_counter{};
+    peptide_identification_counter += countPeptideId_(feature_map.getUnassignedPeptideIdentifications());
+    for (auto const &f : feature_map)
+    {
+      peptide_identification_counter += countPeptideId_(f.getPeptideIdentifications());
+    }
 
     //compute ratio
-    size_t ratio{};
-    ratio = peptide_identification_counter/ms2_level_counter;
+    double ratio{};
+    ratio = (double) peptide_identification_counter / ms2_level_counter;
+
+    //store results
+    id_rate_data_.filename = file;
+    id_rate_data_.num_peptide_identification = peptide_identification_counter;
+    id_rate_data_.num_ms2_spectra = ms2_level_counter;
+    id_rate_data_.identification_rate = ratio;
+
+    rate_result_.push_back(id_rate_data_);
+
 
   }
 
-  std::vector<Ms2IdentificationRate::IdentificationRateData> getResults()
+  std::vector<OpenMS::Ms2IdentificationRate::IdentificationRateData> Ms2IdentificationRate::getResults()
   {
+    return rate_result_;
+  }
 
+  void Ms2IdentificationRate::clear()
+  {
+    rate_result_.clear();
   }
 } // namespace OpenMS

@@ -38,6 +38,8 @@
 #include <vector>
 #include <include/OpenMS/METADATA/PeptideIdentification.h>
 #include <include/OpenMS/KERNEL/MSExperiment.h>
+#include <include/OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
@@ -47,19 +49,25 @@ namespace OpenMS
     struct IdentificationRateData
     {
       std::string filename;
-      std::size_t num_peptide_identification;
-      std::size_t num_ms2_spectra;
+      Int64 num_peptide_identification;
+      Int64 num_ms2_spectra;
       double identification_rate;
     };
 
+    //Konstruktor und forceZeug
+
   private:
     std::vector<IdentificationRateData> rate_result_;
-    //std::vector<PeptideIdentification> pep_identification_;
-    //MSExperiment exp_;
+    IdentificationRateData id_rate_data_;
+
+    Int64 countPeptideId_(std::vector<PeptideIdentification> peptide_id);
 
   public:
-    void compute(std::vector<PeptideIdentification> const & pep_identification, MSExperiment const & exp);
+    Ms2IdentificationRate();
+    ~Ms2IdentificationRate();
+    void compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file = "default");
     std::vector<IdentificationRateData> getResults();
+    void clear();
 
   };
 
