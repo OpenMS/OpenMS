@@ -41,7 +41,7 @@ namespace OpenMS
   class OPENMS_DLLAPI QCBase
   {
   public:
-    enum class REQUIRES :
+    enum class Requires :
         UInt64
     {
       FAIL = 0,
@@ -50,6 +50,6 @@ namespace OpenMS
       PREFDR = 4,
       CONTAMINANTS = 8
     };
-    virtual UInt64 requires();
+    virtual UInt64 requires() = 0;
   };
 }
