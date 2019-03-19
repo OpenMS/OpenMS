@@ -194,7 +194,7 @@ protected:
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerIntOption_("minCDScore", "<score 0,1,2,...>", 1, "minimum charge distribution score threshold (>= 0)",
+        registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)",
                            false, true);
 
         registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
@@ -533,14 +533,24 @@ protected:
 
                 Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);//
                 it->push_back(tp);
+
+                /*auto perChargeIntensities = new double[param.chargeRange]; //
+                auto perIsotopeIntensities = new double[param.maxIsotopeCount];
+                updatePerChargeIsotopeIntensities(perChargeIntensities, perIsotopeIntensities, pg, param);
+
+                bool display = (pg.spec->getRT() < 415.4 && pg.spec->getRT() > 415.30 && pg.monoisotopicMass > 12972.22 && pg.monoisotopicMass <= 12972.23 );
+                pg.chargeDistributionScore = getChargeDistributionScore(perChargeIntensities, param, display);*/
+
             }
+
+
             vector<PeakGroup>().swap(filteredPeakGroups);
             if (param.maxRTDelta > 0) it->sortByPosition();
         }
 
         printProgress(1);
         allPeakGroups.shrink_to_fit();
-        return allPeakGroups; // TODO
+        return allPeakGroups; //
     }
 
     void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs, fstream &fsm) {
@@ -1064,7 +1074,7 @@ protected:
         int chargeRange = param.chargeRange;
         int hChargeSize = (int) param.hCharges.size();
         //double binWidth = param.binWidth;
-        int minContinuousChargePeakPairCount = param.minContinuousChargePeakCount;
+        int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
         long mzBinSize = (long) mzBins.size();
         long binEnd = (long) massBins.size();
 
@@ -1089,7 +1099,7 @@ protected:
                 if (cd == 1) {
                     auto &hbOffsets = hBinOffsets[j];
                     for (int k = 0; k < hChargeSize; k++) {
-                        long hbi = mzBinIndex - hbOffsets[k];// + rand() % 100000 - 50000 ;
+                        long hbi = mzBinIndex - hbOffsets[k];// + rand() % 10000 - 5000 ;
 
                         for (int i = -2; i <= 2; i++) {
                             auto bin = hbi + i;
@@ -1104,7 +1114,7 @@ protected:
                     }
                     if (hasHarmony[massBinIndex]) continue;
 
-                    isQualified[massBinIndex] = ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakPairCount;
+                    isQualified[massBinIndex] = ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount;
                 } else {
                     ++noneContinuousChargePeakPairCount[massBinIndex];
                 }
@@ -1347,26 +1357,46 @@ protected:
     }
 
 
-    int getChargeDistributionScore(double *perChargeIntensities, const Parameter &param) {
+    int getChargeDistributionScore(double *perChargeIntensities, const Parameter &param, bool display = false) {
         int maxIntensityIndex = 0;
         double maxIntensity = -1;
+        int nonZeroStart = -1 , nonZeroEnd = 0 ;
         for (int i = 0; i < param.chargeRange; i++) {
+            if(perChargeIntensities[i]>0){
+                if(nonZeroStart<0) nonZeroStart = i;
+                nonZeroEnd = i;
+            }
+
             if (maxIntensity < perChargeIntensities[i]) {
                 maxIntensity = perChargeIntensities[i];
                 maxIntensityIndex = i;
             }
+
+            if(display){
+                if(perChargeIntensities[i]>0){
+                    cout<< (i)<< " "<< perChargeIntensities[i]<<endl;
+                }
+            }
         }
 
+        if(display) cout<<"max : " << (maxIntensityIndex) << endl;
+
         int score = 0;
-        for (int k = 1; k < param.chargeRange; k++) {
+        //if(maxIntensityIndex == nonZeroStart || maxIntensityIndex == nonZeroEnd) score = -2;
+        for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++) {
             int d1 = k <= maxIntensityIndex ? 0 : -1;
             int d2 = k <= maxIntensityIndex ? -1 : 0;
             double &int1 = perChargeIntensities[k + d1];
             double &int2 = perChargeIntensities[k + d2];
             //if (int2 <= 0) continue;
-            if (int1 == int2) continue;
+            if(int1 == int2) continue;
             if (int1 == 0) score -= 2;
             else score += int1 > int2 ? 1 : -1;
+
+            if(display){
+                cout<< k+d1 << " " << k+d2<< " " <<int1 << " " << int2<<" "<<score<<endl;
+            }
+
         }
         return score;
     }
