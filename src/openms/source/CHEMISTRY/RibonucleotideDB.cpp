@@ -137,9 +137,9 @@ namespace OpenMS
       ribo->setCode(parts[1]);
     }
     ribo->setNewCode(parts[2]);
-    if (parts[3] == "preQ0base")
+    if (parts[3] == "preQ0base") // queuosine and its derivatives
     {
-      ribo->setOrigin('0');
+      ribo->setOrigin('G'); // queuosine replaces "G" in tRNA-Asp/Asn
     }
     else if (parts[3].size() == 1) // A, C, G, U
     {
