@@ -3279,14 +3279,21 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
     const String& ef = pa.first;
     const set<String>& ambiguities = precursor_adducts.mod_combinations.at(ef);
 
-    // for each ambiguous precursor adduct (stored as nucleotide formula e.g.: "AU-H2O")
+    if (ambiguities.size() >= 2)
+    {
+      LOG_DEBUG << "Mods ambiguous on the level of empirical formula: " << endl;
+      for (auto const & pc_adduct : ambiguities) { LOG_DEBUG << pc_adduct << endl; }
+    } 
+
+    // for each ambiguous (at the level of empirical formula) precursor adduct (stored as nucleotide formula e.g.: "AU-H2O")
     for (auto const & pc_adduct : ambiguities)
     {
       // calculate feasible fragment adducts and store them for lookup
-      auto feasible_adducts = getFeasibleFragmentAdducts(pc_adduct, ef, nucleotide_to_fragment_adducts, can_xl);
+      const MS2AdductsOfSinglePrecursorAdduct& feasible_adducts = getFeasibleFragmentAdducts(pc_adduct, ef, nucleotide_to_fragment_adducts, can_xl);
       // TODO: check if needed anymore - std::sort(feasible_adducts.begin(), feasible_adducts.end());
       all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
-      break; // only store one precursor adduct for multiple ambiguities (e.g. AUG, AGU, UAG..)
+      // only store one precursor adduct for multiple ambiguities (e.g., AUG, AGU, UAG, ...)
+      break;
     }
   }
 
@@ -3612,7 +3619,6 @@ void RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
 
     }
 }
-
 
 
 void RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_sequence,
