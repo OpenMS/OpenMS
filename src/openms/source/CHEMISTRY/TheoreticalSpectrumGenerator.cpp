@@ -1088,38 +1088,7 @@ namespace OpenMS
       spectrum.push_back(p);
     }
 
-    //loss of ammonia
-    ion = oligo.getFormula(NASequence::Full, charge) - EmpiricalFormula("NH3");
-    mono_pos = ion.getMonoWeight();
-    if (add_isotopes_)
-    {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
-      UInt j(0);
-      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
-      {
-        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U * charge_unit ) / (double)(abs(charge)));
-        p.setIntensity(pre_int_NH3_ *  it->getIntensity());
-        if (add_metainfo_)
-        {
-          String ion_name("[M"+String(charge_sign)+"H]-NH3" + String((Size)abs(charge), charge_sign));
-          spectrum.getStringDataArrays()[0].push_back(ion_name);
-          spectrum.getIntegerDataArrays()[0].push_back(charge);
-        }
-        spectrum.push_back(p);
-      }
-    }
-    else
-    {
-      p.setMZ(mono_pos / (double)(abs(charge)));
-      p.setIntensity(pre_int_NH3_);
-      if (add_metainfo_)
-      {
-        String ion_name("[M"+String(charge_sign)+"H]-NH3" + String((Size)abs(charge), charge_sign));
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(charge);
-      }
-      spectrum.push_back(p);
-    }
+    //loss of ammonia: not applicable for nucleic acid sequences
   }
 
 
