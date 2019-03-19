@@ -908,44 +908,62 @@ namespace OpenMS
       ++next_aa;
       if (*next_aa == '.') ++next_aa;
 
-      aas.n_term_mod_ = &(mod_db->getModification(mod, String(*next_aa), ResidueModification::N_TERM));
+      const ResidueModification* m;
+      try
+      {
+        m = mod_db->getModification(mod, String(*next_aa), ResidueModification::N_TERM);      
+      }
+      catch (...)
+      {
+        // rethrow with some additional information on term
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+          "Cannot convert string to peptide modification. No N-terminal modification matches to term specificity and origin.");
+      }
+            
+      aas.n_term_mod_ = m;
       return mod_end;
     }
 
     const String& res = aas.peptide_.back()->getOneLetterCode();
     if (specificity == ResidueModification::C_TERM) 
     {
-      aas.c_term_mod_ = &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
+      const ResidueModification* m;
+      try
+      {
+        m = mod_db->getModification(mod, res, ResidueModification::C_TERM);
+      }
+      catch (...)
+      {
+        // catch and rethrow with some additional information on term
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+          "Cannot convert string to peptide modification. No C-terminal modification matches to term specificity and origin.");
+      }
+      aas.c_term_mod_ = m;
       return mod_end;
     }
 
     try
     {
-      aas.peptide_.back() = ResidueDB::getInstance()->getModifiedResidue(aas.peptide_.back(), mod);
+      const Residue* internal = ResidueDB::getInstance()->getModifiedResidue(aas.peptide_.back(), mod);
+      aas.peptide_.back() = internal;
     }
-    catch (Exception::InvalidValue) // no such mod for this residue
+    catch(...)  // no internal mod for this residue
     {
       // TODO: get rid of this code path, its deprecated and is only a hack for
       // C-terminal modifications that don't use the dot notation
       if (std::distance(mod_end, str.end()) == 1) // potentially a C-terminal mod without explicitly declaring it using dot notation?
       {
         // old ambiguous notation: Modification might be at last amino acid or at C-terminus
-        try
-        {
-          // this might throw ElementNotFound, but so be it:
-          const ResidueModification* term_mod = &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
-          aas.c_term_mod_ = term_mod;
-        }
-        catch (Exception::ElementNotFound& /* e */)
-        { // just do nothing, the mod is presumably a non-terminal one
-        }
+        const ResidueModification* term_mod = mod_db->getModification(mod, res, ResidueModification::C_TERM);
+        aas.c_term_mod_ = term_mod;      
       }
       else
       {
-        throw; // re-throw the InvalidValue
+        // neither internal nor terminal modification matches to our database
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+          "Cannot convert string to peptide modification. No modification matches in our database.");
       }
     }
-
     return mod_end;
   }
 
@@ -997,7 +1015,7 @@ namespace OpenMS
         mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
         if (!term_mods.empty())
         {
-          aas.n_term_mod_ = &(mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM));
+          aas.n_term_mod_ = mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM);
           return mod_end;
         }
         LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
@@ -1009,7 +1027,7 @@ namespace OpenMS
         mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
         if (!term_mods.empty())
         {
-          aas.n_term_mod_ = &(mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM));
+          aas.n_term_mod_ = mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM);
           return mod_end;
         }
         LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
@@ -1049,7 +1067,7 @@ namespace OpenMS
           mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, residue->getOneLetterCode(), ResidueModification::N_TERM);
           if (!term_mods.empty())
           {
-            aas.n_term_mod_ = &(mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::N_TERM));
+            aas.n_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::N_TERM);
             return mod_end;
           }
         }
@@ -1058,7 +1076,7 @@ namespace OpenMS
           mod_db->searchModificationsByDiffMonoMass(res_mods, mass, tolerance, residue->getOneLetterCode(), ResidueModification::C_TERM);
           if (!res_mods.empty())
           {
-            aas.c_term_mod_ = &(mod_db->getModification(res_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM));
+            aas.c_term_mod_ = mod_db->getModification(res_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
             return mod_end;
           }
         }
@@ -1108,7 +1126,7 @@ namespace OpenMS
                                                   ResidueModification::C_TERM);
         if (!term_mods.empty())
         {
-          aas.c_term_mod_ = &(mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM));
+          aas.c_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
           return mod_end;
         }
         LOG_DEBUG << "Warning: unknown C-terminal modification [+delta mass]'" + mod 
@@ -1123,7 +1141,7 @@ namespace OpenMS
                                                   ResidueModification::C_TERM);
         if (!term_mods.empty())
         {
-          aas.c_term_mod_ = &(mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM));
+          aas.c_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
           return mod_end;
         }
         LOG_DEBUG << "Warning: unknown C-terminal modification [absolute mass] '" + mod 
@@ -1160,7 +1178,7 @@ namespace OpenMS
       else
       {
         Size mod_idx = mod_db->findModificationIndex(residue_name);
-        aas.n_term_mod_ = &mod_db->getModification(mod_idx);
+        aas.n_term_mod_ = mod_db->getModification(mod_idx);
       }
       return mod_end;
     }
@@ -1184,7 +1202,7 @@ namespace OpenMS
       else
       {
         Size mod_idx = mod_db->findModificationIndex(residue_name);
-        aas.c_term_mod_ = &mod_db->getModification(mod_idx);
+        aas.c_term_mod_ = mod_db->getModification(mod_idx);
       }
       return mod_end;
     }
@@ -1223,7 +1241,7 @@ namespace OpenMS
 
       // now use the new modification
       Size mod_idx = mod_db->findModificationIndex(modification_name);
-      const ResidueModification* res_mod = &mod_db->getModification(mod_idx);
+      const ResidueModification* res_mod = mod_db->getModification(mod_idx);
 
       // Note: this calls setModification_ on a new Residue which changes its
       // weight to the weight of the modification (set above)
@@ -1374,7 +1392,7 @@ namespace OpenMS
       return;
     }
 
-    n_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
+    n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
   }
 
   void AASequence::setCTerminalModification(const String& modification)
@@ -1384,7 +1402,7 @@ namespace OpenMS
       c_term_mod_ = nullptr;
       return;
     }
-    c_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
+    c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
   }
 
   const String& AASequence::getNTerminalModificationName() const

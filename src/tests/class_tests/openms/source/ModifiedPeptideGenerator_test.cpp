@@ -76,7 +76,7 @@ START_SECTION((static void applyFixedModifications(const std::vector< ResidueMod
   for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
   {
     String modification(*mod_it);
-    fixed_mods.push_back( ModificationsDB::getInstance()->getModification(modification));
+    fixed_mods.push_back(*ModificationsDB::getInstance()->getModification(modification));
   }
 
   AASequence seq0 = AASequence::fromString("AAAACAAAA"); // exactly one target site
@@ -104,7 +104,7 @@ START_SECTION((static void applyFixedModifications(const std::vector< ResidueMod
    for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
    {
      String modification(*mod_it);
-     fixed_mods.push_back(ModificationsDB::getInstance()->getModification(modification));
+     fixed_mods.push_back(*ModificationsDB::getInstance()->getModification(modification));
    }
   seq0 = AASequence::fromString("KAAAAAAAA"); // exactly one target site
   seq1 = AASequence::fromString("K(Carbamyl)AAAAAAAA"); // ambigous case: is mod Carbamyl (K) or (N-Term)?
@@ -125,7 +125,7 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
   {
     String modification(*mod_it);
-    fixed_mods.push_back( ModificationsDB::getInstance()->getModification(modification));
+    fixed_mods.push_back(*ModificationsDB::getInstance()->getModification(modification));
   }
 
   vector<AASequence> modified_peptides;
@@ -203,7 +203,7 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
   {
     String modification(*mod_it);
-    fixed_mods.push_back( ModificationsDB::getInstance()->getModification(modification));
+    fixed_mods.push_back(*ModificationsDB::getInstance()->getModification(modification));
   }
 
   seq = AASequence::fromString("ACAACAACA"); // three target sites
@@ -237,7 +237,7 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
   {
     String modification(*mod_it);
-    fixed_mods.push_back( ModificationsDB::getInstance()->getModification(modification));
+    fixed_mods.push_back(*ModificationsDB::getInstance()->getModification(modification));
   }
   modified_peptides.clear();
 
@@ -256,7 +256,7 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
   {
     String modification(*mod_it);
-    fixed_mods.push_back(ModificationsDB::getInstance()->getModification(modification));
+    fixed_mods.push_back(*ModificationsDB::getInstance()->getModification(modification));
   }
 
   modified_peptides.clear();

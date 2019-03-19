@@ -76,7 +76,7 @@ START_SECTION((bool hasResidue(const String& name) const))
 END_SECTION
 
 START_SECTION(bool hasResidue(const Residue* residue) const)
-	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("BLUBB")), false)
+	TEST_EXCEPTION(Exception::InvalidValue, ptr->hasResidue(ptr->getResidue("BLUBB")))
 	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("LYS")), true)
 	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("K")), true)
 END_SECTION
@@ -117,24 +117,6 @@ END_SECTION
 
 START_SECTION(void setResidues(const String& filename))
 	NOT_TESTABLE // this method is hard to test, just provided for convenience
-END_SECTION
-
-START_SECTION(void addResidue(const Residue& residue))
-	TEST_EQUAL(ptr->hasResidue("UGU"), false)
-	TEST_EQUAL(ptr->hasResidue("$"), false)
-	TEST_EQUAL(ptr->hasResidue("$hortName"), false)
-	TEST_EQUAL(ptr->hasResidue("MyLittleUGUResidue"), false)
-	Residue res;
-	res.setShortName("$hortName");
-	res.setOneLetterCode("$");
-	res.setThreeLetterCode("UGU");
-	res.setName("MyLittleUGUResidue");
-	res.setFormula(EmpiricalFormula("C3H4O4"));
-	ptr->addResidue(res);
-	TEST_EQUAL(ptr->hasResidue("UGU"), true)
-	TEST_EQUAL(ptr->hasResidue("$"), true)
-	TEST_EQUAL(ptr->hasResidue("$hortName"), true)
-	TEST_EQUAL(ptr->hasResidue("MyLittleUGUResidue"), true)
 END_SECTION
 
 START_SECTION(ResidueIterator beginResidue())

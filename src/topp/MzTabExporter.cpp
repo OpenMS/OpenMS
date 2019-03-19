@@ -234,34 +234,34 @@ protected:
         mp.setCVLabel("UNIMOD");
         ModificationsDB* mod_db = ModificationsDB::getInstance();
         // MzTab standard is to just report Unimod accession.
-        ResidueModification m = mod_db->getModification(*sit);
-        String unimod_accession = m.getUniModAccession();
+        const ResidueModification* m = mod_db->getModification(*sit);
+        String unimod_accession = m->getUniModAccession();
         mp.setAccession(unimod_accession.toUpper());
-        mp.setName(m.getId());
+        mp.setName(m->getId());
         mod.modification = mp;
 
-        if (m.getTermSpecificity() == ResidueModification::C_TERM)
+        if (m->getTermSpecificity() == ResidueModification::C_TERM)
         {
           mod.position = MzTabString("Any C-term");
         }
-        else if (m.getTermSpecificity() == ResidueModification::N_TERM)
+        else if (m->getTermSpecificity() == ResidueModification::N_TERM)
         {
           mod.position = MzTabString("Any N-term");
         }
-        else if (m.getTermSpecificity() == ResidueModification::ANYWHERE)
+        else if (m->getTermSpecificity() == ResidueModification::ANYWHERE)
         {
           mod.position = MzTabString("Anywhere");
         }
-        else if (m.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+        else if (m->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
         {
           mod.position = MzTabString("Protein C-term");
         }
-        else if (m.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+        else if (m->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
         {
           mod.position = MzTabString("Protein N-term");
         }
 
-        mod.site = MzTabString(m.getOrigin());
+        mod.site = MzTabString(m->getOrigin());
         mods_mztab[index] = mod;
       }
       return mods_mztab;
