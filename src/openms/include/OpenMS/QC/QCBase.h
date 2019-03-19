@@ -34,20 +34,22 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
+
 namespace OpenMS
 {
-  enum class REQUIRES :
-      UInt64
-  {
-    FAIL = 0,
-    RAWMZML = 1,
-    POSTFDR = 2,
-    PREFDR = 4,
-    CONTAMINANTS = 8
-  };
   class OPENMS_DLLAPI QCBase
   {
   public:
+    enum class REQUIRES :
+        UInt64
+    {
+      FAIL = 0,
+      RAWMZML = 1,
+      POSTFDR = 2,
+      PREFDR = 4,
+      CONTAMINANTS = 8
+    };
     virtual UInt64 requires();
   };
 }
