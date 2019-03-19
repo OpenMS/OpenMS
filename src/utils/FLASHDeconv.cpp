@@ -191,7 +191,7 @@ protected:
         //registerIntOption_("minCC", "<min charge count>", 4,
         //                  "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))",
         //                 false, true);
-        registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
+        registerIntOption_("minIC", "<min isotope count>", 1, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)",
@@ -304,7 +304,6 @@ protected:
                 fsm << "m=[";
             }
 
-            //param.numOverlappedScans = param.numOverlappedScans > param.maxNumOverlappedScans ? param.maxNumOverlappedScans : param.numOverlappedScans;
             cout << "Running FLASHDeconv ... " << endl;
             auto begin = clock();
             auto t_start = chrono::high_resolution_clock::now();
@@ -314,8 +313,6 @@ protected:
             elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
             elapsed_wall_secs = chrono::duration<double>(t_end - t_start).count();
 
-
-            // if (!peakGroups.empty()) {
             cout << endl << "writing results ...";
             cout.flush();
 
