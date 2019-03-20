@@ -100,7 +100,7 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
- // stores which residues (known to give rise to immonium ions) are in the sequence
+// stores which residues (known to give rise to immonium ions) are in the sequence
 struct ImmoniumIonsInPeptide
 {
   ImmoniumIonsInPeptide(const String& s)
@@ -3236,9 +3236,8 @@ static void scoreShiftedFragments_(
   }
 };
 
-
-
-vector<ResidueModification> RNPxlParameterParsing::getModifications(StringList modNames) {
+vector<ResidueModification> RNPxlParameterParsing::getModifications(StringList modNames) 
+{
   vector<ResidueModification> modifications;
 
   // iterate over modification names and add to vector
@@ -3267,17 +3266,25 @@ vector<ResidueModification> RNPxlParameterParsing::getModifications(StringList m
 
 RNPxlParameterParsing::PrecursorsToMS2Adducts
 RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
-  const RNPxlModificationMassesResult &precursor_adducts,
-  const RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
-  const set<char> &can_xl) 
+  const RNPxlModificationMassesResult & precursor_adducts,
+  const RNPxlParameterParsing::NucleotideToFragmentAdductMap & nucleotide_to_fragment_adducts,
+  const set<char> & can_xl) 
 {
   PrecursorsToMS2Adducts all_pc_all_feasible_adducts;
 
+  map<String, double> pc2mass;
+  map<String, String> pc2ef;
+
+  using PrecursorAdductMassAndMS2Fragments = pair<double, set<double>>;
+  using PrecursorAdductAndXLNucleotide = pair<String, char>;
+  map<PrecursorAdductMassAndMS2Fragments, vector<PrecursorAdductAndXLNucleotide>> mass_frags2pc_xlnuc;
+  
   // for all distinct precursor adduct formulas/masses
   for (auto const & pa : precursor_adducts.mod_masses)
   {
     // get all precursor nucleotide formulas matching current empirical formula/mass
     const String& ef = pa.first;
+    const double pc_mass = pa.second;
     const set<String>& ambiguities = precursor_adducts.mod_combinations.at(ef);
 
     if (ambiguities.size() >= 2)
@@ -3287,30 +3294,38 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
     } 
 
     // for each ambiguous (at the level of empirical formula) precursor adduct (stored as nucleotide formula e.g.: "AU-H2O")
-    for (auto const & pc_adduct : ambiguities)
+    for (const String & pc_adduct : ambiguities)
     {
       // calculate feasible fragment adducts and store them for lookup
       const MS2AdductsOfSinglePrecursorAdduct& feasible_adducts = getFeasibleFragmentAdducts(pc_adduct, ef, nucleotide_to_fragment_adducts, can_xl);
       // TODO: check if needed anymore - std::sort(feasible_adducts.begin(), feasible_adducts.end());
-      all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
-      // only store one precursor adduct for multiple ambiguities (e.g., AUG, AGU, UAG, ...)
-      break; 
-      //
-      // TODO!!!!!!!!! get rid of break (properly)
-      // 1. make sure that nucleotide permutations are discarded 
-      // 2. but keep different nucleotide combinations resulting in same empirical formula
-      //
+       all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
+       pc2mass[pc_adduct] = pc_mass;
+       pc2ef[pc_adduct] = ef;
     }
   }
 
   // print feasible fragment adducts and marker ions
   for (auto const & fa : all_pc_all_feasible_adducts)
   {
-    LOG_DEBUG << "Precursor adduct: " << fa.first << "\n";
+    const String & pc = fa.first;
+    LOG_DEBUG << "Precursor adduct: " << pc << "\t" << pc2ef[pc] << "\t" << pc2mass[pc] << "\n";
+
+    // collect set of masses to detect ambiguities
+    set<double> mi_fragments;
+    for (auto const & mis : fa.second.marker_ions) { mi_fragments.insert(mis.mass); }
 
     for (auto const & ffa : fa.second.feasible_adducts)
     {
       const char & nucleotide = ffa.first;
+      set<double> fragments;
+      for (auto const & f : mi_fragments) { fragments.insert(f); } // copy over common marker ion masses
+      for (auto const & f : ffa.second) { fragments.insert(f.mass); } // copy over xl-ed nucleotide associated fragment masses
+      // we want to track if a certain MS1 mass and set of MS2 ions allow to distinguish 
+      // (at least in theory) precursor adduct and cross-linked nucleotide 
+      // to do so, we map mass and set of fragment ions to precursor adduct and cross-linked nucleotide 
+      mass_frags2pc_xlnuc[{pc2mass[pc], fragments}].push_back({pc, nucleotide});
+
       LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
       for (auto const & a : ffa.second)
       {
@@ -3325,6 +3340,23 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
     }
   }
   LOG_DEBUG << endl;
+
+  // report precursor adducts/cross-linked nucleotide combinations with same mass that produce the exact same MS2 ions as indistinguishable
+  for (auto const & f : mass_frags2pc_xlnuc)
+  {
+    if (f.second.size() > 1)
+    {
+      LOG_INFO << "Theoretical indistinguishable cross-links detected: "  << endl;
+      for (auto const & m : f.second)
+      {
+        LOG_INFO << "Precursor: " << m.first << "\t and cross-linked nucleotide: " << m.second << endl;
+        for (auto const & fragment_mass : f.first.second)
+        {
+          LOG_INFO << "Fragment mass: " << fragment_mass << endl;
+        }
+      }      
+    }
+  }
 
   return all_pc_all_feasible_adducts;
 }
