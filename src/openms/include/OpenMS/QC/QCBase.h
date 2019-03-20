@@ -69,10 +69,8 @@ namespace OpenMS
     {
     public:
       // Constructors
-      Status()
-      {
-        value_ = 0;
-      }
+      Status() : value_(0)
+      {}
       Status(const Requires& req)
       {
         value_ = UInt64(req);
@@ -89,13 +87,13 @@ namespace OpenMS
       }
       Status& operator=(const Status& stat) = default;
       // Bitwise operators
-      Status operator&(const Requires& req)
+      Status operator&(const Requires& req) const
       {
         Status s = *this;
         s.value_ &= UInt64(req);
         return s;
       }
-      Status operator&(const Status& stat)
+      Status operator&(const Status& stat) const
       {
         Status s = *this;
         s.value_ &= stat.value_;
@@ -111,13 +109,13 @@ namespace OpenMS
         value_ &= stat.value_;
         return *this;
       }
-      Status operator|(const Requires& req)
+      Status operator|(const Requires& req) const
       {
         Status s = *this;
         s.value_ |= UInt64(req);
         return s;
       }
-      Status operator|(const Status& stat)
+      Status operator|(const Status& stat) const
       {
         Status s = *this;
         s.value_ |= stat.value_;
@@ -133,15 +131,19 @@ namespace OpenMS
         value_ |= stat.value_;
         return *this;
       }
-      // Check if input status fulfills requirement status
-      bool isSupersetOff(const Status& stat)
+      /**
+       * @brief Check if input status fulfills requirement status.
+       */
+      bool isSuperSetOf(const Status& stat)
       {
         return ((value_ & stat.value_) == stat.value_);
       }
     private:
       UInt64 value_;
     };
-    // Return requirements !
+    /**
+     *@brief Returns the input data requirements of the compute(...) function
+     */
     virtual Status requires() const = 0;
   };
 }

@@ -133,16 +133,16 @@ protected:
 private:
   void updateStatus_(QCBase::Status& status, UInt64& number_exps, const StringList& files, const String& port, const QCBase::Requires& req)
   {
+    // since files are optional, leave function if non are provided by the user
     if (!files.empty())
     {
-      if (number_exps == 0) number_exps = files.size();
-      if (number_exps != files.size())
+      if (number_exps == 0) number_exps = files.size(); // Number of experiments is determined from first non empty file list.
+      if (number_exps != files.size()) // exit if any file list has different length
       {
         cerr << port + ": invalid number of files. Expected were " << number_exps << ".\n";
         exit(ILLEGAL_PARAMETERS);
       }
-      else
-        status &= req;
+      status &= req;
     }
   }
 };
