@@ -53,9 +53,9 @@ public:
         int maxMassCount;
         double isotopeCosineThreshold;
         int chargeDistributionScoreThreshold;
-        double maxRTDelta;
+        double RTwindow;
         vector<Byte> hCharges{2, 3, 5, 7};
-        int numOverlappedScans = 10;
+        int numOverlappedScans = 20;
         int threads = 1;
     };
 
@@ -202,10 +202,10 @@ protected:
         registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
         registerDoubleOption_("minIsoScore", "<score 0-1>", .5, "minimum isotope cosine score threshold (0-1)", false,
                               true);
-        registerDoubleOption_("maxRTDelta", "<maximum RT between masses for feature finding>", 20.0,
-                              "maximum RT between masses for feature finding", false, true);
+        registerDoubleOption_("RTwindow", "<RT window in seconds>", 30.0,
+                              "RT window for mass candidate keeping", false, true);
 
-        //registerDoubleOption_("maxRTDelta", "<max RT delta>", 10.0, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
+        //registerDoubleOption_("RTwindow", "<max RT delta>", 10.0, "max retention time duration with no peak in a feature (seconds); if negative, no feature finding performed", false, true);
     }
 
     Parameter setParameter() {
@@ -224,7 +224,7 @@ protected:
         param.maxMassCount = getIntOption_("maxMC");
         param.isotopeCosineThreshold = getDoubleOption_("minIsoScore");
         param.chargeDistributionScoreThreshold = getIntOption_("minCDScore");
-        param.maxRTDelta = getDoubleOption_("maxRTDelta");
+        param.RTwindow = getDoubleOption_("RTwindow");
         param.threads = getIntOption_("threads");
         //param.minChargeCoverage = .5;
         return param;
@@ -268,9 +268,9 @@ protected:
 
         if (!isOutPathDir) {
             fs.open(outfilePath + ".tsv", fstream::out);
-            if (param.maxRTDelta > 0) fsf.open(outfilePath + "feature.tsv", fstream::out);
+            if (param.RTwindow > 0) fsf.open(outfilePath + "feature.tsv", fstream::out);
 
-            writeHeader(fs, fsf, param.maxRTDelta > 0);
+            writeHeader(fs, fsf, param.RTwindow > 0);
             fsm.open(outfilePath + ".m", fstream::out);
             fsm << "m=[";
         }
@@ -290,13 +290,22 @@ protected:
 
             param.fileName = QFileInfo(infile).fileName().toStdString();
 
+            int ms1Cntr = 0;
+            for (auto it = map.begin(); it != map.end(); ++it) {
+                if (it->getMSLevel() != 1) continue;
+                ms1Cntr++;
+            }
+
+            double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
+            param.numOverlappedScans = (int)(.5 + param.RTwindow / rtDuration);
+            //cout<<param.numOverlappedScans<<endl;
             if (isOutPathDir) {
                 std::string outfileName(param.fileName);
                 std::size_t found = outfileName.find_last_of(".");
                 outfileName = outfileName.substr(0, found);
                 fs.open(outfilePath + outfileName + ".tsv", fstream::out);
-                if (param.maxRTDelta > 0) fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
-                writeHeader(fs, fsf, param.maxRTDelta > 0);
+                if (param.RTwindow > 0) fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
+                writeHeader(fs, fsf, param.RTwindow > 0);
 
                 outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
                 outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
@@ -307,6 +316,7 @@ protected:
             cout << "Running FLASHDeconv ... " << endl;
             auto begin = clock();
             auto t_start = chrono::high_resolution_clock::now();
+            //continue;
             auto peakGroups = Deconvolution(map, param, averagines, specCntr, qspecCntr, massCntr);
             auto t_end = chrono::high_resolution_clock::now();
             auto end = clock();
@@ -321,8 +331,8 @@ protected:
                 writePeakGroup(pg, param, fs, fsm);
             cout << "done\n";
 
-            if (param.maxRTDelta > 0 && !peakGroups.empty() && specCntr > 0 && map.size() > 1) {
-                findFeatures(map, featureCntr, fsf, specCntr, param);
+            if (param.RTwindow > 0 && !peakGroups.empty() && specCntr > 0 && map.size() > 1) {
+                findFeatures(map, featureCntr, fsf, param);
             }
 
             if (isOutPathDir) {
@@ -336,7 +346,7 @@ protected:
                 fsm.close();
 
                 fs.close();
-                if (param.maxRTDelta > 0) fsf.close();
+                if (param.RTwindow > 0) fsf.close();
 
                 total_specCntr += specCntr;
                 total_qspecCntr += qspecCntr;
@@ -376,12 +386,12 @@ protected:
             fsm << "];";
             fsm.close();
             fs.close();
-            if (param.maxRTDelta > 0) fsf.close();
+            if (param.RTwindow > 0) fsf.close();
         }
         return EXECUTION_OK;
     }
 
-    void findFeatures(MSExperiment &map, int &featureCntr, fstream &fsf, int &ms1Cntr, Parameter &param) {
+    void findFeatures(MSExperiment &map, int &featureCntr, fstream &fsf, Parameter &param) {
         Param common_param = getParam_().copy("algorithm:common:", true);
         writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
@@ -402,11 +412,12 @@ protected:
         mtd_param.setValue("quant_method", "area", "");
         mtd_param.setValue("noise_threshold_int", .0, "");
 
-        double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
+        //double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
 
+        //cout<<(int) (param.RTwindow / rtDuration)<<endl;
         mtd_param.setValue("min_sample_rate", 0.01, "");
-        mtd_param.setValue("trace_termination_outliers", (int) (param.maxRTDelta / rtDuration), "");
-        mtd_param.setValue("min_trace_length", param.maxRTDelta / 2, "");
+        mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans, "");
+        mtd_param.setValue("min_trace_length", param.RTwindow / 2, "");
         //mtd_param.setValue("max_trace_length", 1000.0, "");
         mtdet.setParameters(mtd_param);
 
@@ -500,7 +511,7 @@ protected:
                     //fsmm,
                     //(it->getRT() > 360 && it->getRT() < 380),
                                                         param);
-            if (param.maxRTDelta > 0){
+            if (param.RTwindow > 0){
                 it->clear(false);
                 //it->shrink_to_fit();
             }
@@ -520,7 +531,7 @@ protected:
                 pg.specIndex = qspecCntr;
                 pg.massCntr = (int) filteredPeakGroups.size();
                 allPeakGroups.push_back(pg);
-                if (param.maxRTDelta <= 0) continue;
+                if (param.RTwindow <= 0) continue;
 
                 /*for(auto &p : pg.peaks){
                     Peak1D tp(p.getMonoIsotopeMass(), (float) p.orgPeak->getIntensity());//
@@ -542,7 +553,7 @@ protected:
 
 
             vector<PeakGroup>().swap(filteredPeakGroups);
-            if (param.maxRTDelta > 0) it->sortByPosition();
+            if (param.RTwindow > 0) it->sortByPosition();
         }
 
         printProgress(1);
@@ -672,18 +683,34 @@ protected:
                                                hBinOffsets,
                                                unionPrevMassBins,
                                                param);
+
         auto unionMassBins = unionPrevMassBins | massBins;
         auto peakGroups = getPeakGroupsWithMassBins(unionMassBins, massBins, logMzPeaks, mzBinMinValue,
                                                     binOffsets, perMassChargeRanges,
                                                     param);
 
+
+        delete[] binOffsets;
+        // free dynamically allocated memory
+        for( int i = 0 ; i < 2 ; i++ )
+        {
+            delete[] perMassChargeRanges[i]; // delete array within matrix
+        }// delete actual matrix
+        delete[] perMassChargeRanges;
         // prev mass update here.
+
+
+
         if (prevMassBinVector.size() >= (Size) param.numOverlappedScans) {
+            auto &p = prevMassBinVector[0];
+            vector<Size>().swap(p);
             prevMassBinVector.erase(prevMassBinVector.begin());
             prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
         }
+
         auto index = massBins.find_first();
         vector<Size> mb;
+        mb.reserve(massBins.count());
         while (index != massBins.npos) {
             mb.push_back(index);
             index = massBins.find_next(index);
@@ -815,6 +842,9 @@ protected:
             }
             massBinIndex = unionedMassBins.find_next(massBinIndex);
         }
+        delete[] currentPeakIndex;
+
+
         return peakGroups;
     }
 
@@ -1080,6 +1110,9 @@ protected:
         //Byte *_continuousChargePeakPairCount = new Byte[massBins.size()];
         //fill_n(_continuousChargePeakPairCount, massBins.size(), 0);
 
+        //Byte *maxContinuousChargePeakPairCount = new Byte[massBins.size()];
+        //fill_n(maxContinuousChargePeakPairCount, massBins.size(), 0);
+
         auto mzBinIndex = mzBins.find_first();
         while (mzBinIndex != mzBins.npos) {
             for (Byte j = 0; j < chargeRange; j++) {
@@ -1110,11 +1143,16 @@ protected:
                         if (hasHarmony[massBinIndex]) break;
                     }
                     if (hasHarmony[massBinIndex]) continue;
-
+                    //++continuousChargePeakPairCount[massBinIndex];
                     isQualified[massBinIndex] = ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount;
                 } else {
                     ++noneContinuousChargePeakPairCount[massBinIndex];
+                    //_continuousChargePeakPairCount[massBinIndex] = 0;
                 }
+
+                //maxContinuousChargePeakPairCount[massBinIndex] = max(maxContinuousChargePeakPairCount[massBinIndex], ++_continuousChargePeakPairCount[massBinIndex]);
+                //isQualified[massBinIndex] = maxContinuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount;
+
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
@@ -1209,6 +1247,8 @@ protected:
             pg.intensity = accumulate(perChargeIntensities, perChargeIntensities + param.chargeRange, .0);
             filteredPeakGroups.push_back(pg);
             intensities.push_back(pg.intensity);
+            delete[] perChargeIntensities;
+            delete[] perIsotopeIntensities;
         }
         if (filteredPeakGroups.empty()) return filteredPeakGroups;
         filterPeakGroupsByIntensity(peakGroups, intensities, param);
@@ -1439,7 +1479,7 @@ protected:
         map<int, vector<double>> massMap;
         map<int, vector<String>> writeMap;
 
-        double delta = param.maxRTDelta;
+        double delta = param.RTwindow;
 
         //sort(peakGroups.begin(), peakGroups.end());
         for(auto& pg : peakGroups){
