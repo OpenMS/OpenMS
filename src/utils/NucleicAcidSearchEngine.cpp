@@ -116,7 +116,7 @@ using namespace std;
 
     Output is in the form of an mzTab file containing the search results and an optional idXML file containing identifications.
 
-    Modified nucleic acids can either be included in the FASTA input file, or set as @p variable or @p fixed modifications in the tool options.
+    Modified nucleic acids can either be included in the FASTA input file, or set as @p variable modifications in the tool options.
     All modification syntax is taken from the Modomics database (http://modomics.genesilico.pl/)
 
 
@@ -217,8 +217,6 @@ protected:
       }
     }
 
-    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications", false);
-    setValidStrings_("modifications:fixed", all_mods);
     registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligonucleotide", false, false);
@@ -934,16 +932,10 @@ protected:
       (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
     search_param.min_length = getIntOption_("oligo:min_size");
 
-    StringList fixed_mod_names = getStringList_("modifications:fixed");
-    search_param.fixed_mods.insert(fixed_mod_names.begin(),
-                                   fixed_mod_names.end());
-
     StringList var_mod_names = getStringList_("modifications:variable");
     search_param.variable_mods.insert(var_mod_names.begin(),
                                       var_mod_names.end());
 
-    set<ConstRibonucleotidePtr> fixed_modifications =
-      getModifications_(search_param.fixed_mods);
     set<ConstRibonucleotidePtr> variable_modifications =
       getModifications_(search_param.variable_mods, ambiguous_mods_);
 
@@ -1140,8 +1132,6 @@ protected:
       IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
       vector<NASequence> all_modified_oligos;
       NASequence ns = oligo_ref->sequence;
-      ModifiedNASequenceGenerator::applyFixedModifications(
-        fixed_modifications, ns);
       ModifiedNASequenceGenerator::applyVariableModifications(
         variable_modifications, ns, max_variable_mods_per_oligo,
         all_modified_oligos, true);
