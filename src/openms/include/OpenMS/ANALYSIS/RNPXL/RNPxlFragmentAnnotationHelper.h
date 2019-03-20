@@ -46,8 +46,6 @@
 
 namespace OpenMS
 {
-namespace Internal
-{
 
 /* @brief Convenience functions to construct appealing fragment annotation strings
   *       and store them as PeptideHit::PeakAnnotation
@@ -107,7 +105,6 @@ class OPENMS_DLLAPI RNPxlFragmentAnnotationHelper
                                          const std::vector<PeptideHit::PeakAnnotation>& annotated_precursor_ions,
                                          std::vector<PeptideHit::PeakAnnotation>& fas);
 };
-} // namespace Internal
 } // namespace OpenMS
 
 
