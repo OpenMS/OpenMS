@@ -66,9 +66,9 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in_raw","<file>",ListUtils::create<String>(""),"MzML input", false);
+    registerInputFileList_("in_raw","<file>",{},"MzML input", false);
     setValidFormats_("in_raw", {"mzML"});
-    registerInputFileList_("in_postFDR","<file>",ListUtils::create<String>(""),"featureXML input", false);
+    registerInputFileList_("in_postFDR","<file>",{},"featureXML input", false);
     setValidFormats_("in_postFDR", {"featureXML"});
     registerInputFile_("in_con","<file>","","Contaminant database input", false);
     setValidFormats_("in_con", {"fasta"});
