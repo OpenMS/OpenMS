@@ -1,21 +1,33 @@
 # This file contains OpenMS- and user-defined RNA modifications.
 # It is read in addition to the Modomics data file ("Modomics.tsv") and uses the same format.
-# Monoisotopic and average masses may be missing (0.0) and are then computed from the sum formula.
 # For terminal modifications, the "new_nomenclature" value has to end in "N" and contain either "33" (3'-terminal mod.) or "55" (5'-terminal mod.).
 name	short_name	new_nomenclature	originating_base	rnamods_abbrev	html_abbrev	formula	monoisotopic_mass	average_mass
 3' terminal phosphate	3'-p	33N	pppN	p	p	H2PO3	0.0	0.0
 5' terminal phosphate	5'-p	55N	pppN	p	p	H2PO3	0.0	0.0
-unspecified methyladenosine ("m_A")	mA		A	a	a	C11O4N5H15	0.0	0.0
-unspecified methylcytidine ("m_C")	mC		C	c	c	C10O5N3H15	0.0	0.0
-unspecified methylguanosine ("m_G")	mG		G	g	g	C11O5N5H15	0.0	0.0
-unspecified methyl[pseudo]uridine ("m_U")	mU		U	u	u	C10O6N2H14	0.0	0.0
-unspecified thiouridine ("s_U")	sU		U	s	s	C9O5N2H12S1	0.0	0.0
-unspecified 2'-O-dimethyladenosine ("m_Am")	mAm		A	ä	&auml;	C12O4N5H17	0.0	0.0
-unspecified 2'-O-dimethylcytidine ("m_Cm")	mCm		C	ë	&euml;	C11O5N3H17	0.0	0.0
-unspecified 2'-O-dimethylguanosine ("m_Gm")	mGm		G	ö	&ouml;	C12O5N5H17	0.0	0.0
-unspecified 2'-O-dimethyluridine ("m_Um")	mUm		U	ü	&uuml;	C11O6N2H16	0.0	0.0
-unspecified methyladenosine ("m_A" or "Am")	mA?		A			C11O4N5H15	0.0	0.0
-unspecified methylcytidine ("m_C" or "Cm")	mC?		C			C10O5N3H15	0.0	0.0
-unspecified methylguanosine ("m_G" or "Gm")	mG?		G			C11O5N5H15	0.0	0.0
-unspecified methyl[pseudo]uridine ("m_U" or "Um")	mU?		U			C10O6N2H14	0.0	0.0
-unspecified methylinosine ("m1I" or "Im")	mI?		A			C11O5N4H14	0.0	0.0
+generic methyladenosine ("m_A")	mA		A	a	a	C11O4N5H15	281.1124	281.2719
+generic methylcytidine ("m_C")	mC		C	c	c	C10O5N3H15	257.1012	257.2467
+generic methylguanosine ("m_G")	mG		G	g	g	C11O5N5H15	297.1073	297.2712
+generic methyl[pseudo]uridine ("m_U")	mU		U	u	u	C10O6N2H14	258.0852	258.2313
+generic thiouridine ("s_U")	sU		U	s	s	C9O5N2H12S1	260.0467	260.2694
+generic dimethyladenosine ("m_,_A")	mmA		A	Ä	&Auml;	C12O4N5H17	295.1281	295.2989
+generic 2'-O-dimethyladenosine ("m_Am")	mAm		A	ä	&auml;	C12O4N5H17	295.1281	295.2989
+generic 2'-O-dimethylcytidine ("m_Cm")	mCm		C	ë	&euml;	C11O5N3H17	0.0	0.0
+generic 2'-O-dimethylguanosine ("m_Gm")	mGm		G	ö	&ouml;	C12O5N5H17	311.123	311.2977
+generic 2'-O-dimethyluridine ("m_Um")	mUm		U	ü	&uuml;	C11O6N2H16	272.1008	272.2583
+5-carboxyhydroxymethyluridine or uridine 5-oxyacetic acid  	cmo5U/chm5U		U	V	V	C11O9N2H14	318.0699	318.2403
+5-(carboxyhydroxymethyl)uridine methyl ester or uridine 5-oxyacetic acid methyl ester	mchm5U/mcmo5U		U	,	,	C12O9N2H16	332.0856	332.2672
+5-(carboxyhydroxymethyl)-2'-O-methyluridine methyl ester or 2'-O-methyluridine 5-oxyacetic acid methyl ester	mchm5Um/mcmo5Um		U	b	b	C13O9N2H18	346.1012	346.2940
+N6-methyl-N6-threonylcarbamoyladenosine or N6-hydroxynorvalylcarbamoyladenosine	m6t6A/hn6A		A	E	E	C16O8N6H22	426.1499	426.3868
+galactosyl- or mannosyl-queuosine	galQ/manQ		preQ0base	9	9	C23O12N5H33	571.2126	571.5423
+ambiguous methyladenosine ("m_A" or "Am")	mA?		A	á	&aacute;	C11O4N5H15	281.1124	281.2719
+ambiguous methylcytidine ("m_C" or "Cm")	mC?		C	é	&eacute;	C10O5N3H15	257.1012	257.2467
+ambiguous methylguanosine ("m_G" or "Gm")	mG?		G	ó	&oacute;	C11O5N5H15	297.1073	297.2712
+ambiguous methyl[pseudo]uridine ("m_U" or "Um")	mU?		U	ú	&uacute;	C10O6N2H14	258.0852	258.2313
+ambiguous methylinosine ("m1I" or "Im")	mI?		A	í	&iacute;	C11O5N4H14	282.0964	282.2565
+ambiguous methylthiouridine ("m5s2U" or "s2Um")	msU?		U	ß	&szlig;	C10O5N2H14S1	274.0623	274.2964
+ambiguous dimethyladenosine ("m_,_A" or "m_Am")	mmA?		A	Á	&Aacute;	C12O4N5H17	295.1281	295.2989
+ambiguous dimethylcytidine ("m4,4C" or "m_Cm")	mmC?		C	É	&Eacute;	C11O5N3H17	271.1168	271.2737
+ambiguous dimethylguanosine ("m2,2G" or "m_Gm")	mmG?		G	Ó	&Oacute;	C12O5N5H17	311.123	311.2977
+ambiguous trimethylguanosine ("m2,2,7G" or "m2,7Gm")	mmmG?		G	Ô	&Ocirc;	C13O5N5H21	327.1543	327.3404
+N4-acetylcytidine or 5-formyl-2'-O-methylcytidine	ac4C/f5Cm?		C	M	M	C11O6N3H15	285.0961	285.257
+3-(3-amino-3-carboxypropyl)uridine or 5-carboxymethylaminomethyl-2'-O-methyluridine	acp3U/cmnm5Um?		U	X	X	C13O8N3H19	345.1172	345.3096
