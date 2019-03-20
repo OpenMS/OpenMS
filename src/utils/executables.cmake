@@ -50,7 +50,6 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
-QualityControl
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter

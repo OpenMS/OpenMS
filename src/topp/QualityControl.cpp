@@ -86,10 +86,10 @@ protected:
     StringList in_raw = getStringList_("in_raw");
     StringList in_postFDR = getStringList_("in_postFDR");
     // Check for same length and get that length
-    UInt64 status(0);
+    QCBase::Status status;
     UInt64 number_exps(0);
     updateStatus_(status, number_exps, in_raw, "in_raw", QCBase::Requires::RAWMZML);
-    updateStatus_(status, number_exps, in_postFDR, "in_postFDR", QCBase::Requires::POSTFDR);
+    updateStatus_(status, number_exps, in_postFDR, "in_postFDR", QCBase::Requires::POSTFDRFEAT);
 
     // load databases and other single file inputs
     String in_con = getStringOption_("in_con");
@@ -98,7 +98,7 @@ protected:
     if (!in_con.empty())
     {
       fasta_file.load(in_con,contaminants);
-      status = status & UInt64(QCBase::Requires::CONTAMINANTS);
+      status &= QCBase::Requires::CONTAMINANTS;
     }
 
     // Loop through file lists
@@ -131,7 +131,7 @@ protected:
   }
 
 private:
-  void updateStatus_(UInt64& status, UInt64& number_exps, const StringList& files, const String& port, const QCBase::Requires& req)
+  void updateStatus_(QCBase::Status& status, UInt64& number_exps, const StringList& files, const String& port, const QCBase::Requires& req)
   {
     if (!files.empty())
     {
@@ -142,7 +142,7 @@ private:
         exit(ILLEGAL_PARAMETERS);
       }
       else
-        status = status & UInt64(req);
+        status &= req;
     }
   }
 };
