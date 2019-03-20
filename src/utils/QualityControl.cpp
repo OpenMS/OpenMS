@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/QC/QCBase.h>
 #include <cstdio>
 
 using namespace OpenMS;
@@ -53,15 +54,6 @@ using namespace std;
 //-------------------------------------------------------------
 // We do not want this class to show up in the docu:
 
-// Needs to be removed, when QC classes are included
-enum class REQUIRES:UInt64
-{
-  FAIL = 0,
-  RAWMZML = 1,
-  POSTFDR = 2,
-  CONTAMINANTS = 4
-};
-// ----------------------------------------------------
 
 class TOPPQualityControl : public TOPPBase
 {
@@ -96,8 +88,8 @@ protected:
     // Check for same length and get that length
     UInt64 status(0);
     UInt64 number_exps(0);
-    updateStatus_(status, number_exps, in_raw, "in_raw", REQUIRES::RAWMZML);
-    updateStatus_(status, number_exps, in_postFDR, "in_postFDR", REQUIRES::POSTFDR);
+    updateStatus_(status, number_exps, in_raw, "in_raw", QCBase::Requires::RAWMZML);
+    updateStatus_(status, number_exps, in_postFDR, "in_postFDR", QCBase::Requires::POSTFDR);
 
     // load databases and other single file inputs
     String in_con = getStringOption_("in_con");
@@ -106,7 +98,7 @@ protected:
     if (!in_con.empty())
     {
       fasta_file.load(in_con,contaminants);
-      status = status & UInt64(REQUIRES::CONTAMINANTS);
+      status = status & UInt64(QCBase::Requires::CONTAMINANTS);
     }
 
     // Loop through file lists
@@ -139,7 +131,7 @@ protected:
   }
 
 private:
-  void updateStatus_(UInt64& status, UInt64& number_exps, const StringList& files, const String& port, const REQUIRES& req)
+  void updateStatus_(UInt64& status, UInt64& number_exps, const StringList& files, const String& port, const QCBase::Requires& req)
   {
     if (!files.empty())
     {
