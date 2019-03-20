@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow$
-// $Authors: Patricia Scheil, Swenja Wagner, Chris Bielow$
+// $Authors: Patricia Scheil, Swenja Wagner$
 // --------------------------------------------------------------------------
 
 //#include <OpenMS/QC/Ms2IdentificationRate.h>
@@ -41,7 +41,8 @@
 namespace OpenMS
 {
 
-  Ms2IdentificationRate::Ms2IdentificationRate(){};
+  Ms2IdentificationRate::Ms2IdentificationRate() = default;
+  Ms2IdentificationRate::~Ms2IdentificationRate() = default;
 
   Int64 Ms2IdentificationRate::countPeptideId_(std::vector<PeptideIdentification> peptide_id)
   {
@@ -56,7 +57,21 @@ namespace OpenMS
           {
             return true;
           }
+          else
+          {
+            return false;
+          }
         }
+        else
+        {
+          std::cerr << "Ms2IdentificationRate: no FDR was made" << std::endl;
+          return false;
+        }
+      }
+      else
+      {
+        std::cerr << "Ms2IdentificationRate: empty hits" << std::endl;
+        return false;
       }
     });
     return counter;
@@ -66,28 +81,28 @@ namespace OpenMS
   //data is stored in vector of structs
   void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file)
   {
+    //checks if data exists
     try
     {
-      //checks if data exists
       if (feature_map.empty())
       {
-        throw "FeatureMap is empty";
+        throw "Ms2IdentificationRate: FeatureMap is empty";
       }
       if (exp.empty())
       {
-        throw "MSExperiment is empty";
+        throw "Ms2IdentificationRate: MSExperiment is empty";
       }
 
     }
     
     catch (char const * e)
     {
-      std::cout << "Empty data: " << e << std::endl;
+      std::cout << "Ms2IdentificationRate: Empty data: " << e << std::endl;
     }
 
     if (file == "default")
     {
-      std::cout << "There is no filename, you can enter it now: " << std::endl;
+      std::cout << "Ms2IdentificationRate: There is no filename, you can enter it now: " << std::endl;
       std::cin >> file;
     }
 
@@ -98,7 +113,7 @@ namespace OpenMS
     {
       if (spec.getMSLevel() == 2)
       {
-        ms2_level_counter += 1;
+        ++ ms2_level_counter;
       }
     }
 
@@ -121,17 +136,23 @@ namespace OpenMS
     id_rate_data_.identification_rate = ratio;
 
     rate_result_.push_back(id_rate_data_);
-
-
   }
+
 
   std::vector<OpenMS::Ms2IdentificationRate::IdentificationRateData> Ms2IdentificationRate::getResults()
   {
     return rate_result_;
   }
 
+
   void Ms2IdentificationRate::clear()
   {
     rate_result_.clear();
+  }
+
+
+  Status requires()
+  {
+    return Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDR;
   }
 } // namespace OpenMS

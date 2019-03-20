@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+/ --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -28,49 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow$
-// $Authors: Patricia Scheil, Swenja Wagner$
+// $Maintainer: Chris Bielow $
+// $Authors: Swenja Wagner, Patricia Scheil $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
-#include <string>
-#include <vector>
-#include <include/OpenMS/METADATA/PeptideIdentification.h>
-#include <include/OpenMS/KERNEL/MSExperiment.h>
-#include <include/OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include "QCBase.h"
+///////////////////////////
 
-namespace OpenMS
-{
-  class Ms2IdentificationRate : QCBase
-  {
-  public:
-    struct IdentificationRateData
-    {
-      std::string filename;
-      Int64 num_peptide_identification;
-      Int64 num_ms2_spectra;
-      double identification_rate;
-    };
+#include <include/OpenMS/QC/Ms2IdentificationRate.h>
 
-    //Konstruktor und forceZeug
+//////////////////////////
 
-  private:
-    std::vector<IdentificationRateData> rate_result_;
-    IdentificationRateData id_rate_data_;
-
-    Int64 countPeptideId_(std::vector<PeptideIdentification> peptide_id);
-
-  public:
-    Ms2IdentificationRate();
-    ~Ms2IdentificationRate();
-    void compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file = "default");
-    std::vector<IdentificationRateData> getResults();
-    void clear();
-    Status requires() override;
-
-  };
-
-} // namespace OpenMS
+using namespace OpenMS;
