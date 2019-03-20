@@ -332,6 +332,12 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   // Remove precursor adducts that
   // 1) do not contain a cross-linkable nucleotide
   // 2) or contain no cross-linkable nucleotide that is part of the restricted target sequences
+  // 3) exceed maximum number of nucleotides
+
+  // keep track if a sorted nucleotide composition and modification has already been added
+  // e.g. we would not add both: UC-H2O-NH3 and CU-NH5O 
+  std::vector<pair<String, double> > unique_nucleotide_and_mod_composition;
+
   std::vector<pair<String, String> > violates_restriction; // elemental composition, nucleotide style formula
   for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
@@ -349,7 +355,10 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       {
         nucleotide_style_formula = nucleotide_style_formula.prefix(p);
       }
-
+      // sort nucleotides so we compare based on nucleotide composition 
+      // e.g.: AC-H2O and CA-H2O are considered the same
+      std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
+      
       // check if nucleotide formula contains a cross-linkable amino acid
       bool has_xl_nt(false);
       for (auto const & c : nucleotide_style_formula) { if (can_xl.count(c) > 0) { has_xl_nt = true; break;};  }
@@ -360,14 +369,14 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         continue;
       }
 
-      // sequence too long
+      // check if nucleotide sequence too long
       if (nucleotide_style_formula.size() > max_length) 
       {
         violates_restriction.push_back(make_pair(mit->first, s)); 
         continue;
       }
 
-      // check if nucleotides from more than one nt_group are present (e.g. from DNA and RNA)
+      // check if nucleotides from more than one nt_group are present (e.g., from DNA and RNA)
       Size found_in_n_groups(0);
       for (const String & n : nt_groups)
       { 
@@ -394,6 +403,19 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       { 
         violates_restriction.push_back(make_pair(mit->first, s)); // chemical formula, nucleotide style formula pair violates restrictions
       }
+
+      // last check: if the sorted nucleotide composition string and mass have already been added
+      // if so, we don't need to consider that composition again
+      if (
+        find(unique_nucleotide_and_mod_composition.begin(), 
+        unique_nucleotide_and_mod_composition.end(),
+        make_pair(nucleotide_style_formula, mit->second)) != unique_nucleotide_and_mod_composition.end())
+      {
+        violates_restriction.push_back(make_pair(mit->first, s)); 
+      }
+
+      // record that nucleotide and mod combination has passed all filters and will be considered in further processing
+      unique_nucleotide_and_mod_composition.push_back({nucleotide_style_formula, mit->second});
     }
   }
 

@@ -2258,7 +2258,7 @@ static void scoreShiftedFragments_(
 
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
 
-    // generate all precursor adducts
+    // generate mapping from empirical formula to mass and empirical formula to (one or more) precursor adducts
     RNPxlModificationMassesResult mm;
     if (max_nucleotide_length != 0)
     {
@@ -3273,15 +3273,16 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
 {
   PrecursorsToMS2Adducts all_pc_all_feasible_adducts;
 
-  // for all possible precursor adducts
+  // for all distinct precursor adduct formulas/masses
   for (auto const & pa : precursor_adducts.mod_masses)
   {
+    // get all precursor nucleotide formulas matching current empirical formula/mass
     const String& ef = pa.first;
     const set<String>& ambiguities = precursor_adducts.mod_combinations.at(ef);
 
     if (ambiguities.size() >= 2)
     {
-      LOG_DEBUG << "Mods ambiguous on the level of empirical formula: " << endl;
+      LOG_DEBUG << ambiguities.size() << " nucleotide formulas are ambiguous on the level of empirical formula: " << endl;
       for (auto const & pc_adduct : ambiguities) { LOG_DEBUG << pc_adduct << endl; }
     } 
 
@@ -3293,7 +3294,12 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
       // TODO: check if needed anymore - std::sort(feasible_adducts.begin(), feasible_adducts.end());
       all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
       // only store one precursor adduct for multiple ambiguities (e.g., AUG, AGU, UAG, ...)
-      break;
+      break; 
+      //
+      // TODO!!!!!!!!! get rid of break (properly)
+      // 1. make sure that nucleotide permutations are discarded 
+      // 2. but keep different nucleotide combinations resulting in same empirical formula
+      //
     }
   }
 
