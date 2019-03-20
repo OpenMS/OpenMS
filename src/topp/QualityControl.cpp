@@ -67,11 +67,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in_raw","<file>",ListUtils::create<String>(""),"MzML input", false);
-    setValidFormats_("in_raw", ListUtils::create<String>("mzML"));
+    setValidFormats_("in_raw", {"mzML"});
     registerInputFileList_("in_postFDR","<file>",ListUtils::create<String>(""),"featureXML input", false);
-    setValidFormats_("in_postFDR", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in_postFDR", {"featureXML"});
     registerInputFile_("in_con","<file>","","Contaminant database input", false);
-    setValidFormats_("in_con",ListUtils::create<String>("fasta"));
+    setValidFormats_("in_con", {"fasta"});
     //possible additions:
     //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
 
@@ -83,13 +83,11 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
     //
-    StringList in_raw = getStringList_("in_raw");
-    StringList in_postFDR = getStringList_("in_postFDR");
-    // Check for same length and get that length
+    // Read input, check for same length and get that length
     QCBase::Status status;
     UInt64 number_exps(0);
-    updateStatus_(status, number_exps, in_raw, "in_raw", QCBase::Requires::RAWMZML);
-    updateStatus_(status, number_exps, in_postFDR, "in_postFDR", QCBase::Requires::POSTFDRFEAT);
+    StringList in_raw = updateFileStatus_(status, number_exps, "in_raw", QCBase::Requires::RAWMZML);
+    StringList in_postFDR = updateFileStatus_(status, number_exps, "in_postFDR", QCBase::Requires::POSTFDRFEAT);
 
     // load databases and other single file inputs
     String in_con = getStringOption_("in_con");
@@ -98,7 +96,7 @@ protected:
     if (!in_con.empty())
     {
       fasta_file.load(in_con,contaminants);
-      status &= QCBase::Requires::CONTAMINANTS;
+      status |= QCBase::Requires::CONTAMINANTS;
     }
 
     // Loop through file lists
@@ -131,9 +129,10 @@ protected:
   }
 
 private:
-  void updateStatus_(QCBase::Status& status, UInt64& number_exps, const StringList& files, const String& port, const QCBase::Requires& req)
+  StringList updateFileStatus_(QCBase::Status& status, UInt64& number_exps, const String& port, const QCBase::Requires& req)
   {
     // since files are optional, leave function if non are provided by the user
+    StringList files = getStringList_(port);
     if (!files.empty())
     {
       if (number_exps == 0) number_exps = files.size(); // Number of experiments is determined from first non empty file list.
@@ -142,8 +141,9 @@ private:
         cerr << port + ": invalid number of files. Expected were " << number_exps << ".\n";
         exit(ILLEGAL_PARAMETERS);
       }
-      status &= req;
+      status |= req;
     }
+    return files;
   }
 };
 
