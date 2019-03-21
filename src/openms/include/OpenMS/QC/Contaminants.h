@@ -29,23 +29,28 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors:  $
+// $Authors:  Dominik Schmitz, Chris Bielow$
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <include/OpenMS/KERNEL/FeatureMap.h>
 #include <include/OpenMS/FORMAT/FASTAFile.h>
+#include <include/OpenMS/METADATA/PeptideIdentification.h>
+#include <algorithm>
+
 
 namespace OpenMS
 {
-  class Contaminants
+  class OPENMS_DLLAPI Contaminants
   {
-
   private:
-    std::vector<double> results_;
+    std::vector<std::tuple<double, double>> results_;
+    std::vector<FASTAFile::FASTAEntry> digested_db_;
+    std::vector<std::string> digested_sequences_;
   public:
-    void compute(FeatureMap& fmap, const std::vector<FASTAFile::FASTAEntry>& contaminants);
-    std::vector<double> getResults();
+    Contaminants();
+    void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
+    const std::vector<std::tuple<double, double>>& getResults();
   };
 }
