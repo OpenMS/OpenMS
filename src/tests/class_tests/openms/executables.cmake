@@ -16,6 +16,10 @@ set(concept_executables_list
   UniqueIdInterface_test
 )
 
+set(qc_executables_list
+    Ms2IdentificationRate_test
+)
+
 set(datastructures_executables_list
   Adduct_test
   #BinaryTreeNode_test
@@ -686,4 +690,5 @@ set(TEST_executables
     ${transformations_executables_list}
     ${simulation_executables_list}
     ${swath_executables_list}
+    ${qc_executables_list}
 )

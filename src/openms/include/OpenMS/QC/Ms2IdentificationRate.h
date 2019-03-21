@@ -36,9 +36,9 @@
 
 #include <string>
 #include <vector>
-#include <include/OpenMS/METADATA/PeptideIdentification.h>
-#include <include/OpenMS/KERNEL/MSExperiment.h>
-#include <include/OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include "QCBase.h"
