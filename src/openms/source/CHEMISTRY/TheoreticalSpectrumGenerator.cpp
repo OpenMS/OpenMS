@@ -512,7 +512,7 @@ namespace OpenMS
     Peak1D p;
     IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
 
-    String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + String((Size)abs(charge), '+');
+    String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + String((Size)abs(charge), '+');
 
     double j(0.0);
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
@@ -603,7 +603,7 @@ namespace OpenMS
         IsotopeDistribution dist = loss_ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
 
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
-        String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String((Size)abs(charge), '+');
+        String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + "-" + loss_name + String((Size)abs(charge), '+');
 
         double j(0.0);
         for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)
@@ -624,7 +624,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
-          String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String((Size)abs(charge), '+');
+          String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + "-" + loss_name + String((Size)abs(charge), '+');
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
@@ -839,7 +839,7 @@ namespace OpenMS
           spectrum.push_back(p);
           if (add_metainfo_)
           {
-            String ion_name = String(residueTypeToIonLetter_(res_type)) + String(i + 1) + String((Size)abs(charge), '+');
+            String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(i + 1) + String((Size)abs(charge), '+');
             ion_names.push_back(ion_name);
             charges.push_back(charge);
           }
@@ -893,7 +893,8 @@ namespace OpenMS
           spectrum.push_back(p);
           if (add_metainfo_)
           {
-            String ion_name = String(residueTypeToIonLetter_(res_type)) + String(peptide.size() - i) + String((Size)abs(charge), '+');
+            String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(peptide.size() - i) + String((Size)abs(charge), '+');
+
             ion_names.push_back(ion_name);
             charges.push_back(charge);
           }

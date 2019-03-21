@@ -45,13 +45,21 @@
 
 ///////////////////////////
 
+using namespace OpenMS;
+using namespace std;
+
+struct ComparePIdSize 
+{
+      bool operator()(const ProteinIdentification lhs, const ProteinIdentification rhs) const
+      {
+        return lhs.getHits().size() < rhs.getHits().size();
+      }
+};
+
 START_TEST(IdentificationDataConverter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
-using namespace OpenMS;
-using namespace std;
 
 START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentification>&, const vector<PeptideIdentification>&)))
 {
@@ -86,16 +94,23 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
                true);
   }
 
+  std::sort(proteins_in.begin(), proteins_in.end(), ComparePIdSize());
+  std::sort(proteins_out.begin(), proteins_out.end(), ComparePIdSize());
   TEST_EQUAL(proteins_in.size(), proteins_out.size());
+  TEST_EQUAL(proteins_in[0].getHits().size(), 1) // is sorted
+  TEST_EQUAL(proteins_in[1].getHits().size(), 2) // is sorted
+
   // the exporter adds target/decoy information (default: target):
-  for (auto& hit : proteins_in[0].getHits()) {
-    hit.setMetaValue("target_decoy", "target");
-  }
-  for (auto& hit : proteins_in[1].getHits()) {
-    hit.setMetaValue("target_decoy", "target");
-  }
-  TEST_EQUAL(proteins_in[0].getHits() == proteins_out[0].getHits(), true);
-  TEST_EQUAL(proteins_in[1].getHits() == proteins_out[1].getHits(), true);
+  for (auto& hit : proteins_in[0].getHits()) hit.setMetaValue("target_decoy", "target");
+  for (auto& hit : proteins_in[1].getHits()) hit.setMetaValue("target_decoy", "target");
+
+  // TEST_EQUAL(proteins_in[0].getIdentifier(), proteins_out[0].getIdentifier() ) // identifiers are not equal
+  // TEST_EQUAL(proteins_in[1].getIdentifier(), proteins_out[1].getIdentifier() ) // identifiers are not equal
+
+  TEST_EQUAL(proteins_in[0].getHits().size(), proteins_out[0].getHits().size() )
+  TEST_EQUAL(proteins_in[1].getHits().size(), proteins_out[1].getHits().size() )
+  TEST_EQUAL(proteins_in[0].getHits() == proteins_out[0].getHits(), true)
+  TEST_EQUAL(proteins_in[1].getHits() == proteins_out[1].getHits(), true)
 
   // String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
   // IdXMLFile().store(filename, proteins_out, peptides_out);

@@ -66,11 +66,11 @@ namespace OpenMS
 
   void SILACLabeler::updateMembers_()
   {
-    medium_channel_lysine_label_ = param_.getValue("medium_channel:modification_lysine");
-    medium_channel_arginine_label_ = param_.getValue("medium_channel:modification_arginine");
+    medium_channel_lysine_label_ = (String)param_.getValue("medium_channel:modification_lysine");
+    medium_channel_arginine_label_ = (String)param_.getValue("medium_channel:modification_arginine");
 
-    heavy_channel_lysine_label_ = param_.getValue("heavy_channel:modification_lysine");
-    heavy_channel_arginine_label_ = param_.getValue("heavy_channel:modification_arginine");
+    heavy_channel_lysine_label_ = (String)param_.getValue("heavy_channel:modification_lysine");
+    heavy_channel_arginine_label_ = (String)param_.getValue("heavy_channel:modification_arginine");
   }
 
   bool SILACLabeler::canModificationBeApplied_(const String& modification_id, const String& aa) const

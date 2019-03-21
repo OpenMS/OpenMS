@@ -85,21 +85,19 @@ namespace OpenMS
     report_tic_ = param_.getValue("report_tic").toBool();
   }
 
-  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, 
+  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features,
     const MRMFeatureQC& filter_criteria,
     const TargetedExperiment & transitions
   )
-  {     
+  {
     // initialize QC variables
     FeatureMap features_filtered;
 
-    String delim = ";";
-
     // bool qc_pass;
-    String concentration_units;// iterate through each component_group/feature     
+    String concentration_units;// iterate through each component_group/feature
 
     for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
-    {      
+    {
       String component_group_name = (String)features[feature_it].getMetaValue("PeptideRef");
       // std::cout << "component_group_name" << component_group_name << std::endl; //debugging
 
@@ -108,16 +106,16 @@ namespace OpenMS
       // initialize the new feature and subordinates
       std::vector<Feature> subordinates_filtered;
       bool cg_qc_pass = true;
-      std::vector<String> cg_qc_fail_message_vec;
+      StringList cg_qc_fail_message_vec;
       UInt cg_tests_count{0};
 
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
       {
-        String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
+        String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id");
         // std::cout << "component_name" << component_name << std::endl; //debugging
         bool c_qc_pass = true;
-         std::vector<String> c_qc_fail_message_vec;
+        StringList c_qc_fail_message_vec;
 
         // iterate through multi-feature/multi-sub-feature QCs/filters
         // iterate through component_groups
@@ -206,7 +204,7 @@ namespace OpenMS
             // ion ratio QC
             for (size_t sub_it2 = 0; sub_it2 < features[feature_it].getSubordinates().size(); ++sub_it2)
             {
-              String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
+              String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id");
               // find the ion ratio pair
               if (filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_1 != ""
                 && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_2 != ""
@@ -233,15 +231,15 @@ namespace OpenMS
               if (!checkMetaValue(features[feature_it], kv.first, kv.second.first, kv.second.second, metavalue_exists))
               {
                 cg_qc_pass = false;
-                cg_qc_fail_message_vec.push_back("metaValue[" + kv.first + "]");
+                cg_qc_fail_message_vec.push_back(kv.first);
               }
               if (metavalue_exists) ++cg_tests_count;
             }
           }
         }
-        
+
         UInt c_tests_count{0};
-        // iterate through feature/sub-feature QCs/filters        
+        // iterate through feature/sub-feature QCs/filters
         for (size_t c_qc_it = 0; c_qc_it < filter_criteria.component_qcs.size(); ++c_qc_it)
         {
           if (filter_criteria.component_qcs[c_qc_it].component_name == component_name)
@@ -289,7 +287,7 @@ namespace OpenMS
               if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second, metavalue_exists))
               {
                 c_qc_pass = false;
-                c_qc_fail_message_vec.push_back("metaValue[" + kv.first + "]");
+                c_qc_fail_message_vec.push_back(kv.first);
               }
               if (metavalue_exists) ++c_tests_count;
             }
@@ -308,7 +306,7 @@ namespace OpenMS
         else if (c_qc_pass && flag_or_filter_ == "flag")
         {
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_pass", true);
-          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", "");
+          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", StringList());
         }
         else if (!c_qc_pass && flag_or_filter_ == "filter")
         {
@@ -318,8 +316,7 @@ namespace OpenMS
         else if (!c_qc_pass && flag_or_filter_ == "flag")
         {
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_pass", false);
-          String c_qc_fail_message = uniqueJoin(c_qc_fail_message_vec, delim);
-          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", c_qc_fail_message);
+          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", getUniqueSorted(c_qc_fail_message_vec));
         }
       }
 
@@ -333,27 +330,26 @@ namespace OpenMS
         Feature feature_filtered(features[feature_it]);
         feature_filtered.setSubordinates(subordinates_filtered);
         features_filtered.push_back(feature_filtered);
-      }   
+      }
       else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() == 0)
       {
         // do nothing
         // std::cout << "omitted failing feature" << std::endl; //debugging
-      }   
+      }
       else if (cg_qc_pass && flag_or_filter_ == "flag")
       {
         features[feature_it].setMetaValue("QC_transition_group_pass", true);
-        features[feature_it].setMetaValue("QC_transition_group_message", "");
+        features[feature_it].setMetaValue("QC_transition_group_message", StringList());
       }
       else if (!cg_qc_pass && flag_or_filter_ == "filter")
       {
         // do nothing
         // std::cout << "omitted failing feature" << std::endl; //debugging
-      }   
+      }
       else if (!cg_qc_pass && flag_or_filter_ == "flag")
       {
         features[feature_it].setMetaValue("QC_transition_group_pass", false);
-        String cg_qc_fail_message = uniqueJoin(cg_qc_fail_message_vec, delim);
-        features[feature_it].setMetaValue("QC_transition_group_message", cg_qc_fail_message);
+        features[feature_it].setMetaValue("QC_transition_group_message", getUniqueSorted(cg_qc_fail_message_vec));
       }
     }
 
@@ -363,7 +359,7 @@ namespace OpenMS
       features = features_filtered;
     }
   }
-  
+
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature & component_group,
     const TargetedExperiment & transitions)
@@ -388,7 +384,7 @@ namespace OpenMS
       // count labels and transition types
       String label_type = (String)component_group.getSubordinates()[cg_it].getMetaValue("LabelType");
       if (label_type == "Heavy")
-      { 
+      {
         ++n_heavy;
       }
       else if (label_type == "Light")
@@ -420,7 +416,7 @@ namespace OpenMS
 
     return output;
   }
-  
+
   double MRMFeatureFilter::calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
   {
     double ratio = 0.0;
@@ -487,25 +483,12 @@ namespace OpenMS
     return check;
   }
 
-  String MRMFeatureFilter::uniqueJoin(std::vector<String>& str_vec, String& delim)
+  StringList MRMFeatureFilter::getUniqueSorted(const StringList& messages) const
   {
-    //remove duplicates
-    std::sort(str_vec.begin(), str_vec.end());
-    str_vec.erase(std::unique(str_vec.begin(), str_vec.end()), str_vec.end());
-    //concatenate
-    String str_cat = "";
-    for (auto str : str_vec)
-    {
-      str_cat = str_cat + str + delim;
-    }
-    // std::cout << str_cat << std::endl; //debugging
-    //remove trailing delimm
-    if (str_cat != "")
-    {
-      str_cat = str_cat.substr(0, str_cat.length() - delim.length());
-    }
-    // std::cout << str_cat << std::endl; //debugging
-    return str_cat;
+    StringList unique {messages};
+    std::sort(unique.begin(), unique.end());
+    unique.erase(std::unique(unique.begin(), unique.end()), unique.end());
+    return unique;
   }
 
   template <typename T>
@@ -514,7 +497,7 @@ namespace OpenMS
     // std::cout << "value: " << (String)value << " lb: " << (String)value_l << " ub: " << (String)value_u << std::endl; //debugging
     return value >= value_l && value <= value_u;
   }
-  
+
   //TODO: Future addition to allow for generating a QcML attachment for QC reporting
   // void MRMFeatureFilter::FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment)
   // {

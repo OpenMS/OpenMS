@@ -58,7 +58,7 @@ namespace OpenMS
   }
 
   /// Move constructor
-  CVTermListInterface::CVTermListInterface(CVTermListInterface&& rhs) :
+  CVTermListInterface::CVTermListInterface(CVTermListInterface&& rhs) noexcept :
     MetaInfoInterface(std::move(rhs)), // NOTE: rhs itself is an lvalue
     cvt_ptr_(std::move(rhs.cvt_ptr_))
   {
@@ -95,7 +95,7 @@ namespace OpenMS
       return *this;
     }
 
-    MetaInfoInterface::operator=(rhs);
+    MetaInfoInterface::operator=(std::move(rhs));
 
     // free memory and assign rhs memory
     delete cvt_ptr_;

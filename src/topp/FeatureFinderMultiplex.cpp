@@ -137,6 +137,7 @@ private:
   String in_;
   String out_;
   String out_multiplets_;
+  String out_blacklist_;
 
 public:
   TOPPFeatureFinderMultiplex() :
@@ -150,8 +151,10 @@ public:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file containing the individual peptide features.", false);
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("out_multiplets", "<file>", "", "Optional output file conatining all detected peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false, true);
+    registerOutputFile_("out_multiplets", "<file>", "", "Optional output file containing all detected peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false, true);
     setValidFormats_("out_multiplets", ListUtils::create<String>("consensusXML"));
+    registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
+    setValidFormats_("out_blacklist", ListUtils::create<String>("mzML"));
     
     registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
@@ -165,6 +168,7 @@ public:
     in_ = getStringOption_("in");
     out_ = getStringOption_("out");
     out_multiplets_ = getStringOption_("out_multiplets");
+    out_blacklist_ = getStringOption_("out_blacklist");
   }
   
   /**
@@ -193,6 +197,18 @@ public:
       ch.second.filename = getStringOption_("in");
     }
     file.store(filename, map);
+  }
+  
+  /**
+   * @brief Write blacklist to mzML file.
+   *
+   * @param filename    name of mzML file
+   * @param blacklist    blacklist for output
+   */
+  void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
+  {    
+    MzMLFile file;
+    file.store(filename, blacklist);
   }
   
   ExitCodes main_(int, const char**) override
@@ -229,6 +245,7 @@ public:
     params.remove("in");
     params.remove("out");
     params.remove("out_multiplets");
+    params.remove("out_blacklist");
     params.remove("log");
     params.remove("debug");
     params.remove("threads");
@@ -240,7 +257,7 @@ public:
     // run feature detection algorithm
     algorithm.run(exp, true);
 
-    // write feature and consensus maps
+    // write feature map, consensus maps and blacklist
     if (!(out_.empty()))
     {
       writeFeatureMap_(out_, algorithm.getFeatureMap());
@@ -248,6 +265,10 @@ public:
     if (!(out_multiplets_.empty()))
     {
       writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
+    }
+    if (!(out_blacklist_.empty()))
+    {
+      writeBlacklist_(out_blacklist_, algorithm.getBlacklist());
     }
     
     return EXECUTION_OK;

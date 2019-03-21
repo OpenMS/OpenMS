@@ -58,6 +58,22 @@ namespace OpenMS
   {
   }
 
+  Precursor::Precursor(Precursor&& rhs) noexcept :
+    CVTermList(std::move(rhs)),
+    Peak1D(std::move(rhs)),
+    activation_methods_(std::move(rhs.activation_methods_)),
+    activation_energy_(std::move(rhs.activation_energy_)),
+    window_low_(std::move(rhs.window_low_)),
+    window_up_(std::move(rhs.window_up_)),
+    drift_time_(std::move(rhs.drift_time_)),
+    drift_window_low_(std::move(rhs.drift_window_low_)),
+    drift_window_up_(std::move(rhs.drift_window_up_)),
+    drift_time_unit_(std::move(rhs.drift_time_unit_)),
+    charge_(std::move(rhs.charge_)),
+    possible_charge_states_(std::move(rhs.possible_charge_states_))
+  {
+  }
+
   Precursor::~Precursor()
   {
   }

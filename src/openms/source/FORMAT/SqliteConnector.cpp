@@ -76,6 +76,27 @@ namespace OpenMS
     return found;
   }
 
+  bool SqliteConnector::tableExists(sqlite3 *db, const String& tablename)
+  {
+    bool found = false;
+    int res = -1;
+
+    sqlite3_stmt * xcntstmt;
+    SqliteConnector::executePreparedStatement(db, &xcntstmt, "select count(type) from sqlite_master where type='table' and name='" + tablename + "';");
+
+    // Go through all columns and check whether the required column exists
+    sqlite3_step(xcntstmt);
+    while (sqlite3_column_type( xcntstmt, 0 ) != SQLITE_NULL)
+    {
+      Internal::SqliteHelper::extractValue<int>(&res, xcntstmt, 0);
+      if (res == 1) {found = true;}
+      sqlite3_step(xcntstmt);
+    }
+    sqlite3_finalize(xcntstmt);
+
+    return found;
+  }
+
   void SqliteConnector::executeStatement(sqlite3 *db, const std::stringstream& statement)
   {
     SqliteConnector::executeStatement(db, statement.str());

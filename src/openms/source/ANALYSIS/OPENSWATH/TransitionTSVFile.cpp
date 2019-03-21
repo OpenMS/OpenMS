@@ -151,6 +151,7 @@ namespace OpenMS
     "SMILES",
     "ProteinId",
     "UniprotId",
+    "GeneName",
     "FragmentType",
     "FragmentSeriesNumber",
     "Annotation",
@@ -299,6 +300,7 @@ namespace OpenMS
 
       // LibraryIntensity
       if (!extractName<double>(mytransition.library_intensity, "LibraryIntensity", tmp_line, header_dict) &&
+          !extractName<double>(mytransition.library_intensity, "RelativeIntensity", tmp_line, header_dict) && // Spectronaut
           !extractName<double>(mytransition.library_intensity, "RelativeFragmentIntensity", tmp_line, header_dict)) // Spectronaut
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -343,6 +345,8 @@ namespace OpenMS
       extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
       //// Proteomics
+      extractName(mytransition.GeneName, "GeneName", tmp_line, header_dict);
+
       !extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
       !extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
 
@@ -1016,6 +1020,10 @@ namespace OpenMS
     {
       peptide.setMetaValue("LabelType", tr_it->label_type);
     }
+    if (!tr_it->GeneName.empty())
+    {
+      peptide.setMetaValue("GeneName", tr_it->GeneName);
+    }
 
     // per peptide CV terms
     peptide.setPeptideGroupLabel(tr_it->peptide_group_label);
@@ -1200,6 +1208,7 @@ namespace OpenMS
 
       mytransition.PeptideSequence = pep.sequence;
       mytransition.ProteinName = "NA";
+      mytransition.GeneName = "NA";
       mytransition.uniprot_id = "NA";
       if (!pep.protein_refs.empty())
       {
@@ -1231,6 +1240,10 @@ namespace OpenMS
       if (pep.metaValueExists("LabelType"))
       {
         mytransition.label_type = pep.getMetaValue("LabelType").toString();
+      }
+      if (pep.metaValueExists("GeneName"))
+      {
+        mytransition.GeneName = pep.getMetaValue("GeneName").toString();
       }
     }
     else if (!it->getCompoundRef().empty())
@@ -1366,7 +1379,7 @@ namespace OpenMS
     mytransition.identifying_transition = it->isIdentifyingTransition();
     mytransition.quantifying_transition = it->isQuantifyingTransition();
 
-    return(mytransition);
+    return mytransition;
   }
 
   void TransitionTSVFile::writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
@@ -1414,6 +1427,7 @@ namespace OpenMS
         + (String)it.SMILES                   + "\t"
         + (String)it.ProteinName              + "\t"
         + (String)it.uniprot_id               + "\t"
+        + (String)it.GeneName                 + "\t"
         + (String)it.fragment_type            + "\t"
         + (String)it.fragment_nr              + "\t"
         + (String)it.Annotation               + "\t"

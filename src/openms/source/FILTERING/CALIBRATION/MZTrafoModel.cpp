@@ -129,7 +129,7 @@ namespace OpenMS
     {
       predict = (-predict) + mz;
     }
-    return(predict);
+    return predict;
   }
 
   bool MZTrafoModel::train( const CalibrationData& cd, MODELTYPE md, bool use_RANSAC, double rt_left /*= -std::numeric_limits<double>::max()*/, double rt_right /*= std::numeric_limits<double>::max() */ )
