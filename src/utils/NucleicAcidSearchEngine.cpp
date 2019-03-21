@@ -79,12 +79,12 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
-#include <boost/regex.hpp>
 
 #include <QtCore/QProcess>
 
-#include <iostream>
 #include <algorithm>
+#include <iostream>
+#include <regex>
 #include <vector>
 #include <map>
 
@@ -135,19 +135,14 @@ public:
   NucleicAcidSearchEngine() :
     TOPPBase("NucleicAcidSearchEngine", "Annotate nucleic acid identifications to MS/MS spectra.", false),
     fragment_ion_codes_({"a-B", "a", "b", "c", "d", "w", "x", "y", "z"}),
-    ambiguous_mods_(), consider_ambiguous_mods_(false)
+    resolve_ambiguous_mods_(false)
   {
-    ambiguous_mods_["mA?"] = {"Am", "mA"};
-    ambiguous_mods_["mC?"] = {"Cm", "mC"};
-    ambiguous_mods_["mG?"] = {"Gm", "mG"};
-    ambiguous_mods_["mU?"] = {"Um", "mU"};
   }
 
 protected:
   vector<String> fragment_ion_codes_;
-  /// ambiguity codes that represent multiple mods:
-  map<String, vector<String>> ambiguous_mods_;
-  bool consider_ambiguous_mods_;
+  map<String, String> ambiguous_mods_; //< map: specific code -> ambig. code
+  bool resolve_ambiguous_mods_;
 
 
   void registerOptionsAndFlags_()
@@ -213,13 +208,14 @@ protected:
       {
         String code = r->getCode();
         // commas aren't allowed in parameter string restrictions:
-        all_mods.push_back(code.substitute(',', '_'));
+        all_mods.push_back(code.remove(','));
       }
     }
 
     registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligonucleotide", false, false);
+    registerFlag_("modifications:resolve_ambiguities", "Attempt to resolve ambiguous modifications (e.g. 'mA?' for 'mA'/'Am') based on a-B ions.\nThis incurs a performance cost because two modifications have to be considered for each case.\nRequires a-B ions to be enabled in parameter 'fragment:ions'.");
 
     registerTOPPSubsection_("oligo", "Oligonucleotide Options");
     registerIntOption_("oligo:min_size", "<num>", 5, "Minimum size an oligonucleotide must have after digestion to be considered in the search", false);
@@ -271,28 +267,43 @@ protected:
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
 
   // query modified residues from database
-  set<ConstRibonucleotidePtr> getModifications_(
-    const set<String>& mod_names, const map<String, vector<String>>&
-    ambig_mods = map<String, vector<String>>())
+  set<ConstRibonucleotidePtr> getModifications_(const set<String>& mod_names)
   {
     set<ConstRibonucleotidePtr> modifications;
     auto db_ptr = RibonucleotideDB::getInstance();
+    regex double_digits("(\\d)(?=\\d)");
     for (String m : mod_names)
     {
-      auto pos = ambig_mods.find(m); // handle ambiguity codes
-      if (pos != ambig_mods.end())
+      ConstRibonucleotidePtr mod = 0;
+      try
       {
-        consider_ambiguous_mods_ = true;
-        for (const String& sub_mod : pos->second)
-        {
-          modifications.insert(db_ptr->getRibonucleotide(sub_mod));
-        }
+        mod = db_ptr->getRibonucleotide(m);
+      }
+      catch (Exception::ElementNotFound& e)
+      {
+        // commas between numbers were removed - try reinserting them:
+        m = regex_replace(m, double_digits, "$&,");
+        mod = db_ptr->getRibonucleotide(m);
+      }
+      if (resolve_ambiguous_mods_ && mod->isAmbiguous())
+      {
+        pair<ConstRibonucleotidePtr, ConstRibonucleotidePtr> alternatives =
+          db_ptr->getRibonucleotideAlternatives(m);
+        modifications.insert(alternatives.first);
+        modifications.insert(alternatives.second);
+        // keep track of reverse associations (specific -> ambiguous);
+        // constraint: each mod. can only occur in one ambiguity group!
+        ambiguous_mods_[alternatives.first->getCode()] = m;
+        ambiguous_mods_[alternatives.second->getCode()] = m;
       }
       else
       {
-        m.substitute('_', ',');
-        modifications.insert(db_ptr->getRibonucleotide(m));
+        modifications.insert(mod);
       }
+    }
+    if (ambiguous_mods_.empty()) // no ambiguous mods to resolve
+    {
+      resolve_ambiguous_mods_ = false;
     }
     return modifications;
   }
@@ -641,8 +652,7 @@ protected:
   }
 
 
-  void resolveAmbiguousMods_(HitsByScore& hits,
-                             const map<String, String>& reverse_ambig_mods)
+  void resolveAmbiguousMods_(HitsByScore& hits)
   {
     OPENMS_PRECONDITION(hits.size() > 1, "more than one hit expected");
     auto previous_it = hits.begin();
@@ -667,8 +677,8 @@ protected:
       for (Size i = 0; i < current_seq.size(); ++i)
       {
         if (previous_seq[i]->getCode() == current_seq[i]->getCode()) continue;
-        auto pos_current = reverse_ambig_mods.find(current_seq[i]->getCode());
-        if (pos_current == reverse_ambig_mods.end())
+        auto pos_current = ambiguous_mods_.find(current_seq[i]->getCode());
+        if (pos_current == ambiguous_mods_.end())
         {
           // difference is not due to an ambiguous mod. - don't combine hits:
           remove_current = false;
@@ -678,8 +688,8 @@ protected:
         const String& ambig_code = pos_current->second;
         if (previous_seq[i]->getCode() == ambig_code) continue;
         // if not, should we replace it with an ambiguous mod.?
-        auto pos_previous = reverse_ambig_mods.find(previous_seq[i]->getCode());
-        if ((pos_previous == reverse_ambig_mods.end()) ||
+        auto pos_previous = ambiguous_mods_.find(previous_seq[i]->getCode());
+        if ((pos_previous == ambiguous_mods_.end()) ||
             (pos_previous->second != ambig_code)) // mods don't match
         {
           remove_current = false;
@@ -712,19 +722,6 @@ protected:
     IdentificationData::ScoreTypeRef score_ref =
       id_data.getScoreTypes().begin();
 
-    map<String, String> reverse_ambig_mods; // map: specific code -> ambig. code
-    if (consider_ambiguous_mods_)
-    {
-      // constraint: each mod. can only occur in one ambiguity group!
-      for (const auto& pair : ambiguous_mods_)
-      {
-        for (const auto& mod : pair.second)
-        {
-          reverse_ambig_mods[mod] = pair.first;
-        }
-      }
-    }
-
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
     for (SignedSize scan_index = 0;
@@ -741,9 +738,9 @@ protected:
 #pragma omp critical (id_data_access)
       query_ref = id_data.registerDataQuery(query);
 
-      if (consider_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
+      if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
       {
-        resolveAmbiguousMods_(annotated_hits[scan_index], reverse_ambig_mods);
+        resolveAmbiguousMods_(annotated_hits[scan_index]);
       }
 
       // create full oligo hit structure from annotated hits
@@ -936,8 +933,9 @@ protected:
     search_param.variable_mods.insert(var_mod_names.begin(),
                                       var_mod_names.end());
 
+    resolve_ambiguous_mods_ = getFlag_("modifications:resolve_ambiguities");
     set<ConstRibonucleotidePtr> variable_modifications =
-      getModifications_(search_param.variable_mods, ambiguous_mods_);
+      getModifications_(search_param.variable_mods);
 
     // @TODO: add slots for these to "IdentificationData::DBSearchParam"?
     IntList precursor_isotopes = (use_avg_mass ? vector<Int>(1, 0) :
@@ -1055,6 +1053,11 @@ protected:
     Param param = spectrum_generator.getParameters();
     vector<String> temp = getStringList_("fragment:ions");
     set<String> selected_ions(temp.begin(), temp.end());
+    if (resolve_ambiguous_mods_ && !selected_ions.count("a-B"))
+    {
+      LOG_WARN << "Warning: option 'modifications:resolve_ambiguities' requires a-B ions in parameter 'fragment:ions' - disabling the option." << endl;
+      resolve_ambiguous_mods_ = false;
+    }
     for (const auto& code : fragment_ion_codes_)
     {
       String param_name = "add_" + code + "_ions";

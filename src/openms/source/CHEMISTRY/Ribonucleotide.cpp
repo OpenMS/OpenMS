@@ -192,4 +192,9 @@ namespace OpenMS
     return (code_.length() != 1) || (code_[0] != origin_);
   }
 
+  bool Ribonucleotide::isAmbiguous() const
+  {
+    return code_.back() == '?';
+  }
+
 }

@@ -64,7 +64,7 @@ namespace OpenMS
   {
     String full_path = File::find(path);
 
-    const String header = "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass";
+    String header = "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass";
 
     // the input file is Unicode encoded, so we need Qt to read it:
     QFile file(full_path.toQString());
@@ -82,7 +82,7 @@ namespace OpenMS
       line = source.readLine();
       ++line_count;
     }
-    if (line != header)
+    if (!line.hasPrefix(header)) // additional columns are allowed
     {
       String msg = "expected header line starting with: '" + header + "'";
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -119,7 +119,7 @@ namespace OpenMS
   {
     vector<String> parts;
     String(row).split('\t', parts);
-    if (parts.size() != 9)
+    if (parts.size() < 9)
     {
       String msg = "9 tab-separated fields expected, found " +
         String(parts.size()) + " in line " + String(line_count);
@@ -168,7 +168,7 @@ namespace OpenMS
       }
     }
     // Modomics' "new code" contains information on terminal specificity:
-    if (parts[2].hasSuffix("N")) // terminal mod., exception: "GN"
+    if (parts[2].back() == 'N') // terminal mod., exception: "GN"
     {
       if (parts[2].hasSubstring("55") || (parts[2] == "N"))
       {
@@ -179,11 +179,25 @@ namespace OpenMS
         ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
       }
     }
-    else // default specificity is "ANYWHERE"; set formula after base loss:
+    else // default specificity is "ANYWHERE"; now set formula after base loss:
     {
-      if (parts[1].hasSuffix("m")) // mod. attached to the ribose, not base
+      if (parts[1].back() == 'm') // mod. attached to the ribose, not base
       {
         ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+      }
+      else if (parts[1].back() == '?') // ambiguity code -> fill the map
+      {
+        if (parts.size() < 10)
+        {
+          String msg =
+            "10th field expected for ambiguous modification in line " +
+            String(line_count);
+          throw Exception::ParseError(__FILE__, __LINE__,
+                                      OPENMS_PRETTY_FUNCTION, row, msg);
+        }
+        String code1 = parts[9].prefix(' '), code2 = parts[9].suffix(' ');
+        ambiguity_map_[parts[1]] = make_pair(getRibonucleotide(code1),
+                                             getRibonucleotide(code2));
       }
       else if ((parts[1] == "Ar(p)") || (parts[1] == "Gr(p)"))
       {
@@ -224,6 +238,20 @@ namespace OpenMS
     }
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      seq);
+  }
+
+
+  pair<RibonucleotideDB::ConstRibonucleotidePtr,
+       RibonucleotideDB::ConstRibonucleotidePtr>
+  RibonucleotideDB::getRibonucleotideAlternatives(const std::string& code)
+  {
+    auto pos = ambiguity_map_.find(code);
+    if (pos == ambiguity_map_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, code);
+    }
+    return pos->second;
   }
 }
 

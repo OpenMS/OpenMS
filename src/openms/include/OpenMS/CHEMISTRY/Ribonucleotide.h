@@ -133,10 +133,10 @@ namespace OpenMS
     /// Get the average mass of the ribonucleotide
     void setAvgMass(double avg_mass);
 
-    /// Get new code
+    /// Get the "new" (Modomics) code
     const String getNewCode() const;
 
-    /// Set new code
+    /// Set the "new" (Modomics) code
     void setNewCode(const String &new_code);
 
     /// ostream iterator to write the residue to a stream
@@ -170,6 +170,9 @@ namespace OpenMS
 
     /// Return true if this is a modified ribonucleotide and false otherwise
     bool isModified() const;
+
+    /// Return whether this is an "ambiguous" modification (representing isobaric modifications on the base/ribose)
+    bool isAmbiguous() const;
 
   protected:
     /// Default value for sum formula after nucleobase loss

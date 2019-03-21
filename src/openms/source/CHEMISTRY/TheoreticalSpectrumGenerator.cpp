@@ -162,6 +162,8 @@ namespace OpenMS
       }
     }
 
+    // @TODO: make this more efficient - there's a lot of duplicated
+    // work between different ion types, charges and subsequences!
     if (add_b_ions_) addPeaks_(spectrum, oligo, NASequence::BIon, charge);
     if (add_y_ions_) addPeaks_(spectrum, oligo, NASequence::YIon, charge);
     if (add_a_ions_) addPeaks_(spectrum, oligo, NASequence::AIon, charge);
@@ -642,6 +644,7 @@ namespace OpenMS
     // Could be changed in the future.
 
     double intensity(1);
+    static const double methyl_weight = EmpiricalFormula("CH2").getMonoWeight();
     // char charge_sign = (charge > 0) ? '+' : '-';
 
     switch (res_type)
@@ -677,13 +680,10 @@ namespace OpenMS
       break;
     }
 
-    if (res_type == NASequence::AIon || res_type == NASequence::BIon || res_type == NASequence::CIon || res_type == NASequence::AminusB || res_type == NASequence::DIon)
+    if (res_type == NASequence::AminusB || res_type == NASequence::AIon || res_type == NASequence::BIon || res_type == NASequence::CIon || res_type == NASequence::DIon)
     {
-      // @TODO: special cases for a-B ions ("NASequence::AminusB")
-      // - they may not be relevant for fragments of length 1 (unless modified?)
-      // - mods on the last base (that gets lost) may be completely or partially
-      // retained/lost, depending on the mod (whether it's on the base or on the
-      // backbone or both - we don't have that information at the moment)
+      // @TODO: a-B ions ("NASequence::AminusB") may not be relevant for
+      // fragments of length 1 (unless modified?)
 
       if (!add_isotopes_) // add single peak
       {
@@ -696,11 +696,29 @@ namespace OpenMS
           p.setMZ(mass / abs(charge));
           p.setIntensity(intensity);
           spectrum.push_back(p);
+          String ion_name;
           if (add_metainfo_)
           {
-            String ion_name = ribonucleotideTypeToIonCode_(res_type, length); // + String((Size)abs(charge), charge_sign);
+            ion_name = ribonucleotideTypeToIonCode_(res_type, length); // + String((Size)abs(charge), charge_sign);
             spectrum.getStringDataArrays()[0].push_back(ion_name);
             spectrum.getIntegerDataArrays()[0].push_back(charge);
+          }
+          // special treatment for a-B ions of "ambiguous" modifications:
+          // create two peaks with half intensity, representing methyl group
+          // lost/retained on backbone:
+          if ((res_type == NASequence::AminusB) &&
+              ion[length - 1]->isAmbiguous())
+          {
+            spectrum.back().setIntensity(intensity / 2.0);
+            mass += methyl_weight;
+            p.setMZ(mass / abs(charge));
+            p.setIntensity(intensity / 2.0);
+            spectrum.push_back(p);
+            if (add_metainfo_)
+            {
+              spectrum.getStringDataArrays()[0].push_back(ion_name);
+              spectrum.getIntegerDataArrays()[0].push_back(charge);
+            }
           }
         }
       }
@@ -710,7 +728,7 @@ namespace OpenMS
         for (; length < oligo.size(); ++length)
         {
           const NASequence ion = oligo.getPrefix(length);
-          addIsotopeCluster_(spectrum, ion, res_type, charge, intensity); //TODO IMPLEMENT
+          addIsotopeCluster_(spectrum, ion, res_type, charge, intensity);
         }
       }
 
@@ -724,6 +742,7 @@ namespace OpenMS
 //        }
 //      }
     }
+
     else // WIon, XIon, YIon, ZIon
     {
       if (!add_isotopes_) // add single peak
@@ -805,7 +824,7 @@ namespace OpenMS
         if (i == 1) mono_weight += peptide[0].getMonoWeight(Residue::Internal);
         for (; i < peptide.size() - 1; ++i)
         {
-          mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
+          mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications: c
           double pos(mono_weight);
           switch (res_type)
           {
@@ -859,7 +878,7 @@ namespace OpenMS
 
         for (; i > 0; --i)
         {
-          mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
+          mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications: c
           double pos(mono_weight);
           switch (res_type)
           {
