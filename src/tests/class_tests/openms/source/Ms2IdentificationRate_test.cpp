@@ -39,6 +39,92 @@
 
 #include <include/OpenMS/QC/Ms2IdentificationRate.h>
 
+#include <iostream>
 //////////////////////////
 
 using namespace OpenMS;
+
+
+
+//START_TEST(Ms2IdentificationRate, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+
+//construct PeptideHits
+PeptideHit pep_hit1_t1;
+pep_hit_t1.setMetaValue("target_decoy", "target");
+PeptideHit pep_hit1_t2;
+pep_hit_t2.setMetaValue("target_decoy", "target");
+PeptideHit pep_hit2_d;
+pep_hit_t1.setMetaValue("target_decoy", "decoy");
+
+//construct vectors of PeptideHits
+std::vector<PeptideHit> pep_hits_target = {pep_hit1_t1, pep_hit1_t2};
+std::vector<PeptideHit> pep_hits_decoy = {pep_hit2_d};
+std::vector<PeptideHit> pep_hits_empty = {};
+
+//construct Peptideidentification with PeptideHits
+PeptideIdentification pep_id_target;
+pep_id_target.setHit(pep_hits_target);
+PeptideIdentification pep_id_decoy;
+pep_id_target.setHit(pep_hits_decoy);
+PeptideIdentification pep_id_empty;
+pep_id_target.setHit(pep_hits_empty);
+
+std::vector<PeptideIdentification> pep_ids = {pep_id_target, pep_id_decoy, pep_id_empty};
+
+//construct features with peptideIdentifications
+Feature feat_2_targets;
+feat_2_targets.setPeptideIdentification(pep_ids);
+feat_2_targets.setPeptideIdentification(pep_ids);
+Feature feat_target;
+feat_target.setPeptideIdentification(pep_ids);
+Feature feat_empty;
+
+std::vector<Feature> features = {feat_2_targets, feat_target, feat_empty};
+
+//construct FeatureMap
+FeatureMap(features) fmap;
+fmap.setUnassignedPeptideIdentifications(pep_ids);
+
+
+//construct MSSpectrum
+MSSpectrum ms2_1;
+ms2_1.setLevel(2);
+MSSpectrum ms2_2;
+ms2_2.setLevel(2);
+MSSpectrum ms2_3;
+ms2_3.setLevel(2);
+MSSpectrum ms2_4;
+ms2_4.setLevel(2);
+MSSpectrum ms2_5;
+ms2_5.setLevel(2);
+MSSpectrum ms2_6;
+ms2_6.setLevel(2);
+MSSpectrum ms1;
+ms1.setLevel(1);
+
+std::vector<MSSpectrum> ms_spectra = {ms2_1, ms2_2, ms2_3, ms2_4, ms2_5, ms2_6, ms1};
+
+//construct MSExperiment
+MSExperiment exp;
+exp.setSpectra(ms_spectra);
+
+//tests compute function
+Ms2IdentificationRate ms2ir;
+ms2ir.compute(fmap, exp);
+std::vector<IdentificationRateData> result;
+result = ms2ir.getResult();
+
+for (auto idrd : result)
+{
+  std::cout << "Number of Peptide IDs: " << idrd.num_peptide_identification << std::endl;
+  std::cout << "Number of MS2 Spectra: " << idrd.num_ms2_spectra << std::endl;
+  std::cout << "Rate: " << idrd.identification_rate << std::endl;
+}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+//END_TEST

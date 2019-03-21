@@ -40,6 +40,7 @@
 #include <include/OpenMS/KERNEL/MSExperiment.h>
 #include <include/OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include "QCBase.h"
 
 namespace OpenMS
@@ -49,27 +50,26 @@ namespace OpenMS
   public:
     struct IdentificationRateData
     {
-      std::string filename;
+//      std::string filename;
       Int64 num_peptide_identification;
       Int64 num_ms2_spectra;
       double identification_rate;
     };
 
-    //Konstruktor und forceZeug
-
   private:
     std::vector<IdentificationRateData> rate_result_;
     IdentificationRateData id_rate_data_;
 
-    Int64 countPeptideId_(std::vector<PeptideIdentification> peptide_id);
+    Int64 countPeptideId_(std::vector<PeptideIdentification> peptide_id, bool force_fdr);
 
   public:
     Ms2IdentificationRate();
     ~Ms2IdentificationRate();
-    void compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file = "default");
+//    void compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file = "default", bool force_fdr = false);
+    void compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false);
     std::vector<IdentificationRateData> getResults();
     void clear();
-    Status requires() override;
+    QCBase::Status requires() const override;
 
   };
 

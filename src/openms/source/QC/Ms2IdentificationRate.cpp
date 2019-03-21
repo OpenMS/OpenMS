@@ -38,20 +38,21 @@
 #include <iostream>
 
 
+
 namespace OpenMS
 {
 
   Ms2IdentificationRate::Ms2IdentificationRate() = default;
   Ms2IdentificationRate::~Ms2IdentificationRate() = default;
 
-  Int64 Ms2IdentificationRate::countPeptideId_(std::vector<PeptideIdentification> peptide_id)
+  Int64 Ms2IdentificationRate::countPeptideId_(std::vector<PeptideIdentification> peptide_id, bool force_fdr)
   {
     Int64 counter{};
-    counter = count_if(peptide_id.begin(), peptide_id.end(), [] (PeptideIdentification const & x)
+    counter = count_if(peptide_id.begin(), peptide_id.end(), [force_fdr] (PeptideIdentification const & x)
     {
       if ( !x.getHits().empty() )
       {
-        if (x.getHits()[0].metaValueExists("target_decoy") )
+        if (x.getHits()[0].metaValueExists("target_decoy") && !force_fdr)
         {
           if (x.getHits()[0].getMetaValue("target_decoy") == "target")
           {
@@ -62,15 +63,19 @@ namespace OpenMS
             return false;
           }
         }
+        else if (force_fdr)
+        {
+          return true;
+        }
         else
         {
-          std::cerr << "Ms2IdentificationRate: no FDR was made" << std::endl;
+          LOG_ERROR << "Ms2IdentificationRate: no FDR was made. If you want to continue without FDR use -force";
           return false;
         }
       }
       else
       {
-        std::cerr << "Ms2IdentificationRate: empty hits" << std::endl;
+        LOG_WARN << "Ms2IdentificationRate: empty hits";
         return false;
       }
     });
@@ -79,32 +84,24 @@ namespace OpenMS
 
   //computes number of peptide identifications, number of ms2 spectra and ratio
   //data is stored in vector of structs
-  void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file)
+//  void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file, bool force_fdr)
+  void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr)
   {
     //checks if data exists
-    try
-    {
       if (feature_map.empty())
       {
-        throw "Ms2IdentificationRate: FeatureMap is empty";
+        LOG_WARN << "Ms2IdentificationRate: FeatureXML is corrupted or empty";
       }
       if (exp.empty())
       {
-        throw "Ms2IdentificationRate: MSExperiment is empty";
+        LOG_WARN << "Ms2IdentificationRate: mzML is corrupted or empty";
       }
 
-    }
-    
-    catch (char const * e)
-    {
-      std::cout << "Ms2IdentificationRate: Empty data: " << e << std::endl;
-    }
-
-    if (file == "default")
-    {
-      std::cout << "Ms2IdentificationRate: There is no filename, you can enter it now: " << std::endl;
-      std::cin >> file;
-    }
+//    if (file == "default")
+//    {
+//      std::cout << "Ms2IdentificationRate: There is no filename, you can enter it now: " << std::endl;
+//      std::cin >> file;
+//    }
 
     //count ms2 spectra
     Int64 ms2_level_counter{};
@@ -119,10 +116,10 @@ namespace OpenMS
 
     //count peptideIdentifications
     Int64 peptide_identification_counter{};
-    peptide_identification_counter += countPeptideId_(feature_map.getUnassignedPeptideIdentifications());
+    peptide_identification_counter += countPeptideId_(feature_map.getUnassignedPeptideIdentifications(), force_fdr);
     for (auto const &f : feature_map)
     {
-      peptide_identification_counter += countPeptideId_(f.getPeptideIdentifications());
+      peptide_identification_counter += countPeptideId_(f.getPeptideIdentifications(), force_fdr);
     }
 
     //compute ratio
@@ -130,7 +127,7 @@ namespace OpenMS
     ratio = (double) peptide_identification_counter / ms2_level_counter;
 
     //store results
-    id_rate_data_.filename = file;
+//    id_rate_data_.filename = file;
     id_rate_data_.num_peptide_identification = peptide_identification_counter;
     id_rate_data_.num_ms2_spectra = ms2_level_counter;
     id_rate_data_.identification_rate = ratio;
@@ -151,8 +148,8 @@ namespace OpenMS
   }
 
 
-  Status requires()
+  QCBase::Status Ms2IdentificationRate::requires() const
   {
-    return Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDR;
+    return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
 } // namespace OpenMS
