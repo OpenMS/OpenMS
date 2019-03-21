@@ -66,9 +66,9 @@ namespace OpenMS
     defaults_.setMinFloat("link:rt_tol", 0.0);
     defaults_.setValue("link:mz_tol", 10.0, "m/z tolerance (in ppm or Da)");
     defaults_.setMinFloat("link:mz_tol", 0.0);
-    defaults_.setValue("link:charge_merging","None","whether to allow no charge mismatch (None), charge zero with every other charge (Zero), or disregard charges (All).");
+    defaults_.setValue("link:charge_merging","Zero","whether to disallow charge mismatches (None), allow to link charge zero (i.e., unknown charge) with every other charge (Zero), or disregard charges (All).");
     defaults_.setValidStrings("link:charge_merging", ListUtils::create<String>("None,Zero,All"));
-    defaults_.setValue("link:adduct_merging","None","whether to only allow the same adduct for linking (None), allow linking adduct-free features with other features (Unknowns), or disregard adducts (All).");
+    defaults_.setValue("link:adduct_merging","All","whether to only allow the same adduct for linking (None), allow linking adduct-free features with other features (Unknowns), or disregard adducts (All).");
     defaults_.setValidStrings("link:adduct_merging", ListUtils::create<String>("None,Unknowns,All"));
 
     defaults_.setValue("mz_unit", "ppm", "Unit of m/z tolerance");
