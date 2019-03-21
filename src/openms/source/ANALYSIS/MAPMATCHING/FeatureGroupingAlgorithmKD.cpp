@@ -457,12 +457,11 @@ namespace OpenMS
           }  
         }
       }
-      //what to consider for linking with existing features _that have charge_. This ensures that we won't collect different non-zero charges.
       //what to consider for linking with existing features _that have adduct_. If one has no adduct, it's fine
       //anyway. If one has an adduct we have to compare.
       else if (merge_adduct == "Unknowns")
       {
-        //subcase1: *it has adduct, but i not. don't want to collect potentially different adductsto previous without adduct 
+        //subcase1: *it has adduct, but i not. don't want to collect potentially different adducts to previous without adduct 
         if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts") && !f_i->metaValueExists("dc_charge_adducts"))
         {
           continue;
