@@ -38,18 +38,112 @@
 
 namespace OpenMS
 {
+  /**
+   * @brief This class serves as an abstract base class for all QC classes.
+   *
+   * It contains the important feature of encoding the input requirements
+   * for a certain QC.
+   */
   class OPENMS_DLLAPI QCBase
   {
   public:
+    /**
+     * @brief Enum to encode a file type as a bit.
+     */
     enum class Requires :
         UInt64
     {
       FAIL = 0,
       RAWMZML = 1,
-      POSTFDR = 2,
-      PREFDR = 4,
+      POSTFDRFEAT = 2,
+      PREFDRFEAT = 4,
       CONTAMINANTS = 8
     };
-    virtual UInt64 requires() = 0;
+    /**
+     * @brief Storing a status as a UInt64
+     *
+     * Only allows assignment and bit operations with itself and an object
+     * of type Requires, i.e. not with any numeric types.
+     */
+    class Status
+    {
+    public:
+      // Constructors
+      Status() : value_(0)
+      {}
+      Status(const Requires& req)
+      {
+        value_ = UInt64(req);
+      }
+      Status(const Status& stat)
+      {
+        value_ = stat.value_;
+      }
+      // Assignment
+      Status& operator=(const Requires& req)
+      {
+        value_ = UInt64(req);
+        return *this;
+      }
+      Status& operator=(const Status& stat) = default;
+      // Bitwise operators
+      Status operator&(const Requires& req) const
+      {
+        Status s = *this;
+        s.value_ &= UInt64(req);
+        return s;
+      }
+      Status operator&(const Status& stat) const
+      {
+        Status s = *this;
+        s.value_ &= stat.value_;
+        return s;
+      }
+      Status& operator&=(const Requires& req)
+      {
+        value_ &= UInt64(req);
+        return *this;
+      }
+      Status& operator&=(const Status& stat)
+      {
+        value_ &= stat.value_;
+        return *this;
+      }
+      Status operator|(const Requires& req) const
+      {
+        Status s = *this;
+        s.value_ |= UInt64(req);
+        return s;
+      }
+      Status operator|(const Status& stat) const
+      {
+        Status s = *this;
+        s.value_ |= stat.value_;
+        return s;
+      }
+      Status& operator|=(const Requires& req)
+      {
+        value_ |= UInt64(req);
+        return *this;
+      }
+      Status& operator|=(const Status& stat)
+      {
+        value_ |= stat.value_;
+        return *this;
+      }
+      /**
+       * @brief Check if input status fulfills requirement status.
+       */
+      bool isSuperSetOf(const Status& stat)
+      {
+        return ((value_ & stat.value_) == stat.value_);
+      }
+    private:
+      UInt64 value_;
+    };
+    /**
+     *@brief Returns the input data requirements of the compute(...) function
+     */
+    virtual Status requires() const = 0;
   };
 }
