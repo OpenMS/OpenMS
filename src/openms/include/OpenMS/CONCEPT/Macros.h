@@ -51,8 +51,15 @@
 
 #ifdef _OPENMP
 
+// Pragma string literals are compiler-specific: 
+// gcc and clang use _Pragma while MSVS uses __pragma
+#ifdef OPENMS_COMPILER_MSVC
+#define OPENMS_THREAD_CRITICAL(name) \
+    __pragma( STRINGIFY( omp critical (name) ) )
+#else
 #define OPENMS_THREAD_CRITICAL(name) \
     _Pragma( STRINGIFY( omp critical (name) ) )
+#endif
 
 #else
 
