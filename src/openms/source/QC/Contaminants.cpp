@@ -35,6 +35,7 @@
 #include <OpenMS/QC/Contaminants.h>
 #include <include/OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <include/OpenMS/METADATA/ProteinIdentification.h>
+#include <include/OpenMS/FORMAT/FeatureXMLFile.h>
 //#include <include/OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
 //#include <include/OpenMS/CHEMISTRY/ProteaseDB.h>
 
@@ -126,6 +127,16 @@ const std::vector<std::tuple<double, double>>& Contaminants::getResults()
 
 int main()
 {
+
+  FASTAFile fasta_file;
+  vector<FASTAFile::FASTAEntry> contaminants;
+  fasta_file.load("/buffer/ag_bsc/pmsb/data/databases/crab.fasta",contaminants);
+  FeatureXMLFile fxml_file;
+  FeatureMap fmap;
+  fxml_file.load("/buffer/ag_bsc/pmsb/data/Example_Data/lfq_spikein_dilution_1.featureXML", fmap);
+  Contaminants conts;
+  conts.compute(fmap, contaminants);
+  std::vector<std::tuple<double, double>> result = conts.getResults();
 
 }
 //if (std::find(protein.peptides.begin(), protein.peptides.end(), (pep_hit.getSequence())) != protein.peptides.end())

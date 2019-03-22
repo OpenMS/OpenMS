@@ -15,6 +15,9 @@ set(concept_executables_list
   UniqueIdIndexer_test
   UniqueIdInterface_test
 )
+set(qc_executables_list
+    Contaminants_test
+)
 
 set(datastructures_executables_list
   Adduct_test
