@@ -117,7 +117,7 @@ namespace OpenMS
     {
       int indexlists = (int) !spectra_offsets.empty() + (int) !chromatograms_offsets.empty();
 
-      long indexlistoffset = os.tellp();
+      Int64 indexlistoffset = os.tellp();
       os << "\n";
       // NOTE: indexList is required, so we need to write one 
       // NOTE: the spectra and chromatogram ids are user-supplied, so better XML-escape them!
