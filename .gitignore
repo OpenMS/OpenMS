@@ -25,5 +25,3 @@ contrib-build
 openms-build
 cmake-build-debug
 cmake-build-release
-TIC.h
-TIC.cpp
