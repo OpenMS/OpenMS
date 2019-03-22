@@ -32,13 +32,12 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#pragma once
+
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#pragma once
 
 namespace OpenMS
 {
