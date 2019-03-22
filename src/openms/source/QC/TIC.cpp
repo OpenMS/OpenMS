@@ -34,27 +34,42 @@
 
 
 #include <OpenMS/QC/TIC.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
-using namespace OpenMS;
 using namespace std;
 
-
-class OPENMS_DLLAPI TIC : QCBase
+namespace OpenMS
 {
-public:
-  void compute(const MSExperiment& exp)
+  TIC::TIC() :
+      rt_bin_(0)
+  {}
+
+  TIC::TIC(float bin_size) :
+      rt_bin_(bin_size)
+  {}
+
+  void TIC::compute(const MSExperiment &exp)
   {
-    MSChromatogram chrom = exp.getTIC();
-    double MZ = chrom.getMZ();
-    for (Size i = 0; i != chrom.size(); ++i)
+    MSChromatogram tic = exp.getTIC();
+    if (rt_bin_ > 0)
     {
-      make_pair(MZ,chrom[i].getRT());
+      LinearResamplerAlign
+      lra;
+      Param param = lra.getParameters();
+      param.setValue("spacing", rt_bin_);
+      lra.setParameters(param);
+      lra.raster(exp);
     }
+    results_.push_back(tic);
   }
-  vector<pair<double,double>> getResults();
-  QCBase::Status requires() const override;
-private:
-  vector<pair<double,double>> result_;
-};
 
+  std::vector<MSChromatogram> TIC::getResults() const
+  {
+    return results_;
+  }
 
+  QCBase::Status TIC::requires() const
+  {
+    return QCBase::Status() | QCBase::Requires::RAWMZML;
+  }
+}

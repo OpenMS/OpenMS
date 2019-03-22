@@ -42,10 +42,13 @@ namespace OpenMS
   class OPENMS_DLLAPI TIC : QCBase
   {
   public:
-    void compute(MSExperiment exp);
-    std::vector<std::pair<double,double>> getResults() const ;
+    TIC();
+    explicit TIC(float bin_size);
+    void compute(const MSExperiment& exp);
+    std::vector<MSChromatogram> getResults() const ;
     QCBase::Status requires() const override;
   private:
-    std::vector<std::pair<double,double>> result_;
+    std::vector<MSChromatogram> results_;
+    float rt_bin_;
   };
 }
