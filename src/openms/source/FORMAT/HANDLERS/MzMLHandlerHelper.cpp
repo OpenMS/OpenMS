@@ -107,8 +107,8 @@ namespace OpenMS
 
   void MzMLHandlerHelper::writeFooter_(std::ostream& os,
                                        const PeakFileOptions& options_, 
-                                       const std::vector< std::pair<std::string, long> > & spectra_offsets,
-                                       const std::vector< std::pair<std::string, long> > & chromatograms_offsets)
+                                       const std::vector< std::pair<std::string, Int64> > & spectra_offsets,
+                                       const std::vector< std::pair<std::string, Int64> > & chromatograms_offsets)
   {
     os << "\t</run>\n";
     os << "</mzML>";
