@@ -41,18 +41,18 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include "QCBase.h"
 
 namespace OpenMS
 {
-  class Ms2IdentificationRate : QCBase
+  class OPENMS_DLLAPI Ms2IdentificationRate : QCBase
   {
   public:
     struct IdentificationRateData
     {
-//      std::string filename;
-      Int64 num_peptide_identification;
-      Int64 num_ms2_spectra;
+      UInt64 num_peptide_identification;
+      UInt64 num_ms2_spectra;
       double identification_rate;
     };
 
@@ -63,9 +63,9 @@ namespace OpenMS
     Int64 countPeptideId_(std::vector<PeptideIdentification> peptide_id, bool force_fdr);
 
   public:
+
     Ms2IdentificationRate();
     ~Ms2IdentificationRate();
-//    void compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file = "default", bool force_fdr = false);
     void compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false);
     std::vector<IdentificationRateData> getResults();
     void clear();

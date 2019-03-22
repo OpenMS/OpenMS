@@ -42,9 +42,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-//#include <OpenMS/METADATA/PeptideIdentification.h>
-//#include <OpenMS/KERNEL/MSExperiment.h>
-//#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -69,39 +66,50 @@ pep_hit1_t1.setMetaValue("target_decoy", "target");
 PeptideHit pep_hit1_t2;
 pep_hit1_t2.setMetaValue("target_decoy", "target");
 PeptideHit pep_hit2_d;
-pep_hit1_t1.setMetaValue("target_decoy", "decoy");
+pep_hit2_d.setMetaValue("target_decoy", "decoy");
+PeptideHit pep_hit_fdr;
 
 //construct vectors of PeptideHits
-std::vector<PeptideHit> pep_hits_target  {pep_hit1_t1, pep_hit1_t2};
-std::vector<PeptideHit> pep_hits_decoy {pep_hit2_d};
-std::vector<PeptideHit> pep_hits_empty  {};
+std::vector<PeptideHit> pep_hits_target = {pep_hit1_t1, pep_hit1_t2};
+std::vector<PeptideHit> pep_hits_decoy = {pep_hit2_d};
+std::vector<PeptideHit> pep_hits_empty = {};
+std::vector<PeptideHit> pep_hits_fdr = {pep_hit_fdr};
 
 //construct Peptideidentification with PeptideHits
 PeptideIdentification pep_id_target;
 pep_id_target.setHits(pep_hits_target);
 PeptideIdentification pep_id_decoy;
-pep_id_target.setHits(pep_hits_decoy);
+pep_id_decoy.setHits(pep_hits_decoy);
 PeptideIdentification pep_id_empty;
-pep_id_target.setHits(pep_hits_empty);
+pep_id_empty.setHits(pep_hits_empty);
+PeptideIdentification pep_id_fdr;
+pep_id_fdr.setHits(pep_hits_fdr);
 
-std::vector<PeptideIdentification> pep_ids  {pep_id_target, pep_id_decoy, pep_id_empty};
+std::vector<PeptideIdentification> pep_ids = {pep_id_target, pep_id_decoy, pep_id_empty};
+std::vector<PeptideIdentification> pep_ids_empty{};
+std::vector<PeptideIdentification> pep_ids_fdr = {pep_id_fdr};
 
 //construct features with peptideIdentifications
-Feature feat_2_targets;
-feat_2_targets.setPeptideIdentifications(pep_ids);
-feat_2_targets.setPeptideIdentifications(pep_ids);
+Feature feat_empty_pi;
+feat_empty_pi.setPeptideIdentifications(pep_ids_empty);
 Feature feat_target;
 feat_target.setPeptideIdentifications(pep_ids);
 Feature feat_empty;
+Feature feat_fdr;
 
 //construct FeatureMap
 FeatureMap fmap;
-fmap.push_back(feat_2_targets);
+fmap.push_back(feat_empty_pi);
 fmap.push_back(feat_target);
 fmap.push_back(feat_empty);
 
-fmap.setUnassignedPeptideIdentifications(pep_ids);
+FeatureMap fmap_fdr;
+fmap.push_back(feat_fdr);
 
+FeatureMap fmap_empty;
+
+
+fmap.setUnassignedPeptideIdentifications(pep_ids);
 
 //construct MSSpectrum
 MSSpectrum ms2_1;
@@ -119,28 +127,133 @@ ms2_6.setMSLevel(2);
 MSSpectrum ms1;
 ms1.setMSLevel(1);
 
-std::vector<MSSpectrum> ms_spectra  {ms2_1, ms2_2, ms2_3, ms2_4, ms2_5, ms2_6, ms1};
+std::vector<MSSpectrum> ms_spectra = {ms2_1, ms2_2, ms2_3, ms2_4, ms2_5, ms2_6, ms1};
+std::vector<MSSpectrum> ms1_spectra = {ms1};
+std::vector<MSSpectrum> ms2_2_spectra = {ms2_1, ms2_2};
+std::vector<MSSpectrum> ms_empty{};
 
 //construct MSExperiment
 MSExperiment ms_exp;
 ms_exp.setSpectra(ms_spectra);
+
+//construct MSExperiment without m2 level
+MSExperiment ms1_exp;
+ms1_exp.setSpectra(ms1_spectra);
+
+//construct MSExperiment with two m2 level
+MSExperiment ms2_2_exp;
+ms2_2_exp.setSpectra(ms2_2_spectra);
+
+//construct empty MSExperiment
+MSExperiment ms_empty_exp;
+
+//construct MSExperiment with empty MSSpectra
+MSExperiment ms_empty_spec_exp;
+ms_empty_spec_exp.setSpectra(ms_empty);
+
+
+//////////////////////////////////////////////////////////////////
+//start Section
+/////////////////////////////////////////////////////////////////
+
 Ms2IdentificationRate ms2ir;
+Ms2IdentificationRate ms2ir_fdr;
+Ms2IdentificationRate ms2ir_ms1;
+Ms2IdentificationRate ms2ir_ms2_2;
+Ms2IdentificationRate ms2ir_empty_spec;
+Ms2IdentificationRate ms2ir_empty_msexp;
+Ms2IdentificationRate ms2ir_empty_fmap;
 
 //tests compute function
 START_SECTION(void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false))
         {
+  // Muster Daten Test
           ms2ir.compute(fmap, ms_exp);
           std::vector<Ms2IdentificationRate::IdentificationRateData> result;
           result = ms2ir.getResults();
 
-
           for (auto idrd : result)
           {
-            std::cout << "Number of Peptide IDs: " << idrd.num_peptide_identification << std::endl;
-            std::cout << "Number of MS2 Spectra: " << idrd.num_ms2_spectra << std::endl;
-            std::cout << "Rate: " << idrd.identification_rate << std::endl;
+            TEST_EQUAL(idrd.num_peptide_identification, 3);
+            TEST_EQUAL(idrd.num_ms2_spectra, 6);
+            TEST_REAL_SIMILAR(idrd.identification_rate, 0.5);
           }
+
+
+  //FDR ERROR
+        ms2ir_fdr.compute(fmap_fdr, ms_exp);
+        TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "FDR was not made. If you want to continue whithout FDR use -force");
+
+        // nur MS1 Spectren
+        ms2ir_ms1.compute(fmap, ms1_exp);
+        std::vector<Ms2IdentificationRate::IdentificationRateData> result_ms1;
+        result_ms1 = ms2ir_ms1.getResults();
+
+        for (auto idrd_ms1 : result_ms1)
+        {
+          TEST_EQUAL(idrd_ms1.num_peptide_identification, 0);
+          TEST_EQUAL(idrd_ms1.num_ms2_spectra, 0);
+          TEST_EQUAL(idrd_ms1.identification_rate, 0);
+          //Error
         }
+
+        //weniger MS2 Spectren als ID
+
+          ms2ir_ms2_2.compute(fmap, ms2_2_exp);
+          std::vector<Ms2IdentificationRate::IdentificationRateData> result_ms2_2;
+          result_ms2_2 = ms2ir_ms2_2.getResults();
+
+          for (auto idrd_ms2_2 : result_ms2_2)
+          {
+            TEST_EQUAL(idrd_ms2_2.num_peptide_identification, 0);
+            TEST_EQUAL(idrd_ms2_2.num_ms2_spectra, 0);
+            TEST_EQUAL(idrd_ms2_2.identification_rate, 0);
+            //Error
+          }
+
+        //leerer MS Spectren Vector
+          ms2ir_empty_spec.compute(fmap, ms_empty_spec_exp);
+          std::vector<Ms2IdentificationRate::IdentificationRateData> result_empty_spec;
+          result_empty_spec = ms2ir_empty_spec.getResults();
+
+          for (auto idrd_empty_spec : result_empty_spec)
+          {
+            TEST_EQUAL(idrd_empty_spec.num_peptide_identification, 0);
+            TEST_EQUAL(idrd_empty_spec.num_ms2_spectra, 0);
+            TEST_EQUAL(idrd_empty_spec.identification_rate, 0);
+            //Error
+          }
+
+         // leere MSExperient Datei
+          ms2ir_empty_msexp.compute(fmap, ms_empty_exp);
+          std::vector<Ms2IdentificationRate::IdentificationRateData> result_empty_msexp;
+          result_empty_msexp = ms2ir_empty_msexp.getResults();
+
+          for (auto idrd_empty_msexp : result_empty_msexp)
+          {
+            TEST_EQUAL(idrd_empty_msexp.num_peptide_identification, 0);
+            TEST_EQUAL(idrd_empty_msexp.num_ms2_spectra, 0);
+            TEST_EQUAL(idrd_empty_msexp.identification_rate, 0);
+            //Error
+          }
+
+         //leere feature Map Datei
+          ms2ir_empty_fmap.compute(fmap_empty, ms_exp);
+          std::vector<Ms2IdentificationRate::IdentificationRateData> result_empty_fmap;
+          result_empty_fmap = ms2ir_empty_fmap.getResults();
+
+          for (auto idrd_empty_fmap : result_empty_fmap)
+          {
+            TEST_EQUAL(idrd_empty_fmap.num_peptide_identification, 0);
+            TEST_EQUAL(idrd_empty_fmap.num_ms2_spectra, 0);
+            TEST_EQUAL(idrd_empty_fmap.identification_rate, 0);
+            //Error
+          }
+
+        }
+
+
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

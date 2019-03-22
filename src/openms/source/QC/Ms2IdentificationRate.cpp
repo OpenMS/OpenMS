@@ -48,8 +48,10 @@ namespace OpenMS
   Int64 Ms2IdentificationRate::countPeptideId_(std::vector<PeptideIdentification> peptide_id, bool force_fdr)
   {
     Int64 counter{};
-    counter = count_if(peptide_id.begin(), peptide_id.end(), [force_fdr] (PeptideIdentification const & x)
+
+    counter += count_if(peptide_id.begin(), peptide_id.end(), [force_fdr](PeptideIdentification const & x)
     {
+
       if ( !x.getHits().empty() )
       {
         if (x.getHits()[0].metaValueExists("target_decoy") && !force_fdr)
@@ -69,18 +71,19 @@ namespace OpenMS
         }
         else
         {
-          LOG_ERROR << "Ms2IdentificationRate: no FDR was made. If you want to continue without FDR use -force";
-          return false;
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue whithout FDR use -force");
         }
       }
       else
       {
-        LOG_WARN << "Ms2IdentificationRate: empty hits";
+        LOG_WARN << "Ms2IdentificationRate: There is a Peptideidentification without PeptideHits." << "\n";
         return false;
       }
-    });
+    }
+    );
     return counter;
   }
+
 
   //computes number of peptide identifications, number of ms2 spectra and ratio
   //data is stored in vector of structs
@@ -90,21 +93,16 @@ namespace OpenMS
     //checks if data exists
       if (feature_map.empty())
       {
-        LOG_WARN << "Ms2IdentificationRate: FeatureXML is corrupted or empty";
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureXML is corrupted or empty");
       }
       if (exp.empty())
       {
-        LOG_WARN << "Ms2IdentificationRate: mzML is corrupted or empty";
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "mzML is corrupted or empty");
       }
 
-//    if (file == "default")
-//    {
-//      std::cout << "Ms2IdentificationRate: There is no filename, you can enter it now: " << std::endl;
-//      std::cin >> file;
-//    }
 
     //count ms2 spectra
-    Int64 ms2_level_counter{};
+    UInt64 ms2_level_counter{};
 
     for (auto const &spec : exp.getSpectra())
     {
@@ -115,8 +113,9 @@ namespace OpenMS
     }
 
     //count peptideIdentifications
-    Int64 peptide_identification_counter{};
+    UInt64 peptide_identification_counter{};
     peptide_identification_counter += countPeptideId_(feature_map.getUnassignedPeptideIdentifications(), force_fdr);
+
     for (auto const &f : feature_map)
     {
       peptide_identification_counter += countPeptideId_(f.getPeptideIdentifications(), force_fdr);
@@ -127,7 +126,6 @@ namespace OpenMS
     ratio = (double) peptide_identification_counter / ms2_level_counter;
 
     //store results
-//    id_rate_data_.filename = file;
     id_rate_data_.num_peptide_identification = peptide_identification_counter;
     id_rate_data_.num_ms2_spectra = ms2_level_counter;
     id_rate_data_.identification_rate = ratio;
