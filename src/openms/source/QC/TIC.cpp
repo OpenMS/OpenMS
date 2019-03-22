@@ -40,36 +40,40 @@ using namespace std;
 
 namespace OpenMS
 {
-  TIC::TIC() :
-      rt_bin_(0)
-  {}
+  /// Constructor
+  TIC::TIC() = default;
 
-  TIC::TIC(float bin_size) :
-      rt_bin_(bin_size)
-  {}
+  /// Reset
+  void TIC::clear()
+  {
+    results_.clear();
+  }
 
-  void TIC::compute(const MSExperiment &exp)
+  /// Applies the resampling algorithm, if a bin size i.e a frequency is given.
+  /// Returns the (possibly resampled) TIC of given MSExperiment.
+  void TIC::compute(const MSExperiment &exp, float bin_size)
   {
     MSChromatogram tic = exp.getTIC();
-    if (rt_bin_ > 0)
+    if (bin_size > 0)
     {
-      LinearResamplerAlign
-      lra;
+      LinearResamplerAlign lra;
       Param param = lra.getParameters();
-      param.setValue("spacing", rt_bin_);
+      param.setValue("spacing", bin_size);
       lra.setParameters(param);
-      lra.raster(exp);
+      lra.raster(tic);
     }
     results_.push_back(tic);
   }
 
+  /// Returns all results calculated with compute.
   std::vector<MSChromatogram> TIC::getResults() const
   {
     return results_;
   }
 
+  /// Returns required file input.
   QCBase::Status TIC::requires() const
   {
-    return QCBase::Status() | QCBase::Requires::RAWMZML;
+    return QCBase::Status(QCBase::Requires::RAWMZML);
   }
 }

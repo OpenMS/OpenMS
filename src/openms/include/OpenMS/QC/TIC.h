@@ -37,18 +37,27 @@
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+/**
+ * @brief Total Ion Count (TIC) as a QC metric
+ *
+ * Simple class to calculate the TIC of an MSExperiment.
+ * Allows for multiple usage, because each calculated TIC is
+ * stored internal. Those results can than be returned.
+ *
+ */
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI TIC : QCBase
   {
   public:
     TIC();
-    explicit TIC(float bin_size);
-    void compute(const MSExperiment& exp);
+    void clear();
+    // Binning the MSExperiment is optional
+    void compute(const MSExperiment &exp, float bin_size=0);
     std::vector<MSChromatogram> getResults() const ;
     QCBase::Status requires() const override;
   private:
     std::vector<MSChromatogram> results_;
-    float rt_bin_;
   };
 }
