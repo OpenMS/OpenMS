@@ -50,11 +50,27 @@ namespace OpenMS
     window_low_(0.0),
     window_up_(0.0),
     drift_time_(-1),
-    drift_time_unit_(Precursor::DriftTimeUnit::NONE),
     drift_window_low_(0.0),
     drift_window_up_(0.0),
+    drift_time_unit_(Precursor::DriftTimeUnit::NONE),
     charge_(0),
     possible_charge_states_()
+  {
+  }
+
+  Precursor::Precursor(Precursor&& rhs) noexcept :
+    CVTermList(std::move(rhs)),
+    Peak1D(std::move(rhs)),
+    activation_methods_(std::move(rhs.activation_methods_)),
+    activation_energy_(std::move(rhs.activation_energy_)),
+    window_low_(std::move(rhs.window_low_)),
+    window_up_(std::move(rhs.window_up_)),
+    drift_time_(std::move(rhs.drift_time_)),
+    drift_window_low_(std::move(rhs.drift_window_low_)),
+    drift_window_up_(std::move(rhs.drift_window_up_)),
+    drift_time_unit_(std::move(rhs.drift_time_unit_)),
+    charge_(std::move(rhs.charge_)),
+    possible_charge_states_(std::move(rhs.possible_charge_states_))
   {
   }
 
@@ -69,9 +85,9 @@ namespace OpenMS
            window_low_ == rhs.window_low_ &&
            window_up_ == rhs.window_up_ &&
            drift_time_ == rhs.drift_time_ &&
-           drift_time_unit_ == rhs.drift_time_unit_ &&
            drift_window_up_ == rhs.drift_window_up_ &&
            drift_window_low_ == rhs.drift_window_low_ &&
+           drift_time_unit_ == rhs.drift_time_unit_ &&
            charge_ == rhs.charge_ &&
            possible_charge_states_ == rhs.possible_charge_states_ &&
            Peak1D::operator==(rhs) &&

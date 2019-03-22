@@ -58,12 +58,15 @@
 #include <vector>
 #include <numeric>
 #include <fstream>
+#include <iostream>
+#include <ostream>
 #include <algorithm>
 
 #include <boost/algorithm/string/split.hpp> 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
-// #define DEBUG
+
+//#define DEBUG
 
 using namespace std;
 
@@ -230,14 +233,6 @@ namespace OpenMS
     
     sort(list.begin(), list.end(), lessPattern);
     
-#ifdef DEBUG
-    // debug output
-    for (int i = 0; i < list.size(); ++i)
-    {
-      std::cout << "charge = " << list[i].getCharge() << "+    shift = " << list[i].getMassShiftAt(1) << " Da\n";
-    }
-#endif
-    
     return list;
   }
   
@@ -315,11 +310,14 @@ namespace OpenMS
       intensity_peptide[1] = intensity1;
     }
     // correction for triplets or higher multiplets
-    else if ((pattern.getMassShiftCount() > 2) && (ratios[1] > 0))
+    else if ((pattern.getMassShiftCount() > 2))
     {
       for (size_t peptide = 1; peptide < pattern.getMassShiftCount(); ++peptide)
       {
-        intensity_peptide[peptide] = ratios[peptide] * intensity_peptide[0];
+        if (ratios[peptide] > 0)
+        {
+          intensity_peptide[peptide] = ratios[peptide] * intensity_peptide[0];
+        }
       }
     }
 
@@ -597,7 +595,7 @@ namespace OpenMS
         std::vector<double> peptide_intensities = determinePeptideIntensitiesCentroided_(patterns[pattern], satellites);
         
         // If no reliable peptide intensity can be determined, we do not report the peptide multiplet.
-        if (peptide_intensities[0] == -1)
+        if (std::find(peptide_intensities.begin(), peptide_intensities.end(), -1.0) != peptide_intensities.end())
         {
           continue;
         }
@@ -992,8 +990,11 @@ namespace OpenMS
     {
       generator.generateKnockoutDeltaMasses();
     }
-    generator.printSamplesLabelsList();
-    generator.printDeltaMassesList();
+    
+    #ifdef DEBUG
+    generator.printSamplesLabelsList(std::cout);
+    generator.printDeltaMassesList(std::cout);
+    #endif
 
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
@@ -1047,6 +1048,7 @@ namespace OpenMS
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type"));
       filtering.setLogType(getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+      exp_blacklist_ = filtering.getBlacklist();
       
       /**
        * cluster filter results
@@ -1143,11 +1145,16 @@ namespace OpenMS
   
   FeatureMap& FeatureFinderMultiplexAlgorithm::getFeatureMap()
   {
-    return(feature_map_);
+    return feature_map_;
   }
   
   ConsensusMap& FeatureFinderMultiplexAlgorithm::getConsensusMap()
   {
-    return(consensus_map_);
+    return consensus_map_;
+  }
+  
+  MSExperiment& FeatureFinderMultiplexAlgorithm::getBlacklist()
+  {
+    return exp_blacklist_;
   }
 }

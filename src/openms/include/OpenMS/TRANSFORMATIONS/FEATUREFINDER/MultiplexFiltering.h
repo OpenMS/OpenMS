@@ -109,6 +109,11 @@ public:
      * @brief returns the intensity-filtered, centroided spectral data
      */
     MSExperiment& getCentroidedExperiment();
+    
+    /**
+     * @brief returns the blacklisted, centroided peaks
+     */
+    MSExperiment getBlacklist();
 
 protected:
     /**
@@ -128,9 +133,9 @@ protected:
      * @param it_rt    pointer to the spectrum
      * @param intensity_first_peak    intensity to compare to
      *
-     * @return boolean if there is a significant peak
+     * @return -1 (if there is no significant peak), or peak index mz_idx (if there is a significant peak)
      */
-    bool checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
+    int checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
 
     /**
      * @brief check if there are enough peaks in the RT band to form the pattern
@@ -169,7 +174,7 @@ protected:
      * @param pattern_idx    index of the pattern in <patterns_>
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
-
+    
     /**
      * @brief check if the satellite peaks conform with the averagine model
      *
@@ -272,6 +277,7 @@ protected:
     /**
      * @brief type of averagine to use
      */
+
     String averagine_type_;
 
   };

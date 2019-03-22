@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_17716858074023296841"
-	creationDate="2018-12-07T15:34:42">
+	creationDate="2019-02-11T12:52:04">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.4.0-feature-OPXL-speedup-by-simplification-2018-12-07" name="OpenPepXL" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.4.0-fix-OPXL-decoy-metavalue-2019-02-11" name="OpenPepXL" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1001456" cvRef="PSI-MS" name="analysis software"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.4.0-feature-OPXL-speedup-by-simplification-2018-12-07" name="TOPP software" id="SOF_16250062551099875712">
+	<AnalysisSoftware version="OpenMS TOPP v2.4.0-fix-OPXL-decoy-metavalue-2019-02-11" name="TOPP software" id="SOF_16250062551099875712">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -58,7 +58,7 @@
 	<PeptideEvidence id="PEV_7898004582401008768" peptide_ref="PEP_3023658190814908261" dBSequence_ref="PROT_13440783915218733453" post="K" pre="K" start="812" end="829" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-12-07T15:34:40">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2019-02-11T12:52:01">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -212,6 +212,7 @@
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="2078"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="-"/>
 					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="-"/>
+					<userParam name="xl_target_decoy" unitName="xsd:string" value="target"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2175.3003" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
@@ -278,6 +279,7 @@
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="1539"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="182"/>
+					<userParam name="xl_target_decoy" unitName="xsd:string" value="target"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4618.08310000002" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
@@ -323,6 +325,7 @@
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="1539"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="182"/>
+					<userParam name="xl_target_decoy" unitName="xsd:string" value="target"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4618.08310000002" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
@@ -395,6 +398,7 @@
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="825"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="-"/>
 					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="-"/>
+					<userParam name="xl_target_decoy" unitName="xsd:string" value="target"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4706.7912" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 

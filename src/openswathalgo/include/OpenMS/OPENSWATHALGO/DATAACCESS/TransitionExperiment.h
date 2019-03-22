@@ -162,6 +162,7 @@ public:
     std::vector<std::string> protein_refs;
     // Peptide group label (corresponds to MS:1000893, all peptides that are isotopic forms of the same peptide should be assigned the same peptide group label)
     std::string peptide_group_label;
+    std::string gene_name;
     std::string id;
 
     // for metabolites

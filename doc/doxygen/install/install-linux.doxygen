@@ -77,7 +77,7 @@
     # Update repo list for the thirdparty repository EPEL
     sudo yum repolist
     # Get installable contrib libraries
-    sudo yum install qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg python-devel boost-devel \
+    sudo yum install qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg-devel python-devel boost-devel \
         libsvm-devel glpk-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel
     </pre>
     </td>
@@ -223,6 +223,12 @@
   -DCMAKE_PREFIX_PATH="/usr;/usr/local"
   \endcode
   to the CMake options.
+
+  If CMake has problems finding Qt5 (Qt5SvgConfig.cmake is usually the first to fail), you might consider adding:
+  \code
+  -DQt5_DIR=/PATH/TO/qt/5.9.7/gcc_64/lib/cmake/Qt5
+  \endcode
+  to the CMake options, where <tt>/PATH/TO/qt/5.9.7/gcc_64</tt> depends on your system settings and Qt version.
 
   When configuring %OpenMS, consider setting <tt>WITH_GUI=Off</tt> and
   <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with

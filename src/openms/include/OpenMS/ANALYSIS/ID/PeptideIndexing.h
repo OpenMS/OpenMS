@@ -254,7 +254,9 @@ public:
       // cache the first proteins
       const size_t PROTEIN_CACHE_SIZE = 4e5; // 400k should be enough for most DB's and is not too hard on memory either (~200 MB FASTA)
 
+      this->startProgress(0, 1, "Load first chunk");
       proteins.cacheChunk(PROTEIN_CACHE_SIZE);
+      this->endProgress();
 
       if (proteins.empty()) // we do not allow an empty database
       {
@@ -345,7 +347,8 @@ public:
         uint16_t count_j_proteins(0);
         bool has_active_data = true; // becomes false if end of FASTA file is reached
         const std::string jumpX(aaa_max_ + mm_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because  AXXA is a valid hit for aaa_max == 2 (cannot split it)
-        this->startProgress(0, proteins.size(), "Aho-Corasick");
+        // use very large target value for progress if DB size is unknown (did not fit into first chunk)
+        this->startProgress(0, proteins.size() == PROTEIN_CACHE_SIZE ? std::numeric_limits<SignedSize>::max() : proteins.size(), "Aho-Corasick");
         std::atomic<int> progress_prots(0);
 #ifdef _OPENMP
 #pragma omp parallel

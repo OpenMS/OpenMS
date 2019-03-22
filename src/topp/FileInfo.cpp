@@ -785,12 +785,12 @@ protected:
       os << "\n";
 
       // basic info
-      os << "Number of spectra: " << exp.size() << "\n";
-      os << "Number of peaks: " << exp.getSize() << "\n"
+      os << "Total number of peaks: " << exp.getSize() << "\n"; // count ALL peaks (also chromatographic)
+      os << "Number of spectra: " << exp.size() << "\n"
          << "\n";
       os_tsv << "number of spectra"
              << "\t" << exp.size() << "\n"
-             << "number of peaks"
+             << "total number of peaks"
              << "\t" << exp.getSize() << "\n";
 
       // output
