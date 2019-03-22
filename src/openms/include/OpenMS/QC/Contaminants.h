@@ -38,19 +38,23 @@
 #include <include/OpenMS/FORMAT/FASTAFile.h>
 #include <include/OpenMS/METADATA/PeptideIdentification.h>
 #include <algorithm>
+#include <bits/stdc++.h>
 
 
 namespace OpenMS
 {
   class OPENMS_DLLAPI Contaminants
   {
-  private:
-    std::vector<std::tuple<double, double>> results_;
-    std::vector<FASTAFile::FASTAEntry> digested_db_;
-    std::vector<std::string> digested_sequences_;
   public:
-    Contaminants();
     void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
     const std::vector<std::tuple<double, double>>& getResults();
+//    struct DigestedProtein
+//    {
+//      std::vector<String> peptides;
+//      String id;
+//    };
+  private:
+    std::vector<std::tuple<double, double>> results_;
+    std::unordered_set<String> digested_db_;
   };
 }
