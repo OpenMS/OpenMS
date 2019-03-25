@@ -47,16 +47,7 @@ namespace OpenMS
   }
   void TIC::compute(const MSExperiment &exp, float bin_size)
   {
-    MSChromatogram tic = exp.getTIC();
-    if (bin_size > 0)
-    {
-      LinearResamplerAlign lra;
-      Param param = lra.getParameters();
-      param.setValue("spacing", bin_size);
-      lra.setParameters(param);
-      lra.raster(tic);
-    }
-    results_.push_back(tic);
+    results_.push_back(exp.getTIC(bin_size));
   }
 
   /// Returns all results calculated with compute.

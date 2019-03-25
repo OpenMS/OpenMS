@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -529,7 +529,8 @@ public:
     //@}
 
     /// returns the total ion chromatogram (TIC)
-    const MSChromatogram getTIC() const;
+    /// and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+    const MSChromatogram getTIC(float rt_bin_size=0) const;
 
     /**
       @brief Clears all data and meta data
