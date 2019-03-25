@@ -991,7 +991,7 @@ namespace OpenMS
                 {
                   if (mods[s].hasSubstring(jt->getMetaValue("xl_mod")))
                   {
-                    const ResidueModification* mod;
+                    const ResidueModification* mod = nullptr;
                     try
                     {
                       mod = xl_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
