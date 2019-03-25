@@ -120,10 +120,10 @@ namespace OpenMS
     protected:
 
     /// Helper function to add (uncharged) fragment peaks to a spectrum
-    void addFragmentPeaks_(PeakSpectrum& spectrum, const std::vector<EmpiricalFormula>& fragment_forms, const String& ion_type, const EmpiricalFormula& offset, double intensity, Size start = 0) const;
+    void addFragmentPeaks_(PeakSpectrum& spectrum, const std::vector<double>& fragment_masses, const String& ion_type, double offset, double intensity, Size start = 0) const;
 
     /// Special version of addFragmentPeaks_() for a-B ions
-    void addAMinusBPeaks_(PeakSpectrum& spectrum, const std::vector<EmpiricalFormula>& fragment_forms, const NASequence& oligo, Size start = 0) const;
+    void addAMinusBPeaks_(PeakSpectrum& spectrum, const std::vector<double>& fragment_masses, const NASequence& oligo, Size start = 0) const;
 
     /// Generates a spectrum containing peaks for uncharged fragment masses
     PeakSpectrum getUnchargedSpectrum_(const NASequence& oligo) const;

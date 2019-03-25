@@ -146,19 +146,17 @@ namespace OpenMS
 
 
   void TheoreticalSpectrumGenerator::addFragmentPeaks_(
-    PeakSpectrum& spectrum, const vector<EmpiricalFormula>& fragment_forms,
-    const String& ion_type, const EmpiricalFormula& offset, double intensity,
-    Size start) const
+    PeakSpectrum& spectrum, const vector<double>& fragment_masses,
+    const String& ion_type, double offset, double intensity, Size start) const
   {
-    for (Size i = start; i < fragment_forms.size(); ++i)
+    for (Size i = start; i < fragment_masses.size(); ++i)
     {
-      EmpiricalFormula fragment = fragment_forms[i] + offset;
-      Peak1D peak(fragment.getMonoWeight(), intensity);
+      Peak1D peak(fragment_masses[i] + offset, intensity);
       spectrum.push_back(peak);
     }
     if (add_metainfo_)
     {
-      for (Size i = start; i < fragment_forms.size(); ++i)
+      for (Size i = start; i < fragment_masses.size(); ++i)
       {
         String ion_name = ion_type + String(i + 1);
         spectrum.getStringDataArrays()[0].push_back(ion_name);
@@ -168,29 +166,30 @@ namespace OpenMS
 
 
   void TheoreticalSpectrumGenerator::addAMinusBPeaks_(
-    PeakSpectrum& spectrum, const vector<EmpiricalFormula>& fragment_forms,
+    PeakSpectrum& spectrum, const vector<double>& fragment_masses,
     const NASequence& oligo, Size start) const
   {
     // offset: phosphate (from bond) minus 3 water (from various reactions)
-    static const EmpiricalFormula offset = EmpiricalFormula("H-5P");
+    static const double offset = EmpiricalFormula("H-5P").getMonoWeight();
     // offset for first ("a1-B") ion: loss of 2 water
-    static const EmpiricalFormula initial_offset = EmpiricalFormula("H-4O-2");
+    static const double initial_offset =
+      -EmpiricalFormula("H4O2").getMonoWeight();
     // methyl group may be retained on ribose for "ambiguous" mods:
-    static const EmpiricalFormula methyl_form = EmpiricalFormula("CH2");
+    static const double methyl_mass = EmpiricalFormula("CH2").getMonoWeight();
 
-    for (Size i = start; i < fragment_forms.size(); ++i)
+    for (Size i = start; i < fragment_masses.size(); ++i)
     {
-      EmpiricalFormula fragment = oligo[i]->getBaselossFormula();
+      double mass = oligo[i]->getBaselossFormula().getMonoWeight();
       if (i > 0)
       {
         // base at position "i" is lost, so use fragment up to pos. "i - 1":
-        fragment += fragment_forms[i - 1] + offset;
+        mass += fragment_masses[i - 1] + offset;
       }
       else // first ribonucleotide
       {
-        fragment += initial_offset;
+        mass += initial_offset;
       }
-      Peak1D peak(fragment.getMonoWeight(), aB_intensity_);
+      Peak1D peak(mass, aB_intensity_);
       if (oligo[i]->isAmbiguous())
       {
         // special treatment for a-B ions of "ambiguous" modifications:
@@ -198,14 +197,14 @@ namespace OpenMS
         // lost/retained on backbone:
         peak.setIntensity(aB_intensity_ * 0.5);
         spectrum.push_back(peak);
-        fragment += methyl_form;
-        peak.setMZ(fragment.getMonoWeight());
+        mass += methyl_mass;
+        peak.setMZ(mass);
       }
       spectrum.push_back(peak);
     }
     if (add_metainfo_)
     {
-      for (Size i = start; i < fragment_forms.size(); ++i)
+      for (Size i = start; i < fragment_masses.size(); ++i)
       {
         String ion_name = "a" + String(i + 1) + "-B";
         spectrum.getStringDataArrays()[0].push_back(ion_name);
@@ -221,55 +220,55 @@ namespace OpenMS
   PeakSpectrum TheoreticalSpectrumGenerator::getUnchargedSpectrum_(
     const NASequence& oligo) const
   {
-    // lots of code copied from "NASequence::getFormula" - can we avoid this?
-    // @TODO: perform calculations with formulas or with masses?
-    static const EmpiricalFormula H_form = EmpiricalFormula("H");
+    static const double H_mass = EmpiricalFormula("H").getMonoWeight();
     // phosphate minus water:
-    static const EmpiricalFormula backbone_form = EmpiricalFormula("H-1PO2");
-    static const EmpiricalFormula a_ion_offset = EmpiricalFormula("H-2O-1");
-    static const EmpiricalFormula b_ion_offset = EmpiricalFormula("");
-    static const EmpiricalFormula c_ion_offset = backbone_form;
-    static const EmpiricalFormula d_ion_offset = EmpiricalFormula("HPO3");
-    static const EmpiricalFormula w_ion_offset = d_ion_offset;
-    static const EmpiricalFormula x_ion_offset = c_ion_offset;
-    static const EmpiricalFormula y_ion_offset = b_ion_offset;
-    static const EmpiricalFormula z_ion_offset = a_ion_offset;
+    static const double backbone_mass =
+      EmpiricalFormula("H-1PO2").getMonoWeight();
+
+    static const double a_ion_offset = -EmpiricalFormula("H2O").getMonoWeight();
+    static const double b_ion_offset = 0.0;
+    static const double c_ion_offset = backbone_mass;
+    static const double d_ion_offset = EmpiricalFormula("HPO3").getMonoWeight();
+    static const double w_ion_offset = d_ion_offset;
+    static const double x_ion_offset = c_ion_offset;
+    static const double y_ion_offset = b_ion_offset;
+    static const double z_ion_offset = a_ion_offset;
 
     PeakSpectrum spectrum;
     if (oligo.empty()) return spectrum;
 
-    EmpiricalFormula three_prime_form, five_prime_form;
+    double three_prime_mass = 0.0, five_prime_mass = 0.0;
     if (oligo.getThreePrimeMod() != nullptr)
     {
-      three_prime_form = oligo.getThreePrimeMod()->getFormula() - H_form;
+      three_prime_mass = oligo.getThreePrimeMod()->getMonoMass() - H_mass;
     }
     if (oligo.getFivePrimeMod() != nullptr)
     {
-      five_prime_form = oligo.getFivePrimeMod()->getFormula() - H_form;
+      five_prime_mass = oligo.getFivePrimeMod()->getMonoMass() - H_mass;
     }
 
-    vector<EmpiricalFormula> ribo_forms(oligo.size());
+    vector<double> ribo_masses(oligo.size());
     Size index = 0;
     for (auto ribo : oligo)
     {
-      ribo_forms[index] = ribo.getFormula();
+      ribo_masses[index] = ribo.getMonoMass();
       ++index;
     }
 
     spectrum.getStringDataArrays().resize(1);
     spectrum.getStringDataArrays()[0].setName("IonNames");
 
-    vector<EmpiricalFormula> fragments_left, fragments_right;
+    vector<double> fragments_left, fragments_right;
     Size start = add_first_prefix_ion_ ? 0 : 1;
     if ((add_a_ions_ || add_b_ions_ || add_c_ions_ || add_d_ions_ ||
          add_aB_ions_) && (oligo.size() > start + 1))
     {
       fragments_left.resize(oligo.size() - 1);
-      fragments_left[0] = ribo_forms[0] + five_prime_form;
+      fragments_left[0] = ribo_masses[0] + five_prime_mass;
       for (Size i = 1; i < oligo.size() - 1; ++i)
       {
-        fragments_left[i] = (fragments_left[i - 1] + ribo_forms[i] +
-                             backbone_form);
+        fragments_left[i] = (fragments_left[i - 1] + ribo_masses[i] +
+                             backbone_mass);
       }
       if (add_a_ions_)
       {
@@ -301,12 +300,12 @@ namespace OpenMS
         (oligo.size() > 1))
     {
       fragments_right.resize(oligo.size() - 1);
-      fragments_right[0] = ribo_forms.back() + three_prime_form;
+      fragments_right[0] = ribo_masses.back() + three_prime_mass;
       for (Size i = 1; i < oligo.size() - 1; ++i)
       {
         Size ribo_index = oligo.size() - i - 1;
-        fragments_right[i] = (fragments_right[i - 1] + ribo_forms[ribo_index] +
-                              backbone_form);
+        fragments_right[i] = (fragments_right[i - 1] + ribo_masses[ribo_index] +
+                              backbone_mass);
       }
       if (add_w_ions_)
       {
@@ -337,20 +336,17 @@ namespace OpenMS
       bool have_right = !fragments_right.empty();
       if (have_left && have_right)
       {
-        fragments_left[0] += fragments_right.back() + backbone_form;
-        peak.setMZ(fragments_left[0].getMonoWeight());
+        peak.setMZ(fragments_left[0] + fragments_right.back() + backbone_mass);
       }
       else if (have_left)
       {
-        fragments_left.back() += ribo_forms.back() + backbone_form +
-          three_prime_form;
-        peak.setMZ(fragments_left.back().getMonoWeight());
+        peak.setMZ(fragments_left.back() + ribo_masses.back() + backbone_mass +
+                   three_prime_mass);
       }
       else if (have_right)
       {
-        fragments_right.back() += ribo_forms[0] + backbone_form +
-          five_prime_form;
-        peak.setMZ(fragments_right.back().getMonoWeight());
+        peak.setMZ(fragments_right.back() + ribo_masses[0] + backbone_mass +
+                   five_prime_mass);
       }
       else // really, no fragment ions?
       {
@@ -371,7 +367,8 @@ namespace OpenMS
     PeakSpectrum& spectrum, const PeakSpectrum& uncharged_spectrum, Int charge,
     bool add_precursor) const
   {
-    // @TODO: use "Constants::PROTON_MASS_U" here instead?
+    // based on very limited testing, it looks like this hydrogen mass gives
+    // better results than using "Constants::PROTON_MASS_U" (why?):
     static const double H_mass = EmpiricalFormula("H").getMonoWeight();
     if (uncharged_spectrum.empty()) return;
     Size size = uncharged_spectrum.size();
