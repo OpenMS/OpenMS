@@ -1,6 +1,7 @@
 # This file contains OpenMS- and user-defined RNA modifications.
 # It is read in addition to the Modomics data file ("Modomics.tsv") and uses the same format (except for the optional "alternatives" column).
 # For terminal modifications, the "new_nomenclature" value has to end in "N" and contain either "33" (3'-terminal mod.) or "55" (5'-terminal mod.).
+# An "ambiguous" modification represents two isobaric modifications with a methyl group on either the base or the ribose, that could be distinguished based on a-B ions. Its code ("short_name") must end in "?" and the codes of the two alternatives must be given in the last column.
 name	short_name	new_nomenclature	originating_base	rnamods_abbrev	html_abbrev	formula	monoisotopic_mass	average_mass	alternatives
 3' terminal phosphate	3'-p	33N	pppN	p	p	H2PO3	0.0	0.0
 5' terminal phosphate	5'-p	55N	pppN	p	p	H2PO3	0.0	0.0
