@@ -628,7 +628,7 @@ START_SECTION((void getMultipleSpectra(std::map<Int, PeakSpectrum>& spectra, con
 
   NASequence seq = NASequence::fromString("[m1A]UCCACAGp");
   set<Int> charges = {-1, -3, -5};
-  // get spectra the old-fashioned way:
+  // get spectra individually:
   vector<PeakSpectrum> compare(charges.size());
   Size index = 0;
   for (Int charge : charges)
@@ -636,7 +636,7 @@ START_SECTION((void getMultipleSpectra(std::map<Int, PeakSpectrum>& spectra, con
     gen.getSpectrum(compare[index], seq, -1, charge);
     index++;
   }
-  // now using the new function:
+  // now all together:
   map<Int, PeakSpectrum> spectra;
   gen.getMultipleSpectra(spectra, seq, charges, -1);
   // compare:
@@ -644,20 +644,7 @@ START_SECTION((void getMultipleSpectra(std::map<Int, PeakSpectrum>& spectra, con
   index = 0;
   for (const auto& pair : spectra)
   {
-    TEST_EQUAL(compare[index].size(), pair.second.size());
-    ABORT_IF(compare[index].size() != pair.second.size());
-    // TEST_EQUAL(compare[index] == pair.second, true);
-    for (Size i = 0; i < compare[index].size(); ++i)
-    {
-      TEST_REAL_SIMILAR(compare[index][i].getMZ(),
-                        pair.second[i].getMZ());
-      TEST_REAL_SIMILAR(compare[index][i].getIntensity(),
-                        pair.second[i].getIntensity());
-    }
-    TEST_EQUAL(compare[index].getStringDataArrays() ==
-               pair.second.getStringDataArrays(), true);
-    TEST_EQUAL(compare[index].getIntegerDataArrays() ==
-               pair.second.getIntegerDataArrays(), true);
+    TEST_EQUAL(compare[index] == pair.second, true);
     index++;
   }
 }
