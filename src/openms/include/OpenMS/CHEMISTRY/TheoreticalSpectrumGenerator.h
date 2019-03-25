@@ -131,49 +131,23 @@ namespace OpenMS
     /// Adds a charged version of an uncharged spectrum to another spectrum
     void addChargedSpectrum_(PeakSpectrum& spectrum, const PeakSpectrum& uncharged_spectrum, Int charge, bool add_precursor) const;
 
-    /// Adds peaks for the theoretical spectrum of an oligonucleotide in a single charge state
-    void addSimpleSpectrum_(PeakSpectrum& spectrum, const NASequence& oligo,
-                            Int charge, bool add_precursor, bool sort) const;
-
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge = 1) const;
-
-    /// adds peaks to a spectrum of the given ion-type, oligonucleotide, charge, and intensity, also adds charges and ion names if the add_metainfo parameter is set to true
-    virtual void addPeaks_(PeakSpectrum& spectrum, const NASequence& oligo, NASequence::NASFragmentType res_type, Int charge = 1) const;
 
     /// adds the precursor peaks to the spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     virtual void addPrecursorPeaks_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
 
-    /// adds the precursor peaks to the spectrum, also adds charges and ion names if the add_metainfo parameter is set to true
-    //TODO check that this works now
-    virtual void addPrecursorPeaks_(PeakSpectrum& spec, const NASequence& oligo, Int charge = 1) const;
-
     /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     void addAbundantImmoniumIons_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
-
-    /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-    //void addAbundantImmoniumIons_(PeakSpectrum & spec, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
-    //We don't support Immonium ions in Nuc mode
 
     /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     void addIsotopeCluster_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
 
-    /// helper to add an isotope cluster to a spectrum, also adds charges and ion names if the add_metainfo parameter is set to true
-    //TODO test this
-    void addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, NASequence::NASFragmentType res_type, Int charge, double intensity) const;
-
     /// helper for mapping residue type to letter
     static char residueTypeToIonLetter_(Residue::ResidueType res_type);
 
-    /// helper for mapping nucleotide type to code
-    static String ribonucleotideTypeToIonCode_(NASequence::NASFragmentType type, Size num = 0);
-
     /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
-
-    /// helper to add full neutral loss ladders, also adds charges and ion names if the add_metainfo parameter is set to true
-    //TODO test this
-    void addLosses_(PeakSpectrum& spectrum, const NASequence& ion, double intensity, Residue::ResidueType res_type, int charge) const;
 
     bool add_b_ions_;
     bool add_y_ions_;
