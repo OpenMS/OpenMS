@@ -117,7 +117,11 @@ START_SECTION(void compute(const MSExperiment &exp, float bin_size) && vector<MS
   tic.compute(exp,6.0); // bin size bigger than highest RT
   tic.compute(exp,-1.0); // negative bin size
 
-  TEST_EQUAL(tic.getResults().size(),4);
+  // empty MSExperiment
+  MSExperiment exp2;
+  tic.compute(exp2);
+
+  TEST_EQUAL(tic.getResults().size(),5);
   TEST_EQUAL(tic.getResults()[0].size(),3);
   TEST_EQUAL(tic.getResults()[0][0].getIntensity(),8);
   TEST_EQUAL(tic.getResults()[0][1].getIntensity(),2);
@@ -140,6 +144,8 @@ START_SECTION(void compute(const MSExperiment &exp, float bin_size) && vector<MS
   TEST_EQUAL(tic.getResults()[3][0].getIntensity(),8);
   TEST_EQUAL(tic.getResults()[3][1].getIntensity(),2);
   TEST_EQUAL(tic.getResults()[3][2].getIntensity(),9);
+
+  TEST_EQUAL((tic.getResults()[4] == MSChromatogram()),true);
 }
 END_SECTION
 
