@@ -173,13 +173,23 @@ namespace OpenMS
   {
     // offset: phosphate (from bond) minus 3 water (from various reactions)
     static const EmpiricalFormula offset = EmpiricalFormula("H-5P");
+    // offset for first ("a1-B") ion: loss of 2 water
+    static const EmpiricalFormula initial_offset = EmpiricalFormula("H-4O-2");
+    // methyl group may be retained on ribose for "ambiguous" mods:
     static const EmpiricalFormula methyl_form = EmpiricalFormula("CH2");
 
     for (Size i = start; i < fragment_forms.size(); ++i)
     {
-      EmpiricalFormula fragment = oligo[i]->getBaselossFormula() + offset;
-      // base at position "i" is lost, so use fragment up to pos. "i - 1":
-      if (i > 0) fragment += fragment_forms[i - 1];
+      EmpiricalFormula fragment = oligo[i]->getBaselossFormula();
+      if (i > 0)
+      {
+        // base at position "i" is lost, so use fragment up to pos. "i - 1":
+        fragment += fragment_forms[i - 1] + offset;
+      }
+      else // first ribonucleotide
+      {
+        fragment += initial_offset;
+      }
       Peak1D peak(fragment.getMonoWeight(), aB_intensity_);
       if (oligo[i]->isAmbiguous())
       {
