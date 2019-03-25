@@ -68,7 +68,6 @@ namespace OpenMS
     ~Ms2IdentificationRate();
     void compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false);
     std::vector<IdentificationRateData> getResults();
-    void clear();
     QCBase::Status requires() const override;
 
   };

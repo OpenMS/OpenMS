@@ -96,6 +96,7 @@ Feature feat_target;
 feat_target.setPeptideIdentifications(pep_ids);
 Feature feat_empty;
 Feature feat_fdr;
+feat_fdr.setPeptideIdentifications(pep_ids_fdr);
 
 //construct FeatureMap
 FeatureMap fmap;
@@ -104,7 +105,7 @@ fmap.push_back(feat_target);
 fmap.push_back(feat_empty);
 
 FeatureMap fmap_fdr;
-fmap.push_back(feat_fdr);
+fmap_fdr.push_back(feat_fdr);
 
 FeatureMap fmap_empty;
 
@@ -129,8 +130,7 @@ ms1.setMSLevel(1);
 
 std::vector<MSSpectrum> ms_spectra = {ms2_1, ms2_2, ms2_3, ms2_4, ms2_5, ms2_6, ms1};
 std::vector<MSSpectrum> ms1_spectra = {ms1};
-std::vector<MSSpectrum> ms2_2_spectra = {ms2_1, ms2_2};
-std::vector<MSSpectrum> ms_empty{};
+std::vector<MSSpectrum> ms2_2_spectra = {ms2_1};
 
 //construct MSExperiment
 MSExperiment ms_exp;
@@ -147,114 +147,76 @@ ms2_2_exp.setSpectra(ms2_2_spectra);
 //construct empty MSExperiment
 MSExperiment ms_empty_exp;
 
-//construct MSExperiment with empty MSSpectra
-MSExperiment ms_empty_spec_exp;
-ms_empty_spec_exp.setSpectra(ms_empty);
 
 
 //////////////////////////////////////////////////////////////////
 //start Section
 /////////////////////////////////////////////////////////////////
 
+Ms2IdentificationRate* ptr = nullptr;
+Ms2IdentificationRate* nulpt = nullptr;
+START_SECTION(Ms2IdentificationRate())
+{
+  ptr = new Ms2IdentificationRate();
+  TEST_NOT_EQUAL(ptr, nulpt)
+}
+END_SECTION
+
+START_SECTION(~Ms2IdentificationRate())
+{
+  delete ptr;
+}
+END_SECTION
+
+
 Ms2IdentificationRate ms2ir;
 Ms2IdentificationRate ms2ir_fdr;
 Ms2IdentificationRate ms2ir_ms1;
 Ms2IdentificationRate ms2ir_ms2_2;
-Ms2IdentificationRate ms2ir_empty_spec;
 Ms2IdentificationRate ms2ir_empty_msexp;
 Ms2IdentificationRate ms2ir_empty_fmap;
 
 //tests compute function
 START_SECTION(void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false))
-        {
-  // Muster Daten Test
-          ms2ir.compute(fmap, ms_exp);
-          std::vector<Ms2IdentificationRate::IdentificationRateData> result;
-          result = ms2ir.getResults();
+{
+  //test with valid input
+  ms2ir.compute(fmap, ms_exp);
+  std::vector<Ms2IdentificationRate::IdentificationRateData> result;
+  result = ms2ir.getResults();
 
-          for (auto idrd : result)
-          {
-            TEST_EQUAL(idrd.num_peptide_identification, 3);
-            TEST_EQUAL(idrd.num_ms2_spectra, 6);
-            TEST_REAL_SIMILAR(idrd.identification_rate, 0.5);
-          }
+  for (auto idrd : result)
+  {
+    TEST_EQUAL(idrd.num_peptide_identification, 2)
+    TEST_EQUAL(idrd.num_ms2_spectra, 6)
+    TEST_REAL_SIMILAR(idrd.identification_rate, (double)1/3)
+  }
 
+  //less ms2 spectra than identifictions
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_ms2_2.compute(fmap, ms2_2_exp), "There are more Identifications than Ms2-Level. Please check your data.")
 
-  //FDR ERROR
-        ms2ir_fdr.compute(fmap_fdr, ms_exp);
-        TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "FDR was not made. If you want to continue whithout FDR use -force");
+  //empty ms experiment
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_empty_msexp.compute(fmap, ms_empty_exp), "mzML is corrupted or empty")
 
-        // nur MS1 Spectren
-        ms2ir_ms1.compute(fmap, ms1_exp);
-        std::vector<Ms2IdentificationRate::IdentificationRateData> result_ms1;
-        result_ms1 = ms2ir_ms1.getResults();
+  //empty feature map
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_empty_fmap.compute(fmap_empty, ms_exp), "FeatureXML is corrupted or empty")
 
-        for (auto idrd_ms1 : result_ms1)
-        {
-          TEST_EQUAL(idrd_ms1.num_peptide_identification, 0);
-          TEST_EQUAL(idrd_ms1.num_ms2_spectra, 0);
-          TEST_EQUAL(idrd_ms1.identification_rate, 0);
-          //Error
-        }
+  //no fdr
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "FDR was not made. If you want to continue without FDR use -force")
 
-        //weniger MS2 Spectren als ID
+  //no ms2 spectra
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_ms1.compute(fmap, ms1_exp), "No MS2-Level found")
 
-          ms2ir_ms2_2.compute(fmap, ms2_2_exp);
-          std::vector<Ms2IdentificationRate::IdentificationRateData> result_ms2_2;
-          result_ms2_2 = ms2ir_ms2_2.getResults();
-
-          for (auto idrd_ms2_2 : result_ms2_2)
-          {
-            TEST_EQUAL(idrd_ms2_2.num_peptide_identification, 0);
-            TEST_EQUAL(idrd_ms2_2.num_ms2_spectra, 0);
-            TEST_EQUAL(idrd_ms2_2.identification_rate, 0);
-            //Error
-          }
-
-        //leerer MS Spectren Vector
-          ms2ir_empty_spec.compute(fmap, ms_empty_spec_exp);
-          std::vector<Ms2IdentificationRate::IdentificationRateData> result_empty_spec;
-          result_empty_spec = ms2ir_empty_spec.getResults();
-
-          for (auto idrd_empty_spec : result_empty_spec)
-          {
-            TEST_EQUAL(idrd_empty_spec.num_peptide_identification, 0);
-            TEST_EQUAL(idrd_empty_spec.num_ms2_spectra, 0);
-            TEST_EQUAL(idrd_empty_spec.identification_rate, 0);
-            //Error
-          }
-
-         // leere MSExperient Datei
-          ms2ir_empty_msexp.compute(fmap, ms_empty_exp);
-          std::vector<Ms2IdentificationRate::IdentificationRateData> result_empty_msexp;
-          result_empty_msexp = ms2ir_empty_msexp.getResults();
-
-          for (auto idrd_empty_msexp : result_empty_msexp)
-          {
-            TEST_EQUAL(idrd_empty_msexp.num_peptide_identification, 0);
-            TEST_EQUAL(idrd_empty_msexp.num_ms2_spectra, 0);
-            TEST_EQUAL(idrd_empty_msexp.identification_rate, 0);
-            //Error
-          }
-
-         //leere feature Map Datei
-          ms2ir_empty_fmap.compute(fmap_empty, ms_exp);
-          std::vector<Ms2IdentificationRate::IdentificationRateData> result_empty_fmap;
-          result_empty_fmap = ms2ir_empty_fmap.getResults();
-
-          for (auto idrd_empty_fmap : result_empty_fmap)
-          {
-            TEST_EQUAL(idrd_empty_fmap.num_peptide_identification, 0);
-            TEST_EQUAL(idrd_empty_fmap.num_ms2_spectra, 0);
-            TEST_EQUAL(idrd_empty_fmap.identification_rate, 0);
-            //Error
-          }
-
-        }
-
-
-
+}
 END_SECTION
+
+
+START_SECTION(QCBase::Status requires() const override)
+{
+  QCBase::Status stat = QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
+  TEST_EQUAL(stat == ms2ir.requires(), true)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
