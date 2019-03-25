@@ -1076,7 +1076,7 @@ protected:
     }
     param.setValue("add_first_prefix_ion", "true");
     param.setValue("add_metainfo", "true");
-    // param.setValue("add_precursor_peaks", "true"); // yes or no?
+    param.setValue("add_precursor_peaks", "false");
     spectrum_generator.setParameters(param);
 
     vector<HitsByScore> annotated_hits(spectra.size());
