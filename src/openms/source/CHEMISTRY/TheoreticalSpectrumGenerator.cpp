@@ -51,7 +51,7 @@ namespace OpenMS
   TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator() :
     DefaultParamHandler("TheoreticalSpectrumGenerator")
   {
-    defaults_.setValue("add_isotopes", "false", "If set to 'true' isotope peaks of the product ion peaks are added");
+    defaults_.setValue("add_isotopes", "false", "If set to 'true' isotope peaks of the product ion peaks are added (amino acid sequences only)");
     defaults_.setValidStrings("add_isotopes", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added if 'add_isotopes' is 'true'");
@@ -59,16 +59,16 @@ namespace OpenMS
     defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
     defaults_.setValidStrings("add_metainfo", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+    defaults_.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered (amino acid sequences only)");
     defaults_.setValidStrings("add_losses", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("add_precursor_peaks", "false", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+    defaults_.setValue("add_precursor_peaks", "false", "Adds peaks of the unfragmented precursor ion to the spectrum");
     defaults_.setValidStrings("add_precursor_peaks", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("add_all_precursor_charges", "false", "Adds precursor peaks with all charges in the given range");
     defaults_.setValidStrings("add_all_precursor_charges", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
+    defaults_.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions (amino acid sequences only)");
     defaults_.setValidStrings("add_abundant_immonium_ions", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("add_first_prefix_ion", "false", "If set to true e.g. b1 ions are added");
@@ -92,13 +92,13 @@ namespace OpenMS
     defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
     defaults_.setValidStrings("add_z_ions", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("add_d_ions", "false", "Add peaks of d-ions to the spectrum");
+    defaults_.setValue("add_d_ions", "false", "Add peaks of d-ions to the spectrum (nucleotide sequences only)");
     defaults_.setValidStrings("add_d_ions", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("add_w_ions", "false", "Add peaks of w-ions to the spectrum");
+    defaults_.setValue("add_w_ions", "false", "Add peaks of w-ions to the spectrum (nucleotide sequences only)");
     defaults_.setValidStrings("add_w_ions", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("add_a-B_ions", "false", "Add peaks of a-B-ions to the spectrum");
+    defaults_.setValue("add_a-B_ions", "false", "Add peaks of a-B-ions to the spectrum (nucleotide sequences only)");
     defaults_.setValidStrings("add_a-B_ions", ListUtils::create<String>("true,false"));
 
     // intensity options of the ions
@@ -109,16 +109,16 @@ namespace OpenMS
     defaults_.setValue("x_intensity", 1.0, "Intensity of the x-ions");
     defaults_.setValue("z_intensity", 1.0, "Intensity of the z-ions");
 
-    defaults_.setValue("d_intensity", 1.0, "Intensity of the d-ions");
-    defaults_.setValue("w_intensity", 1.0, "Intensity of the w-ions");
-    defaults_.setValue("a-B_intensity", 1.0, "Intensity of the a-B-ions");
+    defaults_.setValue("d_intensity", 1.0, "Intensity of the d-ions (nucleotide sequences only)");
+    defaults_.setValue("w_intensity", 1.0, "Intensity of the w-ions (nucleotide sequences only)");
+    defaults_.setValue("a-B_intensity", 1.0, "Intensity of the a-B-ions (nucleotide sequences only)");
 
-    defaults_.setValue("relative_loss_intensity", 0.1, "Intensity of loss ions, in relation to the intact ion intensity");
+    defaults_.setValue("relative_loss_intensity", 0.1, "Intensity of loss ions, in relation to the intact ion intensity (amino acid sequences only)");
 
     // precursor intensity
     defaults_.setValue("precursor_intensity", 1.0, "Intensity of the precursor peak");
-    defaults_.setValue("precursor_H2O_intensity", 1.0, "Intensity of the H2O loss peak of the precursor");
-    defaults_.setValue("precursor_NH3_intensity", 1.0, "Intensity of the NH3 loss peak of the precursor");
+    defaults_.setValue("precursor_H2O_intensity", 1.0, "Intensity of the H2O loss peak of the precursor (amino acid sequences only)");
+    defaults_.setValue("precursor_NH3_intensity", 1.0, "Intensity of the NH3 loss peak of the precursor (amino acid sequences only)");
 
     defaultsToParam_();
   }
