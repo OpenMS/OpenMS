@@ -52,6 +52,7 @@ namespace OpenMS
   {
   public:
     TIC();
+    ~TIC();
     void clear();
     // Binning the MSExperiment is optional
     void compute(const MSExperiment &exp, float bin_size=0);

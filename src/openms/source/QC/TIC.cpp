@@ -43,6 +43,9 @@ namespace OpenMS
   /// Constructor
   TIC::TIC() = default;
 
+  /// Destructor
+  TIC::~TIC() = default;
+
   /// Reset
   void TIC::clear()
   {
