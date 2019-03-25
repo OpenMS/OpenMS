@@ -43,7 +43,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/QC/TIC.h>
 #include <cstdio>
 
 using namespace OpenMS;
@@ -99,6 +99,9 @@ protected:
       status |= QCBase::Requires::CONTAMINANTS;
     }
 
+    // Instantiate the QC metrics
+    // TIC qc_tic;
+
     // Loop through file lists
     for (Size i = 0; i < number_exps; ++i)
     {
@@ -121,6 +124,11 @@ protected:
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
+      /* Example for including a metric calculation:
+       *
+       * if (status.isSuperSetOf(qc_tic.requires())) qc_tic.compute(exp);
+       *
+       */
     }
     //-------------------------------------------------------------
     // writing output
