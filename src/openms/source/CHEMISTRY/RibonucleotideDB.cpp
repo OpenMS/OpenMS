@@ -104,11 +104,11 @@ namespace OpenMS
         ribonucleotides_.push_back(ribo);
         max_code_length_ = max(max_code_length_, ribo->getCode().size());
       }
-      catch (...)
+      catch (Exception::BaseException& e)
       {
         LOG_ERROR << "Error: Failed to parse input line " << line_count
-                  << ":\n\"" << String(row) << "\"\nSkipping this line."
-                  << endl;
+                  << ". Reason:\n" << e.getName()
+                  << " - " << e.getMessage() << "\nSkipping this line." << endl;
       }
     }
   }
