@@ -36,6 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -144,6 +145,247 @@ namespace OpenMS
   }
 
 
+  void TheoreticalSpectrumGenerator::addFragmentPeaks_(
+    PeakSpectrum& spectrum, const vector<EmpiricalFormula>& fragment_forms,
+    const String& ion_type, const EmpiricalFormula& offset, double intensity,
+    Size start) const
+  {
+    for (Size i = start; i < fragment_forms.size(); ++i)
+    {
+      EmpiricalFormula fragment = fragment_forms[i] + offset;
+      Peak1D peak(fragment.getMonoWeight(), intensity);
+      spectrum.push_back(peak);
+    }
+    if (add_metainfo_)
+    {
+      for (Size i = start; i < fragment_forms.size(); ++i)
+      {
+        String ion_name = ion_type + String(i + 1);
+        spectrum.getStringDataArrays()[0].push_back(ion_name);
+      }
+    }
+  }
+
+
+  void TheoreticalSpectrumGenerator::addAMinusBPeaks_(
+    PeakSpectrum& spectrum, const vector<EmpiricalFormula>& fragment_forms,
+    const NASequence& oligo, Size start) const
+  {
+    // offset: phosphate (from bond) minus 3 water (from various reactions)
+    static const EmpiricalFormula offset = EmpiricalFormula("H-5P");
+    static const EmpiricalFormula methyl_form = EmpiricalFormula("CH2");
+
+    for (Size i = start; i < fragment_forms.size(); ++i)
+    {
+      EmpiricalFormula fragment = oligo[i]->getBaselossFormula() + offset;
+      // base at position "i" is lost, so use fragment up to pos. "i - 1":
+      if (i > 0) fragment += fragment_forms[i - 1];
+      Peak1D peak(fragment.getMonoWeight(), aB_intensity_);
+      if (oligo[i]->isAmbiguous())
+      {
+        // special treatment for a-B ions of "ambiguous" modifications:
+        // create two peaks with half intensity, representing methyl group
+        // lost/retained on backbone:
+        peak.setIntensity(aB_intensity_ * 0.5);
+        spectrum.push_back(peak);
+        fragment += methyl_form;
+        peak.setMZ(fragment.getMonoWeight());
+      }
+      spectrum.push_back(peak);
+    }
+    if (add_metainfo_)
+    {
+      for (Size i = start; i < fragment_forms.size(); ++i)
+      {
+        String ion_name = "a" + String(i + 1) + "-B";
+        spectrum.getStringDataArrays()[0].push_back(ion_name);
+        if (oligo[i]->isAmbiguous()) // two peaks were added
+        {
+          spectrum.getStringDataArrays()[0].push_back(ion_name);
+        }
+      }
+    }
+  }
+
+
+  PeakSpectrum TheoreticalSpectrumGenerator::getUnchargedSpectrum_(
+    const NASequence& oligo) const
+  {
+    // lots of code copied from "NASequence::getFormula" - can we avoid this?
+    // @TODO: perform calculations with formulas or with masses?
+    static const EmpiricalFormula H_form = EmpiricalFormula("H");
+    // phosphate minus water:
+    static const EmpiricalFormula backbone_form = EmpiricalFormula("H-1PO2");
+    static const EmpiricalFormula a_ion_offset = EmpiricalFormula("H-2O-1");
+    static const EmpiricalFormula b_ion_offset = EmpiricalFormula("");
+    static const EmpiricalFormula c_ion_offset = backbone_form;
+    static const EmpiricalFormula d_ion_offset = EmpiricalFormula("HPO3");
+    static const EmpiricalFormula w_ion_offset = d_ion_offset;
+    static const EmpiricalFormula x_ion_offset = c_ion_offset;
+    static const EmpiricalFormula y_ion_offset = b_ion_offset;
+    static const EmpiricalFormula z_ion_offset = a_ion_offset;
+
+    PeakSpectrum spectrum;
+    if (oligo.empty()) return spectrum;
+
+    EmpiricalFormula three_prime_form, five_prime_form;
+    if (oligo.getThreePrimeMod() != nullptr)
+    {
+      three_prime_form = oligo.getThreePrimeMod()->getFormula() - H_form;
+    }
+    if (oligo.getFivePrimeMod() != nullptr)
+    {
+      five_prime_form = oligo.getFivePrimeMod()->getFormula() - H_form;
+    }
+
+    vector<EmpiricalFormula> ribo_forms(oligo.size());
+    Size index = 0;
+    for (auto ribo : oligo)
+    {
+      ribo_forms[index] = ribo.getFormula();
+      ++index;
+    }
+
+    spectrum.getStringDataArrays().resize(1);
+    spectrum.getStringDataArrays()[0].setName("IonNames");
+
+    vector<EmpiricalFormula> fragments_left, fragments_right;
+    Size start = add_first_prefix_ion_ ? 0 : 1;
+    if ((add_a_ions_ || add_b_ions_ || add_c_ions_ || add_d_ions_ ||
+         add_aB_ions_) && (oligo.size() > start + 1))
+    {
+      fragments_left.resize(oligo.size() - 1);
+      fragments_left[0] = ribo_forms[0] + five_prime_form;
+      for (Size i = 1; i < oligo.size() - 1; ++i)
+      {
+        fragments_left[i] = (fragments_left[i - 1] + ribo_forms[i] +
+                             backbone_form);
+      }
+      if (add_a_ions_)
+      {
+        addFragmentPeaks_(spectrum, fragments_left, "a", a_ion_offset,
+                          a_intensity_, start);
+      }
+      if (add_b_ions_)
+      {
+        addFragmentPeaks_(spectrum, fragments_left, "b", b_ion_offset,
+                          b_intensity_, start);
+      }
+      if (add_c_ions_)
+      {
+        addFragmentPeaks_(spectrum, fragments_left, "c", c_ion_offset,
+                          c_intensity_, start);
+      }
+      if (add_d_ions_)
+      {
+        addFragmentPeaks_(spectrum, fragments_left, "d", d_ion_offset,
+                          d_intensity_, start);
+      }
+      if (add_aB_ions_) // special case
+      {
+        addAMinusBPeaks_(spectrum, fragments_left, oligo, start);
+      }
+    }
+
+    if ((add_w_ions_ || add_x_ions_ || add_y_ions_ || add_z_ions_) &&
+        (oligo.size() > 1))
+    {
+      fragments_right.resize(oligo.size() - 1);
+      fragments_right[0] = ribo_forms.back() + three_prime_form;
+      for (Size i = 1; i < oligo.size() - 1; ++i)
+      {
+        Size ribo_index = oligo.size() - i - 1;
+        fragments_right[i] = (fragments_right[i - 1] + ribo_forms[ribo_index] +
+                              backbone_form);
+      }
+      if (add_w_ions_)
+      {
+        addFragmentPeaks_(spectrum, fragments_right, "w", w_ion_offset,
+                          w_intensity_);
+      }
+      if (add_x_ions_)
+      {
+        addFragmentPeaks_(spectrum, fragments_right, "x", x_ion_offset,
+                          x_intensity_);
+      }
+      if (add_y_ions_)
+      {
+        addFragmentPeaks_(spectrum, fragments_right, "y", y_ion_offset,
+                          y_intensity_);
+      }
+      if (add_z_ions_)
+      {
+        addFragmentPeaks_(spectrum, fragments_right, "z", z_ion_offset,
+                          z_intensity_);
+      }
+    }
+
+    if (add_precursor_peaks_) // re-use what we've already calculated
+    {
+      Peak1D peak(0.0, pre_int_);
+      bool have_left = !fragments_left.empty();
+      bool have_right = !fragments_right.empty();
+      if (have_left && have_right)
+      {
+        fragments_left[0] += fragments_right.back() + backbone_form;
+        peak.setMZ(fragments_left[0].getMonoWeight());
+      }
+      else if (have_left)
+      {
+        fragments_left.back() += ribo_forms.back() + backbone_form +
+          three_prime_form;
+        peak.setMZ(fragments_left.back().getMonoWeight());
+      }
+      else if (have_right)
+      {
+        fragments_right.back() += ribo_forms[0] + backbone_form +
+          five_prime_form;
+        peak.setMZ(fragments_right.back().getMonoWeight());
+      }
+      else // really, no fragment ions?
+      {
+        peak.setMZ(oligo.getMonoWeight(NASequence::Full, 0));
+      }
+      spectrum.push_back(peak);
+      if (add_metainfo_)
+      {
+        spectrum.getStringDataArrays()[0].push_back("M");
+      }
+    }
+
+    return spectrum;
+  }
+
+
+  void TheoreticalSpectrumGenerator::addChargedSpectrum_(
+    PeakSpectrum& spectrum, const PeakSpectrum& uncharged_spectrum, Int charge,
+    bool add_precursor) const
+  {
+    // @TODO: use "Constants::PROTON_MASS_U" here instead?
+    static const double H_mass = EmpiricalFormula("H").getMonoWeight();
+    if (uncharged_spectrum.empty()) return;
+    Size size = uncharged_spectrum.size();
+    if (add_precursor_peaks_ && !add_precursor)
+    {
+      --size; // uncharged spectrum contains precursor peak - exclude it
+    }
+    for (Size i = 0; i < size; ++i)
+    {
+      spectrum.push_back(uncharged_spectrum[i]);
+      double mass = spectrum.back().getMZ() + charge * H_mass;
+      spectrum.back().setMZ(abs(mass / charge));
+    }
+    if (add_metainfo_)
+    {
+      auto& ions = spectrum.getStringDataArrays()[0];
+      auto source_it = uncharged_spectrum.getStringDataArrays()[0].begin();
+      ions.insert(ions.end(), source_it, source_it + size);
+      auto& charges = spectrum.getIntegerDataArrays()[0];
+      charges.resize(charges.size() + size, charge);
+    }
+  }
+
+
   void TheoreticalSpectrumGenerator::addSimpleSpectrum_(
     PeakSpectrum& spectrum, const NASequence& oligo, Int charge,
     bool add_precursor, bool sort) const
@@ -162,8 +404,6 @@ namespace OpenMS
       }
     }
 
-    // @TODO: make this more efficient - there's a lot of duplicated
-    // work between different ion types, charges and subsequences!
     if (add_b_ions_) addPeaks_(spectrum, oligo, NASequence::BIon, charge);
     if (add_y_ions_) addPeaks_(spectrum, oligo, NASequence::YIon, charge);
     if (add_a_ions_) addPeaks_(spectrum, oligo, NASequence::AIon, charge);
@@ -216,8 +456,23 @@ namespace OpenMS
     bool negative_mode = *charges.begin() < 0;
     bool add_all_precursors = (add_precursor_peaks_ &&
                                add_all_precursor_charges_);
-    bool add_some_precursors = (add_precursor_peaks_ &&
+    bool add_final_precursor = (add_precursor_peaks_ &&
                                 !add_all_precursor_charges_);
+
+    if (add_metainfo_)
+    {
+      for (Int charge : charges)
+      {
+        PeakSpectrum& spectrum = spectra[charge];
+        spectrum.getIntegerDataArrays().resize(1);
+        spectrum.getIntegerDataArrays()[0].setName("Charges");
+        spectrum.getStringDataArrays().resize(1);
+        spectrum.getStringDataArrays()[0].setName("IonNames");
+      }
+    }
+
+    PeakSpectrum uncharged_spectrum = getUnchargedSpectrum_(oligo);
+
     if (negative_mode)
     {
       if (base_charge > 0) base_charge = -base_charge;
@@ -235,17 +490,27 @@ namespace OpenMS
         PeakSpectrum& spectrum = spectra[*charge_it];
         for (; charge >= *charge_it; --charge)
         {
-          addSimpleSpectrum_(spectrum, oligo, charge, add_all_precursors,
-                             false);
+          addChargedSpectrum_(spectrum, uncharged_spectrum, charge,
+                              add_all_precursors);
         }
         ++charge_it;
         if (charge_it != charges.rend())
         {
           spectra[*charge_it] = spectrum; // initialize next spectrum
         }
-        if (add_some_precursors)
+        // if we want precursor peaks only for selected charge states, add them
+        // after the next spectrum has been initialized:
+        if (add_final_precursor)
         {
-          addPrecursorPeaks_(spectrum, oligo, charge);
+          spectrum.push_back(uncharged_spectrum.back());
+          double mass = spectrum.back().getMZ() + charge *
+            Constants::PROTON_MASS_U;
+          spectrum.back().setMZ(abs(mass / charge));
+          if (add_metainfo_)
+          {
+            spectrum.getStringDataArrays()[0].push_back("M");
+            spectrum.getIntegerDataArrays()[0].push_back(charge);
+          }
         }
         spectrum.sortByPosition();
       }
@@ -263,19 +528,29 @@ namespace OpenMS
       while (charge_it != charges.end())
       {
         PeakSpectrum& spectrum = spectra[*charge_it];
-       for (; charge <= *charge_it; ++charge)
+        for (; charge <= *charge_it; ++charge)
         {
-          addSimpleSpectrum_(spectrum, oligo, charge, add_all_precursors,
-                             false);
+          addChargedSpectrum_(spectrum, uncharged_spectrum, charge,
+                              add_all_precursors);
         }
         ++charge_it;
         if (charge_it != charges.end())
         {
           spectra[*charge_it] = spectrum; // initialize next spectrum
         }
-        if (add_some_precursors)
+        // if we want precursor peaks only for selected charge states, add them
+        // after the next spectrum has been initialized:
+        if (add_final_precursor)
         {
-          addPrecursorPeaks_(spectrum, oligo, charge);
+          spectrum.push_back(uncharged_spectrum.back());
+          double mass = spectrum.back().getMZ() + charge *
+            Constants::PROTON_MASS_U;
+          spectrum.back().setMZ(mass / charge);
+          if (add_metainfo_)
+          {
+            spectrum.getStringDataArrays()[0].push_back("M");
+            spectrum.getIntegerDataArrays()[0].push_back(charge);
+          }
         }
         spectrum.sortByPosition();
       }
@@ -477,7 +752,7 @@ namespace OpenMS
       case Residue::YIon: return 'y';
       case Residue::ZIon: return 'z';
       default:
-       cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
+       LOG_ERROR << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
     return ' ';
   }
@@ -498,7 +773,7 @@ namespace OpenMS
     case NASequence::WIon: result = "w"; break;
     case NASequence::AminusB: return (num > 0) ? "a" + String(num) + "-B" : "a-B";
     default:
-      cerr << "Unknown ribonucleotide type encountered. Can't map to ion code." << endl;
+      LOG_ERROR << "Unknown ribonucleotide type encountered. Can't map to ion code." << endl;
       result = "?";
     }
     if (num > 0) result += String(num);
