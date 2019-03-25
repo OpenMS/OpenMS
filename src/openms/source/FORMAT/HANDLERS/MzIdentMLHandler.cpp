@@ -1008,7 +1008,7 @@ namespace OpenMS
                       }
                     }
                     acc = mod->getPSIMODAccession();
-                    name = mod->getId();
+                    if (mod != nullptr) name = mod->getId();
                   }
                   if (!acc.empty())
                   {
