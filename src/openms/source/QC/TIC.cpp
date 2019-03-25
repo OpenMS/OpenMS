@@ -56,7 +56,7 @@ namespace OpenMS
     return results_;
   }
 
-  /// Returns required file input.
+  /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
   QCBase::Status TIC::requires() const
   {
