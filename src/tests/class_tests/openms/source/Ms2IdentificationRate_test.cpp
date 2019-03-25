@@ -201,7 +201,7 @@ START_SECTION(void Ms2IdentificationRate::compute(FeatureMap const & feature_map
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_empty_fmap.compute(fmap_empty, ms_exp), "FeatureXML is corrupted or empty")
 
   //no fdr
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "FDR was not made. If you want to continue without FDR use -force")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "FDR was not made. If you want to continue without FDR use -force_fdr")
 
   //no ms2 spectra
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_ms1.compute(fmap, ms1_exp), "No MS2-Level found")

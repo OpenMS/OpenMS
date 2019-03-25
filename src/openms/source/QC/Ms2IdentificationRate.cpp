@@ -71,7 +71,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -force");
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -force_fdr");
         }
       }
       else

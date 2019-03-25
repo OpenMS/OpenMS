@@ -46,9 +46,15 @@
 
 namespace OpenMS
 {
+  /**
+   * @brief This class is a metric for the QualityControl-ToppTool.
+   *
+   * This class computes the Ms2 Identification Rate given a FeatureMap and a MSExperiment.
+   */
   class OPENMS_DLLAPI Ms2IdentificationRate : QCBase
   {
   public:
+    /// Structure for storing results
     struct IdentificationRateData
     {
       UInt64 num_peptide_identification;
@@ -57,17 +63,49 @@ namespace OpenMS
     };
 
   private:
+    /// container that stores results
     std::vector<IdentificationRateData> rate_result_;
+
+    /// struct that is made to store results
     IdentificationRateData id_rate_data_;
 
+    /**
+     * @brief counts peptideidentifications
+     * used to count assigned and unassigned peptideidentifications in a featuremap
+     * @param peptide_id
+     * @param force_fdr
+     * @return number of peptideidentifications in a given vector of peptideidentifications
+     * @exception Exception::Precondition is thrown if there wasn't made a FDR before
+     * @warning LOG_WARN if there is a peptideidentification without peptidehits
+     */
     Int64 countPeptideId_(std::vector<PeptideIdentification> peptide_id, bool force_fdr);
 
   public:
-
+    /// Default constructor
     Ms2IdentificationRate();
+
+    /// Destructor
     ~Ms2IdentificationRate();
+
+    /**
+     * @brief computes Ms2 Identification Rate
+     * stores results as a struct in a vector
+     * @param feature_map
+     * @param exp
+     * @param force_fdr
+     * @exception Exception::MissingInformation is thrown if the FeatureXML is empty
+     * @exception Exception::MissingInformation is thrown if the mzML is empty
+     * @exception Exception::MissingInformation is thrown if the experiment doesn't contain ms2 spectra
+     * @exception Exception::Precondition is thrown if there are more identifications than ms2 level
+     */
     void compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false);
+
+    /// returns results
     std::vector<IdentificationRateData> getResults();
+
+    /**
+     *@brief Returns the input data requirements of the compute(...) function
+     */
     QCBase::Status requires() const override;
 
   };

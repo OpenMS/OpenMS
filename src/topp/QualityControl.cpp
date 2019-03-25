@@ -44,6 +44,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <cstdio>
 
 using namespace OpenMS;
@@ -74,6 +75,7 @@ protected:
     setValidFormats_("in_con", {"fasta"});
     //possible additions:
     //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
+    registerFlag_("force_fdr", "forces the metric to run if fdr was not made");
 
   }
   // the main_ function is called after all parameters are read
@@ -99,6 +101,18 @@ protected:
       status |= QCBase::Requires::CONTAMINANTS;
     }
 
+    //check flags
+    bool fdr_flag = getFlag_("force_fdr");
+
+
+    //--------------------------------------------------------------
+    // Instantiate
+    //--------------------------------------------------------------
+
+    Ms2IdentificationRate qc_ms2ir;
+
+
+
     // Loop through file lists
     for (Size i = 0; i < number_exps; ++i)
     {
@@ -121,6 +135,11 @@ protected:
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
+      if (status.isSuperSetOf(qc_ms2ir.requires()))
+      {
+        qc_ms2ir.compute(fmap, exp, fdr_flag);
+      }
+
     }
     //-------------------------------------------------------------
     // writing output
