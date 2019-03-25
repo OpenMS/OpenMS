@@ -103,12 +103,12 @@ exp[3].setRT(5);
 
 exp.updateRanges();
 
-START_SECTION(QCBase::Status requires() const)
+START_SECTION(Status requires() const)
   TIC tic;
   TEST_EQUAL((tic.requires() == QCBase::Status(QCBase::Requires::RAWMZML)),true);
 END_SECTION
 
-START_SECTION(void compute(const MSExperiment &exp, float bin_size) && vector<MSChromatogram> getResults() const)
+START_SECTION(void compute(const MSExperiment &exp, float bin_size))
 {
   TIC tic;
   TEST_EQUAL(tic.getResults().empty(),true);
@@ -121,32 +121,36 @@ START_SECTION(void compute(const MSExperiment &exp, float bin_size) && vector<MS
   MSExperiment exp2;
   tic.compute(exp2);
 
-  TEST_EQUAL(tic.getResults().size(),5);
-  TEST_EQUAL(tic.getResults()[0].size(),3);
+  ABORT_IF(tic.getResults().size() != 5);
+  ABORT_IF(tic.getResults()[0].size() != 3);
   TEST_EQUAL(tic.getResults()[0][0].getIntensity(),8);
   TEST_EQUAL(tic.getResults()[0][1].getIntensity(),2);
   TEST_EQUAL(tic.getResults()[0][2].getIntensity(),9);
 
-  TEST_EQUAL(tic.getResults()[1].size(),4);
+  ABORT_IF(tic.getResults()[1].size() != 4);
   TEST_EQUAL(tic.getResults()[1][0].getIntensity(),8);
   TEST_EQUAL(tic.getResults()[1][1].getIntensity(),2);
   // Intensity at RT = 5 in between new data points at 4.0 and 6.0
   TEST_EQUAL(tic.getResults()[1][2].getIntensity(),4.5);
   TEST_EQUAL(tic.getResults()[1][3].getIntensity(),4.5);
 
-  TEST_EQUAL(tic.getResults()[2].size(),2);
+  ABORT_IF(tic.getResults()[2].size() != 2);
   // Intensities at RT = 2 and RT = 5 in between new data points at 0.0 and 6.0
   TEST_REAL_SIMILAR(tic.getResults()[2][0].getIntensity(),8.0 + 2.0* 4.0/6.0 + 9 * 1.0/6.0);
   TEST_REAL_SIMILAR(tic.getResults()[2][1].getIntensity(),2.0* 2.0/6.0 + 9 * 5.0/6.0);
 
   // same as in tic.getResults()[0]
-  TEST_EQUAL(tic.getResults()[3].size(),3);
+  ABORT_IF(tic.getResults()[3].size() != 3);
   TEST_EQUAL(tic.getResults()[3][0].getIntensity(),8);
   TEST_EQUAL(tic.getResults()[3][1].getIntensity(),2);
   TEST_EQUAL(tic.getResults()[3][2].getIntensity(),9);
 
   TEST_EQUAL((tic.getResults()[4] == MSChromatogram()),true);
 }
+END_SECTION
+
+START_SECTION(vector<MSChromatogram> getResults() const)
+  NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void clear())

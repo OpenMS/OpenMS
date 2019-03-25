@@ -42,7 +42,8 @@
  *
  * Simple class to calculate the TIC of an MSExperiment.
  * Allows for multiple usage, because each calculated TIC is
- * stored internal. Those results can than be returned.
+ * stored internally. Those results can then be returned using
+ * getResults().
  *
  */
 
@@ -51,12 +52,23 @@ namespace OpenMS
   class OPENMS_DLLAPI TIC : QCBase
   {
   public:
-    TIC();
-    ~TIC();
+    /// Constructor
+    TIC() = default;
+    /// Destructor
+    ~TIC() = default;
     void clear();
-    // Binning the MSExperiment is optional
+
+    /**
+    @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+
+    All MS1 TICs within a bin are summed up.
+
+    @param exp Peak map to compute the MS1 tick from
+    @param bin_size RT bin size in seconds
+    @return TIC Chromatogram
+    **/
     void compute(const MSExperiment &exp, float bin_size=0);
-    std::vector<MSChromatogram> getResults() const ;
+    const std::vector<MSChromatogram>& getResults() const ;
     QCBase::Status requires() const override;
   private:
     std::vector<MSChromatogram> results_;

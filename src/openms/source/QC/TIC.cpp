@@ -40,20 +40,11 @@ using namespace std;
 
 namespace OpenMS
 {
-  /// Constructor
-  TIC::TIC() = default;
-
-  /// Destructor
-  TIC::~TIC() = default;
-
   /// Reset
   void TIC::clear()
   {
     results_.clear();
   }
-
-  /// Applies the resampling algorithm, if a bin size i.e a frequency is given.
-  /// Returns the (possibly resampled) TIC of given MSExperiment.
   void TIC::compute(const MSExperiment &exp, float bin_size)
   {
     MSChromatogram tic = exp.getTIC();
@@ -69,12 +60,13 @@ namespace OpenMS
   }
 
   /// Returns all results calculated with compute.
-  std::vector<MSChromatogram> TIC::getResults() const
+  const std::vector<MSChromatogram>& TIC::getResults() const
   {
     return results_;
   }
 
   /// Returns required file input.
+  /// This is encoded as a bit in a Status object.
   QCBase::Status TIC::requires() const
   {
     return QCBase::Status(QCBase::Requires::RAWMZML);
