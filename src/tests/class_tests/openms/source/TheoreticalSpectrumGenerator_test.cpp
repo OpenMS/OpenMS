@@ -512,7 +512,7 @@ START_SECTION((void getSpectrum(PeakSpectrum& spec, const NASequence& nucleotide
   param.setValue("add_a-B_ions", "true");
   ptr->setParameters(param);
   ptr->getSpectrum(spectrum, seq, -1, -1);
-  // TEST_EQUAL(spectrum.size(), aminusB_ions.size()); // last one is missing
+  TEST_EQUAL(spectrum.size(), aminusB_ions.size() - 1); // last one is missing
   for (Size i = 0; i < spectrum.size(); ++i)
   {
     TEST_REAL_SIMILAR(spectrum[i].getMZ(), aminusB_ions[i]);
@@ -523,7 +523,7 @@ START_SECTION((void getSpectrum(PeakSpectrum& spec, const NASequence& nucleotide
   param.setValue("add_a_ions", "true");
   ptr->setParameters(param);
   ptr->getSpectrum(spectrum, seq, -1, -1);
-  // TEST_EQUAL(spectrum.size(), a_ions.size()); // last one is missing
+  TEST_EQUAL(spectrum.size(), a_ions.size() - 1); // last one is missing
   for (Size i = 0; i < spectrum.size(); ++i)
   {
     TEST_REAL_SIMILAR(spectrum[i].getMZ(), a_ions[i]);
@@ -534,7 +534,7 @@ START_SECTION((void getSpectrum(PeakSpectrum& spec, const NASequence& nucleotide
   param.setValue("add_b_ions", "true");
   ptr->setParameters(param);
   ptr->getSpectrum(spectrum, seq, -1, -1);
-  // TEST_EQUAL(spectrum.size(), b_ions.size()); // last one is missing
+  TEST_EQUAL(spectrum.size(), b_ions.size() - 1); // last one is missing
   for (Size i = 0; i < spectrum.size(); ++i)
   {
     TEST_REAL_SIMILAR(spectrum[i].getMZ(), b_ions[i]);
@@ -645,7 +645,19 @@ START_SECTION((void getMultipleSpectra(std::map<Int, PeakSpectrum>& spectra, con
   for (const auto& pair : spectra)
   {
     TEST_EQUAL(compare[index].size(), pair.second.size());
-    TEST_EQUAL(compare[index] == pair.second, true);
+    ABORT_IF(compare[index].size() != pair.second.size());
+    // TEST_EQUAL(compare[index] == pair.second, true);
+    for (Size i = 0; i < compare[index].size(); ++i)
+    {
+      TEST_REAL_SIMILAR(compare[index][i].getMZ(),
+                        pair.second[i].getMZ());
+      TEST_REAL_SIMILAR(compare[index][i].getIntensity(),
+                        pair.second[i].getIntensity());
+    }
+    TEST_EQUAL(compare[index].getStringDataArrays() ==
+               pair.second.getStringDataArrays(), true);
+    TEST_EQUAL(compare[index].getIntegerDataArrays() ==
+               pair.second.getIntegerDataArrays(), true);
     index++;
   }
 }
