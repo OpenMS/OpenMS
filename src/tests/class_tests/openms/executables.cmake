@@ -17,7 +17,8 @@ set(concept_executables_list
 )
 
 set(qc_executables_list
-    Ms2IdentificationRate_test
+  Ms2IdentificationRate_test
+  TIC_test
 )
 
 set(datastructures_executables_list

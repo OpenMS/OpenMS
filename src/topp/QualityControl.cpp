@@ -45,6 +45,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
+#include <OpenMS/QC/TIC.h>
 #include <cstdio>
 
 using namespace OpenMS;
@@ -101,17 +102,14 @@ protected:
       status |= QCBase::Requires::CONTAMINANTS;
     }
 
+
     //check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
 
 
-    //--------------------------------------------------------------
-    // Instantiate
-    //--------------------------------------------------------------
-
+    // Instantiate the QC metrics
+    // TIC qc_tic;
     Ms2IdentificationRate qc_ms2ir;
-
-
 
     // Loop through file lists
     for (Size i = 0; i < number_exps; ++i)
@@ -135,10 +133,18 @@ protected:
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
+
       if (status.isSuperSetOf(qc_ms2ir.requires()))
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
       }
+
+
+      /* Example for including a metric calculation:
+       *
+       * if (status.isSuperSetOf(qc_tic.requires())) qc_tic.compute(exp);
+       *
+       */
 
     }
     //-------------------------------------------------------------
