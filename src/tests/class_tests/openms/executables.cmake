@@ -19,6 +19,10 @@ set(qc_executables_list
     Contaminants_test
 )
 
+set(qc_executables_list
+  TIC_test
+)
+
 set(datastructures_executables_list
   Adduct_test
   #BinaryTreeNode_test
