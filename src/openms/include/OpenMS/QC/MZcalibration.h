@@ -14,7 +14,6 @@ public:
 
 	MZcalibration() = default;
 	void calculate (FeatureMap& features, const MSExperiment& exp);
-	void clearResult();
 
 private:
 	double getMZraw(double rt, const MSExperiment& exp);

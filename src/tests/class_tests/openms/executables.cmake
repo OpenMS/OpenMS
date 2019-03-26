@@ -588,6 +588,10 @@ set(transformations_executables_list
   TraceFitter_test
 )
 
+set(qc_list
+	ChargeDistribution_test
+	)
+
 if(NOT DISABLE_OPENSWATH)
 set(transformations_executables_list
   ${transformations_executables_list}
@@ -686,4 +690,5 @@ set(TEST_executables
     ${transformations_executables_list}
     ${simulation_executables_list}
     ${swath_executables_list}
+	${qc_list}
 )

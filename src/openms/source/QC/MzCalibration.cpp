@@ -56,7 +56,7 @@ Calculate theoretical mass with Sequence of the mapped spectrum
 //mono mass? //if mono? --> mass_type = protein_ids[1].ProteinIdentification::PeakMassType; -->´nach internal calibration --> nur mono, rest verworfen
 //getAverageWeight(Residue::ResidueType type, Int charge)
 
-void MzCalibration::calculate(FeatureMap& features, const MSExperiment& exp)
+void MZcalibration::calculate(FeatureMap& features, const MSExperiment& exp)
 {
 		if (features.empty)
 		{
@@ -80,7 +80,7 @@ void MzCalibration::calculate(FeatureMap& features, const MSExperiment& exp)
 }
 
 
-double MzCalibration::getMZraw(double rt, const MSExperiment& exp)
+double MZcalibration::getMZraw(double rt, const MSExperiment& exp)
 {
 			
 	for (Size j = 0; j = exp.size(); j++)
@@ -94,9 +94,4 @@ double MzCalibration::getMZraw(double rt, const MSExperiment& exp)
 					throw exception("Level does not match");
 			}
 	}
-}
-
-void MzCalibration::clearResult()
-{
-		results.clear;
 }

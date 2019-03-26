@@ -4,7 +4,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-class MzCalibration : QCBase
+class MZcalibration : QCBase
 {
 	/**
    * @brief This class calculate the difference between m/z before and after correction
@@ -12,9 +12,8 @@ class MzCalibration : QCBase
    */
 public:
 
-	MzCalibration() = default;
+	MZcalibration() = default;
 	void calculate (FeatureMap& features, const MSExperiment& exp);
-	void clearResult();
 
 private:
 	double getMZraw(double rt, const MSExperiment& exp);
