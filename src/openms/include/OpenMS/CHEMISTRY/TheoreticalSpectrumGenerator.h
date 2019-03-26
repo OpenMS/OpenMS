@@ -38,16 +38,14 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/DataArrays.h>
-#include <OpenMS/CHEMISTRY/NASequence.h>
 
 
 namespace OpenMS
 {
   class AASequence;
-  class NASequence;
 
   /**
-      @brief Generates theoretical spectra with various options
+      @brief Generates theoretical spectra for peptides with various options
 
       If the tool parameter add_metainfo is set to true,
       ion names like y8+ or [M-H2O+2H]++ are written as strings in a StringDataArray with the name "IonNames"
@@ -94,42 +92,11 @@ namespace OpenMS
     /// Generates a spectrum for a peptide sequence, with the ion types that are set in the tool parameters
     virtual void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge, Int max_charge) const;
 
-    /// Generates a spectrum for an oligonucleotide sequence, with the ion types that are set in the tool parameters
-    virtual void getSpectrum(PeakSpectrum& spec, const NASequence& oligo, Int min_charge, Int max_charge) const;
-
-    /**
-       @brief Generates spectra in multiple charge states for an oligonucleotide sequence
-
-       @param spectra Output spectra
-       @param oligo Target oligonucleotide sequence
-       @param charges Set of charge states to generate
-       @param base_charge Minimum charge for peaks in each spectrum
-
-       One spectrum per element in @p charges is generated in @p spectra.
-
-       All values in @p charges must be either positive or negative.
-
-       This function is more efficient than calling getSpectrum() multiple times, because spectra of lower charge states are reused.
-    */
-    void getMultipleSpectra(std::map<Int, PeakSpectrum>& spectra, const NASequence& oligo, const std::set<Int>& charges, Int base_charge = 1) const;
-
     /// overwrite
     void updateMembers_() override;
     //@}
 
     protected:
-
-    /// Helper function to add (uncharged) fragment peaks to a spectrum
-    void addFragmentPeaks_(PeakSpectrum& spectrum, const std::vector<double>& fragment_masses, const String& ion_type, double offset, double intensity, Size start = 0) const;
-
-    /// Special version of addFragmentPeaks_() for a-B ions
-    void addAMinusBPeaks_(PeakSpectrum& spectrum, const std::vector<double>& fragment_masses, const NASequence& oligo, Size start = 0) const;
-
-    /// Generates a spectrum containing peaks for uncharged fragment masses
-    PeakSpectrum getUnchargedSpectrum_(const NASequence& oligo) const;
-
-    /// Adds a charged version of an uncharged spectrum to another spectrum
-    void addChargedSpectrum_(PeakSpectrum& spectrum, const PeakSpectrum& uncharged_spectrum, Int charge, bool add_precursor) const;
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge = 1) const;
@@ -155,9 +122,6 @@ namespace OpenMS
     bool add_c_ions_;
     bool add_x_ions_;
     bool add_z_ions_;
-    bool add_d_ions_;
-    bool add_w_ions_;
-    bool add_aB_ions_;
     bool add_first_prefix_ion_;
     bool add_losses_;
     bool add_metainfo_;
@@ -171,9 +135,6 @@ namespace OpenMS
     double x_intensity_;
     double y_intensity_;
     double z_intensity_;
-    double d_intensity_;
-    double w_intensity_;
-    double aB_intensity_;
 
     Int max_isotope_;
     double rel_loss_intensity_;

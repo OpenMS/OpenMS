@@ -29,13 +29,14 @@ RNaseDB.h
 RNaseDigestion.h
 Ribonucleotide.h
 RibonucleotideDB.h
-TheoreticalSpectrumGenerator.h
-SpectrumAnnotator.h
-TheoreticalSpectrumGeneratorXLMS.h
 SimpleTSGXLMS.h
+SpectrumAnnotator.h
 SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h
+TheoreticalSpectrumGenerator.h
+TheoreticalSpectrumGeneratorNA.h
+TheoreticalSpectrumGeneratorXLMS.h
 WeightWrapper.h
 )
 

@@ -29,12 +29,12 @@ RNaseDigestion.cpp
 Ribonucleotide.cpp
 RibonucleotideDB.cpp
 SpectrumAnnotator.cpp
-TheoreticalSpectrumGeneratorXLMS.cpp
 SimpleTSGXLMS.cpp
 SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp
 TheoreticalSpectrumGenerator.cpp
+TheoreticalSpectrumGeneratorNA.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
 WeightWrapper.cpp
 )

@@ -71,7 +71,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
 // spectra comparison
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorNA.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
@@ -1063,7 +1063,7 @@ protected:
     }
 
     // create spectrum generator
-    TheoreticalSpectrumGenerator spectrum_generator;
+    TheoreticalSpectrumGeneratorNA spectrum_generator;
     Param param = spectrum_generator.getParameters();
     vector<String> temp = getStringList_("fragment:ions");
     set<String> selected_ions(temp.begin(), temp.end());
@@ -1194,7 +1194,7 @@ protected:
                     << float(candidate_mass) << " Da)" << endl;
 
           // pre-generate spectra:
-          map<Int, PeakSpectrum> theo_spectra_by_charge;
+          map<Int, MSSpectrum> theo_spectra_by_charge;
           spectrum_generator.getMultipleSpectra(theo_spectra_by_charge,
                                                 candidate, precursor_charges,
                                                 base_charge);
@@ -1206,11 +1206,11 @@ protected:
 
             Size charge = prec_it->second.charge;
             // look up theoretical spectrum for this charge:
-            PeakSpectrum& theo_spectrum =
+            MSSpectrum& theo_spectrum =
               theo_spectra_by_charge[charge * base_charge];
 
             Size scan_index = prec_it->second.scan_index;
-            const PeakSpectrum& exp_spectrum = spectra[scan_index];
+            const MSSpectrum& exp_spectrum = spectra[scan_index];
             vector<PeptideHit::PeakAnnotation> annotations;
             double score = MetaboliteSpectralMatching::computeHyperScore(
               search_param.fragment_mass_tolerance,
