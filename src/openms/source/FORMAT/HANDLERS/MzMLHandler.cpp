@@ -4882,7 +4882,7 @@ namespace OpenMS
         native_id = String("spectrum=") + s;
       }
 
-      long offset = os.tellp();
+      Int64 offset = os.tellp();
       spectra_offsets_.push_back(make_pair(native_id, offset + 3));
 
       // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
@@ -5439,7 +5439,7 @@ namespace OpenMS
                                          Size c,
                                          const Internal::MzMLValidator& validator)
     {
-      long offset = os.tellp();
+      Int64 offset = os.tellp();
       chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
 
       // TODO native id with chromatogram=?? prefix?

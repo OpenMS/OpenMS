@@ -400,6 +400,32 @@ namespace OpenMS
     
   }
   
+  MSExperiment MultiplexFiltering::getBlacklist()
+  {
+    MSExperiment exp_blacklist;
+    
+    // loop over spectra
+    for (const auto &it_rt : exp_centroided_)
+    {
+      MSSpectrum spectrum_black;
+      spectrum_black.setRT(it_rt.getRT());
+      
+      // loop over m/z
+      for (const auto &it_mz : it_rt)
+      {
+        // transfer all peaks which are not white (i.e. not -1)
+        if (blacklist_[&it_rt - &exp_centroided_[0]][&it_mz - &it_rt[0]] != -1)
+        {
+          spectrum_black.push_back(it_mz);
+        }
+      }
+      exp_blacklist.addSpectrum(spectrum_black);
+    }
+    exp_blacklist.updateRanges();
+    
+    return exp_blacklist;
+  }
+  
   bool MultiplexFiltering::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const
   {
     // construct averagine distribution

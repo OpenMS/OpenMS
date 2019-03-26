@@ -170,6 +170,7 @@ protected:
       String CompoundName; ///< Compound name (for metabolomics)
       String SMILES; ///< SMILES identifier (for metabolomics)
       String SumFormula; ///< Molecular formula (for metabolomics)
+      String Adducts; ///< Adducts (for metabolomics)
       String precursor_charge; ///< Precursor charge state
       String peptide_group_label; ///< Peptide group identifier (grouping isotopically labelled peptides)
       String label_type; ///< Type of label that was used (e.g. "heavy" or "light")
