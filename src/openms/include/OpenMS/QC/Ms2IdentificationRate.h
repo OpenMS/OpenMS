@@ -68,7 +68,9 @@ namespace OpenMS
 
     /**
      * @brief counts peptideidentifications
+     *
      * used to count assigned and unassigned peptideidentifications in a featuremap
+     *
      * @param peptide_id - vector of peptideidentifications
      * @param force_fdr - bool for forceflag, if it's true all peptides are count despite fdr was not made
      * @return number of peptideidentifications in a given vector of peptideidentifications
@@ -86,10 +88,13 @@ namespace OpenMS
 
     /**
      * @brief computes Ms2 Identification Rate
+     *
      * stores results as a struct in a vector
-     * @param feature_map - FeatureMap
-     * @param exp - MSExperiment
-     * @param force_fdr - bool for forceflag, is used in countPeptideId_
+     * Only pep-ids with FDR metavalue annotation as 'target' are counted, unless force_fdr flag is set (assumes all pep-ids are target peptides)
+     *
+     * @param feature_map Input featuremap with target/decoy annotation
+     * @param exp MSExperiment for counting number of MS2 spectra
+     * @param force_fdr bool for forceflag
      * @exception Exception::MissingInformation is thrown if the FeatureXML is empty
      * @exception Exception::MissingInformation is thrown if the mzML is empty
      * @exception Exception::MissingInformation is thrown if the experiment doesn't contain ms2 spectra

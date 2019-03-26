@@ -32,8 +32,7 @@
 // $Authors: Patricia Scheil, Swenja Wagner$
 // --------------------------------------------------------------------------
 
-//#include <OpenMS/QC/Ms2IdentificationRate.h>
-#include <include/OpenMS/QC/Ms2IdentificationRate.h>
+#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <algorithm>
 
 
@@ -51,18 +50,15 @@ namespace OpenMS
         LOG_WARN << "Ms2IdentificationRate: There is a Peptideidentification without PeptideHits." << "\n";
         return false;
       }
-      if (!(x.getHits()[0].metaValueExists("target_decoy")) && !force_fdr)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr");
-      }
       if (force_fdr)
       {
         return true;
       }
-      else
+      if (!(x.getHits()[0].metaValueExists("target_decoy")))
       {
-        return x.getHits()[0].getMetaValue("target_decoy") == "target";
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr");
       }
+      return x.getHits()[0].getMetaValue("target_decoy") == "target";
     }
     );
     return counter;
@@ -118,14 +114,14 @@ namespace OpenMS
       double ratio = (double) peptide_identification_counter / ms2_level_counter;
 
       // struct that is made to store results
-      IdentificationRateData id_rate_data_;
+      IdentificationRateData id_rate_data;
 
       //store results
-      id_rate_data_.num_peptide_identification = peptide_identification_counter;
-      id_rate_data_.num_ms2_spectra = ms2_level_counter;
-      id_rate_data_.identification_rate = ratio;
+      id_rate_data.num_peptide_identification = peptide_identification_counter;
+      id_rate_data.num_ms2_spectra = ms2_level_counter;
+      id_rate_data.identification_rate = ratio;
 
-      rate_result_.push_back(id_rate_data_);
+      rate_result_.push_back(id_rate_data);
   }
 
 

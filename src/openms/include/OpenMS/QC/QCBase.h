@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -86,9 +87,13 @@ namespace OpenMS
         return *this;
       }
       // Equal
-      bool operator==(const Status& stat)
+      /*bool operator==(const Status& stat)
       {
         return (value_ == stat.value_);
+      }*/
+      friend bool operator==(const Status& stat1, const Status& stat2)
+      {
+        return (stat1.value_ == stat2.value_);
       }
       Status& operator=(const Status& stat) = default;
       // Bitwise operators
@@ -135,6 +140,10 @@ namespace OpenMS
       {
         value_ |= stat.value_;
         return *this;
+      }
+      friend std::ostream& operator<<(std::ostream& os, const Status& stat)
+      {
+        return os << stat.value_;
       }
 
       /**

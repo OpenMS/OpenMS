@@ -76,7 +76,7 @@ protected:
     setValidFormats_("in_con", {"fasta"});
     //possible additions:
     //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
-    registerFlag_("MS2_id_rate:force_no_fdr", "forces the metric to run if fdr was not made");
+    registerFlag_("MS2_id_rate:force_no_fdr", "forces the metric to run if fdr was not made, accept all pep_ids as target hits");
 
   }
   // the main_ function is called after all parameters are read
