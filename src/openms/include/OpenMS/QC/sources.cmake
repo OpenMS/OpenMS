@@ -4,6 +4,8 @@ set(directory include/OpenMS/QC)
 ### list all header files of the directory here
 set(sources_list_h
 MZCalibration.h
+QCBase.h
+TIC.h
 )
 
 ### add path to the filenames

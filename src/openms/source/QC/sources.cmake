@@ -4,7 +4,8 @@ set(directory source/QC)
 ### list all filenames of the directory here
 set(sources_list
 MZcalibration.cpp
-)   
+TIC
+)
 
 ### add path to the filenames
 set(sources)
