@@ -39,8 +39,6 @@
 
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 
-#include <iostream>
-#include <string>
 #include <vector>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -113,34 +111,24 @@ FeatureMap fmap_empty;
 fmap.setUnassignedPeptideIdentifications(pep_ids);
 
 //construct MSSpectrum
-MSSpectrum ms2_1;
-ms2_1.setMSLevel(2);
-MSSpectrum ms2_2;
-ms2_2.setMSLevel(2);
-MSSpectrum ms2_3;
-ms2_3.setMSLevel(2);
-MSSpectrum ms2_4;
-ms2_4.setMSLevel(2);
-MSSpectrum ms2_5;
-ms2_5.setMSLevel(2);
-MSSpectrum ms2_6;
-ms2_6.setMSLevel(2);
+MSSpectrum ms2;
+ms2.setMSLevel(2);
 MSSpectrum ms1;
 ms1.setMSLevel(1);
 
-std::vector<MSSpectrum> ms_spectra = {ms2_1, ms2_2, ms2_3, ms2_4, ms2_5, ms2_6, ms1};
+std::vector<MSSpectrum> ms_spectra = {ms2, ms2, ms2, ms2, ms2, ms2, ms1};
 std::vector<MSSpectrum> ms1_spectra = {ms1};
-std::vector<MSSpectrum> ms2_2_spectra = {ms2_1};
+std::vector<MSSpectrum> ms2_2_spectra = {ms2};
 
 //construct MSExperiment
 MSExperiment ms_exp;
 ms_exp.setSpectra(ms_spectra);
 
-//construct MSExperiment without m2 level
+//construct MSExperiment without MS2 spectra
 MSExperiment ms1_exp;
 ms1_exp.setSpectra(ms1_spectra);
 
-//construct MSExperiment with two m2 level
+//construct MSExperiment with two MS2 spectra
 MSExperiment ms2_2_exp;
 ms2_2_exp.setSpectra(ms2_2_spectra);
 
@@ -171,13 +159,14 @@ END_SECTION
 
 Ms2IdentificationRate ms2ir;
 Ms2IdentificationRate ms2ir_fdr;
+Ms2IdentificationRate ms2ir_force_fdr;
 Ms2IdentificationRate ms2ir_ms1;
 Ms2IdentificationRate ms2ir_ms2_2;
 Ms2IdentificationRate ms2ir_empty_msexp;
 Ms2IdentificationRate ms2ir_empty_fmap;
 
 //tests compute function
-START_SECTION(void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false))
+START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false))
 {
   //test with valid input
   ms2ir.compute(fmap, ms_exp);
@@ -188,23 +177,44 @@ START_SECTION(void Ms2IdentificationRate::compute(FeatureMap const & feature_map
   {
     TEST_EQUAL(idrd.num_peptide_identification, 2)
     TEST_EQUAL(idrd.num_ms2_spectra, 6)
-    TEST_REAL_SIMILAR(idrd.identification_rate, (double)1/3)
+    TEST_REAL_SIMILAR(idrd.identification_rate, 1./3)
   }
 
   //less ms2 spectra than identifictions
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_ms2_2.compute(fmap, ms2_2_exp), "There are more Identifications than Ms2-Level. Please check your data.")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_ms2_2.compute(fmap, ms2_2_exp), "There are more Identifications than MS2 spectra. Please check your data.")
 
   //empty ms experiment
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_empty_msexp.compute(fmap, ms_empty_exp), "mzML is corrupted or empty")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_empty_msexp.compute(fmap, ms_empty_exp), "MSExperiment is empty")
 
   //empty feature map
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_empty_fmap.compute(fmap_empty, ms_exp), "FeatureXML is corrupted or empty")
+  ms2ir_empty_fmap.compute(fmap_empty, ms_exp);
+  std::vector<Ms2IdentificationRate::IdentificationRateData> result_empty_fmap;
+  result_empty_fmap = ms2ir_empty_fmap.getResults();
+
+  for (auto idrd_empty_fmap : result_empty_fmap)
+  {
+    TEST_EQUAL(idrd_empty_fmap.num_peptide_identification, 0)
+    TEST_EQUAL(idrd_empty_fmap.num_ms2_spectra, 6)
+    TEST_REAL_SIMILAR(idrd_empty_fmap.identification_rate, 0)
+  }
 
   //no fdr
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "FDR was not made. If you want to continue without FDR use -force_fdr")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr")
+
+  // force no fdr
+  ms2ir_force_fdr.compute(fmap_fdr, ms_exp, true);
+  std::vector<Ms2IdentificationRate::IdentificationRateData> result_force_fdr;
+  result_force_fdr = ms2ir_force_fdr.getResults();
+
+  for (auto idrd_force_fdr : result_force_fdr)
+  {
+    TEST_EQUAL(idrd_force_fdr.num_peptide_identification, 1)
+    TEST_EQUAL(idrd_force_fdr.num_ms2_spectra, 6)
+    TEST_REAL_SIMILAR(idrd_force_fdr.identification_rate, 1./6)
+  }
 
   //no ms2 spectra
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_ms1.compute(fmap, ms1_exp), "No MS2-Level found")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_ms1.compute(fmap, ms1_exp), "No MS2 spectra found")
 
 }
 END_SECTION

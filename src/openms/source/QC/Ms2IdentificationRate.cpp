@@ -35,49 +35,33 @@
 //#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <include/OpenMS/QC/Ms2IdentificationRate.h>
 #include <algorithm>
-#include <iostream>
 
 
 
 namespace OpenMS
 {
-
-  Ms2IdentificationRate::Ms2IdentificationRate() = default;
-  Ms2IdentificationRate::~Ms2IdentificationRate() = default;
-
-  Int64 Ms2IdentificationRate::countPeptideId_(std::vector<PeptideIdentification> peptide_id, bool force_fdr)
+  Int64 Ms2IdentificationRate::countPeptideId_(const std::vector<PeptideIdentification>& peptide_id, bool force_fdr)
   {
     Int64 counter{};
 
     counter += count_if(peptide_id.begin(), peptide_id.end(), [force_fdr](PeptideIdentification const & x)
     {
-
-      if ( !x.getHits().empty() )
-      {
-        if (x.getHits()[0].metaValueExists("target_decoy") && !force_fdr)
-        {
-          if (x.getHits()[0].getMetaValue("target_decoy") == "target")
-          {
-            return true;
-          }
-          else
-          {
-            return false;
-          }
-        }
-        else if (force_fdr)
-        {
-          return true;
-        }
-        else
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -force_fdr");
-        }
-      }
-      else
+      if (x.getHits().empty())
       {
         LOG_WARN << "Ms2IdentificationRate: There is a Peptideidentification without PeptideHits." << "\n";
         return false;
+      }
+      if (!(x.getHits()[0].metaValueExists("target_decoy")) && !force_fdr)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr");
+      }
+      if (force_fdr)
+      {
+        return true;
+      }
+      else
+      {
+        return x.getHits()[0].getMetaValue("target_decoy") == "target";
       }
     }
     );
@@ -88,16 +72,13 @@ namespace OpenMS
   //computes number of peptide identifications, number of ms2 spectra and ratio
   //data is stored in vector of structs
 //  void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file, bool force_fdr)
-  void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr)
+  void Ms2IdentificationRate::compute(const FeatureMap& feature_map,const MSExperiment& exp, bool force_fdr)
   {
     //checks if data exists
-      if (feature_map.empty())
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureXML is corrupted or empty");
-      }
+
       if (exp.empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "mzML is corrupted or empty");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSExperiment is empty");
       }
 
 
@@ -105,7 +86,7 @@ namespace OpenMS
     UInt64 ms2_level_counter{};
 
 
-      for (auto const &spec : exp.getSpectra())
+      for (auto const& spec : exp.getSpectra())
       {
         if (spec.getMSLevel() == 2)
         {
@@ -115,7 +96,7 @@ namespace OpenMS
 
       if (ms2_level_counter == 0)
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS2-Level found");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS2 spectra found");
       }
 
       //count peptideIdentifications
@@ -130,12 +111,14 @@ namespace OpenMS
 
       if (ms2_level_counter < peptide_identification_counter)
       {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than Ms2-Level. Please check your data.");
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than MS2 spectra. Please check your data.");
       }
 
       //compute ratio
-      double ratio{};
-      ratio = (double) peptide_identification_counter / ms2_level_counter;
+      double ratio = (double) peptide_identification_counter / ms2_level_counter;
+
+      // struct that is made to store results
+      IdentificationRateData id_rate_data_;
 
       //store results
       id_rate_data_.num_peptide_identification = peptide_identification_counter;
@@ -146,7 +129,7 @@ namespace OpenMS
   }
 
 
-  std::vector<OpenMS::Ms2IdentificationRate::IdentificationRateData> Ms2IdentificationRate::getResults()
+  const std::vector<OpenMS::Ms2IdentificationRate::IdentificationRateData>& Ms2IdentificationRate::getResults() const
   {
     return rate_result_;
   }

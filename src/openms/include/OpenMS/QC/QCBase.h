@@ -132,12 +132,6 @@ namespace OpenMS
         return *this;
       }
 
-      bool operator==(const Status& right)
-      {
-        Status s = *this;
-        return s.value_ == right.value_;
-      }
-
       /**
        * @brief Check if input status fulfills requirement status.
        */

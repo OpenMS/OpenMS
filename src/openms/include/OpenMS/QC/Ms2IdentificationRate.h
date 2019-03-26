@@ -42,14 +42,14 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include "QCBase.h"
+#include "OpenMS/QC/QCBase.h"
 
 namespace OpenMS
 {
   /**
    * @brief This class is a metric for the QualityControl-ToppTool.
    *
-   * This class computes the Ms2 Identification Rate given a FeatureMap and a MSExperiment.
+   * This class computes the MS2 Identification Rate given a FeatureMap and an MSExperiment.
    */
   class OPENMS_DLLAPI Ms2IdentificationRate : QCBase
   {
@@ -66,45 +66,43 @@ namespace OpenMS
     /// container that stores results
     std::vector<IdentificationRateData> rate_result_;
 
-    /// struct that is made to store results
-    IdentificationRateData id_rate_data_;
-
     /**
      * @brief counts peptideidentifications
      * used to count assigned and unassigned peptideidentifications in a featuremap
-     * @param peptide_id
-     * @param force_fdr
+     * @param peptide_id - vector of peptideidentifications
+     * @param force_fdr - bool for forceflag, if it's true all peptides are count despite fdr was not made
      * @return number of peptideidentifications in a given vector of peptideidentifications
      * @exception Exception::Precondition is thrown if there wasn't made a FDR before
      * @warning LOG_WARN if there is a peptideidentification without peptidehits
      */
-    Int64 countPeptideId_(std::vector<PeptideIdentification> peptide_id, bool force_fdr);
+    Int64 countPeptideId_(const std::vector<PeptideIdentification>& peptide_id, bool force_fdr);
 
   public:
     /// Default constructor
-    Ms2IdentificationRate();
+    Ms2IdentificationRate() = default;
 
     /// Destructor
-    ~Ms2IdentificationRate();
+    ~Ms2IdentificationRate() = default;
 
     /**
      * @brief computes Ms2 Identification Rate
      * stores results as a struct in a vector
-     * @param feature_map
-     * @param exp
-     * @param force_fdr
+     * @param feature_map - FeatureMap
+     * @param exp - MSExperiment
+     * @param force_fdr - bool for forceflag, is used in countPeptideId_
      * @exception Exception::MissingInformation is thrown if the FeatureXML is empty
      * @exception Exception::MissingInformation is thrown if the mzML is empty
      * @exception Exception::MissingInformation is thrown if the experiment doesn't contain ms2 spectra
      * @exception Exception::Precondition is thrown if there are more identifications than ms2 level
      */
-    void compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false);
+    void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
 
     /// returns results
-    std::vector<IdentificationRateData> getResults();
+    const std::vector<IdentificationRateData>& getResults() const;
 
     /**
-     *@brief Returns the input data requirements of the compute(...) function
+     * @brief Returns the input data requirements of the compute(...) function
+     * @return Status for RAWMZML and POSTFDRFEAT
      */
     QCBase::Status requires() const override;
 

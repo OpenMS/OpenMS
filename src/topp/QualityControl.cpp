@@ -75,7 +75,7 @@ protected:
     setValidFormats_("in_con", {"fasta"});
     //possible additions:
     //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
-    registerFlag_("force_fdr", "forces the metric to run if fdr was not made");
+    registerFlag_("MS2_id_rate:force_no_fdr", "forces the metric to run if fdr was not made");
 
   }
   // the main_ function is called after all parameters are read
@@ -102,7 +102,7 @@ protected:
     }
 
     //check flags
-    bool fdr_flag = getFlag_("force_fdr");
+    bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
 
 
     //--------------------------------------------------------------
