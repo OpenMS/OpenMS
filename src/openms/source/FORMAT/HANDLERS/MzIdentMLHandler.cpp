@@ -1007,7 +1007,8 @@ namespace OpenMS
                         mod = xl_db->getModification(mods[s], "", ResidueModification::C_TERM);
                       }
                     }
-                    acc = mod->getPSIMODAccession();
+                    // mod should never be null, but gcc complains (-Werror=maybe-uninitialized)
+                    if (mod != nullptr) acc = mod->getPSIMODAccession();
                     if (mod != nullptr) name = mod->getId();
                   }
                   if (!acc.empty())
