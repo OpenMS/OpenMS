@@ -3,7 +3,7 @@ set(directory source/QC)
 
 ### list all filenames of the directory here
 set(sources_list
-ChargeDistribution.cpp
+MzCalibration.cpp
 )   
 
 ### add path to the filenames
