@@ -176,7 +176,7 @@ class SimpleSearchEngine :
       for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
       {
         String modification(*mod_it);
-        modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
+        modifications.push_back(*ModificationsDB::getInstance()->getModification(modification));
       }
 
       return modifications;

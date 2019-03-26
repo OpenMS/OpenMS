@@ -5012,10 +5012,6 @@ def testResidueDB():
 
     nrr = rdb.getNumberOfResidues()
 
-    r = pyopenms.Residue()
-    rdb.addResidue(r)
-    assert rdb.getNumberOfResidues() == nrr+1
-
 @report
 def testModificationsDB():
     mdb = pyopenms.ModificationsDB()
@@ -5081,30 +5077,6 @@ def testModificationsDB():
     assert m.getId() == "Oxidation", m.getId()
     assert m.getFullName() == "Oxidation or Hydroxylation", m.getFullName()
     assert m.getUniModAccession() == "UniMod:35"
-
-    ###
-
-    m = mdb.getBestModificationByMonoMass(80, 20, "T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None
-    assert m.getId() == "MOD:00439"
-    assert m.getFullName() == "O-phospho-L-threonine with neutral loss of phosphate", m.getFullName() # something crazy
-    assert m.getUniModAccession() == "" # no unimod for crazyness ...
-
-    m = mdb.getBestModificationByMonoMass(147, 20, "M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None
-    assert m.getUniModAccession() == "", m.getUniModAccession()
-    assert m.getId() == "MOD:00719", m.getId()
-    assert m.getFullName() == "oxidation to L-methionine sulfoxide", m.getFullName()
-
-    m = mdb.getBestModificationByMonoMass( 96, 20, "T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None
-    assert m.getId() == "MOD:00252", m.getId()
-    assert m.getFullName() == "keratan sulfate D-glucuronosyl-D-galactosyl-D-galactosyl-D-xylosyl-L-threonine", m.getFullName() # something crazy
-    assert m.getUniModAccession() == "", m.getUniModAccession() # no unimod for crazyness ...
-
-    # Test NULL ptr
-    m = mdb.getBestModificationByMonoMass( 999999999, 0.20, "T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is None
 
 @report
 def testExperimentalDesign():
