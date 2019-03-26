@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -528,8 +528,15 @@ public:
     Size getNrChromatograms() const;
     //@}
 
-    /// returns the total ion chromatogram (TIC)
-    const MSChromatogram getTIC() const;
+    /**
+    @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+
+    All MS1 TICs within a bin are summed up.
+
+    @param bin_size RT bin size in seconds
+    @return TIC Chromatogram
+    **/
+    const MSChromatogram getTIC(float rt_bin_size=0) const;
 
     /**
       @brief Clears all data and meta data

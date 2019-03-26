@@ -85,6 +85,11 @@ namespace OpenMS
         value_ = UInt64(req);
         return *this;
       }
+      // Equal
+      bool operator==(const Status& stat)
+      {
+        return (value_ == stat.value_);
+      }
       Status& operator=(const Status& stat) = default;
       // Bitwise operators
       Status operator&(const Requires& req) const
