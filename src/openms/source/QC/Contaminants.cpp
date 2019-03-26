@@ -61,20 +61,20 @@ void Contaminants::compute(FeatureMap& features, const std::vector<FASTAFile::FA
     {
 
       vector<AASequence> current_digest;
-      if (enzyme == "none")
+      if (enzyme == "none")                                                   //no enzyme given
       {
         current_digest.push_back(AASequence::fromString(fe.sequence));
       }
-      else
+      else                                                                    //digest the sequence
       {
         dropped_by_length += digestor.digest(AASequence::fromString(fe.sequence), current_digest);
       }
 //      DigestedProtein temp;
 //      temp.id = fe.identifier;
-      for (auto const& s : current_digest)
+      for (auto const& s : current_digest)                                    //fill digested_db_ with digested sequences
       {
          digested_db_.insert(s.toUnmodifiedString());
-          //temp.peptides.push_back(s.toString()); // FASTA_desc set to true because description is always wanted
+          //temp.peptides.push_back(s.toString());
       }
       //digested_db_.push_back(temp);
     }
@@ -84,45 +84,51 @@ void Contaminants::compute(FeatureMap& features, const std::vector<FASTAFile::FA
     double sum_total;
     double sum_cont;
 
-    if (contaminants.empty())
+    if (contaminants.empty())                                                    //no contamiants given
     {
       std::cerr << "FASTAFile is empty";
+      return;
     }
-    else
+
+    for (auto& f : features)
     {
-      for (auto f : features)
+      if (f.getPeptideIdentifications().size() > 1)
       {
-        for (auto pep_id : f.getPeptideIdentifications())
-        {
-          for (auto pep_hit : pep_id.getHits())
-          {
-            String key = (pep_hit.getSequence().toUnmodifiedString());
-            if (digested_db_.find(key) == digested_db_.end())                    //Peptide is not in Contaminant database
-            {
-              int x = 0;
-              ++total;
-              sum_total += f.getIntensity();
-              pep_hit.setMetaValue("is_contaminant", x);
-            }
-            else                                                                 //Peptide is Contaminant
-            {
-              int x = 1;
-              ++total;
-              ++cont;
-              sum_total += f.getIntensity();
-              sum_cont += f.getIntensity();
-              pep_hit.setMetaValue("is_contaminant", x);
-            }
-          }
-        }
+        throw Exception::IllegalArgument(__FILE__,__LINE__,__FUNCTION__, "Too many peptideidentifications. Run IDConflictResolver first to remove ambiguities!");
       }
-      results_.push_back(std::make_tuple((cont / double(total)), (sum_cont / sum_total)));
+
+      // it exists one or zero Peptideidentifications in feature f
+      if (f.getPeptideIdentifications()[0].getHits().empty())
+      {
+        continue;
+      }
+      // the one existing peptideidentification has atleast one getHits entry
+      auto& pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
+      String key = (pep_hit.getSequence().toUnmodifiedString());
+      this->compare(key, f, total, cont, sum_total, sum_cont);
     }
+    
+    results_.push_back(std::make_tuple((cont / double(total)), (sum_cont / sum_total))); //save all ratios in results_ as tuples
 }
 
 const std::vector<std::tuple<double, double>>& Contaminants::getResults()
 {
   return results_;
+}
+
+void Contaminants::compare(const String& key, Feature& f, Int64& total, Int64& cont, double& sum_total, double& sum_cont)
+{
+  ++total;
+  sum_total += f.getIntensity();
+  if (digested_db_.find(key) == digested_db_.end())                 //peptide is not in contaminant database
+  {
+    f.setMetaValue("is_contaminant", 0);                         //add the "is_contaminant" identification
+    return;
+  }
+  //peptide is contaminant
+  ++cont;
+  sum_cont += f.getIntensity();
+  f.setMetaValue("is_contaminant", 1);
 }
 
 int main()
@@ -139,6 +145,39 @@ int main()
   std::vector<std::tuple<double, double>> result = conts.getResults();
 
 }
+
+//for (auto& pep_id : f.getPeptideIdentifications())
+//{
+//for (auto& pep_hit : pep_id.getHits())
+//{
+//String key = (pep_hit.getSequence().toUnmodifiedString());
+//if (digested_db_.find(key) == digested_db_.end())                    //Peptide is not in Contaminant database
+//{
+//int x = 0;
+//++total;
+//sum_total += f.getIntensity();
+//pep_hit.setMetaValue("is_contaminant", x);                         // add the "is_contaminant" identification
+//}
+//else                                                                 //Peptide is Contaminant
+//{
+//int x = 1;
+//++total;
+//++cont;
+//sum_total += f.getIntensity();
+//sum_cont += f.getIntensity();
+//pep_hit.setMetaValue("is_contaminant", x);
+//}
+//}
+//}
+
+
+
+
+
+
+
+
+
 //if (std::find(protein.peptides.begin(), protein.peptides.end(), (pep_hit.getSequence())) != protein.peptides.end())
 //{
 //int x = 1;

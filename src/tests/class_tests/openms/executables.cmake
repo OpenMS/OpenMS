@@ -689,4 +689,5 @@ set(TEST_executables
     ${transformations_executables_list}
     ${simulation_executables_list}
     ${swath_executables_list}
+    ${qc_executables_list}
 )

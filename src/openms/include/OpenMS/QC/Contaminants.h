@@ -34,9 +34,9 @@
 
 #pragma once
 
-#include <include/OpenMS/KERNEL/FeatureMap.h>
-#include <include/OpenMS/FORMAT/FASTAFile.h>
-#include <include/OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <algorithm>
 #include <bits/stdc++.h>
 
@@ -56,5 +56,6 @@ namespace OpenMS
   private:
     std::vector<std::tuple<double, double>> results_;
     std::unordered_set<String> digested_db_;
+    void compare(const String& key, Feature& f, Int64& total, Int64& cont, double& sum_total, double& sum_cont);
   };
 }
