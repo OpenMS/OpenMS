@@ -195,7 +195,7 @@ class AnnotatedHit
 class RNPxlSearch :
   public TOPPBase
 {
-  // fast or all-shifts scoring mode
+  // fast or all fragment adduct scoring mode
   bool fast_scoring_ = true;
 
   // nucleotides can form cross-link
@@ -468,7 +468,7 @@ protected:
             Size index = exp_spectrum.findNearest(theo_mz);
 
             const double exp_mz = exp_spectrum[index].getMZ();
-            const int exp_z = exp_charges[index];
+            const Size exp_z = exp_charges[index];
 
             // found peak match
             if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
@@ -488,7 +488,7 @@ protected:
     {
       for (const RNPxlFragmentAdductDefinition  & fa : partial_loss_modification)
       {
-        for (int i = 0; i < partial_loss_template_z1_y_ions.size(); ++i)
+        for (Size i = 0; i < partial_loss_template_z1_y_ions.size(); ++i)
         {
           const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
             + (z-1) * Constants::PROTON_MASS_U) / z;
@@ -498,7 +498,7 @@ protected:
           Size index = exp_spectrum.findNearest(theo_mz);
 
           const double exp_mz = exp_spectrum[index].getMZ();
-          const int exp_z = exp_charges[index];
+          const Size exp_z = exp_charges[index];
 
           // found peak match
           if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
@@ -570,7 +570,7 @@ protected:
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
           Size index = exp_spectrum.findNearest(theo_mz);
           const double exp_mz = exp_spectrum[index].getMZ();
-          const int exp_z = exp_charges[index];
+          const Size exp_z = exp_charges[index];
 
           // found peak match
           if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
@@ -2055,6 +2055,119 @@ static void scoreShiftedFragments_(
     precursor_ion_sub_score_spectrum_generator.setParameters(param);
   }
 
+  // calculate PSMs using total loss scoring (no NA-shifted fragments)
+  static void addPSMsTotalLossScoring_(
+    const PeakSpectrum& exp_spectrum,
+    const StringView sequence,
+    const Size & mod_pep_idx,
+    const Size & rna_mod_idx,
+    const double & current_peptide_mass,
+    const double & exp_pc_mass,
+    const int & isotope_error,
+    const PeakSpectrum & total_loss_spectrum_z1, 
+    const PeakSpectrum & total_loss_spectrum_z2,
+    const PeakSpectrum & a_ion_sub_score_spectrum,
+    const PeakSpectrum & precursor_sub_score_spectrum, 
+    const PeakSpectrum & immonium_sub_score_spectrum,
+    const boost::math::normal & gaussian_mass_error,
+    const double & mass_error_prior_negatives,  
+    const double & fragment_mass_tolerance,
+    const bool & fragment_mass_tolerance_unit_ppm,
+    vector<AnnotatedHit> & annotated_hits,
+    omp_lock_t & annotated_hits_lock,
+    const Size& report_top_hits
+    )
+  {  
+    const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
+
+    const PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
+
+    float total_loss_score(0),
+      immonium_sub_score(0),
+      precursor_sub_score(0),
+      a_ion_sub_score(0),
+      tlss_MIC(0),
+      tlss_err(1.0),
+      tlss_Morph(0),
+      tlss_modds(0);
+
+    scoreTotalLossFragments_(exp_spectrum, 
+                              total_loss_spectrum, 
+                              fragment_mass_tolerance,
+                              fragment_mass_tolerance_unit_ppm, 
+                              a_ion_sub_score_spectrum,
+                              precursor_sub_score_spectrum, 
+                              immonium_sub_score_spectrum, 
+                              total_loss_score, 
+                              tlss_MIC,
+                              tlss_err,
+                              tlss_Morph,
+                              tlss_modds,
+                              immonium_sub_score,
+                              precursor_sub_score,
+                              a_ion_sub_score);
+
+    const double total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
+
+    // super bad score
+    if (total_loss_score < MIN_HYPERSCORE 
+      || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
+      || tlss_modds < 1e-10
+      || total_MIC < 0.01) 
+    { 
+      return; 
+    }
+
+    const double mass_error_ppm = (current_peptide_mass - exp_pc_mass) / exp_pc_mass * 1e6;
+    const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
+
+    // add peptide hit
+    AnnotatedHit ah;
+    ah.mass_error_p = mass_error_score;
+
+    ah.sequence = sequence; // copy StringView
+    ah.peptide_mod_index = mod_pep_idx;
+    ah.total_loss_score = total_loss_score;
+    ah.MIC = tlss_MIC;
+    ah.err = tlss_err;
+    ah.Morph = tlss_Morph;
+    ah.modds = tlss_modds;
+    ah.immonium_score = immonium_sub_score;
+    ah.precursor_score = precursor_sub_score;
+    ah.a_ion_score = a_ion_sub_score;
+
+    ah.total_MIC = total_MIC;
+
+    ah.rna_mod_index = rna_mod_idx;
+    ah.isotope_error = isotope_error;
+
+    // simple combined score in fast scoring:
+    ah.score = total_loss_score + ah.total_MIC + mass_error_score / 3.0; 
+
+  #ifdef DEBUG_RNPXLSEARCH
+    LOG_DEBUG << "best score in pre-score: " << score << endl;
+  #endif
+
+  #ifdef _OPENMP
+    omp_set_lock(&(annotated_hits_lock));
+  #endif
+    {
+      annotated_hits.emplace_back(move(ah));
+
+      // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
+      if (annotated_hits.size() >= 2 * report_top_hits)
+      {
+        std::partial_sort(annotated_hits.begin(), annotated_hits.begin() + report_top_hits, annotated_hits.end(), AnnotatedHit::hasBetterScore);
+        annotated_hits.resize(report_top_hits); 
+      }
+    }
+  #ifdef _OPENMP
+    omp_unset_lock(&(annotated_hits_lock));
+  #endif
+  }
+
+
+
   ExitCodes main_(int, const char**) override
   {
     // force initialization of residue db
@@ -2742,95 +2855,32 @@ static void scoreShiftedFragments_(
             {
               for (auto l = low_it; l != up_it; ++l)
               {
-                //const double exp_pc_mass = l->first;
-                const Size &scan_index = l->second.first;
-                const int &isotope_error = l->second.second;
-                const PeakSpectrum &exp_spectrum = spectra[scan_index];
-                float total_loss_score(0),
-                  immonium_sub_score(0),
-                  precursor_sub_score(0),
-                  a_ion_sub_score(0),
-                  tlss_MIC(0),
-                  tlss_err(1.0),
-                  tlss_Morph(0),
-                  tlss_modds(0);
+                const Size & scan_index = l->second.first;
+                const int & isotope_error = l->second.second;
+                const double exp_pc_mass = l->first;
 
-                const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
-                PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
-
-                scoreTotalLossFragments_(exp_spectrum, 
-                                         total_loss_spectrum, 
-                                         fragment_mass_tolerance,
-                                         fragment_mass_tolerance_unit_ppm, 
-                                         a_ion_sub_score_spectrum,
-                                         precursor_sub_score_spectrum, 
-                                         immonium_sub_score_spectrum, 
-                                         total_loss_score, 
-                                         tlss_MIC,
-                                         tlss_err,
-                                         tlss_Morph,
-                                         tlss_modds,
-                                         immonium_sub_score,
-                                         precursor_sub_score,
-                                         a_ion_sub_score);
-
-                const double total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
-
-                // super bad score
-                if (total_loss_score < MIN_HYPERSCORE 
-                  || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-                  || tlss_modds < 1e-10
-                  || total_MIC < 0.01) 
-                { 
-                  continue; 
-                }
-
-                const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
-                const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
-
-                // add peptide hit
-                AnnotatedHit ah;
-                ah.mass_error_p = mass_error_score;
-
-                ah.sequence = *cit; // copy StringView
-                ah.peptide_mod_index = mod_pep_idx;
-                ah.total_loss_score = total_loss_score;
-                ah.MIC = tlss_MIC;
-                ah.err = tlss_err;
-                ah.Morph = tlss_Morph;
-                ah.modds = tlss_modds;
-                ah.immonium_score = immonium_sub_score;
-                ah.precursor_score = precursor_sub_score;
-                ah.a_ion_score = a_ion_sub_score;
-
-                ah.total_MIC = total_MIC;
-
-                ah.rna_mod_index = rna_mod_index;
-                ah.isotope_error = isotope_error;
-
-                // simple combined score in fast scoring:
-                ah.score = total_loss_score + ah.total_MIC + mass_error_score / 3.0; 
-
-#ifdef DEBUG_RNPXLSEARCH
-                LOG_DEBUG << "best score in pre-score: " << score << endl;
-#endif
-
-#ifdef _OPENMP
-                omp_set_lock(&(annotated_hits_lock[scan_index]));
-#endif
-                {
-                  annotated_hits[scan_index].emplace_back(move(ah));
-
-                  // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
-                  if (annotated_hits[scan_index].size() >= 2 * report_top_hits)
-                  {
-                    std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + report_top_hits, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
-                    annotated_hits[scan_index].resize(report_top_hits); 
-                  }
-                }
-#ifdef _OPENMP
-                omp_unset_lock(&(annotated_hits_lock[scan_index]));
-#endif
+                // generate PSMs for spectrum[scan_index] and add them to annotated_hits[scan_index]
+                addPSMsTotalLossScoring_(
+                  spectra[scan_index],
+                  *cit, // string view on unmodified sequence
+                  mod_pep_idx, // index of peptide mod
+                  rna_mod_index, // index of RNA mod
+                  current_peptide_mass,
+                  exp_pc_mass,
+                  isotope_error, 
+                  total_loss_spectrum_z1, 
+                  total_loss_spectrum_z2,
+                  a_ion_sub_score_spectrum,
+                  precursor_sub_score_spectrum, 
+                  immonium_sub_score_spectrum,
+                  gaussian_mass_error,
+                  mass_error_prior_negatives, 
+                  fragment_mass_tolerance,
+                  fragment_mass_tolerance_unit_ppm,
+                  annotated_hits[scan_index],
+                  annotated_hits_lock[scan_index],
+                  report_top_hits
+                );
               }
             }
           }
