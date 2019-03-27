@@ -131,7 +131,7 @@ namespace OpenMS
         if (native_id != containers[curr_id].getNativeID())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Native id for spectrum / chromatogram doesnt match");
+              String("Native id for spectrum / chromatogram doesnt match: ") + native_id + " != " +  containers[curr_id].getNativeID() );
         }
 
         int compression = sqlite3_column_int( stmt, 2 );
@@ -578,8 +578,7 @@ namespace OpenMS
                     "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
                     "FROM CHROMATOGRAM " \
                     "INNER JOIN PRECURSOR ON CHROMATOGRAM.ID = PRECURSOR.CHROMATOGRAM_ID " \
-                    "INNER JOIN PRODUCT ON CHROMATOGRAM.ID = PRODUCT.CHROMATOGRAM_ID " \
-                    ";";
+                    "INNER JOIN PRODUCT ON CHROMATOGRAM.ID = PRODUCT.CHROMATOGRAM_ID ";
 
       if (!indices.empty())
       {
