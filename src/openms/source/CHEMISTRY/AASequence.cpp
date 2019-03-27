@@ -158,7 +158,7 @@ namespace OpenMS
         if (!mod.isUserDefined()) nominal_mass += Residue::getInternalToNTerm().getMonoWeight(); 
         if (integer_mass)
         {
-          bs += "n[" + String(static_cast<int>(nominal_mass)) + "]";
+          bs += String("n[") + static_cast<int>(std::round(nominal_mass)) + "]";
         }
         else
         {
@@ -181,7 +181,7 @@ namespace OpenMS
           if (integer_mass)
           {
             const double residue_mono_mass = r.getMonoWeight(Residue::Internal);
-            bs += aa + "[" + static_cast<int>(residue_mono_mass) + "]"; 
+            bs += aa + "[" + static_cast<int>(std::round(residue_mono_mass)) + "]"; 
           }
           else
           {
@@ -212,7 +212,7 @@ namespace OpenMS
         if (!mod.isUserDefined()) nominal_mass += Residue::getInternalToCTerm().getMonoWeight();
         if (integer_mass)
         {
-          bs += "c[" + String(static_cast<int>(nominal_mass)) + "]";
+          bs += String("c[") + static_cast<int>(std::round(nominal_mass)) + "]";
         }
         else
         {

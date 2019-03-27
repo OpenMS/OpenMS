@@ -988,4 +988,96 @@ namespace OpenMS
     exp.setTransitions(transitions);
   }
 
+void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
+  {
+    CompoundVectorType compounds;
+    std::vector<String> compound_ids;
+    TransitionVectorType transitions;
+
+    Map<String, TransitionVectorType> TransitionsMap;
+
+    // Generate a map of compounds to transitions for easy access
+    for (Size i = 0; i < exp.getTransitions().size(); ++i)
+    {
+      ReactionMonitoringTransition tr = exp.getTransitions()[i];
+
+      if (TransitionsMap.find(tr.getCompoundRef()) == TransitionsMap.end())
+      {
+        TransitionsMap[tr.getCompoundRef()];
+      }
+
+      TransitionsMap[tr.getCompoundRef()].push_back(tr);
+    }
+
+    for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
+         m != TransitionsMap.end(); ++m)
+    {
+      // Ensure that all precursors have the minimum number of transitions
+      if (m->second.size() >= (Size)min_transitions)
+      {
+        // LibraryIntensity stores all reference transition intensities of a precursor
+        std::vector<double> LibraryIntensity;
+        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        {
+          LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
+        }
+
+        // Sort by intensity, reverse and delete all elements after max_transitions to find the best candidates
+        std::sort(LibraryIntensity.begin(), LibraryIntensity.end());
+        std::reverse(LibraryIntensity.begin(), LibraryIntensity.end());
+        if ((Size)max_transitions < LibraryIntensity.size())
+        {
+          std::vector<double>::iterator start_delete = LibraryIntensity.begin();
+          std::advance(start_delete, max_transitions);
+          LibraryIntensity.erase(start_delete, LibraryIntensity.end());
+        }
+
+        // Check if transitions are among the ones with maximum intensity
+        // If several transitions have the same intensities ensure restriction max_transitions
+        Size j = 0; // transition number index
+        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        {
+          ReactionMonitoringTransition tr = *tr_it;
+
+          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
+          {
+            // Set meta value tag for detecting transition
+            tr.setDetectingTransition(true);
+            j += 1;
+          }
+          else
+          {
+            continue;
+          }
+
+          // Append transition
+          transitions.push_back(tr);
+
+          // Append transition_group_id to index
+          if (std::find(compound_ids.begin(), compound_ids.end(), tr.getCompoundRef()) == compound_ids.end())
+          {
+            compound_ids.push_back(tr.getCompoundRef());
+          }
+        }
+      }
+    }
+
+    for (Size i = 0; i < exp.getCompounds().size(); ++i)
+    {
+      TargetedExperiment::Compound compound = exp.getCompounds()[i];
+
+      // Check if compound has any transitions left
+      if (std::find(compound_ids.begin(), compound_ids.end(), compound.id) != compound_ids.end())
+      {
+        compounds.push_back(compound);
+      }
+      else
+      {
+        LOG_DEBUG << "[compound] Skipping " << compound.id << std::endl;
+      }
+    }
+    exp.setTransitions(transitions);
+    exp.setCompounds(compounds);
+  }
+
 }

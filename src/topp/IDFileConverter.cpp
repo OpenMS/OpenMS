@@ -233,6 +233,7 @@ protected:
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
     registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
+    registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
   }
 
@@ -397,7 +398,12 @@ protected:
         if (!mz_file.empty())
         {
           SpectrumMetaDataLookup::addMissingSpectrumReferences(
-            peptide_identifications, mz_file, false, !getFlag_("no_spectra_data_override"), protein_identifications);
+            peptide_identifications, 
+            mz_file, 
+            false, 
+            !getFlag_("no_spectra_data_override"),
+            !getFlag_("no_spectra_references_override"),
+            protein_identifications);
 
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
           if (add_ions > 0)

@@ -99,7 +99,7 @@ public:
 
        If @p residue is set, only modifications with matching residue of origin are considered.
        If @p term_spec is set, only modifications with matching term specificity are considered.
-       The resulting set of modifications may be empty if no modification exists that fulfills the criteria.
+        The resulting set of modifications will be empty if no modification exists that fulfills the criteria.
     */
     void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
@@ -111,7 +111,9 @@ public:
 
        If more than one matching modification is found, the first one is returned with a warning.
 
-       @throw Exception::ElementNotFound if no modification named @p mod_name exists (via searchModifications())
+        @note Will never return a null pointer, instead will throw an exceptions.
+       
+        @throw Exception::ElementNotFound if no modification named @p mod_name exists (via searchModifications())
        @throw Exception::InvalidValue if no matching modification exists
     */
     const ResidueModification* getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;

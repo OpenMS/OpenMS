@@ -991,7 +991,7 @@ namespace OpenMS
                 {
                   if (mods[s].hasSubstring(jt->getMetaValue("xl_mod")))
                   {
-                    const ResidueModification* mod;
+                    const ResidueModification* mod = nullptr;
                     try
                     {
                       mod = xl_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
@@ -1007,8 +1007,9 @@ namespace OpenMS
                         mod = xl_db->getModification(mods[s], "", ResidueModification::C_TERM);
                       }
                     }
-                    acc = mod->getPSIMODAccession();
-                    name = mod->getId();
+                    // mod should never be null, but gcc complains (-Werror=maybe-uninitialized)
+                    if (mod != nullptr) acc = mod->getPSIMODAccession();
+                    if (mod != nullptr) name = mod->getId();
                   }
                   if (!acc.empty())
                   {
