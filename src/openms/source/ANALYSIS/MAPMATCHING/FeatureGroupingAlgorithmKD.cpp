@@ -66,10 +66,10 @@ namespace OpenMS
     defaults_.setMinFloat("link:rt_tol", 0.0);
     defaults_.setValue("link:mz_tol", 10.0, "m/z tolerance (in ppm or Da)");
     defaults_.setMinFloat("link:mz_tol", 0.0);
-    defaults_.setValue("link:charge_merging","Zero","whether to disallow charge mismatches (None), allow to link charge zero (i.e., unknown charge) with every other charge (Zero), or disregard charges (All).");
-    defaults_.setValidStrings("link:charge_merging", ListUtils::create<String>("None,Zero,All"));
-    defaults_.setValue("link:adduct_merging","All","whether to only allow the same adduct for linking (None), allow linking adduct-free features with other features (Unknowns), or disregard adducts (All).");
-    defaults_.setValidStrings("link:adduct_merging", ListUtils::create<String>("None,Unknowns,All"));
+    defaults_.setValue("link:charge_merging","With_charge_zero","whether to disallow charge mismatches (Identical), allow to link charge zero (i.e., unknown charge state) with every charge state, or disregard charges (Any).");
+    defaults_.setValidStrings("link:charge_merging", {"Identical", "With_charge_zero", "Any"});
+    defaults_.setValue("link:adduct_merging","Any","whether to only allow the same adduct for linking (Identical), also allow linking features with adduct-free ones, or disregard adducts (Any).");
+    defaults_.setValidStrings("link:adduct_merging", {"Identical", "With_unknown_adducts", "Any"});
 
     defaults_.setValue("mz_unit", "ppm", "Unit of m/z tolerance");
     defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
@@ -416,7 +416,7 @@ namespace OpenMS
         continue;
       }
 
-      if (merge_charge == "None")
+      if (merge_charge == "Identical")
       {
         if (kd_data.charge(*it) != charge_i)
         {
@@ -424,24 +424,20 @@ namespace OpenMS
         }
       }
       //what to consider for linking with existing features _that have charge_. This ensures that we won't collect different non-zero charges.
-      else if (merge_charge == "Zero")
+      else if (merge_charge == "With_charge_zero")
       {
-        if (kd_data.charge(*it) != charge_i && kd_data.charge(*it) != 0)
+        if ((kd_data.charge(*it) != charge_i) && (kd_data.charge(*it) != 0))
         {
           continue;
         }
       }
-      else if (merge_charge == "All")
-      {
-        //we allow to merge all, keep case for parameter check
-      }
-      else
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING! Invalid charge merging parameter! " + String(param_.getValue("link:charge_merging"))  + "\n");
-      }
+      //else if (merge_charge == "Any")
+      //{
+      //  //we allow to merge all
+      //}
 
       //analogous adduct block
-      if (merge_adduct == "None")
+      if (merge_adduct == "Identical")
       {
         //subcase 1: one has adduct, other not
         if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts") != f_i->metaValueExists("dc_charge_adducts"))
@@ -459,15 +455,15 @@ namespace OpenMS
       }
       //what to consider for linking with existing features _that have adduct_. If one has no adduct, it's fine
       //anyway. If one has an adduct we have to compare.
-      else if (merge_adduct == "Unknowns")
+      else if (merge_adduct == "With_unknown_adducts")
       {
         //subcase1: *it has adduct, but i not. don't want to collect potentially different adducts to previous without adduct 
-        if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts") && !f_i->metaValueExists("dc_charge_adducts"))
+        if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (!f_i->metaValueExists("dc_charge_adducts")))
         {
           continue;
         }
         //subcase2: both have adduct
-        if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts") && f_i->metaValueExists("dc_charge_adducts"))
+        if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (f_i->metaValueExists("dc_charge_adducts")))
         {
           if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts")))
           {
@@ -475,14 +471,10 @@ namespace OpenMS
           }
         }
       }
-      else if (merge_adduct == "All")
-      {
-        //we merge all, keep case for parameter check
-      }
-      else
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING! Invalid adduct merging parameter! " + String(param_.getValue("link:adduct_merging"))  + "\n");
-      }      
+      //else if (merge_adduct == "Any")
+      //{
+      //  //we allow to merge all
+      //}
 
       //if everything is OK, add feature
       points_for_map_index[kd_data.mapIndex(*it)].push_back(*it);
