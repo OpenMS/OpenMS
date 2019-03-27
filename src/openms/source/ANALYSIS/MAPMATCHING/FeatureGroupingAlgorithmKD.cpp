@@ -410,7 +410,7 @@ namespace OpenMS
     const BaseFeature* f_i = kd_data.feature(i);
     for (vector<Size>::const_iterator it = neighbors.begin(); it != neighbors.end(); ++it)
     {
-      //If the feature was already assigned, don't consider it at all!
+      // If the feature was already assigned, don't consider it at all!
       if (assigned[*it])
       {
         continue;
@@ -423,7 +423,7 @@ namespace OpenMS
           continue;
         }
       }
-      //what to consider for linking with existing features _that have charge_. This ensures that we won't collect different non-zero charges.
+      // what to consider for linking with existing features _that have charge_. This ensures that we won't collect different non-zero charges.
       else if (merge_charge == "With_charge_zero")
       {
         if ((kd_data.charge(*it) != charge_i) && (kd_data.charge(*it) != 0))
@@ -431,20 +431,20 @@ namespace OpenMS
           continue;
         }
       }
-      //else if (merge_charge == "Any")
+      // else if (merge_charge == "Any")
       //{
       //  //we allow to merge all
       //}
 
-      //analogous adduct block
+      // analogous adduct block
       if (merge_adduct == "Identical")
       {
-        //subcase 1: one has adduct, other not
+        // subcase 1: one has adduct, other not
         if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts") != f_i->metaValueExists("dc_charge_adducts"))
         {
           continue;
         }
-        //subcase 2: both have adduct, but is it the same?
+        // subcase 2: both have adduct, but is it the same?
         if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts"))
         {
           if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts")))
@@ -453,30 +453,32 @@ namespace OpenMS
           }  
         }
       }
-      //what to consider for linking with existing features _that have adduct_. If one has no adduct, it's fine
-      //anyway. If one has an adduct we have to compare.
+      // what to consider for linking with existing features _that have adduct_. If one has no adduct, it's fine
+      // anyway. If one has an adduct we have to compare.
       else if (merge_adduct == "With_unknown_adducts")
       {
-        //subcase1: *it has adduct, but i not. don't want to collect potentially different adducts to previous without adduct 
+        // subcase1: *it has adduct, but i not. don't want to collect potentially different adducts to previous without adduct 
         if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (!f_i->metaValueExists("dc_charge_adducts")))
         {
           continue;
         }
-        //subcase2: both have adduct
+        // subcase2: both have adduct
         if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (f_i->metaValueExists("dc_charge_adducts")))
         {
-          if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts")))
+          // cheaper string check first, only check EF extensively if strings differ (might be just different element orders)
+          if ((kd_data.feature(*it)->getMetaValue("dc_charge_adducts") != f_i->getMetaValue("dc_charge_adducts")) &&
+              (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts"))))
           {
             continue;
           }
         }
       }
-      //else if (merge_adduct == "Any")
+      // else if (merge_adduct == "Any")
       //{
       //  //we allow to merge all
       //}
 
-      //if everything is OK, add feature
+      // if everything is OK, add feature
       points_for_map_index[kd_data.mapIndex(*it)].push_back(*it);
     }
     // center i is always part of CF, no other points from i's map can be contained
