@@ -38,8 +38,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <string>
-#include <functional>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -74,74 +73,93 @@ namespace OpenMS
     {
     public:
 
-      // Constructors
+      friend std::ostream& operator<<(std::ostream& os, const Status& stat);
+
+      /// Constructors
       Status() : value_(0)
       {}
+
       Status(const Requires& req)
       {
         value_ = UInt64(req);
       }
+
       Status(const Status& stat)
       {
         value_ = stat.value_;
       }
+
       // Assignment
       Status& operator=(const Requires& req)
       {
         value_ = UInt64(req);
         return *this;
       }
+
+      /// Destructor
+      ~Status() = default;
+
       // Equal
       bool operator==(const Status& stat) const
       {
         return (value_ == stat.value_);
       }
+
       Status& operator=(const Status& stat) = default;
       // Bitwise operators
+
       Status operator&(const Requires& req) const
       {
         Status s = *this;
         s.value_ &= UInt64(req);
         return s;
       }
+
       Status operator&(const Status& stat) const
       {
         Status s = *this;
         s.value_ &= stat.value_;
         return s;
       }
+
       Status& operator&=(const Requires& req)
       {
         value_ &= UInt64(req);
         return *this;
       }
+
       Status& operator&=(const Status& stat)
       {
         value_ &= stat.value_;
         return *this;
       }
+
       Status operator|(const Requires& req) const
       {
         Status s = *this;
         s.value_ |= UInt64(req);
         return s;
       }
+
       Status operator|(const Status& stat) const
       {
         Status s = *this;
         s.value_ |= stat.value_;
         return s;
       }
+
       Status& operator|=(const Requires& req)
       {
         value_ |= UInt64(req);
         return *this;
       }
+
       Status& operator|=(const Status& stat)
       {
         value_ |= stat.value_;
         return *this;
       }
+
       /**
        * @brief Check if input status fulfills requirement status.
        */
@@ -153,6 +171,7 @@ namespace OpenMS
     private:
       UInt64 value_;
     };
+
     /**
      *@brief Returns the input data requirements of the compute(...) function
      */
@@ -175,4 +194,10 @@ namespace OpenMS
       }
     }
   };
+  /// stream output for Status
+  inline std::ostream& operator<<(std::ostream& os, const QCBase::Status& stat)
+  {
+    return os << stat.value_;
+  }
+
 }

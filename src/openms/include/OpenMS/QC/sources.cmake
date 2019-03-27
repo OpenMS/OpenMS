@@ -3,6 +3,7 @@ set(directory include/OpenMS/QC)
 
 ### list all header files of the directory here
 set(sources_list_h
+Ms2IdentificationRate.h
 QCBase.h
 TIC.h
 MissedCleavages.h
