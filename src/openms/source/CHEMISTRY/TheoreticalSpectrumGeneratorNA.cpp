@@ -354,8 +354,7 @@ namespace OpenMS
     for (Size i = 0; i < size; ++i)
     {
       spectrum.push_back(uncharged_spectrum[i]);
-      double mass = spectrum.back().getMZ() + charge * H_mass;
-      spectrum.back().setMZ(abs(mass / charge));
+      spectrum.back().setMZ(abs(spectrum.back().getMZ() / charge + H_mass));
     }
     if (add_metainfo_)
     {
@@ -469,9 +468,8 @@ namespace OpenMS
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          double mass = spectrum.back().getMZ() + charge *
-            Constants::PROTON_MASS_U;
-          spectrum.back().setMZ(abs(mass / charge));
+          spectrum.back().setMZ(abs(spectrum.back().getMZ() / charge +
+                                    Constants::PROTON_MASS_U));
           if (add_metainfo_)
           {
             spectrum.getStringDataArrays()[0].push_back("M");
@@ -509,9 +507,8 @@ namespace OpenMS
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          double mass = spectrum.back().getMZ() + charge *
-            Constants::PROTON_MASS_U;
-          spectrum.back().setMZ(mass / charge);
+          spectrum.back().setMZ(spectrum.back().getMZ() / charge +
+                                Constants::PROTON_MASS_U);
           if (add_metainfo_)
           {
             spectrum.getStringDataArrays()[0].push_back("M");
