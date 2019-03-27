@@ -270,7 +270,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
           if (sf.second) 
           {  // subtractive
             e = e - mod_ef;
-           s += "-" + mod;
+            s += "-" + mod;
            }
           else 
           {  // additive
@@ -278,9 +278,18 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
             s += "+" + mod;;
           }
         }
-        actual_combinations.push_back(e);
-        result.mod_combinations[actual_combinations.back().toString()].insert(s);
-        LOG_INFO << "\t" << "modifications: " << s << "\t\t" << e.toString() << endl;
+ 
+        if (find(actual_combinations.begin(), actual_combinations.end(), e) == actual_combinations.end())
+        {
+          actual_combinations.push_back(e);
+          result.mod_combinations[e.toString()].insert(s);
+          LOG_INFO << "\t" << "modifications: " << s << "\t\t" << e.toString() << endl;
+        }
+        else
+        {
+          LOG_WARN << "WARNING:\tNucleotide combination: " << s << "\t\t" << e.toString() 
+            << " occured several times. Did you specify it multiple times in the ini file?. Will consider only once." << endl;
+        }        
       }
     }
 
@@ -318,11 +327,17 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     }
   }
 
-  std::cout << "Filtering on restrictions... " << endl;
+  LOG_INFO << "Filtering on restrictions... " << endl;
 
   // Remove precursor adducts that
   // 1) do not contain a cross-linkable nucleotide
   // 2) or contain no cross-linkable nucleotide that is part of the restricted target sequences
+  // 3) exceed maximum number of nucleotides
+
+  // keep track if a sorted nucleotide composition and modification has already been added
+  // e.g. we would not add both: UC-H2O-NH3 and CU-NH5O 
+  std::vector<pair<String, double> > unique_nucleotide_and_mod_composition;
+
   std::vector<pair<String, String> > violates_restriction; // elemental composition, nucleotide style formula
   for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
@@ -340,7 +355,10 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       {
         nucleotide_style_formula = nucleotide_style_formula.prefix(p);
       }
-
+      // sort nucleotides so we compare based on nucleotide composition 
+      // e.g.: AC-H2O and CA-H2O are considered the same
+      std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
+      
       // check if nucleotide formula contains a cross-linkable amino acid
       bool has_xl_nt(false);
       for (auto const & c : nucleotide_style_formula) { if (can_xl.count(c) > 0) { has_xl_nt = true; break;};  }
@@ -351,13 +369,20 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         continue;
       }
 
-      // check if nucleotides from more than one nt_group are present (e.g. from DNA and RNA)
+      // check if nucleotide sequence too long
+      if (nucleotide_style_formula.size() > max_length) 
+      {
+        violates_restriction.push_back(make_pair(mit->first, s)); 
+        continue;
+      }
+
+      // check if nucleotides from more than one nt_group are present (e.g., from DNA and RNA)
       Size found_in_n_groups(0);
       for (const String & n : nt_groups)
       { 
         if (nucleotide_style_formula.find_first_of(n) != string::npos) { ++found_in_n_groups; }
       }
-      // nucleotide stile formula (e.g. AATU matches to more than one group (e.g., RNA and DNA))?
+      // nucleotide style formula (e.g., AATU matches to more than one group (e.g., RNA and DNA))?
       if (found_in_n_groups > 1)
       {
         violates_restriction.push_back(make_pair(mit->first, s)); 
@@ -367,7 +392,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       // check if nucleotide is contained in at least one of the target sequences
       bool containment_violated(false);
       Size violation_count(0);
-      for (auto const & current_target_seq : target_sequences)
+      for (const String & current_target_seq : target_sequences)
       {
         if (notInSeq(current_target_seq, nucleotide_style_formula)) { ++violation_count; }
       }
@@ -378,6 +403,19 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       { 
         violates_restriction.push_back(make_pair(mit->first, s)); // chemical formula, nucleotide style formula pair violates restrictions
       }
+
+      // last check: if the sorted nucleotide composition string and mass have already been added
+      // if so, we don't need to consider that composition again
+      if (
+        find(unique_nucleotide_and_mod_composition.begin(), 
+        unique_nucleotide_and_mod_composition.end(),
+        make_pair(nucleotide_style_formula, mit->second)) != unique_nucleotide_and_mod_composition.end())
+      {
+        violates_restriction.push_back(make_pair(mit->first, s)); 
+      }
+
+      // record that nucleotide and mod combination has passed all filters and will be considered in further processing
+      unique_nucleotide_and_mod_composition.push_back({nucleotide_style_formula, mit->second});
     }
   }
 
@@ -405,7 +443,6 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     }
   }
 
-
   // Optional: add cystein (DTT) adduct
   if (cysteine_adduct)
   {
@@ -416,19 +453,21 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   // output index -> empirical formula -> (ambiguous) nucleotide formulas
   // nucleotide formulas which only differ in nucleotide ordering are only printed once
   // e.g. 5 C19H24N7O12P1 573.122 ( AU-H1O3P1 )
-  double pseudo_rt = 1;
+  double index = 1;
   for (auto const & m : result.mod_masses)
   {
     if (cysteine_adduct && m.first == cysteine_adduct_formula.toString())
     {
-      LOG_INFO << "Precursor adduct " << pseudo_rt++ << "\t:\t" << m.first << " " << m.second << " ( cysteine adduct )" << endl;
+      LOG_INFO << "Precursor adduct " << index++ << "\t:\t" << m.first << " " << m.second << " ( cysteine adduct )" << endl;
       continue;
     }
 
-    LOG_INFO << "Precursor adduct " << pseudo_rt++ << "\t:\t" << m.first << " " << m.second << " ( ";
+    LOG_INFO << "Precursor adduct " << index++ << "\t:\t" << m.first << " " << m.second << " ( ";
 
     const set<String>& ambiguities = result.mod_combinations[m.first];
     set<String> printed;
+
+    // for all ambiguities (same empirical formula)
     for (set<String>::const_iterator sit = ambiguities.begin(); sit != ambiguities.end(); ++sit)
     {
       String nucleotide_style_formula = *sit;
@@ -446,7 +485,6 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
       }
 
-
       // only print ambiguous sequences once
       if (printed.find(nucleotide_style_formula) == printed.end())
       {
@@ -455,10 +493,10 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       }
       else
       {
-        LOG_DEBUG << "ambigious " << nucleotide_style_formula << endl;
+        LOG_DEBUG << "Same nucleotide composition generated for: " << nucleotide_style_formula 
+          << " will only consider it once to prevent duplicate precursor adducts." << endl;
       }
     }
-
     LOG_INFO << ")" << endl;
   }
   LOG_INFO << "Finished generation of modification masses." << endl;

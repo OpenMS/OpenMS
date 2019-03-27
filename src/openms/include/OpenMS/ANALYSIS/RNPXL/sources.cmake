@@ -7,9 +7,12 @@ HyperScore.h
 ModifiedPeptideGenerator.h
 MorpheusScore.h
 PScore.h
+RNPxlFragmentAdductDefinition.h
 RNPxlFragmentAnnotationHelper.h
+RNPxlFragmentIonGenerator.h
 RNPxlMarkerIonExtractor.h
 RNPxlModificationsGenerator.h
+RNPxlParameterParsing.h
 RNPxlReport.h
 )
 

@@ -43,7 +43,6 @@
 #include <algorithm>
 
 using namespace OpenMS;
-using namespace OpenMS::Internal;
 
 
 namespace OpenMS

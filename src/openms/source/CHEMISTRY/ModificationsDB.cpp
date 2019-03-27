@@ -145,7 +145,6 @@ namespace OpenMS
     } 
   }
 
-
   const ResidueModification* ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     set<const ResidueModification*> mods;
@@ -161,14 +160,14 @@ namespace OpenMS
 
     if (mods.empty())
     {
-      LOG_WARN << "Warning ("<< OPENMS_PRETTY_FUNCTION << ") Retrieving the modification failed. It is not available for the residue '" + String(residue) + "' and term specificity " + String(Int(term_spec)) + ". " <<  mod_name << endl;
-      return nullptr;
+      String message = String("Retrieving the modification failed. It is not available for the residue '") + residue 
+        + "' and term specificity '" + ResidueModification().getTermSpecificityName(term_spec) + "'. ";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, mod_name);
     }
     if (mods.size() > 1)
     {
       LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one of:";
-      for (set<const ResidueModification*>::const_iterator it = mods.begin();
-           it != mods.end(); ++it)
+      for (auto it = mods.begin(); it != mods.end(); ++it)
       {
         LOG_WARN << " " << (*it)->getFullId();
       }
@@ -192,8 +191,7 @@ namespace OpenMS
   {
     if (!has(mod_name))
     {
-      LOG_WARN << OPENMS_PRETTY_FUNCTION  << " Modification not found: " << mod_name << endl;
-      return numeric_limits<Size>::max();
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification not found: " + mod_name);
     }
 
     bool one_mod(true);
@@ -201,11 +199,13 @@ namespace OpenMS
     {
       if (modification_names_[mod_name].size() > 1)
       {
-        LOG_WARN << OPENMS_PRETTY_FUNCTION  << " More than one Modification with name: " << mod_name << endl;
         one_mod = false;
       }
     }
-    if (!one_mod) return numeric_limits<Size>::max();
+    if (!one_mod) 
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "More than one modification with name: " + mod_name);
+    }
 
     Size index(numeric_limits<Size>::max());
     #pragma omp critical(OpenMS_ModificationsDB)
@@ -220,9 +220,10 @@ namespace OpenMS
         }
       }
     }
+
     if (index == numeric_limits<Size>::max())
     {
-      LOG_WARN << OPENMS_PRETTY_FUNCTION  << " Modification name found but modification not found: " << mod_name << endl;
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification name found but modification not found: " + mod_name);
     }
     return index;
   }
@@ -570,9 +571,9 @@ namespace OpenMS
     }
 
     // now use the term and all synonyms to build the database
-    for (multimap<String, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
+    #pragma omp critical(OpenMS_ModificationsDB)
     {
-      #pragma omp critical(OpenMS_ModificationsDB)
+      for (multimap<String, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
       {
         // check whether a unimod definition already exists, then simply add synonyms to it
         if (it->second.getUniModRecordId() > 0)

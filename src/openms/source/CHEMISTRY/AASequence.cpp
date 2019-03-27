@@ -908,12 +908,18 @@ namespace OpenMS
       ++next_aa;
       if (*next_aa == '.') ++next_aa;
 
-      const ResidueModification* m = mod_db->getModification(mod, String(*next_aa), ResidueModification::N_TERM);
-      if (m == nullptr)
+      const ResidueModification* m;
+      try
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
-          "Cannot convert string to peptide modification. No N-terminal modification matches to term specificty and origin.");
+        m = mod_db->getModification(mod, String(*next_aa), ResidueModification::N_TERM);      
       }
+      catch (...)
+      {
+        // rethrow with some additional information on term
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+          "Cannot convert string to peptide modification. No N-terminal modification matches to term specificity and origin.");
+      }
+            
       aas.n_term_mod_ = m;
       return mod_end;
     }
@@ -921,22 +927,27 @@ namespace OpenMS
     const String& res = aas.peptide_.back()->getOneLetterCode();
     if (specificity == ResidueModification::C_TERM) 
     {
-      const ResidueModification* m = mod_db->getModification(mod, res, ResidueModification::C_TERM);
-      if (m == nullptr)
+      const ResidueModification* m;
+      try
       {
+        m = mod_db->getModification(mod, res, ResidueModification::C_TERM);
+      }
+      catch (...)
+      {
+        // catch and rethrow with some additional information on term
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
-          "Cannot convert string to peptide modification. No C-terminal modification matches to term specificty and origin.");
+          "Cannot convert string to peptide modification. No C-terminal modification matches to term specificity and origin.");
       }
       aas.c_term_mod_ = m;
       return mod_end;
     }
 
-    const Residue* internal = ResidueDB::getInstance()->getModifiedResidue(aas.peptide_.back(), mod);
-    if (internal != nullptr)
+    try
     {
+      const Residue* internal = ResidueDB::getInstance()->getModifiedResidue(aas.peptide_.back(), mod);
       aas.peptide_.back() = internal;
     }
-    else // no internal mod for this residue
+    catch(...)  // no internal mod for this residue
     {
       // TODO: get rid of this code path, its deprecated and is only a hack for
       // C-terminal modifications that don't use the dot notation
@@ -944,11 +955,7 @@ namespace OpenMS
       {
         // old ambiguous notation: Modification might be at last amino acid or at C-terminus
         const ResidueModification* term_mod = mod_db->getModification(mod, res, ResidueModification::C_TERM);
-        aas.c_term_mod_ = term_mod;
-        if (term_mod == nullptr)
-        {
-          cout << "Residue with name " + res + " was not registered in residue DB, register first!" << endl;
-        }
+        aas.c_term_mod_ = term_mod;      
       }
       else
       {

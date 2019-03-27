@@ -29,61 +29,50 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <vector>
+#include <map>
+#include <set>
+#include <iostream>
 
 namespace OpenMS
+{  
+struct OPENMS_DLLAPI RNPxlFragmentAdductDefinition
 {
-  class OPENMS_DLLAPI CrossLinksDB :
-      public ModificationsDB
+  EmpiricalFormula formula; // formula
+  String name;  // name used in annotation
+  double mass = 0;
+
+  RNPxlFragmentAdductDefinition() = default;
+
+  RNPxlFragmentAdductDefinition(const RNPxlFragmentAdductDefinition&) = default;
+
+  RNPxlFragmentAdductDefinition(RNPxlFragmentAdductDefinition&&) = default;
+
+  RNPxlFragmentAdductDefinition& operator=(const RNPxlFragmentAdductDefinition&) = default;
+
+  RNPxlFragmentAdductDefinition& operator=(RNPxlFragmentAdductDefinition&&) = default;
+
+  bool operator<(const RNPxlFragmentAdductDefinition& other) const
   {
-  public:
+    String fa = formula.toString();
+    String fb = other.formula.toString();
+    return std::tie(mass, fa, name) < std::tie(other.mass, fb, other.name);
+  }
 
-    /// Returns a pointer to the modifications DB (singleton)
-    inline static CrossLinksDB* getInstance()
-    {
-      static CrossLinksDB* db_ = new CrossLinksDB;
-      return db_;
-    }
+  bool operator==(const RNPxlFragmentAdductDefinition& other) const
+  {
+    return std::tie(formula, name) == std::tie(other.formula, other.name);
+  }
+};
 
-    /**
-      @brief Adds modifications from a given file in OBO format
-      
-      @note readFromOBOFile should be called in a single threaded context with
-      no other threads accessing the CrossLinkDB
-      @throw Exception::ParseError if the file cannot be parsed correctly
-    */
-    void readFromOBOFile(const String& filename);
-
-    /// Collects all modifications that can be used for identification searches
-    void getAllSearchModifications(std::vector<String>& modifications) const;
-
-  private:
-
-      /** @name Constructors and Destructors
-       */
-      //@{
-      /// Default constructor
-      CrossLinksDB();
-
-      /// Copy constructor
-      CrossLinksDB(const CrossLinksDB& residue_db);
-
-      /// Destructor
-      ~CrossLinksDB() override;
-      //@}
-
-      /** @name Assignment
-       */
-      //@{
-      /// Assignment operator
-      CrossLinksDB & operator=(const CrossLinksDB& aa);
-      //@}
-
-  };
 }
 
