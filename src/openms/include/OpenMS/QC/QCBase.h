@@ -35,6 +35,11 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <string>
+#include <functional>
 
 namespace OpenMS
 {
@@ -68,6 +73,7 @@ namespace OpenMS
     class Status
     {
     public:
+
       // Constructors
       Status() : value_(0)
       {}
@@ -86,7 +92,7 @@ namespace OpenMS
         return *this;
       }
       // Equal
-      bool operator==(const Status& stat)
+      bool operator==(const Status& stat) const
       {
         return (value_ == stat.value_);
       }
@@ -143,6 +149,7 @@ namespace OpenMS
       {
         return ((value_ & stat.value_) == stat.value_);
       }
+
     private:
       UInt64 value_;
     };
@@ -150,5 +157,22 @@ namespace OpenMS
      *@brief Returns the input data requirements of the compute(...) function
      */
     virtual Status requires() const = 0;
+
+    template <typename T>
+    void iterateFeatureMap(FeatureMap& fmap, T lambda)
+    {
+      for (PeptideIdentification& pep_id : fmap.getUnassignedPeptideIdentifications())
+      {
+        lambda(pep_id);
+      }
+
+      for (Feature& features : fmap)
+      {
+        for (PeptideIdentification& pep_id : features.getPeptideIdentifications())
+        {
+          lambda(pep_id);
+        }
+      }
+    }
   };
 }

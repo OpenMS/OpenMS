@@ -4,6 +4,8 @@ set(directory source/QC)
 ### list all filenames of the directory here
 set(sources_list
 TIC
+MissedCleavages.cpp
+QCBase.cpp
 )
 
 ### add path to the filenames

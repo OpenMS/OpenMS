@@ -5,6 +5,7 @@ set(directory include/OpenMS/QC)
 set(sources_list_h
 QCBase.h
 TIC.h
+MissedCleavages.h
 )
 
 ### add path to the filenames
