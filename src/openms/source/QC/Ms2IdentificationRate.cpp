@@ -67,7 +67,7 @@ namespace OpenMS
 
   //computes number of peptide identifications, number of ms2 spectra and ratio
   //data is stored in vector of structs
-//  void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file, bool force_fdr)
+  //void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file, bool force_fdr)
   void Ms2IdentificationRate::compute(const FeatureMap& feature_map,const MSExperiment& exp, bool force_fdr)
   {
     //checks if data exists

@@ -84,7 +84,7 @@ namespace OpenMS
     Ms2IdentificationRate() = default;
 
     /// Destructor
-    ~Ms2IdentificationRate() = default;
+    virtual ~Ms2IdentificationRate() = default;
 
     /**
      * @brief computes Ms2 Identification Rate
