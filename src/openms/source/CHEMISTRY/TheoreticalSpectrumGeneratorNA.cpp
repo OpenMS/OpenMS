@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Andreas Bertsch, Hendrik Weisser $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorNA.h>
