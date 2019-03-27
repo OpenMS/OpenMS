@@ -49,6 +49,10 @@ void Contaminants::compute(FeatureMap& features, const std::vector<FASTAFile::FA
   if (digested_db_.empty())
   {
     String enzyme = features.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
+    if (enzyme == "unknown_enzyme")
+    {
+      LOG_WARN << "No digestion enzyme in featureMap detected.";
+    }
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     UInt missed_cleavages (features.getProteinIdentifications()[0].getSearchParameters().missed_cleavages);
@@ -61,7 +65,7 @@ void Contaminants::compute(FeatureMap& features, const std::vector<FASTAFile::FA
     {
 
       vector<AASequence> current_digest;
-      if (enzyme == "none")                                                   //no enzyme given
+      if (enzyme == "unknown_enzyme")                                                   //no enzyme given
       {
         current_digest.push_back(AASequence::fromString(fe.sequence));
       }
@@ -79,39 +83,50 @@ void Contaminants::compute(FeatureMap& features, const std::vector<FASTAFile::FA
       //digested_db_.push_back(temp);
     }
   }
-    Int64 total;
-    Int64 cont;
-    double sum_total;
-    double sum_cont;
+  Int64 total;
+  Int64 cont;
+  double sum_total;
+  double sum_cont;
 
-    if (contaminants.empty())                                                    //no contamiants given
+  if (contaminants.empty())                                                    //no contamiants given
     {
       std::cerr << "FASTAFile is empty";
       return;
     }
 
-    for (auto& f : features)
+  for (auto& f : features)
+  {
+    if (f.getPeptideIdentifications().size() > 1)
     {
-      if (f.getPeptideIdentifications().size() > 1)
-      {
-        throw Exception::IllegalArgument(__FILE__,__LINE__,__FUNCTION__, "Too many peptideidentifications. Run IDConflictResolver first to remove ambiguities!");
-      }
-
-      // it exists one or zero Peptideidentifications in feature f
-      if (f.getPeptideIdentifications()[0].getHits().empty())
-      {
-        continue;
-      }
-      // the one existing peptideidentification has atleast one getHits entry
-      auto& pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
-      String key = (pep_hit.getSequence().toUnmodifiedString());
-      this->compare(key, f, total, cont, sum_total, sum_cont);
+      throw Exception::IllegalArgument(__FILE__,__LINE__,__FUNCTION__,"Too many peptideidentifications. Run IDConflictResolver first to remove ambiguities!");
     }
-    
-    results_.push_back(std::make_tuple((cont / double(total)), (sum_cont / sum_total))); //save all ratios in results_ as tuples
+
+    // it exists one or zero Peptideidentifications in feature f
+    if (f.getPeptideIdentifications()[0].getHits().empty())
+    {
+      continue;
+    }
+    // the one existing peptideidentification has atleast one getHits entry
+    auto &pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
+    String key = (pep_hit.getSequence().toUnmodifiedString());
+    this->compare(key, f, total, cont, sum_total, sum_cont);
+  }
+  for (auto& fu : features.getUnassignedPeptideIdentifications())
+  {
+    auto &fu_hit = fu.getHits()[0];
+    String key = (fu_hit.getSequence().toUnmodifiedString());
+    ++total;
+    if (digested_db_.count(key))                 //peptide is not in contaminant database  //if (digested_db_.find(key) == digested_db_.end())
+    {
+      continue;
+    }
+    //peptide is contaminant
+    ++cont;
+  }
+  results_.push_back(std::make_pair((cont / double(total)), (sum_cont / sum_total))); //save all ratios in results_ as tuples
 }
 
-const std::vector<std::tuple<double, double>>& Contaminants::getResults()
+const std::vector<std::pair<double, double>>& Contaminants::getResults()
 {
   return results_;
 }
@@ -120,31 +135,31 @@ void Contaminants::compare(const String& key, Feature& f, Int64& total, Int64& c
 {
   ++total;
   sum_total += f.getIntensity();
-  if (digested_db_.find(key) == digested_db_.end())                 //peptide is not in contaminant database
+  if (digested_db_.count(key))                 //peptide is not in contaminant database //if (digested_db_.find(key) == digested_db_.end())
   {
-    f.setMetaValue("is_contaminant", 0);                         //add the "is_contaminant" identification
+    f.getPeptideIdentifications()[0].setMetaValue("is_contaminant", 0);                         //add the "is_contaminant" identification
     return;
   }
   //peptide is contaminant
   ++cont;
   sum_cont += f.getIntensity();
-  f.setMetaValue("is_contaminant", 1);
+  f.getPeptideIdentifications()[0].setMetaValue("is_contaminant", 1);
 }
 
-int main()
-{
+//int main()
+//{
 
-  FASTAFile fasta_file;
-  vector<FASTAFile::FASTAEntry> contaminants;
-  fasta_file.load("/buffer/ag_bsc/pmsb/data/databases/crab.fasta",contaminants);
-  FeatureXMLFile fxml_file;
-  FeatureMap fmap;
-  fxml_file.load("/buffer/ag_bsc/pmsb/data/Example_Data/lfq_spikein_dilution_1.featureXML", fmap);
-  Contaminants conts;
-  conts.compute(fmap, contaminants);
-  std::vector<std::tuple<double, double>> result = conts.getResults();
+//  FASTAFile fasta_file;
+//  vector<FASTAFile::FASTAEntry> contaminants;
+//  fasta_file.load("/buffer/ag_bsc/pmsb/data/databases/crab.fasta",contaminants);
+//  FeatureXMLFile fxml_file;
+//  FeatureMap fmap;
+//  fxml_file.load("/buffer/ag_bsc/pmsb/data/Example_Data/lfq_spikein_dilution_1.featureXML", fmap);
+//  Contaminants conts;
+//  conts.compute(fmap, contaminants);
+//  std::vector<std::tuple<double, double>> result = conts.getResults();
 
-}
+//}
 
 //for (auto& pep_id : f.getPeptideIdentifications())
 //{

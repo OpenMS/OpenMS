@@ -16,10 +16,7 @@ set(concept_executables_list
   UniqueIdInterface_test
 )
 set(qc_executables_list
-    Contaminants_test
-)
-
-set(qc_executables_list
+  Contaminants_test
   TIC_test
 )
 
