@@ -82,9 +82,10 @@
 
 #include <QtCore/QProcess>
 
+#include <boost/regex.hpp>
+
 #include <algorithm>
 #include <iostream>
-#include <regex>
 #include <vector>
 #include <map>
 
@@ -283,7 +284,7 @@ protected:
   {
     set<ConstRibonucleotidePtr> modifications;
     auto db_ptr = RibonucleotideDB::getInstance();
-    regex double_digits("(\\d)(?=\\d)");
+    boost::regex double_digits("(\\d)(?=\\d)");
     for (String m : mod_names)
     {
       ConstRibonucleotidePtr mod = 0;
@@ -294,7 +295,7 @@ protected:
       catch (Exception::ElementNotFound& e)
       {
         // commas between numbers were removed - try reinserting them:
-        m = regex_replace(m, double_digits, "$&,");
+        m = boost::regex_replace(m, double_digits, "$&,");
         mod = db_ptr->getRibonucleotide(m);
       }
       if (resolve_ambiguous_mods_ && mod->isAmbiguous())
