@@ -74,7 +74,8 @@ namespace OpenMS
                    double mono_mass = 0.0,
                    double avg_mass = 0.0,
                    enum TermSpecificityNuc term_spec = ANYWHERE,
-                   const EmpiricalFormula& baseloss_formula = EmpiricalFormula());
+                   const EmpiricalFormula& baseloss_formula =
+                   default_baseloss_);
 
     /// Copy constructor
     Ribonucleotide(const Ribonucleotide& ribo) = default;
@@ -132,10 +133,10 @@ namespace OpenMS
     /// Get the average mass of the ribonucleotide
     void setAvgMass(double avg_mass);
 
-    /// Get new code
+    /// Get the "new" (Modomics) code
     const String getNewCode() const;
 
-    /// Set new code
+    /// Set the "new" (Modomics) code
     void setNewCode(const String &new_code);
 
     /// ostream iterator to write the residue to a stream
@@ -170,7 +171,13 @@ namespace OpenMS
     /// Return true if this is a modified ribonucleotide and false otherwise
     bool isModified() const;
 
+    /// Return whether this is an "ambiguous" modification (representing isobaric modifications on the base/ribose)
+    bool isAmbiguous() const;
+
   protected:
+    /// Default value for sum formula after nucleobase loss
+    static const EmpiricalFormula default_baseloss_;
+
     String name_; ///< full name
     String code_; ///< short name
     String new_code_; ///< Modomics code
