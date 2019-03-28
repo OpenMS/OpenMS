@@ -55,12 +55,14 @@ namespace OpenMS
       double all_contaminants_ratio; //(# all contaminants/ #peptides in all)
       double assigned_contaminants_intensity; //(intensity of contaminants in assigned/ intensity of peptides in assigned)
     };
+    Contaminants() = default;
+    ~Contaminants() = default;
     void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
     const std::vector<Contaminants::resultsData>& getResults();
+    Status requires() const override;
   private:
     std::vector<Contaminants::resultsData> results_;
     std::unordered_set<String> digested_db_;
     void compare(const String& key, Feature& f, Int64& total, Int64& cont, double& sum_total, double& sum_cont);
-    Status requires() const override;
   };
 }
