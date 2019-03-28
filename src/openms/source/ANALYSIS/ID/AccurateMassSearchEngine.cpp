@@ -114,6 +114,11 @@ namespace OpenMS
     return name_;
   }
 
+  const EmpiricalFormula& AdductInfo::getEmpiricalFormula() const
+  {
+    return ef_;
+  }
+
   AdductInfo AdductInfo::parseAdductString(const String& adduct)
   {
     // adduct string looks like this:
@@ -532,6 +537,10 @@ namespace OpenMS
     defaults_.setValue("negative_adducts", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
                                                                                  "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
+
+    defaults_.setValue("use_feature_adducts", "false", "Whether to filter AMS candidates mismatching available feature adduct annotation.");
+    defaults_.setValidStrings("use_feature_adducts", ListUtils::create<String>("false,true"));
+
     defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
     defaults_.setValidStrings("keep_unidentified_masses", ListUtils::create<String>(("false,true")));
 
@@ -548,7 +557,7 @@ namespace OpenMS
 
 /// public methods
 
-  void AccurateMassSearchEngine::queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
+  void AccurateMassSearchEngine::queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct) const
   {
     if (!is_initialized_)
     {
@@ -580,6 +589,12 @@ namespace OpenMS
         // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
         continue;
       }
+
+      if ((observed_adduct != EmpiricalFormula()) && (observed_adduct != it->getEmpiricalFormula()))
+      { // if feature has an adduct it must match
+        continue;
+      }
+
 
       // get potential hits as indices in masskey_table
       double neutral_mass = it->getNeutralMass(observed_mz); // calculate mass of uncharged small molecule without adduct mass
@@ -675,7 +690,15 @@ namespace OpenMS
 
     std::vector<AccurateMassSearchResult> results_part;
 
-    queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
+    String use_feature_adducts = param_.getValue("use_feature_adducts").toString();
+    if ((use_feature_adducts == "true") && feature.metaValueExists("dc_charge_adducts"))
+    {
+      queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part, EmpiricalFormula(feature.getMetaValue("dc_charge_adducts")));
+    }
+    else
+    {
+      queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part);    
+    }
 
     Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
 
