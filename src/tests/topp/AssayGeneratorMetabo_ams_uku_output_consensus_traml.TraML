@@ -49,7 +49,7 @@
   <TransitionList>
     <Transition id="0_1_C9H18NO3PS2_[M+H]1+" compoundRef="0_C9H18NO3PS2_[M+H]1+">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="284.054617241795" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="284.054617241794972" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="284.05255449889" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -59,7 +59,7 @@
     </Transition>
     <Transition id="0_2_C9H18NO3PS2_[M+H]1+" compoundRef="0_C9H18NO3PS2_[M+H]1+">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="284.054617241795" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="284.054617241794972" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="284.057335348103" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -69,7 +69,7 @@
     </Transition>
     <Transition id="1_1_UNKNOWN_UNKNOWN" compoundRef="1_UNKNOWN_UNKNOWN">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="298.273759730715" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="298.273759730715028" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="298.276717629201" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -79,7 +79,7 @@
     </Transition>
     <Transition id="2_1_UNKNOWN_UNKNOWN" compoundRef="2_UNKNOWN_UNKNOWN">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="300.026568450439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="300.026568450439015" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="300.020097790945" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -89,7 +89,7 @@
     </Transition>
     <Transition id="2_2_UNKNOWN_UNKNOWN" compoundRef="2_UNKNOWN_UNKNOWN">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="300.026568450439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="300.026568450439015" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="300.02879533546" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -99,7 +99,7 @@
     </Transition>
     <Transition id="3_1_C9H18NO3PS2_[M+Na]1+" compoundRef="3_C9H18NO3PS2_[M+Na]1+">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="306.035543262825" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="306.035543262825001" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="306.026560929252" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -109,7 +109,7 @@
     </Transition>
     <Transition id="3_2_C9H18NO3PS2_[M+Na]1+" compoundRef="3_C9H18NO3PS2_[M+Na]1+">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="306.035543262825" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="306.035543262825001" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="306.030940118509" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -119,7 +119,7 @@
     </Transition>
     <Transition id="3_3_C9H18NO3PS2_[M+Na]1+" compoundRef="3_C9H18NO3PS2_[M+Na]1+">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="306.035543262825" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="306.035543262825001" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="306.041865153185" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>

@@ -238,7 +238,8 @@ namespace OpenMS
         OpenSwath_Scores & scores)
   {
     OpenSwath::MRMScoring mrmscore_;
-    mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
+    if (su_.use_coelution_score_ || su_.use_shape_score_ || (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation))
+      mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
 
     // XCorr score (coelution)
     if (su_.use_coelution_score_)
