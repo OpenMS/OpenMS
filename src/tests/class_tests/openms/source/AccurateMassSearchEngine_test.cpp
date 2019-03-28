@@ -342,7 +342,7 @@ START_SECTION((void run(FeatureMap&, MzTab&) const))
     String tmp_mztab_file2;
     NEW_TMP_FILE(tmp_mztab_file2);
     MzTabFile().store(tmp_mztab_file2, test_mztab2);
-    TEST_EQUAL(fsc.compareFiles(tmp_mztab_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_featureXML.mzTab")), true);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztab_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output2_featureXML.mzTab")), true);
   }
 }
 END_SECTION
