@@ -39,15 +39,15 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <algorithm>
 #include <bits/stdc++.h>
+#include <OpenMS/QC/QCBase.h>
 
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI Contaminants
+  class OPENMS_DLLAPI Contaminants:
+      QCBase
   {
   public:
-    void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
-    const std::vector<std::pair<double, double>>& getResults();
     struct resultsData
     {
       double assigned_contaminants_ratio; //(# contaminants in assigned/ #peptides in assigned)
@@ -55,9 +55,12 @@ namespace OpenMS
       double all_contaminants_ratio; //(# all contaminants/ #peptides in all)
       double assigned_contaminants_intensity; //(intensity of contaminants in assigned/ intensity of peptides in assigned)
     };
+    void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
+    const std::vector<Contaminants::resultsData>& getResults();
   private:
-    std::vector<std::pair<double, double>> results_;
+    std::vector<Contaminants::resultsData> results_;
     std::unordered_set<String> digested_db_;
     void compare(const String& key, Feature& f, Int64& total, Int64& cont, double& sum_total, double& sum_cont);
+    Status requires() const override;
   };
 }
