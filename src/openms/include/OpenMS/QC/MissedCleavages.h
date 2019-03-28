@@ -40,6 +40,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/QC/QCBase.h>
 
 namespace OpenMS

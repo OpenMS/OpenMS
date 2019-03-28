@@ -33,32 +33,57 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/QC/MissedCleavages.h>
+#include <iostream>
 
 namespace OpenMS
 {
 
   void MissedCleavages::compute(FeatureMap& fmap)
   {
+    std::map<UInt64, UInt64> result{};
 
     if(fmap.empty())
     {
       LOG_WARN << "FeatureXML is empty.";
+      mc_result_.push_back(result);
+      return;
     }
     //ProteinIdentification kann leer sein
+
+    if(fmap.getProteinIdentifications().empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing information in ProteinIdentifications.");
+    }
+
     String enzyme = fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
     UInt64 max_mc = fmap.getProteinIdentifications()[0].getSearchParameters().missed_cleavages;
+
+    if(enzyme == "unknown_enzyme")
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in FeatureMap detected. No computation possible.");
+    }
+
+
 
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(0);
 
-    std::map<UInt64, UInt64> result;
 
-    auto l = [&digestor, &result](PeptideIdentification pep_id)
+    auto l = [&digestor, &result, &max_mc](PeptideIdentification& pep_id)
     {
+      if(pep_id.getHits().empty())
+      {
+        return;
+      }
       std::vector<AASequence> digest_output;
       digestor.digest(pep_id.getHits()[0].getSequence(), digest_output);
       UInt64 num_mc = digest_output.size() - 1;
+
+      if (num_mc > max_mc)
+      {
+        LOG_WARN << "Number of missed cleavages is greater than the allowed maximum number of missed cleavages.";
+      }
 
       if (result.count(num_mc) != 0)
       {

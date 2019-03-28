@@ -178,7 +178,7 @@ namespace OpenMS
     virtual Status requires() const = 0;
 
     template <typename T>
-    void iterateFeatureMap(FeatureMap& fmap, T lambda)
+    static void iterateFeatureMap(FeatureMap& fmap, T lambda)
     {
       for (PeptideIdentification& pep_id : fmap.getUnassignedPeptideIdentifications())
       {
