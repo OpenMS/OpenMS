@@ -39,12 +39,12 @@
 
 #include <iostream>
 
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorNA.h>
+#include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 ///////////////////////////
 
-START_TEST(TheoreticalSpectrumGeneratorNA, "$Id$")
+START_TEST(NucleicAcidSpectrumGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -52,30 +52,30 @@ START_TEST(TheoreticalSpectrumGeneratorNA, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TheoreticalSpectrumGeneratorNA* ptr = nullptr;
-TheoreticalSpectrumGeneratorNA* null_ptr = nullptr;
+NucleicAcidSpectrumGenerator* ptr = nullptr;
+NucleicAcidSpectrumGenerator* null_ptr = nullptr;
 
-START_SECTION(TheoreticalSpectrumGeneratorNA())
-  ptr = new TheoreticalSpectrumGeneratorNA();
+START_SECTION(NucleicAcidSpectrumGenerator())
+  ptr = new NucleicAcidSpectrumGenerator();
   TEST_NOT_EQUAL(ptr, null_ptr)
 END_SECTION
 
-START_SECTION(TheoreticalSpectrumGeneratorNA(const TheoreticalSpectrumGeneratorNA& source))
-  TheoreticalSpectrumGeneratorNA copy(*ptr);
+START_SECTION(NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source))
+  NucleicAcidSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
 
-START_SECTION(TheoreticalSpectrumGeneratorNA& operator=(const TheoreticalSpectrumGenerator& source))
-  TheoreticalSpectrumGeneratorNA copy;
+START_SECTION(NucleicAcidSpectrumGenerator& operator=(const TheoreticalSpectrumGenerator& source))
+  NucleicAcidSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
 
-START_SECTION(~TheoreticalSpectrumGeneratorNA())
+START_SECTION(~NucleicAcidSpectrumGenerator())
   delete ptr;
 END_SECTION
 
-ptr = new TheoreticalSpectrumGeneratorNA();
+ptr = new NucleicAcidSpectrumGenerator();
 
 START_SECTION((void getSpectrum(MSSpectrum& spectrum, const NASequence& oligo, Int min_charge, Int max_charge) const))
 {
@@ -210,7 +210,7 @@ END_SECTION
 
 START_SECTION((void getMultipleSpectra(std::map<Int, MSSpectrum>& spectra, const NASequence& oligo, const std::set<Int>& charges, Int base_charge = 1) const))
 {
-  TheoreticalSpectrumGeneratorNA gen;
+  NucleicAcidSpectrumGenerator gen;
   Param param = gen.getParameters();
   param.setValue("add_first_prefix_ion", "true");
   param.setValue("add_metainfo", "true");

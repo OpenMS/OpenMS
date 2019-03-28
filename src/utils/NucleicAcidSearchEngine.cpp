@@ -71,7 +71,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
 // spectra comparison
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorNA.h>
+#include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
@@ -1064,7 +1064,7 @@ protected:
     }
 
     // create spectrum generator
-    TheoreticalSpectrumGeneratorNA spectrum_generator;
+    NucleicAcidSpectrumGenerator spectrum_generator;
     Param param = spectrum_generator.getParameters();
     vector<String> temp = getStringList_("fragment:ions");
     set<String> selected_ions(temp.begin(), temp.end());

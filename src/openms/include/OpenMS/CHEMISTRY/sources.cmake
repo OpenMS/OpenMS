@@ -20,6 +20,7 @@ ModificationDefinitionsSet.h
 ModifiedNASequenceGenerator.h
 ModificationsDB.h
 NASequence.h
+NucleicAcidSpectrumGenerator.h
 ProteaseDB.h
 ProteaseDigestion.h
 Residue.h
@@ -35,7 +36,6 @@ SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h
 TheoreticalSpectrumGenerator.h
-TheoreticalSpectrumGeneratorNA.h
 TheoreticalSpectrumGeneratorXLMS.h
 WeightWrapper.h
 )

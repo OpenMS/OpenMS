@@ -19,6 +19,7 @@ ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
 ModifiedNASequenceGenerator.cpp
 NASequence.cpp
+NucleicAcidSpectrumGenerator.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp
@@ -34,7 +35,6 @@ SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp
 TheoreticalSpectrumGenerator.cpp
-TheoreticalSpectrumGeneratorNA.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
 WeightWrapper.cpp
 )

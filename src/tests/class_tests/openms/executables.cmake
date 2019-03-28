@@ -391,6 +391,7 @@ set(chemistry_executables_list
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
   NASequence_test
+  NucleicAcidSpectrumGenerator_test
   ProteaseDB_test
   ProteaseDigestion_test
   RNaseDigestion_test
@@ -405,7 +406,6 @@ set(chemistry_executables_list
   SvmTheoreticalSpectrumGeneratorSet_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
   SvmTheoreticalSpectrumGenerator_test
-  TheoreticalSpectrumGeneratorNA_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
   WeightWrapper_test

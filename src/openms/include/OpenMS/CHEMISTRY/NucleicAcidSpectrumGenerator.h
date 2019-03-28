@@ -46,11 +46,11 @@ namespace OpenMS
   /**
       @brief Generates theoretical spectra for nucleic acid sequences
 
-      @htmlinclude OpenMS_TheoreticalSpectrumGeneratorNA.parameters
+      @htmlinclude OpenMS_NucleicAcidSpectrumGenerator.parameters
 
       @ingroup Chemistry
   */
-  class OPENMS_DLLAPI TheoreticalSpectrumGeneratorNA :
+  class OPENMS_DLLAPI NucleicAcidSpectrumGenerator :
     public DefaultParamHandler
   {
     public:
@@ -59,17 +59,17 @@ namespace OpenMS
     */
     //@{
     /// default constructor
-    TheoreticalSpectrumGeneratorNA();
+    NucleicAcidSpectrumGenerator();
 
     /// copy constructor
-    TheoreticalSpectrumGeneratorNA(const TheoreticalSpectrumGeneratorNA& source);
+    NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source);
 
     /// destructor
-    ~TheoreticalSpectrumGeneratorNA() override;
+    ~NucleicAcidSpectrumGenerator() override;
     //@}
 
     /// assignment operator
-    TheoreticalSpectrumGeneratorNA& operator=(const TheoreticalSpectrumGeneratorNA& source);
+    NucleicAcidSpectrumGenerator& operator=(const NucleicAcidSpectrumGenerator& source);
 
     /** @name Acessors
      */
