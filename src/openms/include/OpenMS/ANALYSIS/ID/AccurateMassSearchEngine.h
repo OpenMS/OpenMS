@@ -86,6 +86,9 @@ namespace OpenMS
     /// original string used for parsing
     const String& getName() const;
 
+    // EF of adduct itself. Useful for comparison with feature adduct annotation 
+    const EmpiricalFormula& getEmpiricalFormula() const;
+
     /// parse an adduct string containing a formula (must contain 'M') and charge, separated by ';'.
     /// e.g. M+H;1+
     /// 'M' can have multipliers, e.g. '2M + H;1+' (for a singly charged dimer)
@@ -267,7 +270,7 @@ public:
       @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
 
        */
-    void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct=EmpiricalFormula()) const;
     void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
     void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
 
