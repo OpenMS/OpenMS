@@ -12,4 +12,3 @@
 -out BSA.mzTab -threads 4 
 
 ./bin/FileInfo -in BSA.consensusXML -out BSA.fileinfo
-
