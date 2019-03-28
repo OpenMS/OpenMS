@@ -17,6 +17,7 @@ set(concept_executables_list
 )
 
 set(qc_executables_list
+  Ms2IdentificationRate_test
   TIC_test
 )
 
