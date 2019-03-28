@@ -86,6 +86,9 @@ START_SECTION(static void applyVariableModifications(const std::set<ConstRibonuc
 
   TEST_EQUAL(ams.size(), 7);
   TEST_STRING_EQUAL(ams[0].toString(), NASequence::fromString("AUAUAUA").toString());
+  // the order of "m3U" and "s4U" in "var_mods" is unclear (pointers ordered by
+  // address) and determines the order of the result ("ams") - need to sort:
+  sort(++ams.begin(), ams.end());
   TEST_STRING_EQUAL(ams[1].toString(), NASequence::fromString("AUAUA[m3U]A").toString());
   TEST_STRING_EQUAL(ams[2].toString(), NASequence::fromString("AUAUA[s4U]A").toString());
   TEST_STRING_EQUAL(ams[3].toString(), NASequence::fromString("AUA[m3U]AUA").toString());
