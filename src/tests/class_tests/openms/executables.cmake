@@ -518,6 +518,7 @@ set(analysis_executables_list
   ReactionMonitoringTransition_test
   RNPxlModificationsGenerator_test
   SVMWrapper_test
+  SimpleSearchEngineAlgorithm_test
   SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
