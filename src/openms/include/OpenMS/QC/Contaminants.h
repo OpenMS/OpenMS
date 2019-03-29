@@ -56,16 +56,17 @@ namespace OpenMS
       ///(# all contaminants/ #peptides in all)
       double all_contaminants_ratio;
       ///(intensity of contaminants in assigned/ intensity of peptides in assigned)
-      double assigned_contaminants_intensity; 
+      double assigned_contaminants_intensity;
     };
     ///Constructor
     Contaminants() = default;
     ///Destructor
     virtual ~Contaminants() = default;
     /**
-     * @brief
-     * @param features
-     * @param contaminants
+     * @brief Checks if the peptides are in the contaminant database.
+     * "is_contaminant" identification is added to the peptideidentification of each feature and to all unsignedpeptideidentification
+     * @param features input FeatureMap with peptideidentifications of features
+     * @param contaminants vector of FASTAEntries that need to be digested to check whether a peptide is a contaminant or not
      */
     void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
     const std::vector<Contaminants::ContaminantsSummary>& getResults();
