@@ -710,8 +710,8 @@ protected:
         row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMonoWeight(Residue::Full, best_ph.getCharge()) / best_ph.getCharge()) : MzTabDouble();
 
         // add opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
-        row.opt_.emplace_back("opt_global_modified_sequence", aas.toString());
-
+        row.opt_.emplace_back(String("opt_global_modified_sequence"), MzTabString(aas.toString()));
+        
         // currently write all keys
         // TODO: percentage procedure with MetaInfoInterfaceUtils
         vector<String> ph_keys;
