@@ -6,7 +6,7 @@ from String cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>" namespace "OpenMS":
  
-    cdef cppclass SimpleSearchEngineAlgorithm((DefaultParamHandler, ProgressLogger):
+    cdef cppclass SimpleSearchEngineAlgorithm(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
         #    DefaultParamHandler
         #    ProgressLogger
