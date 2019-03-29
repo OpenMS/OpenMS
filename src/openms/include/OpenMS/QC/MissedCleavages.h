@@ -46,10 +46,11 @@
 namespace OpenMS
 {
   /**
-   * @brief This class is a metric for the QualityControl-ToppTool.
+   * @brief This class is a metric for the QualityControl TOPP Tool.
    *
-   * This class counts the number of MissedCleavages per PeptideIdentification given a FeatureMap.
-   * The result is stored as MetaInformation of the PeptideHits.
+   * This class counts the number of MissedCleavages per PeptideIdentification given a FeatureMap
+   * and returns an agglomeration statistic (observed counts).
+   * Additionally the PeptideHits in the FeatureMap are augmented with MetaInformation.
    *
    */
   class OPENMS_DLLAPI MissedCleavages : QCBase
@@ -62,12 +63,13 @@ namespace OpenMS
     virtual ~MissedCleavages() = default;
 
     /**
-     * @brief counts the number of MissedCleavages per PeptideIdentification.
+     * @brief Counts the number of MissedCleavages per PeptideIdentification.
      *
-     * the result is a key/value map: missed_cleavages --> counts
-     * additionally the first PeptideHit in each PeptideIdentification is annotated with metavalue missed_cleavages in the FeatureMap
+     * The result is a key/value map: missed_cleavages --> counts
+     * Additionally the first PeptideHit in each PeptideIdentification of the FeattureMap is annotated with metavalue 'missed_cleavages'.
+     * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParamter therein) within the FeatureMap itself.
      *
-     * @param fmap FeatureMap with SearchParameter in ProteinIdentification digestion_enzyme and max number of MissedCleavages
+     * @param fmap FeatureMap with Peptide and ProteinIdentifications
      */
     void compute(FeatureMap& fmap);
 
