@@ -39,7 +39,7 @@
 
 namespace OpenMS
 {
-  Int64 Ms2IdentificationRate::countPeptideId_(const std::vector<PeptideIdentification>& peptide_id, bool force_fdr)
+  /*Int64 Ms2IdentificationRate::countPeptideId_(const std::vector<PeptideIdentification>& peptide_id, bool force_fdr)
   {
     Int64 counter{};
 
@@ -62,7 +62,7 @@ namespace OpenMS
     }
     );
     return counter;
-  }
+  }*/
 
 
   //computes number of peptide identifications, number of ms2 spectra and ratio
@@ -121,6 +121,7 @@ namespace OpenMS
         }
       };
 
+      //iterates through all PeptideIdentifications in FeatureMap, applies lambda function lam to all of them
       QCBase::iterateFeatureMap(feature_map, lam);
 
       if (ms2_level_counter < peptide_identification_counter)

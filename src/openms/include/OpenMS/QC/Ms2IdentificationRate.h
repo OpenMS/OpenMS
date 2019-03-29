@@ -77,7 +77,7 @@ namespace OpenMS
      * @exception Exception::Precondition is thrown if there wasn't made a FDR before
      * @warning LOG_WARN if there is a peptideidentification without peptidehits
      */
-    Int64 countPeptideId_(const std::vector<PeptideIdentification>& peptide_id, bool force_fdr);
+   // Int64 countPeptideId_(const std::vector<PeptideIdentification>& peptide_id, bool force_fdr);
 
   public:
     /// Default constructor
