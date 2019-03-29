@@ -2170,9 +2170,6 @@ static void scoreShiftedFragments_(
 
   ExitCodes main_(int, const char**) override
   {
-    // force initialization of residue db
-    static auto s = AASequence::fromString("GPAVLIMCFYWHKRQNEDST");
-
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     String in_mzml = getStringOption_("in");
@@ -2450,26 +2447,20 @@ static void scoreShiftedFragments_(
 #pragma omp atomic
 #endif
         ++count_peptides;
-        vector<AASequence> all_modified_peptides;
 
         const String unmodified_sequence = cit->getString();
+
+         // only process peptides without ambiguous amino acids (placeholder / any amino acid)
+        if (unmodified_sequence.find_first_of("XBZ") != std::string::npos) continue;
 
         //  determine which residues might give rise to an immonium ion
         ImmoniumIonsInPeptide iip(unmodified_sequence);
 
-#ifdef _OPENMP
-#pragma omp critical (residuedb_access)
-#endif
-        {
-           // only process peptides without ambiguous amino acids (placeholder / any amino acid)
-          if (unmodified_sequence.find_first_of("XBZ") == std::string::npos)
-          {
-            AASequence aas = AASequence::fromString(unmodified_sequence);
-            ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
-            ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
-          }
-        }
-
+        AASequence aas = AASequence::fromString(unmodified_sequence);
+        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+        vector<AASequence> all_modified_peptides;
+        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+        
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
         {
           const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[mod_pep_idx];
@@ -2487,14 +2478,12 @@ static void scoreShiftedFragments_(
           // iterate over all NA sequences, calculate peptide mass and generate complete loss spectrum only once as this can potentially be reused
           Size rna_mod_index = 0;
 
-          // TODO: track the XL-able nt here
           for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); 
             rna_mod_it != mm.mod_masses.end(); 
             ++rna_mod_it, ++rna_mod_index)
           {            
             const double precursor_rna_mass = rna_mod_it->second;
             const double current_peptide_mass = current_peptide_mass_without_NA + precursor_rna_mass; // add NA mass
-            // TODO: const char xl_nucleotide; // can be none
 
             // determine MS2 precursors that match to the current peptide mass
             MassToScanMultiMap::const_iterator low_it, up_it;
@@ -2527,6 +2516,7 @@ static void scoreShiftedFragments_(
                 immonium_sub_score_spectrum.getStringDataArrays()[0]);
               immonium_sub_score_spectrum.sortByPosition();
               precursor_ion_sub_score_spectrum_generator.getSpectrum(precursor_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
+
               // only generate first 4 a-ions as others are rarely observed
               a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
               a_ion_sub_score_spectrum.resize(4);
