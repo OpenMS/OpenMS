@@ -35,6 +35,7 @@
 #include <OpenMS/QC/Contaminants.h>
 #include <include/OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <include/OpenMS/METADATA/ProteinIdentification.h>
+#include <algorithm>
 
 
 using namespace std;
@@ -139,7 +140,7 @@ namespace OpenMS
       this->compare(key, f, total, cont, sum_total, sum_cont);
     }
     //save the contaminants ratio in object before searching through the unassigned peptideidentifications
-    resultsData final;
+    ContaminantsSummary final;
     final.assigned_contaminants_ratio = (cont / double(total));
 
     UInt64 utotal = 0;
@@ -177,7 +178,7 @@ namespace OpenMS
     results_.push_back(final); //save all ratios in results_ as tuples
   }
 
-  const std::vector<Contaminants::resultsData> &Contaminants::getResults()
+  const std::vector<Contaminants::ContaminantsSummary> &Contaminants::getResults()
   {
     return results_;
   }

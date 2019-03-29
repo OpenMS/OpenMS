@@ -152,7 +152,7 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
 
   //test if it aborts when contaminant database is empty
   conts1.compute(fmap, contaminantsFile);
-  std::vector<Contaminants::resultsData> result1 = conts1.getResults();
+  std::vector<Contaminants::ContaminantsSummary> result1 = conts1.getResults();
   ABORT_IF(!result1.empty());
 
   //set contaminant database "contaminantsFile"
@@ -161,17 +161,17 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
 
   //test if it aborts when featureMap is empty
   conts2.compute(emptyFmap, contaminantsFile);
-  std::vector<Contaminants::resultsData> result2 = conts2.getResults();
+  std::vector<Contaminants::ContaminantsSummary> result2 = conts2.getResults();
   ABORT_IF(!result2.empty());
 
   //test if it aborts when features are empty
   conts6.compute(emptyFeaturesFmap, contaminantsFile);
-  std::vector<Contaminants::resultsData> result6 = conts6.getResults();
+  std::vector<Contaminants::ContaminantsSummary> result6 = conts6.getResults();
   ABORT_IF(!result6.empty());
 
   //test without given missed cleavages and without given enzyme
   conts3.compute(fmap, contaminantsFile);
-  std::vector<Contaminants::resultsData> result3 = conts3.getResults();
+  std::vector<Contaminants::ContaminantsSummary> result3 = conts3.getResults();
   ABORT_IF(result3.size() != 1);
   TEST_REAL_SIMILAR(result3[0].assigned_contaminants_ratio, 0.0);
   TEST_REAL_SIMILAR(result3[0].assigned_contaminants_intensity, 0.0);
@@ -183,7 +183,7 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
 
   //test without given missed cleavages but with set enzyme
   conts4.compute(fmap, contaminantsFile);
-  std::vector<Contaminants::resultsData> result4 = conts4.getResults();
+  std::vector<Contaminants::ContaminantsSummary> result4 = conts4.getResults();
   ABORT_IF(result4.size() != 1);
   TEST_REAL_SIMILAR(result4[0].assigned_contaminants_ratio, 3/5.0);
   TEST_REAL_SIMILAR(result4[0].assigned_contaminants_intensity, 1/2.0);
@@ -203,7 +203,7 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
 
   //test with set missed cleavages and set enzyme
   conts5.compute(fmap, contaminantsFile);
-  std::vector<Contaminants::resultsData> result5 = conts5.getResults();
+  std::vector<Contaminants::ContaminantsSummary> result5 = conts5.getResults();
   ABORT_IF(result5.size() != 1);
   TEST_REAL_SIMILAR(result5[0].assigned_contaminants_ratio, 4/5.0);
   TEST_REAL_SIMILAR(result5[0].assigned_contaminants_intensity, 5/6.0);
