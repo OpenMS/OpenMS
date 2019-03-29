@@ -217,6 +217,18 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 101* 203)
   }
+
+  // Also test a molecule with 2048 atoms (a value that does not fit into the
+  // lookup table any more, it should still work).
+  {
+    FineIsotopePatternGenerator gen(0.01, false, false);
+    gen.setThreshold(1e-2);
+    IsotopeDistribution id = gen.run(EmpiricalFormula("C2048"));
+    TEST_EQUAL(id.size(), 28)
+
+    gen.setThreshold(1e-5);
+    TEST_EQUAL(gen.run(EmpiricalFormula("C2048")).size(), 44)
+  }
 }
 END_SECTION
 
