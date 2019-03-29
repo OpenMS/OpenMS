@@ -129,8 +129,8 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     IsotopeDistribution id = gen.run(EmpiricalFormula("C100"));
     TEST_EQUAL(id.size(), 6)
 
-    for (auto i : id.getContainer())
-      std::cout << i << std::endl;
+    // for (auto i : id.getContainer())
+    //   std::cout << i << std::endl;
 
     gen.setThreshold(1e-5);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 9)
