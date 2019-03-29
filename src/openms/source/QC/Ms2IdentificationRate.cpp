@@ -39,36 +39,10 @@
 
 namespace OpenMS
 {
-  /*Int64 Ms2IdentificationRate::countPeptideId_(const std::vector<PeptideIdentification>& peptide_id, bool force_fdr)
-  {
-    Int64 counter{};
-
-    counter += count_if(peptide_id.begin(), peptide_id.end(), [force_fdr](PeptideIdentification const & x)
-    {
-      if (x.getHits().empty())
-      {
-        LOG_WARN << "Ms2IdentificationRate: There is a Peptideidentification without PeptideHits." << "\n";
-        return false;
-      }
-      if (force_fdr)
-      {
-        return true;
-      }
-      if (!(x.getHits()[0].metaValueExists("target_decoy")))
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr");
-      }
-      return x.getHits()[0].getMetaValue("target_decoy") == "target";
-    }
-    );
-    return counter;
-  }*/
-
-
   //computes number of peptide identifications, number of ms2 spectra and ratio
   //data is stored in vector of structs
   //void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file, bool force_fdr)
-  void Ms2IdentificationRate::compute(const FeatureMap& feature_map,const MSExperiment& exp, bool force_fdr)
+  void Ms2IdentificationRate::compute(FeatureMap& feature_map,const MSExperiment& exp, bool force_fdr)
   {
     //checks if data exists
 
@@ -78,7 +52,7 @@ namespace OpenMS
       }
 
 
-    //count ms2 spectra
+    //counts ms2 spectra
     UInt64 ms2_level_counter{};
 
 
@@ -95,10 +69,10 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS2 spectra found");
       }
 
-      //count peptideIdentifications
+      //counts peptideIdentifications
       UInt64 peptide_identification_counter{};
 
-      auto lam = [force_fdr, &peptide_identification_counter](PeptideIdentification const & x)
+      auto lam = [force_fdr, &peptide_identification_counter](PeptideIdentification& x)
       {
         if (x.getHits().empty())
         {
@@ -129,7 +103,7 @@ namespace OpenMS
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than MS2 spectra. Please check your data.");
       }
 
-      //compute ratio
+      //computes ratio
       double ratio = (double) peptide_identification_counter / ms2_level_counter;
 
       // struct that is made to store results
@@ -141,34 +115,6 @@ namespace OpenMS
       id_rate_data.identification_rate = ratio;
 
       rate_result_.push_back(id_rate_data);
-
-      /*
-      peptide_identification_counter += countPeptideId_(feature_map.getUnassignedPeptideIdentifications(), force_fdr);
-
-      for (auto const &f : feature_map)
-      {
-        peptide_identification_counter += countPeptideId_(f.getPeptideIdentifications(), force_fdr);
-      }
-
-
-      if (ms2_level_counter < peptide_identification_counter)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than MS2 spectra. Please check your data.");
-      }
-
-      //compute ratio
-      double ratio = (double) peptide_identification_counter / ms2_level_counter;
-
-      // struct that is made to store results
-      IdentificationRateData id_rate_data;
-
-      //store results
-      id_rate_data.num_peptide_identification = peptide_identification_counter;
-      id_rate_data.num_ms2_spectra = ms2_level_counter;
-      id_rate_data.identification_rate = ratio;
-
-      rate_result_.push_back(id_rate_data);
-       */
   }
 
 
