@@ -56,7 +56,7 @@ namespace OpenMS
       double assigned_contaminants_intensity; //(intensity of contaminants in assigned/ intensity of peptides in assigned)
     };
     Contaminants() = default;
-    ~Contaminants() = default;
+    virtual ~Contaminants() = default;
     void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
     const std::vector<Contaminants::resultsData>& getResults();
     Status requires() const override;

@@ -37,8 +37,8 @@
 
 ///////////////////////////
 #include <OpenMS/QC/Contaminants.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
+//#include <OpenMS/FORMAT/FeatureXMLFile.h>
+//#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -49,14 +49,6 @@
 
 using namespace OpenMS;
 using namespace std;
-
-//FASTAFile fasta_file;
-//vector<FASTAFile::FASTAEntry> contaminants;
-//fasta_file.load("/buffer/ag_bsc/pmsb/data/databases/crab.fasta",contaminants);
-//FeatureXMLFile fxml_file;
-//FeatureMap fmap;
-//fxml_file.load("/buffer/ag_bsc/pmsb/data/Example_Data/lfq_spikein_dilution_1.featureXML", fmap);
-
 
 
 START_TEST(Contaminants, "$Id$")
@@ -84,9 +76,12 @@ DigestionEnzymeProtein noenzyme("unknown_enzyme",
                          "",
                          set<String>(),
                          "");
-fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = noenzyme; //set no digestion enzyme
-vector<FASTAFile::FASTAEntry> contaminantsFile; //set empty contaminants database
+//set no digestion enzyme
+fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = noenzyme;
+//set empty contaminants database
+vector<FASTAFile::FASTAEntry> contaminantsFile;
 
+    //fill the featureMap of features with set sequence and intensity
     {
       PeptideIdentification id;
 
@@ -123,6 +118,7 @@ vector<FASTAFile::FASTAEntry> contaminantsFile; //set empty contaminants databas
       fmap.push_back(f);
     }
 
+//fill the unassigned peptideidentifications
 std::vector<PeptideIdentification> ids2(3);
 PeptideHit hit2;
 hit2.setSequence(AASequence::fromString("AAAAAAAAAAK"));
@@ -138,6 +134,7 @@ fmap.setUnassignedPeptideIdentifications(ids2);
     /////////////////////////////////////////////////////////////
 
 
+//check the constructor
 Contaminants* ptr = nullptr;
 Contaminants* nullPointer = nullptr;
 START_SECTION(Contaminants())

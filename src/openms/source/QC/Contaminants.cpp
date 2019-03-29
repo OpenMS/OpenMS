@@ -35,9 +35,6 @@
 #include <OpenMS/QC/Contaminants.h>
 #include <include/OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <include/OpenMS/METADATA/ProteinIdentification.h>
-#include <include/OpenMS/FORMAT/FeatureXMLFile.h>
-//#include <include/OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
-//#include <include/OpenMS/CHEMISTRY/ProteaseDB.h>
 
 
 using namespace std;
@@ -45,54 +42,68 @@ using namespace std;
 
 namespace OpenMS
 {
+
   void Contaminants::compute(FeatureMap &features, const std::vector<FASTAFile::FASTAEntry> &contaminants)
   {
+    //empty FeatureMap
     if (features.empty())
     {
-      LOG_WARN << "FeatureMap is empty." << "\n";                                //empty FeatureMap
+      LOG_WARN << "FeatureMap is empty." << "\n";
       return;
     }
-    if (features[0].getPeptideIdentifications().empty())                          //empty features
+    //empty features
+    if (features[0].getPeptideIdentifications().empty())
     {
       LOG_WARN << "Features are empty." << "\n";
       return;
     }
-    if (contaminants.empty())                                                     //empty contaminants database
+    //empty contaminants database
+    if (contaminants.empty())
     {
       LOG_WARN << "FASTAFile is empty." << "\n";
       return;
     }
+    //fill the unordered set once with the digested contaminants database
     if (digested_db_.empty())
     {
       ProteaseDigestion digestor;
       String enzyme = features.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
+
+      //no enzyme is given
       if (enzyme == "unknown_enzyme")
       {
         LOG_WARN << "No digestion enzyme in featureMap detected." << "\n";
+        //contaminants database will not be digested
       }
       else
       {
         digestor.setEnzyme(enzyme);
       }
+      //Get the missed cleavages for the digestor. If none are given, its default is 0.
       UInt missed_cleavages(features.getProteinIdentifications()[0].getSearchParameters().missed_cleavages);
       digestor.setMissedCleavages(missed_cleavages);
 
-      Size dropped_by_length(0); // stats for removing candidates
+      // stats for removing candidates
+      Size dropped_by_length(0);
 
 
+      //digest the contaminants database and add the peptides into the unordered set
       for (const FASTAFile::FASTAEntry &fe : contaminants)
       {
         vector<AASequence> current_digest;
-        if (enzyme == "unknown_enzyme")                                                   //no enzyme given
+        //No digestion enzyme is given. Contaminant database will not get digested.
+        if (enzyme == "unknown_enzyme")
         {
           current_digest.push_back(AASequence::fromString(fe.sequence));
         }
-        else                                                                    //digest the sequence
+        //digest the sequence
+        else
         {
           dropped_by_length += digestor.digest(AASequence::fromString(fe.sequence), current_digest);
         }
 
-        for (auto const &s : current_digest)                                    //fill digested_db_ with digested sequences
+        //fill unordered set digested_db_ with digested sequences
+        for (auto const &s : current_digest)
         {
           digested_db_.insert(s.toUnmodifiedString());
         }
@@ -104,6 +115,8 @@ namespace OpenMS
     double sum_cont = 0.0;
 
 
+    //Check if peptides of featureMap are contaminants or not and add is_contaminant = 0/1 to the peptideidentification.
+    //If so, raise contaminants ratio.
     for (auto &f : features)
     {
       if (f.getPeptideIdentifications().size() > 1)
@@ -125,12 +138,15 @@ namespace OpenMS
       String key = (pep_hit.getSequence().toUnmodifiedString());
       this->compare(key, f, total, cont, sum_total, sum_cont);
     }
-    resultsData temp;
-    temp.assigned_contaminants_ratio = (cont / double(total));
+    //save the contaminants ratio in object before searching through the unassigned peptideidentifications
+    resultsData final;
+    final.assigned_contaminants_ratio = (cont / double(total));
 
     UInt64 utotal = 0;
     UInt64 ucont = 0;
 
+    //Change the assigned contaminants ratio to total contaminants ratio by adding the unassigned.
+    //Additionally save the unassigned contaminants ratio and add the is_contaminant = 0/1 to the unassigned peptideidentifications.
     for (auto &fu : features.getUnassignedPeptideIdentifications())
     {
       auto &fu_hit = fu.getHits()[0];
@@ -138,8 +154,8 @@ namespace OpenMS
       ++total;
       ++utotal;
 
-      if (!digested_db_
-          .count(key))                 //peptide is not in contaminant database  //if (digested_db_.find(key) == digested_db_.end())
+      //peptide is not in contaminant database
+      if (!digested_db_.count(key))
       {
         fu.setMetaValue("is_contaminant", 0);
         continue;
@@ -151,12 +167,14 @@ namespace OpenMS
       fu.setMetaValue("is_contaminant", 1);
     }
 
-    temp.all_contaminants_ratio = (cont / double(total));
-    temp.unassigned_contaminants_ratio = (ucont / double(utotal));
-    temp.assigned_contaminants_intensity = (sum_cont / sum_total);
+    //save all ratios and the intensity to the object
+    final.all_contaminants_ratio = (cont / double(total));
+    final.unassigned_contaminants_ratio = (ucont / double(utotal));
+    final.assigned_contaminants_intensity = (sum_cont / sum_total);
 
 
-    results_.push_back(temp); //save all ratios in results_ as tuples
+    //add the object to the results vector
+    results_.push_back(final); //save all ratios in results_ as tuples
   }
 
   const std::vector<Contaminants::resultsData> &Contaminants::getResults()
@@ -164,6 +182,8 @@ namespace OpenMS
     return results_;
   }
 
+  //Check if peptide is in contaminants database or not and add the is_contaminant = 0/1.
+  // If so, raise the contaminant ratio.
   void Contaminants::compare(const String &key,
                              Feature &f,
                              Int64 &total,
@@ -173,11 +193,11 @@ namespace OpenMS
   {
     ++total;
     sum_total += f.getIntensity();
-    if (!digested_db_
-        .count(key))                 //peptide is not in contaminant database //if (digested_db_.find(key) == digested_db_.end())
+    //peptide is not in contaminant database
+    if (!digested_db_.count(key))
     {
-      f.getPeptideIdentifications()[0]
-          .setMetaValue("is_contaminant", 0);                         //add the "is_contaminant" identification
+      f.getPeptideIdentifications()[0].setMetaValue("is_contaminant", 0);
+      //add the "is_contaminant" identification
       return;
     }
     //peptide is contaminant
@@ -193,78 +213,3 @@ namespace OpenMS
 
 
 }
-//int main()
-//{
-
-//  FASTAFile fasta_file;
-//  vector<FASTAFile::FASTAEntry> contaminants;
-//  fasta_file.load("/buffer/ag_bsc/pmsb/data/databases/crab.fasta",contaminants);
-//  FeatureXMLFile fxml_file;
-//  FeatureMap fmap;
-//  fxml_file.load("/buffer/ag_bsc/pmsb/data/Example_Data/lfq_spikein_dilution_1.featureXML", fmap);
-//  Contaminants conts;
-//  conts.compute(fmap, contaminants);
-//  std::vector<std::tuple<double, double>> result = conts.getResults();
-
-//}
-
-//for (auto& pep_id : f.getPeptideIdentifications())
-//{
-//for (auto& pep_hit : pep_id.getHits())
-//{
-//String key = (pep_hit.getSequence().toUnmodifiedString());
-//if (digested_db_.find(key) == digested_db_.end())                    //Peptide is not in Contaminant database
-//{
-//int x = 0;
-//++total;
-//sum_total += f.getIntensity();
-//pep_hit.setMetaValue("is_contaminant", x);                         // add the "is_contaminant" identification
-//}
-//else                                                                 //Peptide is Contaminant
-//{
-//int x = 1;
-//++total;
-//++cont;
-//sum_total += f.getIntensity();
-//sum_cont += f.getIntensity();
-//pep_hit.setMetaValue("is_contaminant", x);
-//}
-//}
-//}
-
-//if (std::find(protein.peptides.begin(), protein.peptides.end(), (pep_hit.getSequence())) != protein.peptides.end())
-//{
-//int x = 1;
-//++total;
-//++cont;
-//sum_total += f.getIntensity();
-//sum_cont += f.getIntensity();
-//pep_hit.setMetaValue("is_contaminant", x);
-
-//}
-//else
-//{
-//int x = 0;
-//++total;
-//sum_total += f.getIntensity();
-//pep_hit.setMetaValue("is_contaminant", x);
-//}
-
-//           for (auto protein : digested_db_)
-//          {
-//            for (auto seq : protein.peptides)
-//           {
-//if (pep_hit.getSequence() == seq)
-//{
-//int x = 1;
-//++total;
-//++cont;
-//sum_total += f.getIntensity();
-//sum_cont += f.getIntensity();
-//pep_hit.setMetaValue("is_contaminant", x);
-//}
-//else
-//{
-//}
-//}
-//}
