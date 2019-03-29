@@ -91,7 +91,6 @@ namespace OpenMS
       }
 
       ++result[num_mc];
-      //result.insert(std::pair<UInt32, UInt32>(num_mc, 1));
 
       pep_id.getHits()[0].setMetaValue("missed_cleavages", num_mc);
     };

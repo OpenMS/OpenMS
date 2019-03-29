@@ -152,7 +152,6 @@ START_SECTION(void compute(FeatureMap& fmap))
   //test with valid input
   MissedCleavages mc;
   mc.compute(feature_map);
-  //std::vector<std::map<UInt64, UInt64>> result;
   auto result = mc.getResults();
 
   TEST_EQUAL(result[0].size(),2)
@@ -184,7 +183,6 @@ START_SECTION(void compute(FeatureMap& fmap))
   //empty feature map
   MissedCleavages mc_empty;
   mc_empty.compute(feature_map_empty);
-  //std::vector<std::map<UInt32, UInt32>> result_empty;
   auto result_empty = mc_empty.getResults();
 
   TEST_EQUAL(result_empty[0].empty(), true)
@@ -202,7 +200,6 @@ START_SECTION(void compute(FeatureMap& fmap))
   //Number of missed cleavages is greater than the allowed maximum number of missed cleavages.
   MissedCleavages mc_3;
   mc_3.compute(feature_map_3);
-  //std::vector<std::map<UInt32, UInt32>> result_3;
   auto result_3 = mc_3.getResults();
 
   TEST_EQUAL(result_3[0].size(),1)
