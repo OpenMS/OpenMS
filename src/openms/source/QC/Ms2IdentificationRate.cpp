@@ -97,6 +97,51 @@ namespace OpenMS
 
       //count peptideIdentifications
       UInt64 peptide_identification_counter{};
+
+      auto lam = [force_fdr, &peptide_identification_counter](PeptideIdentification const & x)
+      {
+        if (x.getHits().empty())
+        {
+          LOG_WARN << "Ms2IdentificationRate: There is a Peptideidentification without PeptideHits." << "\n";
+          return;
+        }
+        if (force_fdr)
+        {
+          ++ peptide_identification_counter;
+          return;
+        }
+        if (!(x.getHits()[0].metaValueExists("target_decoy")))
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr");
+        }
+        if (x.getHits()[0].getMetaValue("target_decoy") == "target")
+        {
+          ++ peptide_identification_counter;
+          return;
+        }
+      };
+
+      QCBase::iterateFeatureMap(feature_map, lam);
+
+      if (ms2_level_counter < peptide_identification_counter)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than MS2 spectra. Please check your data.");
+      }
+
+      //compute ratio
+      double ratio = (double) peptide_identification_counter / ms2_level_counter;
+
+      // struct that is made to store results
+      IdentificationRateData id_rate_data;
+
+      //store results
+      id_rate_data.num_peptide_identification = peptide_identification_counter;
+      id_rate_data.num_ms2_spectra = ms2_level_counter;
+      id_rate_data.identification_rate = ratio;
+
+      rate_result_.push_back(id_rate_data);
+
+      /*
       peptide_identification_counter += countPeptideId_(feature_map.getUnassignedPeptideIdentifications(), force_fdr);
 
       for (auto const &f : feature_map)
@@ -122,6 +167,7 @@ namespace OpenMS
       id_rate_data.identification_rate = ratio;
 
       rate_result_.push_back(id_rate_data);
+       */
   }
 
 
