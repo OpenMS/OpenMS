@@ -73,6 +73,7 @@ namespace OpenMS
     {
     public:
 
+      /// stream output for Status
       friend std::ostream& operator<<(std::ostream& os, const Status& stat);
 
       /// Constructors
@@ -177,6 +178,7 @@ namespace OpenMS
      */
     virtual Status requires() const = 0;
 
+    ///function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
     template <typename T>
     static void iterateFeatureMap(FeatureMap& fmap, T lambda)
     {
@@ -194,10 +196,9 @@ namespace OpenMS
       }
     }
   };
-  /// stream output for Status
+
   inline std::ostream& operator<<(std::ostream& os, const QCBase::Status& stat)
   {
     return os << stat.value_;
   }
-
 }

@@ -37,19 +37,21 @@
 
 namespace OpenMS
 {
-
+  //counts the number of MissedCleavages per PeptideIdentification.
+  //stores the result as a vector of maps and additionally in the FeatureMap
   void MissedCleavages::compute(FeatureMap& fmap)
   {
     std::map<UInt64, UInt64> result{};
 
+    //Warning if the FeatureMap is empty, result is 0
     if(fmap.empty())
     {
       LOG_WARN << "FeatureXML is empty.";
       mc_result_.push_back(result);
       return;
     }
-    //ProteinIdentification kann leer sein
 
+    //Exception if ProteinIdentification is empty
     if(fmap.getProteinIdentifications().empty())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing information in ProteinIdentifications.");
@@ -58,18 +60,18 @@ namespace OpenMS
     String enzyme = fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
     UInt64 max_mc = fmap.getProteinIdentifications()[0].getSearchParameters().missed_cleavages;
 
+    //Exception if digestion enzyme is not given
     if(enzyme == "unknown_enzyme")
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in FeatureMap detected. No computation possible.");
     }
 
-
-
+    //create a digestor, which doesn't allow any missed clevages
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(0);
 
-
+    //lambda function: digests the Sequence in PeptideHit and counts the number of missed cleavages
     auto l = [&digestor, &result, &max_mc](PeptideIdentification& pep_id)
     {
       if(pep_id.getHits().empty())
@@ -80,6 +82,7 @@ namespace OpenMS
       digestor.digest(pep_id.getHits()[0].getSequence(), digest_output);
       UInt64 num_mc = digest_output.size() - 1;
 
+      //Warning if number of missed cleavages is greater than the allowed maximum number of missed cleavages
       if (num_mc > max_mc)
       {
         LOG_WARN << "Number of missed cleavages is greater than the allowed maximum number of missed cleavages.";
@@ -97,6 +100,7 @@ namespace OpenMS
       pep_id.getHits()[0].setMetaValue("missed_cleavages", num_mc);
     };
 
+    //function of QCBase, which iterates through all PeptideIdentifications of a given FeatureMap and applies the given lambda function
     QCBase::iterateFeatureMap(fmap, l);
 
     mc_result_.push_back(result);
@@ -111,6 +115,6 @@ namespace OpenMS
 
   QCBase::Status MissedCleavages::requires() const
   {
-    return QCBase::Status() | QCBase::Requires::RAWMZML;
+    return QCBase::Status() | QCBase::Requires::PREFDRFEAT;
   }
 }// namespace OpenMS

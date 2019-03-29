@@ -70,7 +70,7 @@ std::vector<PeptideHit> pep_hits_1 = {pep_hit_one_cut};
 std::vector<PeptideHit> pep_hits_3 = {pep_hit_three_cuts};
 std::vector<PeptideHit> pep_hits_empty = {};
 
-//construct Peptideidentification with PeptideHits
+//construct PeptideIdentification with PeptideHits
 PeptideIdentification pep_id_0;
 pep_id_0.setHits(pep_hits_0);
 PeptideIdentification pep_id_1;
@@ -80,6 +80,7 @@ pep_id_empty.setHits(pep_hits_empty);
 PeptideIdentification pep_id_3;
 pep_id_3.setHits(pep_hits_3);
 
+//construct vectors of PeptideIdentifications
 std::vector<PeptideIdentification> pep_ids = {pep_id_0, pep_id_1, pep_id_empty};
 std::vector<PeptideIdentification> pep_ids_1 = {pep_id_1, pep_id_1};
 std::vector<PeptideIdentification> pep_ids_empty{};
@@ -101,7 +102,7 @@ FeatureMap feature_map_empty;
 FeatureMap feature_map_no_protein;
 FeatureMap feature_map_no_enzyme;
 
-
+//stores data in the FeatureMaps
 feature_map.push_back(feat_empty_pi);
 feature_map.push_back(feat);
 feature_map.push_back(feat_empty);
@@ -110,13 +111,16 @@ feature_map.getProteinIdentifications().resize(1);
 feature_map.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = *ProteaseDB::getInstance() -> getEnzyme("trypsin");
 feature_map.getProteinIdentifications()[0].getSearchParameters().missed_cleavages = 2;
 
+//FeatureMap with more missed cleavages than allowed
 feature_map_3.push_back(feat_3);
 feature_map_3.getProteinIdentifications().resize(1);
 feature_map_3.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.setName("trypsin");
 feature_map_3.getProteinIdentifications()[0].getSearchParameters().missed_cleavages = 2;
 
+//FeatureMap without ProteinIdentifications
 feature_map_no_protein.push_back(feat);
 
+//FeatureMap without given enzyme
 feature_map_no_enzyme.push_back(feat);
 ProteinIdentification prot_id;
 feature_map_no_enzyme.setProteinIdentifications({prot_id});
@@ -162,6 +166,7 @@ START_SECTION(void compute(FeatureMap& fmap))
 
   std::vector<UInt64 > frequ;
 
+  //test if result is stored as MetaInformation in PeptidHits in FeatureMap
   auto lam = [&frequ](PeptideIdentification& pep_id)
   {
     if(pep_id.getHits().empty())
@@ -192,6 +197,7 @@ START_SECTION(void compute(FeatureMap& fmap))
   //fmap.getProteinIdentifications().empty()
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, mc_no_protein.compute(feature_map_no_protein), "Missing information in ProteinIdentifications.")
 
+  //no given enzyme
   //enzyme == "unknown_enzyme"
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, mc_no_enzyme.compute(feature_map_no_enzyme), "No digestion enzyme in FeatureMap detected. No computation possible.")
 
@@ -209,7 +215,7 @@ END_SECTION
 
 START_SECTION(QCBase::Status requires() const override)
 {
-QCBase::Status stat = QCBase::Status() | QCBase::Requires::RAWMZML;
+QCBase::Status stat = QCBase::Status() | QCBase::Requires::PREFDRFEAT;
 TEST_EQUAL(stat, mc.requires())
 }
 END_SECTION

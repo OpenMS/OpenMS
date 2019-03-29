@@ -45,20 +45,42 @@
 
 namespace OpenMS
 {
+  /**
+   * @brief This class is a metric for the QualityControl-ToppTool.
+   *
+   * This class counts the number of MissedCleavages per PeptideIdentification given a FeatureMap.
+   * The result is stored as MetaInformation of the PeptideHits.
+   *
+   */
   class OPENMS_DLLAPI MissedCleavages : QCBase
   {
   public:
-    //constructor
+    ///constructor
     MissedCleavages() = default;
 
-    //destructor
+    ///destructor
     virtual ~MissedCleavages() = default;
 
+    /**
+     * @brief counts the number of MissedCleavages per PeptideIdentification.
+     *
+     * stores the result as a vector of maps and additionally in the FeatureMap
+     *
+     * @param fmap FeatureMap with SearchParameter in ProteinIdentification digestion_enzyme and max number of MissedCleavages
+     */
     void compute(FeatureMap& fmap);
+
+    /// returns the result
     const std::vector<std::map<UInt64, UInt64>>& getResults() const;
+
+    /**
+     * @brief Returns the input data requirements of the compute(...) function
+     * @return Status for PREFDRFEAT;
+     */
     QCBase::Status requires() const override;
 
   private:
+    /// container that stores results
     std::vector<std::map<UInt64, UInt64>> mc_result_;
   };
 } // namespace OpenMS
