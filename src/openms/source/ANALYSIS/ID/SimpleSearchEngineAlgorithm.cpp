@@ -390,7 +390,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
       if (precursor.size() == 1 && s_it->size() >= peptide_min_size_)
       {
-        int precursor_charge = precursor[0].getCharge();
+        Size precursor_charge = precursor[0].getCharge();
 
         if (precursor_charge < precursor_min_charge_ 
          || precursor_charge > precursor_max_charge_)
