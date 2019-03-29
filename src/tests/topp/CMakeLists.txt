@@ -1956,6 +1956,21 @@ set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_2_out1" PROPERTIES DEPENDS "
 add_test("TOPP_FeatureLinkerUnlabeledKD_3" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_input2.featureXML -out FeatureLinkerUnlabeledKD_3_output.tmp)
 add_test("TOPP_FeatureLinkerUnlabeledKD_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_3_output.consensusXML )
 set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_3_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_3")
+# use charge/adduct information different ways
+add_test("TOPP_FeatureLinkerUnlabeledKD_4" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out FeatureLinkerUnlabeledKD_4_output.tmp -algorithm:link:charge_merging Identical -algorithm:link:adduct_merging Any)
+ add_test("TOPP_FeatureLinkerUnlabeledKD_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_4_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_4")
+add_test("TOPP_FeatureLinkerUnlabeledKD_5" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out FeatureLinkerUnlabeledKD_5_output.tmp -algorithm:link:charge_merging With_charge_zero -algorithm:link:adduct_merging Any)
+ add_test("TOPP_FeatureLinkerUnlabeledKD_5_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_5_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_5_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_5")
+add_test("TOPP_FeatureLinkerUnlabeledKD_6" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out FeatureLinkerUnlabeledKD_6_output.tmp -algorithm:link:charge_merging Any -algorithm:link:adduct_merging With_unknown_adducts)
+ add_test("TOPP_FeatureLinkerUnlabeledKD_6_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_6_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_6_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_6_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_6")
+add_test("TOPP_FeatureLinkerUnlabeledKD_7" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out FeatureLinkerUnlabeledKD_7_output.tmp -algorithm:link:charge_merging Any -algorithm:link:adduct_merging Identical)
+ add_test("TOPP_FeatureLinkerUnlabeledKD_7_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_7_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_7_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_7_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_7")
+
+
 
 #------------------------------------------------------------------------------
 # IDMapper tests
@@ -2549,10 +2564,7 @@ set_tests_properties("UTILS_XFDR_6_out6" PROPERTIES DEPENDS "UTILS_XFDR_6")
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
-add_test("UTILS_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test
--ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in
-${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp
--database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
+add_test("UTILS_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
 add_test("UTILS_NucleicAcidSearchEngine_11_out" ${DIFF} -in1 NucleicAcidSearchEngine_11_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 add_test("UTILS_NucleicAcidSearchEngine_12_out" ${DIFF} -in1 NucleicAcidSearchEngine_12_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
 set_tests_properties("UTILS_NucleicAcidSearchEngine_11_out" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_1")
