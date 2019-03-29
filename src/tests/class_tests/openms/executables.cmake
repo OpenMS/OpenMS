@@ -17,9 +17,9 @@ set(concept_executables_list
 )
 
 set(qc_executables_list
+  MissedCleavages_test
   Ms2IdentificationRate_test
   TIC_test
-  MissedCleavages_test
 )
 
 set(datastructures_executables_list

@@ -145,26 +145,21 @@ delete ptr;
 }
 END_SECTION
 
-MissedCleavages mc;
-MissedCleavages mc_empty;
-MissedCleavages mc_no_protein;
-MissedCleavages mc_no_enzyme;
-MissedCleavages mc_3;
-
 
 //tests compute function
 START_SECTION(void compute(FeatureMap& fmap))
 {
   //test with valid input
+  MissedCleavages mc;
   mc.compute(feature_map);
-  std::vector<std::map<UInt64, UInt64>> result;
-  result = mc.getResults();
+  //std::vector<std::map<UInt64, UInt64>> result;
+  auto result = mc.getResults();
 
   TEST_EQUAL(result[0].size(),2)
   TEST_EQUAL(result[0][0], 1)
   TEST_EQUAL(result[0][1], 3)
 
-  std::vector<UInt64 > frequ;
+  std::vector<UInt32> frequ;
 
   //test if result is stored as MetaInformation in PeptidHits in FeatureMap
   auto lam = [&frequ](PeptideIdentification& pep_id)
@@ -187,24 +182,28 @@ START_SECTION(void compute(FeatureMap& fmap))
   TEST_EQUAL(frequ[3], 1)
 
   //empty feature map
+  MissedCleavages mc_empty;
   mc_empty.compute(feature_map_empty);
-  std::vector<std::map<UInt64, UInt64>> result_empty;
-  result_empty = mc_empty.getResults();
+  //std::vector<std::map<UInt32, UInt32>> result_empty;
+  auto result_empty = mc_empty.getResults();
 
   TEST_EQUAL(result_empty[0].empty(), true)
 
   //Missing informations in ProteinIdentifications
   //fmap.getProteinIdentifications().empty()
+  MissedCleavages mc_no_protein;
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, mc_no_protein.compute(feature_map_no_protein), "Missing information in ProteinIdentifications.")
 
   //no given enzyme
   //enzyme == "unknown_enzyme"
+  MissedCleavages mc_no_enzyme;
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, mc_no_enzyme.compute(feature_map_no_enzyme), "No digestion enzyme in FeatureMap detected. No computation possible.")
 
   //Number of missed cleavages is greater than the allowed maximum number of missed cleavages.
+  MissedCleavages mc_3;
   mc_3.compute(feature_map_3);
-  std::vector<std::map<UInt64, UInt64>> result_3;
-  result_3 = mc_3.getResults();
+  //std::vector<std::map<UInt32, UInt32>> result_3;
+  auto result_3 = mc_3.getResults();
 
   TEST_EQUAL(result_3[0].size(),1)
   TEST_EQUAL(result_3[0][3], 1)
@@ -215,8 +214,9 @@ END_SECTION
 
 START_SECTION(QCBase::Status requires() const override)
 {
-QCBase::Status stat = QCBase::Status() | QCBase::Requires::PREFDRFEAT;
-TEST_EQUAL(stat, mc.requires())
+  MissedCleavages mc;
+  QCBase::Status stat = QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
+  TEST_EQUAL(stat, mc.requires())
 }
 END_SECTION
 

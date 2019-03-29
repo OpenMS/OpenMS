@@ -64,23 +64,24 @@ namespace OpenMS
     /**
      * @brief counts the number of MissedCleavages per PeptideIdentification.
      *
-     * stores the result as a vector of maps and additionally in the FeatureMap
+     * the result is a key/value map: missed_cleavages --> counts
+     * additionally the first PeptideHit in each PeptideIdentification is annotated with metavalue missed_cleavages in the FeatureMap
      *
      * @param fmap FeatureMap with SearchParameter in ProteinIdentification digestion_enzyme and max number of MissedCleavages
      */
     void compute(FeatureMap& fmap);
 
     /// returns the result
-    const std::vector<std::map<UInt64, UInt64>>& getResults() const;
+    const std::vector<std::map<UInt32, UInt32>>& getResults() const;
 
     /**
      * @brief Returns the input data requirements of the compute(...) function
-     * @return Status for PREFDRFEAT;
+     * @return Status for POSTFDRFEAT;
      */
     QCBase::Status requires() const override;
 
   private:
     /// container that stores results
-    std::vector<std::map<UInt64, UInt64>> mc_result_;
+    std::vector<std::map<UInt32, UInt32>> mc_result_;
   };
 } // namespace OpenMS

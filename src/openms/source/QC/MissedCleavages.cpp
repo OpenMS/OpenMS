@@ -37,11 +37,13 @@
 
 namespace OpenMS
 {
+  typedef std::map<UInt32, UInt32> mapU32;
   //counts the number of MissedCleavages per PeptideIdentification.
   //stores the result as a vector of maps and additionally in the FeatureMap
   void MissedCleavages::compute(FeatureMap& fmap)
   {
-    std::map<UInt64, UInt64> result{};
+
+    mapU32 result{};
 
     //Warning if the FeatureMap is empty, result is 0
     if(fmap.empty())
@@ -58,7 +60,7 @@ namespace OpenMS
     }
 
     String enzyme = fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
-    UInt64 max_mc = fmap.getProteinIdentifications()[0].getSearchParameters().missed_cleavages;
+    auto max_mc = fmap.getProteinIdentifications()[0].getSearchParameters().missed_cleavages;
 
     //Exception if digestion enzyme is not given
     if(enzyme == "unknown_enzyme")
@@ -80,22 +82,16 @@ namespace OpenMS
       }
       std::vector<AASequence> digest_output;
       digestor.digest(pep_id.getHits()[0].getSequence(), digest_output);
-      UInt64 num_mc = digest_output.size() - 1;
+      size_t num_mc = digest_output.size() - 1;
 
       //Warning if number of missed cleavages is greater than the allowed maximum number of missed cleavages
       if (num_mc > max_mc)
       {
-        LOG_WARN << "Number of missed cleavages is greater than the allowed maximum number of missed cleavages.";
+        LOG_WARN << "Observed number of missed cleavages: " << num_mc << " is greater than: " << max_mc << " the allowed maximum number of missed cleavages during MS2-Search in: " << pep_id.getHits()[0].getSequence();
       }
 
-      if (result.count(num_mc) != 0)
-      {
-        ++result[num_mc];
-      }
-      else
-      {
-        result.insert(std::pair<UInt64, UInt64>(num_mc, 1));
-      }
+      ++result[num_mc];
+      //result.insert(std::pair<UInt32, UInt32>(num_mc, 1));
 
       pep_id.getHits()[0].setMetaValue("missed_cleavages", num_mc);
     };
@@ -107,7 +103,7 @@ namespace OpenMS
   }
 
 
-  const std::vector<std::map<UInt64, UInt64>>& MissedCleavages::getResults() const
+  const std::vector<mapU32>& MissedCleavages::getResults() const
   {
     return mc_result_;
   }
@@ -115,6 +111,6 @@ namespace OpenMS
 
   QCBase::Status MissedCleavages::requires() const
   {
-    return QCBase::Status() | QCBase::Requires::PREFDRFEAT;
+    return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }
 }// namespace OpenMS
