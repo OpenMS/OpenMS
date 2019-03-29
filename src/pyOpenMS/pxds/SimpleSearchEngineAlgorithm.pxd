@@ -3,6 +3,7 @@ from DefaultParamHandler cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 from String cimport *
+from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>" namespace "OpenMS":
  
