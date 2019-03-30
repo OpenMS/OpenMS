@@ -1284,27 +1284,27 @@ protected:
         fill_n(perChargePeakCount, param.chargeRange, 0);
         fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
 
-        bool **tmp = new bool*[param.chargeRange];
+        /*bool **tmp = new bool*[param.chargeRange];
         for(int i=0;i<param.chargeRange;i++) {
             auto t = new bool[param.maxIsotopeCount];
             fill_n(t, param.maxIsotopeCount, 0);
             tmp[i] = t;
-        }
+        }*/
 
         for (auto &p : pg.peaks) {
             if (p.isotopeIndex >= param.maxIsotopeCount) continue;
             int index = p.charge - param.minCharge;
             perIsotopeIntensity[p.isotopeIndex] += p.orgPeak->getIntensity();
-            if(!tmp[index][p.isotopeIndex]){
-                perChargePeakCount[index]++;
-            }
-            tmp[index][p.isotopeIndex] = true;
+            //if(!tmp[index][p.isotopeIndex]){
+            perChargePeakCount[index]++;
+            //}
+            //tmp[index][p.isotopeIndex] = true;
             //
         }
-        for(int i=0;i<param.chargeRange;i++) {
+        /*for(int i=0;i<param.chargeRange;i++) {
             delete[] tmp[i];
         }
-        delete[] tmp;
+        delete[] tmp;*/
     }
 
     bool isIsotopeIntensityQualified(double *perIsotopeIntensity, const Parameter &param) {
