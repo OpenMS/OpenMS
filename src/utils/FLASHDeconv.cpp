@@ -79,7 +79,7 @@ public:
                 iso.trimRight(.1 * iso.getMostAbundant().getIntensity());
                 isotopes.push_back(iso);
                 double norm = .0;
-                for (auto k = 0; k < iso.size(); k++) {
+                for (Size k = 0; k < iso.size(); k++) {
                     norm += iso[k].getIntensity() * iso[k].getIntensity();
                 }
                 norms.push_back(norm);
@@ -205,13 +205,13 @@ protected:
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minCDScore", "<...>", .7, "minimum charge distribution score threshold",
+        registerDoubleOption_("minCDScore", "<...>", .5, "minimum charge distribution score threshold",
                               false, true);
 
         registerDoubleOption_("maxM", "<max mass>", 150000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
         registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
-        registerDoubleOption_("minIsoScore", "<score 0-1>", .7, "minimum isotope cosine score threshold (0-1)", false,
+        registerDoubleOption_("minIsoScore", "<score 0-1>", .6, "minimum isotope cosine score threshold (0-1)", false,
                               true);
         registerDoubleOption_("minRTspan", "<min RT span in seconds>", 10.0,
                               "minimum RT span for feature", false, true);
@@ -415,7 +415,7 @@ protected:
 
         //mtd_param.setValue("mass_error_da", 2.0,// * (param.chargeRange+ param.minCharge),
         //                   "Allowed mass deviation (in da).");
-        mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 10, "");
+        mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 2, "");
         mtd_param.setValue("trace_termination_criterion", "outlier", "");
         //mtd_param.setValue("trace_termination_criterion", "sample_rate", "");
 
@@ -488,8 +488,8 @@ protected:
             for (Size k = 0; k < param.hCharges.size(); k++) {
                 auto &hc = param.hCharges[k];
                 float n = (float) (hc / 2);
-                auto harmonicFilter = log(1.0 / (i - n / hc + param.minCharge));
-                hBinOffsets[i][k] = (long) floor((filter[i] - harmonicFilter) * param.binWidth);
+                auto harmonicFilter = log(1.0 / (i + n / hc + param.minCharge));
+                hBinOffsets[i][k] = (long) round((filter[i] - harmonicFilter) * param.binWidth);
                 //harmonicFilter = log(1.0 / (i - n / hc + param.minCharge));
                 //hBinOffsets[i][k+1] = (long) round((filter[i] - harmonicFilter) * param.binWidth);
                 //harmonicFilter = log(1.0 / (i - n / hc + param.minCharge));
@@ -612,7 +612,7 @@ protected:
         fsm << "];" << endl;
 
         //fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
-        fs.flush();
+        //fs.flush();
         //fsm.flush();
     }
 
@@ -1156,6 +1156,7 @@ protected:
                     if (h) break;
                 }
                 if (h) continue;
+
                 isQualified[massBinIndex] =
                         ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount; //
             }
@@ -1246,6 +1247,7 @@ protected:
                 delete[] perIsotopeIntensity;
                 continue;
             }
+            //updatePerChargeIsotopeIntensity(perChargePeakCount, perIsotopeIntensity, pg, param);
 
             updatePerChargeIsotopeIntensity(perChargePeakCount, perIsotopeIntensity, pg, param);
 
@@ -1282,13 +1284,24 @@ protected:
         fill_n(perChargePeakCount, param.chargeRange, 0);
         fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
 
+        boost::dynamic_bitset<>* tmp = new boost::dynamic_bitset<>[param.chargeRange];
+        for(int i=0;i<param.chargeRange;i++) {
+            auto t = boost::dynamic_bitset<>(param.maxIsotopeCount);
+            tmp[i] = t;
+        }
+
         for (auto &p : pg.peaks) {
             if (p.isotopeIndex >= param.maxIsotopeCount) continue;
             int index = p.charge - param.minCharge;
-            double intensity = p.orgPeak->getIntensity();
-            perChargePeakCount[index]++;
-            perIsotopeIntensity[p.isotopeIndex] += intensity;
+            tmp[index][p.isotopeIndex] = true;
+            perIsotopeIntensity[p.isotopeIndex] += p.orgPeak->getIntensity();
+            //perChargePeakCount[index]++;
         }
+        for(int i=0;i<param.chargeRange;i++) {
+            perChargePeakCount[i] = tmp[i].count();
+        }
+
+
     }
 
     bool isIsotopeIntensityQualified(double *perIsotopeIntensity, const Parameter &param) {
@@ -1387,11 +1400,12 @@ protected:
         double n1 = .0;
         double n2 = .0;
         for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++) {
-            int &peakCount = (perChargePeakCount[k]);
+            int &peakCount = perChargePeakCount[k];
             if (peakCount <= 0) continue;
 
             if (k - prevCharge == 1) {
-                double ratio = abs(log2(peakCount / maxPeakCount));
+                 int dn = min(peakCount, perChargePeakCount[prevCharge]);
+                double ratio = log2(maxPeakCount/dn);
                 if (ratio <= 1.0)//
                     n1++;
                 else n2++;
@@ -1403,8 +1417,7 @@ protected:
     }
 
 
-    double getCosine(double *a, int &aStart, int &aEnd, IsotopeDistribution &b, int &bSize, double &bNorm, int offset = 0,
-                     bool dis = false) {
+    double getCosine(double *a, int &aStart, int &aEnd, IsotopeDistribution &b, int &bSize, double &bNorm, int offset = 0) {
         double n = 0, d1 = 0;
 
         for (int j = aStart; j < aEnd; j++) {
