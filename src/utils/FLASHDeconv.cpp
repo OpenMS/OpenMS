@@ -205,7 +205,7 @@ protected:
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minCDScore", "<...>", .5, "minimum charge distribution score threshold",
+        registerDoubleOption_("minCDScore", "<...>", .3, "minimum charge distribution score threshold",
                               false, true);
 
         registerDoubleOption_("maxM", "<max mass>", 150000.0, "maximum mass (Da)", false, false);
