@@ -339,7 +339,7 @@ namespace OpenMS
         {
           AASequence new_peptide = peptide;
           new_peptide.setModification(residue_index, variable_it->getFullName());
-          all_modified_peptides.push_back(new_peptide);
+          all_modified_peptides.push_back(std::move(new_peptide));
         }
       }
     }
