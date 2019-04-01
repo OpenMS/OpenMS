@@ -34,14 +34,40 @@
 
 #pragma once
 
+#include "OpenMS/QC/QCBase.h"
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI FragmentMassError : QCBase
   {
   public:
-    void compute(const MSExperiment&,  )
+
+    /// Default constructor
+    FragmentMassError() = default;
+
+    /// Destructor
+    virtual ~FragmentMassError() = default;
+
+
+    void compute(const MSExperiment& exp, FeatureMap& fmap);
+
+    /// returns results
+    const DoubleList& getResults() const;
+
+
+    /**
+    * @brief Returns the input data requirements of the compute(...) function
+    * @return Status for RAWMZML and POSTFDRFEAT
+    */
+    QCBase::Status requires() const override;
+
+
   private:
-    std::vector<double> result;
+    DoubleList result_;
   };
 
 } //namespace OpenMS
