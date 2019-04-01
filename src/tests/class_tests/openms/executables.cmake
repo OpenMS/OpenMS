@@ -19,6 +19,7 @@ set(concept_executables_list
 set(qc_executables_list
   MissedCleavages_test
   Ms2IdentificationRate_test
+  RTAlignment_test
   TIC_test
 )
 

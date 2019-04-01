@@ -54,14 +54,16 @@ namespace OpenMS
     /**
      * @brief Enum to encode a file type as a bit.
      */
-    enum class Requires :
-        UInt64
-    {
-      FAIL = 0,
-      RAWMZML = 1,
-      POSTFDRFEAT = 2,
-      PREFDRFEAT = 4,
-      CONTAMINANTS = 8
+			enum class Requires :
+					UInt64
+			{
+					FAIL = 0,
+					RAWMZML = 1,
+					POSTFDRFEAT = 2,
+					PREFDRFEAT = 4,
+					CONTAMINANTS = 8,
+					PREALIGNFEAT=16,
+					TRAFOALIGN=32
     };
     /**
      * @brief Storing a status as a UInt64
