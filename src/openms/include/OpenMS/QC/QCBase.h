@@ -178,20 +178,40 @@ namespace OpenMS
      */
     virtual Status requires() const = 0;
 
-    ///function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
-    template <typename T>
-    static void iterateFeatureMap(FeatureMap& fmap, T lambda)
-    {
-      for (PeptideIdentification& pep_id : fmap.getUnassignedPeptideIdentifications())
-      {
-        lambda(pep_id);
-      }
+    /**
+     * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
+     *
+     * PeptideIdentifications without PeptideHits are not passed to the Lambda function.
+     * The Lambda may or may not change the PeptideIdentification
+     */
 
-      for (Feature& features : fmap)
+    template <typename MAP, typename T>
+    static void iterateFeatureMap(MAP& fmap, T lambda)
+    {
+      for (auto& pep_id : fmap.getUnassignedPeptideIdentifications())
       {
-        for (PeptideIdentification& pep_id : features.getPeptideIdentifications())
+        if (pep_id.getHits().empty())
+        {
+          LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
+        }
+        else
         {
           lambda(pep_id);
+        }
+      }
+
+      for (auto& features : fmap)
+      {
+        for (auto& pep_id : features.getPeptideIdentifications())
+        {
+          if (pep_id.getHits().empty())
+          {
+            LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
+          }
+          else
+          {
+            lambda(pep_id);
+          }
         }
       }
     }
