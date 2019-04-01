@@ -34,9 +34,8 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
