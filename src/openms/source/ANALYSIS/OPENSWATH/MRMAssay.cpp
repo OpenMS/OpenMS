@@ -1073,7 +1073,7 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
       }
       else
       {
-        LOG_DEBUG << "[compound] Skipping " << compound.id << std::endl;
+        LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transistions."<< std::endl;
       }
     }
     exp.setTransitions(transitions);

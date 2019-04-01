@@ -237,7 +237,7 @@ protected:
     }
   }
  
-  // use std::unique with this function to retain the unique element with the highest precursor intenstiy
+  // use std::unique with this function to retain the unique element with the highest precursor intensity
   static bool compoundUnique_(const TOPPAssayGeneratorMetabo::PotentialTransitions& i, const TOPPAssayGeneratorMetabo::PotentialTransitions& j)
   {
     if (i.compound_name == j.compound_name && i.compound_adduct == j.compound_adduct && i.precursor_int > j.precursor_int)
@@ -260,6 +260,7 @@ protected:
     return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
   }
 
+  // method to extract a potential transistions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
   vector<PotentialTransitions> extractPotentialTransitions(const PeakMap& spectra,
                                                            const map<BaseFeature const *, vector<size_t>>& feature_ms2_spectra_map,
                                                            const double& precursor_rt_tol,
@@ -292,27 +293,36 @@ protected:
         if (!(min_distance_feature->getPeptideIdentifications().empty()) &&
             !(min_distance_feature->getPeptideIdentifications()[0].getHits().empty()))
         {
-          // Accurate Mass Search may provide multiple possible Hits
+          // accurate mass search may provide multiple possible Hits
+          // for heuristics use the identification with the smallest mz error (ppm)
+          double min_id_mz_error = std::numeric_limits<double>::max();
           for (unsigned int j = 0; j != min_distance_feature->getPeptideIdentifications()[0].getHits().size(); ++j)
           {
-            description = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description");
-            sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula");
-            adduct = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications");
+            double current_id_mz_error = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("mz_error_ppm");
+            // compare the absolute error absolute error
+            if (abs(current_id_mz_error) < min_id_mz_error)
+            {
+              description = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description");
+              sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula");
+              adduct = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications");
 
-            // change format of description [name] to name
-            description.erase(remove_if(begin(description),
-                                        end(description),
-                                        [](char c) { return c == '[' || c == ']'; }), end(description));
+              // change format of description [name] to name
+              description.erase(remove_if(begin(description),
+                                          end(description),
+                                          [](char c) { return c == '[' || c == ']'; }), end(description));
 
-            // change format of adduct information M+H;1+ -> [M+H]1+
-            String adduct_prefix = adduct.prefix(';').trim();
-            String adduct_suffix = adduct.suffix(';').trim();
-            adduct = "[" + adduct_prefix + "]" + adduct_suffix;
+              // change format of adduct information M+H;1+ -> [M+H]1+
+              String adduct_prefix = adduct.prefix(';').trim();
+              String adduct_suffix = adduct.suffix(';').trim();
+              adduct = "[" + adduct_prefix + "]" + adduct_suffix;
 
-            v_description.push_back(description);
-            v_sumformula.push_back(sumformula);
-            v_adduct.push_back(adduct);
+              min_id_mz_error = abs(current_id_mz_error);
+            }
           }
+          // use the identification with the lowest mass deviation
+          v_description.push_back(description);
+          v_sumformula.push_back(sumformula);
+          v_adduct.push_back(adduct);
         }
 
         double highest_precursor_mz = 0.0;
@@ -479,9 +489,8 @@ protected:
         }
         else
         {
-          // In this case use only the first sumformula of the element maybe safe the other ones someware else
-          // sumformula = ListUtils::concatenate(v_sumformula, ",");
-          sumformula = v_sumformula[0];
+          sumformula = ListUtils::concatenate(v_sumformula, ",");
+          // sumformula = v_sumformula[0];
           cmp.molecular_formula = sumformula;
         }
         if (adduct == "UNKNOWN")
@@ -490,10 +499,9 @@ protected:
         }
         else
         {
-          // TODO: if this is concatenated -> Elements are not read correctly e.g. "02,"
-          // In this case use only the first sumformula of the element maybe safe the other ones somewhere else
-          // adduct = ListUtils::concatenate(v_adduct, ",");
-          adduct = v_adduct[0];
+          // only one adduct for each descirption using the lowest mass error
+          // adduct = v_adduct[0];
+          adduct = ListUtils::concatenate(v_adduct, ",");
           cmp.setMetaValue("Adducts", adduct);
         }
 
@@ -555,6 +563,7 @@ protected:
       return v_pts;
   }
 
+  // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor with fragment annotation using SIRIUS
   vector<PotentialTransitions> extractPotentialTransitionsFragmentAnnotation(const vector< pair <SiriusMSFile::CompoundInfo, MSSpectrum> >& v_cmp_spec,
                                                                              const double& transition_threshold,
                                                                              const bool& use_exact_mass,
@@ -956,6 +965,7 @@ protected:
         }
 
         // pair compoundInfo and fragment annotation msspectrum
+        // TODO: same nativeID with two descriptions, which one is the right one
         for (auto cmp : v_cmpinfo)
         {
           for (auto spec_fa : annotated_spectra)
@@ -994,7 +1004,7 @@ protected:
             }
           }
         }
-  
+
         // remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
         for (auto& peakmap_it : spectra)
         {
