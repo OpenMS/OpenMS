@@ -80,9 +80,7 @@
   - @subpage UTILS_NovorAdapter - De novo sequencing from tandem mass spectrometry data.
   - @subpage UTILS_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
   - @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
-<!-- Documentation missing:
   - @subpage UTILS_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
--->
   - @subpage UTILS_SpecLibCreator - Creates an MSP-formatted spectral library.
   - @subpage UTILS_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
 
