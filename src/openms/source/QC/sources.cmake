@@ -3,7 +3,7 @@ set(directory source/QC)
 
 ### list all filenames of the directory here
 set(sources_list
-MZcalibration.cpp
+MzCalibration.cpp
 TIC
 )
 
