@@ -209,20 +209,20 @@ namespace OpenMS
     }
   }
 
-  vector<ResidueModification> OPXLHelper::getModificationsFromStringList(StringList modNames)
+  vector<const ResidueModification*> OPXLHelper::getModificationsFromStringList(StringList modNames)
   {
-    vector<ResidueModification> modifications;
+    vector<const ResidueModification*> modifications;
 
     // iterate over modification names and add to vector
     for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
     {
-      modifications.push_back(*ModificationsDB::getInstance()->getModification(*mod_it));
+      modifications.push_back(ModificationsDB::getInstance()->getModification(*mod_it));
     }
 
     return modifications;
   }
 
-  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide)
+  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, const std::vector<const ResidueModification*>& fixed_modifications, const std::vector<const ResidueModification*>& variable_modifications, Size max_variable_mods_per_peptide)
   {
     multimap<StringView, AASequence> processed_peptides;
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
@@ -317,8 +317,8 @@ namespace OpenMS
 
         // generate all modified variants of a peptide
         AASequence aas = AASequence::fromString(cit->getString());
-        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
-        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
+        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
         {
