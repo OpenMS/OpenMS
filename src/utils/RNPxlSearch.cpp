@@ -2432,16 +2432,13 @@ static void scoreShiftedFragments_(
           {
             already_processed = true;
           }
+          else
+          {
+            processed_petides.insert(*cit);
+          }
         }
 
         if (already_processed) { continue; }
-
-#ifdef _OPENMP
-#pragma omp critical (processed_peptides_access)
-#endif
-        {
-          processed_petides.insert(*cit);
-        }
 
 #ifdef _OPENMP
 #pragma omp atomic
