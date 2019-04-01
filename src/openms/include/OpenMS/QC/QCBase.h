@@ -178,7 +178,13 @@ namespace OpenMS
      */
     virtual Status requires() const = 0;
 
-    ///function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
+    /**
+     * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
+     *
+     * PeptideIdentifications without PeptideHits are not passed to the Lambda function.
+     * The Lambda may or may not change the PeptideIdentification
+     */
+
     template <typename MAP, typename T>
     static void iterateFeatureMap(MAP& fmap, T lambda)
     {

@@ -74,6 +74,11 @@ namespace OpenMS
 
       auto lam = [force_fdr, &peptide_identification_counter](const PeptideIdentification& pep_id)
       {
+        if (pep_id.getHits().empty())
+        {
+          LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
+          return;
+        }
         if (force_fdr)
         {
           ++ peptide_identification_counter;
