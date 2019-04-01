@@ -189,7 +189,7 @@ public:
    * An optimal p-set of isotopologues is the smallest set of isotopologues that, taken together, cover at
    * least p of the probability space (that is, their probabilities sum up to at least p). This means that
    * the computed spectrum is accurate to at least degree p, and that the L1 distance between the computed
-   * spectrum and the true spectrum is less than 1-p. The optimlity of the p-set means that it contains
+   * spectrum and the true spectrum is less than 1-p. The optimality of the p-set means that it contains
    * the most probable configurations - any isotopologues outside of the returned p-set have lower intensity
    * than the configurations in the p-set.
    *
@@ -250,7 +250,7 @@ protected:
    * This is the simplest generator - most users will however want to use IsoSpecTotalProbGeneratorWrapper.
    * The reason for it is that when thresholding by peak intensity one has no idea how far the obtained
    * spectrum is from a real spectrum. For example, consider human insulin: if the threshold is set at
-   * 0.1 of the most intense peak, then the peaks above the treshhold account for 99.7% of total probability
+   * 0.1 of the most intense peak, then the peaks above the threshold account for 99.7% of total probability
    * for water, 82% for substance P, only 60% for human insulin, and 23% for titin.
    * For a threshold of 0.01, the numbers will be: still 99.7% for water, 96% for substance P, 88% for human insulin
    * and 72% for titin (it also took 5 minutes on an average notebook computer to process the 17 billion configurations
@@ -259,7 +259,7 @@ protected:
    * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
    * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbGeneratorWrapper
    * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
-   * instead in most cases. The tradeoff is that it's (slightly) slower than Threshold algorithm. This speed gap will
+   * instead in most cases. The trade-off is that it's (slightly) slower than Threshold algorithm. This speed gap will
    * be dramatically improved with IsoSpec 2.0.
    *
    * @note The eligible isotopologues are NOT guaranteed to be generated in any particular order.
@@ -366,7 +366,7 @@ protected:
   * An optimal p-set of isotopologues is the smallest set of isotopologues that, taken together, cover at
   * least p of the probability space (that is, their probabilities sum up to at least p). This means that
   * the computed spectrum is accurate to at least degree p, and that the L1 distance between the computed
-  * spectrum and the true spectrum is less than 1-p. The optimlity of the p-set means that it contains
+  * spectrum and the true spectrum is less than 1-p. The optimality of the p-set means that it contains
   * the most probable configurations - any isotopologues outside of the returned p-set have lower intensity
   * than the configurations in the p-set.
   *
@@ -423,7 +423,7 @@ protected:
     * This is the simplest algorithm - most users will however want to use IsoSpecTotalProbWrapper.
     * The reason for it is that when thresholding by peak intensity one has no idea how far the obtained
     * spectrum is from a real spectrum. For example, consider human insulin: if the threshold is set at
-    * 0.1 of the most intense peak, then the peaks above the treshhold account for 99.7% of total probability
+    * 0.1 of the most intense peak, then the peaks above the threshold account for 99.7% of total probability
     * for water, 82% for substance P, only 60% for human insulin, and 23% for titin.
     * For a threshold of 0.01, the numbers will be: still 99.7% for water, 96% for substance P, 88% for human insulin
     * and 72% for titin (it also took 5 minutes on an average notebook computer to process the 17 billion configurations
@@ -432,7 +432,7 @@ protected:
     * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
     * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbGeneratorWrapper
     * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
-    * instead in most cases. The tradeoff is that it's (slightly) slower than Threshold algorithm. This speed gap will
+    * instead in most cases. The trade-off is that it's (slightly) slower than Threshold algorithm. This speed gap will
     * be dramatically improved with IsoSpec 2.0.
     *
     * @note The eligible isotopologues are NOT guaranteed to be generated in any particular order.

@@ -158,7 +158,7 @@ namespace OpenMS
     }
 
     /// Get probability stop condition (lower values generate fewer results)
-    double getThreshold()
+    double getThreshold() const
     {
       return stop_condition_;
     }
@@ -170,7 +170,7 @@ namespace OpenMS
     }
 
     /// Returns whether threshold is absolute or relative probability (ignored if use_total_prob is true, see class docu)
-    bool getAbsolute()
+    bool getAbsolute() const
     {
       return absolute_;
     }
@@ -182,7 +182,7 @@ namespace OpenMS
     }
 
     /// Returns whether total probability should be computed
-    bool getTotalProbability()
+    bool getTotalProbability() const
     {
       return use_total_prob_;
     }
