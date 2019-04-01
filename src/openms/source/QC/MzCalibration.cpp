@@ -40,10 +40,9 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <algorithm>
 
 using namespace std;
-
+ 
 namespace OpenMS
 {
 		// find original m/z Value, set meta value "mz_raw" and set meta value "mz_ref"
