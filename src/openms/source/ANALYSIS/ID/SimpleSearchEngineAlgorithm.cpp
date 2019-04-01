@@ -311,7 +311,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 #pragma omp critical (peptide_ids_access)
 #endif
         {
-          peptide_ids.push_back(pi);
+          peptide_ids.push_back(std::move(pi));
         }
       }
     }
@@ -483,17 +483,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           {
             already_processed = true;
           }
+	  else
+	  {
+            processed_petides.insert(c);
+	  }
         }
 
         // skip peptides that have already been processed
         if (already_processed) { continue; }
-
-#ifdef _OPENMP
-#pragma omp critical (processed_peptides_access)
-#endif
-        {
-          processed_petides.insert(c);
-        }
 
 #ifdef _OPENMP
 #pragma omp atomic
