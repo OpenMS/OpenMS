@@ -369,46 +369,47 @@ set(chemistry_executables_list
   AAIndex_test
   AASequence_test
   CoarseIsotopeDistribution_test
-  FineIsotopeDistribution_test
-  IsoSpec_test
+  CrossLinksDB_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
   EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
+  FineIsotopeDistribution_test
+  IMSAlphabetParser_test
+  IMSAlphabetTextParser_test
+  IMSAlphabet_test
+  IMSElement_test
+  IMSIsotopeDistribution_test
+  IntegerMassDecomposer_test
+  IsoSpec_test
   IsotopeDistribution_test
+  MassDecomposer_test
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
-  CrossLinksDB_test
   NASequence_test
+  NucleicAcidSpectrumGenerator_test
   ProteaseDB_test
   ProteaseDigestion_test
+  RNaseDigestion_test
+  RealMassDecomposer_test
   ResidueDB_test
   ResidueModification_test
   Residue_test
-  Ribonucleotide_test
   RibonucleotideDB_test
-  RNaseDigestion_test
+  Ribonucleotide_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
-  SvmTheoreticalSpectrumGenerator_test
-  SvmTheoreticalSpectrumGeneratorTrainer_test
   SvmTheoreticalSpectrumGeneratorSet_test
-  TheoreticalSpectrumGenerator_test
+  SvmTheoreticalSpectrumGeneratorTrainer_test
+  SvmTheoreticalSpectrumGenerator_test
   TheoreticalSpectrumGeneratorXLMS_test
+  TheoreticalSpectrumGenerator_test
   WeightWrapper_test
-  IMSAlphabetTextParser_test
-  IMSElement_test
-  IntegerMassDecomposer_test
-  IMSIsotopeDistribution_test
   Weights_test
-  IMSAlphabetParser_test
-  MassDecomposer_test
-  IMSAlphabet_test
-  RealMassDecomposer_test
 )
 
 

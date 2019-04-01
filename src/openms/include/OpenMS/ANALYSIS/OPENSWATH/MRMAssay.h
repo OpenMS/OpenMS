@@ -138,9 +138,9 @@ public:
     void detectingTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
     
     /**
-      @brief Filters transistions by number
+      @brief Filters transitions by intensity, only keeping the top N transitions
 
-      @param exp the input, unfiltered transitions
+      @param exp the transition list which will be filtered
       @param min_transitions the minimum number of transitions required per assay
       @param max_transitions the maximum number of transitions required per assay
 >>>>>>> origin/add/adducts_compound_osw

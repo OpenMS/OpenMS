@@ -236,7 +236,7 @@ namespace OpenMS
       }
     }
 
-        
+
     // Check that there is no significant peak (aka zeroth peak) to the left of the mono-isotopic peak (aka first peak).
     // Further check that there is no mistaken charge state identity. For example, check that a 2+ pattern isn't really a 4+ or 6+ pattern.
     // Let's use the double m/z tolerance when checking for these peaks.

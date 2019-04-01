@@ -45,17 +45,20 @@
 
   <b>Maintenance</b>
   - @subpage UTILS_INIUpdater - Updates INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
-  
+<!-- Documentation missing:
+  - @subpage UTILS_OpenMSInfo - Print build system information.
+-->
+
   <b>Signal Processing and Preprocessing</b>
-  - @subpage UTILS_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNP cross linking experiments.
+  - @subpage UTILS_LowMemPeakPickerHiRes - A tool for peak detection on streamed profile data.
+  - @subpage UTILS_LowMemPeakPickerHiResRandomAccess - A tool for peak detection on streamed profile data.
+  - @subpage UTILS_PeakPickerIterative - A tool for peak detection in profile data.
 
   <b>File Handling</b>
   - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
-  - @subpage UTILS_TargetedFileConverter - Converts targeted files (such as tsv or TraML files)
   - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
   - @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
   - @subpage UTILS_MzMLSplitter - Splits an mzML file into multiple parts
-  - @subpage UTILS_OpenSwathMzMLFileCacher - Caching of large mzML files
   - @subpage UTILS_SemanticValidator - SemanticValidator for analysisXML and mzML files.
   - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
 
@@ -66,37 +69,59 @@
   - @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
 
   <b>Protein/Peptide Identification</b>
+  - @subpage UTILS_DatabaseFilter - Filters a protein database in FASTA format according to one or multiple filtering criteria.
   - @subpage UTILS_DecoyDatabase - Creates decoy peptide databases from normal ones.
   - @subpage UTILS_Digestor - Digests a protein database in-silico.
   - @subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
   - @subpage UTILS_IDScoreSwitcher - Switches between different scores of peptide or protein hits in identification data.
-  - @subpage UTILS_RNPxl - Tool for RNP cross linking experiment analysis.
-  - @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
-  - @subpage UTILS_SpecLibCreator - Creates an MSP-formatted spectral library.
-  - @subpage UTILS_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
-  - @subpage UTILS_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
   - @subpage TOPP_MSFraggerAdapter - Peptide Identification with MSFragger.
   - @subpage UTILS_NovorAdapter - De novo sequencing from tandem mass spectrometry data.
+  - @subpage UTILS_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
+  - @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
+<!-- Documentation missing:
+  - @subpage UTILS_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
+-->
+  - @subpage UTILS_SpecLibCreator - Creates an MSP-formatted spectral library.
+  - @subpage UTILS_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
 
   <b>Cross-linking</b>
   - @subpage UTILS_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
   - @subpage UTILS_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
-  - @subpage UTILS_XFDR - Calculates false discovery rate estimates on crosslink identifications.
+<!-- Documentation missing:
+  - @subpage UTILS_RNPxlSearch - Annotates RNA-to-peptide cross-links in MS/MS spectra.
+-->
+  - @subpage UTILS_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
+  - @subpage UTILS_XFDR - Calculates false discovery rate estimates on cross-link identifications.
 
   <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluates pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
   - @subpage UTILS_FeatureFinderSuperHirn - Finds features using the SuperHirn algorithm (can handle centroided or profile data, see .ini file).
   - @subpage UTILS_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.  
-  - @subpage UTILS_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
-  - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
+  - @subpage UTILS_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
 
   <b>Metabolite Identification</b>
   - @subpage UTILS_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.
   - @subpage UTILS_MetaboliteSpectralMatcher - Identifies small molecules from tandem MS spectra.  
   - @subpage UTILS_SiriusAdapter - De novo metabolite identification.
+
+  <b>Targeted Experiments and OpenSWATH</b>
+  - @subpage TOPP_CorrelateMassTraces - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
+  - @subpage UTILS_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
+  - @subpage UTILS_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
+  - @subpage UTILS_OpenSwathDIAPreScoring - SWATH (data-independent acquisition) pre-scoring.
+  - @subpage UTILS_OpenSwathFileSplitter - A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window.
+  - @subpage UTILS_OpenSwathMzMLFileCacher - Caching of large mzML files
+  - @subpage UTILS_OpenSwathRewriteToFeatureXML - Rewrites results from mProphet back into featureXML.
+  - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
+  - @subpage UTILS_TargetedFileConverter - Converts targeted files (such as tsv or TraML files)
+
+  <b>RNA</b>
+  - @subpage UTILS_NucleicAcidSearchEngine - Search MzML files for oligonucleotides and their modifications.
+  - @subpage UTILS_RNADigestor - Digests an RNA sequence database in-silico.
+  - @subpage UTILS_RNAMassCalculator - Calculates masses and mass-to-charge ratios of RNA sequences.
 
   <b>Quality Control</b>
   - @subpage UTILS_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
@@ -108,37 +133,18 @@
   - @subpage UTILS_QCShrinker - Removes extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
 
   <b>Misc</b>
+  - @subpage TOPP_ClusterMassTraces - Cluster mass traces occurring in the same map together.
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
   - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
-  - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
   - @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
-  - @subpage UTILS_NucleicAcidSearchEngine - Search MzML files for oligonucleotides and their modifications.
-  - @subpage UTILS_OpenSwathDIAPreScoring - SWATH (data-independent acquisition) pre-scoring.
-  - @subpage UTILS_OpenSwathRewriteToFeatureXML - Rewrites results from mProphet back into featureXML.
-  - @subpage UTILS_OpenSwathFileSplitter - A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window.
-  - @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for SVM models as input for SvmTheoreticalSpectrumGenerator.
-  - @subpage UTILS_PeakPickerIterative - A tool for peak detection in profile data.
-  - @subpage UTILS_DatabaseFilter - Filters a protein database in FASTA format according to one or multiple filtering criteria.
-  - @subpage UTILS_TICCalculator - Calculates the TIC of a raw mass spectrometric file. 
-  - @subpage UTILS_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
-  - @subpage UTILS_LowMemPeakPickerHiRes - A tool for peak detection on streamed profile data.
-  - @subpage UTILS_LowMemPeakPickerHiResRandomAccess - A tool for peak detection on streamed profile data.
-  - @subpage UTILS_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
-  - @subpage TOPP_ClusterMassTraces - Cluster mass traces occurring in the same map together.
-  - @subpage TOPP_CorrelateMassTraces - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
-  - @subpage UTILS_IDDecoyProbability - Estimate probability of peptide hits.
-  - @subpage UTILS_RNADigestor - Digests an RNA sequence database in-silico.
-  - @subpage UTILS_RNAMassCalculator - Calculates masses and mass-to-charge ratios of RNA sequences.
-
-<!--
-  - TODO we need descriptions for all of these
-  - @subpage UTILS_OpenMSInfo - Print build system information.
-  - @subpage UTILS_RNPxlSearch - Annotate RNA to peptide cross-links in MS/MS spectra.
+<!-- Documentation missing:
   - @subpage UTILS_MetaProSIP - Performs proteinSIP on peptide features for elemental flux analysis.
-  - @subpage UTILS_SimpleSearchEngine - Annotates MS/MS spectra using SimpleSearchEngine.
 -->
+  - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
+  - @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for SVM models as input for SvmTheoreticalSpectrumGenerator.
+  - @subpage UTILS_TICCalculator - Calculates the TIC of a raw mass spectrometric file. 
 
   <b>Deprecated</b>
-  - @subpage UTILS_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. <br> WARNING: This utility is deprecated.
+  - @subpage UTILS_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. WARNING: This utility is deprecated.
 
 */

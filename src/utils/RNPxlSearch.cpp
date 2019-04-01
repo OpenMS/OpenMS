@@ -2506,16 +2506,16 @@ vector<ResidueModification> RNPxlSearch::RNPxlParameterParsing::getModifications
     if (modification.hasSubstring(" (N-term)"))
     {
       modification.substitute(" (N-term)", "");
-      rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
+      rm = *ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
     }
     else if (modification.hasSubstring(" (C-term)"))
     {
       modification.substitute(" (C-term)", "");
-      rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
+      rm = *ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
     }
     else
     {
-      rm = ModificationsDB::getInstance()->getModification(modification);
+      rm = *ModificationsDB::getInstance()->getModification(modification);
     }
     modifications.push_back(rm);
   }
