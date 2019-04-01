@@ -85,9 +85,9 @@ namespace OpenMS
      * @exception Exception::MissingInformation is thrown if the FeatureXML is empty
      * @exception Exception::MissingInformation is thrown if the mzML is empty
      * @exception Exception::MissingInformation is thrown if the experiment doesn't contain ms2 spectra
-     * @exception Exception::Precondition is thrown if there are more identifications than ms2 level
+     * @exception Exception::Precondition is thrown if there are more identifications than ms2 spectra
      */
-    void compute(FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
+    void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
 
     /// returns results
     const std::vector<IdentificationRateData>& getResults() const;
