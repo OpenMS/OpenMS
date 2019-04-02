@@ -67,26 +67,29 @@ namespace OpenMS
         ~MSstatsFile();
 
         // store label free experiemnt (MSstats)
-        void storeLFQ(const String& filename, ConsensusMap &consensus_map,
-                   const ExperimentalDesign& design,
-                   const StringList& reannotate_filenames,
-                   const bool is_isotope_label_type,
-                   const String& bioreplicate,
-                   const String& condition,
-                   const String& retention_time_summarization_method);
+        void storeLFQ(const String& filename, 
+                      ConsensusMap &consensus_map,
+                      const ExperimentalDesign& design,
+                      const StringList& reannotate_filenames,
+                      const bool is_isotope_label_type,
+                      const String& bioreplicate,
+                      const String& condition,
+                      const String& retention_time_summarization_method);
         
         // store isobaric experiment (MSstatsTMT)
-        void storeISO(const String& filename, ConsensusMap &consensus_map,
-                   const ExperimentalDesign& design,
-                   const StringList& reannotate_filenames,
-                   const String& bioreplicate,
-                   const String& condition,
-                   const String& mixture,
-                   const String& retention_time_summarization_method);
+        void storeISO(const String& filename, 
+                      ConsensusMap &consensus_map,
+                      const ExperimentalDesign& design,
+                      const StringList& reannotate_filenames,
+                      const String& bioreplicate,
+                      const String& condition,
+                      const String& mixture,
+                      const String& retention_time_summarization_method);
     
     private:
      
         const String na_string = "NA";
+        
         // The meta value of the peptide identification which is going to be used for the experimental design link
         const String meta_value_exp_design_key = "spectra_data";
 

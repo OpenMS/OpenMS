@@ -49,13 +49,13 @@ void checkConditionLFQ(const ExperimentalDesign::SampleSection& sampleSection, c
   // Sample Section must contain the column that contains the condition used for MSstats
   if (!sampleSection.hasFactor(condition))
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section of experimental design does not contain MSstats_Condition");
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section of the experimental design does not contain MSstats_Condition");
   }
 
   // Sample Section must contain column for the Bioreplicate
   if (!sampleSection.hasFactor(bioreplicate))
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section does not contain column for biological replicate");
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section of the experimental design does not contain MSstats_BioReplicate");
   } 
 }
 
@@ -66,7 +66,7 @@ void checkConditionISO(const ExperimentalDesign::SampleSection sampleSection, co
   // Sample Section must contain column for Mixture
   if (!sampleSection.hasFactor(mixture))
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section does not contain column for biological replicate");
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section of the experimental design does not contain MSstats_Mixture");
   } 
 }
 
@@ -77,6 +77,11 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
 {
   // Experimental Design file
   ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
+
+  if (design.getNumberOfLabels() != 1)
+  {
+     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Too many lables for a label-free quantitation experiments. Please select the appropriate method, or validate the experimental desing.");
+  }
 
   checkConditionLFQ(sampleSection, bioreplicate, condition);
 
@@ -286,6 +291,8 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
               const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
               msstats_run_to_openms_fractiongroup[run] = openms_fractiongroup;
               
+              std::cout << " Iam able to make it up to here!" << std::endl;
+
               // Assemble MSstats line
               MSstatsLine prefix(
                       has_fraction,
@@ -391,7 +398,8 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
       }
     }
   }
-  std::cout << "more than one peptide ion in the same run: " << count_similar << std::endl;
+  
+  std::cout << "worked up to store" << std::endl;   
 
   // Store the final assembled CSV file
   csv_out.store(filename);
