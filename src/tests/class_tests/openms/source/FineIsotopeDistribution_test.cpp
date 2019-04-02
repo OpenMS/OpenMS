@@ -39,7 +39,10 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace OpenMS;
 using namespace std;
