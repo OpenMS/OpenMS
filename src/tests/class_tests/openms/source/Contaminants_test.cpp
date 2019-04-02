@@ -157,9 +157,10 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   contaminantsFile.push_back(contaminantsProtein);
 
   //test if it aborts when featureMap is empty
-  conts2.compute(emptyFmap, contaminantsFile);
-  std::vector<Contaminants::ContaminantsSummary> result2 = conts2.getResults();
-  ABORT_IF(!result2.empty());
+  //conts2.compute(emptyFmap, contaminantsFile);
+  //std::vector<Contaminants::ContaminantsSummary> result2 = conts2.getResults();
+  //ABORT_IF(!result2.empty());
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, conts2.compute(emptyFmap, contaminantsFile), "FeatureMap is empty.");
 
   //test without given missed cleavages and without given enzyme
   conts3.compute(fmap, contaminantsFile);

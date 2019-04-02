@@ -49,14 +49,12 @@ namespace OpenMS
     //empty FeatureMap
     if (features.empty())
     {
-      LOG_WARN << "FeatureMap is empty." << "\n";
-      return;
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureMap is empty.");
     }
     //empty contaminants database
     if (contaminants.empty())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No contaminants provided.");
-      return;
     }
     //fill the unordered set once with the digested contaminants database
     if (digested_db_.empty())
