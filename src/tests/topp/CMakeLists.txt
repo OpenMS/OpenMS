@@ -1138,9 +1138,13 @@ set_tests_properties("TOPP_MascotAdapter_2_out1" PROPERTIES DEPENDS "TOPP_Mascot
 
 #------------------------------------------------------------------------------
 # MSstatsConverter tests
-add_test("TOPP_MSstatsConverter_1" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_1_in.consensusXML -method "LFQ" -retention_time_summarization_method max -in_design ${DATA_DIR_TOPP}/MSstatsConverter_1_design.tsv -out MSstatsConverter_1_out.tmp)
+add_test("TOPP_MSstatsConverter_1" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_1_in.consensusXML -method "LFQ" -retention_time_summarization_method max -in_design ${DATA_DIR_TOPP}/MSstatsConverter_1_design.tsv -out MSstatsConverter_1_out.tmp -msstats_bioreplicate MSstats_BioReplicate -msstats_condition MSstats_Condition)
 add_test("TOPP_MSstatsConverter_1_out1" ${DIFF} -in1 MSstatsConverter_1_out.tmp -in2 ${DATA_DIR_TOPP}/MSstatsConverter_1_out.csv )
 set_tests_properties("TOPP_MSstatsConverter_1_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_1")
+
+add_test("TOPP_MSstatsConverter_2" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_2_in.consensusXML -method "ISO" -retention_time_summarization_method max -in_design ${DATA_DIR_TOPP}/MSstatsConverter_2_design.tsv -out MSstatsConverter_2_out.tmp -msstats_bioreplicate MSstats_BioReplicate -msstats_condition MSstats_Condition -msstats_mixture MSstats_Mixture)
+add_test("TOPP_MSstatsConverter_2_out1" ${DIFF} -in1 MSstatsConverter_2_out.tmp -in2 ${DATA_DIR_TOPP}/MSstatsConverter_2_out.csv )
+set_tests_properties("TOPP_MSstatsConverter_2_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_2")
 
 ### SpecLibSearcher tests
 add_test("TOPP_SpecLibSearcher_1" ${TOPP_BIN_PATH}/SpecLibSearcher -test -ini ${DATA_DIR_TOPP}/SpecLibSearcher_1_parameters.ini -in ${DATA_DIR_TOPP}/SpecLibSearcher_1.mzML -lib ${DATA_DIR_TOPP}/SpecLibSearcher_1.MSP -out SpecLibSearcher_1.tmp)

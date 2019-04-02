@@ -554,7 +554,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
         const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
-        const String & sequence = pep_hit.getSequence().toUnmodifiedString();
+        const String & sequence = pep_hit.getSequence().toString();
           
           for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
           {
