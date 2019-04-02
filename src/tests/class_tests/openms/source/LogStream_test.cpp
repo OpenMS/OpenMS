@@ -87,8 +87,9 @@ START_SECTION(([EXTRA] OpenMP - test))
   Log_info.remove(cout);
 
   {
-    // create a long string that is of similar length as the buffer length in
-    // to ensure buffering and flushing works correctly LogStream.cpp
+    // create a long string that is of similar length as the buffer length to
+    // ensure buffering and flushing works correctly LogStream.cpp even in a
+    // multi-threaded environment.
     std::string long_str;
     for (int k = 0; k < 32768/2; k++) if (char(k) != 0) long_str += char(k);
 
