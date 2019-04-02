@@ -148,12 +148,9 @@ END_SECTION
 
 START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants)))
 {
-  Contaminants conts1, conts2, conts3, conts4, conts5, conts6;
+  Contaminants conts1, conts2, conts3, conts4, conts5;
 
-  //test if it aborts when contaminant database is empty
-  conts1.compute(fmap, contaminantsFile);
-  std::vector<Contaminants::ContaminantsSummary> result1 = conts1.getResults();
-  ABORT_IF(!result1.empty());
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, conts1.compute(fmap, contaminantsFile), "No contaminants provided.");
 
   //set contaminant database "contaminantsFile"
   FASTAFile::FASTAEntry contaminantsProtein("test_protein", "protein consists of only Alanine or Cytosine", "AAAAAAAAAAKRAAAAAAAAAAKRCCCCCCCCCCKRCCCCCCCCCC");
@@ -164,17 +161,12 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   std::vector<Contaminants::ContaminantsSummary> result2 = conts2.getResults();
   ABORT_IF(!result2.empty());
 
-  //test if it aborts when features are empty
-  conts6.compute(emptyFeaturesFmap, contaminantsFile);
-  std::vector<Contaminants::ContaminantsSummary> result6 = conts6.getResults();
-  ABORT_IF(!result6.empty());
-
   //test without given missed cleavages and without given enzyme
   conts3.compute(fmap, contaminantsFile);
   std::vector<Contaminants::ContaminantsSummary> result3 = conts3.getResults();
   ABORT_IF(result3.size() != 1);
   TEST_REAL_SIMILAR(result3[0].assigned_contaminants_ratio, 0.0);
-  TEST_REAL_SIMILAR(result3[0].assigned_contaminants_intensity, 0.0);
+  TEST_REAL_SIMILAR(result3[0].assigned_contaminants_intensity_ratio, 0.0);
   TEST_REAL_SIMILAR(result3[0].unassigned_contaminants_ratio, 0.0);
   TEST_REAL_SIMILAR(result3[0].all_contaminants_ratio, 0.0);
 
@@ -186,7 +178,7 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   std::vector<Contaminants::ContaminantsSummary> result4 = conts4.getResults();
   ABORT_IF(result4.size() != 1);
   TEST_REAL_SIMILAR(result4[0].assigned_contaminants_ratio, 3/5.0);
-  TEST_REAL_SIMILAR(result4[0].assigned_contaminants_intensity, 1/2.0);
+  TEST_REAL_SIMILAR(result4[0].assigned_contaminants_intensity_ratio, 1/2.0);
   TEST_REAL_SIMILAR(result4[0].unassigned_contaminants_ratio, 1/3.0);
   TEST_REAL_SIMILAR(result4[0].all_contaminants_ratio, 4/8.0);
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
@@ -206,7 +198,7 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   std::vector<Contaminants::ContaminantsSummary> result5 = conts5.getResults();
   ABORT_IF(result5.size() != 1);
   TEST_REAL_SIMILAR(result5[0].assigned_contaminants_ratio, 4/5.0);
-  TEST_REAL_SIMILAR(result5[0].assigned_contaminants_intensity, 5/6.0);
+  TEST_REAL_SIMILAR(result5[0].assigned_contaminants_intensity_ratio, 5/6.0);
   TEST_REAL_SIMILAR(result5[0].unassigned_contaminants_ratio, 2/3.0);
   TEST_REAL_SIMILAR(result5[0].all_contaminants_ratio, 6/8.0);
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);

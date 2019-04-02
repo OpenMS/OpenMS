@@ -44,7 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  void Contaminants::compute(FeatureMap &features, const std::vector<FASTAFile::FASTAEntry> &contaminants)
+  void Contaminants::compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants)
   {
     //empty FeatureMap
     if (features.empty())
@@ -52,16 +52,10 @@ namespace OpenMS
       LOG_WARN << "FeatureMap is empty." << "\n";
       return;
     }
-    //empty features
-    if (features[0].getPeptideIdentifications().empty())
-    {
-      LOG_WARN << "Features are empty." << "\n";
-      return;
-    }
     //empty contaminants database
     if (contaminants.empty())
     {
-      LOG_WARN << "FASTAFile is empty." << "\n";
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No contaminants provided.");
       return;
     }
     //fill the unordered set once with the digested contaminants database
@@ -74,7 +68,7 @@ namespace OpenMS
       if (enzyme == "unknown_enzyme")
       {
         LOG_WARN << "No digestion enzyme in featureMap detected." << "\n";
-        //contaminants database will not be digested
+        //contaminants database will not get digested
       }
       else
       {
@@ -89,10 +83,10 @@ namespace OpenMS
 
 
       //digest the contaminants database and add the peptides into the unordered set
-      for (const FASTAFile::FASTAEntry &fe : contaminants)
+      for (const FASTAFile::FASTAEntry& fe : contaminants)
       {
         vector<AASequence> current_digest;
-        //No digestion enzyme is given. Contaminant database will not get digested.
+        //No digestion enzyme is given. Contaminants database will not get digested.
         if (enzyme == "unknown_enzyme")
         {
           current_digest.push_back(AASequence::fromString(fe.sequence));
@@ -104,7 +98,7 @@ namespace OpenMS
         }
 
         //fill unordered set digested_db_ with digested sequences
-        for (auto const &s : current_digest)
+        for (auto const& s : current_digest)
         {
           digested_db_.insert(s.toUnmodifiedString());
         }
@@ -118,7 +112,7 @@ namespace OpenMS
 
     //Check if peptides of featureMap are contaminants or not and add is_contaminant = 0/1 to the peptideidentification.
     //If so, raise contaminants ratio.
-    for (auto &f : features)
+    for (auto& f : features)
     {
       if (f.getPeptideIdentifications().size() > 1)
       {
@@ -128,16 +122,16 @@ namespace OpenMS
                                          "Too many peptideidentifications. Run IDConflictResolver first to remove ambiguities!");
       }
 
-      // it exists one or zero Peptideidentifications in feature f
-      if (f.getPeptideIdentifications()[0].getHits().empty())
-      {
-        continue;
-      }
+      // it exists one or zero peptideidentifications in feature f
+      if (f.getPeptideIdentifications().empty() || f.getPeptideIdentifications()[0].getHits().empty()) {continue;}
 
-      // the one existing peptideidentification has atleast one getHits entry
-      auto &pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
-      String key = (pep_hit.getSequence().toUnmodifiedString());
-      this->compare(key, f, total, cont, sum_total, sum_cont);
+      else
+      {
+        // the one existing peptideidentification has atleast one getHits entry
+        auto &pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
+        String key = (pep_hit.getSequence().toUnmodifiedString());
+        this->compare_(key, f, total, cont, sum_total, sum_cont);
+      }
     }
     //save the contaminants ratio in object before searching through the unassigned peptideidentifications
     ContaminantsSummary final;
@@ -148,11 +142,15 @@ namespace OpenMS
 
     //Change the assigned contaminants ratio to total contaminants ratio by adding the unassigned.
     //Additionally save the unassigned contaminants ratio and add the is_contaminant = 0/1 to the unassigned peptideidentifications.
-    for (auto &fu : features.getUnassignedPeptideIdentifications())
+    if (features.getUnassignedPeptideIdentifications().empty())
     {
-      auto &fu_hit = fu.getHits()[0];
+      return;
+    }
+    for (auto& fu : features.getUnassignedPeptideIdentifications())
+    {
+      if ( fu.getHits().empty()) continue;
+      auto& fu_hit = fu.getHits()[0];
       String key = (fu_hit.getSequence().toUnmodifiedString());
-      ++total;
       ++utotal;
 
       //peptide is not in contaminant database
@@ -163,34 +161,35 @@ namespace OpenMS
       }
 
       //peptide is contaminant
-      ++cont;
       ++ucont;
       fu.setMetaValue("is_contaminant", 1);
     }
+    total += utotal;
+    cont += ucont;
 
     //save all ratios and the intensity to the object
     final.all_contaminants_ratio = (cont / double(total));
     final.unassigned_contaminants_ratio = (ucont / double(utotal));
-    final.assigned_contaminants_intensity = (sum_cont / sum_total);
+    final.assigned_contaminants_intensity_ratio = (sum_cont / sum_total);
 
 
     //add the object to the results vector
     results_.push_back(final); //save all ratios in results_ as tuples
   }
 
-  const std::vector<Contaminants::ContaminantsSummary> &Contaminants::getResults()
+  const std::vector<Contaminants::ContaminantsSummary>& Contaminants::getResults()
   {
     return results_;
   }
 
   //Check if peptide is in contaminants database or not and add the is_contaminant = 0/1.
   // If so, raise the contaminant ratio.
-  void Contaminants::compare(const String &key,
-                             Feature &f,
-                             Int64 &total,
-                             Int64 &cont,
-                             double &sum_total,
-                             double &sum_cont)
+  void Contaminants::compare_(const String& key,
+                             Feature& f,
+                             Int64& total,
+                             Int64& cont,
+                             double& sum_total,
+                             double& sum_cont)
   {
     ++total;
     sum_total += f.getIntensity();

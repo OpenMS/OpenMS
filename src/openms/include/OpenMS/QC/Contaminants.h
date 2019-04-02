@@ -47,6 +47,7 @@ namespace OpenMS
       QCBase
   {
   public:
+    /// structure for storing results
     struct ContaminantsSummary
     {
       ///(# contaminants in assigned/ #peptides in assigned)
@@ -56,7 +57,7 @@ namespace OpenMS
       ///(# all contaminants/ #peptides in all)
       double all_contaminants_ratio;
       ///(intensity of contaminants in assigned/ intensity of peptides in assigned)
-      double assigned_contaminants_intensity;
+      double assigned_contaminants_intensity_ratio;
     };
     ///Constructor
     Contaminants() = default;
@@ -67,6 +68,9 @@ namespace OpenMS
      * "is_contaminant" identification is added to the peptideidentification of each feature and to all unsignedpeptideidentification
      * @param features input FeatureMap with peptideidentifications of features
      * @param contaminants vector of FASTAEntries that need to be digested to check whether a peptide is a contaminant or not
+     * @return ratios of assigned contaminants, unassigned contaminants, overall contaminants and intensity of assigned contaminants
+     * @exception Exception::MissingInformation if the contaminants database is empty
+     * @warning LOG_WARN if no enzyme is given
      */
     void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
     const std::vector<Contaminants::ContaminantsSummary>& getResults();
@@ -74,6 +78,6 @@ namespace OpenMS
   private:
     std::vector<Contaminants::ContaminantsSummary> results_;
     std::unordered_set<String> digested_db_;
-    void compare(const String& key, Feature& f, Int64& total, Int64& cont, double& sum_total, double& sum_cont);
+    void compare_(const String& key, Feature& f, Int64& total, Int64& cont, double& sum_total, double& sum_cont);
   };
 }
