@@ -55,7 +55,8 @@ namespace OpenMS
     static void applyFixedModifications(const std::vector<const ResidueModification*>& fixed_mods, AASequence& peptide);
 
     // Applies variable modifications to a single peptide. If keep_original is set the original (e.g. unmodified version) is also returned
-    static void applyVariableModifications(const std::vector<const ResidueModification*>& var_mods, 
+    static void applyVariableModifications(
+     const std::vector<const ResidueModification*>& var_mods, 
      const AASequence& peptide, 
      Size max_variable_mods_per_peptide, 
      std::vector<AASequence>& all_modified_peptides, 

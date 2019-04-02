@@ -248,7 +248,10 @@ namespace OpenMS
       } while (next_permutation(subset_mask.begin(), subset_mask.end()));
     }
     // add modified version of the current peptide to the list of all peptides
-    all_modified_peptides.insert(all_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
+    all_modified_peptides.insert(
+      all_modified_peptides.end(), 
+      make_move_iterator(modified_peptides.begin()), 
+      make_move_iterator(modified_peptides.end()));
   }
 
 
@@ -323,18 +326,15 @@ namespace OpenMS
 
       Size residue_index = residue_it - peptide.begin();
 
-      //determine compatibility of variable modifications
+      // determine compatibility of variable modifications
       for (auto const & v : var_mods)
       {
         // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode()[0] != v->getOrigin())
-        {
-          continue;
-        }
-        bool is_compatible = false;
+        if (residue_it->getOneLetterCode()[0] != v->getOrigin()) { continue; }
 
         // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
         const ResidueModification::TermSpecificity& term_spec = v->getTermSpecificity();
+        bool is_compatible(false);
         if (term_spec == ResidueModification::ANYWHERE)
         {
           is_compatible = true;
