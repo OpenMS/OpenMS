@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <numeric>
 
 namespace OpenMS
@@ -108,13 +109,6 @@ namespace OpenMS
       static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, const std::vector< double >& spectrum_precursors, std::vector< int >& precursor_correction_positions, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
 
       /**
-       * @brief A helper function, that turns a StringList with modification names into a vector of ResidueModifications
-       * @param modNames The list of modification names
-       * @return A vector of modifications
-       */
-      static std::vector<const ResidueModification*> getModificationsFromStringList(StringList modNames);
-
-      /**
        * @brief Digests a database with the given EnzymaticDigestion settings and precomputes masses for all peptides
 
           Also keeps track of the peptides at protein terminals and builds peptide candidates with all possible modification patterns
@@ -134,7 +128,11 @@ namespace OpenMS
        * @param c_term_linker True, if the cross-linker can react with the C-terminal of a protein
        * @return A vector of AASeqWithMass containing the peptides, their masses and information about terminal peptides
        */
-      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, const std::vector<const ResidueModification*>& fixed_modifications, const std::vector<const ResidueModification*>& variable_modifications, Size max_variable_mods_per_peptide);
+      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, 
+        EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2,
+        const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
+        const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
+        Size max_variable_mods_per_peptide);
 
       /**
        * @brief Builds specific cross-link candidates with all possible combinations of linked positions from peptide pairs. Used to build candidates for the precursor mass window of a single MS2 spectrum.

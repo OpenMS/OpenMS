@@ -173,18 +173,6 @@ namespace OpenMS
   }
 
   // static
-  vector<const ResidueModification*> SimpleSearchEngineAlgorithm::getModifications_(const StringList& modNames)
-  {
-    vector<const ResidueModification*> modifications;
-    // iterate over modification names and add to vector
-    for (const String& m : modNames)
-    {
-      modifications.push_back(ModificationsDB::getInstance()->getModification(m));
-    }
-    return modifications;
-  }
-
-  // static
   void SimpleSearchEngineAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     // filter MS2 map
@@ -239,8 +227,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       std::vector<ProteinIdentification>& protein_ids, 
       std::vector<PeptideIdentification>& peptide_ids, 
       Size top_hits,
-      const std::vector<const ResidueModification*>& fixed_modifications, 
-      const std::vector<const ResidueModification*>& variable_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
       Size max_variable_mods_per_peptide,
       const StringList& modifications_fixed,
       const StringList& modifications_variable,
@@ -361,8 +349,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
 
-    vector<const ResidueModification*> fixed_modifications = getModifications_(modifications_fixed_);
-    vector<const ResidueModification*> variable_modifications = getModifications_(modifications_variable_);
+    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
     // load MS2 map
     PeakMap spectra;

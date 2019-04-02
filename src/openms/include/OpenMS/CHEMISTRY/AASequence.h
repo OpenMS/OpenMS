@@ -442,6 +442,9 @@ protected:
     /// if an empty string is passed replaces the residue with its unmodified version 
     void setModification(Size index, const String& modification);
 
+    // sets the (potentially modified) residue
+    void setModification(Size index, const Residue* modification) { peptide_[index] = modification; }
+
     /// sets the N-terminal modification
     void setNTerminalModification(const String& modification);
 
