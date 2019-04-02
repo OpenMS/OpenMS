@@ -40,75 +40,115 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
  
 namespace OpenMS
 {
-		// find original m/z Value, set meta value "mz_raw" and set meta value "mz_ref"
-		void MzCalibration::compute(FeatureMap& features, const MSExperiment& exp)
+	// find original m/z Value, set meta value "mz_raw" and set meta value "mz_ref"
+	void MzCalibration::compute(FeatureMap& features, const MSExperiment& exp)
+	{
+		if (features.empty())
 		{
-				if (features.empty())
-				{
-						LOG_WARN << "The FeatureMap is empty.\n";
-				}
-				if (exp.empty())
-				{
-						throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The PeakMap is empty.");
-				}
-
-				//set meta values for the first hit of all PeptideIdentifications of all features
-				for (Feature& feature : features)
-				{
-						for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
-						{
-								if (peptide_ID.hasRT())
-								{
-										peptide_ID.getHits()[0].setMetaValue("mz_raw", getMZraw_(peptide_ID.getRT(), exp));
-										peptide_ID.getHits()[0].setMetaValue("mz_ref", (peptide_ID.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, peptide_ID.getHits()[0].getCharge())) / peptide_ID.getHits()[0].getCharge());
-								}
-						}
-				}
-				//set meta values for the first hit of all unasssigned PeptideIdentifications
-				for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
-				{
-						if (unassigned_ID.hasRT())
-						{
-								unassigned_ID.getHits()[0].setMetaValue("mz_raw", getMZraw_(unassigned_ID.getRT(), exp));
-								unassigned_ID.getHits()[0].setMetaValue("mz_ref", (unassigned_ID.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, unassigned_ID.getHits()[0].getCharge())) / unassigned_ID.getHits()[0].getCharge());
-						}
-				}
+			LOG_WARN << "The FeatureMap is empty.\n";
 		}
-		//required input files
-		QCBase::Status MzCalibration::requires() const
+		if (exp.empty())
 		{
-				return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
+			throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The PeakMap is empty.");
 		}
 
-		// search matching RT-time in MSExperiment before calibration, and return the m/z value
-		double MzCalibration::getMZraw_(double rt, const MSExperiment& exp) const
+		//set meta values for the first hit of all PeptideIdentifications of all features
+		for (Feature& feature : features)
 		{
-				MSExperiment::ConstIterator it = exp.RTBegin(rt - EPSILON_);
-				
-				if (it == exp.end())
+			if (feature.getPeptideIdentifications().empty())
+			{
+				LOG_WARN << "A Feature is empty.\n";
+				continue;
+			}
+
+			for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
+			{
+				if (!peptide_ID.hasRT())
 				{
-						throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
+					LOG_WARN << "A PeptideIdentification has no retention time value.\n";
+					continue;
 				}
 
-				const auto& spectrum = *it;
-				
-				if (spectrum.getRT() - rt > EPSILON_)
-				{ 
-						throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
+				if (peptide_ID.hasRT())
+				{
+					if (peptide_ID.getHits().empty())
+					{
+						LOG_WARN << "A PeptideHit is empty.\n";
+						continue;
+					}
+					mz_raw_ = getMZraw_(peptide_ID.getRT(), exp);
+					mz_ref_ = peptide_ID.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, peptide_ID.getHits()[0].getCharge()) / peptide_ID.getHits()[0].getCharge();
+					peptide_ID.getHits()[0].setMetaValue("mz_raw", mz_raw_);
+					peptide_ID.getHits()[0].setMetaValue("mz_ref", mz_ref_);
+					peptide_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(mz_raw_, mz_ref_));
+					peptide_ID.getHits()[0].setMetaValue("calibrated_mz_error_ppm", Math::getPPM(peptide_ID.getMZ(), mz_ref_));
 				}
+			}
+		}
+		//set meta values for the first hit of all unasssigned PeptideIdentifications
+		for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
+		{
+			if (!unassigned_ID.hasRT())
+			{
+				LOG_WARN << "A PeptideIdentification has no retention time value.\n";
+				continue;
+			}
+			if (unassigned_ID.hasRT())
+			{
+				if (unassigned_ID.getHits().empty())
+				{
+					LOG_WARN << "A PeptideHit is empty.\n";
+					continue;
+				}	
+				mz_raw_ = getMZraw_(unassigned_ID.getRT(), exp);
+				mz_ref_ = (unassigned_ID.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, unassigned_ID.getHits()[0].getCharge())) / unassigned_ID.getHits()[0].getCharge();
+				unassigned_ID.getHits()[0].setMetaValue("mz_raw", mz_raw_);
+				unassigned_ID.getHits()[0].setMetaValue("mz_ref", mz_ref_);
+				unassigned_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(mz_raw_,mz_ref_));
+				unassigned_ID.getHits()[0].setMetaValue("calibrated_mz_error_ppm", Math::getPPM(unassigned_ID.getMZ(), mz_ref_));
+			}
+		}
+	}
+	//required input files
+	QCBase::Status MzCalibration::requires() const
+	{
+		return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
+	}
+
+	// search matching RT-time in MSExperiment before calibration, and return the m/z value
+	double MzCalibration::getMZraw_(double rt, const MSExperiment& exp) const
+	{
+		MSExperiment::ConstIterator it = exp.RTBegin(rt - EPSILON_);
+		if (it == exp.end())
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
+		}
+
+		const auto& spectrum = *it;
+				
+		if (spectrum.getRT() - rt > EPSILON_)
+		{ 
+			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + to_string(rt) + " s does not have a matching MS2 spectrum. Closest RT was " + to_string(spectrum.getRT()) + ", which seems too far off.\n");
+		}
 			
-				if (spectrum.getMSLevel() == 2)
-				{
-						return spectrum.getPrecursors()[0].getMetaValue("mz_raw");
-				}
-				else
-				{
-						throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Level does not match");
-				}
+		if (spectrum.getMSLevel() == 2)
+		{
+			if (!spectrum.getPrecursors()[0].metaValueExists("mz_raw"))
+			{
+				throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration was not called; MetaValue 'mz_raw' missing from MSExperiment.");
+			}
+			return spectrum.getPrecursors()[0].getMetaValue("mz_raw");
 		}
+		else
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching retention time of the MZML has the wrong MSLevel");
+		}
+	}
 }
+

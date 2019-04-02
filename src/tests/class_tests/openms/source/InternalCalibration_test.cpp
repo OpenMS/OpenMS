@@ -149,6 +149,9 @@ START_SECTION(static void applyTransformation(std::vector<Precursor>& pcs, const
   InternalCalibration::applyTransformation(pcs2, trafo);
   TEST_REAL_SIMILAR(pcs2[0].getMZ(), pcs[0].getMZ() - Math::ppmToMass(-100.0, 123.0));
   TEST_REAL_SIMILAR(pcs2[1].getMZ(), pcs[1].getMZ() - Math::ppmToMass(-100.0, 456.0));
+	//test for meta value "mz_raw"
+	TEST_REAL_SIMILAR(pcs2[0].getMetaValue("mz_raw"), 123);
+	TEST_REAL_SIMILAR(pcs2[1].getMetaValue("mz_raw"), 456);
 
 END_SECTION
 
@@ -204,6 +207,7 @@ START_SECTION(static void applyTransformation(PeakMap& exp, const IntList& targe
   TEST_REAL_SIMILAR(exp[2][1].getMZ(), spec[1].getMZ() + Math::ppmToMass(-1 *-100.0, 500.0));
   TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(), exp[2].getPrecursors()[0].getMZ());
   TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(), exp[2].getPrecursors()[1].getMZ());
+
 END_SECTION
 
 

@@ -34,32 +34,35 @@
 
 #pragma once
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+
 namespace OpenMS
 {
-		class OPENMS_DLLAPI MzCalibration : public QCBase
-		{
-				/**
-					@brief set m/z-values of the original experiment and the calculated reference m/z-values as meta-values 
-					of the PeptideIdentification in post FDR FeatureMaps
-					@param exp: Peak map of the original experiment with original m/z-value before calibration 
-					@param features:  contains m/z-value of PeptideIdentification after calibration
-					**/
+	class FeatureMap;
+	class MSExperiment;
+	class OPENMS_DLLAPI MzCalibration : public QCBase
+	{
+		/**
+		@brief set m/z-values of the original experiment and the calculated reference m/z-values as meta-values 
+		of the PeptideIdentification in post FDR FeatureMaps
+		@param exp: Peak map of the original experiment with original m/z-value before calibration 
+		@param features:  contains m/z-value of PeptideIdentification after calibration
+		**/
 		public:
-				/// Constructor
-				MzCalibration() = default;
-				/// Destructor
-				virtual ~MzCalibration() = default;
-				/// find original m/z Value, set meta value "mz_raw" and set meta value "mz_ref"
-				void compute(FeatureMap& features, const MSExperiment& exp);
-				/// define the required input filed MZML before Calibration, FeatureXML after FDR
-				Status requires() const override;
+		/// Constructor
+		MzCalibration() = default;
+		/// Destructor
+		virtual ~MzCalibration() = default;
+		/// find original m/z Value, set meta value "mz_raw" and set meta value "mz_ref"
+		void compute(FeatureMap& features, const MSExperiment& exp);
+		/// define the required input filed MZML before Calibration, FeatureXML after FDR
+		Status requires() const override;
 
 		private:
-				///// search matching RT-time in MSExperiment before calibration, and return the m/z value. Search with error tolerance EPSILON  
-				double getMZraw_(double rt, const MSExperiment& exp) const;
-				///EPSILON: error tolerance for RT-searching in MSExperiment
-				const double EPSILON_{ 0.05 };
-		};
+		/// search matching RT-time in MSExperiment before calibration, and return the m/z value. Search with error tolerance EPSILON  
+		double getMZraw_(double rt, const MSExperiment& exp) const;
+		///EPSILON: error tolerance for RT-searching in MSExperiment
+		const double EPSILON_{ 0.05 };
+		double mz_raw_{};
+		double mz_ref_{};
+	};
 }
