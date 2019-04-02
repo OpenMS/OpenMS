@@ -87,7 +87,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_DEBUG << "output shaping: COLUMNS env does not exist!" << std::endl;
+        // LOG_DEBUG << "output shaping: COLUMNS env does not exist!" << std::endl;
 #ifdef OPENMS_WINDOWSPLATFORM
         HANDLE hOut;
         CONSOLE_SCREEN_BUFFER_INFO SBInfo;
