@@ -572,6 +572,7 @@ protected:
     }
 
     void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs, fstream &fsm, fstream &fsp) {
+        if(pg.peaks.empty()) return;
         double m = pg.monoisotopicMass;
         double am = pg.avgMass;
         double intensity = pg.intensity;
@@ -615,7 +616,7 @@ protected:
         fs << "\t" << pg.chargeDistributionScore << "\t" << pg.isotopeCosineScore
            << "\n";
 
-
+/*
         fsp << "pg" << (int) (pg.monoisotopicMass * 10) << "=[";
 
         for (auto &p : pg.peaks) {
@@ -625,7 +626,7 @@ protected:
         fsp << "];\n";
 
         fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
-
+*/
     }
 
     void printProgress(float progress) {
@@ -1279,7 +1280,7 @@ protected:
                                                                           perIsotopeIntensity,
                                                                           param.maxIsotopeCount,
                                                                           averagines);
-            if (pg.isotopeCosineScore <= param.isotopeCosineThreshold) {
+            if (pg.peaks.empty() || pg.isotopeCosineScore <= param.isotopeCosineThreshold) {
                 delete[] perChargeMaxIsotope;
                 delete[] perChargeMinIsotope;
                 delete[] perIsotopeIntensity;
