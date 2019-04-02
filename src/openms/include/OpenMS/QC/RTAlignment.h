@@ -34,30 +34,28 @@
 
 #pragma once
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
 namespace OpenMS
 {
-		class OPENMS_DLLAPI RTAlignment : public QCBase
-		{
-				/**
-					@brief take the original retention time before map alignment and use the transformationinformation of the post alignment trafoXML 
-						to calculate the post map alignment retention times.
-					@param trafo: Transformation information of map alignment
-					@param features: featureMap before map alignment, contains original retention time
-					**/
+	class FeatureMap;
+	class TransformationDescription;
+	class OPENMS_DLLAPI RTAlignment : public QCBase
+	{
+		/**
+		@brief take the original retention time before map alignment and use the transformation information of the post alignment trafoXML 
+		for calculation of the post map alignment retention times.
+		@param trafo: Transformation information of map alignment
+		@param features: featureMap before map alignment, contains original retention time
+		**/
 		public:
-				/// Constructor
-				RTAlignment() = default;
-				/// Destructor
-				virtual ~RTAlignment() = default;
+		/// Constructor
+		RTAlignment() = default;
+		/// Destructor
+		virtual ~RTAlignment() = default;
 
-				/// calculate post map alignment retention time, set meta values "rt_raw" and "rt_align"
-				void compute(FeatureMap& features, TransformationDescription& trafo);
-				/// define the required input filed MZML before Calibration, FeatureXML after FDR
-				Status requires() const override;
-
-		private:
-		};
+		/// calculate post map alignment retention time, set meta values "rt_raw" and "rt_align"
+		void compute(FeatureMap& features, TransformationDescription& trafo);
+		/// define the required input file: featureXML before map alignment, trafoXML after map alignment
+		Status requires() const override;
+	};
 }

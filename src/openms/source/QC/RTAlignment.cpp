@@ -44,49 +44,60 @@ using namespace std;
 
 namespace OpenMS
 {
-		// take the original retention time before map alignment and use the transformationinformation of the post alignment trafoXML 
-		// to calculate the post map alignment retention times.
-		void RTAlignment::compute(FeatureMap& features, TransformationDescription& trafo)
+	// take the original retention time before map alignment and use the transformation information of the post alignment trafoXML 
+	// for calculation of the post map alignment retention times.
+	void RTAlignment::compute(FeatureMap& features, TransformationDescription& trafo)
+	{
+		if (features.empty())
 		{
-				if (features.empty())
-				{
-						LOG_WARN << "The FeatureMap is empty.\n";
-				}
+			LOG_WARN << "The FeatureMap is empty.\n";
+		}
 
-				// if featureMap after map alignment was handed, return Exception 
-				auto is_elem = [](DataProcessing dp) { return (find(dp.getProcessingActions().begin(), dp.getProcessingActions().end(), DataProcessing::ProcessingAction::ALIGNMENT) != dp.getProcessingActions().end());  };
-				if (any_of(features.getDataProcessing().begin(), features.getDataProcessing().end(), is_elem))
-				{
-						throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTAlignment need the featureXML before map-alignment");
-				}
+		// if featureMap after map alignment was handed, return Exception 
+		auto is_elem = [](DataProcessing dp) { return (find(dp.getProcessingActions().begin(), dp.getProcessingActions().end(), DataProcessing::ProcessingAction::ALIGNMENT) != dp.getProcessingActions().end());  };
+		if (any_of(features.getDataProcessing().begin(), features.getDataProcessing().end(), is_elem))
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Function get featureXML AFTER map alignment, but need featureXML BEFORE map alignment");
+		}
 				
-				//set meta values for  original retention time and alignt retention time (after map alignment) values
-				for (Feature& feature : features)
-				{
-						for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
-						{
-								if (peptide_ID.hasRT())
-								{
-										peptide_ID.getHits()[0].setMetaValue("rt_align", trafo.apply(peptide_ID.getRT()));
-										peptide_ID.getHits()[0].setMetaValue("rt_raw", peptide_ID.getRT());
-								}
-						}
-				}
-				//set meta values for the first hit of all unasssigned PeptideIdentifications
-				for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
-				{
-						if (unassigned_ID.hasRT())
-						{
-								unassigned_ID.getHits()[0].setMetaValue("rt_align", trafo.apply(unassigned_ID.getRT()));
-								unassigned_ID.getHits()[0].setMetaValue("rt_raw", unassigned_ID.getRT());
-						}
-				}
-		}
-
-		//required input files
-		 QCBase::Status RTAlignment::requires() const
+		//set meta values for original retention time and alignt retention time (after map alignment) values
+		for (Feature& feature : features)
 		{
-				return QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::PREALIGNFEAT;
-		}
+			if (feature.getPeptideIdentifications().empty())
+			{
+				LOG_WARN << "A Feature is empty.\n";
+				continue;
+			}
 
+			for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
+			{
+				if (!peptide_ID.hasRT())
+				{
+					LOG_WARN << "A PeptideIdentification has no retention time value.\n";
+					continue;
+				}
+
+				if (peptide_ID.hasRT())
+				{
+					peptide_ID.setMetaValue("rt_align", trafo.apply(peptide_ID.getRT()));
+					peptide_ID.setMetaValue("rt_raw", peptide_ID.getRT());
+				}
+			}
+		}
+		//set meta values for all unasssigned PeptideIdentifications
+		for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
+		{
+			if (unassigned_ID.hasRT())
+			{
+				unassigned_ID.setMetaValue("rt_align", trafo.apply(unassigned_ID.getRT()));
+				unassigned_ID.setMetaValue("rt_raw", unassigned_ID.getRT());
+			}
+		}
+	}
+
+	//required input files
+	QCBase::Status RTAlignment::requires() const
+	{
+		return QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::PREALIGNFEAT;
+	}
 }
