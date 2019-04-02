@@ -46,7 +46,7 @@ namespace OpenMS
 {
 	// take the original retention time before map alignment and use the transformation information of the post alignment trafoXML 
 	// for calculation of the post map alignment retention times.
-	void RTAlignment::compute(FeatureMap& features, TransformationDescription& trafo)
+	void RTAlignment::compute(FeatureMap& features, const TransformationDescription& trafo)
 	{
 		if (features.empty())
 		{

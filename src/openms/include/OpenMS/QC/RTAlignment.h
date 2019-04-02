@@ -54,7 +54,7 @@ namespace OpenMS
 		virtual ~RTAlignment() = default;
 
 		/// calculate post map alignment retention time, set meta values "rt_raw" and "rt_align"
-		void compute(FeatureMap& features, TransformationDescription& trafo);
+		void compute(FeatureMap& features, const TransformationDescription& trafo);
 		/// define the required input file: featureXML before map alignment, trafoXML after map alignment
 		Status requires() const override;
 	};
