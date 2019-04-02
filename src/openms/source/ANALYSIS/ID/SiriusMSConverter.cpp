@@ -381,14 +381,16 @@ namespace OpenMS
           {
             os << ">collision" << " " << collision << "\n";
           }
-          // _k is needed for reference mapping of fragment annotation with native id
-          // else there will be multiple (wrong) annotations
-          String native_id_k = native_id + "_" + k;
-          os << "##nid " << native_id_k << endl;
+          os << "##nid " << native_id<< endl;
+          // "mid" annotation for multiple possible identifications (native_id_k)
+          // fragment mapping will be done using the mid
+          String mid = native_id + "_" + k;
+          os << "##mid " << mid << endl;
           os << "##scan " << ind << endl;
           os << "##specref " << "ms_run[1]:" << native_id << endl;
 
-          cmpinfo.native_ids.push_back(native_id_k);
+          cmpinfo.native_ids.push_back(native_id);
+          cmpinfo.mids.push_back(mid);
           cmpinfo.scan_indices.push_back(ind);
           cmpinfo.specrefs.push_back(String("ms_run[1]:" + native_id));
 
@@ -491,7 +493,6 @@ namespace OpenMS
     // initialization with UNKNOWN in case no feature information is available.
     v_description.push_back("UNKNOWN");
     v_sumformula.push_back("UNKNOWN");
-
 
     uint64_t feature_id;
     int feature_charge;
@@ -610,6 +611,8 @@ namespace OpenMS
     {
       // no feature information was provided
       bool writecompound = true;
+      v_description.push_back("UNKNOWN");
+      v_sumformula.push_back("UNKNOWN");
       f_isotopes.clear();
       adducts.clear();
       feature_charge = 0;
@@ -642,6 +645,8 @@ namespace OpenMS
     {
       // no feature information was provided
       bool writecompound = true;
+      v_description.push_back("UNKNOWN");
+      v_sumformula.push_back("UNKNOWN");
       f_isotopes.clear();
       adducts.clear();
       feature_charge = 0;

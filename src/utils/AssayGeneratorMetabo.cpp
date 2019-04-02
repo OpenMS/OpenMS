@@ -144,11 +144,12 @@ protected:
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
 
-    // TODO: add method fragment annotation here? swith the other to heuristcs? s
-    registerStringOption_("method", "<choice>", "highest_intensity", "Method used for assay library construction",false);
-    setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
+    registerStringOption_("method", "<choice>", "heuristics", "Method used for assay library construction",false);
+    setValidStrings_("method", ListUtils::create<String>("heuristics,fragment_annotation"));
 
-    registerFlag_("use_fragment_annotation", "Use sirius fragment annotation", false);
+    registerStringOption_("method_heuristics", "<choice>", "highest_intensity", "Spectrum with highest intenstiy or a consensus spectrum ist used for assay library construction (heuristic approach)",false);
+    setValidStrings_("method_heuristics", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
+
     registerFlag_("use_exact_mass", "Use exact mass for Fragment Annotation", false);
     registerFlag_("exclude_ms2_precursor", "Excludes precursor in ms2 from transition list", false);
     
@@ -274,6 +275,8 @@ protected:
     int transition_group_counter = 0;
     vector<PotentialTransitions> v_pts;
 
+    std::cout << "size: " << feature_ms2_spectra_map.size() << std::endl;
+
     for (auto it = feature_ms2_spectra_map.begin();
               it != feature_ms2_spectra_map.end();
               ++it)
@@ -321,6 +324,13 @@ protected:
           }
           // use the identification with the lowest mass deviation
           v_description.push_back(description);
+          v_sumformula.push_back(sumformula);
+          v_adduct.push_back(adduct);
+        }
+        else
+        {
+          // count UNKNOWN via transition group counter
+          v_description.push_back(String(description + "_" + transition_group_counter));
           v_sumformula.push_back(sumformula);
           v_adduct.push_back(adduct);
         }
@@ -389,6 +399,7 @@ protected:
                     ++index_it)
           {
             const MSSpectrum &spectrum = spectra[*index_it];
+
             const BinnedSpectrum binned_spectrum(spectrum,
                                                  BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES,
                                                  false,
@@ -397,7 +408,6 @@ protected:
 
             BinnedSpectralContrastAngle bspa;
             double cosine_sim = bspa(binned_highest_int, binned_spectrum);
-
             if (cosine_sim > cosine_sim_threshold)
             {
               similar_spectra.push_back(spectrum);
@@ -405,31 +415,28 @@ protected:
             }
           }
 
-          // calculate consensus spectrum
-          exp.sortSpectra();
-          SpectraMerger merger;
-          Param p;
-          p.insert("", SpectraMerger().getDefaults());
-          p.setValue("precursor_method:mz_tolerance", precursor_mz_distance);
-          p.setValue("precursor_method:rt_tolerance", precursor_rt_tol * 2);
-          merger.setParameters(p);
-
-          // all MS spectra should have the same precursor
-          merger.mergeSpectraPrecursors(exp);
-
-          // check if all precursors have been merged if not use highest intensity precursor
-          if (exp.getSpectra().size() < 2)
+          // at least 2 spectra with high consine similarity necessary
+          // fallback to highest precursor intensity spectrum (see above)
+          if (similar_spectra.size() > 1)
           {
-            transition_spectrum = exp.getSpectra()[0];
-          }
-        }
+            // calculate consensus spectrum
+            exp.sortSpectra();
+            SpectraMerger merger;
+            Param p;
+            p.insert("", SpectraMerger().getDefaults());
+            p.setValue("precursor_method:mz_tolerance", precursor_mz_distance);
+            p.setValue("precursor_method:rt_tolerance", precursor_rt_tol * 2);
+            merger.setParameters(p);
 
-        // TODO: Why would transition spectrum have a size of 0 ? (Empty MS2 spectrum)
-        // check if transition spectrum is empty
-        if (transition_spectrum.empty())
-        {
-          LOG_WARN << "Empty transition spectrum was provided." << std::endl;
-          continue;
+            // all MS spectra should have the same precursor
+            merger.mergeSpectraPrecursors(exp);
+
+            // check if all precursors have been merged if not use highest intensity precursor
+            if (exp.getSpectra().size() < 2)
+            {
+              transition_spectrum = exp.getSpectra()[0];
+            }
+          }
         }
 
         // transition calculations
@@ -471,39 +478,20 @@ protected:
         v_cmp_rt.push_back(cmp_rt);
         cmp.rts = v_cmp_rt;
 
-        if (description == "UNKNOWN")
-        {
-          cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
-          cmp.setMetaValue("CompoundName", description);
-        }
-        else
-        {
-          description = ListUtils::concatenate(v_description, ",");
-          cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
-          cmp.setMetaValue("CompoundName", description);
-        }
+        description = ListUtils::concatenate(v_description, ",");
+        cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
+        cmp.setMetaValue("CompoundName", description);
+
         cmp.smiles_string = "NA";
-        if (sumformula == "UNKNOWN")
-        {
-          cmp.molecular_formula = sumformula;
-        }
-        else
-        {
-          sumformula = ListUtils::concatenate(v_sumformula, ",");
-          // sumformula = v_sumformula[0];
-          cmp.molecular_formula = sumformula;
-        }
-        if (adduct == "UNKNOWN")
-        {
-          cmp.setMetaValue("Adducts", adduct);
-        }
-        else
-        {
-          // only one adduct for each descirption using the lowest mass error
-          // adduct = v_adduct[0];
-          adduct = ListUtils::concatenate(v_adduct, ",");
-          cmp.setMetaValue("Adducts", adduct);
-        }
+
+        sumformula = ListUtils::concatenate(v_sumformula, ",");
+        cmp.molecular_formula = sumformula;
+
+
+        // only one adduct for each descirption using the lowest mass error
+        // adduct = v_adduct[0];
+        adduct = ListUtils::concatenate(v_adduct, ",");
+        cmp.setMetaValue("Adducts", adduct);
 
         // threshold should be at x % of the maximum intensity
         // hard minimal threshold of min_int * 1.1
@@ -532,17 +520,10 @@ protected:
             rmt.setProductMZ(current_mz);
             rmt.setLibraryIntensity(rel_int);
 
-            if (description == "UNKNOWN")
-            {
-              rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + file_counter);
-              rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" + file_counter);
-            }
-            else
-            {
-              description = ListUtils::concatenate(v_description, ",");
-              rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + file_counter);
-              rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" + file_counter);
-            }
+            description = ListUtils::concatenate(v_description, ",");
+            rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + file_counter);
+            rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" + file_counter);
+
             v_rmt.push_back(rmt);
             transition_counter += 1;
           }
@@ -734,9 +715,10 @@ protected:
     StringList id = getStringList_("in_id");
     String out = getStringOption_("out");
     String method = getStringOption_("method");
-    bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
+    String method_heuristics = getStringOption_("method_heuristics");
+    bool use_fragment_annotation = method == "fragment_annotation" ? true : false;
+    bool method_consensus_spectrum = method_heuristics == "consensus_spectrum" ? true : false;
     bool use_exact_mass = getFlag_("use_exact_mass");
-    bool use_fragment_annotation = getFlag_("use_fragment_annotation");
     bool exclude_ms2_precursor = getFlag_("exclude_ms2_precursor");
 
     int min_transitions = getIntOption_("min_transitions");
@@ -870,7 +852,7 @@ protected:
                                                   sirius_algo,
                                                   feature_mapping);
     
-      // filter known_unkowns based on description (UNKNOWN)
+      // filter known_unkowns based on description (UNKNOWN) (AMS)
       std::map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
       std::map<const BaseFeature*, std::vector<size_t>> known_features; 
       if (!use_known_unknowns)
@@ -895,7 +877,12 @@ protected:
       }
 
       vector< pair <SiriusMSFile::CompoundInfo, MSSpectrum> > v_cmp_spec;
-      if (use_fragment_annotation)
+      if (use_fragment_annotation && executable.empty())
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "SIRIUS executable was not found.");
+      }
+      else if (use_fragment_annotation && !executable.empty())
       {
         // make temporary files
         SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct();
@@ -964,13 +951,13 @@ protected:
           }
         }
 
-        // pair compoundInfo and fragment annotation msspectrum
-        // TODO: same nativeID with two descriptions, which one is the right one
+        // pair compoundInfo and fragment annotation msspectrum (using the mid)
         for (auto cmp : v_cmpinfo)
         {
           for (auto spec_fa : annotated_spectra)
           {
-            if(std::any_of(cmp.native_ids.begin(), cmp.native_ids.end(), compare(spec_fa.getNativeID())))
+            // mid is saved in Name of the spectrum (not sure if this is optimal
+            if(std::any_of(cmp.mids.begin(), cmp.mids.end(), compare(spec_fa.getName())))
             {
               v_cmp_spec.push_back(std::make_pair(cmp,spec_fa));
             }
@@ -1047,7 +1034,7 @@ protected:
       else // use heuristics
       {
         tmp_pts = extractPotentialTransitions(spectra,
-                                              feature_ms2_spectra_map,
+                                              feature_mapping.assignedMS2,
                                               precursor_rt_tol,
                                               precursor_mz_distance,
                                               cosine_sim_threshold,
@@ -1067,11 +1054,7 @@ protected:
     
     // get unique elements (CompoundName, CompoundAdduct) with highest precursor intensity
     auto uni_it = std::unique(v_pts.begin(), v_pts.end(), compoundUnique_);
-    v_pts.resize(std::distance(v_pts.begin(), uni_it)); 
-
-    // TODO: test what happens with use_known_unkowns
-    // TODO: add "compoundgroup" see ProteinGroup (e.g. with different adducts - give the unique id)
-    // TODO: add ID same compound with different adduct for later e.g. quantification/mapping
+    v_pts.resize(std::distance(v_pts.begin(), uni_it));
     
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;

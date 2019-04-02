@@ -213,9 +213,8 @@ using namespace std;
         // find peak (index) with highest intensity to expected position
         Size highest_peak_idx = max_intensity_it - rt_it->begin();
 
-        // get actual position of highest intensity peak
+        // get actual position and intensity of highest intensity peak
         double highest_peak_mz = (*rt_it)[highest_peak_idx].getMZ();
-
         double highest_peak_int = (*rt_it)[highest_peak_idx].getIntensity();
 
         // cout << mz << " -> " << nearest_peak_mz << endl;

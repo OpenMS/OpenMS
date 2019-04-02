@@ -71,6 +71,7 @@ public:
     String source_file;
     String source_format;
     std::vector<String> native_ids;
+    std::vector<String> mids;
     std::vector<String> scan_indices;
     std::vector<String> specrefs;
   };

@@ -384,7 +384,6 @@ namespace OpenMS
       extractName(mytransition.Adducts, "Adducts", tmp_line, header_dict);
 
       //// Meta
-
       extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict);
       
       // UniprotId
@@ -1148,7 +1147,6 @@ namespace OpenMS
 
     compound.molecular_formula = tr_it->SumFormula;
     compound.smiles_string = tr_it->SMILES;
-    compound.setMetaValue("Adducts", tr_it->Adducts);
     compound.setMetaValue("CompoundName", tr_it->CompoundName);
     if (!tr_it->Adducts.empty()) compound.setMetaValue("Adducts", tr_it->Adducts);
 

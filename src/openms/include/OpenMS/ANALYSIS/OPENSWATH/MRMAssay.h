@@ -143,27 +143,26 @@ public:
       @param exp the transition list which will be filtered
       @param min_transitions the minimum number of transitions required per assay
       @param max_transitions the maximum number of transitions required per assay
->>>>>>> origin/add/adducts_compound_osw
 
     */
     void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
     
     /**
-          @brief Annotate UIS / site-specific transitions
+      @brief Annotate UIS / site-specific transitions
 
-          @param exp the input, unfiltered transitions
-          @param fragment_types the fragment types to consider for annotation
-          @param fragment_charges the fragment charges to consider for annotation
-          @param enable_specific_losses whether specific neutral losses should be considered
-          @param enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
-          @param enable_ms2_precursors whether MS2 precursors should be considered
-          @param mz_threshold the product m/z threshold in Th for annotation
-          @param swathes the swath window settings (to exclude fragment ions falling
-          @param round_decPow round product m/z values to decimal power (default: -4)
-          @param max_num_alternative_localizations maximum number of allowed peptide sequence permutations
-          @param shuffle_seed set seed for shuffle (-1: select seed based on time)
-          @param disable_decoy_transitions whether to disable generation of decoy UIS transitions
-        */
+      @param exp the input, unfiltered transitions
+      @param fragment_types the fragment types to consider for annotation
+      @param fragment_charges the fragment charges to consider for annotation
+      @param enable_specific_losses whether specific neutral losses should be considered
+      @param enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
+      @param enable_ms2_precursors whether MS2 precursors should be considered
+      @param mz_threshold the product m/z threshold in Th for annotation
+      @param swathes the swath window settings (to exclude fragment ions falling
+      @param round_decPow round product m/z values to decimal power (default: -4)
+      @param max_num_alternative_localizations maximum number of allowed peptide sequence permutations
+      @param shuffle_seed set seed for shuffle (-1: select seed based on time)
+      @param disable_decoy_transitions whether to disable generation of decoy UIS transitions
+    */
     void uisTransitions(OpenMS::TargetedExperiment& exp,
                         const std::vector<String>& fragment_types,
                         const std::vector<size_t>& fragment_charges,
