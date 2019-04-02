@@ -816,7 +816,8 @@ namespace OpenMS
       }
 
     }
-    // LOG_INFO << "Agreeing charges: " << agreeing_fcharge << "/" << (aedges * 2) << std::endl;
+
+    LOG_INFO << "Agreeing charges: " << agreeing_fcharge << "/" << (aedges * 2) << std::endl;
 
 
     // END DEBUG
