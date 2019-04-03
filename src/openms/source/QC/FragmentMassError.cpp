@@ -34,13 +34,22 @@
 
 #include <OpenMS/QC/FragmentMassError.h>
 #include <include/OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
+#include <string>
 
 namespace OpenMS
 {
-  void FragmentMassError::compute(const MSExperiment& exp, FeatureMap& fmap)
+  void FragmentMassError::compute(MSExperiment& exp, FeatureMap& fmap)
   {
+
+    double tolerance = 0.05;
+
+    if (!exp.isSorted())
+    {
+      exp.sortSpectra();
+    }
+
     //sequenz //const pep_id?
-    auto lam = [](PeptideIdentification& pep_id)
+    auto lam = [&exp, tolerance](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -84,13 +93,35 @@ namespace OpenMS
       // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICTION
       //-----------------------------------------------------------------------
 
-      //to be continued
+      double rt_pep  = pep_id.getRT();
 
+      MSExperiment::ConstIterator it = exp.RTBegin(rt_pep - tolerance);
+      if (it == exp.end())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the mzML and featureXML fie does not match.");
+      }
+
+      const auto& exp_spectrum = *it;
+
+      if (exp_spectrum.getRT() - rt_pep > tolerance)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + std::to_string(rt_pep) + " s does not have a matching MS2 Spectrum. Closest RT was " + std::to_string(exp_spectrum.getRT()) + ", which seems to far off.");
+      }
+      if (exp_spectrum.getMSLevel() != 2)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching retention time of the mzML is not a MS2 Spectrum.");
+      }
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
       //-----------------------------------------------------------------------
 
-      //to be continued
+      if (exp_spectrum.empty() || theo_spectrum.empty())
+      {
+        LOG_WARN << "The spectrum with " + std::to_string(exp_spectrum.getRT()) + " is empty." << "\n";
+      }
+
+
+
 
       //-----------------------------------------------------------------------
       // WRITE PPM ERROR IN PEPTIDEHIT

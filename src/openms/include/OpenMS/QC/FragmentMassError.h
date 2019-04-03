@@ -39,6 +39,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
@@ -53,7 +55,7 @@ namespace OpenMS
     virtual ~FragmentMassError() = default;
 
 
-    void compute(const MSExperiment& exp, FeatureMap& fmap);
+    void compute(MSExperiment& exp, FeatureMap& fmap);
 
     /// returns results
     const DoubleList& getResults() const;
