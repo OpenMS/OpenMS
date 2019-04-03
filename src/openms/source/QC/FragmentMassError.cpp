@@ -48,11 +48,54 @@ namespace OpenMS
         return;
       }
 
+      //---------------------------------------------------------------------
+      // CREATE THEORETICAL SPECTRUM
+      //---------------------------------------------------------------------
+
       AASequence seq = pep_id.getHits()[0].getSequence();
+      Int charge = pep_id.getHits()[0].getCharge();
 
-      TheoreticalSpectrumGenerator theo;
+      //initialize a TheoreticalSpectrumGenerator
+      TheoreticalSpectrumGenerator theo_gen;
 
-      OpenMS::DIAHelpers::simulateSpectrumFromAASequence();
+      //get current parameters (default)
+      Param theo_gen_settings = theo_gen.getParameters();
+
+      //default: b- and y-ions?
+      theo_gen_settings.setValue("add_a_ions", "true");
+      //theo_settings.setValue("add_b_ions", "true");
+      theo_gen_settings.setValue("add_c_ions", "true");
+      theo_gen_settings.setValue("add_x_ions", "true");
+      //theo_settings.setValue("add_y_ions", "true");
+      theo_gen_settings.setValue("add_z_ions", "true");
+
+      //store ion types for each peak
+      //theo_settings.setValue("add_metainfo", "true");
+
+      //set changed parameters
+      theo_gen.setParameters(theo_gen_settings);
+
+      PeakSpectrum theo_spectrum;
+
+      //generate a-, b- and y-ion spectrum of peptide seq with charge
+      theo_gen.getSpectrum(theo_spectrum, seq, charge, charge);
+
+      //-----------------------------------------------------------------------
+      // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICTION
+      //-----------------------------------------------------------------------
+
+      //to be continued
+
+      //-----------------------------------------------------------------------
+      // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
+      //-----------------------------------------------------------------------
+
+      //to be continued
+
+      //-----------------------------------------------------------------------
+      // WRITE PPM ERROR IN PEPTIDEHIT
+      //-----------------------------------------------------------------------
+
     };
   }
 
