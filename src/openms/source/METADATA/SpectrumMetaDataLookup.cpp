@@ -210,7 +210,10 @@ namespace OpenMS
   }
 
   bool SpectrumMetaDataLookup::addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, const String& filename,
-    bool stop_on_error, bool override_spectra_data, vector<ProteinIdentification> proteins)
+    bool stop_on_error, 
+    bool override_spectra_data, 
+    bool override_spectra_references,
+    vector<ProteinIdentification> proteins)
   {
     bool success = true;
     PeakMap exp;
@@ -232,10 +235,17 @@ namespace OpenMS
         it->setMetaValue("spectra_data", spectra_data);
       }
     }
-    for (vector<PeptideIdentification>::iterator it =
+    for (auto it =
           peptides.begin(); it !=
           peptides.end(); ++it)
     {
+      // spectrum reference already set? skip if we don't want to overwrite
+      if (!override_spectra_references 
+	&& it->metaValueExists("spectrum_reference"))
+      {
+        continue;
+      }
+
       try
       {
         Size index = lookup.findByRT(it->getRT());
@@ -250,7 +260,6 @@ namespace OpenMS
         if (stop_on_error) break;
       }
     }
-
 
     return success;
   }
