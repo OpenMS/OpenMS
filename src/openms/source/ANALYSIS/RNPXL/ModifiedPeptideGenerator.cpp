@@ -364,7 +364,7 @@ namespace OpenMS
 
   // static
   void ModifiedPeptideGenerator::applyAtMostOneVariableModification_(
-    const boost::container::flat_map<const ResidueModification*, const Residue*>& var_mods, 
+    const MapToResidueType& var_mods, 
     const AASequence& peptide, 
     vector<AASequence>& all_modified_peptides, 
     bool keep_unmodified)
