@@ -39,14 +39,15 @@ namespace OpenMS
 {
 	class FeatureMap;
 	class MSExperiment;
-	class OPENMS_DLLAPI MzCalibration : public QCBase
-	{
-		/**
-		@brief set m/z-values of the original experiment and the calculated reference m/z-values as meta-values 
+
+	/**
+		@brief set m/z-values of the original experiment and the calculated reference m/z-values as meta-values
 		of the PeptideIdentification in post FDR FeatureMaps
-		@param exp: Peak map of the original experiment with original m/z-value before calibration 
+		@param exp: Peak map of the original experiment with original m/z-value before calibration
 		@param features:  contains m/z-value of PeptideIdentification after calibration
 		**/
+	class OPENMS_DLLAPI MzCalibration : public QCBase
+	{
 		public:
 		/// Constructor
 		MzCalibration() = default;
