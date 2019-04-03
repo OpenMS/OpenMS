@@ -271,12 +271,13 @@ START_SECTION([EXTRA] multithreaded example)
   ModifiedPeptideGenerator::MapToResidueType variable_mods = ModifiedPeptideGenerator::getModifications(all_mods);
 
   const std::string s("ACDEFGHIKLMNPQRSTVWY");
+  const AASequence seq = AASequence::fromString(s);
+
 #pragma omp parallel for reduction (+: test)
   for (int i = 0; i < nr_iterations; ++i)
   {
-    String tmp(s);
-    AASequence seq = AASequence::fromString(tmp);
     vector<AASequence> modified_peptides;
+    modified_peptides.reserve(29);
     ModifiedPeptideGenerator::applyVariableModifications(variable_mods, seq, 2, modified_peptides, true);
     test += modified_peptides.size();
   }

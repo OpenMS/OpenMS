@@ -90,6 +90,7 @@ namespace OpenMS
     static void recurseAndGenerateVariableModifiedPeptides_(
       const std::vector<int>& subset_indices, 
       const std::map<int, std::vector<const ResidueModification*> >& map_compatibility, 
+      const MapToResidueType& var_mods,
       int depth, 
       const AASequence& current_peptide, 
       std::vector<AASequence>& modified_peptides);

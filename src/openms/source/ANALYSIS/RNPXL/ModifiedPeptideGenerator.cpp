@@ -98,14 +98,14 @@ namespace OpenMS
       {
         if (!peptide.hasNTerminalModification())
         {
-          peptide.setNTerminalModification(f->getFullName());
+          peptide.setNTerminalModification(f);
         }
       }
       else if (f->getTermSpecificity() == ResidueModification::C_TERM)
       {
         if (!peptide.hasCTerminalModification())
         {
-          peptide.setCTerminalModification(f->getFullName());
+          peptide.setCTerminalModification(f);
         }
       }
     }
@@ -131,15 +131,16 @@ namespace OpenMS
         const ResidueModification::TermSpecificity& term_spec = f->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {
-          peptide.setModification(residue_index, f->getFullName());
+          const Residue* r = mr.second; // map modification to the modified residue
+          peptide.setModification(residue_index, r);
         }
         else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
         {
-          peptide.setCTerminalModification(f->getFullName());
+          peptide.setCTerminalModification(f);
         }
         else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
         {
-          peptide.setNTerminalModification(f->getFullName());
+          peptide.setNTerminalModification(f);
         }
       }
     }
@@ -297,7 +298,7 @@ namespace OpenMS
         }
 
         // now enumerate all modifications
-        recurseAndGenerateVariableModifiedPeptides_(subset_indices, map_compatibility, 0, peptide, modified_peptides);
+        recurseAndGenerateVariableModifiedPeptides_(subset_indices, map_compatibility, var_mods, 0, peptide, modified_peptides);
       } while (next_permutation(subset_mask.begin(), subset_mask.end()));
     }
     // add modified version of the current peptide to the list of all peptides
@@ -314,6 +315,7 @@ namespace OpenMS
   void ModifiedPeptideGenerator::recurseAndGenerateVariableModifiedPeptides_(
     const vector<int>& subset_indices, 
     const map<int, vector<const ResidueModification*> >& map_compatibility, 
+    const MapToResidueType& var_mods, 
     int depth, 
     const AASequence& current_peptide, 
     vector<AASequence>& modified_peptides)
@@ -336,25 +338,27 @@ namespace OpenMS
     map<int, vector<const ResidueModification*> >::const_iterator pos_mod_it = map_compatibility.find(current_index);
     const vector<const ResidueModification*>& mods = pos_mod_it->second; // we don't need to check for .end as entry is guaranteed to exist
 
-    for (auto m : mods)
+    for (const ResidueModification* m : mods)
     {
+
       // copy peptide and apply modification
       AASequence new_peptide = current_peptide;
       if (current_index == C_TERM_MODIFICATION_INDEX)
       {
-        new_peptide.setCTerminalModification(m->getFullName());
+        new_peptide.setCTerminalModification(m);
       }
       else if (current_index == N_TERM_MODIFICATION_INDEX)
       {
-        new_peptide.setNTerminalModification(m->getFullName());
+        new_peptide.setNTerminalModification(m);
       }
       else
       {
-        new_peptide.setModification(current_index, m->getFullName());
+        const Residue* r = var_mods.at(m); // map modification to the modified residue
+        new_peptide.setModification(current_index, r); // set modified Residue          
       }
 
       // recurse with modified peptide
-      recurseAndGenerateVariableModifiedPeptides_(subset_indices, map_compatibility, depth + 1, new_peptide, modified_peptides);
+      recurseAndGenerateVariableModifiedPeptides_(subset_indices, map_compatibility, var_mods, depth + 1, new_peptide, modified_peptides);
     }
   }
 
