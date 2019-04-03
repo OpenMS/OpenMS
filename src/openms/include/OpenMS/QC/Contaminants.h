@@ -63,6 +63,8 @@ namespace OpenMS
       double all_contaminants_ratio;
       ///(intensity of contaminants in assigned/ intensity of peptides in assigned)
       double assigned_contaminants_intensity_ratio;
+      ///(features without peptideidentification or with peptideidentifications but without hits, all features)
+      std::pair<Int64, Int64> empty_features;
     };
     ///Constructor
     Contaminants() = default;
@@ -75,7 +77,6 @@ namespace OpenMS
      * @param contaminants vector of FASTAEntries that need to be digested to check whether a peptide is a contaminant or not
      * @exception Exception::MissingInformation if the contaminants database is empty
      * @exception Exception::MissingInformation if the FeatureMap is empty
-     * @exception Exception::IllegalArgument if more than one peptideidentification is given in a feature
      * @warning LOG_WARN if no enzyme is given
      */
     void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);

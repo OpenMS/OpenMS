@@ -64,9 +64,6 @@ Feature f;
 Feature emptyf;
 PeptideIdentification emptyId;
 PeptideHit emptyHit;
-//emptyHit.setSequence(AASequence::fromString(""));
-//emptyId.setHits(std::vector<PeptideHit>());
-//Emptyf.setPeptideIdentifications({emptyId});
 
 emptyFeaturesFmap.push_back(emptyf);
 
@@ -210,6 +207,8 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("is_contaminant"), 1);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(result5[0].empty_features.first, 0);
+  TEST_EQUAL(result5[0].empty_features.second, 5);
 
 }
 END_SECTION

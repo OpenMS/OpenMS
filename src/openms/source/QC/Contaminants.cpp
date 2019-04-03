@@ -106,34 +106,41 @@ namespace OpenMS
     Int64 cont = 0;
     double sum_total = 0.0;
     double sum_cont = 0.0;
-
+    Int64 feature_has_no_sequence = 0;
 
     //Check if peptides of featureMap are contaminants or not and add is_contaminant = 0/1 to the peptideidentification.
     //If so, raise contaminants ratio.
     for (auto& f : features)
     {
-      if (f.getPeptideIdentifications().size() > 1)
+      if (f.getPeptideIdentifications().empty())
       {
-        throw Exception::IllegalArgument(__FILE__,
-                                         __LINE__,
-                                         __FUNCTION__,
-                                         "Too many peptideidentifications. Run IDConflictResolver first to remove ambiguities!");
+        ++ feature_has_no_sequence;
+        continue;
       }
-
-      // it exists one or zero peptideidentifications in feature f
-      if (f.getPeptideIdentifications().empty() || f.getPeptideIdentifications()[0].getHits().empty()) {continue;}
-
-      else
+      for (auto& id : f.getPeptideIdentifications())
       {
-        // the one existing peptideidentification has atleast one getHits entry
-        auto &pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
-        String key = (pep_hit.getSequence().toUnmodifiedString());
-        this->compare_(key, f, total, cont, sum_total, sum_cont);
+        // peptideidentifications in feature f is not empty
+        if (id.getHits().empty())
+        {
+          ++ feature_has_no_sequence;
+          continue;
+        }
+
+        else
+        {
+          // the one existing peptideidentification has atleast one getHits entry
+          auto &pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
+          String key = (pep_hit.getSequence().toUnmodifiedString());
+          this->compare_(key, f, total, cont, sum_total, sum_cont);
+        }
       }
     }
     //save the contaminants ratio in object before searching through the unassigned peptideidentifications
     ContaminantsSummary final;
     final.assigned_contaminants_ratio = (cont / double(total));
+
+    final.empty_features.first = feature_has_no_sequence;
+    final.empty_features.second = features.size();
 
     UInt64 utotal = 0;
     UInt64 ucont = 0;
