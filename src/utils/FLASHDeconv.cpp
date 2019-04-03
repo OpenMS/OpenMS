@@ -618,7 +618,8 @@ protected:
 
         //cout<<1<<endl;
 
-        fsp << "pg" << (int) (pg.monoisotopicMass * 10) << "=[";
+        fsp << "pg" << (int) (pg.monoisotopicMass * 10)  <<  "rt"  <<   (int)( pg.spec->getRT())
+                << "=[";
 
         for (auto &p : pg.peaks) {
             fsp << p.charge << "," << p.isotopeIndex << "," << p.orgPeak->getIntensity() << ";";
@@ -1165,9 +1166,9 @@ protected:
                     for (int i = -2; i <= 2; i++) {
                         auto bin = hbi + i;
                         if (bin < 0 || bin > mzBinSize) continue;
-                        if (mzBins[bin] && logIntensity - logIntensities[bin] <= 1) {
+                        if (mzBins[bin] && logIntensity - logIntensities[bin] <= 1) { //
                             h = true;
-                            // if(continuousChargePeakPairCount[massBinIndex]>0) --continuousChargePeakPairCount[massBinIndex];
+                            //if(continuousChargePeakPairCount[massBinIndex]>0) --continuousChargePeakPairCount[massBinIndex];
                             break;
                         }
                     }
@@ -1291,6 +1292,8 @@ protected:
             else {
                 isotopeCosineThreshold = .3 + .5 / (130000 - 10000) * (130000 - monoIsotopeMass);
             }
+
+            //isotopeCosineThreshold = 0;
 
             if (pg.peaks.empty() || pg.isotopeCosineScore <= isotopeCosineThreshold) {
                 delete[] perChargeMaxIsotope;
@@ -1583,10 +1586,10 @@ protected:
         for (int i = 0; i < param.chargeRange; i++) {
             n4 = max(n4, n3[i]);
         }
-
+        delete[] n3;
         //n2 = max(n2, n3);
         if (n1 < n4) return -100.0;
-        if (n1 < param.minContinuousChargePeakCount) return -100.0; //at least 25% charges
+        if (n1 < param.minContinuousChargePeakCount) return -100.0;
         return n1 / (n1 + n2);
 
     }
