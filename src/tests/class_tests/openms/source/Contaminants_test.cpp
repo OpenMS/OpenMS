@@ -113,9 +113,12 @@ vector<FASTAFile::FASTAEntry> contaminantsFile;
       f.setPeptideIdentifications({id});
       f.setIntensity(10.0);
       fmap.push_back(f);
+
+      f.setPeptideIdentifications({});
+      fmap.push_back(f);
     }
 
-//fill the unassigned peptideidentifications
+//set the unassigned peptideidentifications
 std::vector<PeptideIdentification> ids2(3);
 PeptideHit hit2;
 hit2.setSequence(AASequence::fromString("AAAAAAAAAAK"));
@@ -124,7 +127,7 @@ hit2.setSequence(AASequence::fromString("RCCCCCCCCCCK"));
 ids2[1].setHits(std::vector<PeptideHit>(1, hit2));
 hit2.setSequence(AASequence::fromString("DDDDDDDDDD"));
 ids2[2].setHits(std::vector<PeptideHit>(1, hit2));
-fmap.setUnassignedPeptideIdentifications(ids2);
+
 
 
     /////////////////////////////////////////////////////////////
@@ -145,7 +148,7 @@ END_SECTION
 
 START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants)))
 {
-  Contaminants conts1, conts2, conts3, conts4, conts5;
+  Contaminants conts1, conts2, conts3, conts4, conts5, conts6, conts7;
 
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, conts1.compute(fmap, contaminantsFile), "No contaminants provided.");
 
@@ -154,22 +157,40 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   contaminantsFile.push_back(contaminantsProtein);
 
   //test if it aborts when featureMap is empty
-  //conts2.compute(emptyFmap, contaminantsFile);
-  //std::vector<Contaminants::ContaminantsSummary> result2 = conts2.getResults();
-  //ABORT_IF(!result2.empty());
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, conts2.compute(emptyFmap, contaminantsFile), "FeatureMap is empty.");
+  conts2.compute(emptyFmap, contaminantsFile);
+  std::vector<Contaminants::ContaminantsSummary> result2 = conts2.getResults();
+  ABORT_IF(!result2.empty());
+  //TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, conts2.compute(emptyFmap, contaminantsFile), "FeatureMap is empty.");
 
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, conts6.compute(fmap, contaminantsFile), "No digestion enzyme in FeatureMap detected. No computation possible.");
   //test without given missed cleavages and without given enzyme
-  conts3.compute(fmap, contaminantsFile);
-  std::vector<Contaminants::ContaminantsSummary> result3 = conts3.getResults();
-  ABORT_IF(result3.size() != 1);
-  TEST_REAL_SIMILAR(result3[0].assigned_contaminants_ratio, 0.0);
-  TEST_REAL_SIMILAR(result3[0].assigned_contaminants_intensity_ratio, 0.0);
-  TEST_REAL_SIMILAR(result3[0].unassigned_contaminants_ratio, 0.0);
-  TEST_REAL_SIMILAR(result3[0].all_contaminants_ratio, 0.0);
+
+  //fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("none");
+  //conts3.compute(fmap, contaminantsFile);
+  //std::vector<Contaminants::ContaminantsSummary> result3 = conts3.getResults();
+  //ABORT_IF(result3.size() != 1);
+  //TEST_REAL_SIMILAR(result3[0].assigned_contaminants_ratio, 0.0);
+  //TEST_REAL_SIMILAR(result3[0].assigned_contaminants_intensity_ratio, 0.0);
+  //TEST_REAL_SIMILAR(result3[0].unassigned_contaminants_ratio, 0.0);
+  //TEST_REAL_SIMILAR(result3[0].all_contaminants_ratio, 0.0);
+
 
   //set digestion enzyme to trypsin
   fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("trypsin");
+
+  conts7.compute(fmap, contaminantsFile);
+  std::vector<Contaminants::ContaminantsSummary> result7 = conts7.getResults();
+  TEST_REAL_SIMILAR(result7[0].assigned_contaminants_ratio, 3/5.0);
+  TEST_REAL_SIMILAR(result7[0].assigned_contaminants_intensity_ratio, 1/2.0);
+  TEST_REAL_SIMILAR(result7[0].all_contaminants_ratio, 3/5.0);
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[2].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[3].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[4].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 0);
+
+  //fill the unassigned peptideidentifications
+  fmap.setUnassignedPeptideIdentifications(ids2);
 
   //test without given missed cleavages but with set enzyme
   conts4.compute(fmap, contaminantsFile);
@@ -192,6 +213,7 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   fmap.getProteinIdentifications()[0].getSearchParameters().missed_cleavages = 1;
 
   //test with set missed cleavages and set enzyme
+  //also checks if the empty feature count is as expected
   conts5.compute(fmap, contaminantsFile);
   std::vector<Contaminants::ContaminantsSummary> result5 = conts5.getResults();
   ABORT_IF(result5.size() != 1);
@@ -207,8 +229,8 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("is_contaminant"), 1);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("is_contaminant"), 0);
-  TEST_EQUAL(result5[0].empty_features.first, 0);
-  TEST_EQUAL(result5[0].empty_features.second, 5);
+  TEST_EQUAL(result5[0].empty_features.first, 1);
+  TEST_EQUAL(result5[0].empty_features.second, 6);
 
 }
 END_SECTION

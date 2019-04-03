@@ -49,7 +49,9 @@ namespace OpenMS
     //empty FeatureMap
     if (features.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureMap is empty.");
+      //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureMap is empty.");
+      LOG_WARN << "FeatureMap is empty" << "\n";
+      return;
     }
     //empty contaminants database
     if (contaminants.empty())
@@ -65,13 +67,11 @@ namespace OpenMS
       //no enzyme is given
       if (enzyme == "unknown_enzyme")
       {
-        LOG_WARN << "No digestion enzyme in featureMap detected." << "\n";
-        //contaminants database will not get digested
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in FeatureMap detected. No computation possible.");
       }
-      else
-      {
-        digestor.setEnzyme(enzyme);
-      }
+
+      digestor.setEnzyme(enzyme);
+
       //Get the missed cleavages for the digestor. If none are given, its default is 0.
       UInt missed_cleavages(features.getProteinIdentifications()[0].getSearchParameters().missed_cleavages);
       digestor.setMissedCleavages(missed_cleavages);
@@ -85,7 +85,7 @@ namespace OpenMS
       {
         vector<AASequence> current_digest;
         //No digestion enzyme is given. Contaminants database will not get digested.
-        if (enzyme == "unknown_enzyme")
+        if (enzyme == "none")
         {
           current_digest.push_back(AASequence::fromString(fe.sequence));
         }
@@ -147,10 +147,10 @@ namespace OpenMS
 
     //Change the assigned contaminants ratio to total contaminants ratio by adding the unassigned.
     //Additionally save the unassigned contaminants ratio and add the is_contaminant = 0/1 to the unassigned peptideidentifications.
-    if (features.getUnassignedPeptideIdentifications().empty())
-    {
-      return;
-    }
+    //if (features.getUnassignedPeptideIdentifications().empty())
+    //{
+    //  return;
+    //}
     for (auto& fu : features.getUnassignedPeptideIdentifications())
     {
       if ( fu.getHits().empty()) continue;
