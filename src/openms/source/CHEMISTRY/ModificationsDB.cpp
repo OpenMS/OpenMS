@@ -254,7 +254,8 @@ namespace OpenMS
     const ResidueModification* mod = nullptr;
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      for (auto const & m : mods_)      {
+      for (auto const & m : mods_)
+      {
         // using less instead of less-or-equal will pick the first matching
         // modification of equally heavy modifications (in our case this is the
         // first matching UniMod entry)
