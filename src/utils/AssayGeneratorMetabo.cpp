@@ -33,36 +33,28 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <algorithm>
+#include <map> //insert
+
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
-#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 
+#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h> 
-#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h> 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
-
-#include <OpenMS/KERNEL/RangeUtils.h>
-
-#include <algorithm>
-#include <map> //insert
 
 using namespace OpenMS;
 using namespace std;
@@ -98,7 +90,7 @@ using namespace std;
   Features can be detected using the FeatureFinderMetabo (FFM) and identifcation information
   can be added using the AccurateMassSearch feautreXML output.
 
-  If the FFM featureXML is used the "use_known_unknowns" flag is used automatically.
+  If the FFM featureXML is provided the "use_known_unknowns" flag is used automatically.
 
   Internal procedure AssayGeneratorMetabo: \n
   1. Input mzML and featureXML \n
@@ -107,8 +99,10 @@ using namespace std;
   4. Assign precursors to specific feature (FeatureMapping) \n
   5. Extract feature meta information (if possible) \n
   6. Find MS2 spectrum with highest intensity precursor for one feature \n
-  7. Dependent on the method use the MS2 with the highest intensity precursor or a consensus spectrum
-     for the transition calculation \n
+  7. Dependent on the method fragment annotation via SIRIUS is used for transition
+  extraction. \n
+  If not fragment annotation is performed either the MS2 with the highest intensity precursor or a consensus spectrum
+   can be used for the transition extractuib. \n
   8. Calculate thresholds (maximum and minimum intensity for transition peak) \n
   9. Extract and write transitions (tsv, traml) \n
 
@@ -133,28 +127,27 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>", "", "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<executable>", "", "SIRIUS executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
 
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFileList_("in_id", "<file(s)>", StringList(), "FeatureXML input file(s) containing id information (e.g. accurate mass search)");
+    registerInputFileList_("in_id", "<file(s)>", StringList(), "FeatureXML input file(s) containing identification information (e.g. AccurateMassSearch)");
     setValidFormats_("in_id", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
 
-    registerStringOption_("method", "<choice>", "heuristics", "Method used for assay library construction",false);
-    setValidStrings_("method", ListUtils::create<String>("heuristics,fragment_annotation"));
+    registerStringOption_("fragment_annotation", "<choice>", "none", "Fragment annotation method",false);
+    setValidStrings_("fragment_annotation", ListUtils::create<String>("none,sirius"));
 
-    registerStringOption_("method_heuristics", "<choice>", "highest_intensity", "Spectrum with highest intenstiy or a consensus spectrum ist used for assay library construction (heuristic approach)",false);
-    setValidStrings_("method_heuristics", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
+    registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).",false);
+    setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
-    registerFlag_("use_exact_mass", "Use exact mass for Fragment Annotation", false);
+    registerFlag_("use_exact_mass", "Use exact mass for fragment annotation", false);
     registerFlag_("exclude_ms2_precursor", "Excludes precursor in ms2 from transition list", false);
-    
+
     // preprocessing
-    // TODO: add ppm for precursor mz distance? where is it used 
     registerDoubleOption_("precursor_mz_distance", "<num>", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].", false);
     registerDoubleOption_("precursor_recalibration_window", "<num>", 0.1, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
     registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
@@ -165,44 +158,28 @@ protected:
     // transition extraction 
     registerIntOption_("min_transitions", "<int>", 3, "minimal number of transitions", false);
     registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
-    registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectras of same precursor used for consensus spectrum", false);
+    registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation", false);
     registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
 
-    // TODO: what are the parameters for? add all comments - see desisotoper
     registerTOPPSubsection_("deisotoping", "deisotoping");
-    registerFlag_("deisotoping:use_deisotoper", "Use deisotper and its parameters", false);
-    registerDoubleOption_("deisotoping:fragment_tolerance", "<num>", 1, "Tolerance used to match isotopic peaks (Deisotoping)", false);
+    registerFlag_("deisotoping:use_deisotoper", "Use Deisotoper (if no fragment annotation is used)", false);
+    registerDoubleOption_("deisotoping:fragment_tolerance", "<num>", 1, "Tolerance used to match isotopic peaks", false);
     registerStringOption_("deisotoping:fragment_unit", "<choice>", "ppm", "Unit of the fragment tolerance", false);
     setValidStrings_("deisotoping:fragment_unit", ListUtils::create<String>("ppm,Da"));
-    registerIntOption_("deisotoping:min_charge", "<num>", 1, "set min charge ", false);
+    registerIntOption_("deisotoping:min_charge", "<num>", 1, "The minimum charge considered", false);
     setMinInt_("deisotoping:min_charge", 1);
-    registerIntOption_("deisotoping:max_charge", "<num>", 1, "set max charge", false);
+    registerIntOption_("deisotoping:max_charge", "<num>", 1, "The maximum charge considered", false);
     setMinInt_("deisotoping:max_charge", 1);
-    registerIntOption_("deisotoping:min_isopeaks", "<num>", 2, "set min charge ", false);
+    registerIntOption_("deisotoping:min_isopeaks", "<num>", 2, "The minimum number of isotopic peaks (at least 2) required for an isotopic cluster", false);
     setMinInt_("deisotoping:min_isopeaks", 2);
-    registerIntOption_("deisotoping:max_isopeaks", "<num>", 3, "set max charge", false);
+    registerIntOption_("deisotoping:max_isopeaks", "<num>", 3, "The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster", false);
     setMinInt_("deisotoping:max_isopeaks", 3);
-    registerFlag_("deisotoping:keep_only_deisotoped", "Use deisotper and its parameters", false);
-    registerFlag_("deisotoping:annotate_charge", "Use deisotper and its parameters", false);
+    registerFlag_("deisotoping:keep_only_deisotoped", "Only monoisotopic peaks of fragments with isotopic pattern are retained", false);
+    registerFlag_("deisotoping:annotate_charge", "Annotate the charge to the peaks", false);
 
     // sirius 
     registerFullParam_(SiriusAdapterAlgorithm().getDefaults());
   }
-
-  // datastructure used for preprocessing
-  // potential transitions for one specific compound
-  struct PotentialTransitions
-  {
-      double precursor_mz;
-      double precursor_rt;
-      double precursor_int;
-      int precursor_charge;
-      double transition_quality_score; // here precursor intensity will be used at first, till a better scoring is available
-      String compound_name;
-      String compound_adduct;
-      TargetedExperiment::Compound potential_cmp;
-      vector<ReactionMonitoringTransition> potential_rmts;
-  };
 
   struct compare
   {
@@ -215,7 +192,7 @@ protected:
   	}
   };
 
-  static bool compoundNameLess_(const TOPPAssayGeneratorMetabo::PotentialTransitions& i, const TOPPAssayGeneratorMetabo::PotentialTransitions& j)
+  static bool compoundNameLess_(const OpenMS::MetaboTargetedAssay& i, const OpenMS::MetaboTargetedAssay& j)
   {
     if (i.compound_name < j.compound_name)
     {
@@ -239,7 +216,7 @@ protected:
   }
  
   // use std::unique with this function to retain the unique element with the highest precursor intensity
-  static bool compoundUnique_(const TOPPAssayGeneratorMetabo::PotentialTransitions& i, const TOPPAssayGeneratorMetabo::PotentialTransitions& j)
+  static bool compoundUnique_(const OpenMS::MetaboTargetedAssay& i, const OpenMS::MetaboTargetedAssay& j)
   {
     if (i.compound_name == j.compound_name && i.compound_adduct == j.compound_adduct && i.precursor_int > j.precursor_int)
     {
@@ -251,457 +228,9 @@ protected:
     }
   }
 
-  static bool intensityLess_(Peak1D a, Peak1D b)
-  {
-      return (a.getIntensity() < b.getIntensity());
-  }
-
   static bool extractAndCompareScanIndexLess_(const String& i, const String& j)
   {
     return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
-  }
-
-  // method to extract a potential transistions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
-  vector<PotentialTransitions> extractPotentialTransitions(const PeakMap& spectra,
-                                                           const map<BaseFeature const *, vector<size_t>>& feature_ms2_spectra_map,
-                                                           const double& precursor_rt_tol,
-                                                           const double& precursor_mz_distance,
-                                                           const double& cosine_sim_threshold,
-                                                           const double& transition_threshold,
-                                                           const bool& method_consensus_spectrum,
-                                                           const bool& exclude_ms2_precursor,
-                                                           const unsigned int& file_counter)
-  {
-    int transition_group_counter = 0;
-    vector<PotentialTransitions> v_pts;
-
-    std::cout << "size: " << feature_ms2_spectra_map.size() << std::endl;
-
-    for (auto it = feature_ms2_spectra_map.begin();
-              it != feature_ms2_spectra_map.end();
-              ++it)
-      {
-        TargetedExperiment::Compound cmp;
-        cmp.clearMetaInfo();
-        vector<ReactionMonitoringTransition> v_rmt;
-
-        String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
-        StringList v_description, v_sumformula, v_adduct;
-
-        double feature_rt;
-        const BaseFeature *min_distance_feature = it->first;
-        feature_rt = min_distance_feature->getRT();
-
-        // extract metadata from featureXML
-        if (!(min_distance_feature->getPeptideIdentifications().empty()) &&
-            !(min_distance_feature->getPeptideIdentifications()[0].getHits().empty()))
-        {
-          // accurate mass search may provide multiple possible Hits
-          // for heuristics use the identification with the smallest mz error (ppm)
-          double min_id_mz_error = std::numeric_limits<double>::max();
-          for (unsigned int j = 0; j != min_distance_feature->getPeptideIdentifications()[0].getHits().size(); ++j)
-          {
-            double current_id_mz_error = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("mz_error_ppm");
-            // compare the absolute error absolute error
-            if (abs(current_id_mz_error) < min_id_mz_error)
-            {
-              description = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description");
-              sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula");
-              adduct = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications");
-
-              // change format of description [name] to name
-              description.erase(remove_if(begin(description),
-                                          end(description),
-                                          [](char c) { return c == '[' || c == ']'; }), end(description));
-
-              // change format of adduct information M+H;1+ -> [M+H]1+
-              String adduct_prefix = adduct.prefix(';').trim();
-              String adduct_suffix = adduct.suffix(';').trim();
-              adduct = "[" + adduct_prefix + "]" + adduct_suffix;
-
-              min_id_mz_error = abs(current_id_mz_error);
-            }
-          }
-          // use the identification with the lowest mass deviation
-          v_description.push_back(description);
-          v_sumformula.push_back(sumformula);
-          v_adduct.push_back(adduct);
-        }
-        else
-        {
-          // count UNKNOWN via transition group counter
-          v_description.push_back(String(description + "_" + transition_group_counter));
-          v_sumformula.push_back(sumformula);
-          v_adduct.push_back(adduct);
-        }
-
-        double highest_precursor_mz = 0.0;
-        float highest_precursor_int = 0.0;
-        int highest_precursor_charge = 0;
-        MSSpectrum highest_precursor_int_spectrum;
-        MSSpectrum transition_spectrum;
-        String native_id;
-
-        // find precursor/spectrum with highest intensity precursor
-        vector<size_t> index = it->second;
-
-        for (auto index_it = index.begin();
-                  index_it != index.end();
-                  ++index_it)
-        {
-          const MSSpectrum &spectrum = spectra[*index_it];
-
-          // check if MS2 spectrum is empty
-          if (spectrum.empty())
-          {
-            LOG_WARN << "Empty MSMS spectrum was provided. Please hava a look. Index: " << *index_it << std::endl;
-            continue;
-          }
-
-          const vector<Precursor> &precursor = spectrum.getPrecursors();
-
-          // get m/z and intensity of precursor
-          // only spectra with precursors are in the map, therefore no need to check for their presence
-          double precursor_mz = precursor[0].getMZ();
-          float precursor_int = precursor[0].getIntensity();
-          int precursor_charge = precursor[0].getCharge();
-
-          native_id = spectrum.getNativeID();
-
-          // spectrum with highest intensity precursor
-          if (precursor_int > highest_precursor_int)
-          {
-            highest_precursor_int = precursor_int;
-            highest_precursor_mz = precursor_mz;
-            highest_precursor_int_spectrum = spectrum;
-            highest_precursor_charge = precursor_charge;
-          }
-          transition_spectrum = highest_precursor_int_spectrum;
-        }
-
-        // if only one MS2 is available and the consensus method is used - jump right to the transition list calculation
-        // fallback: highest intensity precursor
-        if (method_consensus_spectrum && index.size() >= 2)
-        {
-          // transform to binned spectra
-          vector<BinnedSpectrum> binned;
-          vector<MSSpectrum> similar_spectra;
-          MSExperiment exp;
-          const BinnedSpectrum binned_highest_int(highest_precursor_int_spectrum,
-                                                  BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES,
-                                                  false,
-                                                  1,
-                                                  BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
-
-          // calculation of contrast angle (cosine simiarity)
-          for (auto index_it = index.begin();
-                    index_it != index.end();
-                    ++index_it)
-          {
-            const MSSpectrum &spectrum = spectra[*index_it];
-
-            const BinnedSpectrum binned_spectrum(spectrum,
-                                                 BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES,
-                                                 false,
-                                                 1,
-                                                 BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
-
-            BinnedSpectralContrastAngle bspa;
-            double cosine_sim = bspa(binned_highest_int, binned_spectrum);
-            if (cosine_sim > cosine_sim_threshold)
-            {
-              similar_spectra.push_back(spectrum);
-              exp.addSpectrum(spectrum);
-            }
-          }
-
-          // at least 2 spectra with high consine similarity necessary
-          // fallback to highest precursor intensity spectrum (see above)
-          if (similar_spectra.size() > 1)
-          {
-            // calculate consensus spectrum
-            exp.sortSpectra();
-            SpectraMerger merger;
-            Param p;
-            p.insert("", SpectraMerger().getDefaults());
-            p.setValue("precursor_method:mz_tolerance", precursor_mz_distance);
-            p.setValue("precursor_method:rt_tolerance", precursor_rt_tol * 2);
-            merger.setParameters(p);
-
-            // all MS spectra should have the same precursor
-            merger.mergeSpectraPrecursors(exp);
-
-            // check if all precursors have been merged if not use highest intensity precursor
-            if (exp.getSpectra().size() < 2)
-            {
-              transition_spectrum = exp.getSpectra()[0];
-            }
-          }
-        }
-
-        // transition calculations
-        // calculate max intensity peak and threshold
-        float max_int = 0.0;
-        float min_int = std::numeric_limits<float>::max();
-
-        // sort intensity in MS2 spectrum to extract transitions
-        transition_spectrum.sortByIntensity(true);
-
-        // filter out the precursors if they are in the ms2 spectrum;
-        if (exclude_ms2_precursor)
-        {
-          for (auto spec_it = transition_spectrum.begin();
-                    spec_it != transition_spectrum.end();
-                    ++spec_it)
-          {
-            if (transition_spectrum.getPrecursors()[0].getMZ() == spec_it->getMZ())
-            {
-              transition_spectrum.erase(spec_it);
-              break;
-            }
-          }
-        }
-
-        // find max and min intensity peak
-        max_int = max_element(transition_spectrum.begin(),transition_spectrum.end(), intensityLess_)->getIntensity();
-        min_int = min_element(transition_spectrum.begin(),transition_spectrum.end(), intensityLess_)->getIntensity();
-
-        // no peaks or all peaks have same intensity (single peak / noise)
-        if (min_int >= max_int)
-        {
-          continue;
-        }
-
-        vector<TargetedExperimentHelper::RetentionTime> v_cmp_rt;
-        TargetedExperimentHelper::RetentionTime cmp_rt;
-        cmp_rt.setRT(feature_rt);
-        v_cmp_rt.push_back(cmp_rt);
-        cmp.rts = v_cmp_rt;
-
-        description = ListUtils::concatenate(v_description, ",");
-        cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
-        cmp.setMetaValue("CompoundName", description);
-
-        cmp.smiles_string = "NA";
-
-        sumformula = ListUtils::concatenate(v_sumformula, ",");
-        cmp.molecular_formula = sumformula;
-
-
-        // only one adduct for each descirption using the lowest mass error
-        // adduct = v_adduct[0];
-        adduct = ListUtils::concatenate(v_adduct, ",");
-        cmp.setMetaValue("Adducts", adduct);
-
-        // threshold should be at x % of the maximum intensity
-        // hard minimal threshold of min_int * 1.1
-        float threshold_transition = max_int * (transition_threshold / 100);
-        float threshold_noise = min_int * 1.1;
-
-        int transition_counter = 0;
-        // here ms2 spectra information is used
-        for (auto spec_it = transition_spectrum.begin();
-                  spec_it != transition_spectrum.end();
-                  ++spec_it)
-        {
-          ReactionMonitoringTransition rmt;
-          rmt.clearMetaInfo();
-
-          float current_int = spec_it->getIntensity();
-          double current_mz = spec_it->getMZ();
-
-          // write row for each transition
-          // current int has to be higher than transition thresold and should not be smaller than threshold noise
-          if (current_int > threshold_transition && current_int > threshold_noise)
-          {
-            float rel_int = current_int / max_int;
-
-            rmt.setPrecursorMZ(highest_precursor_mz);
-            rmt.setProductMZ(current_mz);
-            rmt.setLibraryIntensity(rel_int);
-
-            description = ListUtils::concatenate(v_description, ",");
-            rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + file_counter);
-            rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" + file_counter);
-
-            v_rmt.push_back(rmt);
-            transition_counter += 1;
-          }
-        }
-        transition_group_counter += 1;
-        PotentialTransitions pts;
-        pts.precursor_mz = highest_precursor_mz;
-        pts.precursor_rt = feature_rt;
-        pts.precursor_int = highest_precursor_int;
-        pts.precursor_charge = highest_precursor_charge;
-        //pts.transition_quality =
-        pts.compound_name = description;
-        pts.compound_adduct = adduct;
-        pts.potential_cmp = cmp;
-        pts.potential_rmts = v_rmt;
-        v_pts.push_back(pts);
-      }
-      return v_pts;
-  }
-
-  // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor with fragment annotation using SIRIUS
-  vector<PotentialTransitions> extractPotentialTransitionsFragmentAnnotation(const vector< pair <SiriusMSFile::CompoundInfo, MSSpectrum> >& v_cmp_spec,
-                                                                             const double& transition_threshold,
-                                                                             const bool& use_exact_mass,
-                                                                             const bool& exclude_ms2_precursor,
-                                                                             const unsigned int& file_counter)
-  {
-    int transition_group_counter = 0;
-    vector<PotentialTransitions> v_pts;
-
-    for (auto it = v_cmp_spec.begin();
-              it != v_cmp_spec.end();
-              ++it)
-      {
-        // check if annotated spectrum exists
-        MSSpectrum transition_spectrum;
-        transition_spectrum = it->second;
-        if (transition_spectrum.empty()) { continue; }
-
-        TargetedExperiment::Compound cmp;
-        cmp.clearMetaInfo();
-        vector<ReactionMonitoringTransition> v_rmt;
-
-        String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
-
-        double feature_rt;
-        feature_rt = it->first.rt;
-        description = it->first.des;
-        int charge = it->first.charge;
-
-        // use annotated metadata
-        sumformula = it->second.getMetaValue("annotated_sumformula");
-        adduct = it->second.getMetaValue("annotated_adduct");
-
-        // transition calculations
-        // calculate max intensity peak and threshold
-        float max_int = 0.0;
-        float min_int = std::numeric_limits<float>::max();
-
-        // sort intensity in MS2 spectrum to extract transitions
-        transition_spectrum.sortByIntensity(true);
-
-        // have to remove ms2 precursor peak before min/max
-        double exact_mass_precursor = 0.0;
-        for (auto spec_it = transition_spectrum.begin();
-                  spec_it != transition_spectrum.end();
-                  ++spec_it)
-        {
-          int spec_index = spec_it - transition_spectrum.begin();
-          OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
-          if (explanation_array.getName() != "explanation")
-          {
-            LOG_WARN << "Fragment explanation was not found. Please check if you annotation works properly." << std::endl;
-          }
-          else
-          {
-            // precursor in fragment annotation has the same sumformula as MS1 Precursor
-            if (explanation_array[spec_index] == sumformula)
-            {
-              // save exact mass
-              if(use_exact_mass)
-              {
-                exact_mass_precursor = spec_it->getMZ();
-              }
-              // remove precursor ms2 entry
-              if(exclude_ms2_precursor)
-              {
-                transition_spectrum.erase(transition_spectrum.begin() + spec_index);
-                transition_spectrum.getStringDataArrays()[0].erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
-                transition_spectrum.getFloatDataArrays()[0].erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
-                break; // if last element have to break if not iterator will go out of range
-              }
-            }
-          }
-        }
-
-        // find max and min intensity peak
-        max_int = max_element(transition_spectrum.begin(),transition_spectrum.end(), intensityLess_)->getIntensity();
-        min_int = min_element(transition_spectrum.begin(),transition_spectrum.end(), intensityLess_)->getIntensity();
-
-        // no peaks or all peaks have same intensity (single peak / noise)
-        if (min_int >= max_int)
-        {
-          continue;
-        }
-
-        vector<TargetedExperimentHelper::RetentionTime> v_cmp_rt;
-        TargetedExperimentHelper::RetentionTime cmp_rt;
-        cmp_rt.setRT(feature_rt);
-        v_cmp_rt.push_back(cmp_rt);
-        cmp.rts = v_cmp_rt;
-
-        cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
-        cmp.setMetaValue("CompoundName", description);
-        cmp.smiles_string = "NA";
-
-        cmp.molecular_formula = sumformula;
-        cmp.setMetaValue("Adducts", adduct);
-
-        // threshold should be at x % of the maximum intensity
-        // hard minimal threshold of min_int * 1.1
-        float threshold_transition = max_int * (transition_threshold / 100);
-        float threshold_noise = min_int * 1.1;
-        int transition_counter = 0;
-
-        // extract current StringDataArry with annotations/explanations;
-        OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
-
-        // check which entry is saved in the FloatDataArry (control for "use_exact_mass")
-        LOG_DEBUG << transition_spectrum.getFloatDataArrays()[0].getName() << " is not used to build the assay library." << std::endl;
-
-        // here ms2 spectra information is used
-        for (auto spec_it = transition_spectrum.begin();
-                  spec_it != transition_spectrum.end();
-                  ++spec_it)
-        {
-          ReactionMonitoringTransition rmt;
-          rmt.clearMetaInfo();
-          int peak_index = spec_it - transition_spectrum.begin();
-
-          float current_int = spec_it->getIntensity();
-          double current_mz = spec_it->getMZ();
-          String current_explanation = explanation_array[peak_index];
-
-          // write row for each transition
-          // current int has to be higher than transition thresold and should not be smaller than threshold noise
-          if (current_int > threshold_transition && current_int > threshold_noise)
-          {
-            float rel_int = current_int / max_int;
-
-            rmt.setPrecursorMZ((use_exact_mass && exact_mass_precursor != 0.0)  ? exact_mass_precursor : it->first.pmass);
-            rmt.setProductMZ(current_mz);
-            rmt.setLibraryIntensity(rel_int);
-
-            rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + file_counter);
-            rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" + file_counter);
-
-            rmt.setMetaValue("annotation", DataValue(current_explanation));
-
-            v_rmt.push_back(rmt);
-            transition_counter += 1;
-          }
-        }
-
-        transition_group_counter += 1;
-        PotentialTransitions pts;
-        pts.precursor_mz = (use_exact_mass && exact_mass_precursor != 0.0)  ? exact_mass_precursor : it->first.pmass;
-        pts.precursor_rt = it->first.rt;
-        pts.precursor_int = 0;
-        pts.precursor_charge = charge;
-        //pts.transition_quality = ;
-        pts.compound_name = description;
-        pts.compound_adduct = adduct;
-        pts.potential_cmp = cmp;
-        pts.potential_rmts = v_rmt;
-        v_pts.push_back(pts);
-      }
-      return v_pts;
   }
 
   ExitCodes main_(int, const char **) override
@@ -714,10 +243,10 @@ protected:
     StringList in = getStringList_("in");
     StringList id = getStringList_("in_id");
     String out = getStringOption_("out");
+    String fragment_annotation = getStringOption_("fragment_annotation");
     String method = getStringOption_("method");
-    String method_heuristics = getStringOption_("method_heuristics");
-    bool use_fragment_annotation = method == "fragment_annotation" ? true : false;
-    bool method_consensus_spectrum = method_heuristics == "consensus_spectrum" ? true : false;
+    bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
+    bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
     bool use_exact_mass = getFlag_("use_exact_mass");
     bool exclude_ms2_precursor = getFlag_("exclude_ms2_precursor");
 
@@ -768,7 +297,7 @@ protected:
                                           "Number of .mzML do not match to the number of .featureXML files. \n Please check and provide the corresponding files.");
     }
 
-    vector<PotentialTransitions> v_pts;
+    vector<MetaboTargetedAssay> v_mta;
 
     // iterate over all the files
     for (unsigned file_counter = 0; file_counter < in.size(); file_counter++)
@@ -964,7 +493,7 @@ protected:
           }
         }
       }
-      else // use heuristics
+      else // use heuristic
       {
         if (use_deisotoper)
         {
@@ -1022,44 +551,44 @@ protected:
       }
 
       // potential transitions of one file
-      vector<PotentialTransitions> tmp_pts;
+      vector<MetaboTargetedAssay> tmp_mta;
       if (use_fragment_annotation)
       {
-        tmp_pts = extractPotentialTransitionsFragmentAnnotation(v_cmp_spec,
-                                                                transition_threshold,
-                                                                use_exact_mass,
-                                                                exclude_ms2_precursor,
-                                                                file_counter);
+        tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
+                                                                                    transition_threshold,
+                                                                                    use_exact_mass,
+                                                                                    exclude_ms2_precursor,
+                                                                                    file_counter);
       }
       else // use heuristics
       {
-        tmp_pts = extractPotentialTransitions(spectra,
-                                              feature_mapping.assignedMS2,
-                                              precursor_rt_tol,
-                                              precursor_mz_distance,
-                                              cosine_sim_threshold,
-                                              transition_threshold,
-                                              method_consensus_spectrum,
-                                              exclude_ms2_precursor,
-                                              file_counter);
+        tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssay(spectra,
+                                                                  feature_mapping.assignedMS2,
+                                                                  precursor_rt_tol,
+                                                                  precursor_mz_distance,
+                                                                  cosine_sim_threshold,
+                                                                  transition_threshold,
+                                                                  method_consensus_spectrum,
+                                                                  exclude_ms2_precursor,
+                                                                  file_counter);
       }
       
       // append potential transitions of one file to vector of all files
-      v_pts.insert(v_pts.end(), tmp_pts.begin(),tmp_pts.end());
+      v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
       
     } // end iteration over all files
     
     // sort by CompoundName
-    std::sort(v_pts.begin(), v_pts.end(), compoundNameLess_);
+    std::sort(v_mta.begin(), v_mta.end(), compoundNameLess_);
     
     // get unique elements (CompoundName, CompoundAdduct) with highest precursor intensity
-    auto uni_it = std::unique(v_pts.begin(), v_pts.end(), compoundUnique_);
-    v_pts.resize(std::distance(v_pts.begin(), uni_it));
+    auto uni_it = std::unique(v_mta.begin(), v_mta.end(), compoundUnique_);
+    v_mta.resize(std::distance(v_mta.begin(), uni_it));
     
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt_all;
-    for (auto it = v_pts.begin(); it != v_pts.end(); ++it)
+    for (auto it = v_mta.begin(); it != v_mta.end(); ++it)
     {
       v_cmp.push_back(it->potential_cmp);
       v_rmt_all.insert(v_rmt_all.end(), it->potential_rmts.begin(), it->potential_rmts.end());
