@@ -120,18 +120,11 @@ namespace OpenMS
           continue;
         }
 
-        else
-        {
-          // the one existing peptideidentification has atleast one getHits entry
-          for (auto& pep_id : f.getPeptideIdentifications())
-          {
-            auto& pep_hit = pep_id.getHits()[0];
-            String key = (pep_hit.getSequence().toUnmodifiedString());
-            this->compare_(key, f, total, cont, sum_total, sum_cont);
-          }
-          //auto& pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
+        // the one existing peptideidentification has atleast one getHits entry
+        PeptideHit& pep_hit = id.getHits()[0];
+        String key = (pep_hit.getSequence().toUnmodifiedString());
+        this->compare_(key, pep_hit, total, cont, sum_total, sum_cont, f.getIntensity());
 
-        }
       }
     }
     //save the contaminants ratio in object before searching through the unassigned peptideidentifications
@@ -152,7 +145,10 @@ namespace OpenMS
     //}
     for (auto& fu : features.getUnassignedPeptideIdentifications())
     {
-      if ( fu.getHits().empty()) continue;
+      if ( fu.getHits().empty())
+      {
+        continue;
+      }
       auto& fu_hit = fu.getHits()[0];
       String key = (fu_hit.getSequence().toUnmodifiedString());
       ++utotal;
@@ -189,25 +185,26 @@ namespace OpenMS
   //Check if peptide is in contaminants database or not and add the is_contaminant = 0/1.
   // If so, raise the contaminant ratio.
   void Contaminants::compare_(const String& key,
-                             Feature& f,
+                             PeptideHit& pep_hit,
                              Int64& total,
                              Int64& cont,
                              double& sum_total,
-                             double& sum_cont)
+                             double& sum_cont,
+                             double intensity)
   {
     ++total;
-    sum_total += f.getIntensity();
+    sum_total += intensity;
     //peptide is not in contaminant database
     if (!digested_db_.count(key))
     {
-      f.getPeptideIdentifications()[0].getHits()[0].setMetaValue("is_contaminant", 0);
+      pep_hit.setMetaValue("is_contaminant", 0);
       //add the "is_contaminant" identification
       return;
     }
     //peptide is contaminant
     ++cont;
-    sum_cont += f.getIntensity();
-    f.getPeptideIdentifications()[0].getHits()[0].setMetaValue("is_contaminant", 1);
+    sum_cont += intensity;
+    pep_hit.setMetaValue("is_contaminant", 1);
   }
 
   QCBase::Status Contaminants::requires() const

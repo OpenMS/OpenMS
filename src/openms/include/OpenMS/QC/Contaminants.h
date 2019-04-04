@@ -102,12 +102,13 @@ namespace OpenMS
      * @brief
      * checks if the peptide is in the contaminant database
      * @param key String that will be the key for searching in the unordered set
-     * @param f Feature with peptideidentification to store the result "is_contaminant = 0/1" in the first hit of each
+     * @param pep_hit PeptideHit to store the result "is_contaminant = 0/1"
      * @param total counter of all checked peptides
      * @param cont counter of all checked peptides that are contamiants
      * @param sum_total intensity of all checked peptides
      * @param sum_cont intensity of all checked peptides that are contaminants
+     * @param intensity intensity of current peptide
      */
-    void compare_(const String& key, Feature& f, Int64& total, Int64& cont, double& sum_total, double& sum_cont);
+    void compare_(const String& key, PeptideHit& pep_hit, Int64& total, Int64& cont, double& sum_total, double& sum_cont, double intensity);
   };
 } // namespace OpenMS
