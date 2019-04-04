@@ -48,9 +48,6 @@
 
 #include <boost/regex.hpp>
 
-using namespace OpenMS;
-using namespace std;
-
 namespace OpenMS
 {
   /**
@@ -94,6 +91,16 @@ namespace OpenMS
         const String meta_value_exp_design_key = "spectra_data";
 
         /*
+        *  @Brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition in Experimental Design
+        */
+        static void checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition);
+
+        /*
+         *  @Brief: Internal function to check if MSstats_BioReplicate, MSstats_Condition and MSstats_Mixture in Experimental Design
+         */
+        static void checkConditionISO_(const ExperimentalDesign::SampleSection sampleSection, const String& bioreplicate, const String& condition, const String& mixture);
+
+        /*
          *  MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)
          *  In OpenMS, a run is split into multiple fractions.
          *
@@ -124,7 +131,7 @@ namespace OpenMS
                  && std::equal(lhs.begin(), lhs.end(), rhs.begin());
         }
 
-        OpenMS::Peak2D::IntensityType sumIntensity(const set< OpenMS::Peak2D::IntensityType > &intensities)
+        OpenMS::Peak2D::IntensityType sumIntensity(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
         {
           OpenMS::Peak2D::IntensityType result = 0;
           for (const OpenMS::Peak2D::IntensityType &intensity : intensities)
@@ -134,7 +141,7 @@ namespace OpenMS
           return result;
         }
 
-        OpenMS::Peak2D::IntensityType meanIntensity(const set< OpenMS::Peak2D::IntensityType > &intensities)
+        OpenMS::Peak2D::IntensityType meanIntensity(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
         {
           return sumIntensity(intensities) / intensities.size();
         }

@@ -34,6 +34,8 @@
 
 #include "OpenMS/FORMAT/MSstatsFile.h"
 
+using namespace std;
+
 OpenMS::MSstatsFile::MSstatsFile()
 {
 
@@ -44,7 +46,7 @@ OpenMS::MSstatsFile::~MSstatsFile()
 
 }
 
-void checkConditionLFQ(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition)
+void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition)
 {
   // Sample Section must contain the column that contains the condition used for MSstats
   if (!sampleSection.hasFactor(condition))
@@ -59,9 +61,9 @@ void checkConditionLFQ(const ExperimentalDesign::SampleSection& sampleSection, c
   } 
 }
 
-void checkConditionISO(const ExperimentalDesign::SampleSection sampleSection, const String& bioreplicate, const String& condition, const String& mixture)
+void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection sampleSection, const String& bioreplicate, const String& condition, const String& mixture)
 {
-  checkConditionLFQ(sampleSection, bioreplicate, condition);
+  checkConditionLFQ_(sampleSection, bioreplicate, condition);
   
   // Sample Section must contain column for Mixture
   if (!sampleSection.hasFactor(mixture))
@@ -83,10 +85,10 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Too many lables for a label-free quantitation experiments. Please select the appropriate method, or validate the experimental desing.");
   }
 
-  checkConditionLFQ(sampleSection, bioreplicate, condition);
+  checkConditionLFQ_(sampleSection, bioreplicate, condition);
 
   // assemble lookup table for run (each combination of pathname and fraction is a run)
-  map< pair< String, unsigned>, unsigned > run_map;
+  std::map< pair< String, unsigned>, unsigned > run_map;
   assembleRunMap(run_map, design);
 
   // Maps run in MSstats input to run for OpenMS
@@ -120,6 +122,9 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
 
   // Determine if the experiment has fractions
   const bool has_fraction = design.isFractionated();
+
+  // label id 1 is used in case the experimental design specifies a LFQ experiment
+  const unsigned label_lfq(1);
 
   vector< OpenMS::BaseFeature> features;
   vector< String > spectra_paths;
@@ -180,6 +185,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
       filenames.push_back(spectra_paths[fit->getMapIndex()]);
       intensities.push_back(fit->getIntensity());
       retention_times.push_back(fit->getRT());
+      cf_labels.push_back(label_lfq);
     }
     consensus_feature_labels.push_back(cf_labels);
     consensus_feature_filenames.push_back(filenames);
@@ -272,7 +278,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
             // Write new line for each run
             for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
             {
-              const String &filename = consensus_feature_filenames[i][j];
+              const String &current_filename = consensus_feature_filenames[i][j];
               const Intensity intensity(consensus_feature_intensites[i][j]);
               const Coordinate retention_time(consensus_feature_retention_times[i][j]);
               const unsigned label(consensus_feature_labels[i][j]);
@@ -280,18 +286,16 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
               const String & accession = pep_ev.getProteinAccession();
               peptideseq_to_accessions[sequence].insert(accession);
 
-              const pair< String, unsigned> tpl1 = make_pair(filename, label);
+              const pair< String, unsigned> tpl1 = make_pair(current_filename, label);
               const unsigned sample = path_label_to_sample[tpl1];
               const unsigned fraction = path_label_to_fraction[tpl1];
 
-              const pair< String, unsigned> tpl2 = make_pair(filename, fraction);
+              const pair< String, unsigned> tpl2 = make_pair(current_filename, fraction);
 
               // Resolve run
               const unsigned run = run_map[tpl2];  // MSstats run according to the file table
               const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
               msstats_run_to_openms_fractiongroup[run] = openms_fractiongroup;
-              
-              std::cout << " Iam able to make it up to here!" << std::endl;
 
               // Assemble MSstats line
               MSstatsLine prefix(
@@ -318,7 +322,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
   }
   
   // Print the run mapping between MSstats and OpenMS
-  for (const auto run_mapping : msstats_run_to_openms_fractiongroup)
+  for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
     cout << "MSstats run " << String(run_mapping.first)
          << " corresponds to OpenMS fraction group " << String(run_mapping.second) << endl;
@@ -328,7 +332,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
   set< tuple<String, String, String> > peptideseq_precursor_charge_run;
 
   // test
-  int count_similar; 
+  int count_similar = 0;
 
   for (const pair< String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
   {
@@ -341,7 +345,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
         // First, we collect all retention times and intensities
         set< Coordinate > retention_times;
         set< Intensity > intensities;
-        for (const pair< Intensity, Coordinate > p : line.second)
+        for (const pair< Intensity, Coordinate >& p : line.second)
         {
           if (retention_times.find(p.second) != retention_times.end())
           {
@@ -398,8 +402,6 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
       }
     }
   }
-  
-  std::cout << "worked up to store" << std::endl;   
 
   // Store the final assembled CSV file
   csv_out.store(filename);
@@ -414,7 +416,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
   // Experimental Design file
   ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
 
-  checkConditionISO(sampleSection, bioreplicate, condition, mixture);
+  checkConditionISO_(sampleSection, bioreplicate, condition, mixture);
 
   // Maps run in MSstats input to run for OpenMS
   map< unsigned, unsigned > msstats_run_to_openms_fractiongroup;
@@ -569,7 +571,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
             // Write new line for each run
             for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
             {
-              const String &filename = consensus_feature_filenames[i][j];
+              const String &current_filename = consensus_feature_filenames[i][j];
 
               const Intensity intensity(consensus_feature_intensites[i][j]);
               const Coordinate retention_time(consensus_feature_retention_times[i][j]);
@@ -578,7 +580,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
               const String & accession = pep_ev.getProteinAccession();
               peptideseq_to_accessions[sequence].insert(accession);
               
-              const pair< String, unsigned> tpl1 = make_pair(filename, channel);
+              const pair< String, unsigned> tpl1 = make_pair(current_filename, channel);
               const unsigned sample = path_label_to_sample[tpl1];
               const unsigned fraction = path_label_to_fraction[tpl1];
 
@@ -610,7 +612,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
     }
 
   // Print the run mapping between MSstats and OpenMS
-  for (const auto run_mapping : msstats_run_to_openms_fractiongroup)
+  for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
     cout << "MSstats run " << String(run_mapping.first)
          << " corresponds to OpenMS TechMixture " << String(run_mapping.second) << endl;
@@ -620,7 +622,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
   set< tuple<String, String, String> > peptideseq_precursor_charge_run;
 
   // test
-  int count_similar; 
+  int count_similar = 0;
 
   for (const pair< String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
   {
@@ -633,7 +635,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
         // First, we collect all retention times and intensities
         set< Coordinate > retention_times;
         set< Intensity > intensities;
-        for (const pair< Intensity, Coordinate > p : line.second)
+        for (const pair< Intensity, Coordinate >& p : line.second)
         {
           if (retention_times.find(p.second) != retention_times.end())
           {
@@ -690,7 +692,6 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
       }
     }
   }
-  std::cout << "more than one peptide ion in the same run: " << count_similar << std::endl;
 
   // Store the final assembled CSV file
   csv_out.store(filename);
