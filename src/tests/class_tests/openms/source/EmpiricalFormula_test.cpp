@@ -43,6 +43,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -79,7 +80,6 @@ START_SECTION(EmpiricalFormula(const String& rhs))
   TEST_REAL_SIMILAR(e1.getMonoWeight(), 112.013419)
   TEST_REAL_SIMILAR(e2.getMonoWeight(), 112.013419)
 END_SECTION
-
 
 START_SECTION(EmpiricalFormula(const EmpiricalFormula& rhs))
   EmpiricalFormula ef(*e_ptr);
@@ -129,7 +129,7 @@ START_SECTION(SignedSize getNumberOfAtoms() const)
   TEST_EQUAL(num4, 4);
 END_SECTION
 
-START_SECTION(EmpiricalFormula& operator < (const EmpiricalFormula& rhs))
+START_SECTION(EmpiricalFormula& operator<(const EmpiricalFormula& rhs))
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
@@ -138,13 +138,12 @@ START_SECTION(EmpiricalFormula& operator < (const EmpiricalFormula& rhs))
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5"), false)
 END_SECTION
 
-START_SECTION(EmpiricalFormula& operator = (const EmpiricalFormula& rhs))
+START_SECTION(EmpiricalFormula& operator=(const EmpiricalFormula& rhs))
   EmpiricalFormula ef;
   ef = *e_ptr;
   TEST_EQUAL(*e_ptr == ef, true)
 END_SECTION
 
-    
 START_SECTION(EmpiricalFormula& operator=(EmpiricalFormula&&) & = default)
   EmpiricalFormula e = EmpiricalFormula("C4");
 
@@ -159,13 +158,13 @@ START_SECTION(EmpiricalFormula& operator=(EmpiricalFormula&&) & = default)
   TEST_EQUAL(ef, ef_empty)
 END_SECTION
 
-START_SECTION(EmpiricalFormula operator * (const SignedSize& times) const)
+START_SECTION(EmpiricalFormula operator*(const SignedSize& times) const)
   EmpiricalFormula ef("C3H8");
   ef = ef * 3;
   TEST_EQUAL(ef, "C9H24")
 END_SECTION
 
-START_SECTION(EmpiricalFormula& operator += (const EmpiricalFormula& rhs))
+START_SECTION(EmpiricalFormula& operator+=(const EmpiricalFormula& rhs))
   EmpiricalFormula ef("C3");
   TEST_EQUAL(ef, "C3")
   ef += ef;
@@ -184,7 +183,7 @@ START_SECTION(EmpiricalFormula& operator += (const EmpiricalFormula& rhs))
   TEST_EQUAL(ef, "H2")
 END_SECTION
 
-START_SECTION(EmpiricalFormula operator + (const EmpiricalFormula& rhs) const)
+START_SECTION(EmpiricalFormula operator+(const EmpiricalFormula& rhs) const)
   EmpiricalFormula ef("C2");
   EmpiricalFormula ef2;
   ef2 = ef + ef;
@@ -193,7 +192,7 @@ START_SECTION(EmpiricalFormula operator + (const EmpiricalFormula& rhs) const)
   TEST_EQUAL(ef2, "H2")
 END_SECTION
 
-START_SECTION(EmpiricalFormula& operator -= (const EmpiricalFormula& rhs))
+START_SECTION(EmpiricalFormula& operator-=(const EmpiricalFormula& rhs))
   EmpiricalFormula ef1("C5H12"), ef2("CH12");
   ef1 -= ef2;
   TEST_EQUAL(*e_ptr == ef1, true)
@@ -201,7 +200,7 @@ START_SECTION(EmpiricalFormula& operator -= (const EmpiricalFormula& rhs))
   TEST_EQUAL(ef1, "H2");
 END_SECTION
 
-START_SECTION(EmpiricalFormula operator - (const EmpiricalFormula& rhs) const)
+START_SECTION(EmpiricalFormula operator-(const EmpiricalFormula& rhs) const)
   EmpiricalFormula ef1("C5H12"), ef2("CH12");
   EmpiricalFormula ef3, ef4;
   ef3 = ef1 - ef2;
@@ -225,7 +224,6 @@ START_SECTION(bool hasElement(const Element* element) const)
 END_SECTION
 
 START_SECTION(bool contains(const EmpiricalFormula& ef))
-
   EmpiricalFormula metabolite("C12H36N2");
 
   TEST_EQUAL(metabolite.contains(metabolite), true) // contains itself?
@@ -268,6 +266,12 @@ START_SECTION(double getAverageWeight() const)
   EmpiricalFormula ef("C2");
   const Element* e = db->getElement("C");
   TEST_REAL_SIMILAR(ef.getAverageWeight(), e->getAverageWeight() * 2)
+  ef.setCharge(1);
+  TEST_REAL_SIMILAR(ef.getAverageWeight(),
+                    e->getAverageWeight() * 2 + Constants::PROTON_MASS_U)
+  ef.setCharge(-1);
+  TEST_REAL_SIMILAR(ef.getAverageWeight(),
+                    e->getAverageWeight() * 2 - Constants::PROTON_MASS_U)
 END_SECTION
 
 START_SECTION(bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
@@ -306,7 +310,6 @@ START_SECTION(bool estimateFromWeightAndComp(double average_weight, double C, do
     TEST_EQUAL(ef_approx.getNumberOf(db->getElement("H")) >= 0, true);
     // The return flag should now indicate that the estimated formula did not succeed without requesting a negative # of hydrogens
     TEST_EQUAL(return_flag, false);
-
 END_SECTION
 
 START_SECTION(bool estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P))
@@ -331,13 +334,18 @@ START_SECTION(bool estimateFromWeightAndCompAndS(double average_weight, UInt S, 
     TEST_EQUAL(1, ef_approx_S.getNumberOf(db->getElement("S")));
     TOLERANCE_ABSOLUTE(1);
     TEST_REAL_SIMILAR(ef_approx.getAverageWeight(), ef_approx_S.getAverageWeight());
-
 END_SECTION
 
 START_SECTION(double getMonoWeight() const)
   EmpiricalFormula ef("C2");
   const Element* e = db->getElement("C");
   TEST_REAL_SIMILAR(ef.getMonoWeight(), e->getMonoWeight() * 2)
+  ef.setCharge(1);
+  TEST_REAL_SIMILAR(ef.getMonoWeight(),
+                    e->getMonoWeight() * 2 + Constants::PROTON_MASS_U)
+  ef.setCharge(-1);
+  TEST_REAL_SIMILAR(ef.getMonoWeight(),
+                    e->getMonoWeight() * 2 - Constants::PROTON_MASS_U)
   TEST_REAL_SIMILAR(EmpiricalFormula("OH").getMonoWeight(), EmpiricalFormula("HO").getMonoWeight());
   TEST_REAL_SIMILAR(EmpiricalFormula("").getMonoWeight(), 0.0)
 END_SECTION
@@ -349,7 +357,6 @@ START_SECTION(String toString() const)
   TEST_EQUAL(String(str).hasSubstring("C2"), true)
 END_SECTION
 
-    
 START_SECTION((std::map<std::string, int> toMap() const))
   EmpiricalFormula ef("C2H5");
   auto m = ef.toMap();
@@ -357,7 +364,7 @@ START_SECTION((std::map<std::string, int> toMap() const))
   TEST_EQUAL(m["H"], 5)
 END_SECTION
 
-START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&)))
+START_SECTION([EXTRA](friend std::ostream& operator<<(std::ostream&, const EmpiricalFormula&)))
   stringstream ss;
   EmpiricalFormula ef("C2H5");
   ss << ef;
@@ -365,7 +372,7 @@ START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream&, const Emp
   TEST_EQUAL(String(ss.str()).hasSubstring("C2"), true);
 END_SECTION
 
-START_SECTION(bool operator != (const EmpiricalFormula& rhs) const)
+START_SECTION(bool operator!=(const EmpiricalFormula& rhs) const)
   EmpiricalFormula ef1("C2H5"), ef2(*e_ptr);
   TEST_EQUAL(ef1 != ef2, true)
   TEST_EQUAL(ef1 != ef1, false)
@@ -373,7 +380,7 @@ START_SECTION(bool operator != (const EmpiricalFormula& rhs) const)
   TEST_EQUAL(ef2 != *e_ptr, true)
 END_SECTION
 
-START_SECTION(bool operator == (const EmpiricalFormula& rhs) const)
+START_SECTION(bool operator==(const EmpiricalFormula& rhs) const)
   EmpiricalFormula ef1("C2H5"), ef2(*e_ptr);
   TEST_EQUAL(ef1 == ef2, false)
   TEST_EQUAL(ef1 == ef1, true)
@@ -391,7 +398,6 @@ START_SECTION(ConstIterator begin() const)
   {
     TEST_EQUAL(it->second, formula[it->first->getSymbol()])
   }
-
 END_SECTION
 
 START_SECTION(ConstIterator end() const)
@@ -446,7 +452,6 @@ START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   most_abundant = iso4.getMostAbundant();
   TEST_EQUAL(most_abundant.getMZ(), 66432);
   TEST_REAL_SIMILAR(most_abundant.getIntensity(), 0.057);
-
 END_SECTION
 
 START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes, const CoarseIsotopePatternGenerator& solver) const)
@@ -549,7 +554,6 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   {
     TEST_REAL_SIMILAR(big_it->getIntensity(), small_it->getIntensity())
   }
-
 END_SECTION
 
 START_SECTION(([EXTRA] Check correct charge semantics))

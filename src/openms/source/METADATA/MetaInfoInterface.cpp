@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
+#include <OpenMS/METADATA/MetaInfo.h>
+
 using namespace std;
 
 namespace OpenMS

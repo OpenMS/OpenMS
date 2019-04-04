@@ -112,7 +112,7 @@ namespace OpenMS
        * @param modNames The list of modification names
        * @return A vector of modifications
        */
-      static std::vector<ResidueModification> getModificationsFromStringList(StringList modNames);
+      static std::vector<const ResidueModification*> getModificationsFromStringList(StringList modNames);
 
       /**
        * @brief Digests a database with the given EnzymaticDigestion settings and precomputes masses for all peptides
@@ -134,7 +134,7 @@ namespace OpenMS
        * @param c_term_linker True, if the cross-linker can react with the C-terminal of a protein
        * @return A vector of AASeqWithMass containing the peptides, their masses and information about terminal peptides
        */
-      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide);
+      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, const std::vector<const ResidueModification*>& fixed_modifications, const std::vector<const ResidueModification*>& variable_modifications, Size max_variable_mods_per_peptide);
 
       /**
        * @brief Builds specific cross-link candidates with all possible combinations of linked positions from peptide pairs. Used to build candidates for the precursor mass window of a single MS2 spectrum.

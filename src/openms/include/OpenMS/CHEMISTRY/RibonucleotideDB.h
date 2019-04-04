@@ -44,7 +44,8 @@ namespace OpenMS
 
       @brief Database of ribonucleotides (modified and unmodified)
 
-      The information in this class comes from the Modomics database (http://modomics.genesilico.pl/modifications/) and is read from a tab-separated text file in @p data/CHEMISTRY/Modomics.tsv.
+      The information in this class comes primarily from the Modomics database (http://modomics.genesilico.pl/modifications/) and is read from a tab-separated text file in @p data/CHEMISTRY/Modomics.tsv.
+      In addition, OpenMS-specific (as well as potentially user-supplied) modification definitions are read from the file @p data/CHEMISTRY/Custom_RNA_modifications.tsv.
   */
   class OPENMS_DLLAPI RibonucleotideDB
   {
@@ -100,6 +101,14 @@ namespace OpenMS
     */
     ConstRibonucleotidePtr getRibonucleotidePrefix(const std::string& seq);
 
+    /**
+       @brief Get the alternatives for an ambiguous modification code
+
+       @throw Exception::ElementNotFound if nothing was found
+    */
+    std::pair<ConstRibonucleotidePtr, ConstRibonucleotidePtr> getRibonucleotideAlternatives(const std::string& code);
+
+
   protected:
     /// default constructor
     RibonucleotideDB();
@@ -115,6 +124,9 @@ namespace OpenMS
 
     /// mapping of codes (short names) to indexes into @p ribonucleotides_
     std::unordered_map<std::string, Size> code_map_;
+
+    /// mapping of ambiguity codes to the alternatives they represent
+    std::map<std::string, std::pair<ConstRibonucleotidePtr, ConstRibonucleotidePtr>> ambiguity_map_;
 
     Size max_code_length_;
   };

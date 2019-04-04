@@ -51,14 +51,14 @@ FactoryBase* ptr = nullptr;
 FactoryBase* nullPointer = nullptr;
 START_SECTION(FactoryBase())
 {
-        ptr = new FactoryBase();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new FactoryBase();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~FactoryBase())
 {
-        delete ptr;
+  delete ptr;
 }
 END_SECTION
 
