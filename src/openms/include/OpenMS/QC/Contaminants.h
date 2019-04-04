@@ -44,9 +44,10 @@
 namespace OpenMS
 {
   /**
-   * @brief This class is a metric for the QualityControl-ToppTool.
+   * @brief This class is a metric for the QualityControl TOPP tool.
    *
-   * This class checks whether a peptide is a contaminant or not and adds that result to the first hit of the peptideidentification.
+   * This class checks whether a peptide is a contaminant (given a protein DB) and adds that result as metavalue "is_contaminant"
+   * to the first hit of each PeptideIdentification.
    */
   class OPENMS_DLLAPI Contaminants:
       QCBase
@@ -63,18 +64,23 @@ namespace OpenMS
       double all_contaminants_ratio;
       ///(intensity of contaminants in assigned/ intensity of peptides in assigned)
       double assigned_contaminants_intensity_ratio;
-      ///(features without peptideidentification or with peptideidentifications but without hits, all features)
+      ///(features without peptideidentification or with peptideidentifications but without hits; all features)
       std::pair<Int64, Int64> empty_features;
     };
-    ///Constructor
+    /// Constructor
     Contaminants() = default;
-    ///Destructor
+    /// Destructor
     virtual ~Contaminants() = default;
     /**
      * @brief Checks if the peptides are in the contaminant database.
-     * "is_contaminant" identification is added to the first hit of the peptideidentification of each feature and to the first hit of all unsignedpeptideidentifications
-     * @param features input FeatureMap with peptideidentifications of features
-     * @param contaminants vector of FASTAEntries that need to be digested to check whether a peptide is a contaminant or not
+     * 
+     * "is_contaminant" metavalue is added to the first hit of each PeptideIdentification of each feature
+     * and to the first hit of all unsigned PeptideIdentifications.
+     * The enzyme and number of missed cleavages used to digest the given protein DB is taken 
+     * from the ProteinIdentification[0].getSearchParameters() within the given FeatureMap.
+     * 
+     * @param features Input FeatureMap with peptideidentifications of features
+     * @param contaminants Vector of FASTAEntries that need to be digested to check whether a peptide is a contaminant or not
      * @exception Exception::MissingInformation if the contaminants database is empty
      * @exception Exception::MissingInformation if no enzyme is given
      * @warning LOG_WARN if the FeatureMap is empty
