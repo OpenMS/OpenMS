@@ -48,23 +48,7 @@ namespace OpenMS
   
    for (String modification : modNames)
    {
-     const ResidueModification* rm;
-
-     // TODO: check if this is still required
-     if (modification.hasSubstring(" (N-term)")) // terminal modification not associated with a specific AA
-     {
-       modification.substitute(" (N-term)", "");
-       rm = ModificationsDB::getInstance()->getModification(modification, "X", ResidueModification::N_TERM);
-     }
-     else if (modification.hasSubstring(" (C-term)"))
-     {
-       modification.substitute(" (C-term)", "");
-       rm = ModificationsDB::getInstance()->getModification(modification, "X", ResidueModification::C_TERM);
-     }
-     else
-     {
-       rm = ModificationsDB::getInstance()->getModification(modification);
-     }
+     const ResidueModification* rm = ModificationsDB::getInstance()->getModification(modification);
      modifications.push_back(rm);
    }
    return createResidueModificationToResidueMap_(modifications);
@@ -78,9 +62,26 @@ namespace OpenMS
     ModifiedPeptideGenerator::MapToResidueType m;
     for (auto const & r : mods)
     {
-      auto residue = ResidueDB::getInstance()->getResidue(r->getOrigin());
-      String name = r->getFullName();
-      m[r] = ResidueDB::getInstance()->getModifiedResidue(residue, name);
+      String name = r->getFullId();
+      bool is_terminal = r->getTermSpecificity() == ResidueModification::N_TERM || r->getTermSpecificity() == ResidueModification::C_TERM;
+
+      if (!is_terminal)
+      {
+        auto residue = ResidueDB::getInstance()->getResidue(r->getOrigin());
+        m.val[r] = ResidueDB::getInstance()->getModifiedResidue(residue, name);
+      }
+      else  // terminal modification
+      {
+        if (r->getOrigin() == 'X')
+        { // no residue associated with strictly terminal modification
+          m.val[r] = nullptr; 
+        }
+        else
+        { // specific residue associated with strictly terminal modification
+          auto residue = ResidueDB::getInstance()->getResidue(r->getOrigin());
+          m.val[r] = ResidueDB::getInstance()->getModifiedResidue(residue, name);          
+        }                
+      }      
     }
     return m;
   }
@@ -91,7 +92,7 @@ namespace OpenMS
     AASequence& peptide)
   {
     // set terminal modifications for modifications without amino acid preference
-    for (auto const& mr : fixed_mods)
+    for (auto const& mr : fixed_mods.val)
     {
       const ResidueModification* f = mr.first;
       if (f->getTermSpecificity() == ResidueModification::N_TERM)
@@ -120,7 +121,7 @@ namespace OpenMS
       }
       Size residue_index = residue_it - peptide.begin();
       //set fixed modifications
-      for (auto const& mr : fixed_mods)
+      for (auto const& mr : fixed_mods.val)
       {
         const ResidueModification* f = mr.first;
 
@@ -155,7 +156,7 @@ namespace OpenMS
     bool keep_unmodified)
   {
     // no variable modifications specified or no variable mods allowed? no compatibility map needs to be build
-    if (var_mods.empty() || max_variable_mods_per_peptide == 0)
+    if (var_mods.val.empty() || max_variable_mods_per_peptide == 0)
     {
       // if unmodified peptides should be kept return the original list of digested peptides
       if (keep_unmodified) { all_modified_peptides.push_back(peptide); }
@@ -190,7 +191,7 @@ namespace OpenMS
     map<int, vector<const ResidueModification*> > map_compatibility;
 
     // set terminal modifications for modifications without amino acid preference
-    for (auto const& mr : var_mods)
+    for (auto const& mr : var_mods.val)
     {
       const ResidueModification* v = mr.first;
 
@@ -221,7 +222,7 @@ namespace OpenMS
       Size residue_index = residue_it - peptide.begin();
 
       //determine compatibility of variable modifications
-      for (auto const& mr : var_mods)
+      for (auto const& mr : var_mods.val)
       {
         const ResidueModification* v = mr.first;
 
@@ -353,7 +354,7 @@ namespace OpenMS
       }
       else
       {
-        const Residue* r = var_mods.at(m); // map modification to the modified residue
+        const Residue* r = var_mods.val.at(m); // map modification to the modified residue
         new_peptide.setModification(current_index, r); // set modified Residue          
       }
 
@@ -386,7 +387,7 @@ namespace OpenMS
       Size residue_index = residue_it - peptide.begin();
 
       // determine compatibility of variable modifications
-      for (auto const & mr : var_mods)
+      for (auto const & mr : var_mods.val)
       {
         const ResidueModification* v = mr.first;
 

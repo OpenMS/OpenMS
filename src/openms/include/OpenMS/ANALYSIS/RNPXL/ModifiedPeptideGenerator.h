@@ -54,7 +54,8 @@ namespace OpenMS
     */
 
   public:
-    using MapToResidueType = boost::container::flat_map<const ResidueModification*, const Residue*>;
+    // struct needed to wrap the template for pyOpenMS
+    struct MapToResidueType { boost::container::flat_map<const ResidueModification*, const Residue*> val; };
 
       /**
       * @brief Retrieve modifications from strings

@@ -99,7 +99,7 @@ START_SECTION((static void applyFixedModifications(const ModifiedPeptideGenerato
   modNames.clear();
   modNames << "Carbamyl (N-term)";
 
-  fixed_mods.clear();
+  fixed_mods.val.clear();
   fixed_mods = ModifiedPeptideGenerator::getModifications(modNames);
 
   seq0 = AASequence::fromString("KAAAAAAAA"); // exactly one target site
@@ -191,7 +191,7 @@ START_SECTION((static void applyVariableModifications(const ModifiedPeptideGener
   // two different modifications with same target site
   modNames.clear();
   modNames << "Glutathione (C)" << "Carbamidomethyl (C)";
-  variable_mods.clear();
+  variable_mods.val.clear();
   variable_mods = ModifiedPeptideGenerator::getModifications(modNames);
 
   seq = AASequence::fromString("ACAACAACA"); // three target sites
@@ -221,7 +221,7 @@ START_SECTION((static void applyVariableModifications(const ModifiedPeptideGener
   // three different modifications
   modNames.clear();
   modNames << "Glutathione (C)" << "Carbamidomethyl (C)" << "Oxidation (M)";
-  variable_mods.clear();
+  variable_mods.val.clear();
   variable_mods = ModifiedPeptideGenerator::getModifications(modNames);
 
   modified_peptides.clear();
@@ -238,7 +238,7 @@ START_SECTION((static void applyVariableModifications(const ModifiedPeptideGener
   modNames.clear();
   modNames << "Carbamyl (N-term)" << "Oxidation (M)";
   
-  variable_mods.clear();
+  variable_mods.val.clear();
   variable_mods = ModifiedPeptideGenerator::getModifications(modNames);
 
   modified_peptides.clear();
