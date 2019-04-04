@@ -31,37 +31,15 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper":
 
-    cdef cppclass Configuration "OpenMS::TargetedExperimentHelper::Configuration":
+    cdef cppclass Configuration(CVTermList):
+        # wrap-inherits:
+        #    CVTermList
+
         Configuration(Configuration) nogil except + #wrap-ignore
         String contact_ref
         String instrument_ref
         libcpp_vector[ CVTermList ] validations
 
-        # CVTermList:
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
-        void replaceCVTerm(CVTerm & term)               nogil except +
-        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
-        void addCVTerm(CVTerm & term)                   nogil except +
-        bool hasCVTerm(String accession)  nogil except +
-        bool empty()                      nogil except +
-
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
 
     cdef cppclass CV:
         CV(CV) nogil except +
@@ -72,40 +50,21 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         String version
         String URI
 
-    cdef cppclass Protein "OpenMS::TargetedExperimentHelper::Protein":
+    cdef cppclass Protein(CVTermList):
+        # wrap-inherits:
+        #    CVTermList
+
         Protein() nogil except +
         Protein(Protein) nogil except +
 
         String id
         String sequence
 
-        # CVTermList:
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
-        void replaceCVTerm(CVTerm & term)               nogil except +
-        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
-        void addCVTerm(CVTerm & term)                   nogil except +
-        bool hasCVTerm(String accession)  nogil except +
-        bool empty()                      nogil except +
 
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
+    cdef cppclass RetentionTime(CVTermList):
+        # wrap-inherits:
+        #    CVTermList
 
-    cdef cppclass RetentionTime "OpenMS::TargetedExperimentHelper::RetentionTime":
         RetentionTime() nogil except +
         RetentionTime(RetentionTime) nogil except +
 
@@ -117,33 +76,10 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void setRT(double rt) nogil except +
         double getRT() nogil except +
 
-        # CVTermList:
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
-        void replaceCVTerm(CVTerm & term)               nogil except +
-        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
-        void addCVTerm(CVTerm & term)                   nogil except +
-        bool hasCVTerm(String accession)  nogil except +
-        bool empty()                      nogil except +
+    cdef cppclass Compound(CVTermList):
+        # wrap-inherits:
+        #    CVTermList
 
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-
-    cdef cppclass Compound "OpenMS::TargetedExperimentHelper::Compound":
         Compound() nogil except +
         Compound(Compound) nogil except +
         bool operator==(Compound & rhs) nogil except +
@@ -162,33 +98,10 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         RTType getRetentionTimeType() nogil except +
         RTUnit getRetentionTimeUnit() nogil except +
 
-        # CVTermList:
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
-        void replaceCVTerm(CVTerm & term)               nogil except +
-        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
-        void addCVTerm(CVTerm & term)                   nogil except +
-        bool hasCVTerm(String accession)  nogil except +
-        bool empty()                      nogil except +
+    cdef cppclass Peptide(CVTermList):
+        # wrap-inherits:
+        #    CVTermList
 
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-
-    cdef cppclass Peptide "OpenMS::TargetedExperimentHelper::Peptide":
         Peptide() nogil except +
         Peptide(Peptide) nogil except +
 
@@ -211,95 +124,24 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         RTType getRetentionTimeType() nogil except +
         RTUnit getRetentionTimeUnit() nogil except +
 
-        # CVTermList:
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
-        void replaceCVTerm(CVTerm & term)               nogil except +
-        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
-        void addCVTerm(CVTerm & term)                   nogil except +
-        bool hasCVTerm(String accession)  nogil except +
-        bool empty()                      nogil except +
+    cdef cppclass Contact(CVTermList):
+        # wrap-inherits:
+        #    CVTermList
 
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-
-    cdef cppclass Contact "OpenMS::TargetedExperimentHelper::Contact":
         Contact() nogil except +
         Contact(Contact) nogil except + #wrap-ignore
         String id
         bool operator==(Contact & rhs) nogil except +
 
-        # CVTermList:
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
-        void replaceCVTerm(CVTerm & term)               nogil except +
-        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
-        void addCVTerm(CVTerm & term)                   nogil except +
-        bool hasCVTerm(String accession)  nogil except +
-        bool empty()                      nogil except +
+    cdef cppclass Publication(CVTermList):
+        # wrap-inherits:
+        #    CVTermList
 
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-
-    cdef cppclass Publication "OpenMS::TargetedExperimentHelper::Publication":
         Publication() nogil except +
         Publication(Publication) nogil except + #wrap-ignore
         String id
         bool operator==(Publication & rhs) nogil except +
 
-        # CVTermList:
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
-        void replaceCVTerm(CVTerm & term)               nogil except +
-        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
-        void addCVTerm(CVTerm & term)                   nogil except +
-        bool hasCVTerm(String accession)  nogil except +
-        bool empty()                      nogil except +
-
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
 
     cdef cppclass TargetedExperiment_Instrument "OpenMS::TargetedExperimentHelper::Instrument":
         TargetedExperiment_Instrument() nogil except +
@@ -333,7 +175,10 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
 
-    cdef cppclass Prediction "OpenMS::TargetedExperimentHelper::Prediction":
+    cdef cppclass Prediction(CVTermList):
+        # wrap-inherits:
+        #    CVTermList
+
         Prediction() nogil except +
         Prediction(Prediction) nogil except + #wrap-ignore
         bool operator==(Prediction & rhs) nogil except +
@@ -341,31 +186,6 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         String software_ref
         String contact_ref
 
-        # CVTermList:
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
-        void replaceCVTerm(CVTerm & term)               nogil except +
-        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
-        void addCVTerm(CVTerm & term)                   nogil except +
-        bool hasCVTerm(String accession)  nogil except +
-        bool empty()                      nogil except +
-
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
 
     cdef cppclass TargetedExperiment_Interpretation "OpenMS::TargetedExperimentHelper::Interpretation":
         TargetedExperiment_Interpretation() nogil except +
@@ -401,7 +221,10 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
 
-    cdef cppclass TraMLProduct "OpenMS::TargetedExperimentHelper::TraMLProduct":
+    cdef cppclass TraMLProduct(CVTermList):
+        # wrap-inherits:
+        #    CVTermList
+
         TraMLProduct() nogil except +
         TraMLProduct(TraMLProduct) nogil except + #wrap-ignore
         bool operator==(TraMLProduct & rhs) nogil except +
@@ -418,31 +241,6 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void addInterpretation(TargetedExperiment_Interpretation interpretation) nogil except +
         void resetInterpretations() nogil except +
 
-        # CVTermList:
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
-        void replaceCVTerm(CVTerm & term)               nogil except +
-        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
-        void addCVTerm(CVTerm & term)                   nogil except +
-        bool hasCVTerm(String accession)  nogil except +
-        bool empty()                      nogil except +
-
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
 
 # no support for nested classes yet in Cython
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::Peptide":
