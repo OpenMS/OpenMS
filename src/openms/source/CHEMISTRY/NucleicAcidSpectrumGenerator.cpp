@@ -342,9 +342,6 @@ namespace OpenMS
     MSSpectrum& spectrum, const MSSpectrum& uncharged_spectrum, Int charge,
     bool add_precursor) const
   {
-    // based on very limited testing, it looks like this hydrogen mass gives
-    // better results than using "Constants::PROTON_MASS_U" (why?):
-    static const double H_mass = EmpiricalFormula("H").getMonoWeight();
     if (uncharged_spectrum.empty()) return;
     Size size = uncharged_spectrum.size();
     if (add_precursor_peaks_ && !add_precursor)
@@ -354,7 +351,8 @@ namespace OpenMS
     for (Size i = 0; i < size; ++i)
     {
       spectrum.push_back(uncharged_spectrum[i]);
-      spectrum.back().setMZ(abs(spectrum.back().getMZ() / charge + H_mass));
+      spectrum.back().setMZ(abs(spectrum.back().getMZ() / charge +
+                                Constants::PROTON_MASS_U));
     }
     if (add_metainfo_)
     {
