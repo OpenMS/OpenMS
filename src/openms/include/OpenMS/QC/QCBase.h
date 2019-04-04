@@ -54,6 +54,7 @@ namespace OpenMS
     /**
      * @brief Enum to encode a file type as a bit.
      */
+		//POSTFDRFEAT = PREALIGNFEAT
 			enum class Requires :
 					UInt64
 			{
@@ -62,9 +63,8 @@ namespace OpenMS
 					POSTFDRFEAT = 2,
 					PREFDRFEAT = 4,
 					CONTAMINANTS = 8,
-					PREALIGNFEAT=16,
-					TRAFOALIGN=32
-    };
+					TRAFOALIGN =16
+		   };
     /**
      * @brief Storing a status as a UInt64
      *

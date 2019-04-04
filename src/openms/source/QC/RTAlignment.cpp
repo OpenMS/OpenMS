@@ -57,18 +57,12 @@ namespace OpenMS
 		auto is_elem = [](DataProcessing dp) { return (find(dp.getProcessingActions().begin(), dp.getProcessingActions().end(), DataProcessing::ProcessingAction::ALIGNMENT) != dp.getProcessingActions().end());  };
 		if (any_of(features.getDataProcessing().begin(), features.getDataProcessing().end(), is_elem))
 		{
-			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Function get featureXML AFTER map alignment, but need featureXML BEFORE map alignment");
+			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metric RTAlignment received a featureXML AFTER map alignment, but need a featureXML BEFORE map alignment");
 		}
 				
 		//set meta values for original retention time and alignt retention time (after map alignment) values
 		for (Feature& feature : features)
 		{
-			if (feature.getPeptideIdentifications().empty())
-			{
-				LOG_WARN << "A Feature is empty.\n";
-				continue;
-			}
-
 			for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
 			{
 				if (!peptide_ID.hasRT())
@@ -98,6 +92,6 @@ namespace OpenMS
 	//required input files
 	QCBase::Status RTAlignment::requires() const
 	{
-		return QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::PREALIGNFEAT;
+		return QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::POSTFDRFEAT;
 	}
 }

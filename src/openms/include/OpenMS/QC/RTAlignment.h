@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Authors: Juliane Schmachtenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -38,15 +38,16 @@
 namespace OpenMS
 {
 	class FeatureMap;
+
 	class TransformationDescription;
-	class OPENMS_DLLAPI RTAlignment : public QCBase
-	{
-		/**
-		@brief take the original retention time before map alignment and use the transformation information of the post alignment trafoXML 
+	/**
+		@brief take the original retention time before map alignment and use the transformation information of the post alignment trafoXML
 		for calculation of the post map alignment retention times.
 		@param trafo: Transformation information of map alignment
 		@param features: featureMap before map alignment, contains original retention time
 		**/
+	class OPENMS_DLLAPI RTAlignment : public QCBase
+	{
 		public:
 		/// Constructor
 		RTAlignment() = default;
@@ -55,7 +56,7 @@ namespace OpenMS
 
 		/// calculate post map alignment retention time, set meta values "rt_raw" and "rt_align"
 		void compute(FeatureMap& features, const TransformationDescription& trafo);
-		/// define the required input file: featureXML before map alignment, trafoXML after map alignment
+		/// define the required input file: featureXML before map alignment (=POSTFDRFEAT), trafoXML after map alignment (=TRAFOALIGN)
 		Status requires() const override;
 	};
 }

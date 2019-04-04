@@ -71,7 +71,7 @@ END_SECTION
 START_SECTION(QCBase::Status requires() const override)
 {
 	RTAlignment rtA;
-	TEST_EQUAL(rtA.requires() == (QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::PREALIGNFEAT), true);
+	TEST_EQUAL(rtA.requires() == (QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
 
@@ -153,7 +153,7 @@ START_SECTION((compute(FeatureMap& features, TransformationDescription& trafo)))
 	std::set<DataProcessing::ProcessingAction> dp{ DataProcessing::ProcessingAction::ALIGNMENT };
 	processing_method.setProcessingActions(dp);
 	fmap.setDataProcessing({ processing_method });
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, rtA.compute(fmap, td), "Function get featureXML AFTER map alignment, but need featureXML BEFORE map alignment");
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, rtA.compute(fmap, td), "Metric RTAlignment received a featureXML AFTER map alignment, but need a featureXML BEFORE map alignment");
 
 }
 END_SECTION
