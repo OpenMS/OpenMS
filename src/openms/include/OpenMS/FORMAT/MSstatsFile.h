@@ -127,7 +127,7 @@ namespace OpenMS
         {
           const std::set< String > lhs(first.begin(), first.end());
           const std::set< String > rhs(second.begin(), second.end());
-          return lhs.size() == rhs.size()
+          return lhs == rhs
                  && std::equal(lhs.begin(), lhs.end(), rhs.begin());
         }
 

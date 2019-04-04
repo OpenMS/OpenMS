@@ -257,7 +257,7 @@ protected:
       fh.load(file_list[0], out);
       // but annotate the origins
 
-      if (append_rows){
+      if (append_rows) {
           if (annotate_file_origin)
           {
             for (ConsensusMap::iterator it = out.begin(); it != out.end(); ++it)
