@@ -51,7 +51,6 @@ namespace OpenMS
     {
       //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureMap is empty.");
       LOG_WARN << "FeatureMap is empty" << "\n";
-      return;
     }
     //empty contaminants database
     if (contaminants.empty())
@@ -61,6 +60,10 @@ namespace OpenMS
     //fill the unordered set once with the digested contaminants database
     if (digested_db_.empty())
     {
+      if (features.getProteinIdentifications().empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No proteinidentifications in FeatureMap.");
+      }
       ProteaseDigestion digestor;
       String enzyme = features.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
 
@@ -84,16 +87,7 @@ namespace OpenMS
       for (const FASTAFile::FASTAEntry& fe : contaminants)
       {
         vector<AASequence> current_digest;
-        //No digestion enzyme is given. Contaminants database will not get digested.
-        if (enzyme == "no cleavage")
-        {
-          current_digest.push_back(AASequence::fromString(fe.sequence));
-        }
-        //digest the sequence
-        else
-        {
-          dropped_by_length += digestor.digest(AASequence::fromString(fe.sequence), current_digest);
-        }
+        dropped_by_length += digestor.digest(AASequence::fromString(fe.sequence), current_digest);
 
         //fill unordered set digested_db_ with digested sequences
         for (auto const& s : current_digest)
@@ -129,9 +123,14 @@ namespace OpenMS
         else
         {
           // the one existing peptideidentification has atleast one getHits entry
-          auto &pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
-          String key = (pep_hit.getSequence().toUnmodifiedString());
-          this->compare_(key, f, total, cont, sum_total, sum_cont);
+          for (auto& pep_id : f.getPeptideIdentifications())
+          {
+            auto& pep_hit = pep_id.getHits()[0];
+            String key = (pep_hit.getSequence().toUnmodifiedString());
+            this->compare_(key, f, total, cont, sum_total, sum_cont);
+          }
+          //auto& pep_hit = f.getPeptideIdentifications()[0].getHits()[0];
+
         }
       }
     }
