@@ -37,8 +37,6 @@
 
 ///////////////////////////
 #include <OpenMS/QC/Contaminants.h>
-//#include <OpenMS/FORMAT/FeatureXMLFile.h>
-//#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -59,13 +57,12 @@ START_TEST(Contaminants, "$Id$")
 
 FeatureMap fmap;
 FeatureMap emptyFmap;
-FeatureMap emptyFeaturesFmap;
 Feature f;
-Feature emptyf;
-PeptideIdentification emptyId;
-PeptideHit emptyHit;
+//Feature emptyf;
+//PeptideIdentification emptyId;
+//PeptideHit emptyHit;
 
-emptyFeaturesFmap.push_back(emptyf);
+//emptyFeaturesFmap.push_back(emptyf);
 
 
 fmap.getProteinIdentifications().resize(1);
@@ -108,7 +105,7 @@ vector<FASTAFile::FASTAEntry> contaminantsFile;
       f.setIntensity(20.0);
       fmap.push_back(f);
 
-      hit.setSequence(AASequence::fromString("QQQQQQQQQQ"));
+      hit.setSequence(AASequence::fromString("AAAAAAAAAAKRAAAAAAAAAAKRCCCCCCCCCCKRCCCCCCCCCC"));
       id.setHits(std::vector<PeptideHit>(1, hit));
       f.setPeptideIdentifications({id});
       f.setIntensity(10.0);
@@ -165,15 +162,18 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, conts6.compute(fmap, contaminantsFile), "No digestion enzyme in FeatureMap detected. No computation possible.");
   //test without given missed cleavages and without given enzyme
 
-  //fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("none");
-  //conts3.compute(fmap, contaminantsFile);
-  //std::vector<Contaminants::ContaminantsSummary> result3 = conts3.getResults();
-  //ABORT_IF(result3.size() != 1);
-  //TEST_REAL_SIMILAR(result3[0].assigned_contaminants_ratio, 0.0);
-  //TEST_REAL_SIMILAR(result3[0].assigned_contaminants_intensity_ratio, 0.0);
-  //TEST_REAL_SIMILAR(result3[0].unassigned_contaminants_ratio, 0.0);
-  //TEST_REAL_SIMILAR(result3[0].all_contaminants_ratio, 0.0);
-
+  fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("no cleavage");
+  conts3.compute(fmap, contaminantsFile);
+  std::vector<Contaminants::ContaminantsSummary> result3 = conts3.getResults();
+  ABORT_IF(result3.size() != 1);
+  TEST_REAL_SIMILAR(result3[0].assigned_contaminants_ratio, 1/5.0);
+  TEST_REAL_SIMILAR(result3[0].assigned_contaminants_intensity_ratio, 1/6.0);
+  TEST_REAL_SIMILAR(result3[0].all_contaminants_ratio, 1/5.0);
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[2].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[3].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[4].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
 
   //set digestion enzyme to trypsin
   fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("trypsin");
@@ -183,11 +183,11 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   TEST_REAL_SIMILAR(result7[0].assigned_contaminants_ratio, 3/5.0);
   TEST_REAL_SIMILAR(result7[0].assigned_contaminants_intensity_ratio, 1/2.0);
   TEST_REAL_SIMILAR(result7[0].all_contaminants_ratio, 3/5.0);
-  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[2].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[3].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 0);
-  TEST_EQUAL(fmap[4].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[2].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[3].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[4].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 0);
 
   //fill the unassigned peptideidentifications
   fmap.setUnassignedPeptideIdentifications(ids2);
@@ -200,14 +200,14 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   TEST_REAL_SIMILAR(result4[0].assigned_contaminants_intensity_ratio, 1/2.0);
   TEST_REAL_SIMILAR(result4[0].unassigned_contaminants_ratio, 1/3.0);
   TEST_REAL_SIMILAR(result4[0].all_contaminants_ratio, 4/8.0);
-  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[2].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[3].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 0);
-  TEST_EQUAL(fmap[4].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 0);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("is_contaminant"), 0);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[2].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[3].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[4].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getHits()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getHits()[0].getMetaValue("is_contaminant"), 0);
 
   //set missed cleavages to 1
   fmap.getProteinIdentifications()[0].getSearchParameters().missed_cleavages = 1;
@@ -221,14 +221,14 @@ START_SECTION((void compute(FeatureMap& features, const std::vector<FASTAFile::F
   TEST_REAL_SIMILAR(result5[0].assigned_contaminants_intensity_ratio, 5/6.0);
   TEST_REAL_SIMILAR(result5[0].unassigned_contaminants_ratio, 2/3.0);
   TEST_REAL_SIMILAR(result5[0].all_contaminants_ratio, 6/8.0);
-  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[2].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[3].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap[4].getPeptideIdentifications()[0].getMetaValue("is_contaminant"), 0);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("is_contaminant"), 1);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[2].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[3].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap[4].getPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 0);
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getHits()[0].getMetaValue("is_contaminant"), 1);
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getHits()[0].getMetaValue("is_contaminant"), 0);
   TEST_EQUAL(result5[0].empty_features.first, 1);
   TEST_EQUAL(result5[0].empty_features.second, 6);
 

@@ -46,7 +46,7 @@ namespace OpenMS
   /**
    * @brief This class is a metric for the QualityControl-ToppTool.
    *
-   * This class checks whether a peptide is a contaminant or not and adds that result to the peptideidentification.
+   * This class checks whether a peptide is a contaminant or not and adds that result to the first hit of the peptideidentification.
    */
   class OPENMS_DLLAPI Contaminants:
       QCBase
@@ -72,12 +72,12 @@ namespace OpenMS
     virtual ~Contaminants() = default;
     /**
      * @brief Checks if the peptides are in the contaminant database.
-     * "is_contaminant" identification is added to the peptideidentification of each feature and to all unsignedpeptideidentification
+     * "is_contaminant" identification is added to the first hit of the peptideidentification of each feature and to the first hit of all unsignedpeptideidentifications
      * @param features input FeatureMap with peptideidentifications of features
      * @param contaminants vector of FASTAEntries that need to be digested to check whether a peptide is a contaminant or not
      * @exception Exception::MissingInformation if the contaminants database is empty
-     * @exception Exception::MissingInformation if the FeatureMap is empty
-     * @warning LOG_WARN if no enzyme is given
+     * @exception Exception::MissingInformation if no enzyme is given
+     * @warning LOG_WARN if the FeatureMap is empty
      */
     void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
     /// returns results
@@ -96,7 +96,7 @@ namespace OpenMS
      * @brief
      * checks if the peptide is in the contaminant database
      * @param key String that will be the key for searching in the unordered set
-     * @param f Feature with peptideidentification to store the result "is_contaminant = 0/1"
+     * @param f Feature with peptideidentification to store the result "is_contaminant = 0/1" in the first hit of each
      * @param total counter of all checked peptides
      * @param cont counter of all checked peptides that are contamiants
      * @param sum_total intensity of all checked peptides
@@ -104,5 +104,4 @@ namespace OpenMS
      */
     void compare_(const String& key, Feature& f, Int64& total, Int64& cont, double& sum_total, double& sum_cont);
   };
-}
-//* @return ratios of assigned contaminants, unassigned contaminants, overall contaminants and intensity of assigned contaminants
+} // namespace OpenMS

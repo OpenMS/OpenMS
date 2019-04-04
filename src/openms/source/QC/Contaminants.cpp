@@ -85,7 +85,7 @@ namespace OpenMS
       {
         vector<AASequence> current_digest;
         //No digestion enzyme is given. Contaminants database will not get digested.
-        if (enzyme == "none")
+        if (enzyme == "no cleavage")
         {
           current_digest.push_back(AASequence::fromString(fe.sequence));
         }
@@ -108,7 +108,7 @@ namespace OpenMS
     double sum_cont = 0.0;
     Int64 feature_has_no_sequence = 0;
 
-    //Check if peptides of featureMap are contaminants or not and add is_contaminant = 0/1 to the peptideidentification.
+    //Check if peptides of featureMap are contaminants or not and add is_contaminant = 0/1 to the first hit of the peptideidentification.
     //If so, raise contaminants ratio.
     for (auto& f : features)
     {
@@ -146,7 +146,7 @@ namespace OpenMS
     UInt64 ucont = 0;
 
     //Change the assigned contaminants ratio to total contaminants ratio by adding the unassigned.
-    //Additionally save the unassigned contaminants ratio and add the is_contaminant = 0/1 to the unassigned peptideidentifications.
+    //Additionally save the unassigned contaminants ratio and add the is_contaminant = 0/1 to the first hit of the unassigned peptideidentifications.
     //if (features.getUnassignedPeptideIdentifications().empty())
     //{
     //  return;
@@ -161,13 +161,13 @@ namespace OpenMS
       //peptide is not in contaminant database
       if (!digested_db_.count(key))
       {
-        fu.setMetaValue("is_contaminant", 0);
+        fu.getHits()[0].setMetaValue("is_contaminant", 0);
         continue;
       }
 
       //peptide is contaminant
       ++ucont;
-      fu.setMetaValue("is_contaminant", 1);
+      fu.getHits()[0].setMetaValue("is_contaminant", 1);
     }
     total += utotal;
     cont += ucont;
@@ -201,14 +201,14 @@ namespace OpenMS
     //peptide is not in contaminant database
     if (!digested_db_.count(key))
     {
-      f.getPeptideIdentifications()[0].setMetaValue("is_contaminant", 0);
+      f.getPeptideIdentifications()[0].getHits()[0].setMetaValue("is_contaminant", 0);
       //add the "is_contaminant" identification
       return;
     }
     //peptide is contaminant
     ++cont;
     sum_cont += f.getIntensity();
-    f.getPeptideIdentifications()[0].setMetaValue("is_contaminant", 1);
+    f.getPeptideIdentifications()[0].getHits()[0].setMetaValue("is_contaminant", 1);
   }
 
   QCBase::Status Contaminants::requires() const
