@@ -40,16 +40,22 @@ namespace OpenMS
 {
   void FragmentMassError::compute(MSExperiment& exp, FeatureMap& fmap)
   {
+    //accumulates ppm errors over all first PeptideHits
+    double accumulator_ppm{};
 
-    double tolerance = 0.05;
+    //counts number of ppm errors
+    UInt32 counter_ppm{};
+
+    float rt_tolerance = 0.05;
+    float mz_tolerance = 0.05; //should be userparameter //TODO
 
     if (!exp.isSorted())
     {
       exp.sortSpectra();
     }
 
-    //sequenz //const pep_id?
-    auto lam = [&exp, tolerance](PeptideIdentification& pep_id)
+
+    auto lam = [&exp, rt_tolerance, mz_tolerance, &accumulator_ppm, &counter_ppm](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -58,11 +64,21 @@ namespace OpenMS
       }
 
       //---------------------------------------------------------------------
-      // CREATE THEORETICAL SPECTRUM
+      // FIND DATA FOR THEORETICAL SPECTRUM
       //---------------------------------------------------------------------
 
+      //sequence
       AASequence seq = pep_id.getHits()[0].getSequence();
-      Int charge = pep_id.getHits()[0].getCharge();
+
+      //charge
+      Int charge = pep_id.getHits()[0].getCharge(); //TODO
+
+      //theoretical peak spectrum
+      PeakSpectrum theo_spectrum;
+
+      //---------------------------------------------------------------------
+      // CREATE THEORETICAL SPECTRUM
+      //---------------------------------------------------------------------
 
       //initialize a TheoreticalSpectrumGenerator
       TheoreticalSpectrumGenerator theo_gen;
@@ -84,8 +100,6 @@ namespace OpenMS
       //set changed parameters
       theo_gen.setParameters(theo_gen_settings);
 
-      PeakSpectrum theo_spectrum;
-
       //generate a-, b- and y-ion spectrum of peptide seq with charge
       theo_gen.getSpectrum(theo_spectrum, seq, charge, charge);
 
@@ -95,7 +109,7 @@ namespace OpenMS
 
       double rt_pep  = pep_id.getRT();
 
-      MSExperiment::ConstIterator it = exp.RTBegin(rt_pep - tolerance);
+      MSExperiment::ConstIterator it = exp.RTBegin(rt_pep - rt_tolerance);
       if (it == exp.end())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the mzML and featureXML fie does not match.");
@@ -103,7 +117,7 @@ namespace OpenMS
 
       const auto& exp_spectrum = *it;
 
-      if (exp_spectrum.getRT() - rt_pep > tolerance)
+      if (exp_spectrum.getRT() - rt_pep > rt_tolerance)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + std::to_string(rt_pep) + " s does not have a matching MS2 Spectrum. Closest RT was " + std::to_string(exp_spectrum.getRT()) + ", which seems to far off.");
       }
@@ -111,6 +125,7 @@ namespace OpenMS
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching retention time of the mzML is not a MS2 Spectrum.");
       }
+
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
       //-----------------------------------------------------------------------
@@ -118,22 +133,47 @@ namespace OpenMS
       if (exp_spectrum.empty() || theo_spectrum.empty())
       {
         LOG_WARN << "The spectrum with " + std::to_string(exp_spectrum.getRT()) + " is empty." << "\n";
+        return;
       }
 
+      //stores ppms for one spectrum
+      DoubleList ppms{};
 
+      for (const Peak1D& peak : theo_spectrum)
+      {
+        const double theo_mz = peak.getMZ();
+        double max_dist_dalton = theo_mz * mz_tolerance * 1e-6; // or ask for mz_tolerance in Dalton
 
+        Size index = exp_spectrum.findNearest(theo_mz);
+        const double exp_mz = exp_spectrum[index].getMZ();
+
+        //found peak match
+        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
+        {
+          float ppm = theo_mz - exp_mz;
+          ppms.push_back(ppm);
+          accumulator_ppm += ppm;
+          ++ counter_ppm;
+        }
+      }
 
       //-----------------------------------------------------------------------
       // WRITE PPM ERROR IN PEPTIDEHIT
       //-----------------------------------------------------------------------
 
+      pep_id.getHits()[0].setMetaValue("ppm_errors", ppms);
     };
+
+    QCBase::iterateFeatureMap(fmap, lam);
+    average_ppm_ = accumulator_ppm/counter_ppm;
   }
 
-  const std::vector<double>& FragmentMassError::getResults() const
+
+  float FragmentMassError::getResults() const
   {
-    return result_;
+    return average_ppm_;
   }
+
 
   QCBase::Status FragmentMassError::requires() const
   {

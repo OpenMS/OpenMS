@@ -58,7 +58,7 @@ namespace OpenMS
     void compute(MSExperiment& exp, FeatureMap& fmap);
 
     /// returns results
-    const DoubleList& getResults() const;
+    float getResults() const;
 
 
     /**
@@ -69,7 +69,7 @@ namespace OpenMS
 
 
   private:
-    DoubleList result_;
+    float average_ppm_;
   };
 
 } //namespace OpenMS
