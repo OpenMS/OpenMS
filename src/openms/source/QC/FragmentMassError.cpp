@@ -33,13 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/QC/FragmentMassError.h>
-#include <include/OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <string>
 
 namespace OpenMS
 {
-  void FragmentMassError::compute(MSExperiment& exp, FeatureMap& fmap)
+  void FragmentMassError::compute(FeatureMap& fmap, MSExperiment& exp, const double mz_tolerance)
   {
+    FMEStatistics result;
+
     //accumulates ppm errors over all first PeptideHits
     double accumulator_ppm{};
 
@@ -47,7 +48,6 @@ namespace OpenMS
     UInt32 counter_ppm{};
 
     float rt_tolerance = 0.05;
-    float mz_tolerance = 0.05; //should be userparameter //TODO
 
     if (!exp.isSorted())
     {
@@ -55,11 +55,11 @@ namespace OpenMS
     }
 
 
-    auto lam = [&exp, rt_tolerance, mz_tolerance, &accumulator_ppm, &counter_ppm](PeptideIdentification& pep_id)
+    auto lamCompPPM = [&exp, rt_tolerance, mz_tolerance, &accumulator_ppm, &counter_ppm](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
-        //Warn
+        LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
         return;
       }
 
@@ -71,7 +71,10 @@ namespace OpenMS
       AASequence seq = pep_id.getHits()[0].getSequence();
 
       //charge
-      Int charge = pep_id.getHits()[0].getCharge(); //TODO
+      double mass = seq.getMonoWeight();
+      double mz = pep_id.getMZ();
+      double z = mass/mz;
+      Int charge = round(z);
 
       //theoretical peak spectrum
       PeakSpectrum theo_spectrum;
@@ -93,9 +96,6 @@ namespace OpenMS
       theo_gen_settings.setValue("add_x_ions", "true");
       //theo_settings.setValue("add_y_ions", "true");
       theo_gen_settings.setValue("add_z_ions", "true");
-
-      //store ion types for each peak
-      //theo_settings.setValue("add_metainfo", "true");
 
       //set changed parameters
       theo_gen.setParameters(theo_gen_settings);
@@ -142,15 +142,14 @@ namespace OpenMS
       for (const Peak1D& peak : theo_spectrum)
       {
         const double theo_mz = peak.getMZ();
-        double max_dist_dalton = theo_mz * mz_tolerance * 1e-6; // or ask for mz_tolerance in Dalton
-
         Size index = exp_spectrum.findNearest(theo_mz);
         const double exp_mz = exp_spectrum[index].getMZ();
 
         //found peak match
-        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
+
+        auto ppm = Math::getPPM(exp_mz,theo_mz);
+        if (std::abs(ppm) < mz_tolerance)
         {
-          float ppm = theo_mz - exp_mz;
           ppms.push_back(ppm);
           accumulator_ppm += ppm;
           ++ counter_ppm;
@@ -162,16 +161,29 @@ namespace OpenMS
       //-----------------------------------------------------------------------
 
       pep_id.getHits()[0].setMetaValue("ppm_errors", ppms);
+
     };
 
-    QCBase::iterateFeatureMap(fmap, lam);
-    average_ppm_ = accumulator_ppm/counter_ppm;
+    auto lamVar = [&result](const PeptideIdentification& pep_id)
+    {
+      for (auto ppm : (pep_id.getHits()[0].getMetaValue("ppm_errors")).toDoubleList())
+      {
+        result.variance_ppm += pow((ppm - result.average_ppm),2);
+      }
+    };
+
+    QCBase::iterateFeatureMap(fmap, lamCompPPM);
+    result.average_ppm = accumulator_ppm/counter_ppm;
+    QCBase::iterateFeatureMap(fmap, lamVar);
+
+    results_.push_back(result);
+
   }
 
 
-  float FragmentMassError::getResults() const
+  std::vector<FragmentMassError::FMEStatistics> FragmentMassError::getResults() const
   {
-    return average_ppm_;
+    return results_;
   }
 
 

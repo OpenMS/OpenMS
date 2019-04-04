@@ -43,10 +43,11 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/QCBase.h>
-#include <OpenMS/QC/Ms2IdentificationRate.h>
-#include <OpenMS/QC/TIC.h>
+#include <OpenMS/QC/FragmentMassError.h>
 #include <OpenMS/QC/MissedCleavages.h>
+#include <OpenMS/QC/Ms2IdentificationRate.h>
+#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/QC/TIC.h>
 #include <cstdio>
 
 using namespace OpenMS;
@@ -78,6 +79,7 @@ protected:
     //possible additions:
     //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
     registerFlag_("MS2_id_rate:force_no_fdr", "forces the metric to run if fdr was not made, accept all pep_ids as target hits");
+    registerFlag_("FragmentMassError:tolerance", "searchwindow for matching peaks");
 
   }
   // the main_ function is called after all parameters are read
@@ -106,12 +108,14 @@ protected:
 
     //check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
+    double tolerance_flag = getFlag_("FragmentMassError:tolerance");
 
 
     // Instantiate the QC metrics
     // TIC qc_tic;
     Ms2IdentificationRate qc_ms2ir;
     MissedCleavages qc_missed_cleavages;
+    FragmentMassError qc_frag_mass_err;
 
     // Loop through file lists
     for (Size i = 0; i < number_exps; ++i)
@@ -144,6 +148,11 @@ protected:
       if (status.isSuperSetOf(qc_missed_cleavages.requires()))
       {
         qc_missed_cleavages.compute(fmap);
+      }
+
+      if (status.isSuperSetOf(qc_frag_mass_err.requires()))
+      {
+        qc_frag_mass_err.compute(fmap, exp, tolerance_flag);
       }
 
 

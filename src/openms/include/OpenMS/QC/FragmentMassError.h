@@ -41,6 +41,9 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 namespace OpenMS
 {
@@ -54,11 +57,17 @@ namespace OpenMS
     /// Destructor
     virtual ~FragmentMassError() = default;
 
+    struct FMEStatistics
+    {
+      double average_ppm;
+      double variance_ppm;
+    };
 
-    void compute(MSExperiment& exp, FeatureMap& fmap);
+
+    void compute(FeatureMap& fmap, MSExperiment& exp, const double mz_tolerance = 2);
 
     /// returns results
-    float getResults() const;
+    std::vector<FMEStatistics> getResults() const;
 
 
     /**
@@ -69,7 +78,7 @@ namespace OpenMS
 
 
   private:
-    float average_ppm_;
+    std::vector<FMEStatistics> results_{};
   };
 
 } //namespace OpenMS
