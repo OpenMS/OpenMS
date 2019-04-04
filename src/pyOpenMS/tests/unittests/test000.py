@@ -365,18 +365,25 @@ def testFineIsotopePatternGenerator():
     methanol = pyopenms.EmpiricalFormula("CH3OH")
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
-    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20))
+    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
     assert len(iso_dist.getContainer()) == 56
-    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200))
+    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
     assert len(iso_dist.getContainer()) == 84
 
     c100 = pyopenms.EmpiricalFormula("C100")
-    iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200))
+    iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
     assert len(iso_dist.getContainer()) == 101
-    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False)).size() == 6
-    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True)).size() == 5
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False, False)).size() == 6
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False, True)).size() == 5
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True, False)).size() == 5
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True, True)).size() == 5
 
-    iso = pyopenms.FineIsotopePatternGenerator(1e-5)
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, False, False)).size() == 14
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, False, True)).size() == 13
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, True, False)).size() == 10
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, True, True)).size() == 10
+
+    iso = pyopenms.FineIsotopePatternGenerator(1e-5, False, False)
     isod = iso.run(methanol)
     assert len(isod.getContainer()) == 6
     assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
