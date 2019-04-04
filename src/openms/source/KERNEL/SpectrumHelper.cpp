@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Hannes Roest g$
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/SpectrumHelper.h>
