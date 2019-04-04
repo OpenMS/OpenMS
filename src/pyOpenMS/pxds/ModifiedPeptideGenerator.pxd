@@ -11,6 +11,12 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>" namespace 
         ModifiedPeptideGenerator() nogil except +
         ModifiedPeptideGenerator(ModifiedPeptideGenerator) nogil except + 
 
+    cdef cppclass ModifiedPeptideGenerator_MapToResidueType "OpenMS::ModifiedPeptideGenerator::MapToResidueType":
+
+        ModifiedPeptideGenerator_MapToResidueType() nogil except +
+        ModifiedPeptideGenerator_MapToResidueType(ModifiedPeptideGenerator_MapToResidueType) nogil except + #wrap-ignore
+
+
     ## wrap static methods
     cdef extern from "<OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>" namespace "OpenMS::ModifiedPeptideGenerator":
         MapToResidueType getModifications(const StringList& modNames) nogil except +

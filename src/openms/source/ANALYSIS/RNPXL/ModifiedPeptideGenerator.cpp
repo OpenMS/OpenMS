@@ -51,6 +51,7 @@ namespace OpenMS
      const ResidueModification* rm = ModificationsDB::getInstance()->getModification(modification);
      modifications.push_back(rm);
    }
+   std::sort(modifications.begin(), modifications.end());
    return createResidueModificationToResidueMap_(modifications);
  }
 
