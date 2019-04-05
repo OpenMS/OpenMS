@@ -1318,6 +1318,7 @@ protected:
                 for(int i=0;i<param.chargeRange;i++) {
                     delete[] perChargeIsotopeIntensity[i];
                 }
+                delete[] perChargeIsotopeIntensity;
                 delete[] perIsotopeIntensity;
                 delete[] perIsotopeMinCharge;
                 delete[] perIsotopeMaxCharge;
@@ -1340,6 +1341,7 @@ protected:
                 for(int i=0;i<param.chargeRange;i++) {
                     delete[] perChargeIsotopeIntensity[i];
                 }
+                delete[] perChargeIsotopeIntensity;
                 delete[] perIsotopeIntensity;
                 delete[] perIsotopeMinCharge;
                 delete[] perIsotopeMaxCharge;
@@ -1354,6 +1356,7 @@ protected:
                 for(int i=0;i<param.chargeRange;i++) {
                     delete[] perChargeIsotopeIntensity[i];
                 }
+                delete[] perChargeIsotopeIntensity;
                 delete[] perIsotopeIntensity;
                 delete[] perIsotopeMinCharge;
                 delete[] perIsotopeMaxCharge;
