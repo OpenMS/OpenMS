@@ -205,7 +205,7 @@ protected:
         //registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minCDScore", "<...>", .0, "minimum charge distribution score threshold",
+        registerDoubleOption_("minCDScore", "<...>", .3, "minimum charge distribution score threshold",
                               false, true);
 
         registerDoubleOption_("maxM", "<max mass>", 150000.0, "maximum mass (Da)", false, false);
@@ -539,7 +539,7 @@ protected:
 
             if (peakGroups.empty()) continue;
 
-            auto filteredPeakGroups = scoreAndFilterPeakGroups(peakGroups, averagines, param);
+            auto filteredPeakGroups = scoreAndFilterPeakGroups(peakGroups, averagines, param); //
 
             if (filteredPeakGroups.empty()) continue;
             //vector<PeakGroup>().swap(peakGroups);
@@ -1153,8 +1153,8 @@ protected:
         Byte *prevIntensities = new Byte[massBins.size()];
         fill_n(prevIntensities, massBins.size(), 0);
 
-        Byte *harmonicCounter = new Byte[massBins.size()];
-        fill_n(harmonicCounter, massBins.size(), 0);
+        //Byte *harmonicCounter = new Byte[massBins.size()];
+        //fill_n(harmonicCounter, massBins.size(), 0);
 
 
         auto mzBinIndex = mzBins.find_first();
@@ -1205,7 +1205,7 @@ protected:
         }
         delete[] prevCharges;
         delete[] prevIntensities;
-        delete[] harmonicCounter;
+        //delete[] harmonicCounter;
         //delete[] tmp;
     }
 
@@ -1285,16 +1285,19 @@ protected:
         vector<PeakGroup> filteredPeakGroups;
         filteredPeakGroups.reserve(peakGroups.size());
         intensities.reserve(peakGroups.size());
-        for (auto &pg : peakGroups) {
-            //auto perChargeMaxIsotope = new int[param.chargeRange];
-            //auto perChargeMinIsotope = new int[param.chargeRange];
-            auto perChargeIsotopeIntensity = new double*[param.chargeRange];
-            auto perIsotopeMaxCharge = new int[param.maxIsotopeCount];
-            auto perIsotopeMinCharge = new int[param.maxIsotopeCount];
-            auto perIsotopeIntensity = new double[param.maxIsotopeCount];
+        auto perChargeIsotopeIntensity = new double*[param.chargeRange];//check
+        auto perIsotopeMaxCharge = new int[param.maxIsotopeCount];
+        auto perIsotopeMinCharge = new int[param.maxIsotopeCount];
+        auto perIsotopeIntensity = new double[param.maxIsotopeCount];
 
+        for(int i=0;i<param.chargeRange;i++){
+            perChargeIsotopeIntensity[i] = new double[param.maxIsotopeCount];
+            //fill_n(perChargeIsotopeIntensity[i], param.maxIsotopeCount, 0);
+
+        }
+
+        for (auto &pg : peakGroups) {
             updatePerChargeIsotopeIntensity(perChargeIsotopeIntensity,
-                    //perChargeMinIsotope, perChargeMaxIsotope,
                                             perIsotopeMinCharge,  perIsotopeMaxCharge,
                                             perIsotopeIntensity, pg, param);
 
@@ -1313,14 +1316,6 @@ protected:
             //isotopeCosineThreshold = 0;
 
             if (pg.peaks.empty() || pg.isotopeCosineScore <= isotopeCosineThreshold) {
-                //delete[] perChargeMaxIsotope;
-                //delete[] perChargeMinIsotope;
-                for(int i=0;i<param.chargeRange;i++) {
-                    delete[] perChargeIsotopeIntensity[i];
-                }
-                delete[] perIsotopeIntensity;
-                delete[] perIsotopeMinCharge;
-                delete[] perIsotopeMaxCharge;
                 continue;
             }
             //isotopeCosineThreshold = .6;
@@ -1329,34 +1324,21 @@ protected:
                                             perIsotopeMinCharge,  perIsotopeMaxCharge,
                                             perIsotopeIntensity, pg, param);
 
-            pg.chargeDistributionScore = getDistributionScore2(perChargeIsotopeIntensity, averagines, monoIsotopeMass,
-                    param.chargeRange, param.maxIsotopeCount, isotopeCosineThreshold, param.minContinuousChargePeakCount);
+            pg.chargeDistributionScore = getDistributionScore2(perChargeIsotopeIntensity,
+                    param.chargeRange, param.maxIsotopeCount, param.minContinuousChargePeakCount);
+
+            //double **perChargeIsotopeIntensity,
+            //             int range, int range2, int threshold
 
 //                    getDistributionScore(perChargeMinIsotope, perChargeMaxIsotope, param); //
             //getChargeDistributionScore2(perChargePeakCount, param);
             if (pg.chargeDistributionScore < param.chargeDistributionScoreThreshold) {
-                //delete[] perChargeMaxIsotope;
-                //delete[] perChargeMinIsotope;
-                for(int i=0;i<param.chargeRange;i++) {
-                    delete[] perChargeIsotopeIntensity[i];
-                }
-                delete[] perIsotopeIntensity;
-                delete[] perIsotopeMinCharge;
-                delete[] perIsotopeMaxCharge;
                 continue;
             }
 
             pg.chargeDistributionScore = getDistributionScore(perIsotopeMinCharge, perIsotopeMaxCharge, param.maxIsotopeCount, 0);
 
             if (pg.chargeDistributionScore < 0) {
-                //delete[] perChargeMaxIsotope;
-                //delete[] perChargeMinIsotope;
-                for(int i=0;i<param.chargeRange;i++) {
-                    delete[] perChargeIsotopeIntensity[i];
-                }
-                delete[] perIsotopeIntensity;
-                delete[] perIsotopeMinCharge;
-                delete[] perIsotopeMaxCharge;
                 continue;
             }
 
@@ -1367,17 +1349,20 @@ protected:
             intensities.push_back(pg.intensity);
             //delete[] perChargeMaxIsotope;
             //delete[] perChargeMinIsotope;
-            for(int i=0;i<param.chargeRange;i++) {
-                delete[] perChargeIsotopeIntensity[i];
-            }
-            delete[] perChargeIsotopeIntensity;
-            delete[] perIsotopeIntensity;
-            delete[] perIsotopeMinCharge;
-            delete[] perIsotopeMaxCharge;
+
         }
+
+        for(int i=0;i<param.chargeRange;i++) {
+            delete[] perChargeIsotopeIntensity[i];
+        }
+        delete[] perChargeIsotopeIntensity;
+        delete[] perIsotopeIntensity;
+        delete[] perIsotopeMinCharge;
+        delete[] perIsotopeMaxCharge;
+
         if (filteredPeakGroups.empty()) return filteredPeakGroups;
         filterPeakGroupsByIntensity(peakGroups, intensities, param);
-        //vector<double>().swap(intensities);
+        vector<double>().swap(intensities);
         filteredPeakGroups.shrink_to_fit();
         return filteredPeakGroups;
     }
@@ -1390,7 +1375,7 @@ protected:
         //fill_n(perChargeMinIsotope, param.chargeRange, param.maxIsotopeCount);
         //fill_n(perChargeMaxIsotope, param.chargeRange, -1);
         for(int i=0;i<param.chargeRange;i++){
-            perChargeIsotopeIntensity[i] = new double[param.maxIsotopeCount];
+            //perChargeIsotopeIntensity[i] = new double[param.maxIsotopeCount];
             fill_n(perChargeIsotopeIntensity[i], param.maxIsotopeCount, 0);
 
         }
@@ -1641,17 +1626,15 @@ protected:
         return n1 / (n1 + n2);
     }
 
-    double getDistributionScore2(double **perChargeIsotopeIntensity,  PrecalcularedAveragine &averagines,
-            double& mass, int range, int range2, double &isotopeCosineThreshold, int threshold){
-        auto iso = averagines.get(mass);
-        auto isoNorm = averagines.getNorm(mass);
-        int isoSize = (int) iso.size();
+    double getDistributionScore2(double **perChargeIsotopeIntensity,
+             int range, int range2, int threshold){
 
         auto perChargeIntensity = new double[range];
 
         int nonZeroStart = -1, nonZeroEnd = 0;
-        int maxIndex = 0;
+        //int maxIndex = 0;
         double maxIntensity = .0;
+
 
         for (int i = 0; i < range; i++) {
             double intensity = 0;
@@ -1663,10 +1646,7 @@ protected:
                 if (nonZeroStart < 0) nonZeroStart = i;
                 nonZeroEnd = i;
             }
-            if(maxIntensity < intensity){
-                maxIntensity = intensity;
-                maxIndex = i;
-            }
+
         }
 
         int prevCharge = nonZeroStart;
@@ -1723,20 +1703,8 @@ protected:
         return n1 / (n1 + n2);
     }
 
-    int* getRange(double* data, int size){
-        int* range = new int[2];
-        range[0]=-1;
-        range[1]=0;
 
-        for(int i=0;i<size;i++){
-            if(data[i]<=0) continue;
-            range[0] = range[0]<0? i : range[0];
-            range[1] = i;
-
-        }
-        return range;
-    }
-
+/*
     double getDistributionScore3(double **perChargeIsotopeIntensity,  PrecalcularedAveragine &averagines,
             double& mass, int range, int range2, double isotopeCosineThreshold, int threshold){
         auto iso = averagines.get(mass);
@@ -1806,6 +1774,7 @@ protected:
         if (n1 < threshold) return -100.0;
         return n1 / (n1 + n2);
     }
+*/
 
     double
     getCosine(double *a, int &aStart, int &aEnd, IsotopeDistribution &b, int &bSize, double &bNorm, int offset = 0) {
