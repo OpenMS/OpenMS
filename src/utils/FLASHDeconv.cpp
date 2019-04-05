@@ -76,7 +76,7 @@ public:
                 if (a < m) continue;
                 if (a > M) break;
                 auto iso = generator->estimateFromPeptideWeight(a);
-                iso.trimRight(.1 * iso.getMostAbundant().getIntensity());
+                iso.trimRight(0.01 * iso.getMostAbundant().getIntensity());
                 isotopes.push_back(iso);
                 double norm = .0;
                 for (Size k = 0; k < iso.size(); k++) {
@@ -203,7 +203,7 @@ protected:
         //                  "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))",
         //                 false, true);
         //registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
-        registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
+        registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
         registerDoubleOption_("minCDScore", "<...>", .3, "minimum charge distribution score threshold",
                               false, true);
@@ -486,7 +486,7 @@ protected:
     PrecalcularedAveragine getPrecalculatedAveragines(Parameter &param) {
         auto generator = new CoarseIsotopePatternGenerator();
         auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-        maxIso.trimRight(.1 * maxIso.getMostAbundant().getIntensity());
+        maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
         param.maxIsotopeCount = min(param.maxIsotopeCount, (int) maxIso.size() - 1);
         generator->setMaxIsotope((Size) param.maxIsotopeCount);
         return PrecalcularedAveragine(100, param.maxMass, 50, generator);
