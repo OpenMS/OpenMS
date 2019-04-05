@@ -1318,7 +1318,6 @@ protected:
                 for(int i=0;i<param.chargeRange;i++) {
                     delete[] perChargeIsotopeIntensity[i];
                 }
-                delete[] perChargeIsotopeIntensity;
                 delete[] perIsotopeIntensity;
                 delete[] perIsotopeMinCharge;
                 delete[] perIsotopeMaxCharge;
@@ -1341,7 +1340,6 @@ protected:
                 for(int i=0;i<param.chargeRange;i++) {
                     delete[] perChargeIsotopeIntensity[i];
                 }
-                delete[] perChargeIsotopeIntensity;
                 delete[] perIsotopeIntensity;
                 delete[] perIsotopeMinCharge;
                 delete[] perIsotopeMaxCharge;
@@ -1356,7 +1354,6 @@ protected:
                 for(int i=0;i<param.chargeRange;i++) {
                     delete[] perChargeIsotopeIntensity[i];
                 }
-                delete[] perChargeIsotopeIntensity;
                 delete[] perIsotopeIntensity;
                 delete[] perIsotopeMinCharge;
                 delete[] perIsotopeMaxCharge;
@@ -1678,8 +1675,7 @@ protected:
         int *n3 = new int[range];
         fill_n(n3, range, 0);
 
-        /*
-        auto cosines = new double[range];
+        /*auto cosines = new double[range];
         fill_n(cosines, range, 0);
         //double maxCosine = -1.0;
         for (int k = nonZeroStart; k <= nonZeroEnd; k++) {
@@ -1691,7 +1687,7 @@ protected:
 
         }*/
         //if(maxCosine <=0) return -100.0;
-        int* maxRange = getRange(perChargeIsotopeIntensity[maxIndex], range2);
+       // int* maxRange = getRange(perChargeIsotopeIntensity[maxIndex]);
 
         for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++) {
             if (perChargeIntensity[k] <= 0) {
@@ -1699,23 +1695,9 @@ protected:
             }
 
             if (k - prevCharge == 1) {
-                int* r1 = getRange(perChargeIsotopeIntensity[k], range2);
-                int* r2 = getRange(perChargeIsotopeIntensity[prevCharge], range2);
-
-                //if(r1[1] - r1[0] < 2)
-
                 double cos = getCosine(perChargeIsotopeIntensity[k], perChargeIsotopeIntensity[prevCharge], range2);
-                //cos = max(cos, cosines[k]);
-                //cos = max(cos, cosines[prevCharge]);
 
-                if(r1[1] - r1[0] <= 2) cos = 0;
-                if(r2[1] - r2[0] <= 2) cos = 0;
-
-                delete[] r1;
-                delete[] r2;
-
-
-                if (cos > .7) { //
+                if (cos >  .7) { //
                     n1++;
                 } else {
                     n2++;
@@ -1726,7 +1708,7 @@ protected:
             }
             prevCharge = k;
         }
-        delete[] maxRange;
+        //delete[] maxRange;
         delete[] perChargeIntensity;
 
         int n4 = 0;
@@ -1734,7 +1716,7 @@ protected:
             n4 = max(n4, n3[i]);
         }
         delete[] n3;
-        //delete[] cosines;
+       // delete[] cosines;
         //n2 = max(n2, n3);
         if (n4>1 && n1 <= n4) return -100.0;
         if (n1 < threshold) return -100.0;
@@ -1744,7 +1726,7 @@ protected:
     int* getRange(double* data, int size){
         int* range = new int[2];
         range[0]=-1;
-        range[1]=-1;
+        range[1]=0;
 
         for(int i=0;i<size;i++){
             if(data[i]<=0) continue;
