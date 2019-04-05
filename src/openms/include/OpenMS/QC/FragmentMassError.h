@@ -44,6 +44,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 
 namespace OpenMS
 {
@@ -64,7 +65,7 @@ namespace OpenMS
     };
 
 
-    void compute(FeatureMap& fmap, MSExperiment& exp, const double mz_tolerance = 2);
+    void compute(FeatureMap& fmap, const MSExperiment& exp, const double mz_tolerance = 20);
 
     /// returns results
     std::vector<FMEStatistics> getResults() const;

@@ -43,6 +43,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 //////////////////////////
 
@@ -83,21 +84,26 @@ START_TEST(FragmentMassError, "$Id$")
     MSSpectrum ms_spec_2_himalaya;
     ms_spec_2_himalaya.setRT(3.7);
     ms_spec_2_himalaya.setMSLevel(2);
-    ms_spec_2_himalaya.push_back({himalaya_1, himalaya_2, himalaya_3, himalaya_4})
+    ms_spec_2_himalaya.push_back(himalaya_1);
+    ms_spec_2_himalaya.push_back(himalaya_2);
+    ms_spec_2_himalaya.push_back(himalaya_3);
+    ms_spec_2_himalaya.push_back(himalaya_4);
 
     //MS_Alabama
     MSSpectrum ms_spec_2_alabama;
     ms_spec_2_alabama.setRT(2);
     ms_spec_2_alabama.setMSLevel(2);
-    ms_spec_2_alabama.push_back({alabama_1, alabama_2, alabama_3})
+    ms_spec_2_alabama.push_back(alabama_1);
+    ms_spec_2_alabama.push_back(alabama_2);
+    ms_spec_2_alabama.push_back(alabama_3);
 
     //MS_Exception
     MSSpectrum ms_spec_2_excp;
-    ms_spec_2_excp.setRt(4);
+    ms_spec_2_excp.setRT(4);
     ms_spec_2_excp.setMSLevel(2);
 
     MSExperiment exp;
-    exp.setSptectra({ms_spec_empty, ms_spec_1, ms_spec_2_himalaya, ms_spec_2_alabama, ms_spec_2_excp});
+    exp.setSpectra({ ms_spec_1, ms_spec_2_himalaya, ms_spec_2_alabama});
 
     //-------------------------------------------------
     //create FeatureMap
@@ -105,29 +111,64 @@ START_TEST(FragmentMassError, "$Id$")
 
     //PepHit Himalaya
     PeptideHit pep_hit_hi;
-    pep_hit_hi.setSequence(AASequence::fromString("HIMALAYA"))
+    pep_hit_hi.setSequence(AASequence::fromString("HIMALAYA"));
 
     //PepHit Alabama
     PeptideHit pep_hit_al;
-    pep_hit_hi.setSequence(AASequence::fromString("ALABAMA"))
+    pep_hit_al.setSequence(AASequence::fromString("ALABAMA"));
 
     //PepID empty
     PeptideIdentification pep_id_empty;
+    pep_id_empty.setRT(4);
 
     //PepID himalaya
     PeptideIdentification pep_id_hi;
+    pep_id_hi.setRT(3.72);
+    pep_id_hi.setMZ(888);
+    pep_id_hi.setHits({pep_hit_hi});
 
     //PepID alabama
     PeptideIdentification pep_id_al;
+    pep_id_al.setRT(2);
+    pep_id_al.setMZ(264);
+    pep_id_al.setHits({pep_hit_al});
 
     //PepID out of tolerance
     PeptideIdentification pep_id_tol_out;
+    pep_id_tol_out.setRT(2.1);
 
     //PepID matches with ms1 spectrum
     PeptideIdentification pep_id_ms1;
+    pep_id_ms1.setRT(5);
 
     //PepID peak_RT does not exist in msEp
     PeptideIdentification pep_id_notExist;
+    pep_id_notExist.setRT(7);
+
+    //Feature valid data
+    Feature feat_valid;
+    feat_valid.setPeptideIdentifications({pep_id_hi, pep_id_al});
+
+    //Feature empty
+    Feature feat_empty;
+
+    //FeatureMap valid data
+    FeatureMap fmap;
+    //fmap.push_back(feat_empty);
+    fmap.push_back(feat_valid);
+
+    //FeatureMap tol_out
+    FeatureMap fmap_tol_out;
+    fmap_tol_out.setUnassignedPeptideIdentifications({pep_id_tol_out});
+
+    //FeatureMap ms1
+    FeatureMap fmap_ms1;
+    fmap_ms1.setUnassignedPeptideIdentifications({pep_id_ms1});
+
+    //FeatureMap tol_out
+    FeatureMap fmap_notExist;
+    fmap_notExist.setUnassignedPeptideIdentifications({pep_id_notExist});
+
 
     //--------------------------------------------------------------------
     // Tests
@@ -155,9 +196,15 @@ START_TEST(FragmentMassError, "$Id$")
 
     FragmentMassError frag_ma_err;
     //tests compute function
-    START_SECTION(void compute(FeatureMap& fmap, MSExperiment& exp, const double mz_tolerance = 0.05))
+    START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double mz_tolerance = 20))
         {
           //test with valid input
+          frag_ma_err.compute(fmap, exp);
+          std::vector<FragmentMassError::FMEStatistics> result;
+          result = frag_ma_err.getResults();
+
+          TEST_REAL_SIMILAR(result[0].average_ppm, (0.034 + 0.088 + 1.38 - 5.01 + 0.531 - 1.449 - 0.23)/7.)
+          TEST_REAL_SIMILAR(result[0].variance_ppm, 4.391826)
           /*
           ms2ir.compute(fmap, ms_exp);
           std::vector<Ms2IdentificationRate::IdentificationRateData> result;

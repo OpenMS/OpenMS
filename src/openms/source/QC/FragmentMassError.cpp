@@ -37,7 +37,7 @@
 
 namespace OpenMS
 {
-  void FragmentMassError::compute(FeatureMap& fmap, MSExperiment& exp, const double mz_tolerance)
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double mz_tolerance)
   {
     FMEStatistics result;
 
@@ -49,9 +49,28 @@ namespace OpenMS
 
     float rt_tolerance = 0.05;
 
+    //---------------------------------------------------------------------
+    // Prepare MSExperiment
+    //---------------------------------------------------------------------
+
     if (!exp.isSorted())
     {
-      exp.sortSpectra();
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSExperiment is not sorted by ascending RT");
+    }
+
+    // filter settings
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 6, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
+
+    MSExperiment exp_filtered(exp);
+
+    for (MSSpectrum& spec : exp_filtered)
+    {
+      window_mower_filter.filterPeakSpectrum(spec);
     }
 
 
@@ -112,7 +131,7 @@ namespace OpenMS
       MSExperiment::ConstIterator it = exp.RTBegin(rt_pep - rt_tolerance);
       if (it == exp.end())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the mzML and featureXML fie does not match.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the mzML and featureXML file does not match.");
       }
 
       const auto& exp_spectrum = *it;
