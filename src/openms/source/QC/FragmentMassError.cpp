@@ -34,6 +34,7 @@
 
 #include <OpenMS/QC/FragmentMassError.h>
 #include <string>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -74,7 +75,7 @@ namespace OpenMS
     }
 
 
-    auto lamCompPPM = [&exp, rt_tolerance, mz_tolerance, &accumulator_ppm, &counter_ppm](PeptideIdentification& pep_id)
+    auto lamCompPPM = [&exp_filtered, rt_tolerance, mz_tolerance, &accumulator_ppm, &counter_ppm](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -128,8 +129,8 @@ namespace OpenMS
 
       double rt_pep  = pep_id.getRT();
 
-      MSExperiment::ConstIterator it = exp.RTBegin(rt_pep - rt_tolerance);
-      if (it == exp.end())
+      MSExperiment::ConstIterator it = exp_filtered.RTBegin(rt_pep - rt_tolerance);
+      if (it == exp_filtered.end())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the mzML and featureXML file does not match.");
       }
@@ -158,6 +159,7 @@ namespace OpenMS
       //stores ppms for one spectrum
       DoubleList ppms{};
 
+
       for (const Peak1D& peak : theo_spectrum)
       {
         const double theo_mz = peak.getMZ();
@@ -166,11 +168,15 @@ namespace OpenMS
 
         //found peak match
 
-        auto ppm = Math::getPPM(exp_mz,theo_mz);
-        if (std::abs(ppm) < mz_tolerance)
+       // auto ppm = Math::getPPM(exp_mz,theo_mz);
+       //if (std::abs(ppm) < mz_tolerance)
+       if(std::abs(theo_mz-exp_mz) < mz_tolerance)
         {
+          auto ppm = Math::getPPM(exp_mz,theo_mz);
           ppms.push_back(ppm);
-          accumulator_ppm += ppm;
+          //accumulator_ppm += ppm;
+          std::cout << "T  " << theo_mz << "    E  " << exp_mz << std::endl;
+          accumulator_ppm += theo_mz-exp_mz;
           ++ counter_ppm;
         }
       }
