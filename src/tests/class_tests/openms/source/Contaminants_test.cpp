@@ -84,33 +84,33 @@ vector<FASTAFile::FASTAEntry> contaminantsFile;
       PeptideHit scnd_hit;
 
       hit.setSequence(AASequence::fromString("AAAAAAAAAAK"));
-      id.setHits(std::vector<PeptideHit>(1, hit));
+      id.setHits({hit});
       f.setPeptideIdentifications({id});
       f.setIntensity(12.0);
       fmap.push_back(f);
 
       hit.setSequence(AASequence::fromString("R"));
-      id.setHits(std::vector<PeptideHit>(1, hit));
+      id.setHits({hit});
       f.setPeptideIdentifications({id});
       f.setIntensity(8.0);
       fmap.push_back(f);
 
       hit.setSequence(AASequence::fromString("R"));
       scnd_hit.setSequence(AASequence::fromString("QQQQQQQQQQ"));
-      id.setHits(std::vector<PeptideHit>(1, hit));
-      scnd_id.setHits(std::vector<PeptideHit>(1, scnd_hit));
+      id.setHits({hit});
+      scnd_id.setHits({scnd_hit});
       f.setPeptideIdentifications({id, scnd_id});
       f.setIntensity(10.0);
       fmap.push_back(f);
 
       hit.setSequence(AASequence::fromString("AAAAAAAAAAKR"));
-      id.setHits(std::vector<PeptideHit>(1, hit));
+      id.setHits({hit});
       f.setPeptideIdentifications({id});
       f.setIntensity(20.0);
       fmap.push_back(f);
 
       hit.setSequence(AASequence::fromString("AAAAAAAAAAKRAAAAAAAAAAKRCCCCCCCCCCKRCCCCCCCCCC"));
-      id.setHits(std::vector<PeptideHit>(1, hit));
+      id.setHits({hit});
       f.setPeptideIdentifications({id});
       f.setIntensity(10.0);
       fmap.push_back(f);
@@ -123,11 +123,11 @@ vector<FASTAFile::FASTAEntry> contaminantsFile;
 std::vector<PeptideIdentification> ids2(3);
 PeptideHit hit2;
 hit2.setSequence(AASequence::fromString("AAAAAAAAAAK"));
-ids2[0].setHits(std::vector<PeptideHit>(1, hit2));
+ids2[0].setHits({hit2});
 hit2.setSequence(AASequence::fromString("RCCCCCCCCCCK"));
-ids2[1].setHits(std::vector<PeptideHit>(1, hit2));
+ids2[1].setHits({hit2});
 hit2.setSequence(AASequence::fromString("DDDDDDDDDD"));
-ids2[2].setHits(std::vector<PeptideHit>(1, hit2));
+ids2[2].setHits({hit2});
 
 
 
