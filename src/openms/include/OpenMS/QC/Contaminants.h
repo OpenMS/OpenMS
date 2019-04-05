@@ -83,6 +83,7 @@ namespace OpenMS
      * @param contaminants Vector of FASTAEntries that need to be digested to check whether a peptide is a contaminant or not
      * @exception Exception::MissingInformation if the contaminants database is empty
      * @exception Exception::MissingInformation if no enzyme is given
+     * @exception Exception::MissingInformation if proteinidentification of FeatureMap is empty
      * @warning LOG_WARN if the FeatureMap is empty
      */
     void compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants);
