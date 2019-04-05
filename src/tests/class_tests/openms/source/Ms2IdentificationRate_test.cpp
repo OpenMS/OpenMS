@@ -115,7 +115,6 @@ MSSpectrum ms2;
 ms2.setMSLevel(2);
 MSSpectrum ms1;
 ms1.setMSLevel(1);
-
 std::vector<MSSpectrum> ms_spectra = {ms2, ms2, ms2, ms2, ms2, ms2, ms1};
 std::vector<MSSpectrum> ms1_spectra = {ms1};
 std::vector<MSSpectrum> ms2_2_spectra = {ms2};

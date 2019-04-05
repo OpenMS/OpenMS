@@ -35,6 +35,9 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <iostream>
 
 namespace OpenMS
@@ -70,6 +73,7 @@ namespace OpenMS
     {
     public:
 
+      /// stream output for Status
       friend std::ostream& operator<<(std::ostream& os, const Status& stat);
 
       /// Constructors
@@ -173,11 +177,48 @@ namespace OpenMS
      *@brief Returns the input data requirements of the compute(...) function
      */
     virtual Status requires() const = 0;
+
+    /**
+     * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
+     *
+     * PeptideIdentifications without PeptideHits are not passed to the Lambda function.
+     * The Lambda may or may not change the PeptideIdentification
+     */
+
+    template <typename MAP, typename T>
+    static void iterateFeatureMap(MAP& fmap, T lambda)
+    {
+      for (auto& pep_id : fmap.getUnassignedPeptideIdentifications())
+      {
+        if (pep_id.getHits().empty())
+        {
+          LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
+        }
+        else
+        {
+          lambda(pep_id);
+        }
+      }
+
+      for (auto& features : fmap)
+      {
+        for (auto& pep_id : features.getPeptideIdentifications())
+        {
+          if (pep_id.getHits().empty())
+          {
+            LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
+          }
+          else
+          {
+            lambda(pep_id);
+          }
+        }
+      }
+    }
   };
-  /// stream output for Status
+
   inline std::ostream& operator<<(std::ostream& os, const QCBase::Status& stat)
   {
     return os << stat.value_;
   }
-
 }
