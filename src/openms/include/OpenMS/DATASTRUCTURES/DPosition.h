@@ -111,6 +111,7 @@ public:
     /// Move constructor
 	DPosition(DPosition&& rhs) noexcept
 	{
+		// NOTE: do not change this before testing with nightly Windows builds ( = default causes segfault)
 		std::move(std::begin(rhs.coordinate_), std::end(rhs.coordinate_), &coordinate_[0]);
 	}
 
