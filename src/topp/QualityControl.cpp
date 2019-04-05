@@ -46,6 +46,7 @@
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/TIC.h>
+#include <OpenMS/QC/MissedCleavages.h>
 #include <cstdio>
 
 using namespace OpenMS;
@@ -110,6 +111,7 @@ protected:
     // Instantiate the QC metrics
     // TIC qc_tic;
     Ms2IdentificationRate qc_ms2ir;
+    MissedCleavages qc_missed_cleavages;
 
     // Loop through file lists
     for (Size i = 0; i < number_exps; ++i)
@@ -137,6 +139,11 @@ protected:
       if (status.isSuperSetOf(qc_ms2ir.requires()))
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
+      }
+
+      if (status.isSuperSetOf(qc_missed_cleavages.requires()))
+      {
+        qc_missed_cleavages.compute(fmap);
       }
 
 

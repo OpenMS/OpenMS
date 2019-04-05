@@ -15,10 +15,11 @@ set(concept_executables_list
   UniqueIdIndexer_test
   UniqueIdInterface_test
 )
-
 set(qc_executables_list
-  Ms2IdentificationRate_test
-  TIC_test
+Contaminants_test
+MissedCleavages_test
+Ms2IdentificationRate_test
+TIC_test
 )
 
 set(datastructures_executables_list

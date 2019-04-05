@@ -28,76 +28,62 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow$
-// $Authors: Patricia Scheil, Swenja Wagner$
+// $Maintainer: Chris Bielow $
+// $Authors: Swenja Wagner, Patricia Scheil $
 // --------------------------------------------------------------------------
+
 
 #pragma once
 
-#include <string>
 #include <vector>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include "OpenMS/QC/QCBase.h"
+#include <OpenMS/QC/QCBase.h>
 
 namespace OpenMS
 {
   /**
-   * @brief This class is a metric for the QualityControl-ToppTool.
+   * @brief This class is a metric for the QualityControl TOPP Tool.
    *
-   * This class computes the MS2 Identification Rate given a FeatureMap and an MSExperiment.
+   * This class counts the number of MissedCleavages per PeptideIdentification given a FeatureMap
+   * and returns an agglomeration statistic (observed counts).
+   * Additionally the PeptideHits in the FeatureMap are augmented with MetaInformation.
+   *
    */
-  class OPENMS_DLLAPI Ms2IdentificationRate : QCBase
+  class OPENMS_DLLAPI MissedCleavages : QCBase
   {
   public:
-    /// Structure for storing results
-    struct IdentificationRateData
-    {
-      UInt64 num_peptide_identification;
-      UInt64 num_ms2_spectra;
-      double identification_rate;
-    };
+    ///constructor
+    MissedCleavages() = default;
 
-  private:
-    /// container that stores results
-    std::vector<IdentificationRateData> rate_result_;
-
-  public:
-    /// Default constructor
-    Ms2IdentificationRate() = default;
-
-    /// Destructor
-    virtual ~Ms2IdentificationRate() = default;
+    ///destructor
+    virtual ~MissedCleavages() = default;
 
     /**
-     * @brief computes Ms2 Identification Rate
+     * @brief Counts the number of MissedCleavages per PeptideIdentification.
      *
-     * stores results as a struct in a vector
-     * Only pep-ids with FDR metavalue annotation as 'target' are counted, unless force_fdr flag is set (assumes all pep-ids are target peptides)
+     * The result is a key/value map: missed_cleavages --> counts
+     * Additionally the first PeptideHit in each PeptideIdentification of the FeattureMap is annotated with metavalue 'missed_cleavages'.
+     * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParamter therein) within the FeatureMap itself.
      *
-     * @param feature_map Input featuremap with target/decoy annotation
-     * @param exp MSExperiment for counting number of MS2 spectra
-     * @param force_fdr bool for forceflag
-     * @exception Exception::MissingInformation is thrown if the FeatureXML is empty
-     * @exception Exception::MissingInformation is thrown if the mzML is empty
-     * @exception Exception::MissingInformation is thrown if the experiment doesn't contain ms2 spectra
-     * @exception Exception::Precondition is thrown if there are more identifications than ms2 spectra
+     * @param fmap FeatureMap with Peptide and ProteinIdentifications
      */
-    void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
+    void compute(FeatureMap& fmap);
 
-    /// returns results
-    const std::vector<IdentificationRateData>& getResults() const;
+    /// returns the result
+    const std::vector<std::map<UInt32, UInt32>>& getResults() const;
 
     /**
      * @brief Returns the input data requirements of the compute(...) function
-     * @return Status for RAWMZML and POSTFDRFEAT
+     * @return Status for POSTFDRFEAT;
      */
     QCBase::Status requires() const override;
 
+  private:
+    /// container that stores results
+    std::vector<std::map<UInt32, UInt32>> mc_result_;
   };
-
 } // namespace OpenMS
