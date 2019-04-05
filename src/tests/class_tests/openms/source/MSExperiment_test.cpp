@@ -1233,6 +1233,35 @@ START_SECTION((const MSChromatogram getTIC() const))
 }
 END_SECTION
 
+START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& chrom)) 
+{
+  PeakMap tmp;
+  tmp.getContacts().resize(1);
+  tmp.getContacts()[0].setFirstName("Name");
+  tmp.resize(1);
+  Peak1D p;
+  p.setMZ(5.0);
+  tmp[0].push_back(p);
+  p.setMZ(10.77);
+  tmp[0].push_back(p);
+
+  MSChromatogram a;
+  MSChromatogram::PeakType peak;
+  peak.getPosition()[0] = 47.11;
+  a.push_back(peak);
+  tmp.addChromatogram(a);
+
+  std::ostringstream os;
+  os << tmp;
+
+  TEST_EQUAL(String(os.str()).hasSubstring("MSEXPERIMENT BEGIN"), true);
+  TEST_EQUAL(String(os.str()).hasSubstring("MSSPECTRUM BEGIN"), true);
+  TEST_EQUAL(String(os.str()).hasSubstring("MSCHROMATOGRAM BEGIN"), true);
+  TEST_EQUAL(String(os.str()).hasSubstring("47.11"), true);
+  TEST_EQUAL(String(os.str()).hasSubstring("10.77"), true);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

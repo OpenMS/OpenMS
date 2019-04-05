@@ -1068,6 +1068,25 @@ START_SECTION(([MSChromatogram::MZLess] bool operator()(const MSChromatogram &a,
 }
 END_SECTION
 
+START_SECTION( std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom)) 
+{
+  MSChromatogram a;
+  Product pa;
+  pa.setMZ(1000.0);
+  a.setProduct(pa);
+
+  MSChromatogram::PeakType peak;
+  peak.getPosition()[0] = 47.11;
+  a.push_back(peak);
+
+  std::ostringstream os;
+  os << a;
+
+  TEST_EQUAL(String(os.str()).hasSubstring("MSCHROMATOGRAM BEGIN"), true);
+  TEST_EQUAL(String(os.str()).hasSubstring("47.11"), true);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
