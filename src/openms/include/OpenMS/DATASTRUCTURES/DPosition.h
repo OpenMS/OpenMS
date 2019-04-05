@@ -109,7 +109,10 @@ public:
     }
 
     /// Move constructor
-    DPosition(DPosition&& rhs) noexcept = default;
+	DPosition(DPosition&& rhs) noexcept
+	{
+		std::move(std::begin(rhs.coordinate_), std::end(rhs.coordinate_), &coordinate_[0]);
+	}
 
     /// Constructor only for DPosition<2> that takes two Coordinates.
     DPosition(CoordinateType x, CoordinateType y)
