@@ -96,7 +96,7 @@ START_SECTION((DateTime(const DateTime&& date)))
 
   date1.set("2006-12-12 11:59:59");
   date2 = DateTime(std::move(date1));
-  TEST_EQUAL(date1 == date2, true)
+  TEST_EQUAL(date2.get(), "2006-12-12 11:59:59")
 }
 END_SECTION
 
@@ -134,7 +134,7 @@ START_SECTION((DateTime& operator= (DateTime&& source)))
   date.set("2006-12-12 11:59:59");
   TEST_EQUAL(date==date2,false);
   date2 = std::move(date);
-  TEST_EQUAL(date==date2,true);
+  TEST_EQUAL(date2.get(), "2006-12-12 11:59:59")
 }
 END_SECTION
 
