@@ -99,12 +99,22 @@ protected:
                          false);
       setValidFormats_(param_in_design, ListUtils::create<String>("tsv"), true);
 
+      registerStringOption_(param_method, "<method>",
+                            "LFQ",
+                            "Method used in the experiment(label free [LFQ], isobaric labeling [ISO]))", false,
+                            false);
+      setValidStrings_(param_method,
+                       ListUtils::create<String>("LFQ,ISO"));
+
       registerStringOption_(param_msstats_bioreplicate, "<msstats_bioreplicate>",
                             "MSstats_BioReplicate",
                             "Which column in the condition table should be used for MSstats 'BioReplicate'", false,
                             false);
       registerStringOption_(param_msstats_condition, "<msstats_condition>", "MSstats_Condition",
                             "Which column in the condition table should be used for MSstats 'Condition'", false, false);
+
+      registerStringOption_(param_msstats_mixture, "msstats_mixture", "MSstats_Mixutre",
+                            "Which column in the condition table should be used for MSstats 'Mixture'", false, false);
 
       // advanced option to overwrite MS file annotations in consensusXML
       registerInputFileList_(param_reannotate_filenames, "<file(s)>", StringList(),
@@ -141,6 +151,7 @@ protected:
                 "Input type is not consensusXML!",
                 ILLEGAL_PARAMETERS);
         // Tool arguments
+        const String arg_method = getStringOption_(param_method);
         const String arg_out = getStringOption_(param_out);
 
         // Experimental Design file
@@ -155,14 +166,24 @@ protected:
         bool is_isotope_label_type = getFlag_(param_labeled_reference_peptides);
         String bioreplicate = getStringOption_(param_msstats_bioreplicate);
         String condition = getStringOption_(param_msstats_condition);
+        String mixture = getStringOption_(param_msstats_mixture);
         String retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
 
         MSstatsFile msStatsFile;
 
-        msStatsFile.store(arg_out, consensus_map, design,
-                          reannotate_filenames, is_isotope_label_type,
-                          bioreplicate, condition, retention_time_summarization_method);
 
+        if (arg_method == "LFQ")
+        {
+            msStatsFile.storeLFQ(arg_out, consensus_map, design,
+                                 reannotate_filenames, is_isotope_label_type,
+                                 bioreplicate, condition, retention_time_summarization_method);
+        }
+        else if (arg_method == "ISO")
+        {
+            msStatsFile.storeISO(arg_out, consensus_map, design,
+                                 reannotate_filenames, bioreplicate, condition, 
+                                 mixture, retention_time_summarization_method);
+        }
         return EXECUTION_OK;
       }
       catch (const ExitCodes &exit_code)
@@ -174,13 +195,14 @@ protected:
 
     static const String param_in;
     static const String param_in_design;
+    static const String param_method;
     static const String param_msstats_bioreplicate;
     static const String param_msstats_condition;
+    static const String param_msstats_mixture;
     static const String param_out;
     static const String param_labeled_reference_peptides;
     static const String param_retention_time_summarization_method;
     static const String param_reannotate_filenames;
-
 
 private:
 
@@ -196,14 +218,14 @@ private:
 
 const String TOPPMSstatsConverter::param_in = "in";
 const String TOPPMSstatsConverter::param_in_design = "in_design";
+const String TOPPMSstatsConverter::param_method = "method";
 const String TOPPMSstatsConverter::param_msstats_bioreplicate = "msstats_bioreplicate";
 const String TOPPMSstatsConverter::param_msstats_condition = "msstats_condition";
+const String TOPPMSstatsConverter::param_msstats_mixture = "msstats_mixture";
 const String TOPPMSstatsConverter::param_out = "out";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
 const String TOPPMSstatsConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
 const String TOPPMSstatsConverter::param_reannotate_filenames = "reannotate_filenames";
-
-
 
 // the actual main function needed to create an executable
 int main(int argc, const char **argv)
