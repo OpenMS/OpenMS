@@ -205,11 +205,11 @@ protected:
         //registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minCDScore", "<...>", .3, "minimum charge distribution score threshold",
+        registerDoubleOption_("minCDScore", "<...>", .5, "minimum charge distribution score threshold",
                               false, true);
 
         registerDoubleOption_("maxM", "<max mass>", 150000.0, "maximum mass (Da)", false, false);
-        registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
+        registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
         registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
         //registerDoubleOption_("minIsoScore", "<score 0-1>", .6, "minimum isotope cosine score threshold (0-1)", false,
         //                     true);
@@ -617,7 +617,6 @@ protected:
 
         //cout<<1<<endl;
 
-        /*
         fsp << "pg" << (int) (pg.monoisotopicMass * 10)  <<  "rt"  <<   (int)( pg.spec->getRT())
             << "=[";
 
@@ -631,7 +630,7 @@ protected:
         fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
         //cout<<4<<endl;
 
-*/
+
     }
 
     void printProgress(float progress) {
@@ -714,7 +713,7 @@ protected:
                                                     binOffsets, perMassChargeRanges,
                                                     param);
 
-        if (prevMassBinVector.size() >0 && prevMassBinVector.size() >= (Size) param.numOverlappedScans) {
+        if (prevMassBinVector.size() > 0 && prevMassBinVector.size() >= (Size) param.numOverlappedScans) {
 //            auto &p = prevMassBinVector[0];
             //vector<Size>().swap(p);
             prevMassBinVector.erase(prevMassBinVector.begin());
@@ -788,6 +787,7 @@ protected:
         vector<PeakGroup> peakGroups;
         auto &minChargeRanges = chargeRanges[0];
         auto &maxChargeRanges = chargeRanges[1];
+        vector<Size> toRemove;
 
         auto massBinIndex = unionedMassBins.find_first();
         while (massBinIndex != unionedMassBins.npos) {
@@ -847,8 +847,9 @@ protected:
                                     lastPeakIndex = peakIndex;
                                     //}
                                     if (massBinIndex != bin) {
-                                        unionedMassBins[bin] = false; //
-                                         massBins[bin] = false; //
+                                        toRemove.push_back(bin);
+                                        //unionedMassBins[bin] = false; //
+                                        //massBins[bin] = false; //
                                     }
                                 }
                             }
@@ -884,6 +885,16 @@ protected:
                 }
                 peakGroups.push_back(pg);
             }
+
+            if(massBinIndex < unionedMassBins.size()-2 && !unionedMassBins[massBinIndex+1]
+            &&!unionedMassBins[massBinIndex+2]){
+                for(auto& b : toRemove){
+                    unionedMassBins[b] = false;
+                    massBins[b] = false;
+                }
+                toRemove.clear();
+            }
+
             massBinIndex = unionedMassBins.find_next(massBinIndex);
         }
         delete[] currentPeakIndex;
@@ -1098,14 +1109,15 @@ protected:
                 //massBinMinValue,
                            binThresholdMinMass);
         //cout<<"*"<<endl;
-        // printMasses(isQualified, massBinMinValue, continuousChargePeakPairCount, param);
+         //printMasses(isQualified, massBinMinValue, continuousChargePeakPairCount, param);
 
         auto perMassChargeRanges = getFinalMassBins(massBins, mzBins, isQualified, unionPrevMassBins,
                                                     continuousChargePeakPairCount,
                                                     binOffsets,
                                                     param,
                                                     binThresholdMinMass);
-        // printMasses(massBins, massBinMinValue, continuousChargePeakPairCount, param);
+         //cout<<"**"<<endl;
+         //printMasses(massBins, massBinMinValue, continuousChargePeakPairCount, param);
 
         //delete[] noneContinuousChargePeakPairCount;
         delete[] continuousChargePeakPairCount;
@@ -1118,7 +1130,7 @@ protected:
         auto index = massBins.find_first();
         while (index != massBins.npos) {
             auto m = exp(getBinValue(index, massBinMinValue, param.binWidth));
-            if (m < 3497 && m > 3496.5) {
+            if (m < 11900 && m > 11800) {
 
                 cout << m <<
                      " " << (int) continuousChargePeakPairCount[index] <<
@@ -1154,6 +1166,10 @@ protected:
         Byte *prevIntensities = new Byte[massBins.size()];
         fill_n(prevIntensities, massBins.size(), 0);
 
+        Byte *hc = new Byte[massBins.size()];
+        fill_n(hc, massBins.size(), 0);
+
+
         auto mzBinIndex = mzBins.find_first();
         while (mzBinIndex != mzBins.npos) {
             auto &logIntensity = logIntensities[mzBinIndex];
@@ -1166,21 +1182,25 @@ protected:
                 prevCharges[massBinIndex] = j;
                 auto id = prevIntensities[massBinIndex] - logIntensity;
                 prevIntensities[massBinIndex] = logIntensity;
-                if (cd != 1 || abs(id) > 1) {
+                if (cd != 1 || id > 1 || id < -1) {
                     continue;
                 }
 
                 bool h = false;
                 auto &hbOffsets = hBinOffsets[j];
                 for (int k = 0; k < hChargeSize; k++) {
-                    long hbi = mzBinIndex - hbOffsets[k];// + rand() % 10000 - 5000 ; //
+                    long hbi = mzBinIndex - hbOffsets[k];// + rand() % 10000 - 5000 ;
                     for (int i = -1; i <= 1; i++) { //
                         auto bin = hbi + i;
                         if (bin < 0 || bin > mzBinSize) continue;
-                        if (mzBins[bin] && abs(logIntensity - logIntensities[bin]) <= 1) { //
+                        if (mzBins[bin] && (abs(logIntensity - logIntensities[bin]) <= 1 ||
+                        abs(logIntensity + id -logIntensities[bin]) <= 1)) {
                             h = true;
-                            unionPrevMassBins[massBinIndex] = false;
+                            //if(++hc[massBinIndex] > 2) {
+                         //   unionPrevMassBins[massBinIndex] = false;
+                            //}
                             break;
+
                         }
                     }
                     if (h) break;
@@ -1194,6 +1214,7 @@ protected:
         }
         delete[] prevCharges;
         delete[] prevIntensities;
+        delete[] hc;
     }
 
     Byte **getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
@@ -1209,7 +1230,7 @@ protected:
         fill_n(maxChargeRanges, massBins.size(), 0);
 
         Byte *minChargeRanges = new Byte[massBins.size()];
-        fill_n(minChargeRanges, massBins.size(), 200);
+        fill_n(minChargeRanges, massBins.size(), chargeRange + 1);
 
         auto mzBinIndex = mzBins.find_first();
         long binEnd = (long) massBins.size();
@@ -1248,7 +1269,7 @@ protected:
             //if (!setCharges.empty()) {
             //  for(auto & j : setCharges){
             if (maxIndex >= 0) {
-                if (isQualified[maxIndex]) massBins[maxIndex] = true;
+                massBins[maxIndex] = isQualified[maxIndex];
                 maxChargeRanges[maxIndex] = std::max(maxChargeRanges[maxIndex], charge);
                 minChargeRanges[maxIndex] = std::min(minChargeRanges[maxIndex], charge);
             }
@@ -1572,6 +1593,8 @@ protected:
         int prevCharge = nonZeroStart;
         double n1 = .0;
         double n2 = .0;
+        int n4 = 0;
+
         int *n3 = new int[range];
         fill_n(n3, range, 0);
         double spanThreshold = maxSpan / 4.0;//
@@ -1591,16 +1614,15 @@ protected:
                     n2++;
                 }
             } else{// if(spanThreshold <= intersectSpan){
-                n3[k - prevCharge]++;
+                n4++;//n3[k - prevCharge]++;
 
             }
             prevCharge = k;
         }
 
-        int n4 = 0;
-        for (int i = 0; i < range; i++) {
+        /*for (int i = 0; i < range; i++) {
             n4 = max(n4, n3[i]);
-        }
+        }*/
         delete[] n3;
         //n2 = max(n2, n3);
         if (n4>2 && n1 < n4) return -100.0;
