@@ -631,9 +631,8 @@ private:
 
   };
 
-
   /// Print the contents to a stream.
-  std::ostream& operator<<(std::ostream& os, const MSExperiment& exp);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MSExperiment& exp);
 
 } // namespace OpenMS
 
