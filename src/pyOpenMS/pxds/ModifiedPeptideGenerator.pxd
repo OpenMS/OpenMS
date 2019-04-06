@@ -4,6 +4,7 @@ from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from AASequence cimport *
 from ResidueModification cimport *
+from StringList cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>" namespace "OpenMS":
 
