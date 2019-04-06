@@ -205,7 +205,7 @@ protected:
         //registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minCDScore", "<...>", .5, "minimum charge distribution score threshold",
+        registerDoubleOption_("minCDScore", "<...>", .3, "minimum charge distribution score threshold",
                               false, true);
 
         registerDoubleOption_("maxM", "<max mass>", 150000.0, "maximum mass (Da)", false, false);
@@ -433,7 +433,7 @@ protected:
 
         //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
         //                   "Allowed mass deviation (in da).");
-        mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 2, "");
+        mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 5, "");
         mtd_param.setValue("trace_termination_criterion", "outlier", "");
 
         mtd_param.setValue("reestimate_mt_sd", "true", "");
@@ -444,7 +444,7 @@ protected:
 
         //cout<<(int) (param.RTwindow / rtDuration)<<endl;
         mtd_param.setValue("min_sample_rate", 0.01, "");
-        mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans, "");
+        mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans * 3, "");
         mtd_param.setValue("min_trace_length", param.minRTspan, "");
         //mtd_param.setValue("max_trace_length", 1000.0, "");
         mtdet.setParameters(mtd_param);
@@ -1681,7 +1681,7 @@ protected:
             if (k - prevCharge == 1) {
                 double cos = getCosine(perChargeIsotopeIntensity[k], perChargeIsotopeIntensity[prevCharge], range2);
 
-                if (cos >  .7) { //
+                if (cos >  .8) { //
                     n1++;
                 } else {
                     n2++;
