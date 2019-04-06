@@ -209,7 +209,7 @@ protected:
                               false, true);
 
         registerDoubleOption_("maxM", "<max mass>", 150000.0, "maximum mass (Da)", false, false);
-        registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
+        registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
         registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
         //registerDoubleOption_("minIsoScore", "<score 0-1>", .6, "minimum isotope cosine score threshold (0-1)", false,
         //                     true);
@@ -310,7 +310,7 @@ protected:
             }
 
             double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
-            param.numOverlappedScans = max(20, (int) (.5 + param.minRTspan * 2 / rtDuration)); // TODO if 0 ,segmentation fault!
+            param.numOverlappedScans = max(20, (int) (.5 + param.minRTspan * 2 / rtDuration));
             //cout<<param.numOverlappedScans<<endl;
             if (isOutPathDir) {
                 std::string outfileName(param.fileName);
@@ -617,6 +617,7 @@ protected:
 
         //cout<<1<<endl;
 
+        /*
         fsp << "pg" << (int) (pg.monoisotopicMass * 10)  <<  "rt"  <<   (int)( pg.spec->getRT())
             << "=[";
 
@@ -630,7 +631,7 @@ protected:
         fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
         //cout<<4<<endl;
 
-
+*/
     }
 
     void printProgress(float progress) {
@@ -1172,7 +1173,7 @@ protected:
                 bool h = false;
                 auto &hbOffsets = hBinOffsets[j];
                 for (int k = 0; k < hChargeSize; k++) {
-                    long hbi = mzBinIndex - hbOffsets[k];// + rand() % 10000 - 5000 ;
+                    long hbi = mzBinIndex - hbOffsets[k];// + rand() % 10000 - 5000 ; //
                     for (int i = -1; i <= 1; i++) { //
                         auto bin = hbi + i;
                         if (bin < 0 || bin > mzBinSize) continue;
@@ -1294,9 +1295,9 @@ protected:
                                                                           averagines);
             double isotopeCosineThreshold;
             if (monoIsotopeMass < 10000) isotopeCosineThreshold = .8;
-            else if (monoIsotopeMass > 150000) isotopeCosineThreshold = .0;
+            else if (monoIsotopeMass > 150000) isotopeCosineThreshold = .3;
             else {
-                isotopeCosineThreshold = .8 / (150000 - 10000) * (150000 - monoIsotopeMass);
+                isotopeCosineThreshold = .3 + .5 / (150000 - 10000) * (150000 - monoIsotopeMass);
             }
 
             //isotopeCosineThreshold = 0;
