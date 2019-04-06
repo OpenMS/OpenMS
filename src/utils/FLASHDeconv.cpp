@@ -1153,10 +1153,6 @@ protected:
         Byte *prevIntensities = new Byte[massBins.size()];
         fill_n(prevIntensities, massBins.size(), 0);
 
-        //Byte *harmonicCounter = new Byte[massBins.size()];
-        //fill_n(harmonicCounter, massBins.size(), 0);
-
-
         auto mzBinIndex = mzBins.find_first();
         while (mzBinIndex != mzBins.npos) {
             auto &logIntensity = logIntensities[mzBinIndex];
@@ -1168,9 +1164,8 @@ protected:
                 auto cd = prevCharges[massBinIndex] - j;
                 prevCharges[massBinIndex] = j;
                 auto id = prevIntensities[massBinIndex] - logIntensity;
-                //auto inten = id<0? prevIntensities[massBinIndex]:logIntensity;
                 prevIntensities[massBinIndex] = logIntensity;
-                if (cd != 1 || abs(id) > 1) { // 2 is 2 times...
+                if (cd != 1 || abs(id) > 1) {
                     continue;
                 }
 
@@ -1183,12 +1178,7 @@ protected:
                         if (bin < 0 || bin > mzBinSize) continue;
                         if (mzBins[bin] && abs(logIntensity - logIntensities[bin]) <= 1) { //
                             h = true;
-                            //if(unionPrevMassBins[massBinIndex]) {
-                            //if (++harmonicCounter[massBinIndex] > 1) {
                             unionPrevMassBins[massBinIndex] = false;
-                            //}
-                            // }
-                            //if(continuousChargePeakPairCount[massBinIndex]>0) --continuousChargePeakPairCount[massBinIndex];
                             break;
                         }
                     }
@@ -1196,17 +1186,13 @@ protected:
                 }
                 if (h) continue;
 
-                //if(!isQualified[massBinIndex])
                 isQualified[massBinIndex] =
                         ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount; //
-                //continuousChargePeakPairCount[massBinIndex] += inten;
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
         delete[] prevCharges;
         delete[] prevIntensities;
-        //delete[] harmonicCounter;
-        //delete[] tmp;
     }
 
     Byte **getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
@@ -1307,10 +1293,10 @@ protected:
                                                                           param.maxIsotopeCount,
                                                                           averagines);
             double isotopeCosineThreshold;
-            if (monoIsotopeMass < 10000) isotopeCosineThreshold = .9;
-            else if (monoIsotopeMass > 130000) isotopeCosineThreshold = .3;
+            if (monoIsotopeMass < 10000) isotopeCosineThreshold = .8;
+            else if (monoIsotopeMass > 150000) isotopeCosineThreshold = .0;
             else {
-                isotopeCosineThreshold = .3 + .5 / (130000 - 10000) * (130000 - monoIsotopeMass);
+                isotopeCosineThreshold = .8 / (150000 - 10000) * (150000 - monoIsotopeMass);
             }
 
             //isotopeCosineThreshold = 0;
@@ -1327,11 +1313,6 @@ protected:
             pg.chargeDistributionScore = getDistributionScore2(perChargeIsotopeIntensity,
                     param.chargeRange, param.maxIsotopeCount, param.minContinuousChargePeakCount);
 
-            //double **perChargeIsotopeIntensity,
-            //             int range, int range2, int threshold
-
-//                    getDistributionScore(perChargeMinIsotope, perChargeMaxIsotope, param); //
-            //getChargeDistributionScore2(perChargePeakCount, param);
             if (pg.chargeDistributionScore < param.chargeDistributionScoreThreshold) {
                 continue;
             }
@@ -1592,7 +1573,7 @@ protected:
         double n2 = .0;
         int *n3 = new int[range];
         fill_n(n3, range, 0);
-        double spanThreshold = maxSpan * .4;//
+        double spanThreshold = maxSpan / 4.0;//
 
         for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++) {
             if (maxs[k] < 0) {
@@ -1621,7 +1602,7 @@ protected:
         }
         delete[] n3;
         //n2 = max(n2, n3);
-        if (n4>1 && n1 < n4) return -100.0;
+        if (n4>2 && n1 < n4) return -100.0;
         if (n1 < threshold) return -100.0;
         return n1 / (n1 + n2);
     }
@@ -1633,7 +1614,7 @@ protected:
 
         int nonZeroStart = -1, nonZeroEnd = 0;
         //int maxIndex = 0;
-        double maxIntensity = .0;
+//        double maxIntensity = .0;
 
 
         for (int i = 0; i < range; i++) {
