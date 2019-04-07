@@ -181,53 +181,6 @@ protected:
     registerFullParam_(SiriusAdapterAlgorithm().getDefaults());
   }
 
-  struct compare
-  {
-  	string key;
-  	compare(string const &i): key(i){}
-  
-  	bool operator()(string const &i)
-  	{
-  		return (i == key);
-  	}
-  };
-
-  static bool compoundNameLess_(const OpenMS::MetaboTargetedAssay& i, const OpenMS::MetaboTargetedAssay& j)
-  {
-    if (i.compound_name < j.compound_name)
-    {
-      return (i.compound_name < j.compound_name);
-    }
-    if (i.compound_name == j.compound_name)
-    {
-      if (i.compound_adduct == j.compound_adduct)
-      {
-        return (i.precursor_int > j.precursor_int);
-      }
-      else
-      {
-        return (i.compound_adduct < j.compound_adduct);
-      }
-    }
-    else
-    {
-      return false;
-    }
-  }
- 
-  // use std::unique with this function to retain the unique element with the highest precursor intensity
-  static bool compoundUnique_(const OpenMS::MetaboTargetedAssay& i, const OpenMS::MetaboTargetedAssay& j)
-  {
-    if (i.compound_name == j.compound_name && i.compound_adduct == j.compound_adduct && i.precursor_int > j.precursor_int)
-    {
-      return true;
-    }
-    else 
-    {
-      return false;
-    }
-  }
-
   static bool extractAndCompareScanIndexLess_(const String& i, const String& j)
   {
     return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
@@ -327,16 +280,19 @@ protected:
       }
 
       // determine type of spectral data (profile or centroided)
-      SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
-
-      if (spectrum_type == SpectrumSettings::PROFILE)
+      if (!spectra[0].empty())
       {
-        if (!getFlag_("force"))
+        SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
+
+        if (spectrum_type == SpectrumSettings::PROFILE)
         {
-          throw OpenMS::Exception::FileEmpty(__FILE__,
-                                             __LINE__,
-                                             __FUNCTION__,
-                                             "Error: Profile data provided but centroided spectra expected. ");
+          if (!getFlag_("force"))
+          {
+            throw OpenMS::Exception::FileEmpty(__FILE__,
+                                               __LINE__,
+                                               __FUNCTION__,
+                                               "Error: Profile data provided but centroided spectra expected. ");
+          }
         }
       }
 
@@ -485,8 +441,8 @@ protected:
         {
           for (auto spec_fa : annotated_spectra)
           {
-            // mid is saved in Name of the spectrum (not sure if this is optimal
-            if(std::any_of(cmp.mids.begin(), cmp.mids.end(), compare(spec_fa.getName())))
+            // mid is saved in Name of the spectrum
+            if (std::any_of(cmp.mids.begin(), cmp.mids.end(), [spec_fa](String &str){ return str == spec_fa.getName();}))
             {
               v_cmp_spec.push_back(std::make_pair(cmp,spec_fa));
             }
@@ -577,21 +533,37 @@ protected:
       v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
       
     } // end iteration over all files
-    
-    // sort by CompoundName
-    std::sort(v_mta.begin(), v_mta.end(), compoundNameLess_);
-    
-    // get unique elements (CompoundName, CompoundAdduct) with highest precursor intensity
-    auto uni_it = std::unique(v_mta.begin(), v_mta.end(), compoundUnique_);
-    v_mta.resize(std::distance(v_mta.begin(), uni_it));
-    
+
+    // use first rank based on precursor intensity
+    std::map< std::pair <String,String>, MetaboTargetedAssay > map_mta;
+    for (auto it : v_mta)
+    {
+      pair<String,String> pair_mta = make_pair(it.compound_name, it.compound_adduct);
+
+      // check if value in map with key k does not exists  and fill with current pair
+      if (map_mta.count(pair_mta) == 0)
+      {
+        map_mta[pair_mta] = it;
+      }
+      else
+      {
+        // check which on has the higher intensity precursor and if replace the current value
+        double map_precursor_int = map_mta.at(pair_mta).precursor_int;
+        double current_precursor_int = it.precursor_int;
+        if (map_precursor_int < current_precursor_int)
+        {
+          map_mta[pair_mta] = it;
+        }
+      }
+    }
+
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt_all;
-    for (auto it = v_mta.begin(); it != v_mta.end(); ++it)
+    for (auto it : map_mta)
     {
-      v_cmp.push_back(it->potential_cmp);
-      v_rmt_all.insert(v_rmt_all.end(), it->potential_rmts.begin(), it->potential_rmts.end());
+      v_cmp.push_back(it.second.potential_cmp);
+      v_rmt_all.insert(v_rmt_all.end(), it.second.potential_rmts.begin(), it.second.potential_rmts.end());
     }
 
     // convert possible transitions to TargetedExperiment

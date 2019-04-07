@@ -2310,8 +2310,8 @@ include(THIRDPARTY/third_party_tests.cmake)
 #------------------------------------------------------------------------------
 
 # AccurateMassSearch (with default params, which forces lookup of HMDB DB in share/)
-add_test("UTILS_AccurateMassSearch_1" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out AccurateMassSearch_1_output.tmp.tsv)
-add_test("UTILS_AccurateMassSearch_1_out1" ${DIFF} -in1 AccurateMassSearch_1_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_1_output.csv -whitelist "")
+add_test("UTILS_AccurateMassSearch_1" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out AccurateMassSearch_1_output.tmp.mzTab)
+add_test("UTILS_AccurateMassSearch_1_out1" ${DIFF} -in1 AccurateMassSearch_1_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_1_output.csv -whitelist "")
 set_tests_properties("UTILS_AccurateMassSearch_1_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_1")
 
 # AssayGeneratorMetabo

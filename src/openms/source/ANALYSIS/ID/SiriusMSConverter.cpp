@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <cstdint>
-#include <fstream>
 #include <QDir>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -116,31 +115,31 @@ namespace OpenMS
     return isotopes;
   }
 
-  void writeMsFile_(ofstream& os,
-                    const PeakMap& spectra,
-                    const vector<size_t>& ms2_spectra_index,
-                    const SiriusMSFile::AccessionInfo& ainfo,
-                    const StringList& adducts,
-                    const vector<String>& v_description,
-                    const vector<String>& v_sumformula,
-                    const vector<pair<double,double>>& f_isotopes,
-                    int& feature_charge,
-                    uint64_t& feature_id,
-                    const double& feature_rt,
-                    const double& feature_mz,
-                    bool& writecompound,
-                    const bool& no_masstrace_info_isotope_pattern,
-                    const int& isotope_pattern_iterations,
-                    int& count_skipped_spectra,
-                    int& count_assume_mono,
-                    int& count_no_ms1,
-                    std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
+  void SiriusMSFile::writeMsFile_(ofstream& os,
+                                  const PeakMap& spectra,
+                                  const vector<size_t>& ms2_spectra_index,
+                                  const SiriusMSFile::AccessionInfo& ainfo,
+                                  const StringList& adducts,
+                                  const vector<String>& v_description,
+                                  const vector<String>& v_sumformula,
+                                  const vector<pair<double,double>>& f_isotopes,
+                                  int& feature_charge,
+                                  uint64_t& feature_id,
+                                  const double& feature_rt,
+                                  const double& feature_mz,
+                                  bool& writecompound,
+                                  const bool& no_masstrace_info_isotope_pattern,
+                                  const int& isotope_pattern_iterations,
+                                  int& count_skipped_spectra,
+                                  int& count_assume_mono,
+                                  int& count_no_ms1,
+                                  std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
   {
     // if multiple identifications present for one MS1 and MS2 use all of them and
     // let SIRIUS sort it out using fragment annotation
     for (unsigned int k = 0; k != v_description.size(); ++k)
     {
-      if (v_description.size() > 1 ){ writecompound = true; }
+      if (v_description.size() > 1) { writecompound = true; }
       SiriusMSFile::CompoundInfo cmpinfo;
 
       for (const size_t& ind : ms2_spectra_index)
@@ -154,16 +153,26 @@ namespace OpenMS
 
         const vector<Precursor> &precursor = current_ms2.getPrecursors();
 
+        // get m/z and intensity of precursor
+        if (precursor.empty())
+        {
+          throw Exception::MissingInformation(__FILE__,
+                                              __LINE__,
+                                              OPENMS_PRETTY_FUNCTION,
+                                              "Precursor for MS/MS spectrum was not found.");
+        }
+
         IonSource::Polarity p = current_ms2.getInstrumentSettings().getPolarity(); //charge
 
         // there should be only one precursor and MS2 should contain peaks to be considered
         if (precursor.size() == 1 && !current_ms2.empty())
         {
+
           // read precursor charge
           int precursor_charge = precursor[0].getCharge();
 
           // sirius supports only single charged ions (+1; -1)
-          // if charge = 0, it will be allocted to +1; -1 depending on Polarity
+          // if charge = 0, it will be changed to +1; -1 depending on Polarity
           if (precursor_charge > 1 || precursor_charge < -1)
           {
             ++count_skipped_spectra;
@@ -269,9 +278,6 @@ namespace OpenMS
 
             if (!adducts.empty())
             {
-              // TODO: seems to be not correct in that case!
-              // os << ">ionization " << ListUtils::concatenate(adducts, ',') << "\n";
-              // cmpinfo.ionization = ListUtils::concatenate(adducts, ',');
               os << ">ionization " << adducts[k] << "\n";
               cmpinfo.ionization = adducts[k];
             }
@@ -490,10 +496,6 @@ namespace OpenMS
     vector<String> v_description;
     vector<String> v_sumformula;
 
-    // initialization with UNKNOWN in case no feature information is available.
-    v_description.push_back("UNKNOWN");
-    v_sumformula.push_back("UNKNOWN");
-
     uint64_t feature_id;
     int feature_charge;
     double feature_rt;
@@ -545,9 +547,8 @@ namespace OpenMS
             }
         }
 
-        // always get the first one if multiple hits were provided
-        // prefer adducts from AccurateMassSearch if MAD and AMS were performed
-        // if multiple PeptideHits for identifications occur - use all for SIRIUS
+        // prefer adducts from AccurateMassSearch if MetaboliteAdductDecharger and AccurateMassSearch were performed
+        // if multiple PeptideHits / identifications occur - use all for SIRIUS
         v_description.clear();
         v_sumformula.clear();
         if (!feature->getPeptideIdentifications().empty() && !feature->getPeptideIdentifications()[0].getHits().empty())
@@ -577,7 +578,7 @@ namespace OpenMS
         }
         else
         {
-          // reset description and sumformula to UNKNOWN
+          // initialization with UNKNOWN in case no feature information is available.
           v_description.push_back("UNKNOWN");
           v_sumformula.push_back("UNKNOWN");
         }
@@ -611,8 +612,6 @@ namespace OpenMS
     {
       // no feature information was provided
       bool writecompound = true;
-      v_description.push_back("UNKNOWN");
-      v_sumformula.push_back("UNKNOWN");
       f_isotopes.clear();
       adducts.clear();
       feature_charge = 0;

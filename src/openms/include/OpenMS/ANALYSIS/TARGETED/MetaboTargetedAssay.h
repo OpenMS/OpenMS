@@ -55,17 +55,38 @@ namespace OpenMS
   {
     public:
 
-    double precursor_mz;
-    double precursor_rt;
+    /**
+    @brief MetaboTargetedAssay is able to store a precursor and its metadata as well as a reference to a compound.
+
+    */
+
     double precursor_int;
-    int precursor_charge;
     double transition_quality_score;
     String compound_name;
     String compound_adduct;
     TargetedExperiment::Compound potential_cmp;
     std::vector<ReactionMonitoringTransition> potential_rmts;
 
-    // method to extract a potential transition based on the ms/ms based of the highest intensity precursor or a consensus spectrum
+
+    /**
+    @brief Extract a vector of MetaboTargetedAssays without using fragment annotation
+
+    @return Vector of MetaboTargetedAssay
+
+
+
+    @param spectra: Input of MSExperiment with spectra information
+    @param feature_ms2_spectra_map: Feature with associated MS2 spectra
+    @param precursor_rt_tol: Retention time tolerance of the precursor
+    @param precursor_mz_distance: Max m/z distance of the precursor entries of two spectra to be merged
+    @param cosine_sim_threshold: Cosine similarty threshold for the usage of SpectraMerger
+    @param transition_threshold: Intensity threshold for MS2 peak used in MetaboTargetedAssay
+    @param method_consensus_spectrum: Boolean to use consensus spectrum method
+    @param exclude_ms2_precursor: Boolean to exclude MS2 precursor from MetaboTargetedAssay
+    @param file_counter: Count if multiple files are used.
+
+    */
+
     static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssay(const PeakMap& spectra,
                                                                        const std::map<BaseFeature const *, std::vector<size_t>>& feature_ms2_spectra_map,
                                                                        const double& precursor_rt_tol,
@@ -76,7 +97,20 @@ namespace OpenMS
                                                                        const bool& exclude_ms2_precursor,
                                                                        const unsigned int& file_counter);
 
-    // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor with fragment annotation using SIRIUS
+    /**
+    @brief Extract a vector of MetaboTargetedAssays using fragment annotation
+
+    @return Vector of MetaboTargetedAssay
+
+
+    @param v_cmp_spec: Vector of CompoundInfo with associated fragment annotated MSspectrum
+    @param transition_threshold: Intensity threshold for MS2 peak used in MetaboTargetedAssay
+    @param use_exact_mass: Boolean if exact mass should be used as peak mass for annotated fragments
+    @param exclude_ms2_precursor: Boolean to exclude MS2 precursor from MetaboTargetedAssay
+    @param file_counter: Count if multiple files are used.
+
+    */
+
     static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssayFragmentAnnotation(const std::vector< std::pair <SiriusMSFile::CompoundInfo, MSSpectrum>>& v_cmp_spec,
                                                                                          const double& transition_threshold,
                                                                                          const bool& use_exact_mass,
@@ -85,9 +119,12 @@ namespace OpenMS
 
     protected:
 
-    // compare intensity
+    /**
+    @brief Compare two peaks based on their intensity
+    */
+
     static bool intensityLess_(Peak1D a, Peak1D b);
 
-  };
+};
 
 } // namespace OpenMS

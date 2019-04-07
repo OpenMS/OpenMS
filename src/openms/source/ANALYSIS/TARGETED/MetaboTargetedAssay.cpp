@@ -65,9 +65,7 @@ namespace OpenMS
     int transition_group_counter = 0;
     vector <MetaboTargetedAssay> v_mta;
 
-    for (auto it = feature_ms2_spectra_map.begin();
-              it != feature_ms2_spectra_map.end();
-              ++it)
+    for (auto& it : feature_ms2_spectra_map)
       {
         TargetedExperiment::Compound cmp;
         cmp.clearMetaInfo();
@@ -78,24 +76,27 @@ namespace OpenMS
         StringList v_description, v_sumformula, v_adduct;
 
         double feature_rt;
-        const BaseFeature *min_distance_feature = it->first;
+        int feature_charge;
+        const BaseFeature *min_distance_feature = it.first;
         feature_rt = min_distance_feature->getRT();
+        feature_charge = min_distance_feature->getCharge();
 
         // extract metadata from featureXML
-        if (!(min_distance_feature-> getPeptideIdentifications().empty()) && !(min_distance_feature->getPeptideIdentifications()[0].getHits().empty()))
+        auto metaboliteIdentifications = min_distance_feature->getPeptideIdentifications();
+        if (!(metaboliteIdentifications.empty()) && !(metaboliteIdentifications[0].getHits().empty()))
         {
           // accurate mass search may provide multiple possible Hits
           // for heuristics use the identification with the smallest mz error (ppm)
           double min_id_mz_error = std::numeric_limits<double>::max();
-          for (unsigned int j = 0; j != min_distance_feature->getPeptideIdentifications()[0].getHits().size(); ++j)
+          for (const auto& mhit : min_distance_feature->getPeptideIdentifications()[0].getHits())
           {
-            double current_id_mz_error = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("mz_error_ppm");
+            double current_id_mz_error = mhit.getMetaValue("mz_error_ppm");
             // compare the absolute error absolute error
             if (abs(current_id_mz_error) < min_id_mz_error)
             {
-              description = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description");
-              sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula");
-              adduct = min_distance_feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications");
+              description = mhit.getMetaValue("description");
+              sumformula = mhit.getMetaValue("chemical_formula");
+              adduct = mhit.getMetaValue("modifications");
 
               // change format of description [name] to name
               description.erase(remove_if(begin(description), end(description), [](char c) { return c == '[' || c == ']'; }), end(description));
@@ -129,7 +130,7 @@ namespace OpenMS
       String native_id;
 
       // find precursor/spectrum with highest intensity precursor
-      vector <size_t> index = it->second;
+      vector <size_t> index = it.second;
 
       for (auto index_it = index.begin(); index_it != index.end(); ++index_it)
       {
@@ -138,19 +139,33 @@ namespace OpenMS
         // check if MS2 spectrum is empty
         if (spectrum.empty())
         {
-          LOG_WARN << "Empty MSMS spectrum was provided. Please hava a look. Index: " << *index_it << std::endl;
+          LOG_WARN << "Empty MS/MS spectrum was provided. Please manually investigate at index: " << *index_it << std::endl;
           continue;
         }
 
         const vector <Precursor> &precursor = spectrum.getPrecursors();
 
         // get m/z and intensity of precursor
-        // only spectra with precursors are in the map, therefore no need to check for their presence
+        if (precursor.empty())
+        {
+          throw Exception::MissingInformation(__FILE__,
+                                              __LINE__,
+                                              OPENMS_PRETTY_FUNCTION,
+                                              "Precursor for MS/MS spectrum was not found.");
+        }
+
         double precursor_mz = precursor[0].getMZ();
         float precursor_int = precursor[0].getIntensity();
         int precursor_charge = precursor[0].getCharge();
 
+        // if precursor charge is not annotated - use feature charge
+        if (precursor_charge == 0)
+        {
+          precursor_charge = feature_charge;
+        }
+
         native_id = spectrum.getNativeID();
+
 
         // spectrum with highest intensity precursor
         if (precursor_int > highest_precursor_int)
@@ -163,8 +178,10 @@ namespace OpenMS
           transition_spectrum = highest_precursor_int_spectrum;
       }
 
-      // if only one MS2 is available and the consensus method is used - jump right to the transition list calculation
-      // fallback: highest intensity precursor
+      // check if more than one MS/MS spectrum is available to use the consensus method
+      // the MS/MS spectrum of the highest intensity precursor is used as reference and compared
+      // to the other MS/MS spectrum of a specific feature.
+      // if the cosine similarity is over the manually set threshold these are merged via SpectraMerger
       if (method_consensus_spectrum &&index.size()>= 2)
       {
         // transform to binned spectra
@@ -235,7 +252,7 @@ namespace OpenMS
       {
         for (auto spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
         {
-          if (transition_spectrum.getPrecursors()[0].getMZ() == spec_it->getMZ())
+          if (abs(transition_spectrum.getPrecursors()[0].getMZ() - spec_it->getMZ()) < 1e-3)
           {
             transition_spectrum.erase(spec_it);
             break;
@@ -258,6 +275,8 @@ namespace OpenMS
       cmp_rt.setRT(feature_rt);
       v_cmp_rt.push_back(cmp_rt);
       cmp.rts = v_cmp_rt;
+
+      cmp.setChargeState(highest_precursor_charge);
 
       description = ListUtils::concatenate(v_description, ",");
       cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
@@ -286,7 +305,7 @@ namespace OpenMS
         double current_mz = spec_it->getMZ();
 
         // write row for each transition
-        // current int has to be higher than transition thresold and should not be smaller than threshold noise
+        // current int has to be higher than transition threshold and should not be smaller than threshold noise
         if (current_int > threshold_transition && current_int > threshold_noise)
         {
           float rel_int = current_int / max_int;
@@ -305,11 +324,7 @@ namespace OpenMS
       }
       transition_group_counter += 1;
       MetaboTargetedAssay mta;
-      mta.precursor_mz = highest_precursor_mz;
-      mta.precursor_rt = feature_rt;
       mta.precursor_int = highest_precursor_int;
-      mta.precursor_charge = highest_precursor_charge;
-      //mta.transition_quality =
       mta.compound_name = description;
       mta.compound_adduct = adduct;
       mta.potential_cmp = cmp;
@@ -329,13 +344,11 @@ namespace OpenMS
     int transition_group_counter = 0;
     vector <MetaboTargetedAssay> v_mta;
 
-    for (auto it = v_cmp_spec.begin();
-              it != v_cmp_spec.end();
-              ++it)
+    for (auto& it : v_cmp_spec)
     {
       // check if annotated spectrum exists
       MSSpectrum transition_spectrum;
-      transition_spectrum = it->second;
+      transition_spectrum = it.second;
       if (transition_spectrum.empty())
       {
         continue;
@@ -348,13 +361,13 @@ namespace OpenMS
       String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
 
       double feature_rt;
-      feature_rt = it->first.rt;
-      description = it->first.des;
-      int charge = it->first.charge;
+      feature_rt = it.first.rt;
+      description = it.first.des;
+      int charge = it.first.charge;
 
       // use annotated metadata
-      sumformula = it->second.getMetaValue("annotated_sumformula");
-      adduct = it->second.getMetaValue("annotated_adduct");
+      sumformula = it.second.getMetaValue("annotated_sumformula");
+      adduct = it.second.getMetaValue("annotated_adduct");
 
       // transition calculations
       // calculate max intensity peak and threshold
@@ -371,30 +384,35 @@ namespace OpenMS
            ++spec_it)
       {
         int spec_index = spec_it - transition_spectrum.begin();
-        OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
-        if (explanation_array.getName() != "explanation")
+
+        OpenMS::DataArrays::StringDataArray explanation_array;
+        if (!transition_spectrum.getStringDataArrays().empty())
         {
-          LOG_WARN << "Fragment explanation was not found. Please check if you annotation works properly." << std::endl;
-        }
-        else
-        {
-          // precursor in fragment annotation has the same sumformula as MS1 Precursor
-          if (explanation_array[spec_index] == sumformula)
+          explanation_array = transition_spectrum.getStringDataArrays()[0];
+          if (explanation_array.getName() != "explanation")
           {
-            // save exact mass
-            if (use_exact_mass)
+            LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
+          }
+          else
+          {
+            // precursor in fragment annotation has the same sumformula as MS1 Precursor
+            if (explanation_array[spec_index] == sumformula)
             {
-              exact_mass_precursor = spec_it->getMZ();
-            }
-            // remove precursor ms2 entry
-            if (exclude_ms2_precursor)
-            {
-              transition_spectrum.erase(transition_spectrum.begin() + spec_index);
-              transition_spectrum.getStringDataArrays()[0]
-                  .erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
-              transition_spectrum.getFloatDataArrays()[0]
-                  .erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
-              break; // if last element have to break if not iterator will go out of range
+              // save exact mass
+              if (use_exact_mass)
+              {
+                exact_mass_precursor = spec_it->getMZ();
+              }
+              // remove precursor ms2 entry
+              if (exclude_ms2_precursor)
+              {
+                transition_spectrum.erase(transition_spectrum.begin() + spec_index);
+                transition_spectrum.getStringDataArrays()[0]
+                    .erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
+                transition_spectrum.getFloatDataArrays()[0]
+                    .erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
+                break; // if last element have to break if not iterator will go out of range
+              }
             }
           }
         }
@@ -415,6 +433,7 @@ namespace OpenMS
       cmp_rt.setRT(feature_rt);
       v_cmp_rt.push_back(cmp_rt);
       cmp.rts = v_cmp_rt;
+      cmp.setChargeState(charge);
       if (description == "UNKNOWN")
       {
         description = String(description + "_" + transition_group_counter);
@@ -459,7 +478,7 @@ namespace OpenMS
         {
           float rel_int = current_int / max_int;
 
-          rmt.setPrecursorMZ((use_exact_mass && exact_mass_precursor != 0.0) ? exact_mass_precursor : it->first.pmass);
+          rmt.setPrecursorMZ((use_exact_mass && exact_mass_precursor != 0.0) ? exact_mass_precursor : it.first.pmass);
           rmt.setProductMZ(current_mz);
           rmt.setLibraryIntensity(rel_int);
 
@@ -476,11 +495,7 @@ namespace OpenMS
 
       transition_group_counter += 1;
       MetaboTargetedAssay mta;
-      mta.precursor_mz = (use_exact_mass && exact_mass_precursor != 0.0) ? exact_mass_precursor : it->first.pmass;
-      mta.precursor_rt = it->first.rt;
       mta.precursor_int = 0;
-      mta.precursor_charge = charge;
-      //mta.transition_quality = ;
       mta.compound_name = description;
       mta.compound_adduct = adduct;
       mta.potential_cmp = cmp;

@@ -38,6 +38,8 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
+#include <fstream>
+
 namespace OpenMS
 {
 
@@ -98,7 +100,6 @@ public:
     @param v_cmpinfo: Vector of CompoundInfo.
     */
 
-    // preprocessing e.g. feature information
     static void store(const PeakMap& spectra,
                       const OpenMS::String& msfile,
                       const FeatureMapping::FeatureToMs2Indices& feature_mapping,
@@ -106,6 +107,53 @@ public:
                       const int& isotope_pattern_iterations,
                       const bool no_mt_info,
                       std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo);
+
+
+  protected:
+    // TODO: comment
+    /**
+    @brief Internal structure used in @ref SiriusAdapter that is used
+    for the conversion of a MzMlFile to an internal format.
+
+    @ingroup ID
+
+    Store .ms file.
+    Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stores in CompoundInfo struct.
+    If adduct information for a spectrum is missing, no adduct information is addded.
+    In this case, SIRIUS assumes default adducts for the respective spectrum.
+
+    @return writes .ms file
+    @return stores CompoundInfo
+
+    @param spectra: Peakmap from input mzml.
+    @param msfile: Writtes .ms file from sirius.
+    @param feature_mapping: Adducts and features (index).
+    @param feature_only: Only use features.
+    @param isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).
+    @param v_cmpinfo: Vector of CompoundInfo.
+    */
+
+    static void writeMsFile_(std::ofstream& os,
+                             const PeakMap& spectra,
+                             const std::vector<size_t>& ms2_spectra_index,
+                             const SiriusMSFile::AccessionInfo& ainfo,
+                             const StringList& adducts,
+                             const std::vector<String>& v_description,
+                             const std::vector<String>& v_sumformula,
+                             const std::vector<std::pair<double,double>>& f_isotopes,
+                             int& feature_charge,
+                             uint64_t& feature_id,
+                             const double& feature_rt,
+                             const double& feature_mz,
+                             bool& writecompound,
+                             const bool& no_masstrace_info_isotope_pattern,
+                             const int& isotope_pattern_iterations,
+                             int& count_skipped_spectra,
+                             int& count_assume_mono,
+                             int& count_no_ms1,
+                             std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo);
+
+
 
   };
 

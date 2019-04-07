@@ -6,6 +6,7 @@
   </cvList>
   <CompoundList>
     <Compound id="0_UNKNOWN_0_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="UNKNOWN"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="UNKNOWN_0"/>
@@ -17,6 +18,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="10_UNKNOWN_10_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="UNKNOWN"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="UNKNOWN_10"/>
@@ -28,6 +30,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="11_Fluopicolide_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C14H8Cl3F3N2O"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="Fluopicolide"/>
@@ -39,6 +42,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="1_Myclobutanil_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C15H17ClN4"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="Myclobutanil"/>
@@ -50,6 +54,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="2_Cyproconazole_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C15H18ClN3O"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="Cyproconazole"/>
@@ -61,6 +66,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="3_UNKNOWN_3_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="UNKNOWN"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="UNKNOWN_3"/>
@@ -72,6 +78,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="4_UNKNOWN_4_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="UNKNOWN"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="UNKNOWN_4"/>
@@ -83,6 +90,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="5_Guthion_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C10H12N3O3PS2"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="Guthion"/>
@@ -94,6 +102,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="6_Fenamiphos_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C13H22NO3PS"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="Fenamiphos"/>
@@ -105,6 +114,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="7_Guthion_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C10H12N3O3PS2"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="Guthion"/>
@@ -116,6 +126,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="8_UNKNOWN_8_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="UNKNOWN"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="UNKNOWN_8"/>
@@ -127,6 +138,7 @@
       </RetentionTimeList>
     </Compound>
     <Compound id="9_UNKNOWN_9_0">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="UNKNOWN"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="NA"/>
       <userParam name="CompoundName" type="xsd:string" value="UNKNOWN_9"/>
