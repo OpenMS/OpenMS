@@ -50,11 +50,11 @@ int main()
   // find a modification in ModificationsDB
   // and output some of its properties
   // getInstance() returns a pointer to a ModsDB instance
-  ResidueModification mod = ModificationsDB::getInstance()->getModification("Carbamidomethyl (C)");
-  cout << mod.getOrigin() << " "
-       << mod.getFullId() << " "
-       << mod.getDiffMonoMass() << " "
-       << mod.getMonoMass() << endl;
+  const ResidueModification* mod = ModificationsDB::getInstance()->getModification("Carbamidomethyl (C)");
+  cout << mod->getOrigin() << " "
+       << mod->getFullId() << " "
+       << mod->getDiffMonoMass() << " "
+       << mod->getMonoMass() << endl;
   
   // set the modification on a residue of a peptide
   // and output some of its properties (the formula and mass have changed)
@@ -62,9 +62,9 @@ int main()
   // to relate the name of the mod to its attributes
   aas.setModification(2, "Carbamidomethyl (C)");
   cout << aas[2].getName() << " "
-   	<< aas[2].getFormula().toString() << " "
-   	<< aas[2].getModificationName() << " "
-   	<< aas[2].getMonoWeight() << endl;
+       << aas[2].getFormula().toString() << " "
+       << aas[2].getModificationName() << " "
+       << aas[2].getMonoWeight() << endl;
 
   return 0;
 } //end of main

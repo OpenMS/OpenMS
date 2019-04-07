@@ -69,13 +69,17 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenera
 
         FineIsotopePatternGenerator() nogil except + 
         FineIsotopePatternGenerator(double threshold) nogil except +
-        FineIsotopePatternGenerator(double threshold, bool absolute) nogil except +
+        FineIsotopePatternGenerator(double threshold, bool use_total_prob) nogil except +
+        FineIsotopePatternGenerator(double threshold, bool use_total_prob, bool absolute) nogil except +
 
         void setThreshold(double threshold) nogil except +
         double getThreshold() nogil except +
 
         void setAbsolute(bool absolute) nogil except +
         bool getAbsolute() nogil except +
+
+        void setTotalProbability(bool total) nogil except +
+        bool getTotalProbability() nogil except +
 
         IsotopeDistribution run(EmpiricalFormula) nogil except +
 

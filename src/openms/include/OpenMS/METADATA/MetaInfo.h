@@ -127,8 +127,10 @@ public:
 
 private:
     using MapType = boost::container::flat_map<UInt, DataValue>;
+
     /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;
+
     /// The actual mapping of indexes to values
     MapType index_to_value_;
   };

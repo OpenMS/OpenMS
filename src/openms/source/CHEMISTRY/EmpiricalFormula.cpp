@@ -83,11 +83,7 @@ namespace OpenMS
 
   double EmpiricalFormula::getAverageWeight() const
   {
-    double weight(0);
-    if (charge_ > 0)
-    {
-      weight += Constants::PROTON_MASS_U * charge_;
-    }
+    double weight = Constants::PROTON_MASS_U * charge_;
     for (const auto& it : formula_)
     {
       weight += it.first->getAverageWeight() * (double)it.second;
@@ -232,12 +228,12 @@ namespace OpenMS
     String formula;
     std::map<String, SignedSize> new_formula;
 
-    for (const auto& it : formula_) 
+    for (const auto& it : formula_)
     {
       new_formula[it.first->getSymbol()] = it.second;
     }
 
-    for (const auto& it : new_formula) 
+    for (const auto& it : new_formula)
     {
       formula += it.first + String(it.second);
     }
@@ -246,7 +242,7 @@ namespace OpenMS
 
   std::map<std::string, int> EmpiricalFormula::toMap() const
   {
-    std::map<std::string, int> new_formula; 
+    std::map<std::string, int> new_formula;
 
     for (const auto & it : formula_)
     {
@@ -268,7 +264,7 @@ namespace OpenMS
   {
     EmpiricalFormula ef;
     ef.formula_ = formula.formula_;
-    for (const auto& it : formula_) 
+    for (const auto& it : formula_)
     {
       auto ef_it  = ef.formula_.find(it.first);
       if (ef_it != ef.formula_.end())
@@ -287,7 +283,7 @@ namespace OpenMS
 
   EmpiricalFormula& EmpiricalFormula::operator+=(const EmpiricalFormula& formula)
   {
-    for (const auto& it : formula.formula_) 
+    for (const auto& it : formula.formula_)
     {
       auto f_it  = formula_.find(it.first);
       if (f_it != formula_.end())
@@ -307,7 +303,7 @@ namespace OpenMS
   EmpiricalFormula EmpiricalFormula::operator-(const EmpiricalFormula& formula) const
   {
     EmpiricalFormula ef(*this);
-    for (const auto& it : formula.formula_) 
+    for (const auto& it : formula.formula_)
     {
       const Element* e = it.first;
       SignedSize num = it.second;
@@ -329,7 +325,7 @@ namespace OpenMS
 
   EmpiricalFormula& EmpiricalFormula::operator-=(const EmpiricalFormula& formula)
   {
-    for (const auto& it : formula.formula_) 
+    for (const auto& it : formula.formula_)
     {
       auto f_it  = formula_.find(it.first);
       if (f_it != formula_.end())
@@ -363,7 +359,7 @@ namespace OpenMS
 
   bool EmpiricalFormula::contains(const EmpiricalFormula& ef)
   {
-    for (const auto& it : ef) 
+    for (const auto& it : ef)
     {
       if (this->getNumberOf(it.first) < it.second)
       {
@@ -386,7 +382,7 @@ namespace OpenMS
   ostream& operator<<(ostream& os, const EmpiricalFormula& formula)
   {
     std::map<String, SignedSize> new_formula;
-    for (const auto& it : formula.formula_) 
+    for (const auto& it : formula.formula_)
     {
       new_formula[it.first->getSymbol()] = it.second;
     }
@@ -640,11 +636,11 @@ namespace OpenMS
     }
   }
 
-  bool EmpiricalFormula::operator<(const EmpiricalFormula& rhs) const  
+  bool EmpiricalFormula::operator<(const EmpiricalFormula& rhs) const
   {
-    if (formula_.size() != rhs.formula_.size()) 
-    { 
-      return formula_.size() < rhs.formula_.size(); 
+    if (formula_.size() != rhs.formula_.size())
+    {
+      return formula_.size() < rhs.formula_.size();
     }
 
     // both maps have same size

@@ -335,12 +335,12 @@ protected:
 
   String makeModString_(const String& mod_name, bool fixed=true)
   {
-    ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
-    char residue = mod.getOrigin();
+    const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
+    char residue = mod->getOrigin();
     if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
-    String position = mod.getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
+    String position = mod->getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
     if (position == "none") position = "any";
-    return String(mod.getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod.getId() + "    # " + mod_name;
+    return String(mod->getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod->getId() + "    # " + mod_name;
   }
 
   void writeModificationsFile_(const String& out_path, const vector<String>& fixed_mods, const vector<String>& variable_mods, Size max_mods)
