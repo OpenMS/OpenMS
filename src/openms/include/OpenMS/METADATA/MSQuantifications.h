@@ -42,6 +42,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 
 #include <vector>
 #include <map>

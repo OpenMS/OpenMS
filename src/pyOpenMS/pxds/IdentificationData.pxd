@@ -9,4 +9,5 @@ cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
     cdef cppclass IdentificationData(MetaInfoInterface) :
         # wrap-inherits:
         #  MetaInfoInterface
+
         IdentificationData() nogil except +

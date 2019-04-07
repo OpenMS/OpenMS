@@ -706,7 +706,6 @@ namespace OpenMS
     return spectrum;
   }
 
-
   /// Print the contents to a stream.
   std::ostream& operator<<(std::ostream & os, const MSExperiment & exp)
   {

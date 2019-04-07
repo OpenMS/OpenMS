@@ -53,28 +53,17 @@ def _testMetaInfoInterface(what):
     what.getKeys(keys)
     assert len(keys) and all(isinstance(k, bytes) for k in keys)
     assert what.getMetaValue(keys[0]) == 42
-    keys = []
-    what.getKeysAsIntegers(keys)
-    assert len(keys) and all(isinstance(k, (long, int)) for k in keys)
 
     assert what.metaValueExists("key")
     what.removeMetaValue("key")
 
-    what.setMetaValue(1024, 42)
-    assert what.getMetaValue(1024) == 42
-
     keys = []
     what.getKeys(keys)
     assert what.getMetaValue(keys[0]) == 42
-    keys = []
-    what.getKeysAsIntegers(keys)
-    assert len(keys) and all(isinstance(k, (long, int)) for k in keys)
 
     what.clearMetaInfo()
     keys = []
     what.getKeys(keys)
-    assert len(keys) == 0
-    what.getKeysAsIntegers(keys)
     assert len(keys) == 0
 
 
@@ -365,18 +354,25 @@ def testFineIsotopePatternGenerator():
     methanol = pyopenms.EmpiricalFormula("CH3OH")
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
-    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20))
+    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
     assert len(iso_dist.getContainer()) == 56
-    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200))
+    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
     assert len(iso_dist.getContainer()) == 84
 
     c100 = pyopenms.EmpiricalFormula("C100")
-    iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200))
+    iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
     assert len(iso_dist.getContainer()) == 101
-    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False)).size() == 6
-    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True)).size() == 5
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False, False)).size() == 6
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False, True)).size() == 5
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True, False)).size() == 5
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True, True)).size() == 5
 
-    iso = pyopenms.FineIsotopePatternGenerator(1e-5)
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, False, False)).size() == 14
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, False, True)).size() == 13
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, True, False)).size() == 10
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, True, True)).size() == 10
+
+    iso = pyopenms.FineIsotopePatternGenerator(1e-5, False, False)
     isod = iso.run(methanol)
     assert len(isod.getContainer()) == 6
     assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
@@ -5012,10 +5008,6 @@ def testResidueDB():
 
     nrr = rdb.getNumberOfResidues()
 
-    r = pyopenms.Residue()
-    rdb.addResidue(r)
-    assert rdb.getNumberOfResidues() == nrr+1
-
 @report
 def testModificationsDB():
     mdb = pyopenms.ModificationsDB()
@@ -5081,30 +5073,6 @@ def testModificationsDB():
     assert m.getId() == "Oxidation", m.getId()
     assert m.getFullName() == "Oxidation or Hydroxylation", m.getFullName()
     assert m.getUniModAccession() == "UniMod:35"
-
-    ###
-
-    m = mdb.getBestModificationByMonoMass(80, 20, "T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None
-    assert m.getId() == "MOD:00439"
-    assert m.getFullName() == "O-phospho-L-threonine with neutral loss of phosphate", m.getFullName() # something crazy
-    assert m.getUniModAccession() == "" # no unimod for crazyness ...
-
-    m = mdb.getBestModificationByMonoMass(147, 20, "M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None
-    assert m.getUniModAccession() == "", m.getUniModAccession()
-    assert m.getId() == "MOD:00719", m.getId()
-    assert m.getFullName() == "oxidation to L-methionine sulfoxide", m.getFullName()
-
-    m = mdb.getBestModificationByMonoMass( 96, 20, "T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None
-    assert m.getId() == "MOD:00252", m.getId()
-    assert m.getFullName() == "keratan sulfate D-glucuronosyl-D-galactosyl-D-galactosyl-D-xylosyl-L-threonine", m.getFullName() # something crazy
-    assert m.getUniModAccession() == "", m.getUniModAccession() # no unimod for crazyness ...
-
-    # Test NULL ptr
-    m = mdb.getBestModificationByMonoMass( 999999999, 0.20, "T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is None
 
 @report
 def testExperimentalDesign():

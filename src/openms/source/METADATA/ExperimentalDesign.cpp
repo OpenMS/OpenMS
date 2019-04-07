@@ -433,7 +433,7 @@ namespace OpenMS
 
       for (const MSFileSectionEntry& row : msfile_section_)
       {
-        // FRACTIONGROUP__FRACTION_LABEL TUPLE
+        // FRACTIONGROUP_FRACTION_LABEL TUPLE
         std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_label = std::make_tuple(row.fraction_group, row.fraction, row.label);
         errorIfAlreadyExists(
           fractiongroup_fraction_label_set,
@@ -452,12 +452,14 @@ namespace OpenMS
         fractiongroup_label_to_sample[fractiongroup_label].insert(row.sample);
 
         if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1)
-        {
-          throw Exception::MissingInformation(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Multiple Samples encountered for the same fraction group and the same label");
+        { 
+
+         LOG_INFO << "Please correct your experimental design if this is a label free experiment." << std::endl;
+         // throw Exception::MissingInformation(
+         //   __FILE__,
+         //   __LINE__,
+         //   OPENMS_PRETTY_FUNCTION,
+         //   "Multiple Samples encountered for the same fraction group and the same label");
         }
       }
     }

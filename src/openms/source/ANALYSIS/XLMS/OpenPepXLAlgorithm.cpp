@@ -225,8 +225,8 @@ using namespace OpenMS;
 #endif
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
-    vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames_);
-    vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames_);
+    vector<const ResidueModification*> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames_);
+    vector<const ResidueModification*> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames_);
 
     // Precursor Purity precalculation
     progresslogger.startProgress(0, 1, "Computing precursor purities...");
