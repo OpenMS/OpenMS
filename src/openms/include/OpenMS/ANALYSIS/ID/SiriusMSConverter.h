@@ -110,27 +110,28 @@ public:
 
 
   protected:
-    // TODO: comment
     /**
-    @brief Internal structure used in @ref SiriusAdapter that is used
-    for the conversion of a MzMlFile to an internal format.
+    @brief Internal structure to write the .ms file (called in store function)
 
-    @ingroup ID
-
-    Store .ms file.
-    Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stores in CompoundInfo struct.
-    If adduct information for a spectrum is missing, no adduct information is addded.
-    In this case, SIRIUS assumes default adducts for the respective spectrum.
-
-    @return writes .ms file
-    @return stores CompoundInfo
-
-    @param spectra: Peakmap from input mzml.
-    @param msfile: Writtes .ms file from sirius.
-    @param feature_mapping: Adducts and features (index).
-    @param feature_only: Only use features.
-    @param isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).
-    @param v_cmpinfo: Vector of CompoundInfo.
+    @param os: stream
+    @param spectra: spectra
+    @param ms2_spectra_index: vector of index ms2 spectra (in feautre)
+    @param ainfo: accession information
+    @param adducts: vector of adducts
+    @param v_description: vector of descriptions
+    @param v_sumformula: vector of sumformulas
+    @param f_isotopes: isotope pattern of the feature
+    @param feature_charge: feature charge
+    @param feature_id: feature id
+    @param feature_rt: features retention time
+    @param feature_mz: feature mass to charge
+    @param writecompound: bool if new compound should be written in .ms file
+    @param no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
+    @param isotope_pattern_iterations: number of iterations (trying to find a C13 pattern)
+    @param count_skipped_spectra: count number of skipped spectra
+    @param count_assume_mono: count number of features where mono charge was assumend
+    @param count_no_ms1: count number of compounds without a valid ms1 spectrum
+    @param v_cmpinfo: vector of CompoundInfo
     */
 
     static void writeMsFile_(std::ofstream& os,
