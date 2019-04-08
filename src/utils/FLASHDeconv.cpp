@@ -1322,7 +1322,7 @@ protected:
 
             pg.chargeDistributionScore = getChargeDistributionScore(perChargeIsotopeIntensity,
                                                                     param.chargeRange, param.maxIsotopeCount,
-                                                                    isotopeCosineThreshold,
+                                                                    //isotopeCosineThreshold,
                                                                     param.minContinuousChargePeakCount);
 
             if (pg.chargeDistributionScore < param.chargeDistributionScoreThreshold) {
@@ -1586,7 +1586,9 @@ protected:
     }
 
     double getChargeDistributionScore(double **perChargeIsotopeIntensity,
-                                      int range, int range2, double cost, int threshold) {
+                                      int range, int range2,
+                                      //double cost,
+                                      int threshold) {
 
         auto perChargeIntensity = new double[range];
         double maxPerChargeIntensity = .0;
@@ -1610,11 +1612,12 @@ protected:
         double n1 = .0;
         double n2 = .0;
         int n4 = 0;
-        int cntr = 1;
-        int maxCntr = 0;
+        double intensityThreshold = maxPerChargeIntensity/5.0;//
+        //int cntr = 1;
+        //int maxCntr = 0;
         //cost = .7;
-        for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++) {
-            if (perChargeIntensity[k] <= maxPerChargeIntensity/5) { // within 10 folds
+        for (int k = prevCharge + 1; k <= nonZeroEnd; k++) {
+            if (perChargeIntensity[k] <= intensityThreshold) { // within 5 folds
                 continue;
             }
 
@@ -1626,11 +1629,11 @@ protected:
                     n1++;
                 //} else {
                    // cntr = 0;
-                  //  n2++;
+                //    n2++;
                 //}
-            }else cntr=0;
-            cntr++;
-            maxCntr = max(maxCntr, cntr);
+            }//else cntr=0;
+            //cntr++;
+            //maxCntr = max(maxCntr, cntr);
             prevCharge = k;
         }
 
@@ -1644,17 +1647,16 @@ protected:
                 int t = 0;
                 prevCharge = nonZeroStart + l;
                 for (int k = prevCharge + i; k <= nonZeroEnd; k+=i) {
-                    if (perChargeIntensity[k] <= maxPerChargeIntensity/5) { // within 10 folds
+                    if (perChargeIntensity[k] <= intensityThreshold) { // within 5 folds
                         continue;
                     }
                     if (k - prevCharge == i) {
                         //double logFoldChange = log2(perChargeIntensity[k]/perChargeIntensity[prevCharge]);
-                        //double cos = getCosine(perChargeIsotopeIntensity[k], perChargeIsotopeIntensity[prevCharge],
-                            //                   range2);
-                        //if (cos > cost) {
+                    //    double cos = getCosine(perChargeIsotopeIntensity[k], perChargeIsotopeIntensity[prevCharge], range2);
+                    //    if (cos > cost) {
                             //if(abs(logFoldChange)<2){
                             t++;
-                        //}
+                     //   }
                     }
                     prevCharge = k;
                 }
