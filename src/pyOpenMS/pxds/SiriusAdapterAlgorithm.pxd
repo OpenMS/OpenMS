@@ -29,10 +29,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                  libcpp_vector[FeatureMap]& v_fp,
                                  KDTreeFeatureMaps& fp_map_kd,
                                  SiriusAdapterAlgorithm sirius_algo,
-                                 FeatureToMs2Indices& feature_mapping)
+                                 FeatureMapping_FeatureToMs2Indices& feature_mapping)
 
         void checkFeatureSpectraNumber(String featureinfo,
-                                       FeatureToMs2Indices feature_mapping, 
+                                       FeatureMapping_FeatureToMs2Indices feature_mapping,
                                        MSExperiment spectra, 
                                        SiriusAdapterAlgorithm sirius_algo);
 

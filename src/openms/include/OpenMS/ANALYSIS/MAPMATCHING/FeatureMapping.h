@@ -47,7 +47,7 @@ namespace OpenMS
 
           struct FeatureToMs2Indices
           {
-             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
+             Map<const BaseFeature*, std::vector<size_t>> assignedMS2;
              std::vector<size_t> unassignedMS2;
           };
 

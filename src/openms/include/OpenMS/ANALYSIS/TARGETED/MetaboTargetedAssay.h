@@ -87,8 +87,8 @@ namespace OpenMS
 
     */
 
-    static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssay(const PeakMap& spectra,
-                                                                       const std::map<BaseFeature const *, std::vector<size_t>>& feature_ms2_spectra_map,
+    static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssay(const MSExperiment& spectra,
+                                                                       const Map<BaseFeature const *, std::vector<size_t>>& feature_ms2_spectra_map,
                                                                        const double& precursor_rt_tol,
                                                                        const double& precursor_mz_distance,
                                                                        const double& cosine_sim_threshold,

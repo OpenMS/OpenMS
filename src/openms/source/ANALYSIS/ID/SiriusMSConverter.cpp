@@ -116,7 +116,7 @@ namespace OpenMS
   }
 
   void SiriusMSFile::writeMsFile_(ofstream& os,
-                                  const PeakMap& spectra,
+                                  const MSExperiment& spectra,
                                   const vector<size_t>& ms2_spectra_index,
                                   const SiriusMSFile::AccessionInfo& ainfo,
                                   const StringList& adducts,
@@ -419,7 +419,7 @@ namespace OpenMS
     }
   }
 
-  void SiriusMSFile::store(const PeakMap& spectra,
+  void SiriusMSFile::store(const MSExperiment& spectra,
                            const OpenMS::String& msfile,
                            const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                            const bool& feature_only,
@@ -427,7 +427,7 @@ namespace OpenMS
                            const bool no_masstrace_info_isotope_pattern,
                            std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
   {
-    const map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
+    const Map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
     const vector<size_t> & unassigned_ms2 = feature_mapping.unassignedMS2;
 
     bool use_feature_information = false;

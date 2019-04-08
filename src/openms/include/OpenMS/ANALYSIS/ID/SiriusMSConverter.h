@@ -100,7 +100,7 @@ public:
     @param v_cmpinfo: Vector of CompoundInfo.
     */
 
-    static void store(const PeakMap& spectra,
+    static void store(const MSExperiment& spectra,
                       const OpenMS::String& msfile,
                       const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                       const bool& feature_only,
@@ -135,7 +135,7 @@ public:
     */
 
     static void writeMsFile_(std::ofstream& os,
-                             const PeakMap& spectra,
+                             const MSExperiment& spectra,
                              const std::vector<size_t>& ms2_spectra_index,
                              const SiriusMSFile::AccessionInfo& ainfo,
                              const StringList& adducts,

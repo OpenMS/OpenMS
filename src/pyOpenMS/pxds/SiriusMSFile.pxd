@@ -5,6 +5,8 @@ from ProgressLogger cimport *
 from String cimport *
 from StringList cimport *
 from MSExperiment cimport *
+from Map cimport *
+from FeatureMapping cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusMSConverter.h>" namespace "OpenMS":
     
@@ -12,13 +14,14 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusMSConverter.h>" namespace "OpenMS":
 
         SiriusMSFile() nogil except +
         SiriusMSFile(SiriusMSFile) nogil except + #wrap-ignore
-        void store(MSExperiment spectra,
-                   String msfile,
-                   libcpp_map[ size_t,BaseFeature] feature_ms2_spectra_map,
-                   bool feature_only,
-                   int isotope_pattern_iterations,
+
+        void store(MSExperiment& spectra,
+                   String& msfile,
+                   FeatureMapping_FeatureToMs2Indices& feature_ms2_spectra_map,
+                   bool& feature_only,
+                   int& isotope_pattern_iterations,
                    bool no_mt_info,
-                   libcpp_vector[SiriusMSFile_CompoundInfo] v_cmpinfo)  nogil except +
+                   libcpp_vector[ SiriusMSFile_CompoundInfo ] v_cmpinfo) nogil except +
 
     cdef cppclass SiriusMSFile_CompoundInfo "OpenMS::SiriusMSFile::CompoundInfo":
 
