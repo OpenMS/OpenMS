@@ -675,7 +675,7 @@ protected:
         }
 
         Size mzBinNumber = getBinNumber(mzBinMaxValue, mzBinMinValue, param.binWidth) + 1;
-        Byte *logIntensities = new Byte[mzBinNumber];
+        float *logIntensities = new float[mzBinNumber];
         fill_n(logIntensities, mzBinNumber, 0);
 
         auto mzBins = getMzBins(logMzPeaks, mzBinMinValue, mzBinNumber, param.binWidth, logIntensities);
@@ -885,7 +885,7 @@ protected:
 
     boost::dynamic_bitset<>
     getMzBins(vector<LogMzPeak> &logMzPeaks, double &mzBinMinValue, Size &binNumber, double binWidth,
-              Byte *logIntensities
+              float *logIntensities
     ) {
         boost::dynamic_bitset<> mzBins(binNumber);
         double *intensities = new double[binNumber];
@@ -925,7 +925,8 @@ protected:
 
         for (Size i = 0; i < binNumber; i++) {
             if (intensities[i] <= 0) continue;
-            logIntensities[i] = (Byte) round(log2(intensities[i]));
+            logIntensities[i] = //(Byte) round
+                    (float)(log2(intensities[i]));
         }
 
         delete[] intensities;
@@ -1069,7 +1070,7 @@ protected:
                        long *binOffsets,
                        long **hBinOffsets,
                        boost::dynamic_bitset<> &unionPrevMassBins,
-                       Byte *logIntensities,
+                       float *logIntensities,
                        const Parameter &param) {
 
         long binThresholdMinMass = (long) getBinNumber(log(param.minMass), massBinMinValue, param.binWidth);
@@ -1118,7 +1119,7 @@ protected:
                             Byte *continuousChargePeakPairCount,
                             long **hBinOffsets,
                             long *binOffsets,
-                            Byte *logIntensities,
+                            float *logIntensities,
                             const Parameter &param,
                             long &binStart) {
 
@@ -1131,11 +1132,11 @@ protected:
         Byte *prevCharges = new Byte[massBins.size()];
         fill_n(prevCharges, massBins.size(), (Byte) (chargeRange + 2));
 
-        Byte *prevIntensities = new Byte[massBins.size()];
+        float *prevIntensities = new float[massBins.size()];
         fill_n(prevIntensities, massBins.size(), 0);
 
-        Byte *hc = new Byte[massBins.size()];
-        fill_n(hc, massBins.size(), 0);
+//        Byte *hc = new Byte[massBins.size()];
+ //       fill_n(hc, massBins.size(), 0);
 
         //int ct = 10 - param.minCharge;
         auto mzBinIndex = mzBins.find_first();
@@ -1183,7 +1184,7 @@ protected:
         }
         delete[] prevCharges;
         delete[] prevIntensities;
-        delete[] hc;
+     //   delete[] hc;
     }
 
     Byte **getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
@@ -1589,7 +1590,6 @@ protected:
 
         auto perChargeIntensity = new double[range];
         double maxPerChargeIntensity = .0;
-        //auto perIsotopeIntensity = new double[range];
         int nonZeroStart = -1, nonZeroEnd = 0;
 
         for (int i = 0; i < range; i++) {
