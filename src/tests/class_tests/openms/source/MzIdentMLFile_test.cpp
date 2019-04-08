@@ -478,7 +478,7 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   vector<ProteinIdentification> protein_ids2;
   vector<PeptideIdentification> peptide_ids2;
 
-  String input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid");
+  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid");
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
 
   // Reading and writing

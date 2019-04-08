@@ -240,7 +240,7 @@ protected:
         continue;
       }
       String modification(*mod_it);
-      modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
+      modifications.push_back(*ModificationsDB::getInstance()->getModification(modification));
     }
 
     return modifications;

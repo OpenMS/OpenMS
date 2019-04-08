@@ -36,12 +36,12 @@
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
 
-
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/config.h>
 
 namespace OpenMS
 {
   class EmpiricalFormula;
+  class IsotopeDistribution;
 
   /** 
       @brief Provides an interface for different isotope pattern generator methods.

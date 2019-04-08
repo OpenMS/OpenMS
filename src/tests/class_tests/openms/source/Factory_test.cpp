@@ -51,29 +51,6 @@ START_TEST(<Factory>, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION([EXTRA] multithreaded example)
-{
-
-  int nr_iterations (1e2), test (0);
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-  for (int k = 1; k < nr_iterations + 1; k++)
-  {
-    FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
-    TICFilter reducer;
-
-#ifdef _OPENMP
-#pragma omp critical (add_test)
-#endif
-    {
-      test += (*p==reducer);
-    }
-  }
-  TEST_EQUAL(test, nr_iterations)
-}
-END_SECTION
-
 // Factory is singleton, therefore we don't test the constructor
 START_SECTION(static FactoryProduct* create(const String& name))
 	FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
@@ -96,6 +73,22 @@ END_SECTION
 START_SECTION(static std::vector<String> registeredProducts())
 	vector<String> list = Factory<FilterFunctor>::registeredProducts();
 	TEST_EQUAL(list.size(),6)
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+
+   int nr_iterations (1e2);
+   int test = 0;
+#pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
+    TICFilter reducer;
+    test += (*p == reducer);
+  }
+  TEST_EQUAL(test, nr_iterations)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

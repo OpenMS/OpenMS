@@ -48,15 +48,13 @@
 
 #include <boost/regex.hpp>
 
-using namespace OpenMS;
-using namespace std;
-
 namespace OpenMS
 {
-/**
+  /**
     @brief File adapter for MzTab files
     @ingroup FileIO
   */
+  
     class OPENMS_DLLAPI MSstatsFile
     {
     public:
@@ -65,16 +63,89 @@ namespace OpenMS
         ///Destructor
         ~MSstatsFile();
 
-        // store MSStats file
-        void store(const String& filename, ConsensusMap &consensus_map,
-                   const ExperimentalDesign& design,
-                   const StringList& reannotate_filenames,
-                   const bool is_isotope_label_type,
-                   const String& bioreplicate,
-                   const String& condition,
-                   const String& retention_time_summarization_method);
-
+        // store label free experiemnt (MSstats)
+        void storeLFQ(const String& filename, 
+                      ConsensusMap &consensus_map,
+                      const ExperimentalDesign& design,
+                      const StringList& reannotate_filenames,
+                      const bool is_isotope_label_type,
+                      const String& bioreplicate,
+                      const String& condition,
+                      const String& retention_time_summarization_method);
+        
+        // store isobaric experiment (MSstatsTMT)
+        void storeISO(const String& filename, 
+                      ConsensusMap &consensus_map,
+                      const ExperimentalDesign& design,
+                      const StringList& reannotate_filenames,
+                      const String& bioreplicate,
+                      const String& condition,
+                      const String& mixture,
+                      const String& retention_time_summarization_method);
+    
     private:
+     
+        const String na_string = "NA";
+        
+        // The meta value of the peptide identification which is going to be used for the experimental design link
+        const String meta_value_exp_design_key = "spectra_data";
+
+        /*
+        *  @Brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition in Experimental Design
+        */
+        static void checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition);
+
+        /*
+         *  @Brief: Internal function to check if MSstats_BioReplicate, MSstats_Condition and MSstats_Mixture in Experimental Design
+         */
+        static void checkConditionISO_(const ExperimentalDesign::SampleSection sampleSection, const String& bioreplicate, const String& condition, const String& mixture);
+
+        /*
+         *  MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)
+         *  In OpenMS, a run is split into multiple fractions.
+         *
+         */
+        static void assembleRunMap(
+                std::map< std::pair< String, unsigned>, unsigned> &run_map,
+                const ExperimentalDesign &design)
+        {
+          run_map.clear();
+          const ExperimentalDesign::MSFileSection& msfile_section = design.getMSFileSection();
+          unsigned run_counter = 1;
+
+          for (ExperimentalDesign::MSFileSectionEntry const& r : msfile_section)
+          {
+            std::pair< String, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
+            if (run_map.find(tpl) == run_map.end())
+            {
+              run_map[tpl] = run_counter++;
+            }
+          }
+        }
+
+        bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second)
+        {
+          const std::set< String > lhs(first.begin(), first.end());
+          const std::set< String > rhs(second.begin(), second.end());
+          return lhs == rhs
+                 && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+        }
+
+        OpenMS::Peak2D::IntensityType sumIntensity(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
+        {
+          OpenMS::Peak2D::IntensityType result = 0;
+          for (const OpenMS::Peak2D::IntensityType &intensity : intensities)
+          {
+            result += intensity;
+          }
+          return result;
+        }
+
+        OpenMS::Peak2D::IntensityType meanIntensity(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
+        {
+          return sumIntensity(intensities) / intensities.size();
+        }
+
         class MSstatsLine
         {
         public :
@@ -101,7 +172,7 @@ namespace OpenMS
                bioreplicate_(_bioreplicate),
                run_(_run),
                fraction_(_fraction) {}
-
+            
             const String& accession() const {return this->accession_;}
             const String& sequence() const {return this->sequence_;}
             const String& precursor_charge() const {return this->precursor_charge_;}
@@ -143,56 +214,75 @@ namespace OpenMS
             String run_;
             String fraction_;
         };
-
-
-        const String na_string = "NA";
-        // The meta value of the peptide identification which is going to be used for the experimental design link
-        const String meta_value_exp_design_key = "spectra_data";
-
-        /*
-         *  MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)
-         *  In OpenMS, a run is split into multiple fractions.
-         *
-         */
-        static void assembleRunMap(
-                std::map< std::pair< String, unsigned>, unsigned> &run_map,
-                const ExperimentalDesign &design)
+ 
+        class MSstatsTMTLine
         {
-          run_map.clear();
-          const ExperimentalDesign::MSFileSection& msfile_section = design.getMSFileSection();
-          unsigned run_counter = 1;
+        public :
+            MSstatsTMTLine(
+                    bool _has_fraction,
+                    const String& _accession,
+                    const String& _sequence,
+                    const String& _precursor_charge,
+                    const String& _channel,
+                    const String& _condition,
+                    const String& _bioreplicate,
+                    const String& _run,
+                    const String& _mixture,
+                    const String& _techmixture,
+                    const String& _fraction
+            ): has_fraction_(_has_fraction),
+               accession_(_accession),
+               sequence_(_sequence),
+               precursor_charge_(_precursor_charge),
+               channel_(_channel),
+               condition_(_condition),
+               bioreplicate_(_bioreplicate),
+               run_(_run),
+               mixture_(_mixture),
+               techmixture_(_techmixture),
+               fraction_(_fraction) {}
 
-          for (ExperimentalDesign::MSFileSectionEntry const& r : msfile_section)
-          {
-            std::pair< String, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
-            if (run_map.find(tpl) == run_map.end())
+            const String& accession() const {return this->accession_;}
+            const String& sequence() const {return this->sequence_;}
+            const String& precursor_charge() const {return this->precursor_charge_;}
+            const String& run() const {return this->run_;}
+
+            String toString() const
             {
-              run_map[tpl] = run_counter++;
+              const String delim(",");
+              return  accession_
+                      + delim + sequence_
+                      + delim + precursor_charge_
+                      + delim + channel_
+                      + delim + condition_
+                      + delim + bioreplicate_
+                      + delim + run_
+                      + delim + mixture_
+                      + delim + techmixture_
+                      + (this->has_fraction_ ? delim + String(fraction_) : "");
             }
-          }
-        }
 
-        bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second)
-        {
-          const std::set< String > lhs(first.begin(), first.end());
-          const std::set< String > rhs(second.begin(), second.end());
-          return lhs.size() == rhs.size()
-                 && std::equal(lhs.begin(), lhs.end(), rhs.begin());
-        }
+            friend bool operator<(const MSstatsTMTLine &l,
+                                  const MSstatsTMTLine &r) {
 
-        OpenMS::Peak2D::IntensityType sumIntensity(const set< OpenMS::Peak2D::IntensityType > &intensities)
-        {
-          OpenMS::Peak2D::IntensityType result = 0;
-          for (const OpenMS::Peak2D::IntensityType &intensity : intensities)
-          {
-            result += intensity;
-          }
-          return result;
-        }
+              return std::tie(l.accession_, l.run_, l.condition_, l.bioreplicate_, l.mixture_, l.precursor_charge_, l.sequence_) <
+                     std::tie(r.accession_, r.run_, r.condition_, r.bioreplicate_, r.mixture_, r.precursor_charge_, r.sequence_);
+            }
 
-        OpenMS::Peak2D::IntensityType meanIntensity(const set< OpenMS::Peak2D::IntensityType > &intensities)
-        {
-          return sumIntensity(intensities) / intensities.size();
-        }
-    };
+
+        private:
+            bool has_fraction_;
+            String accession_;
+            String sequence_;
+            String precursor_charge_;
+            String channel_;
+            String condition_;
+            String bioreplicate_;
+            String run_;
+            String mixture_;
+            String techmixture_;
+            String fraction_;
+        };
+        
+     }; 
 } // namespace OpenMS

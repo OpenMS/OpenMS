@@ -289,7 +289,7 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
   MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
 
   MSExperiment exp2;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp2);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp2);
 
   // read in meta data only
   {
@@ -311,6 +311,60 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
     std::vector<MSChromatogram> exp;
     std::vector<int> indices = {5};
     TEST_EXCEPTION(Exception::IllegalArgument, handler.readChromatograms(exp, indices, false));
+  }
+
+  {
+
+    MSExperiment exp_orig;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp_orig);
+
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+
+    // delete file if present
+    QFile file (String(tmp_filename).toQString());
+    file.remove();
+
+    auto chroms = exp_orig.getChromatograms();
+    chroms.push_back(exp_orig.getChromatograms()[0]);
+    chroms.back().setNativeID("second");
+
+    {
+      MzMLSqliteHandler handler(tmp_filename);
+      handler.setConfig(true, false, 0.0001);
+      handler.createTables();
+      handler.writeChromatograms(chroms);
+    }
+
+    MzMLSqliteHandler handler(tmp_filename);
+    {
+      std::vector<MSChromatogram> exp;
+      std::vector<int> indices = {0};
+      handler.readChromatograms(exp, indices, true);
+      TEST_EQUAL(exp.size(), 1)
+      TEST_EQUAL(exp[0].size(), 0)
+      TEST_STRING_EQUAL(exp[0].getNativeID(), "TIC")
+    }
+
+    {
+      std::vector<MSChromatogram> exp;
+      std::vector<int> indices = {1};
+      handler.readChromatograms(exp, indices, true);
+      TEST_EQUAL(exp.size(), 1)
+      TEST_EQUAL(exp[0].size(), 0)
+      TEST_STRING_EQUAL(exp[0].getNativeID(), "second")
+    }
+
+    {
+      std::vector<MSChromatogram> exp;
+      std::vector<int> indices = {0, 1};
+      handler.readChromatograms(exp, indices, true);
+      TEST_EQUAL(exp.size(), 2)
+      TEST_EQUAL(exp[0].size(), 0)
+      TEST_STRING_EQUAL(exp[0].getNativeID(), "TIC")
+      TEST_STRING_EQUAL(exp[1].getNativeID(), "second")
+    }
+
   }
 
 }

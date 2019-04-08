@@ -37,6 +37,10 @@
 
 ///////////////////////////
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 
 ///////////////////////////
@@ -172,6 +176,62 @@ START_SECTION((MetaInfoRegistry& operator=(const MetaInfoRegistry& rhs)))
 	TEST_STRING_EQUAL(mir2.getUnit(1025), "sec")
 	TEST_STRING_EQUAL(mir2.getUnit("testname"), "")
 	TEST_STRING_EQUAL(mir2.getUnit("retention time"), "sec")
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+  // All measurements are best of three (wall time, Linux, 8 threads)
+  //
+  // Serial execution of code:
+  // 1e7 iterations -> 1.10 seconds
+  // 1e6 iterations -> 0.31 seconds
+  //
+  // Parallel execution of code:
+  // 1e7 iterations -> 3.41 seconds with omp critical
+  // 1e7 iterations -> 4.30 seconds with std::mutex
+  // 1e7 iterations -> ???  seconds with boost::shared_mutex
+  //
+  // 1e6 iterations -> 0.36 seconds with omp critical
+  // 1e6 iterations -> 0.43 seconds with std::mutex
+  // 1e6 iterations -> 5.96 seconds with boost::shared_mutex
+
+
+   // 1e7 iterations with 1000 different values
+  // Serial execution of code:
+  // 1e7 iterations -> 6.84 seconds
+  // 1e6 iterations -> 0.91 seconds
+  //
+  // Parallel execution of code:
+  // 1e7 iterations -> 5.20 seconds with omp critical
+  // 1e7 iterations -> 7.44 seconds with std::mutex
+  // 1e7 iterations -> ???  seconds with boost::shared_mutex
+  //
+  // 1e6 iterations -> 0.55 seconds with omp critical
+  // 1e6 iterations -> 0.78 seconds with std::mutex
+  // 1e6 iterations -> 7.63 seconds with boost::shared_mutex
+
+   // Note how the omp critical is 3x slower for the "same value" code than
+  // serial code whereas it is slightly faster for the "1000 different values"
+  // code.
+  // The shared_mutex code is an order of magnitude slower (10-20x) for both
+  // cases. It seems for this case, most case is spent in locking / unlocking
+  // the mutex.
+  int nr_iterations (1e6);
+  int test = 0;
+#pragma omp parallel for reduction(+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+#if 0
+    std::string val = "newValue" + String(k%1000);
+#else
+    std::string val = "newValue";
+#endif
+    UInt index = mir.registerName(val);
+    mir.setDescription(index, val);
+    test += index;
+  }
+  TEST_EQUAL(test, 1027 * nr_iterations)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
