@@ -23,7 +23,6 @@
 
 using namespace OpenMS;
 using namespace std;
-//using namespace Eigen;
 
 class FLASHDeconv :
         public TOPPBase {
@@ -44,11 +43,8 @@ public:
         double intensityThreshold;// advanced parameters
         int chargeRange;
         int minContinuousChargePeakCount;
-
-        //int minContinuousIsotopeCount;
         int maxIsotopeCount;
         int maxMassCount;
-        //double isotopeCosineThreshold;
         double chargeDistributionScoreThreshold;
         double minRTspan;
 
@@ -583,7 +579,7 @@ protected:
            << "\n";
 
         //cout<<1<<endl;
-
+/*
         fsp << "pg" << (int) (pg.monoisotopicMass * 10) << "rt" << (int) (pg.spec->getRT())
             << "=[";
 
@@ -593,7 +589,7 @@ protected:
 
         fsp << "];\n";
         //cout<<3<<endl;
-
+*/
         fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
         //cout<<4<<endl;
 
