@@ -450,7 +450,7 @@ protected:
         //fsf.flush();
     }
 
-    void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false) {
+    static void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false) {
         fs
                 << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassCountInSpec\tExactMass\tAvgMass\tNominalMass(round(ExactMass*0.999497))\t"
                    "PeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
@@ -461,11 +461,10 @@ protected:
                "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
                "\tMaxIntensity\tQuantity"
             << endl;
-
         return;
     }
 
-    PrecalcularedAveragine getPrecalculatedAveragines(Parameter &param) {
+    static PrecalcularedAveragine getPrecalculatedAveragines(Parameter &param) {
         auto generator = new CoarseIsotopePatternGenerator();
         auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
         maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
@@ -474,7 +473,7 @@ protected:
         return PrecalcularedAveragine(100, param.maxMass, 50, generator);
     }
 
-    vector<PeakGroup> Deconvolution(MSExperiment &map, Parameter &param,
+    static vector<PeakGroup> Deconvolution(MSExperiment &map, Parameter &param,
                                     PrecalcularedAveragine &averagines, int &specCntr, int &qspecCntr, int &massCntr) {
 
         double *filter = new double[param.chargeRange];
@@ -552,7 +551,7 @@ protected:
         return allPeakGroups; //
     }
 
-    void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs, fstream &fsm, fstream &fsp) {
+    static void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs, fstream &fsm, fstream &fsp) {
         if (pg.peaks.empty()) return;
         double &m = pg.monoisotopicMass;
         double &am = pg.avgMass;
@@ -615,7 +614,7 @@ protected:
 
     }
 
-    void printProgress(float progress) {
+    static void printProgress(float progress) {
         int barWidth = 70;
         cout << "[";
         int pos = (int) (barWidth * progress);
@@ -628,7 +627,7 @@ protected:
         cout.flush();
     }
 
-    vector<LogMzPeak> getLogMzPeaks(MSSpectrum &spec, const Parameter &param) {
+    static vector<LogMzPeak> getLogMzPeaks(MSSpectrum &spec, const Parameter &param) {
         vector<LogMzPeak> logMzPeaks;
         //logMzPeaks.reserve(spec.size());
 
@@ -653,7 +652,7 @@ protected:
     }
 
 
-    vector<PeakGroup>
+    static vector<PeakGroup>
     getPeakGroupsFromSpectrum(vector<LogMzPeak> &logMzPeaks, double *filter, long **hBinOffsets,
                               vector<vector<Size>> &prevMassBinVector,
                               vector<double> &prevMinBinLogMassVector,
@@ -728,7 +727,7 @@ protected:
         return peakGroups;
     }
 
-    boost::dynamic_bitset<> getUnionMassBin(boost::dynamic_bitset<> &massBins, double &massBinMinValue,
+    static boost::dynamic_bitset<> getUnionMassBin(boost::dynamic_bitset<> &massBins, double &massBinMinValue,
                                             vector<vector<Size>> &prevMassBinVector,
                                             vector<double> &prevMassBinMinValue,
                                             const Parameter &param) {
@@ -749,7 +748,7 @@ protected:
         return u;
     }
 
-    vector<PeakGroup> getPeakGroupsWithMassBins(boost::dynamic_bitset<> &unionedMassBins,//double &binScoreThreshold,
+    static vector<PeakGroup> getPeakGroupsWithMassBins(boost::dynamic_bitset<> &unionedMassBins,//double &binScoreThreshold,
                                                 boost::dynamic_bitset<> &massBins,
                                                 vector<LogMzPeak> &logMzPeaks,
                                                 double &mzBinMinValue,
@@ -883,7 +882,7 @@ protected:
         return peakGroups;
     }
 
-    boost::dynamic_bitset<>
+    static boost::dynamic_bitset<>
     getMzBins(vector<LogMzPeak> &logMzPeaks, double &mzBinMinValue, Size &binNumber, double binWidth,
               float *logIntensities
     ) {
@@ -926,7 +925,7 @@ protected:
         for (Size i = 0; i < binNumber; i++) {
             if (intensities[i] <= 0) continue;
             logIntensities[i] = //(Byte) round
-                    (float)(log2(intensities[i]));
+                    (float) (log2(intensities[i]));
         }
 
         delete[] intensities;
@@ -1065,7 +1064,7 @@ protected:
     }*/
 
 
-    Byte **getMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
+    static Byte **getMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
                        double &massBinMinValue,
                        long *binOffsets,
                        long **hBinOffsets,
@@ -1095,7 +1094,7 @@ protected:
         return perMassChargeRanges;
     }
 
-    void printMasses(boost::dynamic_bitset<> &massBins, double &massBinMinValue, Byte *continuousChargePeakPairCount,
+    static void printMasses(boost::dynamic_bitset<> &massBins, double &massBinMinValue, Byte *continuousChargePeakPairCount,
                      const Parameter &param) {
         auto index = massBins.find_first();
         while (index != massBins.npos) {
@@ -1113,7 +1112,7 @@ protected:
     }
 
 
-    void getInitialMassBins(boost::dynamic_bitset<> &massBins,
+    static void getInitialMassBins(boost::dynamic_bitset<> &massBins,
                             boost::dynamic_bitset<> &mzBins,
                             boost::dynamic_bitset<> &isQualified,
                             Byte *continuousChargePeakPairCount,
@@ -1136,7 +1135,7 @@ protected:
         fill_n(prevIntensities, massBins.size(), 0);
 
 //        Byte *hc = new Byte[massBins.size()];
- //       fill_n(hc, massBins.size(), 0);
+        //       fill_n(hc, massBins.size(), 0);
 
         //int ct = 10 - param.minCharge;
         auto mzBinIndex = mzBins.find_first();
@@ -1150,9 +1149,11 @@ protected:
                 //int idt = j < ct ? 2 : 1;
                 auto cd = prevCharges[massBinIndex] - j;
                 prevCharges[massBinIndex] = j;
-                auto id = prevIntensities[massBinIndex] - logIntensity;
-                prevIntensities[massBinIndex] = logIntensity;
+                auto &prevIntensity = prevIntensities[massBinIndex];
+                auto id = prevIntensity- logIntensity;
+                //prevIntensities[massBinIndex] = logIntensity;
                 if (cd != 1 || id > 1 || id < -1) {
+                    prevIntensity = logIntensity;
                     continue;
                 }
 
@@ -1164,7 +1165,8 @@ protected:
                         auto bin = hbi + i;
                         if (bin < 0 || bin > mzBinSize) continue;
                         if (mzBins[bin]
-                            && (abs(logIntensity - logIntensities[bin]) <= 1 || abs(logIntensity + id - logIntensities[bin]) <= 1)) {
+                            && (abs(logIntensity - logIntensities[bin]) <= 1 ||
+                                abs(prevIntensity - logIntensities[bin]) <= 1)) {
                             h = true;
                             //if(++hc[massBinIndex] > 2) {
                             //unionPrevMassBins[massBinIndex] = false;
@@ -1175,19 +1177,19 @@ protected:
                     }
                     if (h) break;
                 }
+                prevIntensity = logIntensity;
                 if (h) continue;
-
                 isQualified[massBinIndex] =
-                        ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount; //
+                        ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount;
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
         delete[] prevCharges;
         delete[] prevIntensities;
-     //   delete[] hc;
+        //   delete[] hc;
     }
 
-    Byte **getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
+    static Byte **getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
                             boost::dynamic_bitset<> &isQualified,
                             boost::dynamic_bitset<> &unionPrevMassBins,
                             Byte *continuousChargePeakPairCount,
@@ -1222,7 +1224,7 @@ protected:
 
                 auto &t = continuousChargePeakPairCount[massBinIndex];// + noneContinuousChargePeakPairCount[massBinIndex];//
 
-                if (max <t) {
+                if (max < t) {
                     //if(max<t){
                     //    max = t;
                     //    setCharges.clear();
@@ -1255,18 +1257,18 @@ protected:
         return chargeRanges;
     }
 
-    double getIsotopeCosineThreshold(double &mass, double minCosine, double maxCosine, double minMass, double maxMass){
+    static double getIsotopeCosineThreshold(double &mass, double minCosine, double maxCosine, double minMass, double maxMass) {
         double isotopeCosineThreshold;
         if (mass < minMass) isotopeCosineThreshold = maxCosine;
         else if (mass > maxMass) isotopeCosineThreshold = minCosine;
         else {
-            isotopeCosineThreshold = minCosine + (maxCosine-minCosine) / (maxMass - minMass) * (maxMass - mass);
+            isotopeCosineThreshold = minCosine + (maxCosine - minCosine) / (maxMass - minMass) * (maxMass - mass);
         }
 
         return isotopeCosineThreshold;
     }
 
-    vector<PeakGroup> scoreAndFilterPeakGroups(vector<PeakGroup> &peakGroups,
+    static vector<PeakGroup> scoreAndFilterPeakGroups(vector<PeakGroup> &peakGroups,
                                                PrecalcularedAveragine &averagines,
                                                const Parameter &param) {
         vector<double> intensities;
@@ -1322,7 +1324,7 @@ protected:
 
             pg.chargeDistributionScore = getChargeDistributionScore(perChargeIsotopeIntensity,
                                                                     param.chargeRange, param.maxIsotopeCount,
-                                                                    //isotopeCosineThreshold,
+                    //isotopeCosineThreshold,
                                                                     param.minContinuousChargePeakCount);
 
             if (pg.chargeDistributionScore < param.chargeDistributionScoreThreshold) {
@@ -1353,7 +1355,7 @@ protected:
         return filteredPeakGroups;
     }
 
-    void updatePerChargeIsotopeIntensity(double **perChargeIsotopeIntensity,
+    static void updatePerChargeIsotopeIntensity(double **perChargeIsotopeIntensity,
             //int *perChargeMinIsotope, int *perChargeMaxIsotope,
                                          int *perIsotopeMinCharge, int *perIsotopeMaxCharge,
                                          int *perChargeMinIsotope, int *perChargeMaxIsotope,
@@ -1450,7 +1452,7 @@ protected:
         return maxSetIntensityCounter >= param.minContinuousIsotopeCount;
     }*/
 
-    double getIsotopeCosineAndDetermineExactMass(double &monoIsotopeMass, double &avgMass, PeakGroup &pg,
+    static double getIsotopeCosineAndDetermineExactMass(double &monoIsotopeMass, double &avgMass, PeakGroup &pg,
                                                  double *perIsotopeIntensities,
                                                  int perIsotopeIntensitiesSize,
                                                  PrecalcularedAveragine &averagines) {
@@ -1515,7 +1517,7 @@ protected:
     }
 
 
-    double getDistributionScore(int *mins, int *maxs, int range, int threshold) {
+    static double getDistributionScore(int *mins, int *maxs, int range, int threshold) {
         int nonZeroStart = -1, nonZeroEnd = 0;
 
         int maxSpan = 0;
@@ -1557,11 +1559,11 @@ protected:
 
         if (n1 < threshold) return -100.0;
 
-        for(int i=2;i<min(12,range);i++){
-            for(int l=0;l<i;l++){
+        for (int i = 2; i < min(12, range); i++) {
+            for (int l = 0; l < i; l++) {
                 int t = 0;
                 prevCharge = nonZeroStart + l;
-                for (int k = prevCharge + i; k <= nonZeroEnd; k+=i) {
+                for (int k = prevCharge + i; k <= nonZeroEnd; k += i) {
                     if (maxs[k] < 0) {
                         continue;
                     }
@@ -1585,9 +1587,9 @@ protected:
         return n1 / (n1 + n2);
     }
 
-    double getChargeDistributionScore(double **perChargeIsotopeIntensity,
+    static double getChargeDistributionScore(double **perChargeIsotopeIntensity,
                                       int range, int range2,
-                                      //double cost,
+            //double cost,
                                       int threshold) {
 
         auto perChargeIntensity = new double[range];
@@ -1612,7 +1614,7 @@ protected:
         double n1 = .0;
         double n2 = .0;
         int n4 = 0;
-        double intensityThreshold = maxPerChargeIntensity/5.0;//
+        double intensityThreshold = maxPerChargeIntensity / 5.0;//
         //int cntr = 1;
         //int maxCntr = 0;
         //cost = .7;
@@ -1626,9 +1628,9 @@ protected:
                 //double cos = getCosine(perChargeIsotopeIntensity[k], perChargeIsotopeIntensity[prevCharge], range2);
                 //if (cos > cost) {
                 //if(abs(logFoldChange)<2){
-                    n1++;
+                n1++;
                 //} else {
-                   // cntr = 0;
+                // cntr = 0;
                 //    n2++;
                 //}
             }//else cntr=0;
@@ -1637,26 +1639,26 @@ protected:
             prevCharge = k;
         }
 
-        if (n1 < threshold){
+        if (n1 < threshold) {
             delete[] perChargeIntensity;
             return -100.0;
         }
 
-        for(int i=2;i<min(12, range);i++){
-            for(int l=0;l<i;l++){
+        for (int i = 2; i < min(12, range); i++) {
+            for (int l = 0; l < i; l++) {
                 int t = 0;
                 prevCharge = nonZeroStart + l;
-                for (int k = prevCharge + i; k <= nonZeroEnd; k+=i) {
+                for (int k = prevCharge + i; k <= nonZeroEnd; k += i) {
                     if (perChargeIntensity[k] <= intensityThreshold) { // within 5 folds
                         continue;
                     }
                     if (k - prevCharge == i) {
                         //double logFoldChange = log2(perChargeIntensity[k]/perChargeIntensity[prevCharge]);
-                    //    double cos = getCosine(perChargeIsotopeIntensity[k], perChargeIsotopeIntensity[prevCharge], range2);
-                    //    if (cos > cost) {
-                            //if(abs(logFoldChange)<2){
-                            t++;
-                     //   }
+                        //    double cos = getCosine(perChargeIsotopeIntensity[k], perChargeIsotopeIntensity[prevCharge], range2);
+                        //    if (cos > cost) {
+                        //if(abs(logFoldChange)<2){
+                        t++;
+                        //   }
                     }
                     prevCharge = k;
                 }
@@ -1672,7 +1674,7 @@ protected:
         return n1 / (n1 + n2);
     }
 
-    double
+    static double
     getCosine(double *a, int &aStart, int &aEnd, IsotopeDistribution &b, int &bSize, double &bNorm, int offset = 0) {
         double n = .0, d1 = .0;
 
@@ -1688,7 +1690,7 @@ protected:
         return n / sqrt(d);
     }
 
-    double
+    static double
     getCosine(double *a, double *b, int &size) {
         double n = .0, d1 = .0, d2 = .0;
 
@@ -1700,14 +1702,14 @@ protected:
             //  if(a[j] > 0 && b[j] > 0) overlapCntr++;
         }
 
-       //if(overlapCntr < 2) return 0; //
+        //if(overlapCntr < 2) return 0; //
         double d = (d1 * d2);
         if (d <= 0) return 0;
         return n / sqrt(d);
     }
 
-    void
-    filterPeakGroupsByIntensity(vector<PeakGroup> &peakGroups, vector<double> &intensities, const Parameter &param) {
+    static void
+     filterPeakGroupsByIntensity(vector<PeakGroup> &peakGroups, vector<double> &intensities, const Parameter &param) {
         if (param.maxMassCount < 0 || intensities.size() <= (Size) param.maxMassCount) return;
         Size mc = (Size) param.maxMassCount;
         sort(intensities.begin(), intensities.end());
