@@ -18,8 +18,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
-//#include <Eigen/Dense>
-//#include <cmath>
 
 
 
@@ -487,10 +485,6 @@ protected:
                 float n = (float) (hc > 0 ? (hc / 2) : (-hc / 2) + 1);
                 auto harmonicFilter = log(1.0 / (i + n / hc + param.minCharge));
                 hBinOffsets[i][k] = (long) round((filter[i] - harmonicFilter) * param.binWidth);
-                //harmonicFilter = log(1.0 / (i - n / hc + param.minCharge));
-                //hBinOffsets[i][k+1] = (long) round((filter[i] - harmonicFilter) * param.binWidth);
-                //harmonicFilter = log(1.0 / (i - n / hc + param.minCharge));
-                //hBinOffsets[i][k+1] = (long) floor((filter[i] - harmonicFilter) * param.binWidth);
             }
         }
 
@@ -533,15 +527,7 @@ protected:
                 pg.specIndex = qspecCntr;
                 pg.massCntr = (int) filteredPeakGroups.size();
                 allPeakGroups.push_back(pg);
-                //if (param.minRTspan <= 0) continue;
-
-                // Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);//
-                //it->push_back(tp);
             }
-
-
-            //vector<PeakGroup>().swap(filteredPeakGroups);
-            //if (param.minRTspan > 0) it->sortByPosition();
         }
 
         delete[] filter;
@@ -629,22 +615,11 @@ protected:
 
     static vector<LogMzPeak> getLogMzPeaks(MSSpectrum &spec, const Parameter &param) {
         vector<LogMzPeak> logMzPeaks;
-        //logMzPeaks.reserve(spec.size());
-
-        /*if (prevSpectra.size() >= (Size) param.numOverlappedScans) {
-            prevSpectra.erase(prevSpectra.begin());
-        }
-        prevSpectra.push_back(spec);
-*/
-        //for(auto &pspec: prevSpectra){
         for (auto &peak: spec) {
             if (peak.getIntensity() <= param.intensityThreshold) continue;
             LogMzPeak logMzPeak(peak);
             logMzPeaks.push_back(logMzPeak);
         }
-        // }
-
-        //sort(logMzPeaks.begin(), logMzPeaks.end());
 
         logMzPeaks.shrink_to_fit();
 
@@ -695,8 +670,6 @@ protected:
                                                     param);
 
         if (prevMassBinVector.size() > 0 && prevMassBinVector.size() >= (Size) param.numOverlappedScans) {
-//            auto &p = prevMassBinVector[0];
-            //vector<Size>().swap(p);
             prevMassBinVector.erase(prevMassBinVector.begin());
             prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
         }
@@ -711,13 +684,8 @@ protected:
         prevMassBinVector.push_back(mb);
         prevMinBinLogMassVector.push_back(massBinMinValue);
 
-        //clear memory
         prevMassBinVector.shrink_to_fit();
         prevMinBinLogMassVector.shrink_to_fit();
-        //boost::dynamic_bitset<>().swap(mzBins);
-        //boost::dynamic_bitset<>().swap(unionPrevMassBins);
-        //boost::dynamic_bitset<>().swap(unionMassBins);
-        //boost::dynamic_bitset<>().swap(massBins);
         delete[] binOffsets;
         for (int i = 0; i < 2; i++) {
             delete[] perMassChargeRanges[i]; // delete array within matrix
@@ -748,7 +716,7 @@ protected:
         return u;
     }
 
-    static vector<PeakGroup> getPeakGroupsWithMassBins(boost::dynamic_bitset<> &unionedMassBins,//double &binScoreThreshold,
+    static vector<PeakGroup> getPeakGroupsWithMassBins(boost::dynamic_bitset<> &unionedMassBins,
                                                 boost::dynamic_bitset<> &massBins,
                                                 vector<LogMzPeak> &logMzPeaks,
                                                 double &mzBinMinValue,
@@ -771,6 +739,8 @@ protected:
         vector<Size> toRemove;
 
         auto massBinIndex = unionedMassBins.find_first();
+        Size lastSetMassBinIndex = unionedMassBins.size();
+
         while (massBinIndex != unionedMassBins.npos) {
             int isoOff = 0;
             PeakGroup pg;
@@ -798,8 +768,6 @@ protected:
                 }
 
                 if (maxIntensityPeakIndex >= 0) {
-                    //PeakGroup pgc;
-                    //pgc.reserve(100);
                     double mz = logMzPeaks[maxIntensityPeakIndex].orgPeak->getMZ() - Constants::PROTON_MASS_U;
                     double &logMz = logMzPeaks[maxIntensityPeakIndex].logMz;
                     double isof = Constants::C13C12_MASSDIFF_U / charge / mz;
@@ -829,8 +797,6 @@ protected:
                                     //}
                                     if (massBinIndex != bin) {
                                         toRemove.push_back(bin);
-                                        //unionedMassBins[bin] = false; //
-                                        //massBins[bin] = false; //
                                     }
                                 }
                             }
@@ -853,7 +819,6 @@ protected:
                                 p.isotopeIndex = i * d;
                             }
                         }
-                        //pg.push_back(p);
                     }
                 }
             }
@@ -861,14 +826,19 @@ protected:
             pg.peaks.shrink_to_fit();
             if (!pg.peaks.empty()) {
                 for (LogMzPeak &p : pg.peaks) {
-                    //cout<<p.orgPeak->getMZ()<<" " << p.charge<< " " << p.isotopeIndex << endl;
                     p.isotopeIndex -= isoOff;
                 }
-                peakGroups.push_back(pg);
+                if(lastSetMassBinIndex == massBinIndex-1){// remove duplicate
+                    auto prevPeakCount = peakGroups[peakGroups.size()-1].peaks.size();
+                    auto currentPeakCount = pg.peaks.size();
+                    if(prevPeakCount < currentPeakCount){
+                        peakGroups[peakGroups.size()-1] = pg;
+                    }
+                }else peakGroups.push_back(pg);
+                lastSetMassBinIndex = massBinIndex;
             }
 
-            if (massBinIndex < unionedMassBins.size() - 2 && !unionedMassBins[massBinIndex + 1]
-                && !unionedMassBins[massBinIndex + 2]) {
+            if (massBinIndex < unionedMassBins.size() - 1 && !unionedMassBins[massBinIndex + 1]) {
                 for (auto &b : toRemove) {
                     unionedMassBins[b] = false;
                     massBins[b] = false;
@@ -898,28 +868,18 @@ protected:
 
             auto delta = (p.logMz - getBinValue(bi, mzBinMinValue, binWidth));
 
-            //cout<<delta<<endl;
-            if (delta * binWidth > .5) {
+            if (delta * binWidth > 0) {
                 //add bin + 1
                 if (bi < binNumber - 1) {
                     mzBins.set(bi + 1);
                     intensities[bi + 1] += p.orgPeak->getIntensity();
                 }
-            } else if (delta * binWidth < -.5) {
+            } else if (delta * binWidth < 0) {
                 if (bi > 0) {
                     mzBins.set(bi - 1);
                     intensities[bi - 1] += p.orgPeak->getIntensity();
                 }
             }
-
-
-            //if (bi > 0) {
-            //    mzBins.set(bi - 1);
-            //}
-            //if(p.orgPeak->getMZ() < 1310 && p.orgPeak->getMZ() > 1305){
-            //    cout << fixed<<setprecision(4)<< 52*(p.orgPeak->getMZ() - Constants::PROTON_MASS_U) << " " << exp(getBinValue(bi, mzBinMinValue, binWidth))<<endl;
-            //}
-            //
         }
 
         for (Size i = 0; i < binNumber; i++) {
