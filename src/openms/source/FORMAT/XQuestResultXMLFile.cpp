@@ -63,9 +63,9 @@ namespace OpenMS
    this->max_score_ = handler.getMaxScore();
 
    // this helper function adds additional explicit "xl_target_decoy" meta values derived from parsed data
-   // TODO: also adds "XL_Protein_position_alpha" and "XL_Protein_position_beta", but we don't have the protein info here
-   // these values will be wrong, just copied peptide positions, and should be removed
-   OPXLHelper::addProteinPositionMetaValues(pep_ids);
+   OPXLHelper::addXLTargetDecoyMV(pep_ids);
+   // this helper function adds beta peptide accessions
+   OPXLHelper::addBetaAccessions(pep_ids);
    // this helper function bases the ranked lists of labeled XLMS searches on each light spectrum instead of pairs
    // the second parameter here should be the maximal number of hits per spectrum,
    // but using the total number of hits we will just keep everything contained in the file
