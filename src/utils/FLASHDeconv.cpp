@@ -1171,7 +1171,7 @@ protected:
 
         while (mzBinIndex != mzBins.npos) {
             long maxIndex = -1;
-            Byte max = 0;
+            Byte maxCount = 0;
             Byte charge = 0;
 
             //vector<Byte> setCharges;
@@ -1184,13 +1184,13 @@ protected:
 
                 auto &t = continuousChargePeakPairCount[massBinIndex];// + noneContinuousChargePeakPairCount[massBinIndex];//
 
-                if (max < t) {
+                if (maxCount < t) {
                     //if(max<t){
                     //    max = t;
                     //    setCharges.clear();
                     //}
                     //setCharges.push_back(j);
-                    max = t;
+                    maxCount = t;
                     maxIndex = massBinIndex;
                     charge = j;
                 }
@@ -1205,8 +1205,8 @@ protected:
 
             if (maxIndex >= 0) {
                 massBins[maxIndex] = isQualified[maxIndex];
-                maxChargeRanges[maxIndex] = std::max(maxChargeRanges[maxIndex], charge);
-                minChargeRanges[maxIndex] = std::min(minChargeRanges[maxIndex], charge);
+                maxChargeRanges[maxIndex] = max(maxChargeRanges[maxIndex], charge);
+                minChargeRanges[maxIndex] = min(minChargeRanges[maxIndex], charge);
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
