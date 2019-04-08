@@ -1035,19 +1035,6 @@ namespace OpenMS
         prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
         ph_alpha.setMetaValue("accessions_beta", prot2_accessions);
         ph_beta.setMetaValue("accessions_beta", prot2_accessions);
-
-        if (String(ph_alpha.getMetaValue("target_decoy")).hasSubstring("target") &&
-              String(ph_beta.getMetaValue("target_decoy")).hasSubstring("target")) // "target" and "target+decoy" will be treated as "target"
-        {
-          // if both alpha's and beta's accession lists contain at least one target each, the cross-link will be treated as a target
-          ph_alpha.setMetaValue("xl_target_decoy", "target");
-          ph_beta.setMetaValue("xl_target_decoy", "target");
-        }
-        else // if at least one of the two accession lists only contains decoys, the cross-link will be treated as a decoy
-        {
-          ph_alpha.setMetaValue("xl_target_decoy", "decoy");
-          ph_beta.setMetaValue("xl_target_decoy", "decoy");
-        }
       }
       else
       {
@@ -1070,7 +1057,64 @@ namespace OpenMS
         {
           ph_alpha.setMetaValue("XL_Protein_position_beta", "-");
         }
+      }
+    }
+  }
 
+  void OPXLHelper::addBetaAccessions(std::vector< PeptideIdentification > & peptide_ids)
+  {
+    for (PeptideIdentification& id : peptide_ids)
+    {
+      PeptideHit& ph_alpha = id.getHits()[0];
+
+      if (id.getHits().size() == 2)
+      {
+        PeptideHit& ph_beta = id.getHits()[1];
+        String prot2_accessions;
+
+        const std::vector<PeptideEvidence> pevs_beta = ph_beta.getPeptideEvidences();
+        for (std::vector<PeptideEvidence>::const_iterator pev = pevs_beta.begin(); pev != pevs_beta.end(); ++pev)
+        {
+          prot2_accessions = prot2_accessions + "," + pev->getProteinAccession();
+        }
+
+        prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
+        ph_alpha.setMetaValue("accessions_beta", prot2_accessions);
+        ph_beta.setMetaValue("accessions_beta", prot2_accessions);
+      }
+      else
+      {
+        ph_alpha.setMetaValue("accessions_beta", "-");
+      }
+    }
+  }
+
+  void OPXLHelper::addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids)
+  {
+    for (PeptideIdentification& id : peptide_ids)
+    {
+      PeptideHit& ph_alpha = id.getHits()[0];
+
+      // cross-link position in Protein (beta)
+      if (id.getHits().size() == 2)
+      {
+        PeptideHit& ph_beta = id.getHits()[1];
+
+        if (String(ph_alpha.getMetaValue("target_decoy")).hasSubstring("target") &&
+              String(ph_beta.getMetaValue("target_decoy")).hasSubstring("target")) // "target" and "target+decoy" will be treated as "target"
+        {
+          // if both alpha's and beta's accession lists contain at least one target each, the cross-link will be treated as a target
+          ph_alpha.setMetaValue("xl_target_decoy", "target");
+          ph_beta.setMetaValue("xl_target_decoy", "target");
+        }
+        else // if at least one of the two accession lists only contains decoys, the cross-link will be treated as a decoy
+        {
+          ph_alpha.setMetaValue("xl_target_decoy", "decoy");
+          ph_beta.setMetaValue("xl_target_decoy", "decoy");
+        }
+      }
+      else
+      {
         if (String(ph_alpha.getMetaValue("target_decoy")).hasSubstring("target")) // "target" and "target+decoy" will be treated as "target"
         {
           ph_alpha.setMetaValue("xl_target_decoy", "target");
