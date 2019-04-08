@@ -121,8 +121,8 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       std::vector<ProteinIdentification>& protein_ids, 
       std::vector<PeptideIdentification>& peptide_ids, 
       Size top_hits,
-      const std::vector<const ResidueModification*>& fixed_modifications, 
-      const std::vector<const ResidueModification*>& variable_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
       Size max_variable_mods_per_peptide,
       const StringList& modifications_fixed,
       const StringList& modifications_variable,
@@ -135,9 +135,6 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       const Int precursor_max_charge,
       const String& enzyme,
       const String& database_name);
-
-    // @brief helper to retrieve modifications by name
-    static std::vector<const ResidueModification*> getModifications_(const StringList& modNames);
 
     double precursor_mass_tolerance_;
     String precursor_mass_tolerance_unit_;

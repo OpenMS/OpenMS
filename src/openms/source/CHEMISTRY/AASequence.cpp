@@ -1401,6 +1401,16 @@ namespace OpenMS
     c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
   }
 
+  void AASequence::setCTerminalModification(const ResidueModification* modification)
+  {
+    c_term_mod_ = modification;
+  } 
+
+  void AASequence::setNTerminalModification(const ResidueModification* modification)
+  {
+    n_term_mod_ = modification;
+  }
+ 
   const String& AASequence::getNTerminalModificationName() const
   {
     if (n_term_mod_ == nullptr) return String::EMPTY;

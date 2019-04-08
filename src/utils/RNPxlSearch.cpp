@@ -285,9 +285,6 @@ protected:
   // helper struct to facilitate parsing of parameters (modifications, nucleotide adducts, ...)
   struct RNPxlParameterParsing
   {
-    /// Query ResidueModifications (given as strings) from ModificationsDB
-    static vector<const ResidueModification*> getModifications(StringList modNames);
-
     // Map a nucleotide (e.g. U to all possible fragment adducts)
     using NucleotideToFragmentAdductMap = map<char, set<FragmentAdductDefinition_> >;
     // @brief Parse tool parameter to create map from target nucleotide to all its fragment adducts
@@ -546,8 +543,8 @@ protected:
                       vector<vector<AnnotatedHit> >& annotated_hits, 
                       Size top_hits, 
                       const RNPxlModificationMassesResult& mm, 
-                      const vector<const ResidueModification*>& fixed_modifications, 
-                      const vector<const ResidueModification*>& variable_modifications, 
+                      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
+                      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
                       Size max_variable_mods_per_peptide, 
                       const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator, 
                       double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, 
@@ -1292,8 +1289,8 @@ protected:
     vector<PeptideIdentification>& peptide_ids, 
     Size top_hits, 
     const RNPxlModificationMassesResult& mm, 
-    const vector<const ResidueModification*>& fixed_modifications, 
-    const vector<const ResidueModification*>& variable_modifications, 
+    const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
+    const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
     const vector<PrecursorPurity::PurityScores>& purities)
   {
@@ -1625,8 +1622,8 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    vector<const ResidueModification*> fixed_modifications = RNPxlParameterParsing::getModifications(fixedModNames);
-    vector<const ResidueModification*> variable_modifications = RNPxlParameterParsing::getModifications(varModNames);
+    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames);
+    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
 
     size_t report_top_hits = (size_t)getIntOption_("report:top_hits");
@@ -2495,34 +2492,6 @@ protected:
   }
 
 };
-
-vector<const ResidueModification*> RNPxlSearch::RNPxlParameterParsing::getModifications(StringList modNames) 
-{
-  vector<const ResidueModification*> modifications;
-
-  // iterate over modification names and add to vector
-  for (String modification : modNames)
-  {
-    const ResidueModification* rm;
-    if (modification.hasSubstring(" (N-term)"))
-    {
-      modification.substitute(" (N-term)", "");
-      rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
-    }
-    else if (modification.hasSubstring(" (C-term)"))
-    {
-      modification.substitute(" (C-term)", "");
-      rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
-    }
-    else
-    {
-      rm = ModificationsDB::getInstance()->getModification(modification);
-    }
-    modifications.push_back(rm);
-  }
-
-  return modifications;
-}
 
 RNPxlSearch::RNPxlParameterParsing::PrecursorsToMS2Adducts
 RNPxlSearch::RNPxlParameterParsing::getAllFeasibleFragmentAdducts(

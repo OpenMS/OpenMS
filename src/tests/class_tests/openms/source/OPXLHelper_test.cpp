@@ -51,23 +51,6 @@ using namespace OpenMS;
 
 START_TEST(OPXLHelper, "$Id$")
 
-
-START_SECTION(static std::vector<const ResidueModification*> getModificationsFromStringList(StringList modNames))
-  QStringList q_str_list1;
-  QStringList q_str_list2;
-  q_str_list1 << "Carbamidomethyl (C)" << "Carbamidomethyl (T)";
-  q_str_list2 << "Oxidation (M)" << "Oxidation (Y)";
-  StringList fixedModNames = StringListUtils::fromQStringList(q_str_list1);
-  StringList varModNames = StringListUtils::fromQStringList(q_str_list2);
-  std::vector<const ResidueModification*> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames);
-  std::vector<const ResidueModification*> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames);
-
-  TEST_EQUAL(fixed_modifications[0]->getFullId(), "Carbamidomethyl (C)")
-  TEST_EQUAL(fixed_modifications[1]->getFullId(), "Carbamidomethyl (T)")
-  TEST_EQUAL(variable_modifications[0]->getFullId(), "Oxidation (M)")
-  TEST_EQUAL(variable_modifications[1]->getFullId(), "Oxidation (Y)")
-END_SECTION
-
 // loading and building data structures required in several following tests
 std::vector<FASTAFile::FASTAEntry> fasta_db;
 FASTAFile file;
@@ -87,9 +70,8 @@ q_str_list1 << "Carbamidomethyl (C)" << "Carbamidomethyl (T)";
 q_str_list2 << "Oxidation (M)" << "Oxidation (Y)";
 StringList fixedModNames = StringListUtils::fromQStringList(q_str_list1);
 StringList varModNames = StringListUtils::fromQStringList(q_str_list2);
-std::vector<const ResidueModification*> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames);
-std::vector<const ResidueModification*> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames);
-
+const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames);
+const ModifiedPeptideGenerator::MapToResidueType& variable_modifications = ModifiedPeptideGenerator::getModifications(varModNames);
 
 QStringList q_str_list3;
 QStringList q_str_list4;
