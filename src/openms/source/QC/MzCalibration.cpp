@@ -40,6 +40,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
@@ -57,7 +58,17 @@ namespace OpenMS
 		{
 			throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The PeakMap is empty.");
 		}
-
+		//check for Calibration --> do not work, error: iterator on different containers
+		/*
+		auto is_not_elem = [](boost::shared_ptr<const DataProcessing > dpPtr)
+		{ 
+			return (find((*dpPtr).getProcessingActions().begin(), (*dpPtr).getProcessingActions().end(), DataProcessing::ProcessingAction::CALIBRATION) == (*dpPtr).getProcessingActions().end()); 
+		};
+		if (all_of(exp.getSpectra()[0].getDataProcessing().begin(), exp.getSpectra()[0].getDataProcessing().end(), is_not_elem))
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metric MzCalibration received a mzml file BEFORE map calibration, but need a mzml file AFTER map alignment");
+		}
+		*/
 		//set meta values for the first hit of all PeptideIdentifications of all features
 		for (Feature& feature : features)
 		{
