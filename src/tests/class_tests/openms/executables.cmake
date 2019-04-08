@@ -21,6 +21,7 @@ set(qc_executables_list
   Ms2IdentificationRate_test
   RTAlignment_test
   TIC_test
+  TopNoverRT_test
 )
 
 set(datastructures_executables_list

@@ -8,6 +8,7 @@ Ms2IdentificationRate.cpp
 QCBase.cpp
 RTAlignment.cpp
 TIC.cpp
+TopNoverRT.cpp
 )
 
 ### add path to the filenames
