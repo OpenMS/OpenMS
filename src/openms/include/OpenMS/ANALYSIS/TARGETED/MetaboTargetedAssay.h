@@ -67,6 +67,15 @@ namespace OpenMS
     TargetedExperiment::Compound potential_cmp;
     std::vector<ReactionMonitoringTransition> potential_rmts;
 
+    /**
+    @brief CompoundSpectrumPair stores a pair of CompoundInfo and MSSpectrum
+
+    */
+    struct CompoundSpectrumPair
+    {
+      std::pair <SiriusMSFile::CompoundInfo, MSSpectrum> compoundspectrumpair;
+    };
+
 
     /**
     @brief Extract a vector of MetaboTargetedAssays without using fragment annotation
@@ -111,7 +120,7 @@ namespace OpenMS
 
     */
 
-    static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssayFragmentAnnotation(const std::vector< std::pair <SiriusMSFile::CompoundInfo, MSSpectrum>>& v_cmp_spec,
+    static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssayFragmentAnnotation(const std::vector< CompoundSpectrumPair >& v_cmp_spec,
                                                                                          const double& transition_threshold,
                                                                                          const bool& use_exact_mass,
                                                                                          const bool& exclude_ms2_precursor,

@@ -361,7 +361,7 @@ protected:
         feature_mapping.assignedMS2 = known_features;
       }
 
-      vector< pair <SiriusMSFile::CompoundInfo, MSSpectrum> > v_cmp_spec;
+      vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
       if (use_fragment_annotation && executable.empty())
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -444,7 +444,9 @@ protected:
             // mid is saved in Name of the spectrum
             if (std::any_of(cmp.mids.begin(), cmp.mids.end(), [spec_fa](String &str){ return str == spec_fa.getName();}))
             {
-              v_cmp_spec.push_back(std::make_pair(cmp,spec_fa));
+              MetaboTargetedAssay::CompoundSpectrumPair csp;
+              csp.compoundspectrumpair = std::make_pair(cmp,spec_fa);
+              v_cmp_spec.push_back(csp);
             }
           }
         }

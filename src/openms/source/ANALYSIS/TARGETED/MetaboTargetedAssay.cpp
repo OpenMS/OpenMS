@@ -337,7 +337,7 @@ namespace OpenMS
   }
 
   // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor with fragment annotation using SIRIUS
-  std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(const vector <pair<SiriusMSFile::CompoundInfo, MSSpectrum>>& v_cmp_spec,
+  std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(const vector < CompoundSpectrumPair >& v_cmp_spec,
                                                                                                       const double& transition_threshold,
                                                                                                       const bool& use_exact_mass,
                                                                                                       const bool& exclude_ms2_precursor,
@@ -349,8 +349,9 @@ namespace OpenMS
     for (auto& it : v_cmp_spec)
     {
       // check if annotated spectrum exists
+      const std::pair <SiriusMSFile::CompoundInfo, MSSpectrum> &csp = it.compoundspectrumpair;
       MSSpectrum transition_spectrum;
-      transition_spectrum = it.second;
+      transition_spectrum = csp.second;
       if (transition_spectrum.empty())
       {
         continue;
@@ -363,13 +364,13 @@ namespace OpenMS
       String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
 
       double feature_rt;
-      feature_rt = it.first.rt;
-      description = it.first.des;
-      int charge = it.first.charge;
+      feature_rt = csp.first.rt;
+      description = csp.first.des;
+      int charge = csp.first.charge;
 
       // use annotated metadata
-      sumformula = it.second.getMetaValue("annotated_sumformula");
-      adduct = it.second.getMetaValue("annotated_adduct");
+      sumformula = csp.second.getMetaValue("annotated_sumformula");
+      adduct = csp.second.getMetaValue("annotated_adduct");
 
       // transition calculations
       // calculate max intensity peak and threshold
@@ -480,7 +481,7 @@ namespace OpenMS
         {
           float rel_int = current_int / max_int;
 
-          rmt.setPrecursorMZ((use_exact_mass && exact_mass_precursor != 0.0) ? exact_mass_precursor : it.first.pmass);
+          rmt.setPrecursorMZ((use_exact_mass && exact_mass_precursor != 0.0) ? exact_mass_precursor : csp.first.pmass);
           rmt.setProductMZ(current_mz);
           rmt.setLibraryIntensity(rel_int);
 
