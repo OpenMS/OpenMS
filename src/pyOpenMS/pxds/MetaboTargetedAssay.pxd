@@ -33,9 +33,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                                                                                          bool& exclude_ms2_precursor,
                                                                                          unsigned int& file_counter) nogil except +
 
-cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "OpenMS::MetaboTargetedAssay":
-
-    cdef cppclass MetaboTargetedAssay_CompoundSpectrumPair "OpenMS::MetaboTargetedAssay:":
+    cdef cppclass MetaboTargetedAssay_CompoundSpectrumPair "OpenMS::MetaboTargetedAssay::CompoundSpectrumPair":
 
         MetaboTargetedAssay_CompoundSpectrumPair() nogil except +
         MetaboTargetedAssay_CompoundSpectrumPair(MetaboTargetedAssay_CompoundSpectrumPair) nogil except + #wrap-ignore
