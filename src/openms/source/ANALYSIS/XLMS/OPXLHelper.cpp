@@ -1031,14 +1031,9 @@ namespace OpenMS
         ph_beta.setMetaValue("XL_Protein_position_alpha", prot1_pos);
         ph_alpha.setMetaValue("XL_Protein_position_beta", prot2_pos);
         ph_beta.setMetaValue("XL_Protein_position_beta", prot2_pos);
-
-        prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
-        ph_alpha.setMetaValue("accessions_beta", prot2_accessions);
-        ph_beta.setMetaValue("accessions_beta", prot2_accessions);
       }
       else
       {
-        ph_alpha.setMetaValue("accessions_beta", "-");
         // second cross-link position in Protein (loop-links)
         if (ph_alpha.getMetaValue("xl_pos2") != "-")
         {

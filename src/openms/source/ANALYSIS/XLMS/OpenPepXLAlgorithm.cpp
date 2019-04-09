@@ -1117,6 +1117,7 @@ using namespace OpenMS;
     pep_indexing.run(fasta_db, protein_ids, peptide_ids);
 
     OPXLHelper::addProteinPositionMetaValues(peptide_ids);
+    OPXLHelper::addBetaAccessions(peptide_ids);
     OPXLHelper::addXLTargetDecoyMV(peptide_ids);
     return OpenPepXLAlgorithm::ExitCodes::EXECUTION_OK;
   }

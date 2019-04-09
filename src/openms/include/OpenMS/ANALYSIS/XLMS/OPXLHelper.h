@@ -196,7 +196,7 @@ namespace OpenMS
       static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids);
 
       /**
-       * @brief adds xl_target_decoy MetvaValue that combines alpha and beta target_decoy info
+       * @brief adds xl_target_decoy MetaValue that combines alpha and beta target_decoy info
        * @param peptide_ids The vector of peptide_ids containing XL-MS search results, after mapping of peptides to proteins
        */
       static void addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids);
