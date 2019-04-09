@@ -1025,10 +1025,12 @@ protected:
         long binThresholdMinMass = (long) getBinNumber(log(param.minMass), massBinMinValue, param.binWidth);
 
         boost::dynamic_bitset<> isQualified(massBins.size());
-        Byte *continuousChargePeakPairCount = new Byte[massBins.size()];
-        fill_n(continuousChargePeakPairCount, massBins.size(), 0);
 
-        getInitialMassBins(massBins, mzBins, isQualified, continuousChargePeakPairCount,
+        float *sumLogIntensities = new float[massBins.size()];
+        fill_n(sumLogIntensities, massBins.size(), .0);
+
+        getInitialMassBins(massBins, mzBins, isQualified,
+                           sumLogIntensities,
                            hBinOffsets, binOffsets,
                            logIntensities,
                            param,
@@ -1038,7 +1040,7 @@ protected:
 
 
         auto perMassChargeRanges = getFinalMassBins(massBins, mzBins, isQualified, unionPrevMassBins,
-                                                    continuousChargePeakPairCount,
+                                                    sumLogIntensities,
                                                     binOffsets,
                                                     param,
                                                     binThresholdMinMass);
@@ -1046,7 +1048,8 @@ protected:
         //printMasses(massBins, massBinMinValue, continuousChargePeakPairCount, param);
 
 
-        delete[] continuousChargePeakPairCount;
+        //delete[] continuousChargePeakPairCount;
+        delete[] sumLogIntensities;
         return perMassChargeRanges;
     }
 
@@ -1071,7 +1074,8 @@ protected:
     static void getInitialMassBins(boost::dynamic_bitset<> &massBins,
                             boost::dynamic_bitset<> &mzBins,
                             boost::dynamic_bitset<> &isQualified,
-                            Byte *continuousChargePeakPairCount,
+                            //Byte *continuousChargePeakPairCount,
+                            float *sumLogIntensities,
                             long **hBinOffsets,
                             long *binOffsets,
                             float *logIntensities,
@@ -1083,6 +1087,8 @@ protected:
         int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
         long mzBinSize = (long) mzBins.size();
         long binEnd = (long) massBins.size();
+        Byte *continuousChargePeakPairCount = new Byte[massBins.size()];
+        fill_n(continuousChargePeakPairCount, massBins.size(), 0);
 
         Byte *prevCharges = new Byte[massBins.size()];
         fill_n(prevCharges, massBins.size(), (Byte) (chargeRange + 2));
@@ -1137,18 +1143,20 @@ protected:
                 if (h) continue;
                 isQualified[massBinIndex] =
                         ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount;
+                sumLogIntensities[massBinIndex] += logIntensity;
             }
             mzBinIndex = mzBins.find_next(mzBinIndex);
         }
         delete[] prevCharges;
         delete[] prevIntensities;
+        delete[] continuousChargePeakPairCount;
         //   delete[] hc;
     }
 
     static Byte **getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
                             boost::dynamic_bitset<> &isQualified,
                             boost::dynamic_bitset<> &unionPrevMassBins,
-                            Byte *continuousChargePeakPairCount,
+                            float *continuousChargePeakPairCount,
                             long *binOffsets,
                             const Parameter &param,
                             long binStart) {
@@ -1167,7 +1175,7 @@ protected:
 
         while (mzBinIndex != mzBins.npos) {
             long maxIndex = -1;
-            Byte maxCount = 0;
+            float maxCount = .0;
             Byte charge = 0;
 
             //vector<Byte> setCharges;
