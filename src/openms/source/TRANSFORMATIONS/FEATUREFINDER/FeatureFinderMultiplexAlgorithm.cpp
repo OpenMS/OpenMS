@@ -413,7 +413,10 @@ namespace OpenMS
           PeakIntegrator::PeakArea pa = pi.integratePeak(chromatogram, rt_start, rt_end);          
           intensity_sum += pa.area;
         }
-
+        else if (chromatogram.size() == 1)
+        {
+          intensity_sum += chromatogram.begin()->getIntensity();
+        }
       }
       
       rt /= intensity_sum_simple;
