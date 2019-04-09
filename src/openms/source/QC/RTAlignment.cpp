@@ -65,27 +65,15 @@ namespace OpenMS
 		{
 			for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
 			{
-				if (!peptide_ID.hasRT())
-				{
-					LOG_WARN << "A PeptideIdentification has no retention time value.\n";
-					continue;
-				}
-
-				if (peptide_ID.hasRT())
-				{
 					peptide_ID.setMetaValue("rt_align", trafo.apply(peptide_ID.getRT()));
 					peptide_ID.setMetaValue("rt_raw", peptide_ID.getRT());
-				}
 			}
 		}
 		//set meta values for all unasssigned PeptideIdentifications
 		for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
 		{
-			if (unassigned_ID.hasRT())
-			{
 				unassigned_ID.setMetaValue("rt_align", trafo.apply(unassigned_ID.getRT()));
 				unassigned_ID.setMetaValue("rt_raw", unassigned_ID.getRT());
-			}
 		}
 	}
 
