@@ -538,6 +538,15 @@ public:
     **/
     const MSChromatogram getTIC(float rt_bin_size=0) const;
 
+		/// returns a const reference to the description of the applied data processing
+		const std::vector<DataProcessing>& getDataProcessing() const;
+
+		/// returns a mutable reference to the description of the applied data processing
+		std::vector<DataProcessing>& getDataProcessing();
+
+		/// sets the description of the applied data processing
+		void setDataProcessing(const std::vector<DataProcessing>& processing_method);
+
     /**
       @brief Clears all data and meta data
 
@@ -557,6 +566,9 @@ protected:
 
     /// spectra
     std::vector<SpectrumType> spectra_;
+		
+		/// applied data processing
+		std::vector<DataProcessing> data_processing_;
 
 private:
 

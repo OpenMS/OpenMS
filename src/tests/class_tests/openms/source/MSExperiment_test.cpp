@@ -42,6 +42,7 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 ///////////////////////////
 
@@ -1155,6 +1156,24 @@ START_SECTION((const MSChromatogram getTIC() const))
 	TEST_EQUAL(chrom[2].getIntensity(),9);
 END_SECTION
 
+START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
+MSExperiment tmp;
+TEST_EQUAL(tmp.getDataProcessing().size(), 0);
+END_SECTION
+
+START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
+MSExperiment tmp;
+tmp.getDataProcessing().resize(1);
+TEST_EQUAL(tmp.getDataProcessing().size(), 1);
+END_SECTION
+
+START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
+MSExperiment tmp;
+std::vector<DataProcessing> dummy;
+dummy.resize(1);
+tmp.setDataProcessing(dummy);
+TEST_EQUAL(tmp.getDataProcessing().size(), 1);
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

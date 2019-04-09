@@ -74,12 +74,7 @@ pre.setMetaValue("mz_raw", 5);
 spec.setMSLevel(2);
 spec.setPrecursors({ pre });
 spec.setRT(0);
-DataProcessing processing_method1{};
-set<DataProcessing::ProcessingAction> dp1{ DataProcessing::ProcessingAction::CALIBRATION };
-processing_method1.setProcessingActions(dp1);
-DataProcessingPtr dpPtr1(&processing_method1);
-spec.setDataProcessing({ dpPtr1 });
-dpPtr1.reset;
+
 spectra.push_back(spec);
 pre.setMetaValue("mz_raw", 6);
 spec.setPrecursors({ pre });
@@ -90,6 +85,12 @@ spec.setPrecursors({ pre });
 spec.setRT(1);
 spectra.push_back(spec);
 exp.setSpectra(spectra);
+//set DataProcessing
+DataProcessing processing_method{};
+std::set<DataProcessing::ProcessingAction> dp{ DataProcessing::ProcessingAction::CALIBRATION };
+processing_method.setProcessingActions(dp);
+exp.setDataProcessing({ processing_method });
+
 //FeatureMap
 FeatureMap fmap;
 PeptideHit peptide_hit;
@@ -124,7 +125,6 @@ peptide_hits.clear();
 peptide_ID.setRT(0.5);
 unassignedIDs.push_back(peptide_ID);
 fmap.setUnassignedPeptideIdentifications(unassignedIDs);
-cout << "hier1\n";
 MzCalibration cal;
 //tests compute function
 START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp))
@@ -137,7 +137,6 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp))
 			ABORT_IF(!pepID.getHits()[0].metaValueExists("mz_raw"));
 		}
 	}
-	cout << "hier2\n";
 	//test with valid input
 	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_raw"), 5);
 	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getHits()[0].getMetaValue("mz_raw"), 7);
@@ -207,14 +206,13 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp))
 	exp.getSpectra()[0].setMSLevel(1);
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "The matching retention time of the MZML has the wrong MSLevel");
 	
-		//test exception if no calibration
-	/*DataProcessing processing_method{};
-	set<DataProcessing::ProcessingAction> dp{};
+		//test exception if no m/z-calibration
+	DataProcessing processing_method2{};
+	std::set<DataProcessing::ProcessingAction> dp{};
 	processing_method.setProcessingActions(dp);
-	DataProcessingPtr dpPtr (&processing_method);
-	exp.getSpectra()[0].setDataProcessing({dpPtr});
+	exp.setDataProcessing({ processing_method });
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "Metric MzCalibration received a mzml file BEFORE map calibration, but need a mzml file AFTER map alignment");
-	*/
+	
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

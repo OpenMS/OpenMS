@@ -63,6 +63,7 @@ namespace OpenMS
     RangeManagerType(),
     ExperimentalSettings(),
     ms_levels_(),
+		data_processing_(),
     total_size_(0)
   {}
 
@@ -73,7 +74,8 @@ namespace OpenMS
     ms_levels_(source.ms_levels_),
     total_size_(source.total_size_),
     chromatograms_(source.chromatograms_),
-    spectra_(source.spectra_)
+    spectra_(source.spectra_),
+		data_processing_(source.data_processing_)
   {}
 
   /// Assignment operator
@@ -88,6 +90,7 @@ namespace OpenMS
     total_size_ = source.total_size_;
     chromatograms_ = source.chromatograms_;
     spectra_ = source.spectra_;
+		data_processing_ = source.data_processing_;
 
     //no need to copy the alloc?!
     //alloc_
@@ -108,6 +111,7 @@ namespace OpenMS
     return ExperimentalSettings::operator==(rhs) &&
       chromatograms_ == rhs.chromatograms_ &&
       spectra_ == rhs.spectra_;
+			data_processing_ == rhs.data_processing_;
   }
 
   /// Equality operator
@@ -556,6 +560,7 @@ namespace OpenMS
     //swap remaining members
     ms_levels_.swap(from.ms_levels_);
     std::swap(total_size_, from.total_size_);
+		data_processing_.swap(from.data_processing_);
   }
 
   /// sets the spectrum list
@@ -666,6 +671,18 @@ namespace OpenMS
     return TIC;
   }
 
+		const std::vector<DataProcessing>& MSExperiment::getDataProcessing() const
+	{
+		return data_processing_;
+	}
+	std::vector<DataProcessing>& MSExperiment::getDataProcessing()
+	{
+		return data_processing_;
+	}
+	void MSExperiment::setDataProcessing(const std::vector<DataProcessing>& processing_method)
+	{
+		data_processing_ = processing_method;
+	}
   /**
   @brief Clears all data and meta data
 
@@ -674,6 +691,7 @@ namespace OpenMS
   void MSExperiment::clear(bool clear_meta_data)
   {
     spectra_.clear();
+		data_processing_.clear();
 
     if (clear_meta_data)
     {
