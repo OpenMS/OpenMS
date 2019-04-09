@@ -29,7 +29,7 @@ class FLASHDeconv :
 
 public:
     FLASHDeconv() :
-            TOPPBase("FLASHDeconv",
+            TOPPBase("FLASHDeconv & FeatureFinderIntact",
                      "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
                      false) {}
 
@@ -139,10 +139,6 @@ public:
         int massIndex, specIndex, massCntr;
         MSSpectrum *spec;
 
-        ~PeakGroup() {
-            //vector<LogMzPeak>().swap(peaks);
-        }
-
         void push_back(LogMzPeak &p) {
             peaks.push_back(p);
         }
@@ -184,7 +180,7 @@ protected:
 
     void registerOptionsAndFlags_() override {
         registerInputFile_("in", "<input file>", "", "Input file");
-        //setValidFormats_("in", ListUtils::create<String>("mzML"));
+        //setValidFormats_("in", ListUtils::create<String>("mzML"),);
         registerOutputFile_("out", "<output file prefix/output dir>", "",
                             "Output file prefix or output dir (if prefix, [file prefix].tsv , [file prefix]feature.tsv, and [file prefix].m will be generated. "
                             "if dir, [dir]/[inputfile].tsv, [dir]/[inputfile]feature.tsv, and [dir]/[inputfile].m are generated per [inputfile])");
@@ -440,8 +436,6 @@ protected:
                 << mt.getMaxIntensity(false) << "\t"
                 << mt.computePeakArea() << "\n";
         }
-        //vector<MassTrace>().swap(m_traces);
-        //fsf.flush();
     }
 
     static void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false) {
@@ -579,7 +573,7 @@ protected:
            << "\n";
 
         //cout<<1<<endl;
-/*
+
         fsp << "pg" << (int) (pg.monoisotopicMass * 10) << "rt" << (int) (pg.spec->getRT())
             << "=[";
 
@@ -589,7 +583,7 @@ protected:
 
         fsp << "];\n";
         //cout<<3<<endl;
-*/
+
         fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
         //cout<<4<<endl;
 
@@ -1039,12 +1033,18 @@ protected:
                            logIntensities,
                            param,
                            binThresholdMinMass);
+
+        //printMasses(isQualified, massBinMinValue, continuousChargePeakPairCount, param);
+
+
         auto perMassChargeRanges = getFinalMassBins(massBins, mzBins, isQualified, unionPrevMassBins,
                                                     continuousChargePeakPairCount,
                                                     binOffsets,
                                                     param,
                                                     binThresholdMinMass);
+
         //printMasses(massBins, massBinMinValue, continuousChargePeakPairCount, param);
+
 
         delete[] continuousChargePeakPairCount;
         return perMassChargeRanges;
@@ -1055,7 +1055,7 @@ protected:
         auto index = massBins.find_first();
         while (index != massBins.npos) {
             auto m = exp(getBinValue(index, massBinMinValue, param.binWidth));
-            if (m < 11900 && m > 11800) {
+            if (m < 50500 && m > 50400) {
 
                 cout << m <<
                      " " << (int) continuousChargePeakPairCount[index] <<
@@ -1092,7 +1092,7 @@ protected:
 
 //        Byte *hc = new Byte[massBins.size()];
         //       fill_n(hc, massBins.size(), 0);
-
+        float idThreshold = 2.0;
         //int ct = 10 - param.minCharge;
         auto mzBinIndex = mzBins.find_first();
         while (mzBinIndex != mzBins.npos) {
@@ -1108,7 +1108,7 @@ protected:
                 auto &prevIntensity = prevIntensities[massBinIndex];
                 auto id = prevIntensity- logIntensity;
                 //prevIntensities[massBinIndex] = logIntensity;
-                if (cd != 1 || id > 1 || id < -1) {
+                if (cd != 1 || id > idThreshold || id < -idThreshold) {
                     prevIntensity = logIntensity;
                     continue;
                 }
@@ -1121,8 +1121,8 @@ protected:
                         auto bin = hbi + i;
                         if (bin < 0 || bin > mzBinSize) continue;
                         if (mzBins[bin]
-                            && (abs(logIntensity - logIntensities[bin]) <= 1 ||
-                                abs(prevIntensity - logIntensities[bin]) <= 1)) {
+                            && (abs(logIntensity - logIntensities[bin]) <= idThreshold ||
+                                abs(prevIntensity - logIntensities[bin]) <= idThreshold)) {
                             h = true;
                             //if(++hc[massBinIndex] > 2) {
                             //unionPrevMassBins[massBinIndex] = false;
@@ -1551,15 +1551,16 @@ protected:
         auto perChargeIntensity = new double[range];
         double maxPerChargeIntensity = .0;
         int nonZeroStart = -1, nonZeroEnd = 0;
-
+       // vector<double> intensities;
         for (int i = 0; i < range; i++) {
             double intensity = 0;
             for (int j = 0; j < range2; j++) {
                 intensity += perChargeIsotopeIntensity[i][j];
             }
             perChargeIntensity[i] = intensity;
-            maxPerChargeIntensity = max(maxPerChargeIntensity, intensity);
             if (intensity > 0) {
+               // intensities.push_back(intensity);
+                maxPerChargeIntensity = max(maxPerChargeIntensity, intensity);
                 if (nonZeroStart < 0) nonZeroStart = i;
                 nonZeroEnd = i;
             }
@@ -1570,7 +1571,10 @@ protected:
         double n1 = .0;
         double n2 = .0;
         int n4 = 0;
-        double intensityThreshold = maxPerChargeIntensity / 5.0;//
+        //sort(intensities.begin(), intensities.end());
+
+        double intensityThreshold = maxPerChargeIntensity / 5.0;//intensities[intensities.size()*95/100] / 5.0;
+        //cout<<intensityThreshold<< " " << maxPerChargeIntensity << " " << intensities[intensities.size()-1]  << endl;
         //int cntr = 1;
         //int maxCntr = 0;
         //cost = .7;
@@ -1580,11 +1584,11 @@ protected:
             }
 
             if (k - prevCharge == 1) {
-                //double logFoldChange = log2(perChargeIntensity[k]/perChargeIntensity[prevCharge]);
+                //double logFoldChange = log10(perChargeIntensity[k]/perChargeIntensity[prevCharge]);
                 //double cos = getCosine(perChargeIsotopeIntensity[k], perChargeIsotopeIntensity[prevCharge], range2);
                 //if (cos > cost) {
-                //if(abs(logFoldChange)<2){
-                n1++;
+                //if(abs(logFoldChange)<1)
+                    n1++;
                 //} else {
                 // cntr = 0;
                 //    n2++;
@@ -1609,11 +1613,11 @@ protected:
                         continue;
                     }
                     if (k - prevCharge == i) {
-                        //double logFoldChange = log2(perChargeIntensity[k]/perChargeIntensity[prevCharge]);
+                        //double logFoldChange = log10(perChargeIntensity[k]/perChargeIntensity[prevCharge]);
                         //    double cos = getCosine(perChargeIsotopeIntensity[k], perChargeIsotopeIntensity[prevCharge], range2);
                         //    if (cos > cost) {
-                        //if(abs(logFoldChange)<2){
-                        t++;
+                        //if(abs(logFoldChange)<1)
+                            t++;
                         //   }
                     }
                     prevCharge = k;
@@ -1626,7 +1630,7 @@ protected:
         delete[] perChargeIntensity;
 
         if (n4 > 2 && n1 < n4) return -100.0;
-        //if (maxCntr < threshold) return -100.0;
+        if (n1 < threshold) return -100.0;
         return n1 / (n1 + n2);
     }
 
