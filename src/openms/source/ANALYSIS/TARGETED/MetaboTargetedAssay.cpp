@@ -53,7 +53,7 @@ namespace OpenMS
 
   // method to extract a potential transistions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
   std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssay(const MSExperiment& spectra,
-                                                                                    const Map<BaseFeature const *, vector < size_t>>& feature_ms2_spectra_map,
+                                                                                    const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
                                                                                     const double& precursor_rt_tol,
                                                                                     const double& precursor_mz_distance,
                                                                                     const double& cosine_sim_threshold,
@@ -64,6 +64,8 @@ namespace OpenMS
   {
     int transition_group_counter = 0;
     vector <MetaboTargetedAssay> v_mta;
+    const Map<BaseFeature const *, vector < size_t>>& feature_ms2_spectra_map = feature_ms2_index.assignedMS2;
+
 
     for (auto& it : feature_ms2_spectra_map)
       {

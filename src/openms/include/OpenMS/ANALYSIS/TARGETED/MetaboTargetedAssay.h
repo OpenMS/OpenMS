@@ -76,7 +76,7 @@ namespace OpenMS
 
 
     @param spectra: Input of MSExperiment with spectra information
-    @param feature_ms2_spectra_map: Feature with associated MS2 spectra
+    @param feature_ms2_spectra_map: FeatureMapping class with associated MS2 spectra
     @param precursor_rt_tol: Retention time tolerance of the precursor
     @param precursor_mz_distance: Max m/z distance of the precursor entries of two spectra to be merged
     @param cosine_sim_threshold: Cosine similarty threshold for the usage of SpectraMerger
@@ -88,7 +88,7 @@ namespace OpenMS
     */
 
     static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssay(const MSExperiment& spectra,
-                                                                       const Map<BaseFeature const *, std::vector<size_t>>& feature_ms2_spectra_map,
+                                                                       const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
                                                                        const double& precursor_rt_tol,
                                                                        const double& precursor_mz_distance,
                                                                        const double& cosine_sim_threshold,

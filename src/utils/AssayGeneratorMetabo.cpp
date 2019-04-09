@@ -519,7 +519,7 @@ protected:
       else // use heuristics
       {
         tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssay(spectra,
-                                                                  feature_mapping.assignedMS2,
+                                                                  feature_mapping,
                                                                   precursor_rt_tol,
                                                                   precursor_mz_distance,
                                                                   cosine_sim_threshold,
