@@ -64,8 +64,7 @@ namespace OpenMS
       double variance_ppm;
     };
 
-
-    void compute(FeatureMap& fmap, const MSExperiment& exp, const double mz_tolerance = 20);
+    void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const bool tolerance_unit_ppm = false);
 
     /// returns results
     std::vector<FMEStatistics> getResults() const;

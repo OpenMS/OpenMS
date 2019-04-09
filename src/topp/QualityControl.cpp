@@ -79,7 +79,8 @@ protected:
     //possible additions:
     //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
     registerFlag_("MS2_id_rate:force_no_fdr", "forces the metric to run if fdr was not made, accept all pep_ids as target hits");
-    registerFlag_("FragmentMassError:tolerance", "searchwindow for matching peaks");
+    registerFlag_("FragmentMassError:tolerance_unit_ppm", "unit for tolerance, default m/z");
+    registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "searchwindow for matching Peaks in two spectra, default in m/z", getFlag_("FragmentMassError:tolerance_unit_ppm"));
 
   }
   // the main_ function is called after all parameters are read
@@ -108,7 +109,8 @@ protected:
 
     //check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
-    double tolerance_flag = getFlag_("FragmentMassError:tolerance");
+    bool tolerance_unit_ppm_flag = getFlag_("FragmentMassError:tolerance_unit_ppm");
+    double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
 
 
     // Instantiate the QC metrics
@@ -152,7 +154,7 @@ protected:
 
       if (status.isSuperSetOf(qc_frag_mass_err.requires()))
       {
-        qc_frag_mass_err.compute(fmap, exp, tolerance_flag);
+        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit_ppm_flag);
       }
 
 

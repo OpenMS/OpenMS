@@ -38,7 +38,7 @@
 
 namespace OpenMS
 {
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double mz_tolerance)
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const bool tolerance_unit_ppm)
   {
     FMEStatistics result;
 
@@ -75,7 +75,7 @@ namespace OpenMS
     }
 
 
-    auto lamCompPPM = [&exp_filtered, rt_tolerance, mz_tolerance, &accumulator_ppm, &counter_ppm](PeptideIdentification& pep_id)
+    auto lamCompPPM = [&exp_filtered, rt_tolerance, tolerance, tolerance_unit_ppm, &accumulator_ppm, &counter_ppm](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -159,27 +159,70 @@ namespace OpenMS
       //stores ppms for one spectrum
       DoubleList ppms{};
 
+      double inf = std::numeric_limits<double>::infinity();
+
+      //exp_peak matching to previous theo_peak
+      double current_exp = inf;
+
+      //minimal ppm
+      double ppm = inf;
 
       for (const Peak1D& peak : theo_spectrum)
+      //for (UInt32 i = 0; i < theo_spectrum.size(); ++i)
       {
         const double theo_mz = peak.getMZ();
         Size index = exp_spectrum.findNearest(theo_mz);
         const double exp_mz = exp_spectrum[index].getMZ();
 
-        //found peak match
+        const double mz_tolerance = tolerance_unit_ppm ?  theo_mz * tolerance * 1e-6 : tolerance;
 
-       // auto ppm = Math::getPPM(exp_mz,theo_mz);
-       //if (std::abs(ppm) < mz_tolerance)
-       if(std::abs(theo_mz-exp_mz) < mz_tolerance)
+
+        //found peak match
+        if (std::abs(theo_mz-exp_mz) < mz_tolerance)
         {
-          auto ppm = Math::getPPM(exp_mz,theo_mz);
-          ppms.push_back(ppm);
-          //accumulator_ppm += ppm;
-          std::cout << "T  " << theo_mz << "    E  " << exp_mz << std::endl;
-          accumulator_ppm += theo_mz-exp_mz;
-          ++ counter_ppm;
-        }
+          auto current_ppm = theo_mz - exp_mz;
+
+          //first peak in tolerance range
+          if (current_exp == inf)
+          {
+            ppm = current_ppm;
+            current_exp = exp_mz;
+          }
+
+          //theo_peak matches to a exp_peak that is already matched
+          //&& ppm is smaller than before
+          if (current_exp == exp_mz && abs(current_ppm) < abs(ppm))
+          {
+            ppm = current_ppm;
+            std::cout << "theo_mz: " << theo_mz<< std::endl;
+            std::cout << "exp_mz: " << exp_mz<< std::endl;
+          }
+
+          //theo_peak matches to another exp_peaks
+          if (current_exp != exp_mz)
+          {
+            // TODO change to ppm
+            ppms.push_back(ppm);
+
+            std::cout << "ppm " << ppm << std::endl;
+            //std::cout << "Theo  " << theo_mz << "    Exp   " << exp_mz << std::endl;
+
+            ++ counter_ppm;
+
+            std::cout<< "c:  " << counter_ppm << std::endl;
+            accumulator_ppm += ppm;
+            ppm = current_ppm;
+            current_exp = exp_mz;
+          }
+
+         }
       }
+
+      //last peak doesn't have a successor so he has to be added manually
+      ppms.push_back(ppm);
+      accumulator_ppm += ppm;
+      ++ counter_ppm;
+
 
       //-----------------------------------------------------------------------
       // WRITE PPM ERROR IN PEPTIDEHIT
