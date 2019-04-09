@@ -41,10 +41,11 @@ namespace OpenMS
 	class MSExperiment;
 	class TransformationDescription;
 	/**
-		@brief TopNoverRT add all unidentified MS2 scans to the unassignedPeptideIDs specifying the retention time value and 
-		sets the metaValue "ScanEventNumber" for each PeptideID. The values of "ScanEventNumber" correspond to the number 
-		of the MS2 scan after the MS1 scan. Once all these data are included, you can determine the number of MS2 scans 
-		after one MS1 scan.
+		@brief TopNoverRT add all unidentified MS2 scans to the unassignedPeptideIdentifications specifying the retention time value and 
+		sets the metaValues "ScanEventNumber" and "identified" for each PeptideIdentifications. The values of "ScanEventNumber" correspond to the number 
+		of the MS2 scan after the MS1 scan. "identified" marked all PeptideIdentifications of the FeatureMap with '+' and 
+		all unidentified MS2-Spectra with '-'. Once all these data are included, you can determine the number of MS2 scans 
+		after one MS1 scan and the part of identified MS2-Scans per "ScanEventNumber".
 		@param exp: import calibrated mzml file as MSExperiment
 		@param features: import featureXML file after FDR as FeatrueMap
 		**/
@@ -56,7 +57,7 @@ namespace OpenMS
 		/// Destructor
 		virtual ~TopNoverRT() = default;
 
-		/// calculate post map alignment retention time, set meta values "rt_raw" and "rt_align"
+		/// calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications. Writes meta values "ScanEventNumber" and "identified" in PeptideIdentification
 		void compute(const MSExperiment& exp, FeatureMap& features);
 		/// define the required input file: featureXML after FDR (=POSTFDRFEAT), mzml-file (MSExperiment) with all MS2-Spectra (=RAWMZML)
 		Status requires() const override;

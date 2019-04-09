@@ -88,72 +88,54 @@ namespace OpenMS
 		{
 			for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
 			{
-				if (!peptide_ID.hasRT())
-				{
-					LOG_WARN << "A PeptideIdentification has no retention time value.\n";
-					continue;
-				}
-
-				if (peptide_ID.hasRT())
-				{
-					MSExperiment::ConstIterator it = exp.RTBegin(peptide_ID.getRT() - EPSILON_);
-					if (it == exp.end())
-					{
-						throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
-					}
-
-					const auto& spectrum = *it;
-					if (spectrum.getRT() - peptide_ID.getRT() > EPSILON_)
-					{
-						throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
-					}
-
-					if (spectrum.getMSLevel() == 2)
-					{
-						ms2_included_[distance(exp.begin(), it)].second = true;
-						peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
-						peptide_ID.setMetaValue("identified", '+');
-					}
-					else
-					{
-						throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Level does not match");
-					}
-				}
-			}
-		}
-		//marks all seen unassignedPeptideIdentifications in vector ms2_included
-		for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
-		{
-			if (!unassigned_ID.hasRT())
-			{
-				LOG_WARN << "A PeptideIdentification has no retention time value.\n";
-				continue;
-			}
-
-			if (unassigned_ID.hasRT())
-			{
-				MSExperiment::ConstIterator it = exp.RTBegin(unassigned_ID.getRT() - EPSILON_);
+				MSExperiment::ConstIterator it = exp.RTBegin(peptide_ID.getRT() - EPSILON_);
 				if (it == exp.end())
 				{
 					throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
 				}
 
 				const auto& spectrum = *it;
-				if (spectrum.getRT() - unassigned_ID.getRT() > EPSILON_)
+				if (spectrum.getRT() - peptide_ID.getRT() > EPSILON_)
 				{
-					throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
+					throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + to_string(peptide_ID.getRT()) + " s does not have a matching MS2 spectrum. Closest RT was " + to_string(spectrum.getRT()) + ", which seems too far off.\n");
 				}
 
 				if (spectrum.getMSLevel() == 2)
 				{
 					ms2_included_[distance(exp.begin(), it)].second = true;
-					unassigned_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
-					unassigned_ID.setMetaValue("identified", '+');
+					peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
+					peptide_ID.setMetaValue("identified", '+');
 				}
 				else
 				{
-					throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Level does not match");
-				}
+					throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching retention time of the MZML has the wrong MSLevel");
+				}	
+			}
+		}
+		//marks all seen unassignedPeptideIdentifications in vector ms2_included
+		for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
+		{
+			MSExperiment::ConstIterator it = exp.RTBegin(unassigned_ID.getRT() - EPSILON_);
+			if (it == exp.end())
+			{
+				throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
+			}
+
+			const auto& spectrum = *it;
+			if (spectrum.getRT() - unassigned_ID.getRT() > EPSILON_)
+			{
+				throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + to_string(unassigned_ID.getRT()) + " s does not have a matching MS2 spectrum. Closest RT was " + to_string(spectrum.getRT()) + ", which seems too far off.\n");
+			}
+
+			if (spectrum.getMSLevel() == 2)
+			{
+				ms2_included_[distance(exp.begin(), it)].second = true;
+				unassigned_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
+				unassigned_ID.setMetaValue("identified", '+');
+			}
+			else
+			{
+				throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching retention time of the MZML has the wrong MSLevel");
 			}
 		}
 	}

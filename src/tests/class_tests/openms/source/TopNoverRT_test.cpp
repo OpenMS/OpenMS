@@ -175,15 +175,14 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
 
 	//test exceptions spectrum.getRT() - peptide_ID.getRT() > EPSILON_
 	exp.getSpectra()[0].setRT(0.1);
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "The retention time of the MZML and featureXML file does not match.");
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "PeptideID with RT " + to_string(0.0) + " s does not have a matching MS2 spectrum. Closest RT was " + to_string(0.1) + ", which seems too far off.\n");
 	//test exception rt>end()
 	exp.getSpectra()[0].setRT(0);
 	fmap[1].getPeptideIdentifications()[1].setRT(50);
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "The retention time of the MZML and featureXML file does not match.");
 	//test exception if closest RT to PeptideID has MS-Level=1
 	exp.getSpectra()[0].setMSLevel(1);
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "Level does not match");
-	
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "The matching retention time of the MZML has the wrong MSLevel");
 }
 END_SECTION
 
