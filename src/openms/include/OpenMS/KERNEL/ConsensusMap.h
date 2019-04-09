@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -52,6 +53,7 @@ namespace OpenMS
 {
   class ProteinIdentification;
   class DataProcessing;
+
   namespace Logger
   {
     class LogStream;
@@ -240,6 +242,15 @@ public:
     /// Swaps the content of this map with the content of @p from
     OPENMS_DLLAPI void swap(ConsensusMap& from);
 
+    /// non-mutable access to the identifications
+    OPENMS_DLLAPI const IdentificationData& getIdentificationData() const;
+
+    /// mutable access to the identifications
+    OPENMS_DLLAPI IdentificationData& getIdentificationData();
+
+    /// set the identifications
+    OPENMS_DLLAPI void setIdentificationData(const IdentificationData& id);
+
     /// non-mutable access to the protein identifications
     OPENMS_DLLAPI const std::vector<ProteinIdentification>& getProteinIdentifications() const;
 
@@ -332,6 +343,8 @@ public:
     bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
 
 protected:
+    /// general identification data structure
+    IdentificationData identifications_;
 
     /// Map from index to file description
     ColumnHeaders column_description_;

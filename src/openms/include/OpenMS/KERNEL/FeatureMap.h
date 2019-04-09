@@ -44,6 +44,8 @@
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+
 
 #include <algorithm>
 #include <exception>
@@ -218,6 +220,15 @@ public:
 
     OPENMS_DLLAPI void swap(FeatureMap& from);
 
+    /// non-mutable access to the identifications
+    OPENMS_DLLAPI const IdentificationData& getIdentificationData() const;
+
+    /// mutable access to the identifications
+    OPENMS_DLLAPI IdentificationData& getIdentificationData();
+
+    /// set the identifications
+    OPENMS_DLLAPI void setIdentificationData(const IdentificationData& id);
+
     /// non-mutable access to the protein identifications
     OPENMS_DLLAPI const std::vector<ProteinIdentification>& getProteinIdentifications() const;
 
@@ -298,6 +309,8 @@ public:
     OPENMS_DLLAPI AnnotationStatistics getAnnotationStatistics() const;
 
 protected:
+    /// general identification data structure
+    IdentificationData identifications_;
 
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;

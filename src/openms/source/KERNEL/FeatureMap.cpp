@@ -308,6 +308,21 @@ namespace OpenMS
     data_processing_.swap(from.data_processing_);
   }
 
+  const IdentificationData& FeatureMap::getIdentificationData() const
+  {
+    return identifications_;
+  }
+
+  IdentificationData& FeatureMap::getIdentificationData()
+  {
+    return identifications_;
+  }
+
+  void FeatureMap::setIdentificationData(const IdentificationData& id)
+  {
+    identifications_ = id;
+  }
+
   const std::vector<ProteinIdentification>& FeatureMap::getProteinIdentifications() const
   {
     return protein_identifications_;

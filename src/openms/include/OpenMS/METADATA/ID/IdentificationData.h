@@ -179,9 +179,21 @@ namespace OpenMS
       current_step_ref_(processing_steps_.end())
     {
     }
-    // Copy constructor - not allowed, as references would be invalidated:
-    // @TODO: implement using deep copy
-    IdentificationData(const IdentificationData& other) = delete;
+
+    // Copy constructor
+    IdentificationData(const IdentificationData& other):
+      MetaInfoInterface(other)
+    {
+      assign_(other);
+    }
+
+    // Assignment operator
+    IdentificationData& operator=(const IdentificationData& other)     
+    {
+      MetaInfoInterface::operator=(other);
+      assign_(other);
+      return *this;
+    }
 
     /// Move constructor
     IdentificationData(IdentificationData&& other):
@@ -443,6 +455,179 @@ namespace OpenMS
     }
 
   protected:
+    void assign_(const IdentificationData& other)
+    {
+      input_files_ = other.input_files_;
+      processing_softwares_ = other.processing_softwares_;
+      processing_steps_ = other.processing_steps_;
+      db_search_params_ = other.db_search_params_;
+
+      // rebuild db_search_steps
+      for (const auto& d : other.db_search_steps_) 
+      {
+        auto ps = processing_steps_.find(*d.first);
+        auto sp = db_search_params_.find(*d.second);
+        db_search_steps_.insert({ps, sp});
+      }
+
+      score_types_ = other.score_types_;
+      data_queries_ = other.data_queries_;
+
+      // copy and modify references (faster)
+      parent_molecules_ = other.parent_molecules_;
+      updateStepsAndScores_(parent_molecules_);
+
+      // need to rebuild parent_molecule_groupings
+      for (const auto grouping : other.parent_molecule_groupings_) 
+      {
+        ParentMoleculeGrouping new_grouping;
+        new_grouping.label = grouping.label; 
+        for (const auto& g : grouping.groups)
+        {
+          ParentMoleculeGroup new_pg;
+          // update group member references
+          for (ParentMoleculeRef ref : g.parent_molecule_refs)
+          {
+            auto key = parent_molecules_.find(ref->accession);
+            new_pg.parent_molecule_refs.insert(key);
+          }
+
+          // update group score references
+          for (const auto& pair : g.scores)
+          {
+            auto key = score_types_.find(*pair.first);
+            new_pg.scores.insert({key, pair.second});
+          }
+          new_grouping.groups.insert(new_pg);
+        }
+        parent_molecule_groupings_.push_back(new_grouping);
+      }
+
+      identified_peptides_ = other.identified_peptides_;
+      updateStepsAndScores_(identified_peptides_);
+      updateParentMatches_(identified_peptides_);
+
+      identified_compounds_ = other.identified_compounds_;
+      updateStepsAndScores_(identified_compounds_);
+
+      identified_oligos_ = other.identified_oligos_;
+      updateStepsAndScores_(identified_oligos_);
+      updateParentMatches_(identified_oligos_);
+
+      // rebuild molecule query matches
+      for (const auto& qm : other.query_matches_)
+      {
+        const MoleculeType& t = qm.getMoleculeType();
+        IdentifiedMoleculeRef new_imr;
+        switch(t)
+        {
+          case MoleculeType::PROTEIN:
+          {
+            auto value = boost::get<IdentifiedPeptideRef>(&qm.identified_molecule_ref);
+            new_imr = identified_peptides_.find((*value)->sequence);
+            break;
+          }
+          case MoleculeType::COMPOUND:
+          {
+            auto value = boost::get<IdentifiedCompoundRef>(&qm.identified_molecule_ref);
+            new_imr = identified_compounds_.find((*value)->identifier);
+            break;
+          }
+          case MoleculeType::RNA:
+          {
+            auto value = boost::get<IdentifiedOligoRef>(&qm.identified_molecule_ref);
+            new_imr = identified_oligos_.find((*value)->sequence);
+            break;
+          }
+          default:
+            String msg = "Invalid molecule type.";
+            String val(static_cast<Int>(t));
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, val);
+          break;
+        }
+        DataQueryRef new_dqr = data_queries_.find(*qm.data_query_ref);
+        MoleculeQueryMatch new_mqm(new_imr, new_dqr);
+        new_mqm.charge = qm.charge;
+        for (const auto& pas : qm.peak_annotations)
+        {
+          if (pas.first) // has peak annotation with processing step information?
+          {
+            ProcessingStepRef key = processing_steps_.find(**pas.first);
+            new_mqm.peak_annotations.insert(make_pair(key, pas.second));
+          }
+          else
+          {
+            new_mqm.peak_annotations[boost::none] = pas.second;
+          }
+        }
+        new_mqm.steps_and_scores = qm.steps_and_scores; // references will be updated below        
+        query_matches_.insert(new_mqm);
+      }
+      updateStepsAndScores_(query_matches_);
+
+      for (auto const& qmg : other.query_match_groups_)
+      {
+        std::set<QueryMatchRef> new_qmr;
+        for (auto const& qmr : qmg.query_match_refs)
+        {
+          DataQueryRef new_dqr = data_queries_.find(*qmr->data_query_ref);
+          const MoleculeType& t = qmr->getMoleculeType();
+          IdentifiedMoleculeRef new_imr;
+          switch(t)
+          {
+            case MoleculeType::PROTEIN:
+            {
+              auto value = boost::get<IdentifiedPeptideRef>(&qmr->identified_molecule_ref);
+              new_imr = identified_peptides_.find((*value)->sequence);
+              break;
+            }
+            case MoleculeType::COMPOUND:
+            {
+              auto value = boost::get<IdentifiedCompoundRef>(&qmr->identified_molecule_ref);
+              new_imr = identified_compounds_.find((*value)->identifier);
+              break;
+            }
+            case MoleculeType::RNA:
+            {
+              auto value = boost::get<IdentifiedOligoRef>(&qmr->identified_molecule_ref);
+              new_imr = identified_oligos_.find((*value)->sequence);
+              break;
+            }
+            default:
+              String msg = "Invalid molecule type.";
+              String val(static_cast<Int>(t));
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, val);
+              break;
+          }
+          
+          QueryMatchRef key = query_matches_.find(make_tuple(new_dqr, new_imr));
+          new_qmr.insert(key);
+        }
+        QueryMatchGroup new_qmg;
+        new_qmg.query_match_refs = new_qmr;
+        new_qmg.steps_and_scores = qmg.steps_and_scores; // updated below
+        query_match_groups_.insert(new_qmg);  
+      }
+      updateStepsAndScores_(query_match_groups_);
+
+      if (other.current_step_ref_ != other.processing_steps_.end())
+      {
+        current_step_ref_ = processing_steps_.find(*other.current_step_ref_);
+      }
+      else // set to our end iterator
+      {
+        current_step_ref_ = processing_steps_.end();
+      }
+
+      // look-up tables:
+      updateAddressLookup_(data_queries_, data_query_lookup_);
+      updateAddressLookup_(parent_molecules_, parent_molecule_lookup_);
+      updateAddressLookup_(identified_peptides_, identified_peptide_lookup_);
+      updateAddressLookup_(identified_compounds_, identified_compound_lookup_);
+      updateAddressLookup_(identified_oligos_, identified_oligo_lookup_);
+      updateAddressLookup_(query_matches_, query_match_lookup_);
+    }
+
 
     // containers:
     InputFiles input_files_;
@@ -561,6 +746,54 @@ namespace OpenMS
       const AddressLookup& lookup;
     };
 
+
+    /// Helper function for updating steps and score entries and associated references
+    template <typename ContainerType>
+    void updateStepsAndScores_(ContainerType& target)
+    {
+      for (auto p = target.begin(); p != target.end(); ++p) 
+      {
+        AppliedProcessingSteps apss;
+        for (const auto& s : p->steps_and_scores)
+        {
+          AppliedProcessingStep as;
+
+          if (s.processing_step_opt) // boost::optional
+          {
+            auto ref = processing_steps_.find(**s.processing_step_opt);
+            as.processing_step_opt = ref;
+          }
+          // update group score references
+          for (const auto& pair : s.scores)
+          {
+            auto key = score_types_.find(*pair.first);
+            as.scores.insert({key, pair.second});
+          }
+          apss.push_back(as);
+        }
+        auto modifier = [&apss](typename ContainerType::value_type& e) { e.steps_and_scores = apss; };
+        target.modify(p, modifier);
+      }
+    }
+
+    /// Helper function for updating references in parent matches
+    template <typename ContainerType>
+    void updateParentMatches_(ContainerType& target)
+    {    
+      for (auto p = target.begin(); p != target.end(); ++p) 
+      {
+        ParentMatches new_pms;
+
+        for (const auto& m : p->parent_matches)
+        {
+          ParentMoleculeRef key = parent_molecules_.find(m.first->accession);
+          new_pms[key] = m.second;
+        }
+        
+        auto modifier = [&new_pms, &target](typename ContainerType::value_type& p) { p.parent_matches = new_pms; };
+        target.modify(p, modifier);
+      }
+    }
 
     /// Helper function for adding entries (derived from ScoredProcessingResult) to a @t boost::multi_index_container structure
     template <typename ContainerType, typename ElementType>

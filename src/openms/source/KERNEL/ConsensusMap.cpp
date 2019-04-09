@@ -39,6 +39,7 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace OpenMS
 {
@@ -494,6 +495,21 @@ namespace OpenMS
   void ConsensusMap::setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
   {
     protein_identifications_ = protein_identifications;
+  }
+
+  const IdentificationData& ConsensusMap::getIdentificationData() const
+  {
+    return identifications_;
+  }
+
+  IdentificationData& ConsensusMap::getIdentificationData()
+  {
+    return identifications_;
+  }
+
+  void ConsensusMap::setIdentificationData(const IdentificationData& id)
+  {
+    identifications_ = id;
   }
 
   /// non-mutable access to the unassigned peptide identifications

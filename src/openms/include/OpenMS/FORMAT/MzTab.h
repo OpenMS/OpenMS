@@ -37,8 +37,6 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 
@@ -52,6 +50,11 @@
 
 namespace OpenMS
 {
+  class FeatureMap;
+  class ConsensusMap;
+  class ProteinIdentification;
+  class PeptideIdentification;
+  class MetaInfoInterface;
 /**
       @brief Data model of MzTab files.
       Please see the official MzTab specification at https://code.google.com/p/mztab/
