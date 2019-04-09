@@ -265,7 +265,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
             frag_ions.insert(sm.begin(), sm.end());
             if (frag_ions.size() == 1)
             {
-              for (auto frag_ions_elem : frag_ions)
+              for (const auto& frag_ions_elem : frag_ions)
               {
                 fragment_ion = frag_ions_elem;
               }

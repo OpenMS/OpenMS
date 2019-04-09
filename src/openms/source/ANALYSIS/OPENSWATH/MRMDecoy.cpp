@@ -417,7 +417,7 @@ namespace OpenMS
     // experiment.
     Size progress = 0;
     startProgress(0, selection_list.size(), "Generating decoy peptides");
-    for (auto pep_idx : selection_list)
+    for (const auto& pep_idx : selection_list)
     {
       setProgress(++progress);
 

@@ -891,7 +891,7 @@ using namespace OpenMS;
 
             if (!matched_spec_linear_alpha.empty())
             {
-              for (auto match : matched_spec_linear_alpha)
+              for (const auto& match : matched_spec_linear_alpha)
               {
                 iso_peaks_linear_alpha.push_back(num_iso_peaks_array_linear[match.second]);
               }
@@ -900,7 +900,7 @@ using namespace OpenMS;
 
             if (!matched_spec_linear_beta.empty())
             {
-              for (auto match : matched_spec_linear_beta)
+              for (const auto& match : matched_spec_linear_beta)
               {
                 iso_peaks_linear_beta.push_back(num_iso_peaks_array_linear[match.second]);
               }
@@ -909,7 +909,7 @@ using namespace OpenMS;
 
             if (!matched_spec_xlinks_alpha.empty())
             {
-              for (auto match : matched_spec_xlinks_alpha)
+              for (const auto& match : matched_spec_xlinks_alpha)
               {
                 iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array_xlinks[match.second]);
               }
@@ -921,7 +921,7 @@ using namespace OpenMS;
 
             if (!matched_spec_xlinks_beta.empty())
             {
-              for (auto match : matched_spec_xlinks_beta)
+              for (const auto& match : matched_spec_xlinks_beta)
               {
                 iso_peaks_xlinks_beta.push_back(num_iso_peaks_array_xlinks[match.second]);
               }

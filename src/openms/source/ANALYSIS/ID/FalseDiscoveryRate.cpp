@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
 // #define FALSE_DISCOVERY_RATE_DEBUG
@@ -485,17 +486,17 @@ namespace OpenMS
       it->setHigherScoreBetter(false);
       const vector<ProteinHit>& old_hits = it->getHits();
       vector<ProteinHit> new_hits;
-      for (auto hit : old_hits)
+      for (auto hit : old_hits) // NOTE: performs copy
       {
         // Add decoy proteins only if add_decoy_proteins is set
         if (add_decoy_proteins || hit.getMetaValue("target_decoy") != "decoy")
         {
           hit.setMetaValue(score_type, hit.getScore());
           hit.setScore(score_to_fdr[hit.getScore()]);
-          new_hits.push_back(hit);
+          new_hits.push_back(std::move(hit));
         }
       }
-      it->setHits(new_hits);
+      it->setHits(std::move(new_hits));
     }
 
     return;
@@ -625,7 +626,7 @@ namespace OpenMS
     {
       vector<IdentificationData::QueryMatchRef> best_matches =
         id_data.getBestMatchPerQuery(score_ref);
-      for (auto match_ref : best_matches)
+      for (auto match_ref : best_matches) // NOTE: performs copy, should not be necessary?
       {
         handleQueryMatch_(match_ref, score_ref, target_scores, decoy_scores,
                           molecule_to_decoy, match_to_score);

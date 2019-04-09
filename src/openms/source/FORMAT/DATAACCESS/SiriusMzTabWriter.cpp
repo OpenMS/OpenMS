@@ -57,7 +57,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
 
-  for (auto it : sirius_output_paths)
+  for (const auto& it : sirius_output_paths)
   {
     // extract mz, rt and nativeID of the corresponding precursor spectrum in the spectrum.ms file
     String ext_nid;
