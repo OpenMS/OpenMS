@@ -1074,7 +1074,6 @@ protected:
     static void getInitialMassBins(boost::dynamic_bitset<> &massBins,
                             boost::dynamic_bitset<> &mzBins,
                             boost::dynamic_bitset<> &isQualified,
-                            //Byte *continuousChargePeakPairCount,
                             float *sumLogIntensities,
                             long **hBinOffsets,
                             long *binOffsets,
@@ -1096,10 +1095,7 @@ protected:
         float *prevIntensities = new float[massBins.size()];
         fill_n(prevIntensities, massBins.size(), 0);
 
-//        Byte *hc = new Byte[massBins.size()];
-        //       fill_n(hc, massBins.size(), 0);
         float idThreshold = 2.0;
-        //int ct = 10 - param.minCharge;
         auto mzBinIndex = mzBins.find_first();
         while (mzBinIndex != mzBins.npos) {
             auto &logIntensity = logIntensities[mzBinIndex];
@@ -1130,9 +1126,6 @@ protected:
                             && (abs(logIntensity - logIntensities[bin]) <= idThreshold ||
                                 abs(prevIntensity - logIntensities[bin]) <= idThreshold)) {
                             h = true;
-                            //if(++hc[massBinIndex] > 2) {
-                            //unionPrevMassBins[massBinIndex] = false;
-                            //}
                             break;
 
                         }
@@ -1150,7 +1143,6 @@ protected:
         delete[] prevCharges;
         delete[] prevIntensities;
         delete[] continuousChargePeakPairCount;
-        //   delete[] hc;
     }
 
     static Byte **getFinalMassBins(boost::dynamic_bitset<> &massBins, boost::dynamic_bitset<> &mzBins,
