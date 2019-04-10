@@ -41,6 +41,8 @@ namespace OpenMS
   void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const bool tolerance_unit_ppm)
   {
     FMEStatistics result;
+    result.average_ppm = 0.;
+    result.variance_ppm = 0.;
 
     //accumulates ppm errors over all first PeptideHits
     double accumulator_ppm{};
@@ -218,7 +220,7 @@ namespace OpenMS
          }
       }
 
-      //last peak doesn't have a successor so he has to be added manually
+      //last peak doesn't have a successor so it has to be added manually
       ppms.push_back(ppm);
       accumulator_ppm += ppm;
       ++ counter_ppm;
@@ -241,6 +243,12 @@ namespace OpenMS
     };
 
     QCBase::iterateFeatureMap(fmap, lamCompPPM);
+    if (counter_ppm == 0)
+    {
+      //LOG_WARN weil eigentlich ein ideleales Ergebnis rauskommt, obwohl das eher auf einen kaputten Input hinweist
+      results_.push_back(result);
+      return;
+    }
     result.average_ppm = accumulator_ppm/counter_ppm;
     QCBase::iterateFeatureMap(fmap, lamVar);
 

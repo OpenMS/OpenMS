@@ -205,6 +205,7 @@ START_TEST(FragmentMassError, "$Id$")
     FeatureMap fmap_notExist;
     fmap_notExist.setUnassignedPeptideIdentifications({pep_id_notExist});
 
+    //???????????
     FeatureMap fmap_excp;
     fmap_excp.setUnassignedPeptideIdentifications({pep_id_excp});
 
@@ -242,7 +243,6 @@ START_TEST(FragmentMassError, "$Id$")
     //tests compute function
     START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const bool tolerance_unit_ppm = false))
         {
-          std::cout << "Mathetest: " << bool(0.09) << std::endl;
           //test with valid input
           frag_ma_err.compute(fmap, exp);
           std::vector<FragmentMassError::FMEStatistics> result;
@@ -263,12 +263,14 @@ START_TEST(FragmentMassError, "$Id$")
           //test with RT out of tolerance
           TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_tol_out.compute(fmap_tol_out, exp), "PeptideID with RT " + std::to_string(pep_id_tol_out.getRT()) + " s does not have a matching MS2 Spectrum. Closest RT was " + std::to_string(ms_spec_2_himalaya.getRT()) + ", which seems to far off.")
 
+
           frag_ma_err_excp.compute(fmap_excp, exp);
           std::vector<FragmentMassError::FMEStatistics> result_excp;
           result_excp = frag_ma_err_excp.getResults();
 
-          TEST_REAL_SIMILAR(result[0].average_ppm, 0)
-          TEST_REAL_SIMILAR(result[0].variance_ppm, 0)
+          TEST_REAL_SIMILAR(result_excp[0].average_ppm, 0)
+          TEST_REAL_SIMILAR(result_excp[0].variance_ppm, 0)
+
 
         }
     END_SECTION
