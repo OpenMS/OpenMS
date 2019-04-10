@@ -67,7 +67,7 @@ namespace OpenMS
         /**
          * @brief cluster centre, cluster bounding box, grid index
          */
-        typedef GridBasedCluster::Point Point;    // DPosition<2>
+        typedef GridBasedCluster::Point Point;    ///< DPosition<2>
 
         /**
          * @brief constructor

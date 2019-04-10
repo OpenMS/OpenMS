@@ -46,7 +46,7 @@
 namespace OpenMS
 {
 
-// struct to hold a single report line
+/// @brief struct to hold a single report line
 struct OPENMS_DLLAPI RNPxlReportRow
 {
   bool no_id;
@@ -75,13 +75,13 @@ struct OPENMS_DLLAPI RNPxlReportRow
 
 };
 
-// create header line
+/// create header line
 struct OPENMS_DLLAPI RNPxlReportRowHeader
 {
   static String getString(const String& separator);
 };
 
-// create report
+/// create report
 struct OPENMS_DLLAPI RNPxlReport
 {
   static std::vector<RNPxlReportRow> annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, double marker_ions_tolerance);

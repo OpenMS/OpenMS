@@ -76,10 +76,10 @@ namespace OpenMS
                 Size max_length = 0) const;
 
   protected:
-    const Ribonucleotide* five_prime_gain_; //< 5' mod added by the enzyme
-    const Ribonucleotide* three_prime_gain_; //< 3' mod added by the enzyme
-    boost::regex cuts_after_regex_; //< reg. exp. for enzyme cutting pattern
-    boost::regex cuts_before_regex_; //< reg. exp. for enzyme cutting pattern
+    const Ribonucleotide* five_prime_gain_; ///< 5' mod added by the enzyme
+    const Ribonucleotide* three_prime_gain_; ///< 3' mod added by the enzyme
+    boost::regex cuts_after_regex_; ///< reg. exp. for enzyme cutting pattern
+    boost::regex cuts_before_regex_; ///< reg. exp. for enzyme cutting pattern
 
     /**
        @brief Returns the positions of digestion products in the RNA as pairs: (start, length)

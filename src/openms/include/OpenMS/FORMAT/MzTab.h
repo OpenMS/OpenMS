@@ -663,27 +663,27 @@ public:
   /// PSM - PSM section (Table based)
   struct OPENMS_DLLAPI MzTabPSMSectionRow
   {
-    MzTabString sequence; // The peptide’s sequence.
+    MzTabString sequence; ///< The peptide’s sequence.
     MzTabInteger PSM_ID;
-    MzTabString accession; // The protein’s accession.
-    MzTabBoolean unique; // 0=false, 1=true, null else: Peptide is unique for the protein.
-    MzTabString database; // Name of the sequence database.
-    MzTabString database_version; // Version (and optionally # of entries).
-    MzTabParameterList search_engine; // Search engine(s) that identified the peptide.
-    std::map<Size, MzTabDouble> search_engine_score; // Search engine(s) score(s) for the peptide.
-    MzTabInteger reliability; // (1-3) 0=null Identification reliability for the peptide.
-    MzTabModificationList modifications; // Modifications identified in the peptide.
-    MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
-    MzTabInteger charge; // The charge of the experimental precursor ion.
-    MzTabDouble exp_mass_to_charge; // The m/z ratio of the experimental precursor ion.
+    MzTabString accession; ///< The protein’s accession.
+    MzTabBoolean unique; ///< 0=false, 1=true, null else: Peptide is unique for the protein.
+    MzTabString database; ///< Name of the sequence database.
+    MzTabString database_version; ///< Version (and optionally # of entries).
+    MzTabParameterList search_engine; ///< Search engine(s) that identified the peptide.
+    std::map<Size, MzTabDouble> search_engine_score; ///< Search engine(s) score(s) for the peptide.
+    MzTabInteger reliability; ///< (1-3) 0=null Identification reliability for the peptide.
+    MzTabModificationList modifications; ///< Modifications identified in the peptide.
+    MzTabDoubleList retention_time; ///< Time points in seconds. Semantics may vary.
+    MzTabInteger charge; ///< The charge of the experimental precursor ion.
+    MzTabDouble exp_mass_to_charge; ///< The m/z ratio of the experimental precursor ion.
     MzTabDouble calc_mass_to_charge;
-    MzTabString uri; // Location of the PSM’s source entry.
-    MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.
+    MzTabString uri; ///< Location of the PSM’s source entry.
+    MzTabSpectraRef spectra_ref; ///< Spectra identifying the peptide.
     MzTabString pre;
     MzTabString post;
     MzTabString start;
     MzTabString end;
-    std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
+    std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
     /// Comparison operator for sorting rows
     struct RowCompare
@@ -704,7 +704,7 @@ public:
     };
   };
 
-  // SML Small molecule section (table based)
+  /// SML Small molecule section (table based)
   struct OPENMS_DLLAPI MzTabSmallMoleculeSectionRow
   {
     MzTabStringList identifier; ///< The small molecule’s identifier.

@@ -44,8 +44,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Representation of a parent molecule that is identified only indirectly (e.g. a protein).
+    /** @brief Representation of a parent molecule that is identified only indirectly (e.g. a protein).
     */
     struct ParentMolecule: public ScoredProcessingResult
     {
@@ -59,7 +58,7 @@ namespace OpenMS
 
       String description;
 
-      double coverage; //< sequence coverage as a fraction between 0 and 1
+      double coverage; ///< sequence coverage as a fraction between 0 and 1
 
       bool is_decoy;
 
