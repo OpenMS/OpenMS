@@ -405,7 +405,7 @@ namespace OpenMS
     void clearCurrentProcessingStep();
 
     /// Return the best match for each data query, according to a given score type
-    // @TODO: this currently doesn't take molecule type into account - shoud it?
+    // @TODO: this currently doesn't take molecule type into account - should it?
     std::vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef
                                                     score_ref) const;
 

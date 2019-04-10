@@ -844,7 +844,7 @@ private:
       bool charge_set_; ///< Whether product ion charge is set or not
       double mz_; ///< Product ion m/z
       std::vector<Configuration> configuration_list_; ///< Product ion configurations used
-      std::vector<Interpretation> interpretation_list_;  ///< Procution ion interpretation
+      std::vector<Interpretation> interpretation_list_;  ///< Product ion interpretation
 
     };
 

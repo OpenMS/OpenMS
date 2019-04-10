@@ -72,7 +72,7 @@ namespace OpenMS
       struct ProteinProteinCrossLink
       {
         const AASequence *alpha = nullptr; // longer peptide
-        const AASequence *beta = nullptr; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
+        const AASequence *beta = nullptr; // shorter peptide (empty for mono-link), tie breaker: mass then lexicographical
         std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
         double cross_linker_mass = 0;
         String cross_linker_name;
@@ -189,7 +189,7 @@ namespace OpenMS
           if (a.score == b.score)
           {
             // in rare cases when the sequences are the same, multiple candidates with different cross-linked positions can have the same score
-            // that leads to ambigious sorting and may cause differences between compilers
+            // that leads to ambiguous sorting and may cause differences between compilers
             // in those cases we prefer higher positions (just like the score),
             // because the lower position might be an N-term link, which is usually less likely and all other positions are equal (because the score is equal)
             if (a.cross_link.cross_link_position.first == b.cross_link.cross_link_position.first)

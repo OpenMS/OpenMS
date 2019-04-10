@@ -200,7 +200,7 @@ namespace OpenMS
        * This function collects PeptideIdentifications from all spectrum pairs with the same light spectrum,
        * then resorts them by the score, makes them unique in case of equal candidates and reduces their number down to the chosen number of reported top hits.
        *
-       * @param peptide_ids PeptideIdentifications from a Cross-Linking MS search with labaled linkers
+       * @param peptide_ids PeptideIdentifications from a Cross-Linking MS search with labeled linkers
        * @param number_top_hits The chosen number of reported top hits
        */
       static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits);
