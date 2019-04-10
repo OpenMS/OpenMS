@@ -65,7 +65,7 @@ namespace OpenMS
 
         // store label free experiemnt (MSstats)
         void storeLFQ(const String& filename, 
-                      ConsensusMap &consensus_map,
+                      const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const bool is_isotope_label_type,
@@ -75,7 +75,7 @@ namespace OpenMS
         
         // store isobaric experiment (MSstatsTMT)
         void storeISO(const String& filename, 
-                      ConsensusMap &consensus_map,
+                      const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const String& bioreplicate,

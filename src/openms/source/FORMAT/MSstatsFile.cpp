@@ -72,7 +72,7 @@ void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSec
   } 
 }
 
-void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap &consensus_map,
+void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const ConsensusMap &consensus_map,
                                 const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
                                 const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
                                 const String& retention_time_summarization_method)
@@ -408,7 +408,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
 }
 
 
-void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap &consensus_map,
+void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const ConsensusMap &consensus_map,
                                    const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
                                    const String& bioreplicate, const String& condition,
                                    const String& mixture, const String& retention_time_summarization_method)
@@ -455,9 +455,9 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
 
   // For each ConsensusFeature, store several attributes
   vector< vector< String > > consensus_feature_filenames;           // Filenames of ConsensusFeature
-  vector< vector< Intensity > > consensus_feature_intensites;       // Intensites of ConsensusFeature
+  vector< vector< Intensity > > consensus_feature_intensites;       // Intensities of ConsensusFeature
   vector< vector< Coordinate > > consensus_feature_retention_times; // Retention times of ConsensusFeature
-  vector< vector< unsigned > > consensus_feature_labels;          // Labels of ConsensusFeature
+  vector< vector< unsigned > > consensus_feature_labels;            // Labels of ConsensusFeature
 
   features.reserve(consensus_map.size());
 
@@ -469,7 +469,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
   {
     spectra_paths = reannotate_filenames;
   }
-  ConsensusMap::ColumnHeaders& column_headers = consensus_map.getColumnHeaders(); // needed for label_id
+  const auto& column_headers = consensus_map.getColumnHeaders(); // needed for label_id
 
   // Reduce spectra path to the basename of the files
   for (Size i = 0; i < spectra_paths.size(); ++i)
@@ -512,7 +512,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
       retention_times.push_back(fit->getRT());
 
       // Get the label_id form the file description MetaValue
-      auto & column = column_headers[fit->getMapIndex()];
+      auto & column = column_headers.at(fit->getMapIndex());
       if (column.metaValueExists("channel_id"))
       {
         cf_labels.push_back(Int(column.getMetaValue("channel_id")));
