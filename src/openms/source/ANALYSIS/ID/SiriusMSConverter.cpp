@@ -415,7 +415,7 @@ namespace OpenMS
           }
         }
       }
-      v_cmpinfo.push_back(cmpinfo);
+      v_cmpinfo.push_back(std::move(cmpinfo));
     }
   }
 

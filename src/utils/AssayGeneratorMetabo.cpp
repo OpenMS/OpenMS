@@ -408,13 +408,13 @@ protected:
   
         // get Sirius FragmentAnnotion from subdirs
         vector<MSSpectrum> annotated_spectra;
-        for (auto subdir : subdirs)
+        for (const auto& subdir : subdirs)
         {
           MSSpectrum annotated_spectrum;
           SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir, 
                                                                            annotated_spectrum, 
                                                                            use_exact_mass);
-          annotated_spectra.push_back(annotated_spectrum);
+          annotated_spectra.push_back(std::move(annotated_spectrum));
         }
         
         // clean tmp directory if debug level < 2 
@@ -437,16 +437,16 @@ protected:
         }
 
         // pair compoundInfo and fragment annotation msspectrum (using the mid)
-        for (auto cmp : v_cmpinfo)
+        for (const auto& cmp : v_cmpinfo)
         {
-          for (auto spec_fa : annotated_spectra)
+          for (const auto& spec_fa : annotated_spectra)
           {
             // mid is saved in Name of the spectrum
-            if (std::any_of(cmp.mids.begin(), cmp.mids.end(), [spec_fa](String &str){ return str == spec_fa.getName();}))
+            if (std::any_of(cmp.mids.begin(), cmp.mids.end(), [spec_fa](const String &str){ return str == spec_fa.getName();}))
             {
               MetaboTargetedAssay::CompoundSpectrumPair csp;
               csp.compoundspectrumpair = std::make_pair(cmp,spec_fa);
-              v_cmp_spec.push_back(csp);
+              v_cmp_spec.push_back(std::move(csp));
             }
           }
         }
@@ -538,7 +538,7 @@ protected:
 
     // use first rank based on precursor intensity
     std::map< std::pair <String,String>, MetaboTargetedAssay > map_mta;
-    for (auto it : v_mta)
+    for (const auto& it : v_mta)
     {
       pair<String,String> pair_mta = make_pair(it.compound_name, it.compound_adduct);
 
@@ -562,7 +562,7 @@ protected:
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt_all;
-    for (auto it : map_mta)
+    for (const auto& it : map_mta)
     {
       v_cmp.push_back(it.second.potential_cmp);
       v_rmt_all.insert(v_rmt_all.end(), it.second.potential_rmts.begin(), it.second.potential_rmts.end());

@@ -275,7 +275,7 @@ namespace OpenMS
       vector <TargetedExperimentHelper::RetentionTime> v_cmp_rt;
       TargetedExperimentHelper::RetentionTime cmp_rt;
       cmp_rt.setRT(feature_rt);
-      v_cmp_rt.push_back(cmp_rt);
+      v_cmp_rt.push_back(std::move(cmp_rt));
       cmp.rts = v_cmp_rt;
 
       cmp.setChargeState(highest_precursor_charge);
@@ -320,7 +320,7 @@ namespace OpenMS
           rmt.setCompoundRef (String(transition_group_counter) + "_" + description + "_" + file_counter);
           rmt.setNativeID (String(transition_group_counter)+ "_" + String(transition_counter)+ "_" + description + "_" + file_counter);
 
-          v_rmt.push_back(rmt);
+          v_rmt.push_back(std::move(rmt));
           transition_counter += 1;
         }
       }
@@ -331,7 +331,7 @@ namespace OpenMS
       mta.compound_adduct = adduct;
       mta.potential_cmp = cmp;
       mta.potential_rmts = v_rmt;
-      v_mta.push_back(mta);
+      v_mta.push_back(std::move(mta));
     }
     return v_mta;
   }
@@ -434,7 +434,7 @@ namespace OpenMS
       vector <TargetedExperimentHelper::RetentionTime> v_cmp_rt;
       TargetedExperimentHelper::RetentionTime cmp_rt;
       cmp_rt.setRT(feature_rt);
-      v_cmp_rt.push_back(cmp_rt);
+      v_cmp_rt.push_back(std::move(cmp_rt));
       cmp.rts = v_cmp_rt;
       cmp.setChargeState(charge);
       if (description == "UNKNOWN")
@@ -491,7 +491,7 @@ namespace OpenMS
 
           rmt.setMetaValue("annotation", DataValue(current_explanation));
 
-          v_rmt.push_back(rmt);
+          v_rmt.push_back(std::move(rmt));
           transition_counter += 1;
         }
       }
@@ -503,7 +503,7 @@ namespace OpenMS
       mta.compound_adduct = adduct;
       mta.potential_cmp = cmp;
       mta.potential_rmts = v_rmt;
-      v_mta.push_back(mta);
+      v_mta.push_back(std::move(mta));
     }
     return v_mta;
   }
