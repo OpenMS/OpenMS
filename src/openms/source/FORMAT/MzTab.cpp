@@ -2615,6 +2615,7 @@ Not sure how to handle these:
     const String& filename, 
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
+    const bool export_subfeatures,
     String title)
   {  
     LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
