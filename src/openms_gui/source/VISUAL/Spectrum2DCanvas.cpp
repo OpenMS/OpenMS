@@ -1072,11 +1072,9 @@ namespace OpenMS
     {
       gradient_str = linear_gradient_.toString();
     }
-    for (Size i = 0; i < layers_.size(); ++i)
-    {
-      layers_[i].param.setValue("dot:gradient", gradient_str);
-      recalculateDotGradient_(i);
-    }
+    layers_[layers_.size()-1].param.setValue("dot:gradient", gradient_str);
+    recalculateDotGradient_(layers_.size()-1);
+    
     SpectrumCanvas::intensityModeChange_();
   }
 
