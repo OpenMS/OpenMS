@@ -42,14 +42,13 @@ using namespace std;
 
 namespace OpenMS
 {
-	// check which MS2-Spectren of a mzml-file (MSExperiment) are identified (and therfore have a entry in the featureMap)
-	// MS2-Spektren without mate are added in unassignedPeptideIdentifications (only Information m/z and RT)
+	// check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therfore have a entry in the featureMap)
+	// MS2-Spektra without mate are added in unassignedPeptideIdentifications (only Information m/z and RT)
 	void TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features)
 	{
 		if (features.empty())
 		{
 			LOG_WARN << "The FeatureMap is empty.\n";
-			features.setUnassignedPeptideIdentifications({});
 		}
 		if (exp.empty())
 		{
@@ -60,14 +59,16 @@ namespace OpenMS
 		setScanEventNumber_(exp);
 		//if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
 		setPresenceAndScanEventNumber_(exp, features);
+		std::cout << "hier4";
 		//if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT and ScanEventNumber
 		addUnassignedPeptideIdentification_(exp, features);
+		std::cout << "hier5";
 	}
 	//if ms2 spetrum not included, add to unassignedPeptideIdentification, set m/z and RT values
 	void TopNoverRT::setScanEventNumber_(const MSExperiment& exp)
 	{
 		UInt32 scan_event_number{ 0 };
-		for (MSSpectrum spec : exp.getSpectra())
+		for (const MSSpectrum& spec : exp.getSpectra())
 		{
 			if (spec.getMSLevel() == 1)
 			{
@@ -81,62 +82,40 @@ namespace OpenMS
 			}
 		}
 	}
-
-	void TopNoverRT::setPresenceAndScanEventNumber_(const MSExperiment& exp, FeatureMap& features )
+	//marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
+	void TopNoverRT::setPresenceAndScanEventNumber_(const MSExperiment& exp, FeatureMap& features)
 	{
 		for (Feature& feature : features)
 		{
 			for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
 			{
-				MSExperiment::ConstIterator it = exp.RTBegin(peptide_ID.getRT() - EPSILON_);
-				if (it == exp.end())
-				{
-					throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
-				}
-
-				const auto& spectrum = *it;
-				if (spectrum.getRT() - peptide_ID.getRT() > EPSILON_)
-				{
-					throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + to_string(peptide_ID.getRT()) + " s does not have a matching MS2 spectrum. Closest RT was " + to_string(spectrum.getRT()) + ", which seems too far off.\n");
-				}
-
-				if (spectrum.getMSLevel() == 2)
-				{
-					ms2_included_[distance(exp.begin(), it)].second = true;
-					peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
-					peptide_ID.setMetaValue("identified", '+');
-				}
-				else
-				{
-					throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching retention time of the MZML has the wrong MSLevel");
-				}	
+				setPresenceAndScanEventNumber2_(peptide_ID, exp);
 			}
 		}
-		//marks all seen unassignedPeptideIdentifications in vector ms2_included
 		for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
 		{
-			MSExperiment::ConstIterator it = exp.RTBegin(unassigned_ID.getRT() - EPSILON_);
-			if (it == exp.end())
-			{
-				throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
-			}
+			setPresenceAndScanEventNumber2_(unassigned_ID, exp);
+		}
+	}
+	void TopNoverRT::setPresenceAndScanEventNumber2_(PeptideIdentification& peptide_ID, const MSExperiment& exp)
+	{
+		MSExperiment::ConstIterator it = exp.RTBegin(peptide_ID.getRT() - EPSILON_);
+		if (it == exp.end())
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
+		}
 
-			const auto& spectrum = *it;
-			if (spectrum.getRT() - unassigned_ID.getRT() > EPSILON_)
-			{
-				throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + to_string(unassigned_ID.getRT()) + " s does not have a matching MS2 spectrum. Closest RT was " + to_string(spectrum.getRT()) + ", which seems too far off.\n");
-			}
+		const auto& spectrum = *it;
+		if (spectrum.getRT() - peptide_ID.getRT() > EPSILON_)
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + String(peptide_ID.getRT()) + " s does not have a matching MS2 spectrum. Closest RT was " + String(spectrum.getRT()) + ", which seems too far off.\n");
+		}
 
-			if (spectrum.getMSLevel() == 2)
-			{
-				ms2_included_[distance(exp.begin(), it)].second = true;
-				unassigned_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
-				unassigned_ID.setMetaValue("identified", '+');
-			}
-			else
-			{
-				throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching retention time of the MZML has the wrong MSLevel");
-			}
+		if (spectrum.getMSLevel() == 2)
+		{
+			ms2_included_[distance(exp.begin(), it)].second = true;
+			peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
+			peptide_ID.setMetaValue("identified", '+');
 		}
 	}
 
@@ -153,8 +132,8 @@ namespace OpenMS
 					unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
 					unidentified_MS2.setMetaValue("ScanEventNumber", (*it).first);
 					unidentified_MS2.setMetaValue("identified", '-');
-					//unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
-					features.getUnassignedPeptideIdentifications().push_back(unidentified_MS2);
+					unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
+					features.getUnassignedPeptideIdentifications().push_back(unidentified_MS2);	
 				}
 			}
 		}

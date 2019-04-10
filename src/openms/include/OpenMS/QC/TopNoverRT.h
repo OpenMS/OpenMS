@@ -71,6 +71,7 @@ namespace OpenMS
 		void setScanEventNumber_(const MSExperiment& exp);
 		///set ms2_included_ bool to true, if PeptideID exist and set "ScanEventNumber" for every PeptideID
 		void setPresenceAndScanEventNumber_(const MSExperiment& exp, FeatureMap& features);
+		void setPresenceAndScanEventNumber2_(PeptideIdentification& peptide_ID, const MSExperiment& exp);
 		///add all unidentified MS2-Scans to unassignedPeptideIDs, the new unassignedPeptideIDs contains only Information about RT and "ScanEventNumber" 
 		void addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features) ;
 	};

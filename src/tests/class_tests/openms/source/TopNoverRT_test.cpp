@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Chris Bielow, Juliane Schmachtenberg $
+// $Maintainer: Chris Bielow$
+// $Authors: Juliane Schmachtenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -107,7 +107,10 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
 	//MSExperiment
 	PeakMap exp;
 	MSSpectrum spec;
+	Precursor pre;
+	pre.setMZ(5.5);
 	std::vector< MSSpectrum> spectra;
+	spec.setPrecursors({ pre });
 	spec.setMSLevel(2);
 	spec.setRT(0);
 	spectra.push_back(spec);
@@ -136,7 +139,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
 	
 	TopNoverRT top;
 	top.compute(exp, fmap);
-
+	
 	//test features
 	TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
 	TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("identified"), '+');
@@ -150,6 +153,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
 	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getRT(), 20);
 	TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("ScanEventNumber"), 3);
 	TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("identified"), '-');
+	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getMZ(), 5.5);
 
 	//empty FeatureMap
 	FeatureMap fmap_empty{};
@@ -174,16 +178,13 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, top.compute(exp_empty, fmap), "The mzml file / MSExperiment is empty.\n");
 
 	//test exceptions spectrum.getRT() - peptide_ID.getRT() > EPSILON_
-	exp.getSpectra()[0].setRT(0.1);
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "PeptideID with RT " + to_string(0.0) + " s does not have a matching MS2 spectrum. Closest RT was " + to_string(0.1) + ", which seems too far off.\n");
+	exp.getSpectra()[0].setRT(0.25);
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "PeptideID with RT " + String(0.0) + " s does not have a matching MS2 spectrum. Closest RT was " + String(0.25) + ", which seems too far off.\n");
 	//test exception rt>end()
 	exp.getSpectra()[0].setRT(0);
 	fmap[1].getPeptideIdentifications()[1].setRT(50);
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "The retention time of the MZML and featureXML file does not match.");
-	//test exception if closest RT to PeptideID has MS-Level=1
-	exp.getSpectra()[0].setMSLevel(1);
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "The matching retention time of the MZML has the wrong MSLevel");
-}
+	}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
