@@ -1639,7 +1639,7 @@ protected:
     // read list of nucleotides that can directly cross-link
     // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
     String can_cross_link = getStringOption_("RNPxl:can_cross_link");
-    for (auto c : can_cross_link) { can_xl_.insert(c); }
+    for (const auto& c : can_cross_link) { can_xl_.insert(c); }
 
     StringList modifications = getStringList_("RNPxl:modifications");
 

@@ -339,8 +339,7 @@ protected:
         {
           peptides.insert(peptides.end(), peps.begin(), peps.end());
         }
-        for (auto map_it =
-               proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
+        for (auto map_it = proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
         {
           proteins.push_back(map_it->second);
         }
