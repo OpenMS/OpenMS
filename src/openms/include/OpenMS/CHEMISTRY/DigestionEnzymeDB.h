@@ -238,7 +238,7 @@ namespace OpenMS
       return enzy_ptr;
     }
 
-    // add to internal data; also update indices for search by name and regex
+    /// add to internal data; also update indices for search by name and regex
     void addEnzyme_(const DigestionEnzymeType* enzyme)
     {
       // add to internal storage
@@ -259,11 +259,11 @@ namespace OpenMS
       return;
     }
 
-    Map<String, const DigestionEnzymeType*> enzyme_names_; // index by names
+    Map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
 
-    Map<String, const DigestionEnzymeType*> enzyme_regex_; // index by regex
+    Map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
 
-    std::set<const DigestionEnzymeType*> const_enzymes_; // set of enzymes
+    std::set<const DigestionEnzymeType*> const_enzymes_; ///< set of enzymes
 
   };
 }

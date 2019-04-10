@@ -75,7 +75,7 @@ public:
         if (this == &rhs)
           return *this;
 
-        // percents = rhs.precents; // const, cannot be assigned
+        // percents = rhs.percents; // const, cannot be assigned
         xmin = rhs.xmin;
         xmax = rhs.xmax;
         ymin = rhs.ymin;

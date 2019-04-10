@@ -51,10 +51,10 @@ namespace OpenMS
     {
     public:
 
-      // Maps enzyme_num in xQuest result file to the enzyme name used by OpenMS
+      /// Maps enzyme_num in xQuest result file to the enzyme name used by OpenMS
       static std::map< Size, String > enzymes;
 
-      // Maps String encoding month to the numeric value
+      /// Maps String encoding month to the numeric value
       static std::map<String, UInt> months;
 
       /// Constructor for a read-only handler for internal identification structures
@@ -101,7 +101,7 @@ namespace OpenMS
 
       // TODO move these to StringUtils?
       /**
-        * @brief splits the @input string at the nth occurence of the @separator
+        * @brief splits the @input string at the nth occurrence of the @separator
 
           If the separator does not occur in the input string n times, then the first output string will be the entire input string
           and the second one will be empty.
@@ -111,13 +111,13 @@ namespace OpenMS
       static StringList splitByNth(const String& input, const char separator, const Size n);
 
       /**
-        * @brief counts occurences of the @separator and splits the @input string into two at the middle
+        * @brief counts occurrences of the @separator and splits the @input string into two at the middle
 
-          If the separator occurs 5 times in the input string, the string will be split at the 3rd occurence.
+          If the separator occurs 5 times in the input string, the string will be split at the 3rd occurrence.
           If 7 times, then at the 4th.
           The separator has to occur in the string an uneven number of times.
           If the separator occurs once, the string will be split at this one instance.
-          If this one occurence is at the beginning or end, one of the result strings will be empty.
+          If this one occurrence is at the beginning or end, one of the result strings will be empty.
 
         * @exception Exception::IllegalArgument is thrown if the @separator does not occur in the @input string an uneven number of times and at least once
         * @return StringList with two elements, the two halves of the input without the middle separator
@@ -141,22 +141,22 @@ namespace OpenMS
       const std::vector<ProteinIdentification>* cpro_id_;
       const std::vector<PeptideIdentification>* cpep_id_;
 
-      UInt n_hits_; // Total no. of hits found in the result XML file
+      UInt n_hits_; ///< Total no. of hits found in the result XML file
 
       // Keeps track of the minscore and maxscore encountered
       double min_score_;
       double max_score_;
 
-      // Whether or not current xquest result tag comes from OpenPepXL (xQuest otherwise)
+      /// Whether or not current xquest result tag comes from OpenPepXL (xQuest otherwise)
       bool is_openpepxl_;
 
-      // Set of all protein accessions that are within the ProteinHits.
+      /// Set of all protein accessions that are within the ProteinHits.
       std::set< String > accessions_;
 
-      // The enzyme database for enzyme lookup
+      /// The enzyme database for enzyme lookup
       ProteaseDB* enzymes_db_;
 
-      // Keeps track of the charges of the hits
+      /// Keeps track of the charges of the hits
       std::set< UInt > charges_;
       UInt min_precursor_charge_;
       UInt max_precursor_charge_;
@@ -173,10 +173,10 @@ namespace OpenMS
       StringList ms_run_path_;
       String spectrum_input_file_;
 
-      // The current spectrum search
+      /// The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
 
-      // Stores the attributes of a record (peptide identification)
+      /// Stores the attributes of a record (peptide identification)
       std::map<String, DataValue> peptide_id_meta_values_;
 
       /**

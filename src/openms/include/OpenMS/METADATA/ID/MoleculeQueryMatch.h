@@ -56,8 +56,7 @@ namespace OpenMS
     typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
                            IdentifiedOligoRef> IdentifiedMoleculeRef;
 
-    /*!
-      Meta data for a search hit (e.g. peptide-spectrum match).
+    /** @brief Meta data for a search hit (e.g. peptide-spectrum match).
     */
     struct MoleculeQueryMatch: public ScoredProcessingResult
     {
