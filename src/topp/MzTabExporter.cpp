@@ -121,10 +121,8 @@ protected:
                                                 "only represent inference results? Read peptide information only "
                                                 "from second to last runs.");
       
-      vector<String> optional_columns;
-      optional_columns.push_back("optional_subfeatures");
-      registerStringList_("optional_columns", "<mods>", ListUtils::create<String>("optional_subfeatures", ','), "Optional columns which are not part of the mzTab standard.", false);
-      setValidStrings_("optional_columns", optional_columns);
+      registerStringList_("opt_columns", "<mods>", {"subfeatures"}, "Add optional columns which are not part of the mzTab standard.", false);
+      setValidStrings_("opt_columns", {"subfeatures"});
     }
 
     ExitCodes main_(int, const char**) override
@@ -135,8 +133,8 @@ protected:
 
       String out = getStringOption_("out");
       
-      vector<String> optional_columns = getStringList_("optional_columns");
-      bool export_subfeatures = (std::find(optional_columns.begin(), optional_columns.end(), "optional_subfeatures") != optional_columns.end());
+      StringList optional_columns = getStringList_("opt_columns");
+      bool export_subfeatures = ListUtils::contains(optional_columns, "subfeatures");
 
       MzTab mztab;
 
@@ -156,7 +154,7 @@ protected:
 
         for (Size i = 0; i < feature_map.size(); ++i) // collect all (assigned and unassigned to a feature) peptide ids
         {
-          vector<PeptideIdentification> pep_ids_bf = feature_map[i].getPeptideIdentifications();
+          const vector<PeptideIdentification>& pep_ids_bf = feature_map[i].getPeptideIdentifications();
           pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
         }
 
