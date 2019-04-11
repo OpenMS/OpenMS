@@ -40,7 +40,7 @@
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <iostream>
-#include <stdlib.h>
+#include <string>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 using namespace OpenMS;
@@ -57,7 +57,15 @@ public:
 
 protected:
     void registerOptionsAndFlags_() override{
-        registerInputFile_("in", "<file>", "", "Input file");
+        registerInputFile_("in", "<FeatureFinderIntact result file>", "", "Input FeatureFinderIntact result file");
+        setValidFormats_("in", ListUtils::create<String>("tsv"));
+
+        registerInputFile_("d", "<Protein DB file>", "", "Input protein DB file");
+        setValidFormats_("d", ListUtils::create<String>("fasta"));
+
+        registerDoubleOption_("tol", "<tolerance>", 3.0, "proteoform mass tolerance (Da)", false, false);
+        registerIntOption_("maxptm", "<max number of PTMs>", 10, "maximum number of PTMs per proteoform", false, false);
+
     }
 
     struct PTM{ // struct for PTM
@@ -120,19 +128,20 @@ protected:
         //-------------------------------------------------------------
         // parsing parameters
         //-------------------------------------------------------------
-//        String infilePath = getStringOption_("in");
-//        String outfilePath = getStringOption_("out");
         String modfilePath = "CHEMISTRY/unimod_most_freq.xml";
-        String fastaFilePath = "/Users/jeek/Documents/A4B/FLASHDeconv_dy/CYS_BOVIN.fasta";
-        String deconvfilePath = "/Users/jeek/Documents/A4B/FLASHDeconv_dy/190215_Cyto_untreated_30V_ISCID.tsv";
-        String outfilePath = "/Users/jeek/Documents/A4B/FLASHDeconv_dy/190215_Cyto_untreated_30V_ISCID_dbmass";
-        double minMass = 10000;
-        double maxMass = 20000;
-        double max_num_ptm = 10;
-        double tolerance = 3.0;
+
+        string deconvfilePath = getStringOption_("in");
+        String fastaFilePath = getStringOption_("d");
+//        String fastaFilePath = "/Users/jeek/Documents/A4B/FLASHDeconv_dy/CYS_BOVIN.fasta";
+//        String deconvfilePath = "/Users/jeek/Documents/A4B/FLASHDeconv_dy/190215_Cyto_untreated_30V_ISCID.tsv";
+        int max_num_ptm = getIntOption_("maxptm");
+        double tolerance = getDoubleOption_("tol");
+
+        string outfilePath = deconvfilePath.substr(0, deconvfilePath.find_last_of(".")) + "_dbmass.tsv" ; // based on deconvfilePath
+        cout << outfilePath << endl;
 
         fstream fsout;
-        fsout.open(outfilePath + ".tsv", fstream::out);
+        fsout.open(outfilePath, fstream::out);
         fsout << "DeconvMass\tProteoformMass\tProteinAccession\tProteinMass\tTotalPTMmass\tPTMs" << endl;
 
         //-------------------------------------------------------------
@@ -152,7 +161,7 @@ protected:
         //-------------------------------------------------------------
         LOG_INFO << "Building a proteoform tree..." << endl;
         PrtfNode* tree = nullptr;
-        buildProteoformTree(fastaFilePath, ptm_linkedlist, minMass, maxMass, tree);
+        buildProteoformTree(fastaFilePath, ptm_linkedlist, tree);
 
         //-------------------------------------------------------------
         // Search tree with deconv masses & write output
@@ -242,6 +251,7 @@ protected:
         else if(tree->prtf->mass > value) {
             search_exact_node(value, tree->left);
         }
+        return nullptr;
     }
 
     void search_within_tolerance(double deconv_mass, double tol, struct PrtfNode *tree, vector<PrtfNode*>& result_vec){ // default value:3 Da
@@ -258,11 +268,17 @@ protected:
 
     String write_proteoform_result(PrtfNode*& proteoform_node, double deconv_mass){
         String out;
+        if( proteoform_node->prtf->ptm_node == nullptr){ // unmodified proteoform
+            out = to_string(deconv_mass) + "\t" + to_string(proteoform_node->prtf->mass) + "\t"
+                  + proteoform_node->prtf->accessions + "\t" + to_string(proteoform_node->prtf->protein_mass) + "\t"
+                  + "0\t";
+            return out;
+        }
         string ptmlists = write_PTMlist_fromLinkedList(proteoform_node->prtf->ptm_node);
         // header : DeconvMass	ProteoformMass	ProteinMass	TotalPTMmass	PTMs
         out = to_string(deconv_mass) + "\t" + to_string(proteoform_node->prtf->mass) + "\t"
                 + proteoform_node->prtf->accessions + "\t" + to_string(proteoform_node->prtf->protein_mass) + "\t"
-                + to_string(proteoform_node->prtf->ptm_node->ptm.mass) + "\t" + ptmlists;
+                + to_string(proteoform_node->prtf->ptm_node->mass) + "\t" + ptmlists;
         return out;
     }
 
@@ -393,7 +409,7 @@ protected:
         return lrint(mass * 0.999497);
     }
 
-    void buildProteoformTree(string DBfilepath, vector<PTMnode*>& ptmlist, int minM, int maxM, PrtfNode*& tree){
+    void buildProteoformTree(string DBfilepath, vector<PTMnode*>& ptmlist, PrtfNode*& tree){
         tree = nullptr;
 
         // get proteoform
@@ -405,17 +421,15 @@ protected:
         for(auto& entry : fentry) {
             double seq_weight = AASequence::fromString(entry.sequence).getMonoWeight();
 
-            cout << entry.identifier << " : " << to_string(seq_weight) << endl;
+//            cout << entry.identifier << " : " << to_string(seq_weight) << endl;
 //            double seq_weight_avg = AASequence::fromString(entry.sequence).getAverageWeight();
+            tree = insert(tree, new Proteoform(entry.identifier, nullptr ,seq_weight, seq_weight)); // unmodified proteoform
 
             for (auto &ptm : ptmlist) {
-//                cout << entry.identifier << "\t" << seq_weight << "\t" << ptm->mass << endl;
                 double total_weight = ptm->mass + seq_weight;
                 int nominal_mass = calNomialMass(total_weight) ; // nominal mass
-                if (nominal_mass < minM)
-                    continue;
-                else if (nominal_mass > maxM)
-                    break; // ptmlist is sorted in ascending order
+//                if (nominal_mass < minM) continue;
+//                else if (nominal_mass > maxM) break; // ptmlist is sorted in ascending order
 
                 Proteoform *prtfrm = new Proteoform(entry.identifier, ptm, nominal_mass, seq_weight);
                 tree = insert(tree, prtfrm);
@@ -463,6 +477,7 @@ protected:
             }
             ++cnt;
         }
+        LOG_INFO << "# ptm types : " << cnt << endl;
     }
 
     void generatePTM_linkedlist(vector<PTM>& ptm_list, int max_num_ptm, vector<PTMnode*>& result){
