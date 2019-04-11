@@ -38,6 +38,10 @@
 
 ///////////////////////////
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -1289,6 +1293,34 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString(".DC(UniMod:1009)CFPIANGER.")) // not just any C is allowed
   TEST_EQUAL(AASequence::fromString("(UniMod:1009).CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
   TEST_EQUAL(AASequence::fromString("(UniMod:1009)CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER.")) 
+}
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+  // All measurements are best of three (wall time, Linux, 8 threads)
+  //
+  // Serial execution of code:
+  // 5e4 iterations -> 5.42 seconds
+  //
+  // Parallel execution of code:
+  // original code:
+  // 5e4 iterations -> 4.01 seconds with boost::shared_mutex
+  // 5e4 iterations -> 8.05 seconds with std::mutex
+  //
+  // refactored code that throws exception outside block:
+  // 5e4 iterations -> 8.55 seconds with omp critical
+  // 5e4 iterations -> 8.59 seconds with std::mutex
+  // 5e4 iterations -> 3.94 seconds with boost::shared_mutex
+  int nr_iterations (5e4);
+  int test = 0;
+#pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    auto aa = AASequence::fromString("TEST[" +  String(0.14*k) + "]PEPTIDE");
+    test += aa.size();
+  }
+  TEST_EQUAL(test, nr_iterations*11)
 }
 END_SECTION
 

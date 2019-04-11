@@ -45,7 +45,7 @@ namespace OpenMS
   {
 public:
 
-  // struct to store information about accsessions
+  // struct to store information about accessions
   struct AccessionInfo
   {
     String sf_path;
@@ -83,14 +83,14 @@ public:
 
     Store .ms file.
     Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stores in CompoundInfo struct.
-    If adduct information for a spectrum is missing, no adduct information is addded. 
+    If adduct information for a spectrum is missing, no adduct information is added. 
     In this case, SIRIUS assumes default adducts for the respective spectrum.
     
     @return writes .ms file
     @return stores CompoundInfo
     
     @param spectra: Peakmap from input mzml.
-    @param msfile: Writtes .ms file from sirius.
+    @param msfile: Writes .ms file from sirius.
     @param feature_mapping: Adducts and features (index).
     @param feature_only: Only use features.
     @param isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).

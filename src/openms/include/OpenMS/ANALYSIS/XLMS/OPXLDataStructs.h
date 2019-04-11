@@ -71,9 +71,9 @@ namespace OpenMS
        */
       struct ProteinProteinCrossLink
       {
-        const AASequence *alpha = nullptr; // longer peptide
-        const AASequence *beta = nullptr; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
-        std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
+        const AASequence *alpha = nullptr; ///< longer peptide
+        const AASequence *beta = nullptr; ///< shorter peptide (empty for mono-link), tie breaker: mass then lexicographical
+        std::pair<SignedSize, SignedSize> cross_link_position; ///< index in alpha, beta or between alpha, alpha in loop-links
         double cross_linker_mass = 0;
         String cross_linker_name;
         ResidueModification::TermSpecificity term_spec_alpha;
@@ -189,7 +189,7 @@ namespace OpenMS
           if (a.score == b.score)
           {
             // in rare cases when the sequences are the same, multiple candidates with different cross-linked positions can have the same score
-            // that leads to ambigious sorting and may cause differences between compilers
+            // that leads to ambiguous sorting and may cause differences between compilers
             // in those cases we prefer higher positions (just like the score),
             // because the lower position might be an N-term link, which is usually less likely and all other positions are equal (because the score is equal)
             if (a.cross_link.cross_link_position.first == b.cross_link.cross_link_position.first)
@@ -300,8 +300,8 @@ namespace OpenMS
       struct PreprocessedPairSpectra
       {
 
-        MSExperiment spectra_linear_peaks; // merge spectrum of linear peaks (present in both spectra)
-        MSExperiment spectra_xlink_peaks; // Xlink peaks in the light spectrum (linear peaks between spectra_light_different and spectra heavy_to_light)
+        MSExperiment spectra_linear_peaks; ///< merge spectrum of linear peaks (present in both spectra)
+        MSExperiment spectra_xlink_peaks; ///< Xlink peaks in the light spectrum (linear peaks between spectra_light_different and spectra heavy_to_light)
         MSExperiment spectra_all_peaks;
 
         // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMaps).

@@ -47,22 +47,7 @@ namespace OpenMS
     max_code_length_(0)
   {
     readFromFile_("CHEMISTRY/Modomics.tsv");
-    // add more convenient representations for terminal phosphates:
-    EmpiricalFormula phosphate("H2PO3");
-    Ribonucleotide* p3 = new Ribonucleotide("3' terminal phosphate", "3'-p");
-    p3->setFormula(phosphate);
-    p3->setMonoMass(phosphate.getMonoWeight());
-    p3->setAvgMass(phosphate.getAverageWeight());
-    p3->setTermSpecificity(Ribonucleotide::THREE_PRIME);
-    code_map_[p3->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(p3);
-    Ribonucleotide* p5 = new Ribonucleotide("5' terminal phosphate", "5'-p");
-    p5->setFormula(phosphate);
-    p5->setMonoMass(p3->getMonoMass());
-    p5->setAvgMass(p3->getAvgMass());
-    p5->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
-    code_map_[p5->getCode()] = ribonucleotides_.size();
-    ribonucleotides_.push_back(p5);
+    readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
   }
 
 
@@ -79,7 +64,7 @@ namespace OpenMS
   {
     String full_path = File::find(path);
 
-    const String header = "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass";
+    String header = "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass";
 
     // the input file is Unicode encoded, so we need Qt to read it:
     QFile file(full_path.toQString());
@@ -90,16 +75,19 @@ namespace OpenMS
 
     QTextStream source(&file);
     source.setCodec("UTF-8");
+    Size line_count = 1;
     String line = source.readLine();
-    // skip leading comments:
-    while (line.hasPrefix("#")) line = source.readLine();
-    if (line != header)
+    while (line[0] == '#') // skip leading comments
+    {
+      line = source.readLine();
+      ++line_count;
+    }
+    if (!line.hasPrefix(header)) // additional columns are allowed
     {
       String msg = "expected header line starting with: '" + header + "'";
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   line, msg);
     }
-    Size line_count = 1;
 
     QChar prime(0x2032); // Unicode "prime" character
     while (!source.atEnd())
@@ -116,10 +104,11 @@ namespace OpenMS
         ribonucleotides_.push_back(ribo);
         max_code_length_ = max(max_code_length_, ribo->getCode().size());
       }
-      catch (...)
+      catch (Exception::BaseException& e)
       {
         LOG_ERROR << "Error: Failed to parse input line " << line_count
-                  << " - skipping this line." << endl;
+                  << ". Reason:\n" << e.getName()
+                  << " - " << e.getMessage() << "\nSkipping this line." << endl;
       }
     }
   }
@@ -130,7 +119,7 @@ namespace OpenMS
   {
     vector<String> parts;
     String(row).split('\t', parts);
-    if (parts.size() != 9)
+    if (parts.size() < 9)
     {
       String msg = "9 tab-separated fields expected, found " +
         String(parts.size()) + " in line " + String(line_count);
@@ -148,9 +137,9 @@ namespace OpenMS
       ribo->setCode(parts[1]);
     }
     ribo->setNewCode(parts[2]);
-    if (parts[3] == "preQ0base")
+    if (parts[3] == "preQ0base") // queuosine and its derivatives
     {
-      ribo->setOrigin('0');
+      ribo->setOrigin('G'); // queuosine replaces "G" in tRNA-Asp/Asn
     }
     else if (parts[3].size() == 1) // A, C, G, U
     {
@@ -158,37 +147,61 @@ namespace OpenMS
     }
     // "parts[4]" is the Unicode equivalent to "parts[5]", so we can skip it
     ribo->setHTMLCode(parts[5]);
-    ribo->setFormula(EmpiricalFormula(parts[6]));
+    if (!parts[6].empty() && (parts[6] != "-"))
+    {
+      ribo->setFormula(EmpiricalFormula(parts[6]));
+    }
     if (!parts[7].empty() && (parts[7] != "None"))
     {
       ribo->setMonoMass(parts[7].toDouble());
+      if ((ribo->getMonoMass() == 0.0) && (!ribo->getFormula().isEmpty()))
+      {
+        ribo->setMonoMass(ribo->getFormula().getMonoWeight());
+      }
     }
     if (!parts[8].empty() && (parts[8] != "None"))
     {
       ribo->setAvgMass(parts[8].toDouble());
+      if ((ribo->getAvgMass() == 0.0) && (!ribo->getFormula().isEmpty()))
+      {
+        ribo->setAvgMass(ribo->getFormula().getAverageWeight());
+      }
     }
     // Modomics' "new code" contains information on terminal specificity:
-    if (parts[2].hasSubstring("55") || (parts[2] == "N"))
+    if (parts[2].back() == 'N') // terminal mod., exception: "GN"
     {
-      ribo->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
+      if (parts[2].hasSubstring("55") || (parts[2] == "N"))
+      {
+        ribo->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
+      }
+      else if (parts[2].hasSubstring("33"))
+      {
+        ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
+      }
     }
-    else if (parts[2].hasSubstring("33"))
+    else // default specificity is "ANYWHERE"; now set formula after base loss:
     {
-      ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
-    }
-    else // default specificity is "ANYWHERE"; set formula after base loss:
-    {
-      if (parts[1].hasSuffix("m"))
+      if (parts[1].back() == 'm') // mod. attached to the ribose, not base
       {
         ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+      }
+      else if (parts[1].back() == '?') // ambiguity code -> fill the map
+      {
+        if (parts.size() < 10)
+        {
+          String msg =
+            "10th field expected for ambiguous modification in line " +
+            String(line_count);
+          throw Exception::ParseError(__FILE__, __LINE__,
+                                      OPENMS_PRETTY_FUNCTION, row, msg);
+        }
+        String code1 = parts[9].prefix(' '), code2 = parts[9].suffix(' ');
+        ambiguity_map_[parts[1]] = make_pair(getRibonucleotide(code1),
+                                             getRibonucleotide(code2));
       }
       else if ((parts[1] == "Ar(p)") || (parts[1] == "Gr(p)"))
       {
         ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
-      }
-      else
-      {
-        ribo->setBaselossFormula(EmpiricalFormula("C5H10O5"));
       }
     }
 
@@ -225,6 +238,20 @@ namespace OpenMS
     }
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      seq);
+  }
+
+
+  pair<RibonucleotideDB::ConstRibonucleotidePtr,
+       RibonucleotideDB::ConstRibonucleotidePtr>
+  RibonucleotideDB::getRibonucleotideAlternatives(const std::string& code)
+  {
+    auto pos = ambiguity_map_.find(code);
+    if (pos == ambiguity_map_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, code);
+    }
+    return pos->second;
   }
 }
 

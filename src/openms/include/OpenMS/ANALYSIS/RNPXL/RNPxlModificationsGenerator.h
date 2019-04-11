@@ -49,8 +49,8 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI RNPxlModificationMassesResult
   {
-    std::map<String, double> mod_masses; // empirical formula -> mass
-    std::map<String, std::set<String> > mod_combinations; // empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
+    std::map<String, double> mod_masses; ///< empirical formula -> mass
+    std::map<String, std::set<String> > mod_combinations; ///< empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
   };
 
   class OPENMS_DLLAPI RNPxlModificationsGenerator

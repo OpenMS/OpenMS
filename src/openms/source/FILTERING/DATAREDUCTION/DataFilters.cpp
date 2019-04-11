@@ -34,6 +34,7 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
 using namespace std;

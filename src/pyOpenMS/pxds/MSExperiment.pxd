@@ -5,7 +5,6 @@ from DataValue cimport *
 from String cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
-from MetaInfoInterface cimport *
 from ExperimentalSettings cimport *
 from DateTime cimport *
 from RangeManager cimport *
@@ -96,16 +95,4 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         bool operator==(MSExperiment) nogil except +
         void reset() nogil except +
         bool clearMetaDataArrays() nogil except +
-
-        # from MetaInfoInterface:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
 

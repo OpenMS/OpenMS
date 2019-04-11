@@ -53,11 +53,11 @@ namespace OpenMS
   class OPENMS_DLLAPI CubicSpline2d
   {
 
-    std::vector<double> a_; // constant spline coefficients
-    std::vector<double> b_; // linear spline coefficients
-    std::vector<double> c_; // quadratic spline coefficients
-    std::vector<double> d_; // cubic spline coefficients
-    std::vector<double> x_; // knots
+    std::vector<double> a_; ///< constant spline coefficients
+    std::vector<double> b_; ///< linear spline coefficients
+    std::vector<double> c_; ///< quadratic spline coefficients
+    std::vector<double> d_; ///< cubic spline coefficients
+    std::vector<double> x_; ///< knots
 
 public:
 

@@ -41,8 +41,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Information about software used for data processing.
+    /** @brief Information about software used for data processing.
 
       If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
  software information only once.

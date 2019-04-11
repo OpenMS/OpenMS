@@ -56,7 +56,7 @@ class OPENMS_DLLAPI Deisotoper
 
    * @param [spectra] Input spectra (sorted by m/z)
    * @param [fragment_tolerance] The tolerance used to match isotopic peaks
-   * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
+   * @param [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
    * @param [min_charge] The minimum charge considered
    * @param [max_charge] The maximum charge considered
    * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained

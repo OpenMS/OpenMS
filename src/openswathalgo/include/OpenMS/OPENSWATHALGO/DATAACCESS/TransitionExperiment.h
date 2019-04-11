@@ -280,4 +280,3 @@ public:
 
 } //end Namespace OpenSwath
 
-
