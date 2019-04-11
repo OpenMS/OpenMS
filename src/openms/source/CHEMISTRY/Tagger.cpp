@@ -45,7 +45,7 @@ namespace OpenMS
      if (m < min_gap_ || m > max_gap_) return ' ';
      const float delta = Math::ppmToMass(ppm_, m);
      auto left = mass2aa.lower_bound(m - delta);
-     if (left == mass2aa.end()) return ' ';
+     //if (left == mass2aa.end()) return ' '; // cannot happen, since we checked boundaries above
      if (fabs(left->second - m) < delta) return left->second;
      return ' ';
   }               
