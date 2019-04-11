@@ -1752,7 +1752,9 @@ namespace OpenMS
     const vector<ProteinIdentification>& prot_ids, 
     const vector<PeptideIdentification>& peptide_ids, 
     const String& filename,
-    bool first_run_inference_only)
+    bool first_run_inference_only,
+    std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
+    std::map<String, size_t>& idrun_2_run_index)
   {
     LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
     vector<PeptideIdentification> pep_ids = peptide_ids;
@@ -1773,9 +1775,6 @@ namespace OpenMS
     vector<vector<pair<String, String>>> secondary_search_engines_settings;
 
     // helper to map between peptide identifications and MS run
-    //map<size_t, size_t> map_pep_idx_2_run;
-    map<pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
-    map<String, size_t> idrun_2_run_index;
 
     // used to report quantitative study variables
     Size quant_study_variables(0);
@@ -2616,7 +2615,9 @@ Not sure how to handle these:
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
     String title)
-  {  
+  {
+    std::cout << "Start cXML export.\n";
+    
     LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
     vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
 
@@ -2628,6 +2629,8 @@ Not sure how to handle these:
       const vector<PeptideIdentification>& p = c.getPeptideIdentifications();
       pep_ids.insert(std::end(pep_ids), std::begin(p), std::end(p));
     }
+    
+    std::cout << "number of IDs = " << pep_ids.size() << "\n";
 
     // used to export PSMs of unassigned peptide identifications
     if (export_unassigned_ids)
@@ -2639,7 +2642,11 @@ Not sure how to handle these:
     ///////////////////////////////////////////////////////////////////////
     // Export protein/-group quantifications (stored as meta value in protein IDs)
     // In this case, the first run is only for inference, get peptide info from the rest of the runs.
-    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, true);
+    map<pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
+    map<String, size_t> idrun_2_run_index;
+    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, true,
+                                               map_run_fileidx_2_msfileidx,
+                                               idrun_2_run_index);
 
 
     // determine number of samples
@@ -2674,7 +2681,22 @@ Not sure how to handle these:
     meta_data.title = MzTabString(title);
 
     MzTabParameter quantification_method;
-    quantification_method.fromCellString("[MS,MS:1001834,LC-MS label-free quantitation analysis,]");
+    const String & experiment_type = consensus_map.getExperimentType();   
+    if (experiment_type == "label-free")
+    {
+      quantification_method.fromCellString("[MS,MS:1001834,LC-MS label-free quantitation analysis,]");
+    }
+    else if (experiment_type == "labeled_MS1")
+    {
+      quantification_method.fromCellString("[MS,MS:123,TODO,]");
+    }
+    else if (experiment_type == "labeled_MS2")
+    {
+      quantification_method.fromCellString("[MS,MS:123,TODO,]");
+    }
+    
+    
+
     meta_data.quantification_method = quantification_method;
     MzTabParameter protein_quantification_unit;
     protein_quantification_unit.fromCellString("[,,Abundance,]"); // TODO: add better term to obo
@@ -2711,8 +2733,6 @@ Not sure how to handle these:
     // assay index (and sample index) must be unique numbers 1..n
     // fraction_group + label define the quant. values of an assay
     auto pl2fg = ed.getPathLabelToFractionGroupMapping(false);
-
-    const String & experiment_type = consensus_map.getExperimentType();    
 
     // assay meta data
     for (auto const & c : consensus_map.getColumnHeaders())
@@ -2935,6 +2955,31 @@ Not sure how to handle these:
           row.search_engine_score_ms_run[1][ms_run] = MzTabDouble(best_ph.getScore());
         }
 
+        if (pep_ids[0].metaValueExists("spectrum_reference"))
+        {
+          size_t run_index = idrun_2_run_index[pep_ids[0].getIdentifier()];
+          StringList filenames;
+          prot_ids[run_index].getPrimaryMSRunPath(filenames);
+          size_t msfile_index(0);
+          if (filenames.size() <= 1) //either none or only one file for this run
+          {
+            msfile_index = map_run_fileidx_2_msfileidx[{run_index, 0}];
+          }
+          else
+          {
+            if (pep_ids[0].metaValueExists("map_index"))
+            {
+              msfile_index = map_run_fileidx_2_msfileidx[{run_index, pep_ids[0].getMetaValue("map_index")}];
+            }
+            else
+            {
+              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                  "Multiple files in a run, but no map_index in PeptideIdentification found.");
+            }
+          }
+          row.spectra_ref.setSpecRef(pep_ids[0].getMetaValue("spectrum_reference").toString());
+          row.spectra_ref.setMSFile(msfile_index);
+        }
         // fill opt_ columns
 
         // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)

@@ -944,7 +944,9 @@ public:
         const std::vector<ProteinIdentification>& prot_ids,
         const std::vector<PeptideIdentification>& peptide_ids,
         const String& filename,
-        bool first_run_inference_only);
+        bool first_run_inference_only,
+        std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
+        std::map<String, size_t>& idrun_2_run_index);
 
     /// Generate MzTab style list of PTMs from AASequence object. 
     /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
