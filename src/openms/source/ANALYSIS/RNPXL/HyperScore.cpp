@@ -84,7 +84,8 @@ namespace OpenMS
       {
         ++index;
         auto d = fabs(exp_spectrum[index].getMZ() - theo_mz);
-        if (diff > d) {
+        if (diff > d) 
+        {
             diff = d; // getting better
         } else {
             // getting worse (overshot)
