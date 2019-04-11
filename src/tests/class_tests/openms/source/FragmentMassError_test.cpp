@@ -248,8 +248,8 @@ START_TEST(FragmentMassError, "$Id$")
           std::vector<FragmentMassError::FMEStatistics> result;
           result = frag_ma_err.getResults();
 
-          TEST_REAL_SIMILAR(result[0].average_ppm, -0.0586)
-          TEST_REAL_SIMILAR(result[0].variance_ppm, 4.391826)
+          TEST_REAL_SIMILAR(result[0].average_ppm, 0.042433)
+          TEST_REAL_SIMILAR(result[0].variance_ppm, 6.9)
 
           // MSExperiment is not sorted
           TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, frag_ma_err_ms1.compute(fmap, exp_unsort),"MSExperiment is not sorted by ascending RT")

@@ -35,14 +35,15 @@
 #include <OpenMS/QC/FragmentMassError.h>
 #include <string>
 #include <iostream>
+#include <plugin-api.h>
 
 namespace OpenMS
 {
   void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const bool tolerance_unit_ppm)
   {
     FMEStatistics result;
-    result.average_ppm = 0.;
-    result.variance_ppm = 0.;
+    //result.average_ppm = 0.;
+    //result.variance_ppm = 0.;
 
     //accumulates ppm errors over all first PeptideHits
     double accumulator_ppm{};
@@ -234,22 +235,29 @@ namespace OpenMS
 
     };
 
-    auto lamVar = [&result](const PeptideIdentification& pep_id)
+    auto lamVar = [&result, &counter_ppm](const PeptideIdentification& pep_id)
     {
       for (auto ppm : (pep_id.getHits()[0].getMetaValue("ppm_errors")).toDoubleList())
       {
-        result.variance_ppm += pow((ppm - result.average_ppm),2);
+        result.variance_ppm += (pow((ppm - result.average_ppm),2) / counter_ppm);
+        std::cout << "counter_ppm: " << counter_ppm << std::endl;
       }
     };
 
+    //computation of ppms
     QCBase::iterateFeatureMap(fmap, lamCompPPM);
+
+    //if there are no matching peaks, the counter is zero and it is not possible to find ppms
     if (counter_ppm == 0)
     {
-      //LOG_WARN weil eigentlich ein ideleales Ergebnis rauskommt, obwohl das eher auf einen kaputten Input hinweist
       results_.push_back(result);
       return;
     }
+
+    //computes average
     result.average_ppm = accumulator_ppm/counter_ppm;
+
+    //computes variance
     QCBase::iterateFeatureMap(fmap, lamVar);
 
     results_.push_back(result);
