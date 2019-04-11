@@ -62,17 +62,15 @@ namespace OpenMS
     }
 
     // TODO this assumes only one StringDataArray is present and it is the right one
-    const PeakSpectrum::StringDataArray* ion_names;
-    if (theo_spectrum.getStringDataArrays().size() > 0)
-    {
-      ion_names = &theo_spectrum.getStringDataArrays()[0];
-    }
-    else
+    if (theo_spectrum.getStringDataArrays().size() == 0)
     {
       std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << std::endl;
       return 0.0;
     }
+    const auto& ion_names = theo_spectrum.getStringDataArrays()[0];
 
+    
+    Size index(0);
     for (Size i = 0; i < theo_spectrum.size(); ++i)
     {
       const double theo_mz = theo_spectrum[i].getMZ();
@@ -80,31 +78,41 @@ namespace OpenMS
       double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
       // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-      Size index = exp_spectrum.findNearest(theo_mz);
-
-      const double exp_mz = exp_spectrum[index].getMZ();
-      const double theo_intensity = theo_spectrum[i].getIntensity();
-
-      // found peak match
-      if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
+//      Size index = exp_spectrum.findNearest(theo_mz);
+      float diff(fabs(exp_spectrum[index].getMZ() - theo_mz));
+      while (index < exp_spectrum.size())
       {
-//        double mass_error = 1.0 - std::abs(theo_mz - exp_mz) / max_dist_dalton;
-        dot_product += exp_spectrum[index].getIntensity() * theo_intensity /* * mass_error */;
-        // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
-        if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
-        {
-          #ifdef DEBUG_HYPERSCORE
-            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
-          #endif
-          ++y_ion_count;
+        ++index;
+        auto d = fabs(exp_spectrum[index].getMZ() - theo_mz);
+        if (diff > d) {
+            diff = d; // getting better
+        } else {
+            // getting worse (overshot)
+            diff = d;
+            --index;
+            break;  
         }
-        else if ((*ion_names)[i][0] == 'b' || (*ion_names)[i].hasSubstring("$b"))
-        {
-          #ifdef DEBUG_HYPERSCORE
-            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
-          #endif
-          ++b_ion_count;
-        }
+      }
+      
+      if (diff >= max_dist_dalton) continue;
+
+      //const double exp_mz = exp_spectrum[index].getMZ();
+      //double mass_error = 1.0 - std::abs(theo_mz - exp_mz) / max_dist_dalton;
+      dot_product += exp_spectrum[index].getIntensity() * theo_spectrum[i].getIntensity(); /* * mass_error */;
+      // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
+      if ((ion_names)[i][0] == 'y' || (ion_names)[i].hasSubstring("$y"))
+      {
+        #ifdef DEBUG_HYPERSCORE
+          std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+        #endif
+        ++y_ion_count;
+      }
+      else if ((ion_names)[i][0] == 'b' || (ion_names)[i].hasSubstring("$b"))
+      {
+        #ifdef DEBUG_HYPERSCORE
+          std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+        #endif
+        ++b_ion_count;
       }
     }
 
