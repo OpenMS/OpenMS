@@ -125,6 +125,7 @@ protected:
     setValidFormats_("fasta", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerFlag_("addUID","Adds unique ID to all peptide identifications.",false);
 
     registerFullParam_(PeptideIndexing().getParameters());
    }
@@ -190,6 +191,18 @@ protected:
         prot_ids[i].computeCoverage(pep_ids);
       }
     }
+
+    //-------------------------------------------------------------
+    // adding unique ID
+    //-------------------------------------------------------------
+    if (getFlag_("addUID"))
+    {
+      for (PeptideIdentification &pep_id : pep_ids)
+      {
+        pep_id.setMetaValue("UID", UniqueIdGenerator::getUniqueId());
+      }
+    }
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
