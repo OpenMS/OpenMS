@@ -958,6 +958,7 @@ public:
       const String & filename,
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
+      const bool export_subfeatures,
       String title = "ConsensusMap export from OpenMS");
 
   protected:

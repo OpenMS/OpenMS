@@ -38,6 +38,8 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
+#include <fstream>
+
 namespace OpenMS
 {
 
@@ -71,6 +73,7 @@ public:
     String source_file;
     String source_format;
     std::vector<String> native_ids;
+    std::vector<String> mids;
     std::vector<String> scan_indices;
     std::vector<String> specrefs;
   };
@@ -97,14 +100,61 @@ public:
     @param v_cmpinfo: Vector of CompoundInfo.
     */
 
-    // preprocessing e.g. feature information
-    static void store(const PeakMap& spectra,
+    static void store(const MSExperiment& spectra,
                       const OpenMS::String& msfile,
                       const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                       const bool& feature_only,
                       const int& isotope_pattern_iterations,
                       const bool no_mt_info,
                       std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo);
+
+
+  protected:
+    /**
+    @brief Internal structure to write the .ms file (called in store function)
+
+    @param os: stream
+    @param spectra: spectra
+    @param ms2_spectra_index: vector of index ms2 spectra (in feautre)
+    @param ainfo: accession information
+    @param adducts: vector of adducts
+    @param v_description: vector of descriptions
+    @param v_sumformula: vector of sumformulas
+    @param f_isotopes: isotope pattern of the feature
+    @param feature_charge: feature charge
+    @param feature_id: feature id
+    @param feature_rt: features retention time
+    @param feature_mz: feature mass to charge
+    @param writecompound: bool if new compound should be written in .ms file
+    @param no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
+    @param isotope_pattern_iterations: number of iterations (trying to find a C13 pattern)
+    @param count_skipped_spectra: count number of skipped spectra
+    @param count_assume_mono: count number of features where mono charge was assumend
+    @param count_no_ms1: count number of compounds without a valid ms1 spectrum
+    @param v_cmpinfo: vector of CompoundInfo
+    */
+
+    static void writeMsFile_(std::ofstream& os,
+                             const MSExperiment& spectra,
+                             const std::vector<size_t>& ms2_spectra_index,
+                             const SiriusMSFile::AccessionInfo& ainfo,
+                             const StringList& adducts,
+                             const std::vector<String>& v_description,
+                             const std::vector<String>& v_sumformula,
+                             const std::vector<std::pair<double,double>>& f_isotopes,
+                             int& feature_charge,
+                             uint64_t& feature_id,
+                             const double& feature_rt,
+                             const double& feature_mz,
+                             bool& writecompound,
+                             const bool& no_masstrace_info_isotope_pattern,
+                             const int& isotope_pattern_iterations,
+                             int& count_skipped_spectra,
+                             int& count_assume_mono,
+                             int& count_no_ms1,
+                             std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo);
+
+
 
   };
 

@@ -2888,7 +2888,7 @@ namespace OpenMS
       if (has_ms_run_level_scores) { search_ms_runs = ms_runs; }
     }
     Size n_search_engine_score = peptide_section[0].search_engine_score_ms_run.size();
-    Size n_best_search_engine_score = mz_tab.getMetaData().peptide_search_engine_score.size();
+    Size n_best_search_engine_score = peptide_section[0].best_search_engine_score.size();
 
     out.push_back(generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getPeptideOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getPeptideSectionRows(), mz_tab.getPeptideOptionalColumnNames(), out);
