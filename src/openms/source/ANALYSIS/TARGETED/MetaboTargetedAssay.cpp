@@ -66,8 +66,7 @@ namespace OpenMS
     vector <MetaboTargetedAssay> v_mta;
     const Map<BaseFeature const *, vector < size_t>>& feature_ms2_spectra_map = feature_ms2_index.assignedMS2;
 
-
-    for (auto& it : feature_ms2_spectra_map)
+    for (const auto& it : feature_ms2_spectra_map)
       {
         TargetedExperiment::Compound cmp;
         cmp.clearMetaInfo();
@@ -276,7 +275,7 @@ namespace OpenMS
       TargetedExperimentHelper::RetentionTime cmp_rt;
       cmp_rt.setRT(feature_rt);
       v_cmp_rt.push_back(std::move(cmp_rt));
-      cmp.rts = v_cmp_rt;
+      cmp.rts = std::move(v_cmp_rt);
 
       cmp.setChargeState(highest_precursor_charge);
 
@@ -346,7 +345,7 @@ namespace OpenMS
     int transition_group_counter = 0;
     vector <MetaboTargetedAssay> v_mta;
 
-    for (auto& it : v_cmp_spec)
+    for (const auto& it : v_cmp_spec)
     {
       // check if annotated spectrum exists
       const std::pair <SiriusMSFile::CompoundInfo, MSSpectrum> &csp = it.compoundspectrumpair;
@@ -435,7 +434,7 @@ namespace OpenMS
       TargetedExperimentHelper::RetentionTime cmp_rt;
       cmp_rt.setRT(feature_rt);
       v_cmp_rt.push_back(std::move(cmp_rt));
-      cmp.rts = v_cmp_rt;
+      cmp.rts = std::move(v_cmp_rt);
       cmp.setChargeState(charge);
       if (description == "UNKNOWN")
       {
