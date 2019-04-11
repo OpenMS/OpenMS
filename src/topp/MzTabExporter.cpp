@@ -133,7 +133,7 @@ protected:
 
       String out = getStringOption_("out");
       
-      DoubleList optional_columns = getStringList_("opt_columns");
+      StringList optional_columns = getStringList_("opt_columns");
       bool export_subfeatures = ListUtils::contains(optional_columns, "subfeatures");
 
       MzTab mztab;
