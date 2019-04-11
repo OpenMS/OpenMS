@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <fstream>
+#include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 
 namespace OpenMS
 {
@@ -60,6 +61,16 @@ namespace OpenMS
    this->n_hits_ = handler.getNumberOfHits();
    this->min_score_ = handler.getMinScore();
    this->max_score_ = handler.getMaxScore();
+
+   // this helper function adds additional explicit "xl_target_decoy" meta values derived from parsed data
+   // TODO: also adds "XL_Protein_position_alpha" and "XL_Protein_position_beta", but we don't have the protein info here
+   // these values will be wrong, just copied peptide positions, and should be removed
+   OPXLHelper::addProteinPositionMetaValues(pep_ids);
+   // this helper function bases the ranked lists of labeled XLMS searches on each light spectrum instead of pairs
+   // the second parameter here should be the maximal number of hits per spectrum,
+   // but using the total number of hits we will just keep everything contained in the file
+   // (just reassigned to single spectra and reranked by score)
+   pep_ids = OPXLHelper::combineTopRanksFromPairs(pep_ids, this->n_hits_);
   }
 
   int XQuestResultXMLFile::getNumberOfHits() const

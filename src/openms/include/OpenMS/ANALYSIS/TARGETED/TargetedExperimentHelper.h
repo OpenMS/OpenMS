@@ -224,7 +224,7 @@ public:
                retention_time_ == rhs.retention_time_;
       }
 
-      bool isRTset() const 
+      bool isRTset() const
       {
         return retention_time_set_;
       }
@@ -819,9 +819,9 @@ protected:
         return configuration_list_;
       }
 
-      void addConfiguration(const Configuration configuration)
+      void addConfiguration(const Configuration& configuration)
       {
-        return configuration_list_.push_back(configuration);
+        configuration_list_.push_back(configuration);
       }
 
       const std::vector<Interpretation> & getInterpretationList() const
@@ -829,9 +829,9 @@ protected:
         return interpretation_list_;
       }
 
-      void addInterpretation(const Interpretation interpretation)
+      void addInterpretation(const Interpretation& interpretation)
       {
-        return interpretation_list_.push_back(interpretation);
+        interpretation_list_.push_back(interpretation);
       }
 
       void resetInterpretations()
@@ -844,7 +844,7 @@ private:
       bool charge_set_; ///< Whether product ion charge is set or not
       double mz_; ///< Product ion m/z
       std::vector<Configuration> configuration_list_; ///< Product ion configurations used
-      std::vector<Interpretation> interpretation_list_;  ///< Procution ion interpretation
+      std::vector<Interpretation> interpretation_list_;  ///< Product ion interpretation
 
     };
 

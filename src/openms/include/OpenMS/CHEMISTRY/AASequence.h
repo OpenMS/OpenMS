@@ -46,7 +46,7 @@
 namespace OpenMS
 {
 
-  //forward declarations
+  // forward declarations
   class ResidueModification;
 
   /**
@@ -112,7 +112,7 @@ public:
 
     /** @brief ConstIterator for AASequence
 
-               AASequence constant iterator
+        AASequence constant iterator
     */
     class OPENMS_DLLAPI ConstIterator
     {
@@ -247,7 +247,7 @@ protected:
 
     /** @brief Iterator class for AASequence
 
-            Mutable iterator for AASequence
+        Mutable iterator for AASequence
     */
     class OPENMS_DLLAPI Iterator
     {
@@ -379,18 +379,25 @@ protected:
     /** @name Constructors and Destructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     AASequence();
 
-    /// copy constructor
-    AASequence(const AASequence& rhs);
+    /// Copy constructor
+    AASequence(const AASequence&) = default;
 
-    /// destructor
+    /// Move constructor
+    AASequence(AASequence&&) noexcept = default;
+
+    /// Destructor
     virtual ~AASequence();
     //@}
 
-    /// assignment operator
-    AASequence& operator=(const AASequence& rhs);
+    /// Assignment operator
+    AASequence& operator=(const AASequence&) = default;
+
+    /// Move assignment operator
+    AASequence& operator=(AASequence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
 
     /// check if sequence is empty
     bool empty() const;
@@ -435,8 +442,15 @@ protected:
     /// if an empty string is passed replaces the residue with its unmodified version 
     void setModification(Size index, const String& modification);
 
+    // sets the (potentially modified) residue
+    void setModification(Size index, const Residue* modification) { peptide_[index] = modification; }
+
     /// sets the N-terminal modification
+    /// Note: Don't use this method if speed is critical
     void setNTerminalModification(const String& modification);
+
+    /// sets the N-terminal modification
+    void setNTerminalModification(const ResidueModification* modification);
 
     /// returns the name (ID) of the N-terminal modification, or an empty string if none is set
     const String& getNTerminalModificationName() const;
@@ -445,7 +459,11 @@ protected:
     const ResidueModification* getNTerminalModification() const;
 
     /// sets the C-terminal modification
+    /// Note: Don't use this method if speed is critical
     void setCTerminalModification(const String& modification);
+
+    /// sets the C-terminal modification
+    void setCTerminalModification(const ResidueModification* modification);
 
     /// returns the name (ID) of the C-terminal modification, or an empty string if none is set
     const String& getCTerminalModificationName() const;
@@ -582,6 +600,7 @@ protected:
                                  bool permissive = true);
 
   protected:
+
     std::vector<const Residue*> peptide_;
 
     const ResidueModification* n_term_mod_;

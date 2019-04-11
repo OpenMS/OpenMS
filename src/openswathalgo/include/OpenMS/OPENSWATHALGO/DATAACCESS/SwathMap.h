@@ -57,6 +57,13 @@ namespace OpenSwath
       ms1(false)
     {}
 
+    SwathMap(double mz_start, double mz_end, double mz_center, bool is_ms1)
+      : lower(mz_start),
+        upper(mz_end),
+        center(mz_center),
+        ms1(is_ms1)
+    {}
+
   };
 
 } //end Namespace OpenSwath

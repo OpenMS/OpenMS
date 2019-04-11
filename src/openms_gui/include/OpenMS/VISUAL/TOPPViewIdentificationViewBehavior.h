@@ -34,7 +34,7 @@
 
 #pragma once
 
-// #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <vector>
@@ -114,6 +114,9 @@ namespace OpenMS
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
 
+    /// remove all graphical peak annotations
+    void removeGraphicalPeakAnnotations_(int spectrum_index);
+
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
     void addPeakAnnotations_(const std::vector<PeptideIdentification>& ph);
 
@@ -130,10 +133,8 @@ namespace OpenMS
     /// Helper function for generateSequenceDiagram_() - overload for peptides
     void generateSequenceRow_(const AASequence& seq, std::vector<String>& row);
 
-/*
     /// Helper function for generateSequenceDiagram_() - overload for oligonucleotides
     void generateSequenceRow_(const NASequence& seq, std::vector<String>& row);
-*/
 
     /// Helper function, that collapses a vector of Strings into one String
     String collapseStringVector(std::vector<String> strings);
@@ -145,4 +146,3 @@ namespace OpenMS
     std::vector<Annotation1DItem*> temporary_annotations_;
   };
 }
-

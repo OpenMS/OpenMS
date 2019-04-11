@@ -85,7 +85,7 @@ namespace OpenMS
     after the linking reaction (see section on output for clarification).
 
     <h3>Output: XL-MS Identifications with scores and linked positions in the proteins</h3>
-    The input paramters protein_ids and peptide_ids are filled with XL-MS search parameters and IDs
+    The input parameters protein_ids and peptide_ids are filled with XL-MS search parameters and IDs
 
     <CENTER>
       <table>
@@ -165,8 +165,6 @@ private:
     Size missed_cleavages_;
     String enzyme_name_;
 
-    bool pre_scoring_;
-    Size number_of_scored_candidates_;
     Int number_top_hits_;
     String deisotope_mode_;
 

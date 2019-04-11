@@ -742,7 +742,11 @@ namespace OpenMS
       endRun_();
       return;
     }
-    url.remove(host_name_.toQString());
+    
+    // makes sure that only the first occurrence in the String is replaced,
+    // in case of an equal server_name_
+    url.replace(url.indexOf(host_name_.toQString()),
+                          host_name_.toQString().size(), QString(""));
 
     // ensure path starts with /
     if (url[0] != '/') url.prepend('/');

@@ -75,7 +75,7 @@ public:
         return SpectrumSettings::UNKNOWN;
       }
 
-      const int max_peaks = 5; // maximal number of peaks we are looing at
+      const int max_peaks = 5; // maximal number of peaks we are looking at
       int profile_evidence = 0; // number of peaks found to be profile
       int centroid_evidence = 0; // number of peaks found to be centroided
 

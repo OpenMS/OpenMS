@@ -46,6 +46,11 @@
 namespace OpenMS
 {
   class ExperimentalSettings;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
+  
 
   /**
    * @brief File adapter for Swath files.
@@ -70,11 +75,27 @@ public:
                                                boost::shared_ptr<ExperimentalSettings>& exp_meta, 
                                                String readoptions = "normal");
 
-    /// Loads a Swath run from a single mzML file
-    std::vector<OpenSwath::SwathMap> loadMzML(String file, 
-                                              String tmp,
+    /**
+      @brief Loads a Swath run from a single mzML file
+
+      Using the @p plugin_consumer, you can provide a custom consumer which will be chained
+      into the process of loading the data and making it available (depending on @p readoptions).
+      This is useful if you want to modify the data a priori or extract some other information using
+      MSDataTransformingConsumer (for example). Make sure it leaves the data intact, such that the 
+      returned SwathMaps are actually useful.
+
+      @param [IN] file Input filename
+      @param [IN] tmp Temporary directory (for cached data)
+      @param [OUT] exp_meta Experimental metadata from mzML file
+      @param [IN] readoptions How are spectra accessed after reading - tradeoff between memory usage and time (disk caching)
+      @param [IN] plugin_consumer An intermediate custom consumer
+      @return Swath maps for MS2 and MS1 (unless readoptions == split, which returns no data)
+    */
+    std::vector<OpenSwath::SwathMap> loadMzML(const String& file, 
+                                              const String& tmp,
                                               boost::shared_ptr<ExperimentalSettings>& exp_meta,
-                                              String readoptions = "normal");
+                                              const String& readoptions = "normal",
+                                              Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
     /// Loads a Swath run from a single mzXML file
     std::vector<OpenSwath::SwathMap> loadMzXML(String file, 

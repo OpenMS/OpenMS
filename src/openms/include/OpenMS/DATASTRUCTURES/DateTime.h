@@ -66,9 +66,13 @@ public:
     DateTime(const DateTime& date);
     /// Copy constructor from Qt base class
     DateTime(const QDateTime& date);
+    /// Move constructor
+    DateTime(DateTime&&) noexcept;
 
     /// Assignment operator
     DateTime& operator=(const DateTime& source);
+    /// Move assignment operator
+    DateTime& operator=(DateTime&&) & noexcept;
 
     /**
         @brief sets date from a string

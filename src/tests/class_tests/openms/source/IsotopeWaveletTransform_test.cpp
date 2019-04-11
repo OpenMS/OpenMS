@@ -183,10 +183,6 @@ START_SECTION(FeatureMap< Feature > mapSeeds2Features(const MSExperiment< PeakTy
 	TEST_EQUAL (f.size(), 1)
 END_SECTION
 
-START_SECTION(void mergeFeatures(IsotopeWaveletTransform< PeakType > *later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff))
-	NOT_TESTABLE //only via CUDA
-END_SECTION
-
 START_SECTION(double getLinearInterpolation(const typename MSSpectrum::const_iterator &left_iter, const double mz_pos, const typename MSSpectrum::const_iterator &right_iter))
 	TEST_EQUAL((int)(iw->getLinearInterpolation(map[0].begin(), 1420.02, (map[0].begin()+1))*10),5)
 END_SECTION

@@ -69,16 +69,21 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    MetaInfo();
+    MetaInfo() = default;
 
     /// Copy constructor
-    MetaInfo(const MetaInfo& rhs);
+    MetaInfo(const MetaInfo&) = default;
+
+    /// Move constructor
+    MetaInfo(MetaInfo&&) = default;
 
     /// Destructor
     ~MetaInfo();
 
     /// Assignment operator
-    MetaInfo& operator=(const MetaInfo& rhs);
+    MetaInfo& operator=(const MetaInfo&) = default;
+    /// Move assignment operator
+    MetaInfo& operator=(MetaInfo&&) & = default;
 
     /// Equality operator
     bool operator==(const MetaInfo& rhs) const;
@@ -122,8 +127,10 @@ public:
 
 private:
     using MapType = boost::container::flat_map<UInt, DataValue>;
+
     /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;
+
     /// The actual mapping of indexes to values
     MapType index_to_value_;
   };

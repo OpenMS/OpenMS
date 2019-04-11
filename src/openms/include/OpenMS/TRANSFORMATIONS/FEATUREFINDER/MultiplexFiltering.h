@@ -42,7 +42,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
 #include <vector>
 #include <algorithm>
@@ -91,7 +90,7 @@ public:
     /**
      * @brief constructor
      *
-     * @param exp_picked    experimental data in centroid mode
+     * @param exp_centroided    experimental data in centroid mode
      * @param patterns    patterns of isotopic peaks to be searched for
      * @param isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
      * @param isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
@@ -103,13 +102,22 @@ public:
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
      */
-    MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min,
+    MultiplexFiltering(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min,
                        int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit,
                        double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    /**
+     * @brief returns the intensity-filtered, centroided spectral data
+     */
+    MSExperiment& getCentroidedExperiment();
+    
+    /**
+     * @brief returns the blacklisted, centroided peaks
+     */
+    MSExperiment getBlacklist();
 
 protected:
     /**
-     * @brief construct an MS experiment from exp_picked_ containing
+     * @brief construct an MS experiment from exp_centroided_ containing
      * peaks which have not been previously blacklisted in blacklist_
      * 
      * In addition, construct an index mapping of 'white' peak positions
@@ -125,9 +133,9 @@ protected:
      * @param it_rt    pointer to the spectrum
      * @param intensity_first_peak    intensity to compare to
      *
-     * @return boolean if there is a significant peak
+     * @return -1 (if there is no significant peak), or peak index mz_idx (if there is a significant peak)
      */
-    bool checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
+    int checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
 
     /**
      * @brief check if there are enough peaks in the RT band to form the pattern
@@ -166,7 +174,7 @@ protected:
      * @param pattern_idx    index of the pattern in <patterns_>
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
-
+    
     /**
      * @brief check if the satellite peaks conform with the averagine model
      *
@@ -197,7 +205,7 @@ protected:
     /**
      * @brief centroided experimental data
      */
-    MSExperiment exp_picked_;
+    MSExperiment exp_centroided_;
 
     /**
      * @brief auxiliary structs for blacklisting
@@ -207,14 +215,14 @@ protected:
     /**
      * @brief "white" centroided experimental data
      *
-     * subset of all peaks of <exp_picked_> which are not blacklisted in <blacklist_>
+     * subset of all peaks of <exp_centroided_> which are not blacklisted in <blacklist_>
      */
-    MSExperiment exp_picked_white_;
+    MSExperiment exp_centroided_white_;
     
     /**
-     * @brief mapping of peak indices from a 'white' experiment <exp_picked_white_> to its original experiment <exp_picked_>
+     * @brief mapping of peak indices from a 'white' experiment <exp_centroided_white_> to its original experiment <exp_centroided_>
      */
-    White2Original exp_picked_mapping_;
+    White2Original exp_centroided_mapping_;
 
     /**
      * @brief list of peak patterns
@@ -269,6 +277,7 @@ protected:
     /**
      * @brief type of averagine to use
      */
+
     String averagine_type_;
 
   };

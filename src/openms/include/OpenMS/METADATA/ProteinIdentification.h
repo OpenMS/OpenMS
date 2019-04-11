@@ -38,6 +38,8 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/METADATA/DataArrays.h>
+
 #include <set>
 
 namespace OpenMS
@@ -51,12 +53,17 @@ namespace OpenMS
 
     The actual peptide hits are stored in PeptideIdentification instances that are part of spectra or features.
 
-    In order to be able to connect the ProteinIdentification and the corresponding peptide identifications, both classes have a string identifier. We recommend using the search engine name and the date as identifier.
-    Setting this identifier is especially important when there are several protein identification runs for a map, i.e. several ProteinIdentification instances.
+    In order to be able to connect the ProteinIdentification and the
+    corresponding peptide identifications, both classes have a string
+    identifier. We recommend using the search engine name and the date as
+    identifier.
+    Setting this identifier is especially important when there are several
+    protein identification runs for a map, i.e. several ProteinIdentification
+    instances.
 
     @todo Add MetaInfoInterface to modifications => update IdXMLFile and ProteinIdentificationVisualizer (Andreas)
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI ProteinIdentification :
     public MetaInfoInterface
@@ -68,8 +75,19 @@ public:
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
     */
-    struct OPENMS_DLLAPI ProteinGroup
+    class OPENMS_DLLAPI ProteinGroup
     {
+    public:
+      /// Float data array vector type
+      typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
+      typedef std::vector<FloatDataArray> FloatDataArrays;
+      /// String data array vector type
+      typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
+      typedef std::vector<StringDataArray> StringDataArrays;
+      /// Integer data array vector type
+      typedef OpenMS::DataArrays::IntegerDataArray IntegerDataArray ;
+      typedef std::vector<IntegerDataArray> IntegerDataArrays;
+
       /// Probability of this group
       double probability;
 
@@ -84,9 +102,106 @@ public:
       /*
         @brief Comparison operator (for sorting)
 
-        This operator is intended for sorting protein groups in a "best first" manner. That means higher probabilities are "less" than lower probabilities (!); smaller groups are "less" than larger groups; everything else being equal, accessions are compared lexicographically.
+        This operator is intended for sorting protein groups in a "best first"
+        manner. That means higher probabilities are "less" than lower
+        probabilities (!); smaller groups are "less" than larger groups;
+        everything else being equal, accessions are compared lexicographically.
       */
       bool operator<(const ProteinGroup& rhs) const;
+
+      /// Float data arrays
+      /**
+      @name data array methods
+
+      These methods are used to annotate protein group meta information.
+
+      These statements should help you chose which approach to use
+        - Access to meta info arrays is slower than to a member variable
+        - Access to meta info arrays is faster than to a %MetaInfoInterface
+        - Meta info arrays are stored when using mzML format for storing
+    */
+    //@{
+      /// Returns a const reference to the float meta data arrays
+      const FloatDataArrays& getFloatDataArrays() const;
+
+      /// Returns a mutable reference to the float meta data arrays
+      FloatDataArrays& getFloatDataArrays()
+      {
+        return float_data_arrays_;
+      }
+
+      /// Sets the float meta data arrays
+      void setFloatDataArrays(const FloatDataArrays& fda);
+
+      /// Returns a const reference to the string meta data arrays
+      const StringDataArrays& getStringDataArrays() const;
+ 
+      /// Returns a mutable reference to the string meta data arrays
+      StringDataArrays& getStringDataArrays();
+
+      /// Sets the string meta data arrays
+      void setStringDataArrays(const StringDataArrays& sda);
+
+      /// Returns a const reference to the integer meta data arrays
+      const IntegerDataArrays& getIntegerDataArrays() const;
+
+      /// Returns a mutable reference to the integer meta data arrays
+      IntegerDataArrays& getIntegerDataArrays();
+
+      /// Sets the integer meta data arrays
+      void setIntegerDataArrays(const IntegerDataArrays& ida);
+
+      /// Returns a mutable reference to the first integer meta data array with the given name
+      inline IntegerDataArray& getIntegerDataArrayByName(String name)
+      {
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a mutable reference to the first string meta data array with the given name
+      inline StringDataArray& getStringDataArrayByName(String name)
+      {
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+          [&name](const StringDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a mutable reference to the first float meta data array with the given name
+      inline FloatDataArray& getFloatDataArrayByName(String name)
+      {
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+          [&name](const FloatDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a const reference to the first integer meta data array with the given name
+      inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
+      {
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a const reference to the first string meta data array with the given name
+      inline const StringDataArray& getStringDataArrayByName(String name) const
+      {
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+          [&name](const StringDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a const reference to the first float meta data array with the given name
+      inline const FloatDataArray& getFloatDataArrayByName(String name) const
+      {
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+          [&name](const FloatDataArray& da) { return da.getName() == name; } );
+      }
+
+    private:
+      /// Float data arrays
+      FloatDataArrays float_data_arrays_;
+
+      /// String data arrays
+      StringDataArrays string_data_arrays_;
+
+      /// Integer data arrays
+      IntegerDataArrays integer_data_arrays_;
     };
 
     /// Peak mass type
@@ -118,24 +233,43 @@ public:
       Protease digestion_enzyme; ///< The cleavage site information in details (from ProteaseDB)
 
       SearchParameters();
+      /// Copy constructor
+      SearchParameters(const SearchParameters &) = default;
+      /// Move constructor
+      SearchParameters(SearchParameters&&) = default;
+      /// Destructor
+      ~SearchParameters() = default;
+
+      /// Assignment operator
+      SearchParameters & operator=(const SearchParameters &) = default;
+      /// Move assignment operator
+      SearchParameters& operator=(SearchParameters&&) & = default;
 
       bool operator==(const SearchParameters& rhs) const;
 
       bool operator!=(const SearchParameters& rhs) const;
 
-    };
+      std::pair<int,int> getChargeRange() const;
+      int getChargeValue_(String& charge_str) const;
 
+    };
 
     /** @name Constructors, destructors, assignment operator <br> */
     //@{
     /// Default constructor
     ProteinIdentification();
+    /// Copy constructor
+    ProteinIdentification(const ProteinIdentification&) = default;
+    /// Move constructor
+    ProteinIdentification(ProteinIdentification&&) = default;
     /// Destructor
     virtual ~ProteinIdentification();
-    /// Copy constructor
-    ProteinIdentification(const ProteinIdentification& source);
+
     /// Assignment operator
-    ProteinIdentification& operator=(const ProteinIdentification& source);
+    ProteinIdentification& operator=(const ProteinIdentification&) = default;
+    /// Move assignment operator
+    ProteinIdentification& operator=(ProteinIdentification&&) = default;
+
     /// Equality operator
     bool operator==(const ProteinIdentification& rhs) const;
     /// Inequality operator
@@ -150,6 +284,8 @@ public:
     std::vector<ProteinHit> & getHits();
     /// Appends a protein hit
     void insertHit(const ProteinHit & input);
+    /// Appends a protein hit
+    void insertHit(ProteinHit && input);
 
     /**
         @brief Sets the protein hits
@@ -174,6 +310,8 @@ public:
     std::vector<ProteinGroup>& getIndistinguishableProteins();
     /// Appends new indistinguishable proteins
     void insertIndistinguishableProteins(const ProteinGroup& group);
+    /// Appends singleton groups (with the current score) for every yet ungrouped protein hit
+    void fillIndistinguishableGroupsWithSingletons();
 
     /// Returns the protein significance threshold value
     double getSignificanceThreshold() const;
@@ -201,6 +339,17 @@ public:
     void computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
     //@}
 
+    /**
+       @brief Compute the modifications of all ProteinHits given PeptideHits
+      
+      For every protein accession, the pair of position and modification is returned.
+      Because fixed modifications might not be of interest, a list can be provided to skip those.
+    */
+    void computeModifications(
+      const std::vector<PeptideIdentification>& pep_ids, 
+      const StringList & skip_modifications);
+
+
     ///@name General information
     //@{
     /// Returns the date of the protein identification run
@@ -215,6 +364,14 @@ public:
     void setSearchEngineVersion(const String& search_engine_version);
     /// Returns the search engine version
     const String& getSearchEngineVersion() const;
+    /// Sets the inference engine type
+    void setInferenceEngine(const String& search_engine);
+    /// Returns the type of search engine used
+    const String getInferenceEngine() const;
+    /// Sets the search engine version
+    void setInferenceEngineVersion(const String& inference_engine_version);
+    /// Returns the search engine version
+    const String getInferenceEngineVersion() const;
     /// Sets the search parameters
     void setSearchParameters(const SearchParameters& search_parameters);
     /// Returns the search parameters
@@ -229,6 +386,9 @@ public:
     void setPrimaryMSRunPath(const StringList& s);
     /// get the file path to the first MS run
     void getPrimaryMSRunPath(StringList& toFill) const;
+    /// if this object has inference data
+    bool hasInferenceData() const;
+    bool hasInferenceEngineAsSearchEngine() const;
     //@}
 
 protected:

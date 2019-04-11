@@ -33,9 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
+
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <numeric>
-
+#include <unordered_set>
 
 using namespace std;
 
@@ -62,6 +63,46 @@ namespace OpenMS
     if (accessions.size() < rhs.accessions.size()) return true;
     if (accessions.size() > rhs.accessions.size()) return false;
     return accessions < rhs.accessions;
+  }
+
+  const ProteinIdentification::ProteinGroup::FloatDataArrays &ProteinIdentification::ProteinGroup::getFloatDataArrays() const
+  {
+    return float_data_arrays_;
+  }
+
+  void ProteinIdentification::ProteinGroup::setFloatDataArrays(const ProteinIdentification::ProteinGroup::FloatDataArrays &fda)
+  {
+    float_data_arrays_ = fda;
+  }
+
+  const ProteinIdentification::ProteinGroup::StringDataArrays &ProteinIdentification::ProteinGroup::getStringDataArrays() const
+  {
+    return string_data_arrays_;
+  }
+
+  void ProteinIdentification::ProteinGroup::setStringDataArrays(const ProteinIdentification::ProteinGroup::StringDataArrays &sda)
+  {
+    string_data_arrays_ = sda;
+  }
+
+  ProteinIdentification::ProteinGroup::StringDataArrays &ProteinIdentification::ProteinGroup::getStringDataArrays()
+  {
+    return string_data_arrays_;
+  }
+
+  const ProteinIdentification::ProteinGroup::IntegerDataArrays &ProteinIdentification::ProteinGroup::getIntegerDataArrays() const
+  {
+    return integer_data_arrays_;
+  }
+
+  ProteinIdentification::ProteinGroup::IntegerDataArrays &ProteinIdentification::ProteinGroup::getIntegerDataArrays()
+  {
+    return integer_data_arrays_;
+  }
+
+  void ProteinIdentification::ProteinGroup::setIntegerDataArrays(const ProteinIdentification::ProteinGroup::IntegerDataArrays &ida)
+  {
+    integer_data_arrays_ = ida;
   }
 
   ProteinIdentification::SearchParameters::SearchParameters() :
@@ -103,6 +144,72 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
+  int ProteinIdentification::SearchParameters::getChargeValue_(String& charge_str) const
+  {
+    // We have to do this because some people/tools put the + or - AFTER the number...
+    bool neg = charge_str.hasSubstring('-');
+    neg ? charge_str.remove('-') : charge_str.remove('+');
+    int val = charge_str.toInt();
+    return neg ? -val : val;
+  }
+
+  std::pair<int,int> ProteinIdentification::SearchParameters::getChargeRange() const
+  {
+    std::pair<int,int> result{0,0};
+
+    if (charges.hasSubstring(',')) //it's probably a list
+    {
+      StringList chgs;
+      charges.split(',', chgs);
+      for (String& chg : chgs)
+      {
+        int val = getChargeValue_(chg);
+        if (val < result.first) result.first = val;
+        if (val > result.second) result.second = val;
+      }
+    }
+    else if (charges.hasSubstring(':')) //it's probably a range
+    {
+      StringList chgs;
+      charges.split(':', chgs);
+      if (chgs.size() > 2)
+      {
+        throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Charge string in SearchParameters not parseable.");
+      }
+      result.first = getChargeValue_(chgs[0]);
+      result.second = getChargeValue_(chgs[1]);
+    }
+    else
+    {
+      size_t pos = charges.find('-', 0);
+      std::vector<size_t> minus_positions;
+      while (pos != string::npos)
+      {
+        minus_positions.push_back(pos);
+        pos = charges.find('-', pos+1);
+      }
+      if (!minus_positions.empty() && minus_positions.size() <= 3) // it's probably a range with '-'
+      {
+        Size split_pos(0);
+        if (minus_positions.size() <= 1)
+        {
+          //split at first minus
+          split_pos = minus_positions[0];
+        }
+        else
+        {
+          split_pos = minus_positions[1];
+        }
+        String first = charges.substr(0, split_pos);
+        String second = charges.substr(split_pos + 1, string::npos);
+        result.first = getChargeValue_(first);
+        result.second = getChargeValue_(second);
+
+      }
+    }
+    return result;
+  }
+
   ProteinIdentification::ProteinIdentification() :
     MetaInfoInterface(),
     id_(),
@@ -116,22 +223,6 @@ namespace OpenMS
     protein_groups_(),
     indistinguishable_proteins_(),
     protein_significance_threshold_(0.0)
-  {
-  }
-
-  ProteinIdentification::ProteinIdentification(const ProteinIdentification& source) :
-    MetaInfoInterface(source),
-    id_(source.id_),
-    search_engine_(source.search_engine_),
-    search_engine_version_(source.search_engine_version_),
-    search_parameters_(source.search_parameters_),
-    date_(source.date_),
-    protein_score_type_(source.protein_score_type_),
-    higher_score_better_(source.higher_score_better_),
-    protein_hits_(source.protein_hits_),
-    protein_groups_(source.protein_groups_),
-    indistinguishable_proteins_(source.indistinguishable_proteins_),
-    protein_significance_threshold_(source.protein_significance_threshold_)
   {
   }
 
@@ -209,6 +300,31 @@ namespace OpenMS
     indistinguishable_proteins_.push_back(group);
   }
 
+  void ProteinIdentification::fillIndistinguishableGroupsWithSingletons()
+  {
+    unordered_set<string> groupedAccessions;
+    for (const ProteinGroup& proteinGroup : indistinguishable_proteins_)
+    {
+      for (const String& acc : proteinGroup.accessions)
+      {
+        groupedAccessions.insert(acc);
+      }
+    }
+
+    for (const ProteinHit& protein : getHits())
+    {
+      const String& acc = protein.getAccession();
+      if (groupedAccessions.find(acc) == groupedAccessions.end())
+      {
+        groupedAccessions.insert(acc);
+        ProteinGroup pg;
+        pg.accessions.push_back(acc);
+        pg.probability = protein.getScore();
+        indistinguishable_proteins_.push_back(pg);
+      }
+    }
+  }
+
   // retrieval of the peptide significance threshold value
   double ProteinIdentification::getSignificanceThreshold() const
   {
@@ -236,6 +352,11 @@ namespace OpenMS
     protein_hits_.push_back(protein_hit);
   }
 
+  void ProteinIdentification::insertHit(ProteinHit&& protein_hit)
+  {
+    protein_hits_.push_back(std::forward<ProteinHit>(protein_hit));
+  }
+
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
   {
     if (!s.empty())
@@ -253,25 +374,21 @@ namespace OpenMS
     }
   }
 
-  ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)
+  //TODO find a more robust way to figure that out. CV Terms?
+  bool ProteinIdentification::hasInferenceData() const
   {
-    if (this == &source)
-    {
-      return *this;
-    }
-    MetaInfoInterface::operator=(source);
-    id_ = source.id_;
-    search_engine_ = source.search_engine_;
-    search_engine_version_ = source.search_engine_version_;
-    search_parameters_ = source.search_parameters_;
-    date_ = source.date_;
-    protein_hits_ = source.protein_hits_;
-    protein_groups_ = source.protein_groups_;
-    indistinguishable_proteins_ = source.indistinguishable_proteins_;
-    protein_score_type_ = source.protein_score_type_;
-    protein_significance_threshold_ = source.protein_significance_threshold_;
-    higher_score_better_ = source.higher_score_better_;
-    return *this;
+    return !getInferenceEngine().empty();
+  }
+
+  bool ProteinIdentification::hasInferenceEngineAsSearchEngine() const
+  {
+    String se = getSearchEngine();
+    return
+        se == "Fido" || // FidoAdapter overwrites when it merges several runs
+        se == "BayesianProteinInference" || // for backwards compat
+        se == "Epifany" ||
+        (se == "Percolator" && !indistinguishable_proteins_.empty()) || // be careful, Percolator could be run with or without protein inference
+        se == "ProteinInference";
   }
 
   // Equality operator
@@ -396,6 +513,93 @@ namespace OpenMS
     }
   }
 
+  void ProteinIdentification::computeModifications(
+    const std::vector<PeptideIdentification>& pep_ids, 
+    const StringList & skip_modifications)
+  {
+    // map protein accession to observed position,modifications pairs
+    map<String, set<pair<Size, ResidueModification>>> prot2mod;
+
+    for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
+    {
+      // peptide hits
+      const PeptideIdentification & peptide_id = pep_ids[pep_i];
+      const vector<PeptideHit> peptide_hits = peptide_id.getHits();
+      for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
+      {
+        const PeptideHit & peptide_hit = peptide_hits[ph_i];
+        const AASequence & aas = peptide_hit.getSequence();
+        const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
+
+        // skip unmodified peptides
+        if (aas.isModified() == false) { continue; }
+
+        if (aas.isModified())
+        {
+          if (aas.hasNTerminalModification())
+          {
+            const ResidueModification * res_mod = aas.getNTerminalModification();
+            // skip mod if Id, e.g. 'Carbamidomethyl' or full id e.g., 'Carbamidomethyl (C)' match.
+            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+             && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
+            {
+              for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+              {
+                const String & acc = ph_evidences[phe_i].getProteinAccession();
+                const Size mod_pos = ph_evidences[phe_i].getStart(); // mod at N terminus
+                prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+              }
+            }
+          }
+
+          for (Size ai = 0; ai != aas.size(); ++ai)
+          {
+            if (aas[ai].isModified())
+            {
+              const ResidueModification * res_mod = aas[ai].getModification();
+
+              if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+               && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
+              {
+                for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+                {
+                  const String & acc = ph_evidences[phe_i].getProteinAccession();
+                  const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai 
+                  prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+                }
+              }
+            }
+          }
+
+          if (aas.hasCTerminalModification())
+          {
+            const ResidueModification * res_mod = aas.getCTerminalModification();
+            // skip mod?
+            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+             && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
+            {
+              for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+              {
+                const String & acc = ph_evidences[phe_i].getProteinAccession();
+                const Size mod_pos = ph_evidences[phe_i].getEnd(); // mod at C terminus
+                prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (Size i = 0; i < protein_hits_.size(); ++i)
+    {
+      const String & accession = protein_hits_[i].getAccession();
+      if (prot2mod.find(accession) != prot2mod.end())
+      {
+        protein_hits_[i].setModifications(prot2mod[accession]);
+      }
+    }
+  }
+
   bool ProteinIdentification::isHigherScoreBetter() const
   {
     return higher_score_better_;
@@ -451,5 +655,41 @@ namespace OpenMS
     return search_parameters_;
   }
 
+  void ProteinIdentification::setInferenceEngine(const String& inference_engine)
+  {
+    this->search_parameters_.setMetaValue("InferenceEngine", inference_engine);
+  }
+
+  const String ProteinIdentification::getInferenceEngine() const
+  {
+    if (this->search_parameters_.metaValueExists("InferenceEngine"))
+    {
+      return this->search_parameters_.getMetaValue("InferenceEngine");
+    }
+    else if (hasInferenceEngineAsSearchEngine())
+    {
+      return search_engine_;
+    }
+    return "";
+  }
+
+  void ProteinIdentification::setInferenceEngineVersion(const String& search_engine_version)
+  {
+    this->search_parameters_.setMetaValue("InferenceEngineVersion", search_engine_version);
+  }
+
+  const String ProteinIdentification::getInferenceEngineVersion() const
+  {
+    if (this->search_parameters_.metaValueExists("InferenceEngineVersion"))
+    {
+      return this->search_parameters_.getMetaValue("InferenceEngineVersion");
+    }
+    else if (hasInferenceData())
+    {
+      return search_engine_version_;
+    }
+    return "";
+  }
 
 } // namespace OpenMS
+

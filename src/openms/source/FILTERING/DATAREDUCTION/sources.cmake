@@ -4,12 +4,13 @@ set(directory source/FILTERING/DATAREDUCTION)
 ### list all filenames of the directory here
 set(sources_list
 DataFilters.cpp
+Deisotoper.cpp
 ElutionPeakDetection.cpp
 FeatureFindingMetabo.cpp
 IsotopeDistributionCache.cpp
 MassTraceDetection.cpp
+SplineInterpolatedPeaks.cpp
 SplinePackage.cpp
-SplineSpectrum.cpp
 )
 
 ### add path to the filenames

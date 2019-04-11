@@ -35,17 +35,9 @@
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H
 
-
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <utility>
-#include <functional>
-
 #include <vector>
-#include <set>
-#include <map>
-
 
 namespace OpenMS
 {
@@ -89,21 +81,22 @@ public:
     typedef ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
-
     enum Sorted {INTENSITY, MASS, UNDEFINED};
-
 
     /// @name Constructors and Destructors
     //@{
-    /** Default constructor, note max_isotope must be set later
+    /** Default constructor
     */
     IsotopeDistribution();
 
     /// Copy constructor
-    IsotopeDistribution(const IsotopeDistribution & isotope_distribution);
+    IsotopeDistribution(const IsotopeDistribution&) = default;
+
+    /// Move constructor
+    IsotopeDistribution(IsotopeDistribution&&) noexcept = default;
 
     /// Destructor
-    virtual ~IsotopeDistribution();
+    virtual ~IsotopeDistribution() = default;
     //@}
 
     /// @name Accessors
@@ -111,6 +104,8 @@ public:
 
     /// overwrites the container which holds the distribution using @p distribution
     void set(const ContainerType & distribution);
+
+    void set(ContainerType && distribution);
 
     /// returns the container which holds the distribution
     const ContainerType & getContainer() const;
@@ -127,7 +122,7 @@ public:
     /// returns the size of the distribution which is the number of isotopes in the distribution
     Size size() const;
 
-    /// clears the distribution and resets max isotope to 0
+    /// clears the distribution
     void clear();
 
     // resizes distribution container
@@ -142,10 +137,10 @@ public:
     /// sort isotope distribution by mass
     void sortByMass();
 
-    /** @brief re-normalizes the sum of the probabilities of the isotopes to 1
+    /** @brief Re-normalizes the sum of the probabilities of all the isotopes to 1
 
-            The re-normalisation is needed as in distributions with a lot of isotopes (and with high max isotope)
-            the calculations tend to be inexact.
+        The re-normalisation may be needed as in some distributions with a lot
+        of isotopes the calculations tend to be inexact.
     */
     void renormalize();
 
@@ -158,35 +153,28 @@ public:
      */
     void merge(double resolution, double min_prob);
 
-
     /** @brief Trims the right side of the isotope distribution to isotopes with a significant contribution.
 
-            If the isotope distribution is calculated for large masses (and with high max isotope)
-            it might happen that many entries contain only small numbers. This function can be
-            used to remove these entries.
+        If the isotope distribution is calculated for large masses, it might
+        happen that many entries contain only small numbers. This function can
+        be used to remove these entries.
 
-            Do consider normalising the distribution afterwards.
+        @note Consider normalising the distribution afterwards.
     */
     void trimRight(double cutoff);
 
     /** @brief Trims the left side of the isotope distribution to isotopes with a significant contribution.
 
-            If the isotope distribution is calculated for large masses (and with high max isotope)
-            it might happen that many entries contain only small numbers. This function can be
-            used to remove these entries.
+        If the isotope distribution is calculated for large masses, it might
+        happen that many entries contain only small numbers. This function can
+        be used to remove these entries.
 
-            Do consider normalising the distribution afterwards.
+        @note Consider normalising the distribution afterwards.
     */
     void trimLeft(double cutoff);
 
-    
-    
-    bool isNormalized() const;
-
-
+    /// Compute average mass of isotope distribution
     double averageMass() const;
-
-    bool isConvolutionUnit() const;
     //@}
 
     /// @name Operators

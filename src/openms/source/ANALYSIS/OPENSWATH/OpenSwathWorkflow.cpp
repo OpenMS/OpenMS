@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 
+// #define ENABLE_OPENMS_NESTED_PARALLELISM
+
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
 {
@@ -257,7 +259,7 @@ namespace OpenMS
     SwathMapMassCorrection::correctMZ(trgrmap_final, swath_maps,
         mz_correction_function, mz_extraction_window, ppm);
 
-    // 9. store transformation, using the selected model
+    // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
     Param model_params;
@@ -472,6 +474,7 @@ namespace OpenMS
     // in which they were given to the program / acquired. This gives much
     // better load balancing than static allocation.
 #ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
     int total_nr_threads = omp_get_max_threads(); // store total number of threads we are allowed to use
     if (threads_outer_loop_ > -1)
     {
@@ -479,6 +482,7 @@ namespace OpenMS
       omp_set_dynamic(0);
       omp_set_num_threads(std::min(threads_outer_loop_, omp_get_max_threads()) ); // use at most threads_outer_loop_ threads here
     }
+#endif
 #pragma omp parallel for schedule(dynamic,1)
 #endif
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
@@ -511,7 +515,9 @@ namespace OpenMS
           }
 
           SignedSize nr_batches = (transition_exp_used_all.getCompounds().size() / batch_size);
+
 #ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
           // If we have a multiple of threads_outer_loop_ here, then use nested
           // parallelization here. E.g. if we use 8 threads for the outer loop,
           // but we have a total of 24 cores available, each of the 8 threads
@@ -524,11 +530,13 @@ namespace OpenMS
           omp_set_num_threads(std::max(1, total_nr_threads / threads_outer_loop_) );
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
+#endif
           for (SignedSize pep_idx = 0; pep_idx <= nr_batches; pep_idx++)
           {
             OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
 
 #ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
             // To ensure multi-threading safe access to the individual spectra, we
             // need to use a light clone of the spectrum access (if multiple threads
             // share a single filestream and call seek on it, chaos will ensue).
@@ -536,13 +544,17 @@ namespace OpenMS
             {
               current_swath_map_inner = current_swath_map->lightClone();
             }
-
+#endif
 #pragma omp critical (osw_write_stdout)
 #endif
             {
               std::cout << "Thread " <<
 #ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
               outer_thread_nr << "_" << omp_get_thread_num() << " " <<
+#else
+              omp_get_thread_num() << "_0 " <<
+#endif
 #else
               "0" << 
 #endif
@@ -582,9 +594,7 @@ namespace OpenMS
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
             // output file and one output map).
-#ifdef _OPENMP
-#pragma omp critical (osw_write_out)
-#endif
+            #pragma omp critical (osw_write_out)
             {
               writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), featureFile, out_featureFile, store_features, chromConsumer);
             }
@@ -593,19 +603,19 @@ namespace OpenMS
         } // continue 2 (no continue due to OpenMP)
       } // continue 1 (no continue due to OpenMP)
 
-#ifdef _OPENMP
-#pragma omp critical (progress)
-#endif
-        this->setProgress(++progress);
+      #pragma omp critical (progress)
+      this->setProgress(++progress);
 
     }
     this->endProgress();
     
 #ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
     if (threads_outer_loop_ > -1)
     {
       omp_set_num_threads(total_nr_threads); // set number of available threads back to initial value
     }
+#endif    
 #endif    
   }
 
@@ -711,7 +721,7 @@ namespace OpenMS
     const std::vector< OpenMS::MSChromatogram > & ms2_chromatograms,
     const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
     const std::vector< OpenSwath::SwathMap >& swath_maps,
-    OpenSwath::LightTargetedExperiment& transition_exp,
+    const OpenSwath::LightTargetedExperiment& transition_exp,
     const Param& feature_finder_param,
     TransformationDescription trafo,
     const double rt_extraction_window,

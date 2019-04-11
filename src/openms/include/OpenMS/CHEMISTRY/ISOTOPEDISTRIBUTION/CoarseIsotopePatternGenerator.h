@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
+#include <set>
 
 namespace OpenMS
 {
@@ -50,37 +51,45 @@ namespace OpenMS
     * mass that is rounded to the closest integer in Daltons, therefore it
     * produces coarse distributions (it does not discriminate between 13C, N15
     * and O18 peaks).  For example for (13)Carbon it assumes that the mass of
-    * the isotope is 13Da instead of 13.0033548378
+    * the isotope is 13Da instead of 13.0033548378. In case you need fine
+    * resolution, please consider using FineIsotopePatternGenerator.
     *
     * The output is a list of pairs containing nominal isotope probabilities
     * paired with a number that is either an accurate or rounded (integer)
     * mass. The accurate masses assume the nominal isotopes are mostly due to
     * (13)Carbon.  To return accurate vs rounded masses, use setRoundMasses
-    * accordingly.  The default is to return accurate masses (note that this
-    * will not influence the probabilities and still produce a coarse
-    * distributions spaced at ca 1Da). For example, using rounded mass, for a
-    * C100 molecule, you will get:
+    * accordingly.  The default is to return accurate masses (note that setting
+    * this option will not influence the probabilities and still produce a
+    * coarse distributions spaced at ca 1Da). For example, using rounded mass,
+    * for a C100 molecule, you will get:
     *
-    * 1200 : 0.341036528
-    * 1201 : 0.368855864
-    * 1202 : 0.197477505
-    * 1203 : 0.0697715357
+    * @code
+    *     1200 : 0.341036528
+    *     1201 : 0.368855864
+    *     1202 : 0.197477505
+    *     1203 : 0.0697715357
+    * @endcode
     *
     * while accurate mass will produce:
     *
-    * 1200       : 0.341036528
-    * 1201.00335 : 0.368855864
-    * 1202.00671 : 0.197477505
-    * 1203.01006 : 0.0697715357
-    *
+    * @code
+    *     1200       : 0.341036528
+    *     1201.00335 : 0.368855864
+    *     1202.00671 : 0.197477505
+    *     1203.01006 : 0.0697715357
+    * @endcode
     *
     * The other important value which needs to be set is the max isotope value.
     * This value can be set using the setMaxIsotope method. It is an upper
     * bound for the number of isotopes which are calculated If e.g., set to 3,
     * only the first three isotopes, Monoisotopic mass, +1 and +2 are
     * calculated.
-    * By default all possible isotopes are calculated, which leads to a large
+    *
+    * @note By default all possible isotopes are calculated, which leads to a large
     * number of values, if the mass value is large!
+    *
+    * @note If you need fine isotope distributions, consider using the
+    * FineIsotopePatternGenerator.
     *
     * See also method run()
     **/
