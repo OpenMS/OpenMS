@@ -1,9 +1,16 @@
-library("reticulate")
-ropenms=import("pyopenms", convert = FALSE)
-
 ################### OpenMS in R ###################
 
 #### Some simple scripts how to use OpenMS in R ####
+
+### if not installed:
+### - install pyopenms (https://pyopenms.readthedocs.io/en/latest/installation.html)
+###   make sure R is using the same python environment as your pyopenms installation
+### - install reticulate (https://rstudio.github.io/reticulate/)
+###   eg. install.packages('reticulate')
+
+
+library("reticulate")
+ropenms=import("pyopenms", convert = FALSE)
 
 
 ### load and parse idXML
