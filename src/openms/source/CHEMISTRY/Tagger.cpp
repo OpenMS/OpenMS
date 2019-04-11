@@ -35,6 +35,7 @@
 #include <OpenMS/CHEMISTRY/Tagger.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/MATH/MiSC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -42,11 +43,11 @@ namespace OpenMS
   {
      // fast check for border cases
      if (m < min_gap_ || m > max_gap_) return ' ';
-
-     auto left = mass2aa.lower_bound(m - m * ppm_ * 1e-6);
-     auto right = mass2aa.lower_bound(m + m * ppm_ * 1e-6);
-     if (left == right) return ' '; // not found in tolerance window
-     return left->second; // select first match
+     const float delta = Math::ppmToMass(ppm_, m);
+     auto left = mass2aa.lower_bound(m - delta);
+     if (left == mass2aa.end()) return ' ';
+     if (fabs(left->second - m) < delta) return left->second;
+     return ' ';
   }               
 
   void Tagger::getTag_(std::string & tag, const std::vector<float>& mzs, const size_t i, std::set<std::string>& tags) const 
@@ -56,17 +57,17 @@ namespace OpenMS
     // recurse for all peaks in distance < max_gap
     while (j < N) 
     {
+      if (tag.size() == max_tag_length_) { return; } // maximum tag size reached? - continue with next parent
+
       const float gap = mzs[j] - mzs[i];
       //cout << i << "\t" << j << "\t" << mzs[i] << "\t" << mzs[j] << "\t" << gap << endl;
       if (gap > max_gap_) { return; } // already too far away - continue with next parent
-      if (tag.size() == max_tag_length_) { return; } // maximum tag size reached? - continue with next parent
       const char aa = getAAByMass_(gap);
       if (aa == ' ') { ++j; continue; } // can't extend tag
       tag += aa;
       getTag_(tag, mzs, j, tags);
-      if (tag.size() < min_tag_length_) { tag.resize(tag.size() - 1); ++j; continue; }
-      tags.insert(tag);
-      tag.resize(tag.size() - 1);  // remove last char
+      if (tag.size() >= min_tag_length_) tags.insert(tag);
+      tag.pop_back();  // remove last char
       ++j;
     }         
   }
@@ -77,22 +78,23 @@ namespace OpenMS
     min_tag_length_ = min_tag_length;
     max_tag_length_ = max_tag_length;
     const std::set<const Residue*> aas = ResidueDB::getInstance()->getResidues();
-    for (auto r : aas)
+    for (const auto& r : aas)
     {
       const char letter = r->getOneLetterCode()[0]; 
       const float mass = r->getMonoWeight(Residue::Internal);
       mass2aa[mass] = letter;
       //cout << "Mass: " << mass << "\t" << letter << endl; 
     }
-    min_gap_ = mass2aa.begin()->first - mass2aa.begin()->first * ppm * 1e-6;
-    max_gap_ = mass2aa.rbegin()->first + mass2aa.rbegin()->first * ppm * 1e-6;
+    min_gap_ = mass2aa.begin()->first - Math::ppmToMass(ppm, mass2aa.begin()->first);
+    max_gap_ = mass2aa.rbegin()->first + Math::ppmToMass(ppm, mass2aa.rbegin()->first);
   }
 
   void Tagger::getTag(const std::vector<float>& mzs, std::set<std::string>& tags) const 
   {
     // start peak
     std::string tag;
-    tag.reserve(30);
+    if (min_tag_length_ > mzs.size()) return; // avoid segfault
+    
     for (size_t i = 0; i < mzs.size() - min_tag_length_; ++i)
     {
       getTag_(tag, mzs, i, tags);
@@ -107,7 +109,7 @@ namespace OpenMS
     // copy to float vector (speed)
     std::vector<float> mzs;
     mzs.reserve(N);
-    for (auto const & p : spec) { mzs.push_back(p.getMZ()); }
+    for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
     getTag(mzs, tags); 
   }
 }
