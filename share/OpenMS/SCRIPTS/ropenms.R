@@ -1,0 +1,91 @@
+library("reticulate")
+ropenms=import("pyopenms", convert = FALSE)
+
+################### OpenMS in R ###################
+
+#### Some simple scripts how to use OpenMS in R ####
+
+
+### load and parse idXML
+
+f="/OpenMS/OpenMS/share/OpenMS/examples/BSA/BSA1_OMSSA.idXML"
+
+idXML=ropenms$idXMLFile()
+
+pepids=r_to_py(list())
+protids=r_to_py(list())
+
+idXML$load(f,protids,pepids)
+
+pepids=py_to_r(pepids)
+protids=py_to_r(protids)
+
+pephits=pepids[[1]]$getHits()
+pepseq=pephits[[1]]$getSequence()
+
+
+### load and parse featureXML
+
+f="/OpenMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.featureXML"
+
+featXML=ropenms$FeatureXMLFile()
+fmap = ropenms$FeatureMap()
+
+featXML$load(f, fmap)
+
+print(paste0("FeatureID: ", fmap[1]$getUniqueId()))
+print(paste0("Charge: ", fmap[1]$getCharge()))
+print(paste0("M/z: ", fmap[1]$getMZ()))
+print(paste0("RT: ", fmap[1]$getRT()))
+
+### load and parse mzML
+
+f="/OpenMS/OpenMS/share/OpenMS/examples/BSA/BSA1.mzML"
+
+mzML= ropenms$MzMLFile()
+msexp = ropenms$MSExperiment()
+
+mzML$load(f,msexp)
+spectra = py_to_r(msexp$getSpectra())
+
+#ms1
+ms1=sapply(spectra, function(x) x$getMSLevel()==1)
+peaks=sapply(spectra[ms1], function(x) cbind(do.call("cbind", x$get_peaks()),x$getRT()))
+peaks=do.call("rbind", peaks)
+peaks_df=data.frame(peaks)
+colnames(peaks_df)=c('MZ','Intensity','RT')
+peaks_df$Intensity=log10(peaks_df$Intensity)
+ggplot(peaks_df, aes(x=RT, y=MZ) )+geom_point(size=1, aes(colour = Intensity), alpha=0.25) + theme_minimal() + scale_colour_gradient(low = "blue", high = "yellow")
+
+#ms2
+ms2=spectra[!ms1][[1]]$get_peaks()
+peaks_ms2=do.call("cbind", ms2)
+peaks_ms2=data.frame(peaks_ms2)
+ggplot(peaks_ms2, aes(x=X1, y=X2)) +
+geom_segment( aes(x=X1, xend=X1, y=0, yend=X2)) +
+geom_segment( aes(x=X1, xend=X1, y=0, yend=-X2)) + 
+theme_minimal()
+
+
+### Spectrum
+
+spectrum = ropenms$MSSpectrum()
+mz = seq(1500, 500, -100)
+i = seq(10, 2000, length.out = length(mz))
+spectrum$set_peaks(list(mz, i))
+
+# Sort the peaks according to ascending mass-to-charge ratio
+spectrum$sortByPosition()
+
+# Iterate over spectrum of those peaks
+for (i in seq(0,spectrum$size()-1)) {
+  print(spectrum[i]$getMZ())
+  print(spectrum[i]$getIntensity())
+}
+
+# More efficient peak access with get_peaks()
+peak_df=do.call("cbind", spectrum$get_peaks())
+apply(peak_df,1,c)
+
+# Access a peak by index
+print(c(spectrum[1]$getMZ(), spectrum[1]$getIntensity()))
