@@ -2681,18 +2681,18 @@ Not sure how to handle these:
     meta_data.title = MzTabString(title);
 
     MzTabParameter quantification_method;
-    const String & experiment_type = consensus_map.getExperimentType();   
+    const String & experiment_type = consensus_map.getExperimentType();
     if (experiment_type == "label-free")
     {
       quantification_method.fromCellString("[MS,MS:1001834,LC-MS label-free quantitation analysis,]");
     }
     else if (experiment_type == "labeled_MS1")
     {
-      quantification_method.fromCellString("[MS,MS:123,TODO,]");
+      quantification_method.fromCellString("[PRIDE,PRIDE_0000316,MS1 based isotope labeling,]");
     }
     else if (experiment_type == "labeled_MS2")
     {
-      quantification_method.fromCellString("[MS,MS:123,TODO,]");
+      quantification_method.fromCellString("[PRIDE,PRIDE_0000317,MS2 based isotope labeling,]");
     }
     
     
