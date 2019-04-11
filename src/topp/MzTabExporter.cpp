@@ -120,7 +120,10 @@ protected:
       registerFlag_("first_run_inference_only", "(idXML/mzid only): Does the first IdentificationRun in the file "
                                                 "only represent inference results? Read peptide information only "
                                                 "from second to last runs.");
-          }
+      
+      registerStringList_("opt_columns", "<mods>", {"subfeatures"}, "Add optional columns which are not part of the mzTab standard.", false);
+      setValidStrings_("opt_columns", {"subfeatures"});
+    }
 
     ExitCodes main_(int, const char**) override
     {
@@ -129,6 +132,9 @@ protected:
       FileTypes::Type in_type = FileHandler().getType(in);
 
       String out = getStringOption_("out");
+      
+      DoubleList optional_columns = getStringList_("opt_columns");
+      bool export_subfeatures = ListUtils::contains(optional_columns, "subfeatures");
 
       MzTab mztab;
 
@@ -148,7 +154,7 @@ protected:
 
         for (Size i = 0; i < feature_map.size(); ++i) // collect all (assigned and unassigned to a feature) peptide ids
         {
-          vector<PeptideIdentification> pep_ids_bf = feature_map[i].getPeptideIdentifications();
+          const vector<PeptideIdentification>& pep_ids_bf = feature_map[i].getPeptideIdentifications();
           pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
         }
 
@@ -196,7 +202,7 @@ protected:
         ConsensusMap consensus_map;
         ConsensusXMLFile c;
         c.load(in, consensus_map);
-        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, true, true);
+        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, true, true, export_subfeatures);
       }
 
       MzTabFile().store(out, mztab);
