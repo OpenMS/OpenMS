@@ -41,40 +41,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  MetaInfoDescription::MetaInfoDescription() :
-    MetaInfoInterface(),
-    comment_(),
-    name_(),
-    data_processing_()
-  {
-
-  }
-
-  MetaInfoDescription::MetaInfoDescription(const MetaInfoDescription & source) :
-    MetaInfoInterface(source),
-    comment_(source.comment_),
-    name_(source.name_),
-    data_processing_(source.data_processing_)
-  {
-
-  }
-
   MetaInfoDescription::~MetaInfoDescription()
   {
-
-  }
-
-  MetaInfoDescription & MetaInfoDescription::operator=(const MetaInfoDescription & source)
-  {
-    if (&source == this)
-      return *this;
-
-    MetaInfoInterface::operator=(source);
-    comment_ = source.comment_;
-    name_ = source.name_;
-    data_processing_ = source.data_processing_;
-
-    return *this;
   }
 
   bool MetaInfoDescription::operator==(const MetaInfoDescription & rhs) const
@@ -115,3 +83,4 @@ namespace OpenMS
   }
 
 }
+

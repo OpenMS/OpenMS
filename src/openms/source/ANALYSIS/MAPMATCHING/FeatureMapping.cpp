@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,13 +40,13 @@ using namespace std;
 namespace OpenMS
 {
   // return map of ms2 to feature and a vector of unassigned ms2
-  FeatureMapping::FeatureToMs2Indices FeatureMapping::assignMS2IndexToFeature(OpenMS::PeakMap& spectra,
+  FeatureMapping::FeatureToMs2Indices FeatureMapping::assignMS2IndexToFeature(const OpenMS::MSExperiment& spectra,
                                                                               const OpenMS::KDTreeFeatureMaps& fp_map_kd,
                                                                               const double& precursor_mz_tolerance,
                                                                               const double& precursor_rt_tolerance,
-                                                                              bool& ppm)
+                                                                              bool ppm)
   {
-    map<const BaseFeature*, vector<size_t>> assigned_ms2;
+    std::map<const BaseFeature*, std::vector<size_t>>  assigned_ms2;
     vector<size_t> unassigned_ms2;
 
     // map precursors to closest feature and retrieve annotated metadata (if possible)
@@ -99,5 +99,4 @@ namespace OpenMS
     feature_mapping.unassignedMS2 = unassigned_ms2;
     return feature_mapping;
   }
-
-}
+} // namespace OpenMS

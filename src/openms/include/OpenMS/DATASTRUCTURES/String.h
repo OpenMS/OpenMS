@@ -34,6 +34,7 @@
 
 #pragma once
 
+
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -46,7 +47,8 @@ class QString;
 namespace OpenMS
 {
   class DataValue;
-
+  template <typename FloatingPointType>
+  struct PrecisionWrapper;
   /**
       @brief A more convenient string class.
 
@@ -86,6 +88,10 @@ public:
     //@{
     /// Default constructor
     OPENMS_DLLAPI String();
+    /// Copy constructor
+    OPENMS_DLLAPI String(const String&) = default;
+    /// Move constructor
+    OPENMS_DLLAPI String(String&&) = default;
     /// Constructor from std::string
     OPENMS_DLLAPI String(const std::string& s);
     /// Constructor from Qt QString
@@ -122,14 +128,14 @@ public:
     OPENMS_DLLAPI String(long long unsigned int i);
     /// Constructor from an unsigned integer
     OPENMS_DLLAPI String(long long signed int i);
-    /// Constructor from float
-    OPENMS_DLLAPI String(float f);
-    /// Constructor from double
-    OPENMS_DLLAPI String(double d);
-    /// Constructor from long double
-    OPENMS_DLLAPI String(long double ld);
-    /// Constructor from DataValue (casted to String)
-    OPENMS_DLLAPI String(const DataValue& d);
+    /// Constructor from float (@p full_precision controls number of fractional digits, 3 digits when false, and 6 when true)
+    OPENMS_DLLAPI String(float f, bool full_precision = true);
+    /// Constructor from double (@p full_precision controls number of fractional digits, 3 digits when false, and 15 when true)
+    OPENMS_DLLAPI String(double d, bool full_precision = true);
+    /// Constructor from long double (@p full_precision controls number of fractional digits, 3 digits when false, and 15 when true)
+    OPENMS_DLLAPI String(long double ld, bool full_precision = true);
+    /// Constructor from DataValue (@p full_precision controls number of fractional digits for all double types or lists of double, 3 digits when false, and 15 when true)
+    OPENMS_DLLAPI String(const DataValue& d, bool full_precision = true);
 
     //@}
 
@@ -149,6 +155,10 @@ public:
     OPENMS_DLLAPI bool has(Byte byte) const;
     //@}
 
+    /// Assignment operator
+    OPENMS_DLLAPI String& operator=(const String&) = default;
+    /// Move assignment operator
+    OPENMS_DLLAPI String& operator=(String&&) & = default;
 
     /** @name Accessors
     */
@@ -214,7 +224,7 @@ public:
     /**
       @brief Returns a substring where @p n characters were removed from the end of the string.
 
-  If @p n is greater than size(), the result is an empty string.
+      If @p n is greater than size(), the result is an empty string.
 
       @param n Number of characters that will be removed from the end of the string.
      */
@@ -516,6 +526,12 @@ public:
       return false;
     }
 
+    /// boost hash
+    std::size_t hash_value(String const& s) const
+    {
+      return std::hash<std::string>()(static_cast<std::string>(s));
+    }
+
     /// create view that references a substring of the original string
     inline StringView substr(Size start, Size length) const
     {
@@ -543,7 +559,17 @@ public:
     private:
       const char* begin_;
       Size size_;
-  }; 
-
+  };
 } // namespace OPENMS
+
+namespace std
+{
+  template <> struct hash<OpenMS::String> //hash for String
+  {
+    std::size_t operator()( OpenMS::String const& s) const
+    {
+      return std::hash<string>()(static_cast<string>(s));
+    }
+  };
+} // namespace std
 

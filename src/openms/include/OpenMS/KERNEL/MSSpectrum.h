@@ -45,6 +45,7 @@
 namespace OpenMS
 {
   class Peak1D;
+
   /**
     @brief The representation of a 1D spectrum.
 
@@ -135,6 +136,8 @@ public:
     using typename ContainerType::const_reference;
     using typename ContainerType::pointer;
     using typename ContainerType::difference_type;
+
+    typedef Precursor::DriftTimeUnit DriftTimeUnit;
     //@}
 
 
@@ -144,12 +147,18 @@ public:
     /// Copy constructor
     MSSpectrum(const MSSpectrum& source);
 
+    /// Move constructor
+    MSSpectrum(MSSpectrum&&) = default;
+
     /// Destructor
     ~MSSpectrum() override
     {}
 
     /// Assignment operator
     MSSpectrum& operator=(const MSSpectrum& source);
+
+    /// Move assignment operator
+    MSSpectrum& operator=(MSSpectrum&&) & = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const SpectrumSettings & source);
@@ -175,7 +184,7 @@ public:
     void setRT(double rt);
 
     /**
-      @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+      @brief Returns the ion mobility drift time (-1 means it is not set)
 
       @note Drift times may be stored directly as an attribute of the spectrum
       (if they relate to the spectrum as a whole). In case of ion mobility
@@ -185,9 +194,19 @@ public:
     double getDriftTime() const;
 
     /**
-      @brief Returns the ion mobility drift time in milliseconds
+      @brief Sets the ion mobility drift time
     */
     void setDriftTime(double dt);
+
+    /**
+      @brief Returns the ion mobility drift time unit
+    */
+    DriftTimeUnit getDriftTimeUnit() const;
+
+    /**
+      @brief Sets the ion mobility drift time unit
+    */
+    void setDriftTimeUnit(DriftTimeUnit dt);
 
     /**
       @brief Returns the MS level.
@@ -461,6 +480,20 @@ public:
     */
     MSSpectrum& select(const std::vector<Size>& indices);
 
+
+    /**
+      @brief Determine if spectrum is profile or centroided using up to three layers of information.
+
+      First, the SpectrumSettings are inquired and the type is returned unless it is unknown.
+      Second, all data processing entries are searched for a centroiding step.
+      If that is unsuccessful as well and @p query_data is true, the data is fed into PeakTypeEstimator().
+
+      @param [query_data] If SpectrumSettings and DataProcessing information are not sufficient, should the data be queried? (potentially expensive)
+      @return The spectrum type (centroided, profile or unknown)
+    */
+    SpectrumSettings::SpectrumType getType(const bool query_data) const;
+    using SpectrumSettings::getType; // expose base class function
+
 protected:
 
     /// Retention time
@@ -468,6 +501,9 @@ protected:
 
     /// Drift time
     double drift_time_;
+
+    /// Drift time unit
+    DriftTimeUnit drift_time_unit_;
 
     /// MS level
     UInt ms_level_;

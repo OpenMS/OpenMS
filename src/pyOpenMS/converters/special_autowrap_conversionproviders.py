@@ -126,7 +126,7 @@ class OpenMSDataValue(TypeConverterBase):
         return ""
 
     def type_check_expression(self, cpp_type, argument_var):
-        return "isinstance(%s, (int, long, float, list, bytes))" % argument_var
+        return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         call_as = "deref(DataValue(%s).inst.get())" % argument_var
@@ -183,7 +183,7 @@ class OpenMSStringConverter(TypeConverterBase):
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
 
-        # Assume that convString is declared in String.pyx
+        # See ./src/pyOpenMS/addons/ADD_TO_FIRST.pyx for declaration of convString
         call_as = "deref((convString(%s)).get())" % argument_var
         cleanup = ""
         code = ""
@@ -196,8 +196,9 @@ class OpenMSStringConverter(TypeConverterBase):
         return code, call_as, cleanup
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
-        return "%s = _cast_const_away(<char*>%s.c_str())" % (output_py_var,
-                                                             input_cpp_var)
+
+        # See ./src/pyOpenMS/addons/ADD_TO_FIRST.pyx for declaration of convOutputString
+        return "%s = convOutputString(%s)" % (output_py_var, input_cpp_var)
 
 class AbstractOpenMSListConverter(TypeConverterBase):
 

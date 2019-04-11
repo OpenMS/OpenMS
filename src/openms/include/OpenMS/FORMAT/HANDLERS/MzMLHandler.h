@@ -282,14 +282,18 @@ protected:
       /// Handles CV terms
       void handleCVParam_(const String& parent_parent_tag,
                           const String& parent_tag,
-                          /*  const String & cvref, */
                           const String& accession,
                           const String& name,
                           const String& value,
                           const String& unit_accession = "");
 
       /// Handles user terms
-      void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
+      void handleUserParam_(const String& parent_parent_tag,
+                            const String& parent_tag,
+                            const String& name,
+                            const String& type,
+                            const String& value,
+                            const String& unit_accession = "");
       //@}
 
       /**
@@ -453,7 +457,6 @@ protected:
         std::vector<BinaryData> data;
         Size default_array_length;
         SpectrumType spectrum;
-        bool skip_data;
       };
 
       /// Vector of spectrum data stored for later parallel processing
@@ -484,8 +487,8 @@ protected:
        * <chromatogram> tag is stored and will then be stored at the end of the file.
        **/
       //@{
-      std::vector<std::pair<std::string, long> > spectra_offsets_; ///< Stores binary offsets for each <spectrum> tag
-      std::vector<std::pair<std::string, long> > chromatograms_offsets_; ///< Stores binary offsets for each <chromatogram> tag
+      std::vector<std::pair<std::string, Int64> > spectra_offsets_; ///< Stores binary offsets for each <spectrum> tag
+      std::vector<std::pair<std::string, Int64> > chromatograms_offsets_; ///< Stores binary offsets for each <chromatogram> tag
       //@}
 
       /// Progress logger

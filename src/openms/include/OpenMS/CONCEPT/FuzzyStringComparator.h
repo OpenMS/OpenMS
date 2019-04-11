@@ -36,14 +36,10 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <iosfwd>
+
 #include <map>
-
-#ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
-#include <boost/lexical_cast.hpp>
-#endif // OPENMS_HAS_STREAM_EXTRACTION_BUG
 
 namespace OpenMS
 {
@@ -330,29 +326,11 @@ protected:
 
       /// reset all elements of the element to default value
       void reset();
-#ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
-      /**
-        @brief Tries to extract digits from the stream in InputLine.
 
-        @param input_line The stream from which the digits should be extracted.
-        @param target_buffer The target string where the digits should be stored.
-        @param c_buffer The current peek of the stream.
-
-        @return Returns true if at least one digit was extracted from the stream.
-      */
-      bool readdigits(InputLine & input_line, std::string & target_buffer, char & c_buffer);
-
-      /**
-        @brief Try to extract a double from the InputLine
-
-        @param input_line The input line where the double should be extracted
-        @param target Target variable where the double should be stored
-        @return True if extraction succeeded, false otherwise.
-      */
-      bool tryExtractDouble(InputLine & input_line, double & target);
-#endif
       /// Read the next element from an InputLine and update the InputLine accordingly
-      void fillFromInputLine(InputLine & input_line);
+      /// The @p str_line contains the same data as the stream, since it saves some forth-and-back conversion internally
+      /// TODO: avoid streams all together (slow, and no random access, required by boost::qi) at some point
+      void fillFromInputLine(InputLine& input_line, const std::string& str_line);
     };
 
     /// Stores information about characters, numbers, and white spaces loaded from the first input stream

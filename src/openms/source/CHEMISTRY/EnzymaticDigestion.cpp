@@ -42,6 +42,7 @@ using namespace std;
 namespace OpenMS
 {
   const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
+  const std::string EnzymaticDigestion::NoCleavage = "no cleavage";
   const std::string EnzymaticDigestion::UnspecificCleavage = "unspecific cleavage";
 
   EnzymaticDigestion::EnzymaticDigestion() :
@@ -322,4 +323,5 @@ namespace OpenMS
     std::vector<int> fragment_positions = tokenize_(sequence.getString());
     return digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
   }
+
 } //namespace

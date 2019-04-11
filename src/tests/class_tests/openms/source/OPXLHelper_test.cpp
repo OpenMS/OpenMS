@@ -51,23 +51,6 @@ using namespace OpenMS;
 
 START_TEST(OPXLHelper, "$Id$")
 
-
-START_SECTION(static std::vector<ResidueModification> getModificationsFromStringList(StringList modNames))
-  QStringList q_str_list1;
-  QStringList q_str_list2;
-  q_str_list1 << "Carbamidomethyl (C)" << "Carbamidomethyl (T)";
-  q_str_list2 << "Oxidation (M)" << "Oxidation (Y)";
-  StringList fixedModNames = StringListUtils::fromQStringList(q_str_list1);
-  StringList varModNames = StringListUtils::fromQStringList(q_str_list2);
-  std::vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames);
-  std::vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames);
-
-  TEST_EQUAL(fixed_modifications[0].getFullId(), "Carbamidomethyl (C)")
-  TEST_EQUAL(fixed_modifications[1].getFullId(), "Carbamidomethyl (T)")
-  TEST_EQUAL(variable_modifications[0].getFullId(), "Oxidation (M)")
-  TEST_EQUAL(variable_modifications[1].getFullId(), "Oxidation (Y)")
-END_SECTION
-
 // loading and building data structures required in several following tests
 std::vector<FASTAFile::FASTAEntry> fasta_db;
 FASTAFile file;
@@ -87,9 +70,8 @@ q_str_list1 << "Carbamidomethyl (C)" << "Carbamidomethyl (T)";
 q_str_list2 << "Oxidation (M)" << "Oxidation (Y)";
 StringList fixedModNames = StringListUtils::fromQStringList(q_str_list1);
 StringList varModNames = StringListUtils::fromQStringList(q_str_list2);
-std::vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames);
-std::vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames);
-
+const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames);
+const ModifiedPeptideGenerator::MapToResidueType& variable_modifications = ModifiedPeptideGenerator::getModifications(varModNames);
 
 QStringList q_str_list3;
 QStringList q_str_list4;
@@ -100,7 +82,7 @@ StringList cross_link_residue2 = StringListUtils::fromQStringList(q_str_list4);
 
 Size max_variable_mods_per_peptide = 5;
 
-START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide))
+START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<const ResidueModification*> fixed_modifications, std::vector<const ResidueModification*> variable_modifications, Size max_variable_mods_per_peptide))
 
   std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
 
@@ -203,7 +185,7 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
   TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
   for (Size i = 0; i < spectrum_candidates.size(); i += 200)
   {
-    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass)
+    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha->getMonoWeight() + spectrum_candidates[i].beta->getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass)
   }
 
 END_SECTION
@@ -284,7 +266,7 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXL
   TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
   for (Size i = 0; i < spectrum_candidates.size(); i += 100)
   {
-    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass - 1 * Constants::C13C12_MASSDIFF_U)
+    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha->getMonoWeight() + spectrum_candidates[i].beta->getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass - 1 * Constants::C13C12_MASSDIFF_U)
   }
 
 END_SECTION
@@ -292,8 +274,10 @@ END_SECTION
 START_SECTION(static double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge))
 
   OPXLDataStructs::ProteinProteinCrossLink ppcl;
-  ppcl.alpha = AASequence::fromString("TESTPEPTIDE");
-  ppcl.beta = AASequence::fromString("TESTTESTESTE");
+  AASequence alpha = AASequence::fromString("TESTPEPTIDE");
+  AASequence beta = AASequence::fromString("TESTTESTESTE");
+  ppcl.alpha = &alpha;
+  ppcl.beta = &beta;
   ppcl.cross_linker_mass = 150.0;
 
   OPXLDataStructs::CrossLinkSpectrumMatch csm;
@@ -301,7 +285,7 @@ START_SECTION(static double OPXLHelper::computePrecursorError(OPXLDataStructs::C
   csm.precursor_correction = 0;
 
   double precursor_charge = 3;
-  double precursor_mz = (ppcl.alpha.getMonoWeight() + ppcl.beta.getMonoWeight() + ppcl.cross_linker_mass + precursor_charge * Constants::PROTON_MASS_U) / precursor_charge;
+  double precursor_mz = (ppcl.alpha->getMonoWeight() + ppcl.beta->getMonoWeight() + ppcl.cross_linker_mass + precursor_charge * Constants::PROTON_MASS_U) / precursor_charge;
 
   double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
   TEST_REAL_SIMILAR(rel_error, 0)

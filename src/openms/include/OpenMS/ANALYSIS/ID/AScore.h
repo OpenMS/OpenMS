@@ -53,9 +53,9 @@ namespace OpenMS
   {
     Size first;
     Size second;
-    Size seq_1; // index of best permutation with site in phosphorylated state
-    Size seq_2; // index of permutation with site in unphosphorylated state
-    Size peak_depth; // filtering level that gave rise to maximum discriminatory score
+    Size seq_1; ///< index of best permutation with site in phosphorylated state
+    Size seq_2; ///< index of permutation with site in unphosphorylated state
+    Size peak_depth; ///< filtering level that gave rise to maximum discriminatory score
     Size AScore;
   };
   
@@ -171,10 +171,10 @@ namespace OpenMS
     double computeCumulativeScore_(Size N, Size n, double p) const;
     
     /// Computes number of phospho events in a sequence
-    Size numberOfPhosphoEvents_(const String sequence) const;
+    Size numberOfPhosphoEvents_(const String& sequence) const;
     
     /// Create variant of the peptide with all phosphorylations removed
-    AASequence removePhosphositesFromSequence_(const String sequence) const;
+    AASequence removePhosphositesFromSequence_(const String& sequence) const;
     
     /// Create theoretical spectra with all combinations with the number of phosphorylation events
     std::vector<PeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size>>& permutations, const AASequence& seq_without_phospho) const;

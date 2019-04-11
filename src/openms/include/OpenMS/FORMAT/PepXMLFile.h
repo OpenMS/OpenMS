@@ -107,7 +107,7 @@ public:
     */
     void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, 
                std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "",
-               const String& mz_name = "", bool peptideprophet_analyzed = false);
+               const String& mz_name = "", bool peptideprophet_analyzed = false, double rt_tolerance = 0.01);
 
     /**
         @brief Whether we should keep the native spectrum name of the pepXML

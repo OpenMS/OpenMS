@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <sqlite3.h>
 
 #include <map>
 
@@ -78,12 +77,6 @@ public:
     @brief Updates an OpenSWATH OSW SQLite files with the MS1-, MS2- or transition-level results of Percolator.
     */
     void write(const std::string& in_osw, const std::string& osw_level, const std::map< std::string, std::vector<double> >& features);
-
-private:
-    /**
-    @brief Helper function for writing OSW SQLite files
-    */
-    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName);
 
   };
 

@@ -42,6 +42,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 
 #include <vector>
 #include <map>
@@ -182,19 +183,25 @@ public:
     //~ QUANT_TYPES experiment_type = MS1LABEL;
 
     /// Constructor
-    MSQuantifications();
+    MSQuantifications() = default;
 
     /// Detailed Constructor
     MSQuantifications(FeatureMap fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
 
+    /// Copy constructor
+    MSQuantifications(const MSQuantifications & source) = default;
+
+    /// Move constructor
+    MSQuantifications(MSQuantifications&&) = default;
+
     /// Destructor
     ~MSQuantifications() override;
 
-    /// Copy constructor
-    MSQuantifications(const MSQuantifications & source);
-
     /// Assignment operator
-    MSQuantifications & operator=(const MSQuantifications & source);
+    MSQuantifications & operator=(const MSQuantifications & source) = default;
+
+    /// Move assignment operator
+    MSQuantifications& operator=(MSQuantifications&&) & = default;
 
     /// Equality operator
     bool operator==(const MSQuantifications & rhs) const;

@@ -385,7 +385,7 @@ namespace OpenMS
             else
             {
               LOG_INFO << "Component " << component_name << " IS " << quant_IS_component_name << " was not found.";
-              LOG_INFO << "No concentration will be calculated.";
+              LOG_INFO << "No concentration will be calculated.\n";
             }
           }
           else
@@ -407,7 +407,7 @@ namespace OpenMS
         else
         {
           LOG_INFO << "Component " << component_name << " does not have a quantitation method.";
-          LOG_INFO << "No concentration will be calculated.";
+          LOG_INFO << "No concentration will be calculated.\n";
           unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("calculated_concentration","");
           unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("concentration_units","");
         }

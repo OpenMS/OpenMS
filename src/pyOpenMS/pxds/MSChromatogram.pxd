@@ -1,6 +1,5 @@
 from Types cimport *
 from ChromatogramSettings cimport *
-from MetaInfoInterface cimport *
 from ChromatogramPeak cimport *
 from String cimport *
 from RangeManager cimport *
@@ -11,10 +10,9 @@ from DataArrays cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
-    cdef cppclass MSChromatogram (ChromatogramSettings, MetaInfoInterface, RangeManager1):
+    cdef cppclass MSChromatogram (ChromatogramSettings, RangeManager1):
         # wrap-inherits:
         #  ChromatogramSettings
-        #  MetaInfoInterface
         #  RangeManager1
         #
         # wrap-doc:
@@ -29,8 +27,8 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         double getMZ() nogil except + #wrap-doc:returns the mz of the product entry, makes sense especially for MRM scans
         # void   setMZ(double) nogil except +
 
-        libcpp_string getName() nogil except +
-        void setName(libcpp_string) nogil except +
+        String getName() nogil except +
+        void setName(String) nogil except +
 
         Size size() nogil except +
         void reserve(size_t n) nogil except + 
@@ -59,15 +57,4 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) nogil except +
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) nogil except +
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) nogil except +
-
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
 

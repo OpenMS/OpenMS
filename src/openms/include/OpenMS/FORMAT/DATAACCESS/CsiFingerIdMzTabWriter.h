@@ -83,6 +83,9 @@ namespace OpenMS
 
           struct CsiAdapterIdentification
           {
+            double mz;
+            double rt;
+            OpenMS::String native_id;
             int scan_index;
             int scan_number;
             OpenMS::String feature_id;

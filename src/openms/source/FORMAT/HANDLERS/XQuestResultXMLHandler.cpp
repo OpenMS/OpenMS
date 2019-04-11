@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 
 
 #include <cassert>
@@ -64,9 +65,6 @@ namespace OpenMS
       std::make_pair("May", 5), std::make_pair("Jun", 6), std::make_pair("Jul", 7), std::make_pair("Aug", 8),
       std::make_pair("Sep", 9), std::make_pair("Oct", 10), std::make_pair("Nov", 11), std::make_pair("Dec", 12)
     };
-
-    // initialize default value
-    String decoy_string_ = "decoy_";
 
     // reader
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
@@ -174,7 +172,7 @@ namespace OpenMS
 
           ProteinHit prot_hit;
           prot_hit.setAccession(accession);
-          prot_hit.setMetaValue("target_decoy", accession.hasSubstring(decoy_string_) ? "decoy" : "target");
+          prot_hit.setMetaValue("target_decoy", accession.hasSubstring(this->decoy_string_) ? "decoy" : "target");
 
           (*this->prot_ids_)[0].getHits().push_back(prot_hit);
         }
@@ -285,9 +283,8 @@ namespace OpenMS
         if (this->optionalAttributeAsString_(var_mod_string, attributes, "variable_mod") && !var_mod_string.empty())
         {
           StringUtils::split(var_mod_string, ",", variable_mod_split);
-          if (variable_mod_split[0].size() == 1) // xQuest style mods=  "one-letter-code,mass"
+          if (variable_mod_split[0].size() == 1 && variable_mod_split[0] != "0") // xQuest style mods=  "one-letter-code,mass"
           {
-            // ModificationsDB modsDB = ModificationsDB().getInstance();
             double mod_mass = double(DataValue(variable_mod_split[1]));
             std::vector<String> mods;
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, 0.01, variable_mod_split[0]);
@@ -296,7 +293,7 @@ namespace OpenMS
               variable_mod_list.push_back(mods[0]);
             }
           }
-        search_params.variable_modifications = variable_mod_list;
+          search_params.variable_modifications = variable_mod_list;
         }
         // fixed Modifications
         String fixed_mod_string;
@@ -314,8 +311,10 @@ namespace OpenMS
         {
           decoy_prefix = "1";
         }
+
+        // change the default decoy string, if the parameter is given
         String current_decoy_string;
-        if (this->optionalAttributeAsString_(current_decoy_string, attributes, "decoy_string"))
+        if (this->optionalAttributeAsString_(current_decoy_string, attributes, "decoy_string") && current_decoy_string.size() > 0)
         {
           this->decoy_string_ = current_decoy_string;
         }
@@ -326,19 +325,41 @@ namespace OpenMS
         is >> decoy_prefix_bool;
 
         // Meta Values
-        search_params.setMetaValue("input_decoys", DataValue(this->attributeAsString_(attributes, "database_dc")));
-        search_params.setMetaValue("decoy_prefix", DataValue(decoy_prefix_bool));
-        search_params.setMetaValue("decoy_string", DataValue(decoy_string_));
-        search_params.setMetaValue("fragment:mass_tolerance_xlinks", DataValue(this->attributeAsDouble_(attributes, "xlink_ms2tolerance")));
-        StringList monolink_masses_string = ListUtils::create<String>(this->attributeAsString_(attributes, "monolinkmw"));
-        DoubleList monolink_masses;
-        for (String monolink_string : monolink_masses_string)
+        String database_dc;
+        if (this->optionalAttributeAsString_(database_dc, attributes, "database_dc") && !database_dc.empty())
         {
-          monolink_masses.push_back(monolink_string.trim().toDouble());
+          search_params.setMetaValue("input_decoys", DataValue(database_dc));
         }
-        search_params.setMetaValue("cross_link:mass_monolink", monolink_masses);
-        search_params.setMetaValue("cross_link:mass_mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermw")));
-        search_params.setMetaValue("cross_link:name", DataValue(this->attributeAsString_(attributes, "crosslinkername")));
+        search_params.setMetaValue("decoy_prefix", DataValue(decoy_prefix_bool));
+        search_params.setMetaValue("decoy_string", DataValue(this->decoy_string_));
+
+        search_params.setMetaValue("fragment:mass_tolerance_xlinks", DataValue(this->attributeAsDouble_(attributes, "xlink_ms2tolerance")));
+        String monolink_masses_string_raw;
+        StringList monolink_masses_string;
+
+        if (this->optionalAttributeAsString_(monolink_masses_string_raw, attributes, "monolinkmw") && !monolink_masses_string_raw.empty())
+        {
+          monolink_masses_string = ListUtils::create<String>(monolink_masses_string_raw);
+        }
+
+        if (monolink_masses_string.size() > 0)
+        {
+          DoubleList monolink_masses;
+          for (String monolink_string : monolink_masses_string)
+          {
+            monolink_masses.push_back(monolink_string.trim().toDouble());
+          }
+          search_params.setMetaValue("cross_link:mass_monolink", monolink_masses);
+        }
+
+        // xQuest uses the non-standard character "−" for negative numbers, this can happen for zero-length cross-linkers.
+        // Replace it with a proper "-" (minus), if there is one, to be able to convert it to a negative double.
+        String xlinkermw = this->attributeAsString_(attributes, "xlinkermw");
+        xlinkermw.substitute("−", "-");
+
+        search_params.setMetaValue("cross_link:mass_mass", DataValue(xlinkermw.toDouble()));
+        this->cross_linker_name_ = this->attributeAsString_(attributes, "crosslinkername");
+        search_params.setMetaValue("cross_link:name", DataValue(this->cross_linker_name_));
         String iso_shift = this->attributeAsString_(attributes, "cp_isotopediff");
         if (iso_shift.size() > 0)
         {
@@ -352,7 +373,7 @@ namespace OpenMS
         //cout << "Parse AArequired" << endl;
         String aarequired;
         // older xQuest versions only allowed homobifunctional cross-linkers
-        if (this->optionalAttributeAsString_(aarequired, attributes, "AArequired"))
+        if (this->optionalAttributeAsString_(aarequired, attributes, "AArequired") && !aarequired.empty())
         {
           if (ntermxlinkable)
           {
@@ -458,13 +479,6 @@ namespace OpenMS
           this->spectrum_input_file_ = file_name;
 
           // read spectrum indices
-          // vector<String> split_spectrum2;
-          // vector<String> split_spectrum3;
-          // StringUtils::split(split_spectrum[1], ".", split_spectrum2);
-          // StringUtils::split(split_spectrum[2], ".", split_spectrum3);
-          // this->spectrum_index_light_ = split_spectrum2[0].toInt();
-          // this->spectrum_index_heavy_ = split_spectrum3[1].toInt();
-          //std::cout << "Spectrum Index: " << std::endl;
           if (split_spectrum_light[split_spectrum_light.size()-1].size() > 1)
           {
             //cout << "Parse Spectrum index version 1" << endl;
@@ -484,7 +498,6 @@ namespace OpenMS
         }
         else
         {
-          //cout << "Parse OPXL Spectrum" << endl;
           this->spectrum_index_light_ = this->attributeAsInt_(attributes, "scan_index_light");
           this->spectrum_index_heavy_ = this->attributeAsInt_(attributes, "scan_index_heavy");
 
@@ -527,7 +540,54 @@ namespace OpenMS
         {
           seq1 = seq1.substitute("X", "M(Oxidation)");
         }
-        peptide_hit_alpha.setSequence(AASequence::fromString(seq1));
+
+        // XL Type, determined by "type"
+        String xlink_type_string = this->attributeAsString_(attributes, "type");
+
+        AASequence alpha_seq = AASequence::fromString(seq1);
+        std::pair<SignedSize, SignedSize> positions;
+        this->getLinkPosition_(attributes, positions);
+        int xl_pos = positions.first - 1;
+
+        std::vector<String> mods;
+
+        // xQuest uses the non-standard character "−" for negative numbers, this can happen for zero-length cross-linkers.
+        // Replace it with a proper "-" (minus), if there is one, to be able to convert it to a negative double.
+        String xlinkermass_string = this->attributeAsString_(attributes, "xlinkermass");
+        xlinkermass_string.substitute("−", "-");
+        double xl_mass = DataValue(xlinkermass_string.toDouble());
+
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, xl_mass, 0.01, alpha_seq[xl_pos].getOneLetterCode(), ResidueModification::ANYWHERE);
+
+        if (xlink_type_string == "monolink")
+        {
+          if (mods.size() > 0)
+          {
+            bool mod_set = false;
+            for (String mod : mods)
+            {
+              if (mod.hasSubstring(this->cross_linker_name_))
+              {
+                alpha_seq.setModification(xl_pos, mod);
+                mod_set = true;
+                // do not break to prioritize mods later in the list
+                // the XLMODS results are further down the list and should be prioritized instead of unimod
+                //break;
+              }
+            }
+            if (!mod_set)
+            {
+              cout << "Set default mono-link: " << mods[0] << endl;
+              alpha_seq.setModification(xl_pos, mods[0]);
+            }
+          }
+        }
+        else
+        {
+          peptide_hit_alpha.setMetaValue("xl_mod", this->cross_linker_name_);
+        }
+
+        peptide_hit_alpha.setSequence(alpha_seq);
 
         UInt charge = this->attributeAsInt_(attributes, "charge");
         peptide_hit_alpha.setCharge(charge);
@@ -561,17 +621,15 @@ namespace OpenMS
         peptide_identification.setRT(this->rt_light_);
         peptide_identification.setScoreType("OpenXQuest:combined score"); // Needed, since hard-coded in MzIdentMLHandler
 
-        // XL Type, determined by "type"
-        String xlink_type_string = this->attributeAsString_(attributes, "type");
         String prot1_string = this->attributeAsString_(attributes, "prot1");
 
         // Decide if decoy for alpha
-        DataValue target_decoy = DataValue(prot1_string.hasSubstring(decoy_string_) ? "decoy" : "target");
+        DataValue target_decoy = DataValue(prot1_string.hasSubstring(this->decoy_string_) ? "decoy" : "target");
         peptide_hit_alpha.setMetaValue("target_decoy", target_decoy);
 
         // Attributes of peptide_hit_alpha
         double score = this->attributeAsDouble_(attributes, "score");
-        DataValue xlinkermass = DataValue(this->attributeAsDouble_(attributes, "xlinkermass"));
+        DataValue xlinkermass = DataValue(xl_mass);
 
         // Set minscore and maxscore encountered
         if (score < this->min_score_)
@@ -594,7 +652,7 @@ namespace OpenMS
         this->peptide_id_meta_values_["OpenXQuest:structure"] = DataValue(this->attributeAsString_(attributes, "structure"));
 
         // get scores (which might be optional)
-        String wTIC, TIC, intsum, match_odds;
+        String wTIC, TIC, intsum, match_odds, fdr;
         if (this->optionalAttributeAsString_(wTIC, attributes, "wTIC") && !wTIC.empty())
         {
           this->peptide_id_meta_values_["OpenXQuest:wTIC"] = DataValue(wTIC.toDouble());
@@ -612,6 +670,16 @@ namespace OpenMS
         {
           this->peptide_id_meta_values_["OpenXQuest:match-odds"] = DataValue(match_odds.toDouble());
         }
+        if (this->optionalAttributeAsString_(fdr, attributes, "fdr") && !fdr.empty())
+        {
+          this->peptide_id_meta_values_["OpenXQuest:fdr"] = DataValue(fdr.toDouble());
+        }
+
+        String xprophet_f;
+        if (this->optionalAttributeAsString_(xprophet_f, attributes, "xprophet_f") && !xprophet_f.empty())
+        {
+          peptide_identification.setMetaValue("OpenXQuest:xprophet_f", xprophet_f.toInt());
+        }
 
         assert(this->peptide_id_meta_values_["OpenXQuest:id"] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["OpenXQuest:xlinkermass"] != DataValue::EMPTY);
@@ -619,7 +687,7 @@ namespace OpenMS
         assert(this->peptide_id_meta_values_["OpenXQuest:score"] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["OpenXQuest:structure"] != DataValue::EMPTY);
 
-          this->addMetaValues_(peptide_hit_alpha);
+        this->addMetaValues_(peptide_hit_alpha);
 
         // Store specific stuff for peptide hit alpha
         peptide_hit_alpha.setMetaValue("matched_linear_alpha",
@@ -645,7 +713,7 @@ namespace OpenMS
           ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
           if (!search_params.metaValueExists("cross_link:mass"))
           {
-          search_params.setMetaValue("cross_link:mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermass")));
+            search_params.setMetaValue("cross_link:mass", DataValue(xlinkermass));
           }
           (*this->prot_ids_)[0].setSearchParameters(search_params);
 
@@ -681,7 +749,6 @@ namespace OpenMS
           peptide_hit_beta.setMetaValue("xl_type", DataValue("cross-link"));
 
           // Set xl positions, depends on xl_type
-          std::pair<SignedSize, SignedSize> positions;
           this->getLinkPosition_(attributes, positions);
           peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first - 1));
           peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second - 1));
@@ -692,14 +759,8 @@ namespace OpenMS
           String prot2_string = this->attributeAsString_(attributes, "prot2");
 
           // Decide if decoy for beta
-          if (prot2_string.hasSubstring("decoy"))
-          {
-            peptide_hit_beta.setMetaValue("target_decoy", DataValue("decoy"));
-          }
-          else
-          {
-            peptide_hit_beta.setMetaValue("target_decoy", DataValue("target"));
-          }
+          target_decoy = DataValue(prot2_string.hasSubstring(this->decoy_string_) ? "decoy" : "target");
+          peptide_hit_beta.setMetaValue("target_decoy", target_decoy);
 
           //  Set xl_chain meta value for beta
           peptide_hit_beta.setMetaValue("xl_chain", "MS:1002510");
@@ -718,6 +779,7 @@ namespace OpenMS
           peptide_hit_beta.setMetaValue("prot1", DataValue(prot1_string));
           peptide_hit_beta.setMetaValue("prot2", DataValue(prot2_string));
           peptide_hit_beta.setMetaValue("xl_mass", xlinkermass);
+          peptide_hit_beta.setMetaValue("xl_mod", this->cross_linker_name_);
 
           // Set Peptide Evidences for Beta
           this->setPeptideEvidence_(prot2_string, peptide_hit_beta);
@@ -735,10 +797,11 @@ namespace OpenMS
           peptide_hit_alpha.setMetaValue("xl_type", DataValue("loop-link"));
 
           // Set xl positions, depends on xl_type
-          std::pair<SignedSize, SignedSize> positions;
           this->getLinkPosition_(attributes, positions);
           peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first - 1));
           peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second - 1));
+          peptide_hit_alpha.setMetaValue("xl_mass", xlinkermass);
+          peptide_hit_alpha.setMetaValue("xl_mod", this->cross_linker_name_);
         }
         else if (xlink_type_string == "monolink")
         {

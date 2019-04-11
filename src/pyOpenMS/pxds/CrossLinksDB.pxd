@@ -15,13 +15,18 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
 
         Size getNumberOfModifications() nogil except +
 
-        ResidueModification getModification(Size index) nogil except +
-
         void searchModifications(libcpp_set[ const ResidueModification * ] & mods,
-                                 String mod_name, String residue,
+                                 const String& mod_name,
+                                 const String& residue,
                                  TermSpecificity term_spec) nogil except +
 
-        ResidueModification getModification(const String & mod_name, const String & residue, TermSpecificity term_spec) nogil except +
+        const ResidueModification * getModification(Size index) nogil except +
+
+        const ResidueModification * getModification(const String & mod_name) nogil except +
+
+        const ResidueModification * getModification(const String & mod_name,
+                                            const String & residue,
+                                            TermSpecificity term_spec) nogil except +
 
         bool has(String modification) nogil except +
 
@@ -32,16 +37,13 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
         void searchModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double max_error,
                                                const String & residue, TermSpecificity term_spec) nogil except +
 
-        const ResidueModification* getBestModificationByMonoMass(double mass, double max_error,
-                                                                 const String residue,
-                                                                 TermSpecificity term_spec) nogil except +
-
         const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
-                                                                     const String residue, TermSpecificity term_spec) nogil except +
-
+                                                              const String residue, TermSpecificity term_spec) nogil except +
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
 
         void readFromOBOFile(const String & filename) nogil except +
+
+        bool isInstantiated() nogil except +
 
 ## wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS::CrossLinksDB":

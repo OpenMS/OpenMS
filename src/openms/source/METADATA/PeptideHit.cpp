@@ -81,14 +81,25 @@ namespace OpenMS
     }
   }
 
+  /// Move constructor
+  PeptideHit::PeptideHit(PeptideHit&& source) noexcept :
+    MetaInfoInterface(std::move(source)), // NOTE: rhs itself is an lvalue
+    sequence_(std::move(source.sequence_)),
+    score_(std::move(source.score_)),
+    analysis_results_(std::move(source.analysis_results_)),
+    rank_(std::move(source.rank_)),
+    charge_(std::move(source.charge_)),
+    peptide_evidences_(std::move(source.peptide_evidences_)),
+    fragment_annotations_(std::move(source.fragment_annotations_))
+  {
+    // see http://thbecker.net/articles/rvalue_references/section_05.html
+    source.analysis_results_ = nullptr;
+  }
+
   // destructor
   PeptideHit::~PeptideHit()
   {
-    if (analysis_results_ != nullptr)
-    {
-      // free memory again
-      delete analysis_results_;
-    }
+    delete analysis_results_;
   }
 
   PeptideHit& PeptideHit::operator=(const PeptideHit& source)
@@ -104,17 +115,38 @@ namespace OpenMS
     analysis_results_ = nullptr;
     if (source.analysis_results_ != nullptr)
     {
-      if (analysis_results_ != nullptr)
-      {
-        // free memory first
-        delete analysis_results_;
-      }
+      // free memory first
+      delete analysis_results_;
       analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
     }
+    rank_ = source.rank_;
     charge_ = source.charge_;
-    rank_  = source.rank_;
     peptide_evidences_ = source.peptide_evidences_;
     fragment_annotations_ = source.fragment_annotations_;
+    return *this;
+  }
+
+  PeptideHit& PeptideHit::operator=(PeptideHit&& source) noexcept
+  {
+    if (&source == this)
+    {
+      return *this;
+    }
+
+    MetaInfoInterface::operator=(std::move(source));
+    sequence_ = source.sequence_;
+    score_ = source.score_;
+
+    // free memory and assign rhs memory
+    delete analysis_results_;
+    analysis_results_ = source.analysis_results_;
+    source.analysis_results_ = nullptr;
+
+    rank_ = source.rank_;
+    charge_ = source.charge_;
+    peptide_evidences_ = source.peptide_evidences_;
+    fragment_annotations_ = source.fragment_annotations_;
+
     return *this;
   }
 
@@ -166,6 +198,11 @@ namespace OpenMS
     sequence_ = sequence;
   }
 
+  void PeptideHit::setSequence(AASequence&& sequence)
+  {
+    sequence_ = std::move(sequence);
+  }
+
   Int PeptideHit::getCharge() const
   {
     return charge_;
@@ -184,6 +221,11 @@ namespace OpenMS
   void PeptideHit::setPeptideEvidences(const std::vector<PeptideEvidence>& peptide_evidences)
   {
     peptide_evidences_ = peptide_evidences;
+  }
+
+  void PeptideHit::setPeptideEvidences(std::vector<PeptideEvidence>&& peptide_evidences)
+  {
+    peptide_evidences_ = std::move(peptide_evidences);
   }
 
   void PeptideHit::addPeptideEvidence(const PeptideEvidence& peptide_evidence)

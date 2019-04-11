@@ -39,43 +39,15 @@ using namespace std;
 namespace OpenMS
 {
 
-  SampleTreatment::SampleTreatment() :
-    MetaInfoInterface(),
-    comment_()
-  {
-
-  }
-
   SampleTreatment::SampleTreatment(const String & type) :
     MetaInfoInterface(),
     type_(type),
     comment_()
   {
-
-  }
-
-  SampleTreatment::SampleTreatment(const SampleTreatment & source) :
-    MetaInfoInterface(source),
-    type_(source.type_),
-    comment_(source.comment_)
-  {
-
   }
 
   SampleTreatment::~SampleTreatment()
   {
-
-  }
-
-  SampleTreatment & SampleTreatment::operator=(const SampleTreatment & source)
-  {
-    if (&source == this)
-      return *this;
-
-    MetaInfoInterface::operator=(source);
-    comment_ = source.comment_;
-
-    return *this;
   }
 
   const String & SampleTreatment::getType() const

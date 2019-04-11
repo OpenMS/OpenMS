@@ -61,7 +61,7 @@ namespace OpenMS
 
   Details on the FileSection:
 
-  To unambigously map a single quantitative value we need to define:
+  To unambiguously map a single quantitative value we need to define:
     a. the label (e.g., label = 2 in the case of a heavy peptide in a light/heavy experiment)
     b. which spectra file did produce the result (e.g., path = "/data/SILAC_file.mzML")  
     c. which fraction the file corresponds to (e.g., fraction = 1)
@@ -84,6 +84,7 @@ namespace OpenMS
 
   class OPENMS_DLLAPI ExperimentalDesign
   {
+
   public:
     /// MSFileSectionEntry links single quant. values back the MS file
     /// It supports:
@@ -159,7 +160,6 @@ namespace OpenMS
     const ExperimentalDesign::SampleSection& getSampleSection() const;
 
     void setSampleSection(const SampleSection& sample_section);
-
 
     /// return fraction index to file paths (ordered by fraction_group)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;

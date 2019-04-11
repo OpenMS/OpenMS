@@ -50,11 +50,11 @@ namespace OpenMS
   /**
       @brief This class supports reading and writing of OpenSWATH transition
       lists.
-      
+
       The transition lists can be either comma- or tab-separated plain
       text files (CSV or TSV format).  Modifications should be provided in
       UniMod format<sup>1</sup>, but can also be provided in TPP format.
-      
+
       The following columns are required:
 
       <table>
@@ -66,6 +66,7 @@ namespace OpenMS
 
   For targeted proteomics files, the following additional columns should be provided:
         <table>
+          <tr> <td BGCOLOR="#EBEBEB">GeneName**</td> <td>free text; </td><td> Gene name (unique gene identifier)</td></tr>
           <tr> <td BGCOLOR="#EBEBEB">ProteinId**</td> <td>free text; synonyms: ProteinName</td><td> Protein identifier</td></tr>
           <tr> <td BGCOLOR="#EBEBEB">PeptideSequence**</td> <td>free text</td> <td> sequence only (no modifications); synonyms: Sequence, StrippedSequence</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">ModifiedPeptideSequence**</td> <td>free text</td> <td> should contain modifications<sup>1</sup>; synonyms: FullUniModPeptideName, FullPeptideName, ModifiedSequence</td>  </tr>
@@ -99,8 +100,8 @@ namespace OpenMS
 
         <table>
           <tr> <td BGCOLOR="#EBEBEB">CompoundName**</td> <td>free text; synonyms: CompoundId</td><td>Should be unique for the analyte, if present the file will be interpreted as a metabolomics file </td></tr>
-          <tr> <td BGCOLOR="#EBEBEB">SMILES</td><td>free text</td><td>SMILES identifier</td></tr>
-          <tr> <td BGCOLOR="#EBEBEB">SumFormula</td><td>free text</td><td>molecular formula </td></tr>
+          <tr> <td BGCOLOR="#EBEBEB">SMILES</td><td>free text</td><td>SMILES identifier of the compound</td></tr>
+          <tr> <td BGCOLOR="#EBEBEB">SumFormula</td><td>free text</td><td>molecular formula of the compound (e.g. H2O)</td></tr>
         </table>
 
   Fields indicated with * are strictly required to create a TraML file. Fields
@@ -153,59 +154,53 @@ protected:
     */
     struct TSVTransition
     {
-      double precursor;
-      double product;
-      double rt_calibrated;
-      String transition_name;
-      double CE;
-      double library_intensity;
-      String group_id;
-      bool decoy;
-      String PeptideSequence;
-      String ProteinName;
-      String Annotation;
-      String FullPeptideName;
-      String CompoundName;
-      String SMILES;
-      String SumFormula;
-      String precursor_charge;
-      String peptide_group_label;
-      String label_type;
-      String fragment_charge;
-      int fragment_nr;
-      double fragment_mzdelta;
-      double drift_time;
-      int fragment_modification;
-      String fragment_type;
-      String uniprot_id;
-      bool detecting_transition;
-      bool identifying_transition;
-      bool quantifying_transition;
-      std::vector<String> peptidoforms;
+      double precursor = -1; ///< Precursor m/z
+      double product = -1; ///< Product m/z (fragment ion m/z)
+      double rt_calibrated = -1; ///< Normalized RT
+      String transition_name = ""; ///< Unique transition name
+      double CE = -1; ///< Collision Energy
+      double library_intensity = -1; ///< Library intensity of fragment ion (relative)
+      String group_id = ""; ///< Transition group identifier (grouping transitions of the same analyte)
+      bool decoy = false; ///< Whether the transition is a decoy transition
+      String PeptideSequence; ///< Peptide sequence (only AA sequence)
+      String ProteinName; ///< Protein identifier
+      String GeneName; ///< Gene identifier
+      String Annotation; ///< Fragment ion annotation
+      String FullPeptideName; ///< Full peptide sequence with UniMod modifications
+      String CompoundName; ///< Compound name (for metabolomics)
+      String SMILES; ///< SMILES identifier (for metabolomics)
+      String SumFormula; ///< Molecular formula (for metabolomics)
+      String Adducts; ///< Adducts (for metabolomics)
+      String precursor_charge; ///< Precursor charge state
+      String peptide_group_label; ///< Peptide group identifier (grouping isotopically labelled peptides)
+      String label_type; ///< Type of label that was used (e.g. "heavy" or "light")
+      String fragment_charge = "NA"; ///< Fragment ion charge state
+      int fragment_nr = -1; ///< Fragment number (e.g. "7" for a y7 ion)
+      double fragment_mzdelta = -1; ///< Fragment m/z delta to theoretical ion
+      double drift_time = -1; ///< Ion mobility drift time
+      int fragment_modification = 0; ///< Fragment modification
+      String fragment_type; ///< Fragment type (e.g. "y" for a y7 ion)
+      String uniprot_id; ///< UniProt identifier of associated protein
+      bool detecting_transition = true; ///< Whether to use transition to detect peak group,
+      bool identifying_transition = false; ///< Whether to use transition for peptidoform inference using IPF
+      bool quantifying_transition = true; ///< Whether to use transition to quantify peak group
+      std::vector<String> peptidoforms; ///< List of peptidoforms
 
-      TSVTransition() :
-        precursor(-1),
-        product(-1),
-        rt_calibrated(-1),
-        CE(-1),
-        library_intensity(-1),
-        decoy(false),
-        fragment_charge("NA"),
-        fragment_nr(-1),
-        fragment_mzdelta(-1),
-        drift_time(-1),
-        fragment_modification(0),
-        detecting_transition(true),
-        identifying_transition(false),
-        quantifying_transition(true)
-      {}
-
-      // By convention, if there is no (metabolic) compound name, it is a peptide 
-      bool isPeptide() 
+      /// Whether the transition represents a peptide (by convention, if the
+      /// (metabolic) compound name field is empty, it is a peptide.)
+      bool isPeptide() const
       {
         return CompoundName.empty();
       }
     };
+
+    /** @name  Conversion functions from TSVTransition objects to OpenMS datastructures
+     *
+     * These functions convert the relevant data from a TSVTransition to the
+     * datastructures used by the TraML handler or by the internal LightTargetedExperiment.
+     *
+   */
+    //@{
 
     /** @brief Convert a list of TSVTransition to a TargetedExperiment
      *
@@ -225,28 +220,21 @@ protected:
     */
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp);
 
-    /** @name  Conversion functions from TSVTransition objects to TraML datastructures
-     *
-     * These functions convert the relevant data from a TSVTransition to the
-     * datastructures used by the TraML handler, namely
-     * ReactionMonitoringTransition, TargetedExperiment::Protein and
-     * TargetedExperiment::Peptide.
-     *
-   */
-    //@{
-
+    /// Convert an OpenMS transition to a TSVTransition for output writing
     TransitionTSVFile::TSVTransition convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp);
+    //@}
 
     /// Synchronize members with param class
     void updateMembers_() override;
 
 private:
-    /// Members
+
+    // Members
     String retentionTimeInterpretation_;
     bool override_group_label_check_;
     bool force_invalid_mods_;
 
-    /// Typedefs
+    // Typedefs
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
@@ -255,15 +243,19 @@ private:
 
     static const std::vector<std::string> header_names_;
 
+    /** @name Reader helper functions
+     *
+    */
+    //@{
+
     /** @brief Determine separator in a CSV file and check for correct headers
      *
      * @param line The header to be parsed
      * @param delimiter The delimiter which will be determined from the input
-     * @param header The fields of the header
      * @param header_dict The map which maps the fields in the header to their position
      *
     */
-    void getTSVHeader_(const std::string& line, char& delimiter, std::vector<std::string> header, std::map<std::string, int>& header_dict);
+    void getTSVHeader_(const std::string& line, char& delimiter, std::map<std::string, int>& header_dict) const;
 
     /** @brief Read tab or comma separated input with columns defined by their column headers only
      *
@@ -274,45 +266,60 @@ private:
     */
     void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
 
+    /// Extract retention time from a SpectraST comment string
     void spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy);
 
+    /// Extract annotation from a SpectraST comment string
     bool spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition);
 
     /** @brief Cleanup of the read fields (removing quotes etc.)
     */
     void cleanupTransitions_(TSVTransition& mytransition);
+    //@}
 
-    /** Resolve cases where the same peptide label group has different sequences.
+    /** @name Conversion helper functions
+     *
+    */
+    //@{
+
+    /** @brief Resolve cases where the same peptide label group has different sequences.
      *
      * Since members in a peptide label group (MS:1000893) should only be
      * isotopically modified forms of the same peptide, having different
-     * peptide sequences (different AA order) within the same group most likely
+     * peptide sequences (different AA sequences) within the same group most likely
      * constitutes an error. This function will fix the error by erasing the
      * provided "peptide group label" for a peptide and replace it with the
-     * peptide id (transition group id).
+     * peptide identifier (transition group id).
      *
-     * @param transition_list The list of read transitions to be fixed.
+     * @param transition_list The list of transitions to be fixed.
      *
      */
-    void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list);
+    void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list) const;
 
     /// Populate a new ReactionMonitoringTransition object from a row in the csv
-    void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
+    void createTransition_(std::vector<TSVTransition>::iterator& tr_it,
+                           OpenMS::ReactionMonitoringTransition& rm_trans);
 
     /// Populate a new TargetedExperiment::Protein object from a row in the csv
-    void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
+    void createProtein_(std::vector<TSVTransition>::iterator& tr_it,
+                        OpenMS::TargetedExperiment::Protein& protein);
 
     /// Helper function to assign retention times to compounds and peptides
-    void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value);
+    void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times,
+                                 const OpenMS::DataValue rt_value);
 
     /// Populate a new TargetedExperiment::Peptide object from a row in the csv
-    void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
+    void createPeptide_(std::vector<TSVTransition>::const_iterator tr_it,
+                        OpenMS::TargetedExperiment::Peptide& peptide);
 
     /// Populate a new TargetedExperiment::Compound object (a metabolite) from a row in the csv
-    void createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound);
+    void createCompound_(std::vector<TSVTransition>::const_iterator tr_it,
+                         OpenMS::TargetedExperiment::Compound& compound);
 
+    /// Add a modification at the specified location
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
-                          int location, const ResidueModification& rmod);
+                          int location,
+                          const ResidueModification& rmod);
     //@}
 
     /** @brief Write a TargetedExperiment to a file

@@ -40,6 +40,7 @@
 #include <cstdlib>  // for getenv in terminate()
 //#include <sys/types.h>
 #include <csignal> // for SIGSEGV and kill
+#include <iostream>
 
 #ifndef OPENMS_WINDOWSPLATFORM
 #ifdef OPENMS_HAS_UNISTD_H

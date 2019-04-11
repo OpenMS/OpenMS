@@ -373,6 +373,11 @@ namespace OpenMS
           {
             warning(LOAD, "location of modification not defined!");
           }
+          if (mods.empty()) 
+          {
+            String message = String("Modification '") + accession + "' is unknown.";
+            throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
+          }
         }
       }
     }
@@ -986,7 +991,7 @@ namespace OpenMS
                 {
                   if (mods[s].hasSubstring(jt->getMetaValue("xl_mod")))
                   {
-                    ResidueModification mod;
+                    const ResidueModification* mod = nullptr;
                     try
                     {
                       mod = xl_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
@@ -1002,8 +1007,9 @@ namespace OpenMS
                         mod = xl_db->getModification(mods[s], "", ResidueModification::C_TERM);
                       }
                     }
-                    acc = mod.getPSIMODAccession();
-                    name = mod.getId();
+                    // mod should never be null, but gcc complains (-Werror=maybe-uninitialized)
+                    if (mod != nullptr) acc = mod->getPSIMODAccession();
+                    if (mod != nullptr) name = mod->getId();
                   }
                   if (!acc.empty())
                   {
@@ -1012,9 +1018,9 @@ namespace OpenMS
                 }
                 if ( acc.empty() && (mods.size() > 0) ) // If ambiguity can not be resolved by xl_mod, just take one with the same mass diff from the database
                 {
-                  ResidueModification mod = xl_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
-                  acc = mod.getPSIMODAccession();
-                  name = mod.getId();
+                  const ResidueModification* mod = xl_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
+                  acc = mod->getPSIMODAccession();
+                  name = mod->getId();
                 }
 
                 if (!acc.empty())
@@ -1333,7 +1339,8 @@ namespace OpenMS
           if (is_ppxl)
           {
             DataValue rtcv(ert);
-            rtcv.setUnit("second");
+            rtcv.setUnit(10); // id: UO:0000010 name: second
+            rtcv.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
             sii_tmp = sii_tmp.substitute("</SpectrumIdentificationItem>",
                                          "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, rtcv) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
             ppxl_specref_2_element[sid] += sii_tmp;
@@ -1363,7 +1370,8 @@ namespace OpenMS
         if (!ert.empty() && ert != "nan" && ert != "NaN" && !is_ppxl)
         {
           DataValue rtcv(ert);
-          rtcv.setUnit("second");
+          rtcv.setUnit(10); // id: UO:0000010 name: second
+          rtcv.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
           sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, rtcv) + "\n";
         }
         if (!is_ppxl)
@@ -1654,7 +1662,8 @@ namespace OpenMS
         }
         else
         {
-          LOG_WARN << String("Registered ") + (fixed ? "fixed" : "variable") + " modification '" << *it << "' is unknown and will be ignored." << std::endl;
+          String message = String("Registered ") + (fixed ? "fixed" : "variable") + " modification '" + *it + "' is unknown and will be ignored.";
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
         }
       }
     }

@@ -102,20 +102,20 @@ namespace OpenMS
         }
       } rt_norm_;
 
-      TargetedExperiment library_; // assay library
+      TargetedExperiment library_; ///< assay library
 
-      IntList decoy_index_; // indexes of assays to use as decoys
+      IntList decoy_index_; ///< indexes of assays to use as decoys
 
-      Size n_decoys_; // number of decoys to use (per feature/true assay)
+      Size n_decoys_; ///< number of decoys to use (per feature/true assay)
 
-      Map<String, IntList> transition_map_; // assay (ID) -> transitions (indexes)
+      Map<String, IntList> transition_map_; ///< assay (ID) -> transitions (indexes)
 
-      Size n_transitions_; // number of transitions to consider
+      Size n_transitions_; ///< number of transitions to consider
 
       /// RT transformation to map measured RTs to assay RTs
       TransformationDescription rt_trafo_;
 
-      boost::mt19937 generator_; // random number generation engine
+      boost::mt19937 generator_; ///< random number generation engine
 
       /// Random number generator (must be initialized in init. list of c'tor!)
       boost::variate_generator<boost::mt19937&, boost::uniform_int<> > rand_gen_;

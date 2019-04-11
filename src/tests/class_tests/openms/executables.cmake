@@ -10,6 +10,7 @@ set(concept_executables_list
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
+  Multithreading_test
   UniqueIdGenerator_test
   UniqueIdIndexer_test
   UniqueIdInterface_test
@@ -75,6 +76,8 @@ set(metadata_executables_list
   HPLC_test
   DocumentIDTagger_test
   Identification_test
+  IdentificationData_test
+  IdentificationDataConverter_test
   IdentificationHit_test
   InstrumentSettings_test
   Instrument_test
@@ -193,6 +196,8 @@ set(format_executables_list
   MzIdentMLValidator_test
   MzMLFile_test
   MzMLSpectrumDecoder_test
+  MzMLSqliteHandler_test
+  MzMLSqliteSwathHandler_test
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
@@ -243,6 +248,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SiriusFragmentAnnotation_test
 )
 
 set(math_executables_list
@@ -280,6 +286,7 @@ set(filtering_executables_list
   ComplementFilter_test
   ComplementMarker_test
   DataFilters_test
+  Deisotoper_test
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
   FilterFunctor_test
@@ -318,8 +325,8 @@ set(filtering_executables_list
   ParentPeakMower_test
   PeakMarker_test
   PrecursorCorrection_test
+  SplineInterpolatedPeaks_test
   SplinePackage_test
-  SplineSpectrum_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
@@ -362,38 +369,47 @@ set(chemistry_executables_list
   AAIndex_test
   AASequence_test
   CoarseIsotopeDistribution_test
+  CrossLinksDB_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
   EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
+  FineIsotopeDistribution_test
+  IMSAlphabetParser_test
+  IMSAlphabetTextParser_test
+  IMSAlphabet_test
+  IMSElement_test
+  IMSIsotopeDistribution_test
+  IntegerMassDecomposer_test
+  IsoSpec_test
   IsotopeDistribution_test
+  MassDecomposer_test
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
-  CrossLinksDB_test
+  ModifiedNASequenceGenerator_test
+  NASequence_test
+  NucleicAcidSpectrumGenerator_test
   ProteaseDB_test
   ProteaseDigestion_test
+  RNaseDigestion_test
+  RealMassDecomposer_test
   ResidueDB_test
   ResidueModification_test
   Residue_test
+  RibonucleotideDB_test
+  Ribonucleotide_test
+  SimpleTSGXLMS_test
   SpectrumAnnotator_test
-  SvmTheoreticalSpectrumGenerator_test
-  SvmTheoreticalSpectrumGeneratorTrainer_test
   SvmTheoreticalSpectrumGeneratorSet_test
-  TheoreticalSpectrumGenerator_test
+  SvmTheoreticalSpectrumGeneratorTrainer_test
+  SvmTheoreticalSpectrumGenerator_test
   TheoreticalSpectrumGeneratorXLMS_test
+  TheoreticalSpectrumGenerator_test
   WeightWrapper_test
-  IMSAlphabetTextParser_test
-  IMSElement_test
-  IntegerMassDecomposer_test
-  IMSIsotopeDistribution_test
   Weights_test
-  IMSAlphabetParser_test
-  MassDecomposer_test
-  IMSAlphabet_test
-  RealMassDecomposer_test
 )
 
 
@@ -501,9 +517,9 @@ set(analysis_executables_list
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
-  RNPxlDeisotoper_test
   RNPxlModificationsGenerator_test
   SVMWrapper_test
+  SimpleSearchEngineAlgorithm_test
   SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
@@ -624,12 +640,15 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
     MasstraceCorrelator_test
+    MRMBatchFeatureSelector_test
     MRMFeatureScoring_test
+    MRMFeatureSelector_test
     MRMFeatureFinderScoring_test
     MRMFeatureFilter_test
     MRMFeatureQC_test
     SpectrumHelpers_test
     StatsHelpers_test
+    SwathQC_test
     CachedMzML_test
     CachedMzMLHandler_test
   )

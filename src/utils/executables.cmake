@@ -14,6 +14,7 @@ DeMeanderize
 Digestor
 DigestorMotif
 ERPairFinder
+FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
@@ -36,6 +37,7 @@ MSstatsConverter
 MultiplexResolver
 MzMLSplitter
 NovorAdapter
+NucleicAcidSearchEngine
 OpenMSInfo
 OpenPepXL
 OpenPepXLLF
@@ -49,6 +51,7 @@ QCImporter
 QCMerger
 QCShrinker
 RNADigestor
+RNAMassCalculator
 RNPxlXICFilter
 RNPxlSearch
 RTEvaluation
