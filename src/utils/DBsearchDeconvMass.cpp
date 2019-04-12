@@ -57,7 +57,7 @@ public:
 
 protected:
     void registerOptionsAndFlags_() override{
-        registerInputFile_("in", "<FeatureFinderIntact result file>", "", "Input FeatureFinderIntact result file");
+        registerInputFile_("in", "<FeatureFinderIntact feature result file>", "", "Input FeatureFinderIntact result file");
         setValidFormats_("in", ListUtils::create<String>("tsv"));
 
         registerInputFile_("d", "<Protein DB file>", "", "Input protein DB file");
@@ -142,7 +142,6 @@ protected:
 
         fstream fsout;
         fsout.open(outfilePath, fstream::out);
-        fsout << "DeconvMass\tProteoformMass\tProteinAccession\tProteinMass\tTotalPTMmass\tPTMs" << endl;
 
         //-------------------------------------------------------------
         // generate PTM nodes vector
@@ -186,30 +185,36 @@ protected:
 
     void searchProteoformTree(string deconvfilePath, PrtfNode*& tree, double tolerance, fstream &fs){
         vector<double> mass_vec;
-        read_FeatureFinderIntact_result_file(deconvfilePath, mass_vec, "ExactMass");
+        vector<string> dfile_vec; // rows of deconvfilePath
+        read_FeatureFinderIntact_result_file(deconvfilePath, mass_vec, dfile_vec, "ExactMass");
+        fs << dfile_vec[0] << "\tDeconvMass\tProteoformMass\tProteinAccession\tProteinMass\tTotalPTMmass\tPTMs" << endl;
 
+        SignedSize count = 0;
         for(auto& mass : mass_vec){
             if (tolerance == 0) {
                 PrtfNode* tmp = search_exact_node(mass, tree);
                 if(tmp->prtf!= nullptr){
-                    fs << write_proteoform_result(tmp, mass) << endl;
+                    count += 1;
+                    fs << dfile_vec[count] << "\t" << write_proteoform_result(tmp, mass) << endl;
                 }
             }else{
                 vector <PrtfNode*> result_vec;
                 search_within_tolerance(mass, 3.0, tree, result_vec);
+                count += 1;
                 for(auto& tmp : result_vec){
-                    fs << write_proteoform_result(tmp, mass) << endl;
+                    fs << dfile_vec[count] << "\t" << write_proteoform_result(tmp, mass) << endl;
                 }
             }
             fs.flush();
         }
     }
 
-    void read_FeatureFinderIntact_result_file(string deconvfilePath, vector<double>& mass_vec, string col_name){
+    void read_FeatureFinderIntact_result_file(string deconvfilePath, vector<double>& mass_vec, vector<string>& file_lines,string col_name){
 
         std::ifstream infile(deconvfilePath);
         string header;
         std::getline(infile, header);
+        file_lines.push_back(header);
         int index_of_col = get_index_of_tsv_header(header, col_name);
 
         string line;
@@ -217,6 +222,7 @@ protected:
             vector<string> results;
             boost::split(results, line, boost::is_any_of("\t"));
             mass_vec.push_back(String(results[index_of_col]).toDouble());
+            file_lines.push_back(line);
         }
     }
 
