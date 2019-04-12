@@ -58,12 +58,26 @@ namespace OpenMS
     /// Destructor
     virtual ~FragmentMassError() = default;
 
+    /**
+     * @brief Structure for storing results: average and variance of all FragmentMassErrors in ppm
+     */
     struct FMEStatistics
     {
       double average_ppm;
       double variance_ppm;
     };
 
+    /**
+     * @brief computes FragmentMassError in ppm
+     *
+     * stores average and variance of FragmentMassErrors in ppm as a struct in a vector
+     * each FragmentMassError is stored in the first PeptideHit of the corresponding PeptideIdentification
+     *
+     * @param fmap Input FeatureMap for annotation and data for theoretical spectra
+     * @param exp Input MSexperiment for MS2Spectra, Spectra should be sorted (ascending RT)
+     * @param tolerance searchwindow for matching peaks, distance has to be lower than tolerance value
+     * @param tolerance_unit_ppm flag, true: if tolerance is in ppm , false: if tolerance is in m/z
+     */
     void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const bool tolerance_unit_ppm = false);
 
     /// returns results
@@ -78,6 +92,7 @@ namespace OpenMS
 
 
   private:
+    /// container that stores results
     std::vector<FMEStatistics> results_{};
   };
 

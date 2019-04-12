@@ -42,8 +42,6 @@ namespace OpenMS
   void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const bool tolerance_unit_ppm)
   {
     FMEStatistics result;
-    //result.average_ppm = 0.;
-    //result.variance_ppm = 0.;
 
     //accumulates ppm errors over all first PeptideHits
     double accumulator_ppm{};
@@ -78,6 +76,7 @@ namespace OpenMS
     }
 
 
+    //computes the FragmentMassError
     auto lamCompPPM = [&exp_filtered, rt_tolerance, tolerance, tolerance_unit_ppm, &accumulator_ppm, &counter_ppm](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
@@ -162,6 +161,7 @@ namespace OpenMS
       //stores ppms for one spectrum
       DoubleList ppms{};
 
+      //infinity
       double inf = std::numeric_limits<double>::infinity();
 
       //exp_peak matching to previous theo_peak
@@ -171,7 +171,6 @@ namespace OpenMS
       double ppm = inf;
 
       for (const Peak1D& peak : theo_spectrum)
-      //for (UInt32 i = 0; i < theo_spectrum.size(); ++i)
       {
         const double theo_mz = peak.getMZ();
         Size index = exp_spectrum.findNearest(theo_mz);
@@ -183,7 +182,7 @@ namespace OpenMS
         //found peak match
         if (std::abs(theo_mz-exp_mz) < mz_tolerance)
         {
-          auto current_ppm = theo_mz - exp_mz;
+          auto current_ppm = Math::getPPM(theo_mz, exp_mz);
 
           //first peak in tolerance range
           if (current_exp == inf)
@@ -197,22 +196,15 @@ namespace OpenMS
           if (current_exp == exp_mz && abs(current_ppm) < abs(ppm))
           {
             ppm = current_ppm;
-            std::cout << "theo_mz: " << theo_mz<< std::endl;
-            std::cout << "exp_mz: " << exp_mz<< std::endl;
           }
 
           //theo_peak matches to another exp_peaks
           if (current_exp != exp_mz)
           {
-            // TODO change to ppm
             ppms.push_back(ppm);
-
-            std::cout << "ppm " << ppm << std::endl;
-            //std::cout << "Theo  " << theo_mz << "    Exp   " << exp_mz << std::endl;
 
             ++ counter_ppm;
 
-            std::cout<< "c:  " << counter_ppm << std::endl;
             accumulator_ppm += ppm;
             ppm = current_ppm;
             current_exp = exp_mz;
@@ -240,7 +232,6 @@ namespace OpenMS
       for (auto ppm : (pep_id.getHits()[0].getMetaValue("ppm_errors")).toDoubleList())
       {
         result.variance_ppm += (pow((ppm - result.average_ppm),2) / counter_ppm);
-        std::cout << "counter_ppm: " << counter_ppm << std::endl;
       }
     };
 

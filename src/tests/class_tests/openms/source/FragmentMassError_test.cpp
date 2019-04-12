@@ -71,7 +71,6 @@ START_TEST(FragmentMassError, "$Id$")
     Peak1D himalaya_6(790, 42);
     Peak1D himalaya_7(821, 70);
 
-
     Peak1D alabama_1(45, 42);
     Peak1D alabama_2(112.5, 42);
     Peak1D alabama_3(146.8, 42);
@@ -112,7 +111,7 @@ START_TEST(FragmentMassError, "$Id$")
     //MS_Empty
     MSSpectrum ms_spec_empty;
 
-    //MS_Peptide --------------------------- //erklärung
+    //MS_Peptide
     MSSpectrum ms_spec_2_peptide;
     ms_spec_2_peptide.setRT(6);
     ms_spec_2_peptide.setMSLevel(2);
@@ -248,16 +247,16 @@ START_TEST(FragmentMassError, "$Id$")
           std::vector<FragmentMassError::FMEStatistics> result;
           result = frag_ma_err.getResults();
 
-          TEST_REAL_SIMILAR(result[0].average_ppm, 0.042433)
-          TEST_REAL_SIMILAR(result[0].variance_ppm, 6.9)
+          TEST_REAL_SIMILAR(result[0].average_ppm, 3934.748238) // mz: 0.042541
+          TEST_REAL_SIMILAR(result[0].variance_ppm, 225627520.188604) //mz: 5.915844
 
           // MSExperiment is not sorted
           TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, frag_ma_err_ms1.compute(fmap, exp_unsort),"MSExperiment is not sorted by ascending RT")
 
-          //test with matching ms2 spectrum
+          //test with matching ms1 spectrum
           TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_ms1.compute(fmap_ms1, exp), "The matching retention time of the mzML is not a MS2 Spectrum.")
 
-          //test ...
+          //test if RT from FeatureMap does not match to any RT in MSExp
           TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_notExits.compute(fmap_notExist, exp);, "The retention time of the mzML and featureXML file does not match.")
 
           //test with RT out of tolerance
