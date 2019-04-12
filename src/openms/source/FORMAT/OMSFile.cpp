@@ -264,6 +264,30 @@ namespace OpenMS
       "METAVALUE TEXT NOT NULL," \
       "VALUE REAL NOT NULL," \
       "OBJECT TEXT NOT NULL," \
+      "OBJECTREFERENCE INT NOT NULL);"
+
+      // MetaboInterface SRINGLIST
+      "CREATE TABLE METABOINTERFACE_STRINGLIST(" \
+      "ID INT NOT NULL," \
+      "METAVALUE TEXT NOT NULL," \
+      "VALUE REAL NOT NULL," \
+      "OBJECT TEXT NOT NULL," \
+      "OBJECTREFERENCE INT NOT NULL);"
+
+      // MetaboInterface INTLIST
+      "CREATE TABLE METABOINTERFACE_INTLIST(" \
+      "ID INT NOT NULL," \
+      "METAVALUE TEXT NOT NULL," \
+      "VALUE REAL NOT NULL," \
+      "OBJECT TEXT NOT NULL," \
+      "OBJECTREFERENCE INT NOT NULL);"
+
+      // MetaboInterface DOUBLELIST
+      "CREATE TABLE METABOINTERFACE_DOUBLELIST(" \
+      "ID INT NOT NULL," \
+      "METAVALUE TEXT NOT NULL," \
+      "VALUE REAL NOT NULL," \
+      "OBJECT TEXT NOT NULL," \
       "OBJECTREFERENCE INT NOT NULL);" ;
 
 
@@ -272,6 +296,10 @@ namespace OpenMS
 
     // Execute SQL create statement
     conn.executeStatement(create_sql);
+
+    // Prepare insert statements
+
+    // Index maps (memory map)
 
   }
 
