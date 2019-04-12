@@ -54,745 +54,306 @@ namespace OpenMS
     return 0;
   }
 
-  void OMSFile::load(const char* filename, IdentificationData& id_data)
-  {
-    sqlite3 *db;
-    sqlite3_stmt * cntstmt;
-    sqlite3_stmt * stmt;
-    std::string select_sql;
-
-    // Open database
-    SqliteConnector conn(filename);
-    db = conn.getDB();
-
-    // Create SQL structure
-    const char* create_sql =
-      "CREATE TABLE VERSION(" \
-      "ID INT NOT NULL);" \
-
-      // ParentMolecule table
-      "CREATE TABLE PARENTMOLECULE(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "ACCESSION TEXT NOT NULL," \
-      "SEQUENCE TEXT NOT NULL," \
-      "DESCRIPTION TEXT NOT NULL," \
-      "COVERAGE REAL NOT NULL," \
-      "DECOY BIT NOT NULL);" \
-
-      // ParentMoleculeGroup table
-      // @TODO Use Mapping table (Molecule to Group)?
-      "CREATE TABLE PARENTMOLECULEGROUP(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "SCORETYPEREF INT NOT NULL,"
-      "SCORE REAL NOT NULL);" \
-
-      // ParentMolecule to ParentMoleculeGroup
-      "CREATE TABLE PARENTMOLECULE_PARENTMOLECULEGROUP_MAPPING(" \
-      "PMOLID INT NOT NULL," \
-      "PMOLGRPID INT NOT NULL);" \
-
-      // ParentMoleculeGrouping table
-      "CREATE TABLE PARENTMOLECULEGROUPING(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "LABEL TEXT NOT NULL);" \
-
-      // AppliedProcessingStep
-      "CREATE TABLE APPLIEDPROCESSINGSTEP(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "PROCESSING_STEP_OPT TEXT);"
-
-      // ScoresForAppliedProcessingStep
-      "CREATE TABLE SCORESFORAPPLIEDPROCESSINGSTEP(" \
-      "APSID INT PRIMARY KEY NOT NULL," \
-      "SCORETYPEREF INT NOT NULL," \
-      "SCORE REAL NOT NULL);";
-
-      // DataProcessingSoftware
-
-      // DataProcessingStep
-/*      "CREATE TABLE DATAPROCESSINGSTEP(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "SOFTWARE_REF TEXT NOT NULL," \
-      "INPUT_FILE_REFS TEXT NOT NULL," \ // TODO: vector <InputFileRef>
-      "PRIMARY_FILES REAL NOT NULL," \ // TODO: vector <String>
-      "DATETIME TEXT NOT NULL," \ // TODO: DateTime
-      "ACTIONS REAL NOT NULL);" \ //TODO: std::set< DataProcessing::ProcessingAction >
-
-    // DataQuery
-    "CREATE TABLE DATAQUERY(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "DATA_ID TEXT NOT NULL," \
-      "INPUT_FILE_REF NOT NULL," \ // TODO: Can be NULL (optional)
-    "RT REAL NOT NULL," \
-      "MZ REAL NOT NULL);" \
-
-    // DBSearchParam
-    "CREATE TABLE DBSEARCHPARAM(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "MOLECULETYPE TEXT NOT NULL," \
-      "MASSTYPE TEXT NOT NULL," \
-      "DATABASE TEXT NOT NULL," \
-      "DATABASE_VERSION TEXT NOT NULL," \
-      "TAXONOMY TEXT NOT NULL," \
-      "CHARGES TEXT NOT NULL," \ //TODO: set<int>
-    "FIXED_MODS TEXT NOT NULL," \ //TODO: set<String>
-    "VARIABLE_MODS TEXT NOT NULL," \ //TODO: set<String>
-    "PRECURSOR_MASS_TOLERANCE TEXT NOT NULL," \
-      "FRAGMENT_MASS_TOLERANCE TEXT NOT NULL," \
-      "PRECURSOR_TOLERANCE_PPM INT NOT NULL," \ //TODO: bool
-    "FRAGMENT_TOLERANCE_PPM INT NOT NULL," \ //TODO: bool
-    "DIGESTION_ENZYME TEXT NOT NULL," \ //TODO: class DigestionEnzyme
-    "MISSED_CLEAVAGES INT NOT NULL," \
-      "MIN_LENGTH INT NOT NULL, \
-      "MAX_LENGTH INT NOT NULL") \
-
-                              // IdentifiedCompound
-                              "CREATE TABLE IDENTIFIEDCOMPOUND(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "IDENTIFIER TEXT NOT NULL," \
-      "SUMFORMULA TEXT NOT NULL," \
-      "NAME TEXT NOT NULL," \
-      "SMILE TEXT NOT NULL," \
-      "INCHI TEXT NOT NULL") \
-
-
-    // IdentifiedSequence
-    "CREATE TABLE IDENTIFIEDSEQUENCE(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "SEQUENCE TEXT NOT NULL") \     // TODO: add parent matches
-
-    // IteratorWrapper
-
-    // MoleculeParentMatch
-
-    // MoleculeQueryMatch
-    "CREATE TABLE MOLECULEQUERYMATCH(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "IDENTIFIED_MOLECULE_REF TEXT NOT NULL," \
-      "DATAQUERYREF TEXT NOT NULL," \
-      "CHARGE INT NOT NULL," \
-      "PEAK_ANNOTATIONS TEXT NOT NULL") \
-
-    // ParentMolecule
-
-    // ParentMoleculeGroup
-
-    // ParentMoleculeGrouping
-    "CREATE TABLE PARENTMOLECULEGROUPING(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "LABEL TEXT NOT NULL") \ //TODO: ParentMoleculeGroups groups
-
-    // QueryMatchGroup
-
-    // ScoredProcessingResult
-
-    // ScoreType
-    "CREATE TABLE SCORETYPE(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "CV_TERM TEXT NOT NULL," \ //TODO: CVTerm
-    "NAME TEXT NOT NULL," \
-      "HIGHER_BETTER INT NOT NULL"); //TODO: bool*/
-
-    // Execute SQL create statement
-    conn.executeStatement(create_sql);
-
-
-
-
-
-
-/*
-    // Count transitions
-    SqliteConnector::executePreparedStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
-    sqlite3_step( cntstmt );
-    int num_transitions = sqlite3_column_int( cntstmt, 0 );
-    sqlite3_finalize(cntstmt);
-
-    String select_drift_time = "";
-    bool drift_time_exists = SqliteConnector::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
-    if (drift_time_exists)
-    {
-      select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";
-    }
-
-    String select_gene = "";
-    String select_gene_null = "";
-    String join_gene = "";
-    bool gene_exists = SqliteConnector::tableExists(db, "GENE");
-    if (gene_exists)
-    {
-      select_gene = ", GENE.GENE_NAME AS gene_name ";
-      select_gene_null = ", 'NA' AS gene_name ";
-      join_gene = "LEFT JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
-                  "LEFT JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
-    }
-
-
-    // Get peptides
-    select_sql = "SELECT " \
-                  "PRECURSOR.PRECURSOR_MZ AS precursor, " \
-                  "TRANSITION.PRODUCT_MZ AS product, " \
-                  "PRECURSOR.LIBRARY_RT AS rt_calibrated, " \
-                  "TRANSITION." + traml_id + " AS transition_name, " \
-                  "-1 AS CE, " \
-                  "TRANSITION.LIBRARY_INTENSITY AS library_intensity, " \
-                  "PRECURSOR." + traml_id + " AS group_id, " \
-                  "TRANSITION.DECOY AS decoy, " \
-                  "PEPTIDE.UNMODIFIED_SEQUENCE AS PeptideSequence, " \
-                  "PROTEIN_AGGREGATED.PROTEIN_ACCESSION AS ProteinName, " \
-                  "NULL AS Annotation, " \
-                  "PEPTIDE.MODIFIED_SEQUENCE AS FullPeptideName, " \
-                  "NULL AS CompoundName, " \
-                  "NULL AS SMILES, " \
-                  "NULL AS SumFormula, " \
-                  "NULL AS Adducts, " \
-                  "PRECURSOR.CHARGE AS precursor_charge, " \
-                  "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
-                  "NULL AS label_type, " \
-                  "TRANSITION.CHARGE AS fragment_charge, " \
-                  "TRANSITION.ORDINAL AS fragment_nr, " \
-                  "NULL AS fragment_mzdelta, " \
-                  "NULL AS fragment_modification, " \
-                  "TRANSITION.TYPE AS fragment_type, " \
-                  "NULL AS uniprot_id, " \
-                  "TRANSITION.DETECTING AS detecting_transition, " \
-                  "TRANSITION.IDENTIFYING AS identifying_transition, " \
-                  "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms " + \
-                  select_drift_time + \
-                  select_gene + \
-                  "FROM PRECURSOR " + \
-                  join_gene + \
-                  "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
-                  "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
-                  "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " \
-                  "INNER JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID " \
-                  "INNER JOIN " \
-                    "(SELECT PEPTIDE_ID, GROUP_CONCAT(PROTEIN_ACCESSION,';') AS PROTEIN_ACCESSION " \
-                    "FROM PROTEIN " \
-                    "INNER JOIN PEPTIDE_PROTEIN_MAPPING ON PROTEIN.ID = PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID "\
-                    "GROUP BY PEPTIDE_ID) " \
-                    "AS PROTEIN_AGGREGATED ON PEPTIDE.ID = PROTEIN_AGGREGATED.PEPTIDE_ID " \
-                  "LEFT OUTER JOIN " \
-                    "(SELECT TRANSITION_ID, GROUP_CONCAT(MODIFIED_SEQUENCE,'|') AS PEPTIDOFORMS " \
-                    "FROM TRANSITION_PEPTIDE_MAPPING "\
-                    "INNER JOIN PEPTIDE ON TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID "\
-                    "GROUP BY TRANSITION_ID) "\
-                    "AS PEPTIDE_AGGREGATED ON TRANSITION.ID = PEPTIDE_AGGREGATED.TRANSITION_ID ";
-
-    // Get compounds
-    select_sql += "UNION SELECT " \
-                  "PRECURSOR.PRECURSOR_MZ AS precursor, " \
-                  "TRANSITION.PRODUCT_MZ AS product, " \
-                  "PRECURSOR.LIBRARY_RT AS rt_calibrated, " \
-                  "TRANSITION." + traml_id + " AS transition_name, " \
-                  "-1 AS CE, " \
-                  "TRANSITION.LIBRARY_INTENSITY AS library_intensity, " \
-                  "PRECURSOR." + traml_id + " AS group_id, " \
-                  "TRANSITION.DECOY AS decoy, " \
-                  "NULL AS PeptideSequence, " \
-                  "NULL AS ProteinName, " \
-                  "TRANSITION.ANNOTATION AS Annotation, " \
-                  "NULL AS FullPeptideName, " \
-                  "COMPOUND.COMPOUND_NAME AS CompoundName, " \
-                  "COMPOUND.SMILES AS SMILES, " \
-                  "COMPOUND.SUM_FORMULA AS SumFormula, " \
-                  "COMPOUND.ADDUCTS AS Adducts, " \
-                  "PRECURSOR.CHARGE AS precursor_charge, " \
-                  "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
-                  "NULL AS label_type, " \
-                  "TRANSITION.CHARGE AS fragment_charge, " \
-                  "TRANSITION.ORDINAL AS fragment_nr, " \
-                  "NULL AS fragment_mzdelta, " \
-                  "NULL AS fragment_modification, " \
-                  "TRANSITION.TYPE AS fragment_type, " \
-                  "NULL AS uniprot_id, " \
-                  "TRANSITION.DETECTING AS detecting_transition, " \
-                  "TRANSITION.IDENTIFYING AS identifying_transition, " \
-                  "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "NULL AS peptidoforms " +
-                  select_drift_time +
-                  select_gene_null +
-                  "FROM PRECURSOR " \
-                  "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
-                  "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
-                  "INNER JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " \
-                  "INNER JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID; ";
-
-
-    // Execute SQL select statement
-    SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-    sqlite3_step( stmt );
-
-    Size progress = 0;
-    startProgress(0, num_transitions, "reading PQP file");
-    // Convert SQLite data to TSVTransition data structure
-    while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
-    {
-      setProgress(progress++);
-      TSVTransition mytransition;
-
-      Sql::extractValue<double>(&mytransition.precursor, stmt, 0);
-      Sql::extractValue<double>(&mytransition.product, stmt, 1);
-      Sql::extractValue<double>(&mytransition.rt_calibrated, stmt, 2);
-      Sql::extractValue<std::string>(&mytransition.transition_name, stmt, 3);
-      Sql::extractValue<double>(&mytransition.CE, stmt, 4);
-      Sql::extractValue<double>(&mytransition.library_intensity, stmt, 5);
-      Sql::extractValue<std::string>(&mytransition.group_id, stmt, 6);
-      Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 7);
-      Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
-      Sql::extractValue<std::string>(&mytransition.ProteinName, stmt, 9);
-      Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
-      Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
-      Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
-      Sql::extractValue<std::string>(&mytransition.SMILES, stmt, 13);
-      Sql::extractValue<std::string>(&mytransition.SumFormula, stmt, 14);
-      Sql::extractValue<std::string>(&mytransition.Adducts, stmt, 15);
-      Sql::extractValueIntStr(&mytransition.precursor_charge, stmt, 16);
-      Sql::extractValue<std::string>(&mytransition.peptide_group_label, stmt, 17);
-      Sql::extractValue<std::string>(&mytransition.label_type, stmt, 18);
-      Sql::extractValueIntStr(&mytransition.fragment_charge, stmt, 19);
-      Sql::extractValue<int>(&mytransition.fragment_nr, stmt, 20);
-      Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 21);
-      Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 22);
-      Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
-      Sql::extractValue<std::string>(&mytransition.uniprot_id, stmt, 24);
-      Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
-      Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
-      Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
-      if (sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
-      {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 28 ))).split('|', mytransition.peptidoforms);
-      }
-      // optional attributes only present in newer file versions
-      if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);
-      if (gene_exists) Sql::extractValue<std::string>(&mytransition.GeneName, stmt, 30);
-
-      if (mytransition.GeneName == "NA") mytransition.GeneName = "";
-
-      transition_list.push_back(mytransition);
-      sqlite3_step( stmt );
-    }
-    endProgress();
-
-    sqlite3_finalize(stmt);
-    */
-  }
-
   void OMSFile::store(const char* filename, IdentificationData& id_data)
   {
-    /*
+
     // delete file if present
     remove(filename);
 
     // Open database
     SqliteConnector conn(filename);
+    //db = conn.getDB();
 
     // Create SQL structure
     const char* create_sql =
       "CREATE TABLE VERSION(" \
       "ID INT NOT NULL);" \
 
-      // gene table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE GENE(" \
+      // New datastructure
+
+      // IdentifiedCompound
+      "CREATE TABLE IDENTIFIEDCOMPOUND(" \
       "ID INT PRIMARY KEY NOT NULL," \
-      "GENE_NAME TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
+      "IDENTIFIER TEXT NOT NULL," \
+      "FORMULA TEXT NOT NULL," \
+      "NAME TEXT NOT NULL," \
+      "SMILE TEXT NOT NULL," \
+      "INCHI TEXT NOT NULL);" \
 
-      // peptide_gene_mapping table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PEPTIDE_GENE_MAPPING(" \
-      "PEPTIDE_ID INT NOT NULL," \
-      "GENE_ID INT NOT NULL);" \
-
-      // protein table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PROTEIN(" \
+      // IdentifiedSequence
+      "CREATE TABLE IDENTIFIEDSEQUENCE(" \
       "ID INT PRIMARY KEY NOT NULL," \
-      "PROTEIN_ACCESSION TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
+      "SEQUENCE TEXT NOT NULL," \
+      "SEQTYPE TEXT NOT NULL);" \
 
-      // peptide_protein_mapping table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PEPTIDE_PROTEIN_MAPPING(" \
-      "PEPTIDE_ID INT NOT NULL," \
-      "PROTEIN_ID INT NOT NULL);" \
+      // ParentMolecule
+      "CREATE TABLE PARENTMOLECULE(" \
+      "ID INT NOT NULL," \
+      "ACCESSION TEXT NOT NULL," \
+      "SEQUENCE TEXT NOT NULL," \
+      "DECOY BIT NOT NULL," \
+      "GROUPID INT NOT NULL," \
+      "MOLECULETYPE TEXT NOT NULL," \
+      "COVERAGE TEXT NOT NULL);" \
 
-      // peptide table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PEPTIDE(" \
+      // ParentMoleculeGroup
+      "CREATE TABLE PARENTMOLECULEGROUPS(" \
       "ID INT PRIMARY KEY NOT NULL," \
-      "UNMODIFIED_SEQUENCE TEXT NOT NULL," \
-      "MODIFIED_SEQUENCE TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
+      "SCORETYPE INT NOT NULL," \
+      "SCOREVALUE REAL NOT NULL);" \
 
-      // precursor_peptide_mapping table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PRECURSOR_PEPTIDE_MAPPING(" \
-      "PRECURSOR_ID INT NOT NULL," \
-      "PEPTIDE_ID INT NOT NULL);" \
-
-      // compound table
-      // OpenSWATH metabolomics workflows
-      "CREATE TABLE COMPOUND(" \
+      // ParentMoleculeGrouping
+      "CREATE TABLE PARENTMOLECULEGROUPING(" \
       "ID INT PRIMARY KEY NOT NULL," \
-      "COMPOUND_NAME TEXT NOT NULL," \
-      "SUM_FORMULA TEXT NOT NULL," \
-      "SMILES TEXT NOT NULL," \
-      "ADDUCTS TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
+      "LABEL TEXT NOT NULL);" \
 
-      // precursor_compound_mapping table
-      // OpenSWATH metabolomics workflows
-      "CREATE TABLE PRECURSOR_COMPOUND_MAPPING(" \
-      "PRECURSOR_ID INT NOT NULL," \
-      "COMPOUND_ID INT NOT NULL);" \
-
-      // precursor table
-      "CREATE TABLE PRECURSOR(" \
+      // Scores
+      "CREATE TABLE SCORES(" \
       "ID INT PRIMARY KEY NOT NULL," \
-      "TRAML_ID TEXT NULL," \
-      "GROUP_LABEL TEXT NULL," \
-      "PRECURSOR_MZ REAL NOT NULL," \
-      "CHARGE INT NULL," \
-      "LIBRARY_INTENSITY REAL NULL," \
-      "LIBRARY_RT REAL NULL," \
-      "LIBRARY_DRIFT_TIME REAL NULL," \
-      "DECOY INT NOT NULL);" \
+      "SCORENAME TEXT NOT NULL," \
+      "CVTERM TEXT NOT NULL);" \
 
-      // transition_precursor_mapping table
-      "CREATE TABLE TRANSITION_PRECURSOR_MAPPING(" \
-      "TRANSITION_ID INT NOT NULL," \
-      "PRECURSOR_ID INT NOT NULL);" \
+      // AppliedProcessingSteps
+      "CREATE TABLE APPLIEDPROCESSINGSTEPS(" \
+      "ID INT NOT NULL," \
+      "DATEPROCESSINGSTEP INT NOT NULL);" \
 
-      // transition_peptide_mapping table
-      // IPF proteomics workflows
-      "CREATE TABLE TRANSITION_PEPTIDE_MAPPING(" \
-      "TRANSITION_ID INT NOT NULL," \
-      "PEPTIDE_ID INT NOT NULL);" \
+      // DataProcessingStep
+      "CREATE TABLE DATAPROCESSINGSTEP(" \
+      "ID INT NOT NULL," \
+      "SOFTWARE TEXT NOT NULL," \
+      "INPUTFILE TEXT NOT NULL," \
+      "DATATIME TEXT NOT NULL," \
+      "ACTIONS TEXT NOT NULL," \
+      "DBSEARCHPARAM INT NULL);" \
 
-      // transition table
-      "CREATE TABLE TRANSITION(" \
+      // DBSearchParam
+      "CREATE TABLE DBSEARCHPARAM(" \
+      "ID INT NOT NULL," \
+      "MOLECULETYPE TEXT NOT NULL," \
+      "MASSTYPE TEXT NOT NULL," \
+      "DATABASE TEXT NOT NULL," \
+      "DBVERSION TEXT NOT NULL," \
+      "TAXONOMY TEXT," \
+      "CHARGES TEXT NOT NULL," \
+      "FIXED_MODIFICATIONS TEXT NOT NULL," \
+      "VARIABLE_MODIFICATIONS TEYT NOT NULL," \
+      "PRECURSORMASSTOLERANCE INT NOT NULL," \
+      "FRAGMENTMASSTOLERANCE INT NOT NULL," \
+      "PRECURSORRMASSTOLERANCEPPM BIT NOT NULL," \
+      "FRAGMENTMASSTOLERANCEPPM BIT NOT NULL," \
+      "DIGESTION_ENYZME TEXT NOT NULL," \
+      "MISSED_CLEAVAGES INT NOT NULL," \
+      "MIN_LENGTH INT NOT NULL," \
+      "MAX_LENGTH INT NOT NULL);" \
+
+      // ProcessingSoftware
+      "CREATE TABLE PROCESSINGSOFTWARE(" \
+      "ID INT NOT NULL," \
+      "NAME TEXT NOT NULL," \
+      "VERSION TEXT NOT NULL);" \
+
+      // DataQuery
+      "CREATE TABLE DATAQUERY(" \
       "ID INT PRIMARY KEY NOT NULL," \
-      "TRAML_ID TEXT NULL," \
-      "PRODUCT_MZ REAL NOT NULL," \
-      "CHARGE INT NULL," \
-      "TYPE CHAR(1) NULL," \
-      "ANNOTATION TEXT NULL," \
-      "ORDINAL INT NULL," \
-      "DETECTING INT NOT NULL," \
-      "IDENTIFYING INT NOT NULL," \
-      "QUANTIFYING INT NOT NULL," \
-      "LIBRARY_INTENSITY REAL NULL," \
-      "DECOY INT NOT NULL);";
+      "DATA_ID TEXT NOT NULL," \
+      "INPUT_FILE_REF TEXT," \
+      "RT REAL NOT NULL," \
+      "MZ REAL NOT NULL);" \
+
+      // MoleculeQueryMatch
+      "CREATE TABLE MOLECULEQUERYMATCH(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "IDENTIFIED_MOLECULE_REF TEXT NOT NULL," \
+      "MOLECULETYPE TEXT NOT NULL," \
+      "DATAQUERYREF TEXT NOT NULL," \
+      "CHARGE INT NOT NULL);" \
+
+      // PeakAnnotations
+      "CREATE TABLE PEAKANNOTATIONS(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "ANNOTATIONS TEXT NOT NULL," \
+      "CHARGE INT NOT NULL," \
+      "MZ REAL NOT NULL," \
+      "INTENSITY REAL NOT NULL);" \
+
+      // ParentMoleculeMatch
+      "CREATE TABLE PARENTMOLECULEMATCH(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "START_POS TEXT NOT NULL," \
+      "END_POS TEXT NOT NULL," \
+      "LEFT_NEIGHBOR TEXT NOT NULL," \
+      "RIGHT_NEIGHBOR TEXT NOT NULL);" \
+
+      // Mapping:  Scores AppliedProcessingSteps
+      "CREATE TABLE SCORES_APPLIEDPROCESSINGSTEPS_MAPPING(" \
+      "APSSID INT NOT NULL," \
+      "SCORETYPEID INT NOT NULL," \
+      "SCORE REAL NOT NULL);" \
+
+      // Mapping: ParentMolecule AppliedProcessingStep
+      "CREATE TABLE PARENTMOLECULE_APPLIEDPROCESSINGSTEP_MAPPING(" \
+      "PMID INT NOT NULL," \
+      "APSID INT NOT NULL);" \
+
+      // Mapping: ParentMolecule PrarentMoleculeGrouping
+      "CREATE TABLE PARENTMOLECULE_PARENTMOLECULEGROUP_MAPPING(" \
+      "PMLID INT PRIMARY KEY NOT NULL," \
+      "PMGID INT NOT NULL);" \
+
+      // Mapping: AppliedProcessingStep MoleculeQueryMatch
+      "CREATE TABLE APPLIEDPROCESSINGSTEP_MOLECULEQUERYMATCH_MAPPING(" \
+      "APSID INT PRIMARY KEY NOT NULL," \
+      "MQMID INT NOT NULL," \
+      "SCORE REAL NOT NULL," \
+      "SCORETYPE TEXT NOT NULL);" \
+
+      // Mapping: PeakAnnotation MoleculeQueryMatch
+        // PeakAnnotationID
+        // DataProcessingID
+        // MoleculeQueryMatchID
+      "CREATE TABLE PEAKANNOTATION_MOLECULEQUERYMATCH_MAPPING(" \
+      "PAID INT PRIMARY KEY NOT NULL," \
+      "DPID INT NOT NULL," \
+      "MQMID REAL NOT NULL);" \
+
+      // Mapping: ParentMolecule IdentifiedSequence
+        // ParentMoleculeID
+        // IdentifiedSequenceID
+      "CREATE TABLE PARENTMOLECULE_IDENTIFIEDSEQUENCE_MAPPING(" \
+      "PMID INT PRIMARY KEY NOT NULL," \
+      "ISID INT NOT NULL);" \
+
+      // Mapping: IdentfiedSquence AppliedProcessingStep Score ScoreType
+        // IdentifiedSequenceID
+        // AppliedProcessingStep
+        // Score
+        // ScoreType
+      "CREATE TABLE IDS_APS_SCORE_SCORETYPE_MAPPING(" \
+      "ISID INT PRIMARY KEY NOT NULL," \
+      "APSID INT NOT NULL," \
+      "SCORE REAL NOT NULL," \
+      "SCORETYPE TEXT NOT NULL);" \
+
+      // Mapping: QueryMatchGroup MoleculeQueryMatch
+      // QueryMatchGroupID
+      // MoleculeQueryMatchID
+      "CREATE TABLE QUERYMATCHGROUP_MOLECULEQUERYMATH(" \
+      "QMDID INT PRIMARY KEY NOT NULL," \
+      "MQMID INT NOT NULL);"
+
+      // MetaboInterface STRING
+      "CREATE TABLE METABOINTERFACE_STRING(" \
+      "ID INT NOT NULL," \
+      "METAVALUE TEXT NOT NULL," \
+      "VALUE TEXT NOT NULL," \
+      "OBJECT TEXT NOT NULL," \
+      "OBJECTREFERENCE INT NOT NULL);"
+
+      // MetaboInterface INT
+      "CREATE TABLE METABOINTERFACE_INT(" \
+      "ID INT NOT NULL," \
+      "METAVALUE TEXT NOT NULL," \
+      "VALUE INT NOT NULL," \
+      "OBJECT TEXT NOT NULL," \
+      "OBJECTREFERENCE INT NOT NULL);"
+
+      // MetaboInterface REAL
+      "CREATE TABLE METABOINTERFACE_REAL(" \
+      "ID INT NOT NULL," \
+      "METAVALUE TEXT NOT NULL," \
+      "VALUE REAL NOT NULL," \
+      "OBJECT TEXT NOT NULL," \
+      "OBJECTREFERENCE INT NOT NULL);" ;
+
+
+      // TODO: add MetaInfo Tables
+      // TODO: how would the ref work best
 
     // Execute SQL create statement
     conn.executeStatement(create_sql);
 
-    // Prepare insert statements
-
-    // Index maps
-    std::vector<std::string> group_vec, peptide_vec, compound_vec, protein_vec;
-    std::map<std::string, int > group_map, peptide_map, compound_map, protein_map, gene_map;
-    std::map<int,double> precursor_mz_map;
-    std::map<int,bool> precursor_decoy_map;
-
-    std::stringstream insert_transition_sql, insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
-    insert_transition_sql.precision(11);
-
-    // OpenSWATH: Loop through TargetedExperiment to generate index maps for peptides
-    for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
-    {
-      OpenMS::TargetedExperiment::Peptide peptide = targeted_exp.getPeptides()[i];
-      std::string peptide_sequence = TargetedExperimentHelper::getAASequence(peptide).toUniModString();
-      peptide_vec.push_back(peptide_sequence);
-      group_vec.push_back(peptide.id);
-    }
-
-    // OpenSWATH: Loop through TargetedExperiment to generate index maps for compounds
-    for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
-    {
-      OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompounds()[i];
-      compound_vec.push_back(compound.id);
-      group_vec.push_back(compound.id);
-    }
-
-    // OpenSWATH: Group set must be unique
-    boost::erase(group_vec, boost::unique<boost::return_found_end>(boost::sort(group_vec)));
-    int group_map_idx = 0;
-    for (auto const & x : group_vec) { group_map[x] = group_map_idx; group_map_idx++; }
-
-    // IPF: Loop through all transitions and generate peptidoform data structures
-    std::vector<TransitionPQPFile::TSVTransition > transitions;
-    for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
-    {
-      TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
-      transitions.push_back(transition);
-
-      std::copy( transition.peptidoforms.begin(), transition.peptidoforms.end(),
-          std::inserter( peptide_vec, peptide_vec.end() ) );
-
-      int group_set_index = group_map[transition.group_id];
-
-      if (precursor_mz_map.find(group_set_index) == precursor_mz_map.end())
-      {
-        precursor_mz_map[group_set_index] = transition.precursor;
-      }
-      if (precursor_decoy_map.find(group_set_index) == precursor_decoy_map.end())
-      {
-        if (transition.detecting_transition == 1)
-        {
-          precursor_decoy_map[group_set_index] = transition.decoy;
-        }
-      }
-    }
-
-    // OpenSWATH: Peptide and compound sets must be unique
-    boost::erase(peptide_vec, boost::unique<boost::return_found_end>(boost::sort(peptide_vec)));
-    int peptide_map_idx = 0;
-    for (auto const & x : peptide_vec) { peptide_map[x] = peptide_map_idx; peptide_map_idx++; }
-
-    boost::erase(compound_vec, boost::unique<boost::return_found_end>(boost::sort(compound_vec)));
-    int compound_map_idx = 0;
-    for (auto const & x : compound_vec) { compound_map[x] = compound_map_idx; compound_map_idx++; }
-
-    // OpenSWATH: Loop through TargetedExperiment to generate index maps for proteins
-    for (Size i = 0; i < targeted_exp.getProteins().size(); i++)
-    {
-      OpenMS::TargetedExperiment::Protein protein = targeted_exp.getProteins()[i];
-      protein_vec.push_back(protein.id);
-    }
-
-    // OpenSWATH: Protein set must be unique
-    boost::erase(protein_vec, boost::unique<boost::return_found_end>(boost::sort(protein_vec)));
-    int protein_map_idx = 0;
-    for (auto const & x : protein_vec) { protein_map[x] = protein_map_idx; protein_map_idx++; }
-
-    // OpenSWATH: Prepare transition inserts
-    for (Size i = 0; i < transitions.size(); i++)
-    {
-      TransitionPQPFile::TSVTransition transition = transitions[i];
-
-      // IPF: Generate transition-peptide mapping tables (one identification transition can map to multiple peptidoforms)
-      for (Size j = 0; j < transition.peptidoforms.size(); j++)
-      {
-        insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" <<
-          i << "," << peptide_map[transition.peptidoforms[j]] << "); ";
-      }
-
-      // OpenSWATH: Associate transitions with their precursors
-      insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" <<
-        i << "," << group_map[transition.group_id] << "); ";
-
-      std::string transition_charge = "NULL"; // workaround for compounds with missing charge
-      if (transition.fragment_charge != "NA")
-      {
-        transition_charge = transition.fragment_charge;
-      }
-
-      // OpenSWATH: Insert transition data
-      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
-        "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
-        transition.transition_name << "'," <<
-        transition.product << "," <<
-        transition_charge << ",'" <<
-        transition.fragment_type << "','" <<
-        transition.Annotation <<"'," <<
-        transition.fragment_nr << "," <<
-        transition.detecting_transition << "," <<
-        transition.identifying_transition << "," <<
-        transition.quantifying_transition << "," <<
-        transition.library_intensity << "," << transition.decoy << "); ";
-    }
-
-    std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
-    insert_precursor_sql.precision(11);
-    std::vector<std::pair<int, int> > peptide_protein_map;
-    std::vector<std::pair<int, int> > peptide_gene_map;
-
-    // OpenSWATH: Prepare peptide precursor inserts
-    for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
-    {
-      OpenMS::TargetedExperiment::Peptide peptide = targeted_exp.getPeptides()[i];
-      std::string peptide_sequence = TargetedExperimentHelper::getAASequence(peptide).toUniModString();
-      int group_set_index = group_map[peptide.id];
-      int peptide_set_index = peptide_map[peptide_sequence];
-
-      for (const auto& it : peptide.protein_refs)
-      {
-        peptide_protein_map.emplace_back(peptide_set_index, protein_map[it]);
-      }
-
-      String gene_name = "NA";
-      if (peptide.metaValueExists("GeneName"))
-      {
-        gene_name = peptide.getMetaValue("GeneName");
-      }
-      
-      if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = gene_map.size();
-      peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
-
-      insert_precursor_sql <<
-        "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
-        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" <<
-        group_set_index << ",'" << peptide.id << "','" <<
-        peptide.getPeptideGroupLabel() << "'," <<
-        precursor_mz_map[group_set_index] << "," <<
-        peptide.getChargeState() <<
-        ",NULL," <<
-        peptide.getDriftTime() << "," <<
-        peptide.getRetentionTime() << "," <<
-        precursor_decoy_map[group_set_index] << "); ";
-
-      insert_precursor_peptide_mapping << "INSERT INTO PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID, PEPTIDE_ID) VALUES (" <<
-        group_set_index << "," << peptide_set_index << "); ";
-
-    }
-
-    // OpenSWATH: Prepare compound precursor inserts
-    for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
-    {
-      OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompounds()[i];
-      int group_set_index = group_map[compound.id];
-      int compound_set_index = compound_map[compound.id];
-
-      std::string compound_charge = "NULL"; // workaround for compounds with missing charge
-      if (compound.hasCharge())
-      {
-        compound_charge = String(compound.getChargeState());
-      }
-
-      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
-        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" << group_set_index
-        << ",'" << compound.id << "',NULL," <<
-        precursor_mz_map[group_set_index] << "," <<
-        compound_charge <<
-        ",NULL," <<
-        compound.getDriftTime() << "," <<
-        compound.getRetentionTime() << "," <<
-        precursor_decoy_map[group_set_index] << "); ";
-
-      insert_precursor_compound_mapping << "INSERT INTO PRECURSOR_COMPOUND_MAPPING (PRECURSOR_ID, COMPOUND_ID) VALUES (" <<
-        group_set_index << "," << compound_set_index << "); ";
-    }
-
-    boost::erase(peptide_protein_map, boost::unique<boost::return_found_end>(boost::sort(peptide_protein_map)));
-    boost::erase(peptide_gene_map, boost::unique<boost::return_found_end>(boost::sort(peptide_gene_map)));
-
-    // OpenSWATH: Prepare peptide-gene mapping inserts
-    std::stringstream insert_peptide_gene_mapping;
-    for (const auto& it : peptide_gene_map)
-    {
-      insert_peptide_gene_mapping << "INSERT INTO PEPTIDE_GENE_MAPPING (PEPTIDE_ID, GENE_ID) VALUES (" <<
-        it.first << "," << it.second << "); ";
-    }
-    // OpenSWATH: Prepare gene inserts
-    std::stringstream insert_gene_sql;
-    for (const auto& it : gene_map)
-    {
-      insert_gene_sql << "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (" <<
-        it.second << ",'" << it.first << "'," << 0 << "); ";
-    }
-
-    // OpenSWATH: Prepare peptide-protein mapping inserts
-    std::stringstream insert_peptide_protein_mapping;
-    for (const auto& it : peptide_protein_map)
-    {
-      insert_peptide_protein_mapping << "INSERT INTO PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID, PROTEIN_ID) VALUES (" <<
-        it.first << "," << it.second << "); ";
-    }
-
-    // OpenSWATH: Prepare protein inserts
-    std::stringstream insert_protein_sql;
-    for (const auto& it : protein_map)
-    {
-      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" <<
-        it.second << ",'" << it.first << "'," << 0 << "); ";
-    }
-
-    // OpenSWATH: Prepare peptide inserts
-    std::stringstream insert_peptide_sql;
-    for (const auto& it : peptide_map)
-    {
-      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" <<
-        it.second << ",'" <<
-        AASequence::fromString(it.first).toUnmodifiedString() << "','" <<
-        it.first << "'," << 0 << "); ";
-    }
-
-    // OpenSWATH: Prepare compound inserts
-    std::stringstream insert_compound_sql;
-    for (const auto& it : compound_map)
-    {
-      String adducts;
-      String compound_name;
-      const auto& compound = targeted_exp.getCompoundByRef(it.first);
-      if (compound.metaValueExists("Adducts"))
-      {
-        adducts = compound.getMetaValue("Adducts");
-      }
-      if (compound.metaValueExists("CompoundName"))
-      {
-        compound_name = compound.getMetaValue("CompoundName");
-      }
-      else
-      {
-        compound_name = compound.id;
-      }
-      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
-        it.second << ",'" <<
-        compound_name << "','" <<
-        compound.molecular_formula << "','" <<
-        compound.smiles_string << "','" <<
-        adducts << "'," <<
-        0 << "); ";
-    }
-
-    // OpenSWATH: Prepare decoy updates
-    std::stringstream update_decoys_sql;
-    // Peptides
-    update_decoys_sql << "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT PEPTIDE.ID FROM PRECURSOR " <<
-      "JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " <<
-      "JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID WHERE PRECURSOR.DECOY = 1); ";
-    // Compounds
-    update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT COMPOUND.ID FROM PRECURSOR " <<
-      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " << 
-      "JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
-    // Proteins
-    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " << 
-      "(SELECT PROTEIN.ID FROM PEPTIDE " <<
-      "JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
-      "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
-    // Genes
-    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " << 
-      "(SELECT GENE.ID FROM PEPTIDE " <<
-      "JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " <<
-      "JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID WHERE PEPTIDE.DECOY = 1); ";
-
-    conn.executeStatement("BEGIN TRANSACTION");
-
-    // Execute SQL insert statement
-    String insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
-    conn.executeStatement(insert_version);
-    conn.executeStatement(insert_protein_sql);
-    conn.executeStatement(insert_peptide_protein_mapping);
-    conn.executeStatement(insert_gene_sql);
-    conn.executeStatement(insert_peptide_gene_mapping);
-    conn.executeStatement(insert_peptide_sql);
-    conn.executeStatement(insert_compound_sql);
-    conn.executeStatement(insert_precursor_peptide_mapping);
-    conn.executeStatement(insert_precursor_compound_mapping);
-    conn.executeStatement(insert_precursor_sql);
-    conn.executeStatement(insert_transition_sql);
-    conn.executeStatement(insert_transition_peptide_mapping_sql);
-    conn.executeStatement(insert_transition_precursor_mapping_sql);
-    conn.executeStatement(update_decoys_sql);
-    conn.executeStatement("END TRANSACTION");
-     */
   }
 
+  void OMSFile::load(const char* filename, IdentificationData& id_data)
+  {
+
+  }
+
+
+  /*
+        // ParentMolecule table
+        "CREATE TABLE PARENTMOLECULE(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "ACCESSION TEXT NOT NULL," \
+        "SEQUENCE TEXT NOT NULL," \
+        "DESCRIPTION TEXT NOT NULL," \
+        "COVERAGE REAL NOT NULL," \
+        "DECOY BIT NOT NULL);" \
+
+        // ParentMoleculeGroup table
+        // TODO Use Mapping table (Molecule to Group)?
+        "CREATE TABLE PARENTMOLECULEGROUP(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "SCORETYPEREF INT NOT NULL,"
+        "SCORE REAL NOT NULL);" \
+
+        // ParentMolecule to ParentMoleculeGroup
+        "CREATE TABLE PARENTMOLECULE_PARENTMOLECULEGROUP_MAPPING(" \
+        "PMOLID INT NOT NULL," \
+        "PMOLGRPID INT NOT NULL);" \
+
+        // ParentMoleculeGrouping table
+        "CREATE TABLE PARENTMOLECULEGROUPING(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "LABEL TEXT NOT NULL);" \
+
+        // AppliedProcessingStep
+        "CREATE TABLE APPLIEDPROCESSINGSTEP(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "PROCESSING_STEP_OPT TEXT);"
+
+        // ScoresForAppliedProcessingStep
+        "CREATE TABLE SCORESFORAPPLIEDPROCESSINGSTEP(" \
+        "APSID INT PRIMARY KEY NOT NULL," \
+        "SCORETYPEREF INT NOT NULL," \
+        "SCORE REAL NOT NULL);";
+
+        // DataProcessingStep
+       "CREATE TABLE DATAPROCESSINGSTEP(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "SOFTWARE_REF TEXT NOT NULL," \
+        "INPUT_FILE_REFS TEXT NOT NULL," \ // TODO: vector <InputFileRef>
+        "PRIMARY_FILES REAL NOT NULL," \ // TODO: vector <String>
+        "DATETIME TEXT NOT NULL," \ // TODO: DateTime
+        "ACTIONS REAL NOT NULL);" \ //TODO: std::set< DataProcessing::ProcessingAction >
+
+      // DBSearchParam
+      "CREATE TABLE DBSEARCHPARAM(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "MOLECULETYPE TEXT NOT NULL," \
+        "MASSTYPE TEXT NOT NULL," \
+        "DATABASE TEXT NOT NULL," \
+        "DATABASE_VERSION TEXT NOT NULL," \
+        "TAXONOMY TEXT NOT NULL," \
+        "CHARGES TEXT NOT NULL," \ //TODO: set<int>
+      "FIXED_MODS TEXT NOT NULL," \ //TODO: set<String>
+      "VARIABLE_MODS TEXT NOT NULL," \ //TODO: set<String>
+      "PRECURSOR_MASS_TOLERANCE TEXT NOT NULL," \
+        "FRAGMENT_MASS_TOLERANCE TEXT NOT NULL," \
+        "PRECURSOR_TOLERANCE_PPM INT NOT NULL," \ //TODO: bool
+      "FRAGMENT_TOLERANCE_PPM INT NOT NULL," \ //TODO: bool
+      "DIGESTION_ENZYME TEXT NOT NULL," \ //TODO: class DigestionEnzyme
+      "MISSED_CLEAVAGES INT NOT NULL," \
+        "MIN_LENGTH INT NOT NULL, \
+        "MAX_LENGTH INT NOT NULL") \
+
+      // ScoreType
+      "CREATE TABLE SCORETYPE(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "CV_TERM TEXT NOT NULL," \ //TODO: CVTerm
+      "NAME TEXT NOT NULL," \
+        "HIGHER_BETTER INT NOT NULL"); //TODO: bool
+      */
 }
 
