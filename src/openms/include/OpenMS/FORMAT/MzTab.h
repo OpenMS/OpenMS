@@ -36,11 +36,16 @@
 
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
+
 #include <map>
 #include <vector>
 #include <list>
 #include <algorithm>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnon-virtual-dtor"
@@ -104,7 +109,7 @@ protected:
     bool null_;
   };
 
-// base class for the atomic non-container like MzTab data types (Double, Int)
+  /// base class for the atomic non-container like MzTab data types (Double, Int)
   class OPENMS_DLLAPI MzTabNullNaNAndInfAbleBase :
     public MzTabNullNaNAndInfAbleInterface
   {
@@ -337,7 +342,7 @@ public:
 
     ~MzTabStringList() override;
 
-    // needed for e.g. ambiguity_members and GO accessions as these use ',' as separator while the others use '|'
+    /// needed for e.g. ambiguity_members and GO accessions as these use ',' as separator while the others use '|'
     void setSeparator(char sep);
 
     bool isNull() const override;
@@ -369,7 +374,7 @@ public:
 
     void setNull(bool b) override;
 
-    // set (potentially ambiguous) position(s) with associated parameter (might be null if not set)
+    /// set (potentially ambiguous) position(s) with associated parameter (might be null if not set)
     void setPositionsAndParameters(const std::vector<std::pair<Size, MzTabParameter> >& ppp);
 
     std::vector<std::pair<Size, MzTabParameter> > getPositionsAndParameters() const;
@@ -456,6 +461,8 @@ protected:
   struct OPENMS_DLLAPI MzTabSoftwareMetaData
   {
     MzTabParameter software;
+    //TODO shouldn't settings always consist of the name of the setting
+    // and the value?
     std::map<Size, MzTabString> setting;
   };
 
@@ -471,7 +478,7 @@ protected:
     MzTabParameter quantification_reagent;
     std::map<Size, MzTabModificationMetaData> quantification_mod;
     MzTabString sample_ref;
-    MzTabString ms_run_ref;
+    std::vector<int> ms_run_ref; // adapted to address https://github.com/HUPO-PSI/mzTab/issues/26
   };
 
   struct OPENMS_DLLAPI MzTabCVMetaData
@@ -507,12 +514,12 @@ protected:
 
   struct OPENMS_DLLAPI MzTabStudyVariableMetaData
   {
-    MzTabIntegerList assay_refs;
-    MzTabIntegerList sample_refs;
+    std::vector<int> assay_refs;
+    std::vector<int> sample_refs;
     MzTabString description;
   };
 
-// all meta data of a mzTab file. Please refer to specification for documentation.
+  /// all meta data of a mzTab file. Please refer to specification for documentation.
   class OPENMS_DLLAPI MzTabMetaData
   {
 public:
@@ -575,35 +582,35 @@ public:
     std::vector<String> colunit_small_molecule;
   };
 
-  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //  column name (not null able), value (null able)
+  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; ///<  column name (not null able), value (null able)
 
-// PRT - Protein section (Table based)
+  /// PRT - Protein section (Table based)
   struct OPENMS_DLLAPI MzTabProteinSectionRow
   {
     MzTabProteinSectionRow();
-    MzTabString accession; // The protein’s accession.
-    MzTabString description; // Human readable description (i.e. the name)
-    MzTabInteger taxid; // NEWT taxonomy for the species.
-    MzTabString species; // Human readable name of the species
-    MzTabString database; // Name of the protein database.
-    MzTabString database_version; // String Version of the protein database.
-    MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-    std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
-    std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
+    MzTabString accession; ///< The protein’s accession.
+    MzTabString description; ///< Human readable description (i.e. the name)
+    MzTabInteger taxid; ///< NEWT taxonomy for the species.
+    MzTabString species; ///< Human readable name of the species
+    MzTabString database; ///< Name of the protein database.
+    MzTabString database_version; ///< String Version of the protein database.
+    MzTabParameterList search_engine; ///< Search engine(s) identifying the protein.
+    std::map<Size, MzTabDouble>  best_search_engine_score; ///< best_search_engine_score[1-n]
+    std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; ///< search_engine_score[index1]_ms_run[index2]
     MzTabInteger reliability;
     std::map<Size, MzTabInteger> num_psms_ms_run;
     std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
     std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
-    MzTabStringList ambiguity_members; // Alternative protein identifications.
-    MzTabModificationList modifications; // Modifications identified in the protein.
-    MzTabString uri; // Location of the protein’s source entry.
-    MzTabStringList go_terms; // List of GO terms for the protein.
-    MzTabDouble coverage; // (0-1) Amount of protein sequence identified.
+    MzTabStringList ambiguity_members; ///< Alternative protein identifications.
+    MzTabModificationList modifications; ///< Modifications identified in the protein.
+    MzTabString uri; ///< Location of the protein’s source entry.
+    MzTabStringList go_terms; ///< List of GO terms for the protein.
+    MzTabDouble coverage; ///< (0-1) Amount of protein sequence identified.
     std::map<Size, MzTabDouble> protein_abundance_assay;
     std::map<Size, MzTabDouble> protein_abundance_study_variable;
     std::map<Size, MzTabDouble> protein_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> protein_abundance_std_error_study_variable;
-    std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
+    std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional Columns must start with “opt_”
 
     /// Comparison operator for sorting rows
     struct RowCompare
@@ -616,30 +623,30 @@ public:
     };
   };
 
-// PEP - Peptide section (Table based)
+  /// PEP - Peptide section (Table based)
   struct OPENMS_DLLAPI MzTabPeptideSectionRow
   {
-    MzTabString sequence; // The peptide’s sequence.
-    MzTabString accession; // The protein’s accession.
-    MzTabBoolean unique; // 0=false, 1=true, null else: Peptide is unique for the protein.
-    MzTabString database; // Name of the sequence database.
-    MzTabString database_version; // Version (and optionally # of entries).
-    MzTabParameterList search_engine; // Search engine(s) that identified the peptide.
-    std::map<Size, MzTabDouble> best_search_engine_score; // Search engine(s) score(s) for the peptide.
+    MzTabString sequence; ///< The peptide’s sequence.
+    MzTabString accession; ///< The protein’s accession.
+    MzTabBoolean unique; ///< 0=false, 1=true, null else: Peptide is unique for the protein.
+    MzTabString database; ///< Name of the sequence database.
+    MzTabString database_version; ///< Version (and optionally # of entries).
+    MzTabParameterList search_engine; ///< Search engine(s) that identified the peptide.
+    std::map<Size, MzTabDouble> best_search_engine_score; ///< Search engine(s) score(s) for the peptide.
     std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run;
-    MzTabInteger reliability; // (1-3) 0=null Identification reliability for the peptide.
-    MzTabModificationList modifications; // Modifications identified in the peptide.
-    MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
+    MzTabInteger reliability; ///< (1-3) 0=null Identification reliability for the peptide.
+    MzTabModificationList modifications; ///< Modifications identified in the peptide.
+    MzTabDoubleList retention_time; ///< Time points in seconds. Semantics may vary.
     MzTabDoubleList retention_time_window;
-    MzTabInteger charge; // Precursor ion’s charge.
-    MzTabDouble mass_to_charge; // Precursor ion’s m/z.
-    MzTabString uri; // Location of the PSMs source entry.
-    MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.
+    MzTabInteger charge; ///< Precursor ion’s charge.
+    MzTabDouble mass_to_charge; ///< Precursor ion’s m/z.
+    MzTabString uri; ///< Location of the PSMs source entry.
+    MzTabSpectraRef spectra_ref; ///< Spectra identifying the peptide.
     std::map<Size, MzTabDouble> peptide_abundance_assay;
     std::map<Size, MzTabDouble> peptide_abundance_study_variable;
     std::map<Size, MzTabDouble> peptide_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> peptide_abundance_std_error_study_variable;
-    std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
+    std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
     /// Comparison operator for sorting rows
     struct RowCompare
@@ -653,30 +660,30 @@ public:
     };
   };
 
-// PSM - PSM section (Table based)
+  /// PSM - PSM section (Table based)
   struct OPENMS_DLLAPI MzTabPSMSectionRow
   {
-    MzTabString sequence; // The peptide’s sequence.
+    MzTabString sequence; ///< The peptide’s sequence.
     MzTabInteger PSM_ID;
-    MzTabString accession; // The protein’s accession.
-    MzTabBoolean unique; // 0=false, 1=true, null else: Peptide is unique for the protein.
-    MzTabString database; // Name of the sequence database.
-    MzTabString database_version; // Version (and optionally # of entries).
-    MzTabParameterList search_engine; // Search engine(s) that identified the peptide.
-    std::map<Size, MzTabDouble> search_engine_score; // Search engine(s) score(s) for the peptide.
-    MzTabInteger reliability; // (1-3) 0=null Identification reliability for the peptide.
-    MzTabModificationList modifications; // Modifications identified in the peptide.
-    MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
-    MzTabInteger charge; // The charge of the experimental precursor ion.
-    MzTabDouble exp_mass_to_charge; // The m/z ratio of the experimental precursor ion.
+    MzTabString accession; ///< The protein’s accession.
+    MzTabBoolean unique; ///< 0=false, 1=true, null else: Peptide is unique for the protein.
+    MzTabString database; ///< Name of the sequence database.
+    MzTabString database_version; ///< Version (and optionally # of entries).
+    MzTabParameterList search_engine; ///< Search engine(s) that identified the peptide.
+    std::map<Size, MzTabDouble> search_engine_score; ///< Search engine(s) score(s) for the peptide.
+    MzTabInteger reliability; ///< (1-3) 0=null Identification reliability for the peptide.
+    MzTabModificationList modifications; ///< Modifications identified in the peptide.
+    MzTabDoubleList retention_time; ///< Time points in seconds. Semantics may vary.
+    MzTabInteger charge; ///< The charge of the experimental precursor ion.
+    MzTabDouble exp_mass_to_charge; ///< The m/z ratio of the experimental precursor ion.
     MzTabDouble calc_mass_to_charge;
-    MzTabString uri; // Location of the PSM’s source entry.
-    MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.
+    MzTabString uri; ///< Location of the PSM’s source entry.
+    MzTabSpectraRef spectra_ref; ///< Spectra identifying the peptide.
     MzTabString pre;
     MzTabString post;
     MzTabString start;
     MzTabString end;
-    std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
+    std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
     /// Comparison operator for sorting rows
     struct RowCompare
@@ -697,59 +704,59 @@ public:
     };
   };
 
-// SML Small molecule section (table based)
+  /// SML Small molecule section (table based)
   struct OPENMS_DLLAPI MzTabSmallMoleculeSectionRow
   {
-    MzTabStringList identifier; // The small molecule’s identifier.
-    MzTabString chemical_formula; // Chemical formula of the identified compound.
-    MzTabString smiles; // Molecular structure in SMILES format.
-    MzTabString inchi_key; // InChi Key of the identified compound.
-    MzTabString description; // Human readable description (i.e. the name)
-    MzTabDouble exp_mass_to_charge; // Precursor ion’s m/z.
-    MzTabDouble calc_mass_to_charge; // Precursor ion’s m/z.
-    MzTabDouble charge; // Precursor ion’s charge.
-    MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
-    MzTabInteger taxid; // NEWT taxonomy for the species.
-    MzTabString species; // Human readable name of the species
-    MzTabString database; // Name of the used database.
-    MzTabString database_version; // String Version of the database (and optionally # of compounds).
-    MzTabInteger reliability; // (1-3) The identification reliability.
-    MzTabString uri; // The source entry’s location.
-    MzTabSpectraRef spectra_ref; // Spectra identifying the small molecule.
-    MzTabParameterList search_engine; // Search engine(s) identifying the small molecule.
-    std::map<Size, MzTabDouble> best_search_engine_score; // Search engine(s) identifications score(s).
+    MzTabStringList identifier; ///< The small molecule’s identifier.
+    MzTabString chemical_formula; ///< Chemical formula of the identified compound.
+    MzTabString smiles; ///< Molecular structure in SMILES format.
+    MzTabString inchi_key; ///< InChi Key of the identified compound.
+    MzTabString description; ///< Human readable description (i.e. the name)
+    MzTabDouble exp_mass_to_charge; ///< Precursor ion’s m/z.
+    MzTabDouble calc_mass_to_charge; ///< Precursor ion’s m/z.
+    MzTabDouble charge; ///< Precursor ion’s charge.
+    MzTabDoubleList retention_time; ///< Time points in seconds. Semantics may vary.
+    MzTabInteger taxid; ///< NEWT taxonomy for the species.
+    MzTabString species; ///< Human readable name of the species
+    MzTabString database; ///< Name of the used database.
+    MzTabString database_version; ///< String Version of the database (and optionally # of compounds).
+    MzTabInteger reliability; ///< (1-3) The identification reliability.
+    MzTabString uri; ///< The source entry’s location.
+    MzTabSpectraRef spectra_ref; ///< Spectra identifying the small molecule.
+    MzTabParameterList search_engine; ///< Search engine(s) identifying the small molecule.
+    std::map<Size, MzTabDouble> best_search_engine_score; ///< Search engine(s) identifications score(s).
     std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run;
-    MzTabString modifications; // Modifications identified on the small molecule.
+    MzTabString modifications; ///< Modifications identified on the small molecule.
     std::map<Size, MzTabDouble> smallmolecule_abundance_assay;
     std::map<Size, MzTabDouble> smallmolecule_abundance_study_variable;
     std::map<Size, MzTabDouble> smallmolecule_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> smallmolecule_abundance_std_error_study_variable;
-    std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
+    std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
   };
 
   /// NUC - Nucleic acid section (table-based)
   struct OPENMS_DLLAPI MzTabNucleicAcidSectionRow
   {
-    MzTabString accession; //< The nucleic acid’s accession.
-    MzTabString description; //< Human readable description (i.e. the name)
-    MzTabInteger taxid; //< NEWT taxonomy for the species.
-    MzTabString species; //< Human readable name of the species
-    MzTabString database; //< Name of the sequence database.
-    MzTabString database_version; //< Version of the sequence database.
-    MzTabParameterList search_engine; //< Search engine(s) that identifyed the nucleic acid.
-    std::map<Size, MzTabDouble>  best_search_engine_score; //< Best search engine(s) score(s) (over all MS runs)
+    MzTabString accession; ///< The nucleic acid’s accession.
+    MzTabString description; ///< Human readable description (i.e. the name)
+    MzTabInteger taxid; ///< NEWT taxonomy for the species.
+    MzTabString species; ///< Human readable name of the species
+    MzTabString database; ///< Name of the sequence database.
+    MzTabString database_version; ///< Version of the sequence database.
+    MzTabParameterList search_engine; ///< Search engine(s) that identified the nucleic acid.
+    std::map<Size, MzTabDouble>  best_search_engine_score; ///< Best search engine(s) score(s) (over all MS runs)
     std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run;
     MzTabInteger reliability;
     std::map<Size, MzTabInteger> num_osms_ms_run;
     std::map<Size, MzTabInteger> num_oligos_distinct_ms_run;
     std::map<Size, MzTabInteger> num_oligos_unique_ms_run;
-    MzTabStringList ambiguity_members; //< Alternative nucleic acid identifications.
-    MzTabModificationList modifications; //< Modifications identified in the nucleic acid.
-    MzTabString uri; //< Location of the nucleic acid’s source entry.
+    MzTabStringList ambiguity_members; ///< Alternative nucleic acid identifications.
+    MzTabModificationList modifications; ///< Modifications identified in the nucleic acid.
+    MzTabString uri; ///< Location of the nucleic acid’s source entry.
     // do GO terms make sense for nucleic acid sequences?
-    MzTabStringList go_terms; //< List of GO terms for the nucleic acid.
-    MzTabDouble coverage; //< (0-1) Fraction of nucleic acid sequence identified.
-    std::vector<MzTabOptionalColumnEntry> opt_; //< Optional Columns must start with “opt_”
+    MzTabStringList go_terms; ///< List of GO terms for the nucleic acid.
+    MzTabDouble coverage; ///< (0-1) Fraction of nucleic acid sequence identified.
+    std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional Columns must start with “opt_”
 
     /// Comparison operator for sorting rows
     struct RowCompare
@@ -765,22 +772,22 @@ public:
   /// OLI - Oligonucleotide section (table-based)
   struct OPENMS_DLLAPI MzTabOligonucleotideSectionRow
   {
-    MzTabString sequence; //< The oligonucleotide’s sequence.
-    MzTabString accession; //< The nucleic acid’s accession.
-    MzTabBoolean unique; //< 0=false, 1=true, null else: Oligonucleotide maps uniquely to the nucleic acid sequence.
-    MzTabParameterList search_engine; //< Search engine(s) that identified the match.
-    std::map<Size, MzTabDouble> best_search_engine_score; //< Search engine(s) score(s) for the match.
-    std::map<Size, std::map<Size, MzTabDouble>> search_engine_score_ms_run; //< Search engine(s) score(s) per individual MS run
-    MzTabInteger reliability; //< (1-3) 0=null Identification reliability for the match.
-    MzTabModificationList modifications; //< Modifications identified in the oligonucleotide.
-    MzTabDoubleList retention_time; //< Time points in seconds. Semantics may vary.
+    MzTabString sequence; ///< The oligonucleotide’s sequence.
+    MzTabString accession; ///< The nucleic acid’s accession.
+    MzTabBoolean unique; ///< 0=false, 1=true, null else: Oligonucleotide maps uniquely to the nucleic acid sequence.
+    MzTabParameterList search_engine; ///< Search engine(s) that identified the match.
+    std::map<Size, MzTabDouble> best_search_engine_score; ///< Search engine(s) score(s) for the match.
+    std::map<Size, std::map<Size, MzTabDouble>> search_engine_score_ms_run; ///< Search engine(s) score(s) per individual MS run
+    MzTabInteger reliability; ///< (1-3) 0=null Identification reliability for the match.
+    MzTabModificationList modifications; ///< Modifications identified in the oligonucleotide.
+    MzTabDoubleList retention_time; ///< Time points in seconds. Semantics may vary.
     MzTabDoubleList retention_time_window;
-    MzTabString uri; //< Location of the oligonucleotide's source entry.
+    MzTabString uri; ///< Location of the oligonucleotide's source entry.
     MzTabString pre;
     MzTabString post;
     MzTabString start;
     MzTabString end;
-    std::vector<MzTabOptionalColumnEntry> opt_; //< Optional columns must start with “opt_”.
+    std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
     /// Comparison operator for sorting rows
     struct RowCompare
@@ -800,18 +807,18 @@ public:
   /// OSM - OSM (oligonucleotide-spectrum match) section (table-based)
   struct OPENMS_DLLAPI MzTabOSMSectionRow
   {
-    MzTabString sequence; //< The oligonucleotide’s sequence.
-    MzTabParameterList search_engine; //< Search engine(s) that identified the match.
-    std::map<Size, MzTabDouble> search_engine_score; //< Search engine(s) score(s) for the match.
-    MzTabInteger reliability; //< (1-3) 0=null Identification reliability for the match.
-    MzTabModificationList modifications; //< Modifications identified in the oligonucleotide.
-    MzTabDoubleList retention_time; //< Time points in seconds. Semantics may vary.
-    MzTabInteger charge; //< The charge of the experimental precursor ion.
-    MzTabDouble exp_mass_to_charge; //< The m/z ratio of the experimental precursor ion.
-    MzTabDouble calc_mass_to_charge; //< The theoretical m/z ratio of the oligonucleotide.
-    MzTabString uri; //< Location of the OSM’s source entry.
-    MzTabSpectraRef spectra_ref; //< Reference to the spectrum underlying the match.
-    std::vector<MzTabOptionalColumnEntry> opt_; //< Optional columns must start with “opt_”.
+    MzTabString sequence; ///< The oligonucleotide’s sequence.
+    MzTabParameterList search_engine; ///< Search engine(s) that identified the match.
+    std::map<Size, MzTabDouble> search_engine_score; ///< Search engine(s) score(s) for the match.
+    MzTabInteger reliability; ///< (1-3) 0=null Identification reliability for the match.
+    MzTabModificationList modifications; ///< Modifications identified in the oligonucleotide.
+    MzTabDoubleList retention_time; ///< Time points in seconds. Semantics may vary.
+    MzTabInteger charge; ///< The charge of the experimental precursor ion.
+    MzTabDouble exp_mass_to_charge; ///< The m/z ratio of the experimental precursor ion.
+    MzTabDouble calc_mass_to_charge; ///< The theoretical m/z ratio of the oligonucleotide.
+    MzTabString uri; ///< Location of the OSM’s source entry.
+    MzTabSpectraRef spectra_ref; ///< Reference to the spectrum underlying the match.
+    std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
     /// Comparison operator for sorting rows
     struct RowCompare
@@ -838,7 +845,7 @@ public:
   typedef std::vector<MzTabOSMSectionRow> MzTabOSMSectionRows;
 
 
-/**
+  /**
       @brief Data model of MzTab files.
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
@@ -893,26 +900,63 @@ public:
 
     const std::map<Size, String>& getCommentRows() const;
 
-    // Extract opt_ (custom, optional column names)
+    /// Extract opt_ (custom, optional column names)
     std::vector<String> getProteinOptionalColumnNames() const;
 
-    // Extract opt_ (custom, optional column names)
+    /// Extract opt_ (custom, optional column names)
     std::vector<String> getPeptideOptionalColumnNames() const;
 
-    // Extract opt_ (custom, optional column names)
+    /// Extract opt_ (custom, optional column names)
     std::vector<String> getPSMOptionalColumnNames() const;
 
-    // Extract opt_ (custom, optional column names)
+    /// Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
 
-    // Extract opt_ (custom, optional column names)
+
+    /**
+      @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
+
+      @param peptide_evidences Vector of PeptideEvidence holding internal data.
+      @param row Pre- or unfilled MzTabPSMSectionRow to be filled with the data.
+      @param rows Vector of MzTabPSMSectionRow to add the differently updated rows to.
+    */
+    static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row, MzTabPSMSectionRows& rows);
+
+    /// Extract opt_ (custom, optional column names)
     std::vector<String> getNucleicAcidOptionalColumnNames() const;
 
-    // Extract opt_ (custom, optional column names)
+    /// Extract opt_ (custom, optional column names)
     std::vector<String> getOligonucleotideOptionalColumnNames() const;
 
-    // Extract opt_ (custom, optional column names)
+    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String id, const MetaInfoInterface meta);
+    /// Extract opt_ (custom, optional column names)
     std::vector<String> getOSMOptionalColumnNames() const;
+
+    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(const std::vector<String>& mods);
+
+    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromVariableModifications(const std::vector<String>& mods);
+
+    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const std::vector<String>& mods);
+ 
+    static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename);
+
+    static MzTab exportIdentificationsToMzTab(
+        const std::vector<ProteinIdentification>& prot_ids,
+        const std::vector<PeptideIdentification>& peptide_ids,
+        const String& filename,
+        bool first_run_inference_only);
+
+    /// Generate MzTab style list of PTMs from AASequence object. 
+    /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
+    /// In contrast, all modifications are reported in the PSM section (see standard document for details).
+    static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
+
+    static MzTab exportConsensusMapToMzTab(
+      const ConsensusMap & consensus_map, 
+      const String & filename,
+      const bool export_unidentified_features,
+      const bool export_unassigned_ids,
+      String title = "ConsensusMap export from OpenMS");
 
   protected:
     /// Helper function for "get...OptionalColumnNames" functions
@@ -937,6 +981,7 @@ public:
       return names;
     }
 
+
     MzTabMetaData meta_data_;
     MzTabProteinSectionRows protein_data_;
     MzTabPeptideSectionRows peptide_data_;
@@ -944,9 +989,9 @@ public:
     MzTabSmallMoleculeSectionRows small_molecule_data_;
     MzTabNucleicAcidSectionRows nucleic_acid_data_;
     MzTabOligonucleotideSectionRows oligonucleotide_data_;
-    MzTabOSMSectionRows osm_data_; /// oligonucleotide-spectrum matches
-    std::vector<Size> empty_rows_; // index of empty rows
-    std::map<Size, String> comment_rows_; // comments
+    MzTabOSMSectionRows osm_data_; ///</ oligonucleotide-spectrum matches
+    std::vector<Size> empty_rows_; ///< index of empty rows
+    std::map<Size, String> comment_rows_; ///< comments
   };
 
 } // namespace OpenMS

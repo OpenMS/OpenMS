@@ -40,8 +40,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Information about a score type.
+    /** @brief Information about a score type.
     */
     struct ScoreType: public MetaInfoInterface
     {

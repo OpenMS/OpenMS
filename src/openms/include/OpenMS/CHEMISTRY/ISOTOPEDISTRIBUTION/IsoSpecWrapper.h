@@ -57,9 +57,25 @@ namespace OpenMS
 {
 
   /**
-    * @brief Interface to the IsoSpec algorithm.
+    * @brief Interface for the IsoSpec algorithm - a generator of infinitely-resolved theoretical spectra.
     *
-    * Provides an interface to the IsoSpec algorithm.
+    * Provides an interface to the IsoSpec algorithm. See IsoSpecWrapper for a
+    * more convenient wrapper. Implements a generator pattern using the
+    * nextConf function, which can be used to iterate through all
+    * configurations:
+    *
+    * @code
+    * IsoSpecGeneratorWrapperSubclass iso(...);
+    *
+    * while(iso.nextConf())
+    * {
+    *     Peak1D conf = iso.getConf(); // and/or getMass, getIntensity, etc.
+    *     // do some computations on that conf;
+    * }
+    * @endcode
+    *
+    *
+    * The computation is based on the IsoSpec algorithm
     *
     * @code
     * Łącki MK, Startek M, Valkenborg D, Gambin A.
@@ -70,9 +86,6 @@ namespace OpenMS
     **/
   class OPENMS_DLLAPI IsoSpecGeneratorWrapper
   {
-  /**
-   * @brief Interface for the IsoSpec algorithm - a generator of infinitely-resolved theoretical spectra.
-   */
 
 public:
 
@@ -83,16 +96,6 @@ public:
      * generator has been exhausted (that is, all eligible configurations have already been visited).
      * It is invalid to call any other generator methods before the first call to nextConf(), as well as
      * after this method returns false.
-     *
-     * Thus, a common, correct usage pattern would be:
-     *
-     * IsoSpecGeneratorWrapperSubclass iso(...);
-     *
-     * while(iso.nextConf())
-     * {
-     *     Peak1D conf = iso.getConf(); // and/or getMass, getIntensity, etc.
-     *     do some computations on that conf;
-     * }
      *
      * @returns A boolean value stating whether the generator has been exhausted.
      */
@@ -143,31 +146,65 @@ public:
     virtual inline ~IsoSpecGeneratorWrapper() {};
   };
 
+  /** @brief A convenience class for the IsoSpec algorithm - easier to use than the IsoSpecGeneratorWrapper classes.
+   *
+   */
+  class OPENMS_DLLAPI IsoSpecWrapper
+  {
+public:
+    /**
+      * @brief Run the algorithm
+      *
+      * This method will run the algorithm with parameters as set up by the constructor. It will return an
+      * IsotopeDistribution containing the observed configurations. The configurations are explicitly stored
+      * in memory, which may become a problem when considering some especially large distributions. If this,
+      * or (a rather small) performance overhead is a concern, then the
+      * generator methods (see IsoSpecGeneratorWrapper) should be used instead.
+      *
+      * This method is provided for convenience. As calling that method invalidates the object (the method should
+      * not be called again, nor anything other than destroying the object should be done with it), the most common
+      * usage pattern of IsoSpecGeneratorWrapper classes with the run method is:
+      *
+      * @code
+      * IsotopeDistribution dist = IsoSpecGeneratorWrapperSubclass(...).run();
+      * // do something with dist;
+      * @endcode
+      *
+      * @note Calling this method invalidates the object! In future versions this limitation might be removed.
+      *
+      **/
+    virtual IsotopeDistribution run() = 0;
 
+    virtual inline ~IsoSpecWrapper() {};
+  };
 
+  //-------------------------------------------------------------------------- 
+  // IsoSpecGeneratorWrapper classes
+  //-------------------------------------------------------------------------- 
+
+  /**
+   * @brief Generate a p-set of configurations for a given p (that is, a set of configurations such that
+   *        their probabilities sum up to p). The p in normal usage will usually be close to 1 (e.g. 0.99).
+   *
+   * An optimal p-set of isotopologues is the smallest set of isotopologues that, taken together, cover at
+   * least p of the probability space (that is, their probabilities sum up to at least p). This means that
+   * the computed spectrum is accurate to at least degree p, and that the L1 distance between the computed
+   * spectrum and the true spectrum is less than 1-p. The optimality of the p-set means that it contains
+   * the most probable configurations - any isotopologues outside of the returned p-set have lower intensity
+   * than the configurations in the p-set.
+   *
+   * This is the method most users will want: the p parameter directly controls the accuracy of results.
+   *
+   * Advanced usage note: The algorithm works by computing an optimal p'-set for a p' slightly larger than
+   * the requested p. By default these extra isotopologues are returned too (as they have to be computed
+   * anyway). It is possible to request that the extra configurations be discarded, using the do_p_trim
+   * parameter. This will *increase* the runtime and especially the memory usage of the algorithm, and
+   * should not be done unless there is a good reason to.
+   *
+   * @note The eligible configurations are NOT guaranteed to be returned in any particular order.
+   */
   class OPENMS_DLLAPI IsoSpecTotalProbGeneratorWrapper : public IsoSpecGeneratorWrapper
   {
-    /**
-     * @brief Generate a p-set of configurations for a given p (that is, a set of configurations such that
-     *        their probabilities sum up to p). The p in normal usage will usually be close to 1 (e.g. 0.99).
-     *
-     * An optimal p-set of isotopologues is the smallest set of isotopologues that, taken together, cover at
-     * least p of the probability space (that is, their probabilities sum up to at least p). This means that
-     * the computed spectrum is accurate to at least degree p, and that the L1 distance between the computed
-     * spectrum and the true spectrum is less than 1-p. The optimlity of the p-set means that it contains
-     * the most probable configurations - any isotopologues outside of the returned p-set have lower intensity
-     * than the configurations in the p-set.
-     *
-     * This is the method most users will want: the p parameter directly controls the accuracy of results.
-     *
-     * Advanced usage note: The algorithm works by computing an optimal p'-set for a p' slightly larger than
-     * the requested p. By default these extra isotopologues are returned too (as they have to be computed
-     * anyway). It is possible to request that the extra configurations be discarded, using the do_p_trim
-     * parameter. This will *increase* the runtime and especially the memory usage of the algorithm, and
-     * should not be done unless there is a good reason to.
-     *
-     * @note The eligible configurations are NOT guaranteed to be returned in any particular order.
-     */
 public:
     /**
       * @brief Constructor
@@ -206,32 +243,29 @@ protected:
     IsoSpec::IsoLayeredGenerator ILG;
   };
 
-
-
-
+  /**
+   * @brief Provides a threshold-based generator of isotopologues: generates all isotopologues
+   *        more probable than a given probability threshold.
+   *
+   * This is the simplest generator - most users will however want to use IsoSpecTotalProbGeneratorWrapper.
+   * The reason for it is that when thresholding by peak intensity one has no idea how far the obtained
+   * spectrum is from a real spectrum. For example, consider human insulin: if the threshold is set at
+   * 0.1 of the most intense peak, then the peaks above the threshold account for 99.7% of total probability
+   * for water, 82% for substance P, only 60% for human insulin, and 23% for titin.
+   * For a threshold of 0.01, the numbers will be: still 99.7% for water, 96% for substance P, 88% for human insulin
+   * and 72% for titin (it also took 5 minutes on an average notebook computer to process the 17 billion configurations
+   * involved).
+   *
+   * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
+   * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbGeneratorWrapper
+   * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
+   * instead in most cases. The trade-off is that it's (slightly) slower than Threshold algorithm. This speed gap will
+   * be dramatically improved with IsoSpec 2.0.
+   *
+   * @note The eligible isotopologues are NOT guaranteed to be generated in any particular order.
+   */
   class OPENMS_DLLAPI IsoSpecThresholdGeneratorWrapper : public IsoSpecGeneratorWrapper
   {
-    /**
-     * @brief Provides a threshold-based generator of isotopologues: generates all isotopologues
-     *        more probable than a given probability threshold.
-     *
-     * This is the simplest generator - most users will however want to use IsoSpecTotalProbGeneratorWrapper.
-     * The reason for it is that when thresholding by peak intensity one has no idea how far the obtained
-     * spectrum is from a real spectrum. For example, consider human insulin: if the threshold is set at
-     * 0.1 of the most intense peak, then the peaks above the treshhold account for 99.7% of total probability
-     * for water, 82% for substance P, only 60% for human insulin, and 23% for titin.
-     * For a threshold of 0.01, the numbers will be: still 99.7% for water, 96% for substance P, 88% for human insulin
-     * and 72% for titin (it also took 5 minutes on an average notebook computer to process the 17 billion configurations
-     * involved).
-     *
-     * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
-     * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbGeneratorWrapper
-     * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
-     * instead in most cases. The tradeoff is that it's (slightly) slower than Threshold algorithm. This speed gap will
-     * be dramatically improved with IsoSpec 2.0.
-     *
-     * @note The eligible isotopologues are NOT guaranteed to be generated in any particular order.
-     */
 
 public:
     /**
@@ -272,26 +306,24 @@ protected:
   IsoSpec::IsoThresholdGenerator ITG;
   };
 
-
-
+  /**
+   * @brief Generate the stream of configurations, ordered from most likely to least likely.
+   *
+   * This generator walks through the entire set of isotopologues of a given molecule, allowing
+   * the user to terminate the search on the fly. The returned isotopologues are guaranteed to
+   * be generated in order of descending probability (unlike the previous two generators which
+   * make no such guarantees).
+   *
+   * This causes the algorithm to run in O(n*log(n)) and means that is it much slower than the
+   * previous two.
+   *
+   * You should only use this generator if you don't know up-front when to stop the walk through
+   * the configuration space, and need to make the decision on the fly. If you know the threshold
+   * or the total probability needed, and only need the configurations sorted, it will be much
+   * faster to generate them using one of the previous algorithms and sort them afterwards.
+   */
   class OPENMS_DLLAPI IsoSpecOrderedGeneratorWrapper : public IsoSpecGeneratorWrapper
   {
-    /**
-     * @brief Generate the stream of configurations, ordered from most likely to least likely.
-     *
-     * This generator walks through the entire set of isotopologues of a given molecule, allowing
-     * the user to terminate the search on the fly. The returned isotopologues are guaranteed to
-     * be generated in order of descending probability (unlike the previous two generators which
-     * make no such guarantees).
-     *
-     * This causes the algorithm to run in O(n*log(n)) and means that is it much slower than the
-     * previous two.
-     *
-     * You should only use this generator if you don't know up-front when to stop the walk through
-     * the configuration space, and need to make the decision on the fly. If you know the threshold
-     * or the total probability needed, and only need the configurations sorted, it will be much
-     * faster to generate them using one of the previous algorithms and sort them afterwards.
-     */
 public:
     /**
       * @brief Constructor
@@ -323,60 +355,33 @@ protected:
   IsoSpec::IsoOrderedGenerator IOG;
   };
 
+  //-------------------------------------------------------------------------- 
+  // IsoSpecWrapper classes
+  //-------------------------------------------------------------------------- 
 
-  class OPENMS_DLLAPI IsoSpecWrapper
-  {
-    /** @brief A convenience class for the IsoSpec algorithm - easier to use than the generator classes.
-     */
-public:
-    /**
-      * @brief Run the algorithm
-      *
-      * This method will run the algorithm with parameters as set up by the constructor. It will return an
-      * IsotopeDistribution containing the observed configurations. The configurations are explicitly stored
-      * in memory, which may become a problem when considering some especially large distributions. If this,
-      * or (a rather small) performance overhead is a concern, then the generator methods (below) should be
-      * used instead.
-      *
-      * This method is provided for convience. As calling that method invalidates the object (the method should
-      * not be called again, nor anything other than destroying the object should be done with it), the most common
-      * usage pattern of IsoSpecGeneratorWrapper classes with the run method is:
-      *
-      * IsotopeDistribution dist = IsoSpecGeneratorWrapperSubclass(...).run();
-      * do something with dist;
-      *
-      * @note Calling this method invalidates the object! In future versions this limitation might be removed.
-      *
-      **/
-    virtual IsotopeDistribution run() = 0;
-
-    virtual inline ~IsoSpecWrapper() {};
-  };
-
-
+/**
+  * @brief Create a p-set of configurations for a given p (that is, a set of configurations such that
+  *        their probabilities sum up to p). The p in normal usage will usually be close to 1 (e.g. 0.99).
+  *
+  * An optimal p-set of isotopologues is the smallest set of isotopologues that, taken together, cover at
+  * least p of the probability space (that is, their probabilities sum up to at least p). This means that
+  * the computed spectrum is accurate to at least degree p, and that the L1 distance between the computed
+  * spectrum and the true spectrum is less than 1-p. The optimality of the p-set means that it contains
+  * the most probable configurations - any isotopologues outside of the returned p-set have lower intensity
+  * than the configurations in the p-set.
+  *
+  * This is the method most users will want: the p parameter directly controls the accuracy of results.
+  *
+  * Advanced usage note: The algorithm works by computing an optimal p'-set for a p' slightly larger than
+  * the requested p. By default these extra isotopologues are returned too (as they have to be computed
+  * anyway). It is possible to request that the extra configurations be discarded, using the do_p_trim
+  * parameter. This will *increase* the runtime and especially the memory usage of the algorithm, and
+  * should not be done unless there is a good reason to.
+  *
+  * @note The eligible configurations are NOT guaranteed to be returned in any particular order.
+  */
   class OPENMS_DLLAPI IsoSpecTotalProbWrapper : public IsoSpecWrapper
   {
-  /**
-    * @brief Create a p-set of configurations for a given p (that is, a set of configurations such that
-    *        their probabilities sum up to p). The p in normal usage will usually be close to 1 (e.g. 0.99).
-    *
-    * An optimal p-set of isotopologues is the smallest set of isotopologues that, taken together, cover at
-    * least p of the probability space (that is, their probabilities sum up to at least p). This means that
-    * the computed spectrum is accurate to at least degree p, and that the L1 distance between the computed
-    * spectrum and the true spectrum is less than 1-p. The optimlity of the p-set means that it contains
-    * the most probable configurations - any isotopologues outside of the returned p-set have lower intensity
-    * than the configurations in the p-set.
-    *
-    * This is the method most users will want: the p parameter directly controls the accuracy of results.
-    *
-    * Advanced usage note: The algorithm works by computing an optimal p'-set for a p' slightly larger than
-    * the requested p. By default these extra isotopologues are returned too (as they have to be computed
-    * anyway). It is possible to request that the extra configurations be discarded, using the do_p_trim
-    * parameter. This will *increase* the runtime and especially the memory usage of the algorithm, and
-    * should not be done unless there is a good reason to.
-    *
-    * @note The eligible configurations are NOT guaranteed to be returned in any particular order.
-    */
 public:
     /**
       * @brief Constructor
@@ -412,28 +417,28 @@ protected:
 
   };
 
+  /**
+    * @brief A non-generator version of IsoSpecThresholdGeneratorWrapper
+    *
+    * This is the simplest algorithm - most users will however want to use IsoSpecTotalProbWrapper.
+    * The reason for it is that when thresholding by peak intensity one has no idea how far the obtained
+    * spectrum is from a real spectrum. For example, consider human insulin: if the threshold is set at
+    * 0.1 of the most intense peak, then the peaks above the threshold account for 99.7% of total probability
+    * for water, 82% for substance P, only 60% for human insulin, and 23% for titin.
+    * For a threshold of 0.01, the numbers will be: still 99.7% for water, 96% for substance P, 88% for human insulin
+    * and 72% for titin (it also took 5 minutes on an average notebook computer to process the 17 billion configurations
+    * involved).
+    *
+    * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
+    * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbGeneratorWrapper
+    * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
+    * instead in most cases. The trade-off is that it's (slightly) slower than Threshold algorithm. This speed gap will
+    * be dramatically improved with IsoSpec 2.0.
+    *
+    * @note The eligible isotopologues are NOT guaranteed to be generated in any particular order.
+    */
   class OPENMS_DLLAPI IsoSpecThresholdWrapper : public IsoSpecWrapper
   {
-    /**
-      * @brief A non-generator version of IsoSpecThresholdGeneratorWrapper
-      *
-      * This is the simplest algorithm - most users will however want to use IsoSpecTotalProbWrapper.
-      * The reason for it is that when thresholding by peak intensity one has no idea how far the obtained
-      * spectrum is from a real spectrum. For example, consider human insulin: if the threshold is set at
-      * 0.1 of the most intense peak, then the peaks above the treshhold account for 99.7% of total probability
-      * for water, 82% for substance P, only 60% for human insulin, and 23% for titin.
-      * For a threshold of 0.01, the numbers will be: still 99.7% for water, 96% for substance P, 88% for human insulin
-      * and 72% for titin (it also took 5 minutes on an average notebook computer to process the 17 billion configurations
-      * involved).
-      *
-      * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
-      * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbGeneratorWrapper
-      * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
-      * instead in most cases. The tradeoff is that it's (slightly) slower than Threshold algorithm. This speed gap will
-      * be dramatically improved with IsoSpec 2.0.
-      *
-      * @note The eligible isotopologues are NOT guaranteed to be generated in any particular order.
-      */
 
 public:
     /**
@@ -469,7 +474,6 @@ protected:
     IsoSpec::IsoThresholdGenerator ITG;
 
   };
-
 
 }
 
