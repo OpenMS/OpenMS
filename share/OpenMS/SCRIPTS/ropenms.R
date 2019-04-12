@@ -5,6 +5,8 @@
 ### if not installed:
 ### - install pyopenms (https://pyopenms.readthedocs.io/en/latest/installation.html)
 ###   make sure R is using the same python environment as your pyopenms installation
+###   eg. use_python("/usr/local/miniconda3/envs/py37/bin/python")
+###   or  Sys.setenv(RETICULATE_PYTHON = "/usr/local/miniconda3/envs/py37/bin/python")
 ### - install reticulate (https://rstudio.github.io/reticulate/)
 ###   eg. install.packages('reticulate')
 
@@ -17,7 +19,7 @@ ropenms=import("pyopenms", convert = FALSE)
 
 f="/OpenMS/OpenMS/share/OpenMS/examples/BSA/BSA1_OMSSA.idXML"
 
-idXML=ropenms$idXMLFile()
+idXML=ropenms$IdXMLFile()
 
 pepids=r_to_py(list())
 protids=r_to_py(list())
