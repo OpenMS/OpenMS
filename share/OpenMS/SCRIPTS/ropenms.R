@@ -5,8 +5,9 @@
 ### if not installed:
 ### - install pyopenms (https://pyopenms.readthedocs.io/en/latest/installation.html)
 ###   make sure R is using the same python environment as your pyopenms installation
-###   eg. use_python("/usr/local/miniconda3/envs/py37/bin/python")
-###   or  Sys.setenv(RETICULATE_PYTHON = "/usr/local/miniconda3/envs/py37/bin/python")
+###   eg. reticulate::use_python("/usr/local/miniconda3/envs/py37/bin/python")
+###   or  before loading the reticulate library
+###       Sys.setenv(RETICULATE_PYTHON = "/usr/local/miniconda3/envs/py37/bin/python")
 ### - install reticulate (https://rstudio.github.io/reticulate/)
 ###   eg. install.packages('reticulate')
 
