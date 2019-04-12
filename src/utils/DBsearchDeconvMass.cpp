@@ -193,8 +193,8 @@ protected:
         for(auto& mass : mass_vec){
             if (tolerance == 0) {
                 PrtfNode* tmp = search_exact_node(mass, tree);
+                count += 1;
                 if(tmp->prtf!= nullptr){
-                    count += 1;
                     fs << dfile_vec[count] << "\t" << write_proteoform_result(tmp, mass) << endl;
                 }
             }else{
