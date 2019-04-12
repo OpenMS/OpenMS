@@ -264,7 +264,7 @@ protected:
     registerDoubleOption_("maxM", "<max mass>", 150000.0, "maximum mass (Da)", false, false);
     registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
     registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
-    registerDoubleOption_("RTwindow", "<seconds>", 180.0,
+    registerDoubleOption_("RTwindow", "<seconds>", 120.0,
                           "RT window for feature extraction", false, true);
   }
 
@@ -848,7 +848,7 @@ protected:
     delete[] perMassChargeRanges;
     delete[] logIntensities;
 
-    return scoreAndFilterPeakGroups(peakGroups, averagines, param);//
+    return scoreAndFilterPeakGroups(peakGroups, averagines, param);
   }
 
   static boost::dynamic_bitset<> getUnionMassBin(boost::dynamic_bitset<> &massBins, double &massBinMinValue,
