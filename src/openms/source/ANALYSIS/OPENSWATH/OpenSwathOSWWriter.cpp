@@ -343,7 +343,7 @@ namespace OpenMS
 
         if ((String)feature_it.getMetaValue("id_target_num_transitions") != "")
         {
-          int id_target_num_transitions = feature_it.getMetaValue("id_target_num_transitions").toString().toInt();
+          int id_target_num_transitions = std::stoi(feature_it.getMetaValue("id_target_num_transitions").toString(),nullptr);
 
           for (int i = 0; i < id_target_num_transitions; ++i)
           {
@@ -393,7 +393,7 @@ namespace OpenMS
 
         if ((String)feature_it.getMetaValue("id_decoy_num_transitions") != "")
         {
-          int id_decoy_num_transitions = feature_it.getMetaValue("id_decoy_num_transitions").toString().toInt();
+          int id_decoy_num_transitions = std::stoi(feature_it.getMetaValue("id_decoy_num_transitions").toString(),nullptr);
 
           for (int i = 0; i < id_decoy_num_transitions; ++i)
           {
