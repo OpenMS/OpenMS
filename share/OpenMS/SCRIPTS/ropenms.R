@@ -71,9 +71,10 @@ ggplot(peaks_df, aes(x=RT, y=MZ) )+geom_point(size=1, aes(colour = Intensity), a
 ms2=spectra[!ms1][[1]]$get_peaks()
 peaks_ms2=do.call("cbind", ms2)
 peaks_ms2=data.frame(peaks_ms2)
-ggplot(peaks_ms2, aes(x=X1, y=X2)) +
-geom_segment( aes(x=X1, xend=X1, y=0, yend=X2)) +
-geom_segment( aes(x=X1, xend=X1, y=0, yend=-X2)) + 
+colnames(peaks_ms2)=c("MZ","Intensity")
+ggplot(peaks_ms2, aes(x=MZ, y=Intensity)) +
+geom_segment( aes(x=MZ, xend=MZ, y=0, yend=Intensity)) +
+geom_segment( aes(x=MZ, xend=MZ, y=0, yend=-Intensity)) + # mirror spectrum possibly useful for synthetic peptide spectra comparison 
 theme_minimal()
 
 
@@ -87,14 +88,18 @@ spectrum$set_peaks(list(mz, i))
 # Sort the peaks according to ascending mass-to-charge ratio
 spectrum$sortByPosition()
 
+# Iterate using the reticulate::iterate() function
+iterate(spectrum, function(x) {print(paste0("M/z :" , x$getMZ(), " Intensity: ", x$getIntensity()))})
+
+
 # Iterate over spectrum of those peaks
-for (i in seq(0,spectrum$size()-1)) {
+for (i in seq(0,py_to_r(spectrum$size())-1)) {
   print(spectrum[i]$getMZ())
   print(spectrum[i]$getIntensity())
 }
 
 # More efficient peak access with get_peaks()
-peak_df=do.call("cbind", spectrum$get_peaks())
+peak_df=do.call("cbind", py_to_r(spectrum$get_peaks()))
 apply(peak_df,1,c)
 
 # Access a peak by index
