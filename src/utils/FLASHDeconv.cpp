@@ -265,14 +265,14 @@ protected:
                         "Output file prefix or output dir (if prefix, [file prefix].tsv , [file prefix]feature.tsv, and [file prefix].m will be generated. "
                         "if dir, [dir]/[inputfile].tsv, [dir]/[inputfile]feature.tsv, and [dir]/[inputfile].m are generated per [inputfile])");
     registerIntOption_("minC", "<min charge>", 2, "minimum charge state", false, false);
-    registerIntOption_("maxC", "<max charge>", 120, "maximum charge state", false, false);
+    registerIntOption_("maxC", "<max charge>", 150, "maximum charge state", false, false);
     registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
     registerIntOption_("minCC", "<min continuous charge peak count>", 3,
                        "minimum number of peaks of continuous charges per mass", false, true);
     //registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
     registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
     //registerDoubleOption_("minCDScore", "<...>", .0, "minimum charge distribution score threshold", false, true);
-    registerDoubleOption_("maxM", "<max mass>", 150000.0, "maximum mass (Da)", false, false);
+    registerDoubleOption_("maxM", "<max mass>", 200000.0, "maximum mass (Da)", false, false);
     registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
     registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 120.0,
@@ -413,15 +413,15 @@ protected:
       elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
       elapsed_wall_secs = chrono::duration<double>(t_end - t_start).count();
 
-      /*cout << endl << "writing results ...";
+      cout << endl << "writing results ...";
       cout.flush();
 
 
       for (auto &pg : peakGroups)
       {
-        writePeakGroup(pg, param, fs, fsm, fsp);
+      //  writePeakGroup(pg, param, fs, fsm, fsp);
       }
-      cout << "done" << endl;*/
+      cout << "done" << endl;
 
       if (param.RTwindow > 0 && !peakGroups.empty() && specCntr > 0 && map.size() > 1)
       {
@@ -575,7 +575,7 @@ protected:
     {
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
-
+      boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
 
       for(auto &p2 : mt){
         int specIndex = rtSpecMap[(float)p2.getRT()];
@@ -583,6 +583,9 @@ protected:
         auto &pg = pgMap[(float)p2.getMZ()];
         minCharge = min(minCharge, pg.minCharge);
         maxCharge = max(maxCharge, pg.maxCharge);
+        for(auto &p : pg.peaks){
+          charges[p.charge] = true;
+        }
       }
 
 
@@ -597,7 +600,8 @@ protected:
           << mt.getMaxIntensity(false) << "\t"
           << mt.computePeakArea() << "\t"
           << minCharge << "\t"
-          << maxCharge << "\n";
+          << maxCharge << "\t"
+          << charges.count() << "\n";
     }
     delete[] peakGroupMap;
   }
@@ -615,7 +619,7 @@ protected:
     }
     fsf << "ID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tMaxIntensity\tQuantity\tMinCharge\tMaxCharge\n";
+           "\tMaxIntensity\tQuantity\tMinCharge\tMaxCharge\tChargeCount\n";
     return;
   }
 
@@ -708,6 +712,7 @@ protected:
 
   static void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs, fstream &fsm, fstream &fsp)
   {
+    //return;//
     if (pg.peaks.empty())
     {
       return;
@@ -761,8 +766,9 @@ protected:
     fs << "\t" << pg.isotopeCosineScore
        << "\n";
 
-    //cout<<1<<endl;
     /*
+    //cout<<1<<endl;
+
             fsp << "pg" << (int) (pg.monoisotopicMass * 10) << "rt" << (int) (pg.spec->getRT())
                 << "=[";
 
@@ -772,7 +778,7 @@ protected:
 
             fsp << "];\n";
             //cout<<3<<endl;
-    */
+*/
     fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
     //cout<<4<<endl;
 
@@ -1484,12 +1490,12 @@ protected:
     Byte *minChargeRanges = new Byte[massBins.size()];
     fill_n(minChargeRanges, massBins.size(), chargeRange + 1);
 
-   // Byte *selected = new Byte[massBins.size()];
-   // fill_n(selected, massBins.size(), 0);
+    Byte *selected = new Byte[massBins.size()];
+    fill_n(selected, massBins.size(), 0);
 
     auto mzBinIndex = mzBins.find_first();
     long binEnd = (long) massBins.size();
-//    int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
+    //int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
 
     auto toSkip = (isQualified | unionMassBins).flip();
     unionMassBins.reset();
@@ -1535,8 +1541,10 @@ protected:
       {
         maxChargeRanges[maxIndex] = max(maxChargeRanges[maxIndex], charge);
         minChargeRanges[maxIndex] = min(minChargeRanges[maxIndex], charge);
-
-        //if (++selected[maxIndex] >= minContinuousChargePeakCount)
+        ++selected[maxIndex];
+        //int t = max(continuousChargePeakPairCount[maxIndex],minContinuousChargePeakCount);
+        if (selected[maxIndex] >= 2)
+        //&& selected[maxIndex] >= continuousChargePeakPairCount[maxIndex])
         {
           massBins[maxIndex] = isQualified[maxIndex];
           unionMassBins[maxIndex] = true;
@@ -1548,7 +1556,7 @@ protected:
     Byte **chargeRanges = new Byte *[2];
     chargeRanges[0] = minChargeRanges;
     chargeRanges[1] = maxChargeRanges;
-   // delete[] selected;
+    delete[] selected;
     return chargeRanges;
   }
 
@@ -1607,9 +1615,9 @@ protected:
                                                                     param.maxIsotopeCount,
                                                                     averagines);
 
-      double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.monoisotopicMass, .3, .8, 10000, 100000);
+      //double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.monoisotopicMass, .8, .8, 10000, 100000);
 
-      if (pg.peaks.empty() || pg.isotopeCosineScore <= isotopeCosineThreshold)
+      if (pg.peaks.empty() || pg.isotopeCosineScore <= .7)
       {
         continue;
       }
@@ -1897,7 +1905,7 @@ protected:
     int n_r = 0;
     int n_h = 0;
 
-    double spanThreshold = maxSpan / 4.0;//
+    double spanThreshold = maxSpan / 3.0;//
 
     for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++)
     {
@@ -1989,7 +1997,7 @@ protected:
     int n_r = .0;
     int n_h = 0;
 
-    double intensityThreshold = maxPerChargeIntensity / 4.0;//intensities[intensities.size()*95/100] / 5.0;
+    double intensityThreshold = maxPerChargeIntensity / 3.0;//intensities[intensities.size()*95/100] / 5.0;
     for (int k = prevCharge + 1; k <= nonZeroEnd; k++)
     {
       if (perChargeIntensity[k] <= intensityThreshold)
