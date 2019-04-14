@@ -172,6 +172,8 @@ public:
 
     double isotopeCosineScore = .0;
     int massIndex, specIndex, massCntr;
+    int maxCharge, minCharge;
+
     MSSpectrum *spec;
 
     void push_back(LogMzPeak &p)
@@ -192,6 +194,13 @@ public:
     bool operator>(const PeakGroup &a) const
     {
       return this->spec->getRT() >= a.spec->getRT();
+    }
+
+
+    bool operator==(const PeakGroup &a) const
+    {
+      return this->spec->getRT() == a.spec->getRT() && this->monoisotopicMass == a.monoisotopicMass
+          && this->intensity == a.intensity;
     }
 
     void updateMassesAndIntensity(int mostAbundantIndex = -1)
@@ -215,6 +224,8 @@ public:
       }
     }
   };
+
+
 
 protected:
 
@@ -254,7 +265,7 @@ protected:
                         "Output file prefix or output dir (if prefix, [file prefix].tsv , [file prefix]feature.tsv, and [file prefix].m will be generated. "
                         "if dir, [dir]/[inputfile].tsv, [dir]/[inputfile]feature.tsv, and [dir]/[inputfile].m are generated per [inputfile])");
     registerIntOption_("minC", "<min charge>", 2, "minimum charge state", false, false);
-    registerIntOption_("maxC", "<max charge>", 100, "maximum charge state", false, false);
+    registerIntOption_("maxC", "<max charge>", 120, "maximum charge state", false, false);
     registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
     registerIntOption_("minCC", "<min continuous charge peak count>", 3,
                        "minimum number of peaks of continuous charges per mass", false, true);
@@ -495,17 +506,37 @@ protected:
   findFeatures(vector<PeakGroup> &peakGroups, MSExperiment &map, int &featureCntr, fstream &fsf, Parameter &param)
   {
 
+    boost::unordered_map<float, PeakGroup>* peakGroupMap;
+    boost::unordered_map<float, int> rtSpecMap;
+
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       it->clear(false);
     }
 
+    int maxSpecIndex = 0;
     for (auto &pg : peakGroups)
     {
       auto &spec = pg.spec;
-      Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);//
+
+      Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);
+
+      rtSpecMap[spec->getRT()] = pg.specIndex;
+      maxSpecIndex = max(maxSpecIndex, pg.specIndex);
+
       spec->push_back(tp);
     }
+    peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex+1];
+
+    for (auto &pg : peakGroups)
+    {
+      auto &spec = pg.spec;
+
+      auto& pgMap = peakGroupMap[pg.specIndex];
+
+      pgMap[pg.monoisotopicMass] = pg;
+    }
+
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       it->sortByPosition();
@@ -542,6 +573,19 @@ protected:
 
     for (auto &mt : m_traces)
     {
+      int minCharge = param.chargeRange + param.minCharge + 1;
+      int maxCharge = 0;
+
+
+      for(auto &p2 : mt){
+        int specIndex = rtSpecMap[(float)p2.getRT()];
+        auto &pgMap = peakGroupMap[specIndex];
+        auto &pg = pgMap[(float)p2.getMZ()];
+        minCharge = min(minCharge, pg.minCharge);
+        maxCharge = max(maxCharge, pg.maxCharge);
+      }
+
+
       auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
@@ -551,8 +595,11 @@ protected:
           << mt.getTraceLength() << "\t"
           << mt[mt.findMaxByIntPeak()].getRT() << "\t"
           << mt.getMaxIntensity(false) << "\t"
-          << mt.computePeakArea() << "\n";
+          << mt.computePeakArea() << "\t"
+          << minCharge << "\t"
+          << maxCharge << "\n";
     }
+    delete[] peakGroupMap;
   }
 
   static void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false)
@@ -568,7 +615,7 @@ protected:
     }
     fsf << "ID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tMaxIntensity\tQuantity\n";
+           "\tMaxIntensity\tQuantity\tMinCharge\tMaxCharge\n";
     return;
   }
 
@@ -1442,7 +1489,7 @@ protected:
 
     auto mzBinIndex = mzBins.find_first();
     long binEnd = (long) massBins.size();
-    int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
+//    int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
 
     auto toSkip = (isQualified | unionMassBins).flip();
     unionMassBins.reset();
@@ -1690,12 +1737,18 @@ protected:
     fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
 
     // bool *tmp = new bool[param.chargeRange * param.maxIsotopeCount];
+    int minCharge = param.chargeRange + param.minCharge + 1;
+    int maxCharge = 0;
+
     for (auto &p : pg.peaks)
     {
       if (p.isotopeIndex < 0 || p.isotopeIndex >= param.maxIsotopeCount)
       {
         continue;
       }
+      minCharge = min(minCharge,p.charge);
+      maxCharge = max(maxCharge,p.charge);
+
       int index = p.charge - param.minCharge;
       perIsotopeIntensity[p.isotopeIndex] += p.orgPeak->getIntensity();
       perChargeIsotopeIntensity[index][p.isotopeIndex] += p.orgPeak->getIntensity();
@@ -1705,7 +1758,12 @@ protected:
       perIsotopeMaxCharge[p.isotopeIndex] = max(perIsotopeMaxCharge[p.isotopeIndex], index);
       //  tmp[p.isotopeIndex + param.maxIsotopeCount * index]=true;
     }
+    pg.maxCharge = maxCharge;
+    pg.minCharge = minCharge;
+
   }
+
+
 
   /*
   bool isIsotopeIntensityQualified(double *perIsotopeIntensity, int *perChargeMaxIsotope, const Parameter &param) {
