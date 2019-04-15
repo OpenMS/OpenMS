@@ -969,7 +969,7 @@ protected:
 
     while (massBinIndex != unionedMassBins.npos)
     {
-      //int isoOff = 0;
+      int isoOff = 0;
       PeakGroup pg;
       pg.reserve(chargeRange * 2);
 
@@ -1072,34 +1072,45 @@ protected:
             }
           }
 
+          //int minIsoIndex = maxI;
           for (auto &p : pg.peaks)
           {// assign the nearest isotope index..
             if (p.charge != charge)
             {
               continue;
             }
-            double minMzDelta = 100000.0;
+            double minMzDelta = maxI + 100000.0;
+            int maxId = 0;
             for (int d = -1; d <= 1; d += 2)
             { // negative then positive direction.
               for (int i = 0; i <= maxI; i++)
               {
-                double centerLogMz = logMz + isof * i * d;
+                double centerLogMz = logMz + isof * (p.isotopeIndex + i * d);
                 double delta = abs(centerLogMz - p.logMz);
+
                 if (delta > minMzDelta)
                 {
-                  continue;
+                  break;
                 }
+                maxId = i * d;
                 minMzDelta = delta;
-                p.isotopeIndex = i * d;
               }
             }
+            p.isotopeIndex += maxId;
+            isoOff = min(isoOff, p.isotopeIndex);
           }
+
         }
       }
       //cout<<pg.peaks.size()<<endl;
       //pg.peaks.shrink_to_fit();
       if (!pg.peaks.empty())
       {
+        for (auto &p : pg.peaks)
+        {
+          p.isotopeIndex -= isoOff;
+        }
+
         pg.updateMassesAndIntensity();
         pg.massBinIndex = massBinIndex;
         /*if(lastSetMassBinIndex == massBinIndex-1){// remove duplicate
@@ -1610,23 +1621,6 @@ protected:
                                       perChargeMinIsotope, perChargeMaxIsotope,
                                       perIsotopeIntensity, pg, param);
 
-      pg.isotopeCosineScore = getIsotopeCosineAndDetermineExactMass(pg,
-                                                                    perIsotopeIntensity,
-                                                                    param.maxIsotopeCount,
-                                                                    averagines);
-
-      //double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.monoisotopicMass, .8, .8, 10000, 100000);
-
-      if (pg.peaks.empty() || pg.isotopeCosineScore <= .7)
-      {
-        continue;
-      }
-
-      updatePerChargeIsotopeIntensity(perChargeIsotopeIntensity,
-                                      perIsotopeMinCharge, perIsotopeMaxCharge,
-                                      perChargeMinIsotope, perChargeMaxIsotope,
-                                      perIsotopeIntensity, pg, param);
-
       bool isIsotopeSpanGood = checkSpanDistribution(perChargeMinIsotope, perChargeMaxIsotope,
                                                      param.chargeRange, param.minContinuousChargePeakCount);
 
@@ -1648,6 +1642,18 @@ protected:
                                                              param.minContinuousChargePeakCount);
 
       if (!isChargeWellDistributed)
+      {
+        continue;
+      }
+
+      pg.isotopeCosineScore = getIsotopeCosineAndDetermineExactMass(pg,
+                                                                    perIsotopeIntensity,
+                                                                    param.maxIsotopeCount,
+                                                                    averagines);
+
+      //double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.monoisotopicMass, .8, .8, 10000, 100000);
+
+      if (pg.peaks.empty() || pg.isotopeCosineScore <= .7)
       {
         continue;
       }
@@ -1905,7 +1911,7 @@ protected:
     int n_r = 0;
     int n_h = 0;
 
-    double spanThreshold = maxSpan / 3.0;//
+    double spanThreshold = maxSpan / 4.0;//
 
     for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++)
     {
@@ -1997,7 +2003,7 @@ protected:
     int n_r = .0;
     int n_h = 0;
 
-    double intensityThreshold = maxPerChargeIntensity / 3.0;//intensities[intensities.size()*95/100] / 5.0;
+    double intensityThreshold = maxPerChargeIntensity / 4.0;//intensities[intensities.size()*95/100] / 5.0;
     for (int k = prevCharge + 1; k <= nonZeroEnd; k++)
     {
       if (perChargeIntensity[k] <= intensityThreshold)
