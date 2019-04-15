@@ -159,7 +159,7 @@ private:
       bool variable;
       String description;
       String terminus;
-      String protein_terminus; // "y" if protein terminus, "n" if peptide terminus
+      bool protein_terminus; // "true" if protein terminus, "false" if peptide terminus
 
       AminoAcidModification() :
         mass(0),
