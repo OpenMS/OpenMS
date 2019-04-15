@@ -231,13 +231,12 @@ namespace OpenMS
     {
       for (auto ppm : (pep_id.getHits()[0].getMetaValue("ppm_errors")).toDoubleList())
       {
-        result.variance_ppm += (pow((ppm - result.average_ppm),2) / counter_ppm);
+        result.variance_ppm += pow((ppm - result.average_ppm),2);
       }
     };
 
     //computation of ppms
     QCBase::iterateFeatureMap(fmap, lamCompPPM);
-
     //if there are no matching peaks, the counter is zero and it is not possible to find ppms
     if (counter_ppm == 0)
     {
@@ -250,6 +249,7 @@ namespace OpenMS
 
     //computes variance
     QCBase::iterateFeatureMap(fmap, lamVar);
+    result.variance_ppm = result.variance_ppm / counter_ppm;
 
     results_.push_back(result);
 

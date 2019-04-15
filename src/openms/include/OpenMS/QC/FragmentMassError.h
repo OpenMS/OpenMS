@@ -63,8 +63,8 @@ namespace OpenMS
      */
     struct FMEStatistics
     {
-      double average_ppm;
-      double variance_ppm;
+      double average_ppm = 0;
+      double variance_ppm = 0;
     };
 
     /**
