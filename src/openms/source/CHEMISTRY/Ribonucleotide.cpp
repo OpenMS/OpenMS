@@ -39,6 +39,9 @@ using namespace std;
 
 namespace OpenMS
 {
+  const EmpiricalFormula Ribonucleotide::default_baseloss_ =
+    EmpiricalFormula("C5H10O5");
+
   ostream& operator<<(ostream& os, const Ribonucleotide& ribo)
   {
     os << "Ribonucleotide '"
@@ -187,6 +190,11 @@ namespace OpenMS
   bool Ribonucleotide::isModified() const
   {
     return (code_.length() != 1) || (code_[0] != origin_);
+  }
+
+  bool Ribonucleotide::isAmbiguous() const
+  {
+    return code_.back() == '?';
   }
 
 }

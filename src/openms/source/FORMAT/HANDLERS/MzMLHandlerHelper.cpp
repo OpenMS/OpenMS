@@ -107,8 +107,8 @@ namespace OpenMS
 
   void MzMLHandlerHelper::writeFooter_(std::ostream& os,
                                        const PeakFileOptions& options_, 
-                                       const std::vector< std::pair<std::string, long> > & spectra_offsets,
-                                       const std::vector< std::pair<std::string, long> > & chromatograms_offsets)
+                                       const std::vector< std::pair<std::string, Int64> > & spectra_offsets,
+                                       const std::vector< std::pair<std::string, Int64> > & chromatograms_offsets)
   {
     os << "\t</run>\n";
     os << "</mzML>";
@@ -117,7 +117,7 @@ namespace OpenMS
     {
       int indexlists = (int) !spectra_offsets.empty() + (int) !chromatograms_offsets.empty();
 
-      long indexlistoffset = os.tellp();
+      Int64 indexlistoffset = os.tellp();
       os << "\n";
       // NOTE: indexList is required, so we need to write one 
       // NOTE: the spectra and chromatogram ids are user-supplied, so better XML-escape them!

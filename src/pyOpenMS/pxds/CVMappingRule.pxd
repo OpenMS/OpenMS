@@ -1,7 +1,6 @@
 from libcpp cimport bool
 from String cimport *
 from CVTerm cimport *
-from MetaInfoInterface cimport *
 from CVMappingTerm cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingRule.h>" namespace "OpenMS":
