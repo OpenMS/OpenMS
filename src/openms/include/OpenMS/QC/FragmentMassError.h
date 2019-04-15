@@ -45,6 +45,7 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <assert.h>
 
 namespace OpenMS
 {

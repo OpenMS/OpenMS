@@ -98,6 +98,8 @@ namespace OpenMS
       double z = mass/mz;
       Int charge = round(z);
 
+      assert(charge == pep_id.getHits()[0].getCharge());  //exception??
+
       //theoretical peak spectrum
       PeakSpectrum theo_spectrum;
 

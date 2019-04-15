@@ -133,14 +133,17 @@ START_TEST(FragmentMassError, "$Id$")
     //PepHit Himalaya
     PeptideHit pep_hit_hi;
     pep_hit_hi.setSequence(AASequence::fromString("HIMALAYA"));
+    pep_hit_hi.setCharge(1);
 
     //PepHit Alabama
     PeptideHit pep_hit_al;
     pep_hit_al.setSequence(AASequence::fromString("ALABAMA"));
+    pep_hit_al.setCharge(2);
 
     //PeptideHit Peptide
     PeptideHit pep_hit_pe;
     pep_hit_pe.setSequence(AASequence::fromString("PEPTIDE"));
+    pep_hit_pe.setCharge(3);
 
     //PepID empty
     PeptideIdentification pep_id_empty;
@@ -161,21 +164,25 @@ START_TEST(FragmentMassError, "$Id$")
     //PepID out of tolerance
     PeptideIdentification pep_id_tol_out;
     pep_id_tol_out.setRT(2.1);
+    pep_id_tol_out.setMZ(266);
     pep_id_tol_out.setHits({pep_hit_pe});
 
     //PepID matches with ms1 spectrum
     PeptideIdentification pep_id_ms1;
     pep_id_ms1.setRT(5);
+    pep_id_ms1.setMZ(266);
     pep_id_ms1.setHits({pep_hit_pe});
 
     //PepID peak_RT does not exist in msEp
     PeptideIdentification pep_id_notExist;
     pep_id_notExist.setRT(7);
+    pep_id_notExist.setMZ(266);
     pep_id_notExist.setHits({pep_hit_pe});
 
     //PepID
     PeptideIdentification pep_id_excp;
     pep_id_excp.setRT(4);
+    pep_id_excp.setMZ(266);
     pep_id_excp.setHits({pep_hit_pe});
 
 
