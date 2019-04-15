@@ -1079,10 +1079,11 @@ protected:
             {
               continue;
             }
-            double minMzDelta = maxI + 100000.0;
-            int maxId = 0;
             for (int d = -1; d <= 1; d += 2)
             { // negative then positive direction.
+              int maxId = 0;
+              double minMzDelta = maxI + 100000.0;
+
               for (int i = 0; i <= maxI; i++)
               {
                 double centerLogMz = logMz + isof * (p.isotopeIndex + i * d);
@@ -1095,8 +1096,9 @@ protected:
                 maxId = i * d;
                 minMzDelta = delta;
               }
+              p.isotopeIndex += maxId;
             }
-            p.isotopeIndex += maxId;
+
             isoOff = min(isoOff, p.isotopeIndex);
           }
 
