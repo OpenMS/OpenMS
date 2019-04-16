@@ -53,7 +53,7 @@
 
 namespace OpenMS
 {
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const bool tolerance_unit_ppm)
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const String tolerance_unit)
   {
     FMEStatistics result;
 
@@ -82,16 +82,17 @@ namespace OpenMS
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
 
+    /*
     MSExperiment exp_filtered(exp);
 
     for (MSSpectrum& spec : exp_filtered)
     {
       window_mower_filter.filterPeakSpectrum(spec);
     }
-
+*/
 
     //computes the FragmentMassError
-    auto lamCompPPM = [&exp_filtered, rt_tolerance, tolerance, tolerance_unit_ppm, &accumulator_ppm, &counter_ppm](PeptideIdentification& pep_id)
+    auto lamCompPPM = [&exp, rt_tolerance, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -112,34 +113,9 @@ namespace OpenMS
       double z = mass/mz;
       Int charge = round(z);
 
-      assert(charge == pep_id.getHits()[0].getCharge());  //exception??
+      //if computed charge and the given charge in PeptideHits is not equal programm is terminated
+      assert(charge == pep_id.getHits()[0].getCharge());
 
-      //theoretical peak spectrum
-      PeakSpectrum theo_spectrum;
-
-      //---------------------------------------------------------------------
-      // CREATE THEORETICAL SPECTRUM
-      //---------------------------------------------------------------------
-
-      //initialize a TheoreticalSpectrumGenerator
-      TheoreticalSpectrumGenerator theo_gen;
-
-      //get current parameters (default)
-      Param theo_gen_settings = theo_gen.getParameters();
-
-      //default: b- and y-ions?
-      theo_gen_settings.setValue("add_a_ions", "true");
-      //theo_settings.setValue("add_b_ions", "true");
-      theo_gen_settings.setValue("add_c_ions", "true");
-      theo_gen_settings.setValue("add_x_ions", "true");
-      //theo_settings.setValue("add_y_ions", "true");
-      theo_gen_settings.setValue("add_z_ions", "true");
-
-      //set changed parameters
-      theo_gen.setParameters(theo_gen_settings);
-
-      //generate a-, b- and y-ion spectrum of peptide seq with charge
-      theo_gen.getSpectrum(theo_spectrum, seq, charge, charge);
 
       //-----------------------------------------------------------------------
       // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICTION
@@ -147,8 +123,8 @@ namespace OpenMS
 
       double rt_pep  = pep_id.getRT();
 
-      MSExperiment::ConstIterator it = exp_filtered.RTBegin(rt_pep - rt_tolerance);
-      if (it == exp_filtered.end())
+      MSExperiment::ConstIterator it = exp.RTBegin(rt_pep - rt_tolerance);
+      if (it == exp.end())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the mzML and featureXML file does not match.");
       }
@@ -164,6 +140,53 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching retention time of the mzML is not a MS2 Spectrum.");
       }
 
+
+      //---------------------------------------------------------------------
+      // CREATE THEORETICAL SPECTRUM
+      //---------------------------------------------------------------------
+
+      //theoretical peak spectrum
+      PeakSpectrum theo_spectrum;
+
+      //initialize a TheoreticalSpectrumGenerator
+      TheoreticalSpectrumGenerator theo_gen;
+
+      //get current parameters (default)
+      //default with b and y ions
+      Param theo_gen_settings = theo_gen.getParameters();
+
+
+      if(exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No fragmentation method given.");
+      }
+
+      Precursor::ActivationMethod fm = (*exp_spectrum.getPrecursors()[0].getActivationMethods().begin());
+
+      if(fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
+      {
+        theo_gen_settings.setValue("add_c_ions", "true");
+        theo_gen_settings.setValue("add_z_ions", "true");
+        theo_gen_settings.setValue("add_b_ions", "false");
+        theo_gen_settings.setValue("add_y_ions", "false");
+      }
+
+      else if(!(fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
+      }
+
+      //set changed parameters
+      theo_gen.setParameters(theo_gen_settings);
+
+      //generate a-, b- and y-ion spectrum of peptide seq with charge
+      theo_gen.getSpectrum(theo_spectrum, seq, charge, charge);
+
+//erinnerung
+std::cout << "theoTest: " << theo_spectrum.getMSLevel() << std::endl;
+theo_spectrum.setMSLevel(2);
+std::cout << "theoTest2: " << theo_spectrum.getMSLevel() << std::endl;
+
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
       //-----------------------------------------------------------------------
@@ -173,6 +196,9 @@ namespace OpenMS
         LOG_WARN << "The spectrum with " + String(exp_spectrum.getRT()) + " is empty." << "\n";
         return;
       }
+
+      auto exp_spectrum_filtered(exp_spectrum);
+      window_mower_filter.filterPeakSpectrum(exp_spectrum_filtered);
 
       //stores ppms for one spectrum
       DoubleList ppms{};
@@ -189,11 +215,11 @@ namespace OpenMS
       for (const Peak1D& peak : theo_spectrum)
       {
         const double theo_mz = peak.getMZ();
-        Size index = exp_spectrum.findNearest(theo_mz);
-        const double exp_mz = exp_spectrum[index].getMZ();
+        Size index = exp_spectrum_filtered.findNearest(theo_mz);
+        const double exp_mz = exp_spectrum_filtered[index].getMZ();
 
         //const double mz_tolerance = tolerance_unit_ppm ?  theo_mz * tolerance * 1e-6 : tolerance;
-        const double mz_tolerance = tolerance_unit_ppm ?  Math::ppmToMass(tolerance, theo_mz) : tolerance;
+        const double mz_tolerance = (tolerance_unit=="ppm") ?  Math::ppmToMass(tolerance, theo_mz) : tolerance;
 
 
         //found peak match
@@ -244,7 +270,7 @@ namespace OpenMS
 
     };
 
-    auto lamVar = [&result, &counter_ppm](const PeptideIdentification& pep_id)
+    auto lamVar = [&result](const PeptideIdentification& pep_id)
     {
       for (auto ppm : (pep_id.getHits()[0].getMetaValue("ppm_errors")).toDoubleList())
       {

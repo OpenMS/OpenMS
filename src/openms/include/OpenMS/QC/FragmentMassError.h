@@ -71,9 +71,15 @@ namespace OpenMS
      * @param exp Input MSexperiment for MS2Spectra, Spectra should be sorted (ascending RT)
      * @param tolerance searchwindow for matching peaks, distance has to be lower than tolerance value
      * @param tolerance_unit_ppm flag, true: if tolerance is in ppm , false: if tolerance is in m/z
+     * @throws Exception::Precondition is thrown if MSExperiment is not sorted by ascending RT, catch by TOPPTool
+     * @throws Exception::IllegalArgument is thrown if the retention time of the mzML and featureXML file does not match
+     * @throws Exception::IllegalArgument is thrown if the PeptideID does not have a matching MS2 Spectrum
+     * @throws Exception::IllegalArgument is thrown if the matching retention time of the mzML is not a MS2 Spectrum
+     * @warning LOG_WARN if PeptideHits is empty
+     * @warning LOG_WARN if Spectrum is empty
      *
      */
-    void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const bool tolerance_unit_ppm = false);
+    void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const String tolerance_unit = "mz");
 
     /// returns results
     std::vector<FMEStatistics> getResults() const;

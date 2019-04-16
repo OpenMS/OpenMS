@@ -78,9 +78,11 @@ protected:
     setValidFormats_("in_con", {"fasta"});
     //possible additions:
     //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
-    registerFlag_("MS2_id_rate:force_no_fdr", "forces the metric to run if fdr was not made, accept all pep_ids as target hits");
-    registerFlag_("FragmentMassError:tolerance_unit_ppm", "unit for tolerance, default m/z");
-    registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "searchwindow for matching Peaks in two spectra, default in m/z", getFlag_("FragmentMassError:tolerance_unit_ppm"));
+    registerFlag_("MS2_id_rate:force_no_fdr", "forces the metric to run if fdr was not made, accept all pep_ids as target hits", false);
+    registerStringOption_("FragmentMassError:unit", "<unit>", "mz", "unit for tolerance, default m/z", false);
+    vector<String> valid_strings = ListUtils::create<String>("ppm, mz");
+    setValidStrings_("FragmentMassError:unit", valid_strings);
+    registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "searchwindow for matching Peaks in two spectra, default in m/z", false); //condition??
 
   }
   // the main_ function is called after all parameters are read
@@ -109,7 +111,7 @@ protected:
 
     //check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
-    bool tolerance_unit_ppm_flag = getFlag_("FragmentMassError:tolerance_unit_ppm");
+    String tolerance_unit = getStringOption_("FragmentMassError:unit");
     double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
 
 
@@ -154,7 +156,7 @@ protected:
 
       if (status.isSuperSetOf(qc_frag_mass_err.requires()))
       {
-        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit_ppm_flag);
+        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit);
       }
 
       /* Example for including a metric calculation:

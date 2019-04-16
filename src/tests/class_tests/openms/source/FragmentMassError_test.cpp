@@ -62,6 +62,8 @@ START_TEST(FragmentMassError, "$Id$")
   //create MSExperiment
   //-------------------------------------------------
 
+
+
   //create Peaks
   Peak1D himalaya_1(112, 70);
   Peak1D himalaya_2(352, 70);
@@ -78,11 +80,21 @@ START_TEST(FragmentMassError, "$Id$")
   Peak1D peptide_1(85, 42);
   Peak1D peptide_2(345, 42);
 
+  //-----------------------------------
+
+  //Precursor
+  Precursor precursor;
+  std::set<Precursor::ActivationMethod> am;
+  am.insert(Precursor::ActivationMethod::CID);
+  precursor.setActivationMethods(am);
+
   //MS1Spectrum
   MSSpectrum ms_spec_1;
   ms_spec_1.setRT(5);
   ms_spec_1.setMSLevel(1);
+  ms_spec_1.setPrecursors({precursor});
 
+// --------------------------------------------------
   //MS_Himalaya
   MSSpectrum ms_spec_2_himalaya;
   ms_spec_2_himalaya.setRT(3.7);
@@ -94,6 +106,8 @@ START_TEST(FragmentMassError, "$Id$")
   ms_spec_2_himalaya.push_back(himalaya_5);
   ms_spec_2_himalaya.push_back(himalaya_6);
   ms_spec_2_himalaya.push_back(himalaya_7);
+  ms_spec_2_himalaya.setPrecursors({precursor});
+
 
   //MS_Alabama
   MSSpectrum ms_spec_2_alabama;
@@ -102,25 +116,30 @@ START_TEST(FragmentMassError, "$Id$")
   ms_spec_2_alabama.push_back(alabama_1);
   ms_spec_2_alabama.push_back(alabama_2);
   ms_spec_2_alabama.push_back(alabama_3);
+  ms_spec_2_alabama.setPrecursors({precursor});
+
+  //---------------------------------------------------
 
   //MS_Exception
   MSSpectrum ms_spec_2_excp;
   ms_spec_2_excp.setRT(4);
   ms_spec_2_excp.setMSLevel(2);
+  ms_spec_2_excp.setPrecursors({precursor});
 
   //MS_Empty
   MSSpectrum ms_spec_empty;
 
   //MS_Peptide
-  MSSpectrum ms_spec_2_peptide;
+ /* MSSpectrum ms_spec_2_peptide;
   ms_spec_2_peptide.setRT(6);
   ms_spec_2_peptide.setMSLevel(2);
   ms_spec_2_peptide.push_back(peptide_1);
   ms_spec_2_peptide.push_back(peptide_2);
+  ms_spec_2_peptide.setPrecursors({precursor});*/
 
 
   MSExperiment exp_unsort;
-  exp_unsort.setSpectra({ ms_spec_1, ms_spec_2_himalaya, ms_spec_2_alabama, ms_spec_2_excp, ms_spec_empty, ms_spec_2_peptide});
+  exp_unsort.setSpectra({ ms_spec_1, ms_spec_2_himalaya, ms_spec_2_alabama, ms_spec_2_excp, ms_spec_empty});
 
   MSExperiment exp(exp_unsort);
   exp.sortSpectra();
@@ -248,7 +267,7 @@ START_TEST(FragmentMassError, "$Id$")
   FragmentMassError frag_ma_err_excp;
 
   //tests compute function
-  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const bool tolerance_unit_ppm = false))
+  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const String tolerance_unit = "mz"))
   {
     //test with valid input
     frag_ma_err.compute(fmap, exp);
@@ -268,8 +287,8 @@ START_TEST(FragmentMassError, "$Id$")
     TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_notExits.compute(fmap_notExist, exp);, "The retention time of the mzML and featureXML file does not match.")
 
     //test with RT out of tolerance
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_tol_out.compute(fmap_tol_out, exp), "PeptideID with RT " + std::to_string(pep_id_tol_out.getRT()) + " s does not have a matching MS2 Spectrum. Closest RT was " + std::to_string(ms_spec_2_himalaya.getRT()) + ", which seems to far off.")
-
+    //TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_tol_out.compute(fmap_tol_out, exp), "PeptideID with RT " + std::to_string(pep_id_tol_out.getRT()) + " s does not have a matching MS2 Spectrum. Closest RT was " + std::to_string(ms_spec_2_himalaya.getRT()) + ", which seems to far off.")
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_tol_out.compute(fmap_tol_out, exp), "PeptideID with RT 2.1 s does not have a matching MS2 Spectrum. Closest RT was 3.7, which seems to far off.")
 
     frag_ma_err_excp.compute(fmap_excp, exp);
     std::vector<FragmentMassError::FMEStatistics> result_excp;
