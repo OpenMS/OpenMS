@@ -35,20 +35,13 @@
 #pragma once
 
 #include "OpenMS/QC/QCBase.h"
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
-#include <assert.h>
+#include <vector>
 
 namespace OpenMS
 {
+  class FeatureMap;
+  class MSExperiment;
+  
   class OPENMS_DLLAPI FragmentMassError : QCBase
   {
   public:
@@ -78,6 +71,7 @@ namespace OpenMS
      * @param exp Input MSexperiment for MS2Spectra, Spectra should be sorted (ascending RT)
      * @param tolerance searchwindow for matching peaks, distance has to be lower than tolerance value
      * @param tolerance_unit_ppm flag, true: if tolerance is in ppm , false: if tolerance is in m/z
+     *
      */
     void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const bool tolerance_unit_ppm = false);
 

@@ -33,9 +33,23 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/QC/FragmentMassError.h>
+
+#include <assert.h>
+#include <iostream>//erinnerung
 #include <string>
-#include <iostream>
-#include <plugin-api.h>
+
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+//#include <OpenMS/METADATA/PeptideIdentification.h>
+
+//#include <plugin-api.h>
 
 namespace OpenMS
 {
@@ -143,7 +157,7 @@ namespace OpenMS
 
       if (exp_spectrum.getRT() - rt_pep > rt_tolerance)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + std::to_string(rt_pep) + " s does not have a matching MS2 Spectrum. Closest RT was " + std::to_string(exp_spectrum.getRT()) + ", which seems to far off.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + String(rt_pep) + " s does not have a matching MS2 Spectrum. Closest RT was " + String(exp_spectrum.getRT()) + ", which seems to far off.");
       }
       if (exp_spectrum.getMSLevel() != 2)
       {
@@ -156,7 +170,7 @@ namespace OpenMS
 
       if (exp_spectrum.empty() || theo_spectrum.empty())
       {
-        LOG_WARN << "The spectrum with " + std::to_string(exp_spectrum.getRT()) + " is empty." << "\n";
+        LOG_WARN << "The spectrum with " + String(exp_spectrum.getRT()) + " is empty." << "\n";
         return;
       }
 
@@ -178,7 +192,8 @@ namespace OpenMS
         Size index = exp_spectrum.findNearest(theo_mz);
         const double exp_mz = exp_spectrum[index].getMZ();
 
-        const double mz_tolerance = tolerance_unit_ppm ?  theo_mz * tolerance * 1e-6 : tolerance;
+        //const double mz_tolerance = tolerance_unit_ppm ?  theo_mz * tolerance * 1e-6 : tolerance;
+        const double mz_tolerance = tolerance_unit_ppm ?  Math::ppmToMass(tolerance, theo_mz) : tolerance;
 
 
         //found peak match

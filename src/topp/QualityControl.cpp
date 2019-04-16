@@ -154,16 +154,7 @@ protected:
 
       if (status.isSuperSetOf(qc_frag_mass_err.requires()))
       {
-        try
-        {
-          qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit_ppm_flag);
-        }
-
-        catch (Exception::Precondition)
-        {
-          exp.sortSpectra();
-          qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit_ppm_flag);
-        }
+        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit_ppm_flag);
       }
 
       /* Example for including a metric calculation:
