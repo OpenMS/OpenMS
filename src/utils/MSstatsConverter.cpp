@@ -113,7 +113,7 @@ protected:
       registerStringOption_(param_msstats_condition, "<msstats_condition>", "MSstats_Condition",
                             "Which column in the condition table should be used for MSstats 'Condition'", false, false);
 
-      registerStringOption_(param_msstats_mixture, "msstats_mixture", "MSstats_Mixutre",
+      registerStringOption_(param_msstats_mixture, "msstats_mixture", "MSstats_Mixture",
                             "Which column in the condition table should be used for MSstats 'Mixture'", false, false);
 
       // advanced option to overwrite MS file annotations in consensusXML
