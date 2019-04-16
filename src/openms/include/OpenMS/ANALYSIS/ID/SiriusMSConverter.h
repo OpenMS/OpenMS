@@ -64,6 +64,7 @@ public:
     double pmass;
     double rt;
     double fmz;
+    double pint_mono;
     String fid;
     String formula;
     int charge;

@@ -366,6 +366,7 @@ namespace OpenMS
       feature_rt = csp.first.rt;
       description = csp.first.des;
       int charge = csp.first.charge;
+      double precursor_int = csp.first.pint_mono;
 
       // use annotated metadata
       sumformula = csp.second.getMetaValue("annotated_sumformula");
@@ -471,8 +472,7 @@ namespace OpenMS
 
         float current_int = spec_it->getIntensity();
         double current_mz = spec_it->getMZ();
-        String
-        current_explanation = explanation_array[peak_index];
+        String current_explanation = explanation_array[peak_index];
 
         // write row for each transition
         // current int has to be higher than transition thresold and should not be smaller than threshold noise
@@ -497,7 +497,7 @@ namespace OpenMS
 
       transition_group_counter += 1;
       MetaboTargetedAssay mta;
-      mta.precursor_int = 0;
+      mta.precursor_int = precursor_int;
       mta.compound_name = description;
       mta.compound_adduct = adduct;
       mta.potential_cmp = cmp;
