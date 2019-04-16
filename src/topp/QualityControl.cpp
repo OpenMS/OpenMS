@@ -80,10 +80,8 @@ protected:
     setValidFormats_("in_contaminants", {"fasta"});
     registerInputFile_("in_consensus", "<file>","","ConsensusXML input, generated from given featureXMLs",false);
     setValidFormats_("in_consensus",{"ConsensusXML"});
-    //possible additions:
-    //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
     registerFlag_("MS2_id_rate:force_no_fdr", "forces the metric to run if fdr was not made, accept all pep_ids as target hits",false);
-
+    //TODO get ProteinQuantifier output for PRT section
   }
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
@@ -133,7 +131,7 @@ protected:
 
 
     map<Int64, PeptideIdentification *> map_to_id;
-    vector<FeatureMap> fmaps;
+    
     // Loop through file lists
     for (Size i = 0; i < number_exps; ++i)
     {
@@ -177,41 +175,58 @@ protected:
         qc_tic.compute(exp);
       }
 
-      fmaps.push_back(fmap);
-    }
-    //-------------------------------------------------------------
-    // Build the map to later find the original PepID in given ConsensusMap.
-    //-------------------------------------------------------------
-    for (FeatureMap &fmap : fmaps)
-    {
+      //-------------------------------------------------------------
+      // Build the map to later find the original PepID in given ConsensusMap.
+      //-------------------------------------------------------------
       for (Feature& feature : fmap)
       {
         fillPepIDMap_(map_to_id, feature.getPeptideIdentifications());
       }
       fillPepIDMap_(map_to_id, fmap.getUnassignedPeptideIdentifications());
-    }
 
-    //-------------------------------------------------------------
-    // Annotate calculated meta values from FeatureMap to given ConsensusMap
-    //-------------------------------------------------------------
 
-    // copy MetaValues of unassigned PepIDs
-    copyPepIDMetaValues_(cmap.getUnassignedPeptideIdentifications(),map_to_id);
+      //-------------------------------------------------------------
+      // Annotate calculated meta values from FeatureMap to given ConsensusMap
+      //-------------------------------------------------------------
 
-    // copy MetaValues of assigned PepIDs
-    for (ConsensusFeature& cf : cmap)
-    {
-      copyPepIDMetaValues_(cf.getPeptideIdentifications(),map_to_id);
+      // copy MetaValues of unassigned PepIDs
+      copyPepIDMetaValues_(cmap.getUnassignedPeptideIdentifications(),map_to_id);
+
+      // copy MetaValues of assigned PepIDs
+      for (ConsensusFeature& cf : cmap)
+      {
+        copyPepIDMetaValues_(cf.getPeptideIdentifications(),map_to_id);
+      }
     }
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    ConsensusXMLFile consensus_out;
-    consensus_out.store("/home/togepitsch/Development/QC_test_outputs/afterQC.consensusXML",cmap);
-    /*MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap,in_consensus,true,true);
+    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap,in_consensus,true,true);
+
+    // Adding TIC information to meta data
+    MzTabMetaData meta = mztab.getMetaData();
+    map<Size, MzTabParameter> tics_as_meta_data;
+    vector<MSChromatogram> tics = qc_tic.getResults();
+    for (Size i = 0; i < tics.size(); ++i)
+    {
+      MzTabParameter tic;
+      tic.setName("TIC_"+String(i+1));
+      String value("[");
+      value += String(tics[i][0].getRT()) + ", " + String(tics[i][0].getIntensity());
+      for (Size j = 1; j < tics[i].size(); ++j)
+      {
+        value += ", " + String(tics[i][j].getRT()) + ", " + String(tics[i][j].getIntensity());
+      }
+      value += "]";
+      tic.setValue(value);
+      tics_as_meta_data[i+1] = tic;
+    }
+    meta.custom = tics_as_meta_data;
+    mztab.setMetaData(meta);
+
     MzTabFile mztab_out;
-    mztab_out.store("/home/togepitsch/Development/QC_test_outputs/consensus.mztab",mztab);*/
+    mztab_out.store("/home/togepitsch/Development/QC_test_outputs/consensus.mztab",mztab);
     return EXECUTION_OK;
   }
 
@@ -232,7 +247,10 @@ private:
     }
     return files;
   }
+
+  // templated function to copy all meta values from one object to another
   template <class FROM, class TO>
+  //TODO get a MetaValue list to copy only those that have been set
   void copyMetaValues_(FROM& from, TO& to)
   {
     vector<String> keys;
@@ -252,7 +270,7 @@ private:
         cerr << "No unique ID at unassigned peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n";
         exit(ILLEGAL_PARAMETERS);
       }
-      PeptideIdentification ref_pep_id = *map_to_id[pep_id.getMetaValue("UID")];
+      PeptideIdentification ref_pep_id = *(map_to_id.at(pep_id.getMetaValue("UID"))); // look up annotated PepID
 
       // copy all MetaValues that are at PepID level
       copyMetaValues_(ref_pep_id,pep_id);
@@ -268,8 +286,7 @@ private:
     {
       if (!pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
       {
-        cerr
-            << "No unique ID at unassigned peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n";
+        cerr << "No unique ID at unassigned peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n";
         exit(ILLEGAL_PARAMETERS);
       }
       map_to_id[pep_id.getMetaValue("UID")] = &pep_id;
