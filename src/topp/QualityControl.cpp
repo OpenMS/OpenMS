@@ -45,10 +45,10 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/Contaminants.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/MissedCleavages.h>
+#include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/TIC.h>
 #include <cstdio>
 
@@ -170,6 +170,11 @@ protected:
         qc_missed_cleavages.compute(fmap);
       }
 
+      if (status.isSuperSetOf(qc_contaminants.requires()))
+      {
+        qc_contaminants.compute(fmap, contaminants);
+      }
+
       if (status.isSuperSetOf(qc_tic.requires()))
       {
         qc_tic.compute(exp);
@@ -183,7 +188,6 @@ protected:
         fillPepIDMap_(map_to_id, feature.getPeptideIdentifications());
       }
       fillPepIDMap_(map_to_id, fmap.getUnassignedPeptideIdentifications());
-
 
       //-------------------------------------------------------------
       // Annotate calculated meta values from FeatureMap to given ConsensusMap
