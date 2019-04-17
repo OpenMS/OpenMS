@@ -1667,7 +1667,7 @@ protected:
 
       //double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.monoisotopicMass, .8, .8, 10000, 100000);
 
-      if (pg.peaks.empty() || pg.isotopeCosineScore <= .7)
+      if (pg.peaks.empty() || pg.isotopeCosineScore <= .6)
       {
         continue;
       }
