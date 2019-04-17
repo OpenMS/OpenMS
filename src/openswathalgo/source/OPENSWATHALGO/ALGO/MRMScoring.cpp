@@ -626,7 +626,7 @@ namespace OpenSwath
   {
     OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 0, "Input S/N estimators needs to be larger than 0");
 
-    std::vector<double> scores;
+    std::vector<double> sn_scores;
     if (signal_noise_estimators.size() == 0)
     {
       return {};
@@ -637,15 +637,15 @@ namespace OpenSwath
       if (signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT()) < 1)
       // everything below S/N 1 can be set to zero (and the log safely applied)
       {
-        scores.push_back(0);
+        sn_scores.push_back(0);
       }
       else
       {
-        scores.push_back(std::log(signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT())));
+        sn_scores.push_back(std::log(signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT())));
       }
     }
 
-    return scores;
+    return sn_scores;
   }
 
   const std::vector< std::vector<double> >& MRMScoring::getMIMatrix() const
@@ -908,13 +908,7 @@ namespace OpenSwath
       mi_scores.push_back(mi_scores_id / mi_contrast_matrix_[0].size());
     }
 
-    std::vector<double> scores;
-    for (size_t i = 0; i <mi_scores.size(); i++)
-    {
-      scores.push_back(mi_scores[i]);
-    }
-
-    return scores;
+    return mi_scores;
   }
 
 }
