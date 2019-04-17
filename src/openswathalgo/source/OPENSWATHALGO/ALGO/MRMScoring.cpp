@@ -312,13 +312,7 @@ namespace OpenSwath
       deltas.push_back(deltas_id / xcorr_contrast_matrix_[0].size());
     }
 
-    std::vector<double> scores;
-    for (size_t i = 0; i < deltas.size(); i++)
-    {
-      scores.push_back(deltas[i]);
-    }
-
-    return scores;
+    return deltas;
   }
 
   double MRMScoring::calcXcorrPrecursorCoelutionScore()
@@ -491,13 +485,7 @@ namespace OpenSwath
       intensities.push_back(intensities_id / xcorr_contrast_matrix_[0].size());
     }
 
-    std::vector<double> scores;
-    for (size_t i = 0; i <intensities.size(); i++)
-    {
-      scores.push_back(intensities[i]);
-    }
-
-    return scores;
+    return intensities;
   }
 
   double MRMScoring::calcXcorrPrecursorShapeScore()
@@ -638,27 +626,22 @@ namespace OpenSwath
   {
     OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 0, "Input S/N estimators needs to be larger than 0");
 
-    std::vector<double> sn_score;
+    std::vector<double> scores;
     if (signal_noise_estimators.size() == 0)
     {
-      return std::vector<double>();
+      return {};
     }
 
     for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)
     {
-      sn_score.push_back(signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT()));
-    }
-
-    std::vector<double> scores;
-    for (size_t i = 0; i <sn_score.size(); i++)
-    {
-      if (sn_score[i] < 1) // everything below S/N 1 can be set to zero (and the log safely applied)
+      if (signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT()) < 1)
+      // everything below S/N 1 can be set to zero (and the log safely applied)
       {
         scores.push_back(0);
       }
       else
       {
-        scores.push_back(std::log(sn_score[i]));
+        scores.push_back(std::log(signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT())));
       }
     }
 
