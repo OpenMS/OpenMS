@@ -969,7 +969,7 @@ protected:
     auto massBinIndex = unionedMassBins.find_first();
     // Size lastSetMassBinIndex = unionedMassBins.size();
     Size* peakBinNumbers = new Size[logMzPeakSize];
-    for(Size i=0;i<logMzPeakSize;i++){
+    for(int i=0;i<logMzPeakSize;i++){
       peakBinNumbers[i] =  getBinNumber(logMzPeaks[i].logMz, mzBinMinValue, binWidth);
     }
 
@@ -1195,11 +1195,10 @@ protected:
         continue;
       }
       logIntensities[i] = //(Byte) round
-          (float) (log2(intensities[i]));
+          (float) (log(intensities[i])/log(4.0));
     }
 
     delete[] intensities;
-    //cout<<endl;
     return mzBins;
   }
 
@@ -1423,7 +1422,7 @@ protected:
     float *prevIntensities = new float[massBins.size()];
     fill_n(prevIntensities, massBins.size(), 0);
 
-    float idThreshold = 1.0;
+    //float idThreshold = 1.0;
     auto mzBinIndex = mzBins.find_first();
     while (mzBinIndex != mzBins.npos)
     {
@@ -1446,7 +1445,7 @@ protected:
         auto &prevIntensity = prevIntensities[massBinIndex];
         auto id = prevIntensity - logIntensity;
         //prevIntensities[massBinIndex] = logIntensity;
-        if (cd != 1 || id > idThreshold || id < -idThreshold)
+        if (cd != 1 || id > 1 || id < -1)
         {
           prevIntensity = logIntensity;
           continue;
@@ -1466,11 +1465,9 @@ protected:
             {
               continue;
             }
-
-
             if (mzBins[bin]
-                && (abs(logIntensity - logIntensities[bin]) <= idThreshold ||
-                    abs(prevIntensity - logIntensities[bin]) <= idThreshold))
+                && (abs(logIntensity - logIntensities[bin]) <= 1))// ||
+                   // abs(prevIntensity - logIntensities[bin]) <= 1))
             {
               h = true;
               break;
@@ -1486,13 +1483,14 @@ protected:
         {
           continue;
         }
-        if (!isQualified[massBinIndex])
-        {
-          isQualified[massBinIndex] =
-              ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount;
-        }
-
         sumLogIntensities[massBinIndex] += logIntensity;
+        if (isQualified[massBinIndex])
+        {
+          continue;
+        }
+        isQualified[massBinIndex] =
+            ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount;
+
       }
       mzBinIndex = mzBins.find_next(mzBinIndex);
     }
@@ -1510,7 +1508,6 @@ protected:
                                  const Parameter &param,
                                  long binStart)
   {
-
     int chargeRange = param.chargeRange;
     Byte *maxChargeRanges = new Byte[massBins.size()];
     fill_n(maxChargeRanges, massBins.size(), 0);
@@ -1518,8 +1515,8 @@ protected:
     Byte *minChargeRanges = new Byte[massBins.size()];
     fill_n(minChargeRanges, massBins.size(), chargeRange + 1);
 
-    Byte *selected = new Byte[massBins.size()];
-    fill_n(selected, massBins.size(), 0);
+    //Byte *selected = new Byte[massBins.size()];
+    //fill_n(selected, massBins.size(), 0);
 
     auto mzBinIndex = mzBins.find_first();
     long binEnd = (long) massBins.size();
@@ -1569,9 +1566,9 @@ protected:
       {
         maxChargeRanges[maxIndex] = max(maxChargeRanges[maxIndex], charge);
         minChargeRanges[maxIndex] = min(minChargeRanges[maxIndex], charge);
-        ++selected[maxIndex];
+        //++selected[maxIndex];
         //int t = max(continuousChargePeakPairCount[maxIndex],minContinuousChargePeakCount);
-        if (selected[maxIndex] >= 2)
+        //if (selected[maxIndex] >= 2)
           //&& selected[maxIndex] >= continuousChargePeakPairCount[maxIndex])
         {
           massBins[maxIndex] = isQualified[maxIndex];
@@ -1584,7 +1581,7 @@ protected:
     Byte **chargeRanges = new Byte *[2];
     chargeRanges[0] = minChargeRanges;
     chargeRanges[1] = maxChargeRanges;
-    delete[] selected;
+    //delete[] selected;
     return chargeRanges;
   }
 
