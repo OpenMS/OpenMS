@@ -996,10 +996,8 @@ namespace OpenMS
   {
     for (PeptideIdentification& id : peptide_ids)
     {
-      if (id.getHits().size() < 1)
-      {
-        continue;
-      }
+      if (id.getHits().empty()) continue;
+
       PeptideHit& ph_alpha = id.getHits()[0];
       String prot1_pos;
 
@@ -1073,10 +1071,8 @@ namespace OpenMS
   {
     for (PeptideIdentification& id : peptide_ids)
     {
-      if (id.getHits().size() < 1)
-      {
-        continue;
-      }
+      if (id.getHits().empty()) continue;
+
       PeptideHit& ph_alpha = id.getHits()[0];
 
       if (id.getHits().size() == 2)
@@ -1108,10 +1104,8 @@ namespace OpenMS
   {
     for (PeptideIdentification& id : peptide_ids)
     {
-      if (id.getHits().size() < 1)
-      {
-        continue;
-      }
+      if (id.getHits().empty()) continue;
+
       PeptideHit& ph_alpha = id.getHits()[0];
 
       // cross-link position in Protein (beta)
@@ -1154,7 +1148,7 @@ namespace OpenMS
 
     for (PeptideIdentification& id : peptide_ids)
     {
-      if (id.getHits().size() > 0)
+      if (!id.getHits().empty())
       {
         spectrum_indices.insert(id.getHits()[0].getMetaValue("spectrum_index"));
       }
@@ -1164,7 +1158,7 @@ namespace OpenMS
     {
       for (PeptideIdentification& id : peptide_ids)
       {
-        if (id.getHits().size() > 0)
+        if (!id.getHits().empty())
         {
           if (String(id.getHits()[0].getMetaValue("spectrum_index")) == index)
           {
@@ -1184,7 +1178,7 @@ namespace OpenMS
       Size rank_count(1);
       for (PeptideIdentification& current_id : current_spectrum_peptide_ids)
       {
-        if (current_id.getHits().size() > 0)
+        if (!current_id.getHits().empty())
         {
           current_id.getHits()[0].setMetaValue("xl_rank", rank_count);
           if (current_id.getHits().size() == 2)
