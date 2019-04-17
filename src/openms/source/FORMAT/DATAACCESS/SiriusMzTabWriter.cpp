@@ -125,6 +125,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         boost::smatch match;
         String feature_id;
         boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+
         bool found = boost::regex_search(str, match, regexp_feature);
         if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
         String unassigned = "null";

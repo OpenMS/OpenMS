@@ -380,7 +380,7 @@ protected:
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Consensus feature data options");
-    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Maps to be extracted from a consensus", false);
+    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Non-empty list of maps to be extracted from a consensus (indices are 0-based).", false);
     registerFlag_("consensus:map_and", "Consensus features are kept only if they contain exactly one feature from each map (as given above in 'map')");
 
     // black and white listing
