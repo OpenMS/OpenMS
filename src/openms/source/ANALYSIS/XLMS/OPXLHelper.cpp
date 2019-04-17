@@ -996,6 +996,10 @@ namespace OpenMS
   {
     for (PeptideIdentification& id : peptide_ids)
     {
+      if (id.getHits().size() < 1)
+      {
+        continue;
+      }
       PeptideHit& ph_alpha = id.getHits()[0];
       String prot1_pos;
 
@@ -1008,7 +1012,10 @@ namespace OpenMS
         prot1_pos = prot1_pos + "," + prot_link_pos;
       }
       // remove leading "," of first position
-      prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
+      if (!prot1_pos.empty())
+      {
+        prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
+      }
       ph_alpha.setMetaValue("XL_Protein_position_alpha", prot1_pos);
 
       // cross-link position in Protein (beta)
@@ -1027,7 +1034,10 @@ namespace OpenMS
           prot2_accessions = prot2_accessions + "," + pev->getProteinAccession();
         }
         // remove leading "," of first position
-        prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+        if (!prot2_pos.empty())
+        {
+          prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+        }
         ph_beta.setMetaValue("XL_Protein_position_alpha", prot1_pos);
         ph_alpha.setMetaValue("XL_Protein_position_beta", prot2_pos);
         ph_beta.setMetaValue("XL_Protein_position_beta", prot2_pos);
@@ -1045,7 +1055,10 @@ namespace OpenMS
             prot2_pos = prot2_pos + "," + prot_link_pos;
           }
           // remove leading "," of first position
-          prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+          if (!prot2_pos.empty())
+          {
+            prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+          }
           ph_alpha.setMetaValue("XL_Protein_position_beta", prot2_pos);
         }
         else
@@ -1060,6 +1073,10 @@ namespace OpenMS
   {
     for (PeptideIdentification& id : peptide_ids)
     {
+      if (id.getHits().size() < 1)
+      {
+        continue;
+      }
       PeptideHit& ph_alpha = id.getHits()[0];
 
       if (id.getHits().size() == 2)
@@ -1073,7 +1090,10 @@ namespace OpenMS
           prot2_accessions = prot2_accessions + "," + pev->getProteinAccession();
         }
 
-        prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
+        if (!prot2_accessions.empty())
+        {
+          prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
+        }
         ph_alpha.setMetaValue("accessions_beta", prot2_accessions);
         ph_beta.setMetaValue("accessions_beta", prot2_accessions);
       }
@@ -1088,6 +1108,10 @@ namespace OpenMS
   {
     for (PeptideIdentification& id : peptide_ids)
     {
+      if (id.getHits().size() < 1)
+      {
+        continue;
+      }
       PeptideHit& ph_alpha = id.getHits()[0];
 
       // cross-link position in Protein (beta)
@@ -1130,16 +1154,22 @@ namespace OpenMS
 
     for (PeptideIdentification& id : peptide_ids)
     {
-      spectrum_indices.insert(id.getHits()[0].getMetaValue("spectrum_index"));
+      if (id.getHits().size() > 0)
+      {
+        spectrum_indices.insert(id.getHits()[0].getMetaValue("spectrum_index"));
+      }
     }
 
     for (String index : spectrum_indices)
     {
       for (PeptideIdentification& id : peptide_ids)
       {
-        if (String(id.getHits()[0].getMetaValue("spectrum_index")) == index)
+        if (id.getHits().size() > 0)
         {
-          current_spectrum_peptide_ids.push_back(id);
+          if (String(id.getHits()[0].getMetaValue("spectrum_index")) == index)
+          {
+            current_spectrum_peptide_ids.push_back(id);
+          }
         }
       }
 
@@ -1154,10 +1184,13 @@ namespace OpenMS
       Size rank_count(1);
       for (PeptideIdentification& current_id : current_spectrum_peptide_ids)
       {
-        current_id.getHits()[0].setMetaValue("xl_rank", rank_count);
-        if (current_id.getHits().size() > 1)
+        if (current_id.getHits().size() > 0)
         {
-          current_id.getHits()[1].setMetaValue("xl_rank", rank_count);
+          current_id.getHits()[0].setMetaValue("xl_rank", rank_count);
+          if (current_id.getHits().size() == 2)
+          {
+            current_id.getHits()[1].setMetaValue("xl_rank", rank_count);
+          }
         }
         rank_count++;
       }
