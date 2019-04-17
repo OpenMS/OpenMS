@@ -55,7 +55,8 @@ namespace OpenMS
       Method 2: If relative tolerance (ppm) is specified a simple matching of peaks is performed:
       Peaks from s1 (usually the theoretical spectrum) are assigned to the closest peak in s2 if it lies in the tolerance window
       @note: a peak in s2 can be matched to none, one or multiple peaks in s1. Peaks in s1 may be matched to none or one peak in s2.
-      @note: intensity is ignored TODO: improve time complexity, currently O(|s1|*log(|s2|))
+      @note: intensity is ignored 
+      TODO: improve time complexity, currently O(|s1|*log(|s2|))
 
       @htmlinclude OpenMS_SpectrumAlignment.parameters
 
@@ -306,6 +307,7 @@ public:
     }
     else  // relative alignment (ppm tolerance)
     {        
+      // find  closest match of s1[i] in s2 for all i
       for (Size i = 0; i != s1.size(); ++i)
       {
         const double& theo_mz = s1[i].getMZ();
