@@ -57,10 +57,10 @@ namespace OpenMS
   {
     FMEStatistics result;
 
-    //accumulates ppm errors over all first PeptideHits
+    // accumulates ppm errors over all first PeptideHits
     double accumulator_ppm{};
 
-    //counts number of ppm errors
+    // counts number of ppm errors
     UInt32 counter_ppm{};
 
     float rt_tolerance = 0.05;
@@ -91,7 +91,7 @@ namespace OpenMS
     }
 */
 
-    //computes the FragmentMassError
+    // computes the FragmentMassError
     auto lamCompPPM = [&exp, rt_tolerance, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
@@ -104,16 +104,16 @@ namespace OpenMS
       // FIND DATA FOR THEORETICAL SPECTRUM
       //---------------------------------------------------------------------
 
-      //sequence
+      // sequence
       AASequence seq = pep_id.getHits()[0].getSequence();
 
-      //charge
+      // charge
       double mass = seq.getMonoWeight();
       double mz = pep_id.getMZ();
       double z = mass/mz;
       Int charge = round(z);
 
-      //if computed charge and the given charge in PeptideHits is not equal programm is terminated
+      // if computed charge and the given charge in PeptideHits is not equal programm is terminated
       assert(charge == pep_id.getHits()[0].getCharge());
 
 
@@ -133,7 +133,8 @@ namespace OpenMS
 
       if (exp_spectrum.getRT() - rt_pep > rt_tolerance)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + String(rt_pep) + " s does not have a matching MS2 Spectrum. Closest RT was " + String(exp_spectrum.getRT()) + ", which seems to far off.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + String(rt_pep) + " s does not have a matching MS2 Spectrum. Closest RT was "
+        + String(exp_spectrum.getRT()) + ", which seems to far off.");
       }
       if (exp_spectrum.getMSLevel() != 2)
       {
@@ -145,25 +146,25 @@ namespace OpenMS
       // CREATE THEORETICAL SPECTRUM
       //---------------------------------------------------------------------
 
-      //theoretical peak spectrum
+      // theoretical peak spectrum
       PeakSpectrum theo_spectrum;
 
-      //initialize a TheoreticalSpectrumGenerator
+      // initialize a TheoreticalSpectrumGenerator
       TheoreticalSpectrumGenerator theo_gen;
 
-      //get current parameters (default)
-      //default with b and y ions
+      // get current parameters (default)
+      // default with b and y ions
       Param theo_gen_settings = theo_gen.getParameters();
 
 
-      if(exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
+      if (exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No fragmentation method given.");
       }
 
       Precursor::ActivationMethod fm = (*exp_spectrum.getPrecursors()[0].getActivationMethods().begin());
 
-      if(fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
+      if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
       {
         theo_gen_settings.setValue("add_c_ions", "true");
         theo_gen_settings.setValue("add_z_ions", "true");
@@ -171,21 +172,26 @@ namespace OpenMS
         theo_gen_settings.setValue("add_y_ions", "false");
       }
 
-      else if(!(fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID))
+      else if (!(fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
       }
 
-      //set changed parameters
+      // set changed parameters
       theo_gen.setParameters(theo_gen_settings);
 
-      //generate a-, b- and y-ion spectrum of peptide seq with charge
+      // generate a-, b- and y-ion spectrum of peptide seq with charge
       theo_gen.getSpectrum(theo_spectrum, seq, charge, charge);
 
 //erinnerung
-std::cout << "theoTest: " << theo_spectrum.getMSLevel() << std::endl;
-theo_spectrum.setMSLevel(2);
-std::cout << "theoTest2: " << theo_spectrum.getMSLevel() << std::endl;
+//std::cout << "theoTest: " << theo_spectrum.getMSLevel() << std::endl;
+//theo_spectrum.setMSLevel(2);
+//std::cout << "theoTest2: " << theo_spectrum.getMSLevel() << std::endl;
+
+     // for(Peak1D peak : theo_spectrum)
+     // {
+     //   std::cout << "Theo:  " << peak.getMZ() << std::endl;
+     // };
 
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
@@ -200,17 +206,13 @@ std::cout << "theoTest2: " << theo_spectrum.getMSLevel() << std::endl;
       auto exp_spectrum_filtered(exp_spectrum);
       window_mower_filter.filterPeakSpectrum(exp_spectrum_filtered);
 
-      //stores ppms for one spectrum
+      // stores ppms for one spectrum
       DoubleList ppms{};
 
-      //infinity
-      double inf = std::numeric_limits<double>::infinity();
-
-      //exp_peak matching to previous theo_peak
-      double current_exp = inf;
-
-      //minimal ppm
-      double ppm = inf;
+      // exp_peak matching to previous theo_peak
+      double current_exp = std::numeric_limits<double>::max();
+      // minimal ppm
+      double ppm = std::numeric_limits<double>::max();
 
       for (const Peak1D& peak : theo_spectrum)
       {
@@ -222,26 +224,30 @@ std::cout << "theoTest2: " << theo_spectrum.getMSLevel() << std::endl;
         const double mz_tolerance = (tolerance_unit=="ppm") ?  Math::ppmToMass(tolerance, theo_mz) : tolerance;
 
 
-        //found peak match
+        // found peak match
         if (std::abs(theo_mz-exp_mz) < mz_tolerance)
         {
-          auto current_ppm = Math::getPPM(theo_mz, exp_mz);
+          //Erinnerung
+          std::cout << "exp:  " << exp_mz << std::endl;
 
-          //first peak in tolerance range
-          if (current_exp == inf)
+          auto current_ppm = Math::getPPM(exp_mz, theo_mz);
+          //auto current_ppm = exp_mz - theo_mz; //Erinnerung
+
+          // first peak in tolerance range
+          if (current_exp == std::numeric_limits<double>::max())
           {
             ppm = current_ppm;
             current_exp = exp_mz;
           }
 
-          //theo_peak matches to a exp_peak that is already matched
-          //&& ppm is smaller than before
+          // theo_peak matches to a exp_peak that is already matched
+          // && ppm is smaller than before
           if (current_exp == exp_mz && abs(current_ppm) < abs(ppm))
           {
             ppm = current_ppm;
           }
 
-          //theo_peak matches to another exp_peaks
+          // theo_peak matches to another exp_peaks
           if (current_exp != exp_mz)
           {
             ppms.push_back(ppm);
@@ -256,7 +262,7 @@ std::cout << "theoTest2: " << theo_spectrum.getMSLevel() << std::endl;
          }
       }
 
-      //last peak doesn't have a successor so it has to be added manually
+      // last peak doesn't have a successor so it has to be added manually
       ppms.push_back(ppm);
       accumulator_ppm += ppm;
       ++ counter_ppm;
@@ -278,20 +284,24 @@ std::cout << "theoTest2: " << theo_spectrum.getMSLevel() << std::endl;
       }
     };
 
-    //computation of ppms
+    // computation of ppms
     QCBase::iterateFeatureMap(fmap, lamCompPPM);
-    //if there are no matching peaks, the counter is zero and it is not possible to find ppms
+    // if there are no matching peaks, the counter is zero and it is not possible to find ppms
     if (counter_ppm == 0)
     {
       results_.push_back(result);
       return;
     }
 
-    //computes average
+    // computes average
     result.average_ppm = accumulator_ppm/counter_ppm;
 
-    //computes variance
+    // computes variance
     QCBase::iterateFeatureMap(fmap, lamVar);
+
+    //Erinnerung
+    std::cout << "counter" << counter_ppm << std::endl;
+
     result.variance_ppm = result.variance_ppm / counter_ppm;
 
     results_.push_back(result);
@@ -309,4 +319,4 @@ std::cout << "theoTest2: " << theo_spectrum.getMSLevel() << std::endl;
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
-} //namespace OpenMS
+} // namespace OpenMS

@@ -75,11 +75,12 @@ namespace OpenMS
      * @throws Exception::IllegalArgument is thrown if the retention time of the mzML and featureXML file does not match
      * @throws Exception::IllegalArgument is thrown if the PeptideID does not have a matching MS2 Spectrum
      * @throws Exception::IllegalArgument is thrown if the matching retention time of the mzML is not a MS2 Spectrum
+     * @throws Exception::MissingInformation is thrown if no fragmentation method given
+     * @throws Exception::InvalidParameter is thrown if the fragmentation method is not ECD, ETD, CID or HCID
      * @warning LOG_WARN if PeptideHits is empty
      * @warning LOG_WARN if Spectrum is empty
-     *
      */
-    void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const String tolerance_unit = "mz");
+    void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const String tolerance_unit = "ppm");
 
     /// returns results
     std::vector<FMEStatistics> getResults() const;

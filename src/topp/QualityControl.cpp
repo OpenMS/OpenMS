@@ -78,11 +78,10 @@ protected:
     setValidFormats_("in_con", {"fasta"});
     //possible additions:
     //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
-    registerFlag_("MS2_id_rate:force_no_fdr", "forces the metric to run if fdr was not made, accept all pep_ids as target hits", false);
-    registerStringOption_("FragmentMassError:unit", "<unit>", "mz", "unit for tolerance, default m/z", false);
-    vector<String> valid_strings = ListUtils::create<String>("ppm, mz");
-    setValidStrings_("FragmentMassError:unit", valid_strings);
-    registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "searchwindow for matching Peaks in two spectra, default in m/z", false); //condition??
+    registerFlag_("MS2_id_rate:force_no_fdr", "Forces the metric to run if fdr was not made, accept all pep_ids as target hits", false);
+    registerStringOption_("FragmentMassError:unit", "<unit>", "ppm", "Unit for tolerance", false);
+    setValidStrings_("FragmentMassError:unit", {"ppm", "Da"});
+    registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "Search window for matching Peaks in two spectra", false);
 
   }
   // the main_ function is called after all parameters are read
