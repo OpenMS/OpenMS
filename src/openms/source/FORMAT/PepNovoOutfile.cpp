@@ -127,14 +127,14 @@ namespace OpenMS
       if (pnovo_modkey_to_mod_id.find(*mod_it) != pnovo_modkey_to_mod_id.end())
       {
         //cout<<keys_to_id.find(*mod_it)->second<<endl;
-        ResidueModification tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
+        const ResidueModification* tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
         if (mod_it->prefix(1) == "^" || mod_it->prefix(1) == "$")
         {
-          mod_mask_map[*mod_it] = "(" + tmp_mod.getId() + ")";
+          mod_mask_map[*mod_it] = "(" + tmp_mod->getId() + ")";
         }
         else
         {
-          mod_mask_map[*mod_it] = String(tmp_mod.getOrigin()) + "(" + tmp_mod.getId() + ")";
+          mod_mask_map[*mod_it] = String(tmp_mod->getOrigin()) + "(" + tmp_mod->getId() + ")";
         }
       }
       else

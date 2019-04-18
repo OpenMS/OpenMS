@@ -46,17 +46,15 @@ namespace OpenMS
     /// Returns a pointer to the modifications DB (singleton)
     inline static CrossLinksDB* getInstance()
     {
-      static CrossLinksDB* db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new CrossLinksDB;
-      }
+      static CrossLinksDB* db_ = new CrossLinksDB;
       return db_;
     }
 
     /**
       @brief Adds modifications from a given file in OBO format
-
+      
+      @note readFromOBOFile should be called in a single threaded context with
+      no other threads accessing the CrossLinkDB
       @throw Exception::ParseError if the file cannot be parsed correctly
     */
     void readFromOBOFile(const String& filename);

@@ -1,3 +1,5 @@
+import Constants
+
 class SimpleOpenMSSpectraFactory:
 
     @staticmethod

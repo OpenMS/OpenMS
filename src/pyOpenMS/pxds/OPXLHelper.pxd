@@ -37,15 +37,15 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                                                                   double precursor_mass_tolerance,
                                                                   bool precursor_mass_tolerance_unit_ppm)  nogil except +
 
-        libcpp_vector[ ResidueModification ] getModificationsFromStringList(StringList modNames)  nogil except +
+        libcpp_vector[ const ResidueModification * ] getModificationsFromStringList(StringList modNames)  nogil except +
 
         libcpp_vector[ AASeqWithMass ] digestDatabase(libcpp_vector[ FASTAEntry ] fasta_db,
                                                       EnzymaticDigestion digestor,
                                                       Size min_peptide_length,
                                                       StringList cross_link_residue1,
                                                       StringList cross_link_residue2,
-                                                      libcpp_vector[ ResidueModification ] fixed_modifications,
-                                                      libcpp_vector[ ResidueModification ] variable_modifications,
+                                                      libcpp_vector[ const ResidueModification * ] fixed_modifications,
+                                                      libcpp_vector[ const ResidueModification * ] variable_modifications,
                                                       Size max_variable_mods_per_peptide) nogil except +
 
         libcpp_vector[ ProteinProteinCrossLink ] buildCandidates(libcpp_vector[ XLPrecursor ]& candidates,

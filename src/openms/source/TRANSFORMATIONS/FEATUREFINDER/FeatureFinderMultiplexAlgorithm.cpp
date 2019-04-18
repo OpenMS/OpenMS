@@ -1048,6 +1048,7 @@ namespace OpenMS
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type"));
       filtering.setLogType(getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+      exp_blacklist_ = filtering.getBlacklist();
       
       /**
        * cluster filter results
@@ -1144,11 +1145,16 @@ namespace OpenMS
   
   FeatureMap& FeatureFinderMultiplexAlgorithm::getFeatureMap()
   {
-    return(feature_map_);
+    return feature_map_;
   }
   
   ConsensusMap& FeatureFinderMultiplexAlgorithm::getConsensusMap()
   {
-    return(consensus_map_);
+    return consensus_map_;
+  }
+  
+  MSExperiment& FeatureFinderMultiplexAlgorithm::getBlacklist()
+  {
+    return exp_blacklist_;
   }
 }

@@ -536,6 +536,33 @@ START_SECTION(void detectingTransitions(OpenMS::TargetedExperiment& exp, int min
 
 END_SECTION
 
+START_SECTION(void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions))
+{
+  TraMLFile traml;
+  TargetedExperiment targeted_exp;
+  String in = "MRMAssay_detectingTransistionCompound_input.TraML";
+  traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
+  MRMAssay mrma;
+
+  int min_transitions = 3;
+  int max_transitions = 6;
+
+  String out1 = "MRMAssay_detectingTransitionCompound_output.TraML";
+
+  TargetedExperiment targeted_exp1 = targeted_exp;
+
+  mrma.detectingTransitionsCompound(targeted_exp1, min_transitions, max_transitions);
+
+  String test1;
+  NEW_TMP_FILE(test1);
+  traml.store(test1, targeted_exp1);
+
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+
+}
+
+END_SECTION
+
 START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, double shuffle_identity_threshold, int shuffle_max_attempts, int shuffle_seed))
 {
   std::vector<std::pair<double, double> > swathes;

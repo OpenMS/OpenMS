@@ -66,19 +66,6 @@ namespace OpenMS
     /// container that stores results
     std::vector<IdentificationRateData> rate_result_;
 
-    /**
-     * @brief counts peptideidentifications
-     *
-     * used to count assigned and unassigned peptideidentifications in a featuremap
-     *
-     * @param peptide_id - vector of peptideidentifications
-     * @param force_fdr - bool for forceflag, if it's true all peptides are count despite fdr was not made
-     * @return number of peptideidentifications in a given vector of peptideidentifications
-     * @exception Exception::Precondition is thrown if there wasn't made a FDR before
-     * @warning LOG_WARN if there is a peptideidentification without peptidehits
-     */
-    Int64 countPeptideId_(const std::vector<PeptideIdentification>& peptide_id, bool force_fdr);
-
   public:
     /// Default constructor
     Ms2IdentificationRate() = default;
@@ -98,7 +85,7 @@ namespace OpenMS
      * @exception Exception::MissingInformation is thrown if the FeatureXML is empty
      * @exception Exception::MissingInformation is thrown if the mzML is empty
      * @exception Exception::MissingInformation is thrown if the experiment doesn't contain ms2 spectra
-     * @exception Exception::Precondition is thrown if there are more identifications than ms2 level
+     * @exception Exception::Precondition is thrown if there are more identifications than ms2 spectra
      */
     void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
 

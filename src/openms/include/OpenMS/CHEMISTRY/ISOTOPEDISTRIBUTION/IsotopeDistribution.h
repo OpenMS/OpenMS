@@ -35,17 +35,9 @@
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H
 
-
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <utility>
-#include <functional>
-
 #include <vector>
-#include <set>
-#include <map>
-
 
 namespace OpenMS
 {
