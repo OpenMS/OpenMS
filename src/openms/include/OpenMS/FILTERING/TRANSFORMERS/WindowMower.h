@@ -202,7 +202,6 @@ public:
 
       if (last_window_peakcount) // handle single peak in last window (will produce no proper fraction)
       {
-        //last_window_peakcount = 1;
         last_window_peakcount = std::round(last_window_peakcount);
       }
 

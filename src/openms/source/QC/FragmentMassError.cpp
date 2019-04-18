@@ -182,12 +182,16 @@ namespace OpenMS
 
       // stores ppms for one spectrum
       DoubleList ppms{};
+      DoubleList dalton{};
 
       // exp_peak matching to previous theo_peak
       double current_exp = std::numeric_limits<double>::max();
       
-      // minimal ppm
+      // max ppm
       double ppm = std::numeric_limits<double>::max();
+
+      //max da
+      double da = std::numeric_limits<double>::max();
 
       for (const Peak1D& peak : theo_spectrum)
       {
@@ -201,11 +205,13 @@ namespace OpenMS
         if (std::abs(theo_mz-exp_mz) < mz_tolerance)
         {
           auto current_ppm = Math::getPPM(exp_mz, theo_mz);
+          auto current_da = exp_mz - theo_mz;
 
           // first peak in tolerance range
           if (current_exp == std::numeric_limits<double>::max())
           {
             ppm = current_ppm;
+            da = current_da;
             current_exp = exp_mz;
           }
 
@@ -214,12 +220,14 @@ namespace OpenMS
           if (current_exp == exp_mz && abs(current_ppm) < abs(ppm))
           {
             ppm = current_ppm;
+            da = current_da;
           }
 
           // theo_peak matches to another exp_peaks
           if (current_exp != exp_mz)
           {
             ppms.push_back(ppm);
+            dalton.push_back(da);
 
             ++ counter_ppm;
 
@@ -242,6 +250,8 @@ namespace OpenMS
       //-----------------------------------------------------------------------
 
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_ppm", ppms);
+      pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
+
 
     };
 

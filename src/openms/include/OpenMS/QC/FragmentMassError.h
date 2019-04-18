@@ -73,7 +73,7 @@ namespace OpenMS
      *
      * stores average and variance of FragmentMassErrors in ppm as a struct in a vector
      * each FragmentMassError (in ppm) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_ppm"
-     * each FragmentMassError (in Da) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_Da"
+     * each FragmentMassError (in Da) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_da"
      *
      * @param fmap Input FeatureMap for annotation and data for theoretical spectra
      * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
