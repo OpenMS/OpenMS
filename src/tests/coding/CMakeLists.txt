@@ -44,7 +44,7 @@ if (NOT WIN32)
   )
 
   set_tests_properties(potential_for_loop_copies PROPERTIES
-    FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed"
+    PASS_REGULAR_EXPRESSION "Success"
   )
 endif()
 # --------------------------------------------------------------------------
