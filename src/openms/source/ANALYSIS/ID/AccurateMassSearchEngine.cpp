@@ -1014,7 +1014,7 @@ namespace OpenMS
             mztab_row_record.calc_mass_to_charge = mass_to_charge;
 
             // set charge field
-            MzTabDouble mcharge;
+            MzTabInteger mcharge;
             mcharge.set((*tab_it)[hit_idx].getCharge());
             mztab_row_record.charge = mcharge;
           }
