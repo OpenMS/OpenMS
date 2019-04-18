@@ -35,7 +35,6 @@
 #include <OpenMS/QC/FragmentMassError.h>
 
 #include <assert.h>
-#include <iostream>//erinnerung
 #include <string>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -47,9 +46,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-//#include <OpenMS/METADATA/PeptideIdentification.h>
-
-//#include <plugin-api.h>
 
 namespace OpenMS
 {
@@ -81,15 +77,6 @@ namespace OpenMS
     filter_param.setValue("peakcount", 6, "The number of peaks that should be kept.");
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
-
-    /*
-    MSExperiment exp_filtered(exp);
-
-    for (MSSpectrum& spec : exp_filtered)
-    {
-      window_mower_filter.filterPeakSpectrum(spec);
-    }
-*/
 
     // computes the FragmentMassError
     auto lamCompPPM = [&exp, rt_tolerance, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
@@ -183,16 +170,6 @@ namespace OpenMS
       // generate a-, b- and y-ion spectrum of peptide seq with charge
       theo_gen.getSpectrum(theo_spectrum, seq, charge, charge);
 
-//erinnerung
-//std::cout << "theoTest: " << theo_spectrum.getMSLevel() << std::endl;
-//theo_spectrum.setMSLevel(2);
-//std::cout << "theoTest2: " << theo_spectrum.getMSLevel() << std::endl;
-
-     // for(Peak1D peak : theo_spectrum)
-     // {
-     //   std::cout << "Theo:  " << peak.getMZ() << std::endl;
-     // };
-
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
       //-----------------------------------------------------------------------
@@ -211,6 +188,7 @@ namespace OpenMS
 
       // exp_peak matching to previous theo_peak
       double current_exp = std::numeric_limits<double>::max();
+      
       // minimal ppm
       double ppm = std::numeric_limits<double>::max();
 
@@ -219,19 +197,13 @@ namespace OpenMS
         const double theo_mz = peak.getMZ();
         Size index = exp_spectrum_filtered.findNearest(theo_mz);
         const double exp_mz = exp_spectrum_filtered[index].getMZ();
-
-        //const double mz_tolerance = tolerance_unit_ppm ?  theo_mz * tolerance * 1e-6 : tolerance;
+        
         const double mz_tolerance = (tolerance_unit=="ppm") ?  Math::ppmToMass(tolerance, theo_mz) : tolerance;
-
 
         // found peak match
         if (std::abs(theo_mz-exp_mz) < mz_tolerance)
         {
-          //Erinnerung
-          std::cout << "exp:  " << exp_mz << std::endl;
-
           auto current_ppm = Math::getPPM(exp_mz, theo_mz);
-          //auto current_ppm = exp_mz - theo_mz; //Erinnerung
 
           // first peak in tolerance range
           if (current_exp == std::numeric_limits<double>::max())
@@ -298,9 +270,6 @@ namespace OpenMS
 
     // computes variance
     QCBase::iterateFeatureMap(fmap, lamVar);
-
-    //Erinnerung
-    std::cout << "counter" << counter_ppm << std::endl;
 
     result.variance_ppm = result.variance_ppm / counter_ppm;
 
