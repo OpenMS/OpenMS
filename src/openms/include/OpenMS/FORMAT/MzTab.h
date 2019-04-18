@@ -714,7 +714,7 @@ public:
     MzTabString description; ///< Human readable description (i.e. the name)
     MzTabDouble exp_mass_to_charge; ///< Precursor ion’s m/z.
     MzTabDouble calc_mass_to_charge; ///< Precursor ion’s m/z.
-    MzTabDouble charge; ///< Precursor ion’s charge.
+    MzTabInteger charge; ///< Precursor ion’s charge.
     MzTabDoubleList retention_time; ///< Time points in seconds. Semantics may vary.
     MzTabInteger taxid; ///< NEWT taxonomy for the species.
     MzTabString species; ///< Human readable name of the species
