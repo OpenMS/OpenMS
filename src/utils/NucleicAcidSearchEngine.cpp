@@ -274,6 +274,7 @@ protected:
     double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
     Int charge;
+    Size isotope;
     String adduct;
   };
 
@@ -781,6 +782,7 @@ protected:
         // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
         match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
+        match.setMetaValue("isotope_offset", hit.isotope);
         if (!hit.adduct.empty()) match.setMetaValue("adduct", hit.adduct);
 #pragma omp critical (id_data_access)
         id_data.registerMoleculeQueryMatch(match);
@@ -1271,6 +1273,7 @@ protected:
                   (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
                 ah.annotations = annotations;
                 ah.charge = charge;
+                ah.isotope = prec_it->second.isotope;
                 ah.adduct = prec_it->second.adduct;
               }
             }
