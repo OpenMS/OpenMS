@@ -58,12 +58,12 @@ namespace OpenMS
       enum class Requires :
           UInt64
       {
-          FAIL = 0,        //< default, does not encode for anything
-          RAWMZML = 1,     //< mzML file is required
-          POSTFDRFEAT = 2, //< Features with FDR-filtered pepIDs
-          PREFDRFEAT = 4,  //< Features with unfiltered pepIDs
-          CONTAMINANTS = 8,//< Contaminant Database
-          TRAFOALIGN =16   //< transformationXMLs for RT-alignment
+          FAIL = 0,         //< default, does not encode for anything
+          RAWMZML = 1,      //< mzML file is required
+          POSTFDRFEAT = 2,  //< Features with FDR-filtered pepIDs
+          PREFDRFEAT = 4,   //< Features with unfiltered pepIDs
+          CONTAMINANTS = 8, //< Contaminant Database
+          TRAFOALIGN = 16   //< transformationXMLs for RT-alignment
        };
     /**
      * @brief Storing a status as a UInt64
