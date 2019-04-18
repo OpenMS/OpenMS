@@ -1213,6 +1213,7 @@ START_SECTION((std::vector<MSChromatogram >& getChromatograms()))
 END_SECTION
 
 START_SECTION((const MSChromatogram getTIC(float rt_bin_size=0) const))
+{
 	MSChromatogram chrom;
   // Dummy peakmap
 	PeakMap exp;
