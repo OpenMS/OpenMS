@@ -267,7 +267,8 @@ public:
     ~AccurateMassSearchEngine() override;
 
     /**
-      @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
+      @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database.
+      If use_feature_adducts is activated, queryByMZ uses annotated, observed adducts as EmpiricalFormulas, restricting M+X candidates.
 
        */
     void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct = EmpiricalFormula()) const;
