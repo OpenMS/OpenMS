@@ -76,17 +76,15 @@ namespace OpenMS
      * each FragmentMassError (in Da) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_Da"
      *
      * @param fmap Input FeatureMap for annotation and data for theoretical spectra
-     * @param exp Input MSexperiment for MS2Spectra, Spectra should be sorted (ascending RT)
-     * @param tolerance searchwindow for matching peaks, distance has to be lower than tolerance value
-     * @param tolerance_unit_ppm flag, true: if tolerance is in ppm , false: if tolerance is in m/z
-     * @throws Exception::Precondition is thrown if MSExperiment is not sorted by ascending RT, catch by TOPPTool
-     * @throws Exception::IllegalArgument is thrown if the retention time of the mzML and featureXML file does not match
-     * @throws Exception::IllegalArgument is thrown if the PeptideID does not have a matching MS2 Spectrum
-     * @throws Exception::IllegalArgument is thrown if the matching retention time of the mzML is not a MS2 Spectrum
-     * @throws Exception::MissingInformation is thrown if no fragmentation method given
-     * @throws Exception::InvalidParameter is thrown if the fragmentation method is not ECD, ETD, CID or HCID
-     * @warning LOG_WARN if PeptideHits is empty
-     * @warning LOG_WARN if Spectrum is empty
+     * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
+     * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
+     * @param tolerance_unit_ppm Tolerance in ppm or m/z
+     * @throws Exception::Precondition MSExperiment is not sorted by ascending RT, catch by TOPPTool
+     * @throws Exception::IllegalArgument Retention time of the mzML and featureXML file does not match
+     * @throws Exception::IllegalArgument PeptideID does not have a matching MS2 Spectrum
+     * @throws Exception::IllegalArgument Missing MS2 spectrum at RT of a PepID
+     * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
+     * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
     void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit& tolerance_unit = ToleranceUnit::PPM);
 
