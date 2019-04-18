@@ -54,15 +54,17 @@ namespace OpenMS
     /**
      * @brief Enum to encode a file type as a bit.
      */
-    enum class Requires :
-        UInt64
-    {
-      FAIL = 0,
-      RAWMZML = 1,
-      POSTFDRFEAT = 2,
-      PREFDRFEAT = 4,
-      CONTAMINANTS = 8
-    };
+    //POSTFDRFEAT = PREALIGNFEAT
+      enum class Requires :
+          UInt64
+      {
+          FAIL = 0,         //< default, does not encode for anything
+          RAWMZML = 1,      //< mzML file is required
+          POSTFDRFEAT = 2,  //< Features with FDR-filtered pepIDs
+          PREFDRFEAT = 4,   //< Features with unfiltered pepIDs
+          CONTAMINANTS = 8, //< Contaminant Database
+          TRAFOALIGN = 16   //< transformationXMLs for RT-alignment
+       };
     /**
      * @brief Storing a status as a UInt64
      *

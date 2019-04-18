@@ -7,6 +7,7 @@ Contaminants.cpp
 MissedCleavages.cpp
 Ms2IdentificationRate.cpp
 QCBase.cpp
+RTAlignment.cpp
 TIC.cpp
 )
 

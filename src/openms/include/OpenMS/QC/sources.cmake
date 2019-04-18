@@ -7,6 +7,7 @@ Contaminants.h
 MissedCleavages.h
 Ms2IdentificationRate.h
 QCBase.h
+RTAlignment.h
 TIC.h
 )
 
