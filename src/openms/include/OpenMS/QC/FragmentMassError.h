@@ -46,6 +46,13 @@ namespace OpenMS
   {
   public:
 
+    enum class ToleranceUnit
+    {
+      PPM,
+      DA
+    };
+
+
     /// Default constructor
     FragmentMassError() = default;
 
@@ -65,7 +72,8 @@ namespace OpenMS
      * @brief computes FragmentMassError in ppm
      *
      * stores average and variance of FragmentMassErrors in ppm as a struct in a vector
-     * each FragmentMassError is stored in the first PeptideHit of the corresponding PeptideIdentification
+     * each FragmentMassError (in ppm) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_ppm"
+     * each FragmentMassError (in Da) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_Da"
      *
      * @param fmap Input FeatureMap for annotation and data for theoretical spectra
      * @param exp Input MSexperiment for MS2Spectra, Spectra should be sorted (ascending RT)
@@ -80,7 +88,7 @@ namespace OpenMS
      * @warning LOG_WARN if PeptideHits is empty
      * @warning LOG_WARN if Spectrum is empty
      */
-    void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const String tolerance_unit = "ppm");
+    void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit& tolerance_unit = ToleranceUnit::PPM);
 
     /// returns results
     const std::vector<FMEStatistics>& getResults() const;

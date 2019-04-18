@@ -296,25 +296,25 @@ START_TEST(FragmentMassError, "$Id$")
   FragmentMassError frag_ma_err_sori;
 
   //tests compute function
-  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const String tolerance_unit = "ppm"))
+  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit& tolerance_unit = ToleranceUnit::PPM))
   {
     //test with valid input
     frag_ma_err.compute(fmap, exp);
     std::vector<FragmentMassError::FMEStatistics> result;
     result = frag_ma_err.getResults();
 
-    TEST_REAL_SIMILAR(result[0].average_ppm, 4.698439) // mz: 0.001
-    TEST_REAL_SIMILAR(result[0].variance_ppm, 10.93094) //mz: 5.915844
+    TEST_REAL_SIMILAR(result[0].average_ppm, 4.758327) // mz: 0.001     // old window mower 4.698439
+    TEST_REAL_SIMILAR(result[0].variance_ppm, 9.05026) //mz: 5.915844  // old window mower 10.93094
 
 
     //test with valid input and flags
-    frag_ma_err_flag.compute(fmap, exp, 1, "mz");
+    frag_ma_err_flag.compute(fmap, exp, 1, FragmentMassError::ToleranceUnit::DA);
     std::vector<FragmentMassError::FMEStatistics> result_flag;
     result_flag = frag_ma_err_flag.getResults();
 
-    TEST_REAL_SIMILAR(result_flag[0].average_ppm, 5.938193)
-    TEST_REAL_SIMILAR(result_flag[0].variance_ppm, 36.45247
-    )
+    TEST_REAL_SIMILAR(result_flag[0].average_ppm, 5.685647)       // old window mower 5.938193
+    TEST_REAL_SIMILAR(result_flag[0].variance_ppm, 28.45137)       // old window mower 36.45247
+
 
     // test if MSExperiment is not sorted
     TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, frag_ma_err_ms1.compute(fmap, exp_unsort),"MSExperiment is not sorted by ascending RT")

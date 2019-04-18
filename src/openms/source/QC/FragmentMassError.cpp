@@ -49,7 +49,7 @@
 
 namespace OpenMS
 {
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const String tolerance_unit)
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const ToleranceUnit& tolerance_unit)
   {
     FMEStatistics result;
 
@@ -92,13 +92,10 @@ namespace OpenMS
       //---------------------------------------------------------------------
 
       // sequence
-      AASequence seq = pep_id.getHits()[0].getSequence();
+      const AASequence seq = pep_id.getHits()[0].getSequence();
 
       // charge
-      double mass = seq.getMonoWeight();
-      double mz = pep_id.getMZ();
-      double z = mass/mz;
-      Int charge = round(z);
+      Int charge = round(seq.getMonoWeight() / pep_id.getMZ());
 
       // if computed charge and the given charge in PeptideHits is not equal programm is terminated
       assert(charge == pep_id.getHits()[0].getCharge());
@@ -176,7 +173,7 @@ namespace OpenMS
 
       if (exp_spectrum.empty() || theo_spectrum.empty())
       {
-        LOG_WARN << "The spectrum with " + String(exp_spectrum.getRT()) + " is empty." << "\n";
+        LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
         return;
       }
 
@@ -198,7 +195,7 @@ namespace OpenMS
         Size index = exp_spectrum_filtered.findNearest(theo_mz);
         const double exp_mz = exp_spectrum_filtered[index].getMZ();
         
-        const double mz_tolerance = (tolerance_unit=="ppm") ?  Math::ppmToMass(tolerance, theo_mz) : tolerance;
+        const double mz_tolerance = (tolerance_unit==ToleranceUnit::PPM) ?  Math::ppmToMass(tolerance, theo_mz) : tolerance;
 
         // found peak match
         if (std::abs(theo_mz-exp_mz) < mz_tolerance)
@@ -244,13 +241,13 @@ namespace OpenMS
       // WRITE PPM ERROR IN PEPTIDEHIT
       //-----------------------------------------------------------------------
 
-      pep_id.getHits()[0].setMetaValue("ppm_errors", ppms);
+      pep_id.getHits()[0].setMetaValue("fragment_mass_error_ppm", ppms);
 
     };
 
     auto lamVar = [&result](const PeptideIdentification& pep_id)
     {
-      for (auto ppm : (pep_id.getHits()[0].getMetaValue("ppm_errors")).toDoubleList())
+      for (auto ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
       {
         result.variance_ppm += pow((ppm - result.average_ppm),2);
       }
@@ -266,7 +263,7 @@ namespace OpenMS
     }
 
     // computes average
-    result.average_ppm = accumulator_ppm/counter_ppm;
+    result.average_ppm = accumulator_ppm / counter_ppm;
 
     // computes variance
     QCBase::iterateFeatureMap(fmap, lamVar);
@@ -289,3 +286,6 @@ namespace OpenMS
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
 } // namespace OpenMS
+
+
+
