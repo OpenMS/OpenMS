@@ -33,13 +33,14 @@
 // --------------------------------------------------------------------------
 
 #pragma once
+
 #include <OpenMS/QC/QCBase.h>
 
 namespace OpenMS
 {
   class FeatureMap;
-
   class TransformationDescription;
+
   /**
     @brief take the original retention time before map alignment and use the transformation information of the post alignment trafoXML
     for calculation of the post map alignment retention times. Set meta values "rt_raw" and "rt_align" in PeptideIdentifications of the featureMap
