@@ -5,9 +5,9 @@ MTD	description	Sirius-4.0.1
 MTD	smallmolecule_search_engine_score[1]	[, , score, ]
 MTD	smallmolecule_search_engine_score[2]	[, , treescore, ]
 MTD	smallmolecule_search_engine_score[3]	[, , isoscore, ]
-MTD	ms_run[1]-location	/Users/alka/Documents/work/software/openms/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_4_input.mzML
+MTD	ms_run[1]-location	/home/alka/software/openms_oa/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_4_input.mzML
 
-SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	adduct	rank	explainedPeaks	explainedIntensity	compoundId	compoundScanNumber	featureId	native_id
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	opt_global_adduct	opt_global_rank	opt_global_explainedPeaks	opt_global_explainedIntensity	opt_global_compoundId	opt_global_compoundScanNumber	opt_global_featureId	opt_global_native_id
 SML	null	C9H17N7O11	null	null	null	398.092212485532002	null	null	657.849900000000048	null	null	null	null	null	null	2.82604036531227	-0.214473965643701	3.040514330955971	null	[M - H]-	1	1	0.0	58	5228	id_7231120865591443173	controllerType=0 controllerNumber=1 scan=5270
 SML	null	C11H22N5O7PS	null	null	null	398.092212485532002	null	null	657.849900000000048	null	null	null	null	null	null	2.193896296377865	-2.218875824868201	4.412772121246066	null	[M - H]-	2	1	0.0	58	5228	id_7231120865591443173	controllerType=0 controllerNumber=1 scan=5270
 SML	null	C10H23N7O4P2S	null	null	null	398.092212485532002	null	null	657.849900000000048	null	null	null	null	null	null	1.780062913602917	-3.033536223267436	4.813599136870353	null	[M - H]-	3	1	0.0	58	5228	id_7231120865591443173	controllerType=0 controllerNumber=1 scan=5270
