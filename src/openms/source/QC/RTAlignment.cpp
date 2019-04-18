@@ -31,13 +31,13 @@
 // $Authors: Juliane Schmachtenberg $
 // --------------------------------------------------------------------------
 
-
-#include <OpenMS/QC/QCBase.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/QC/RTAlignment.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/QC/RTAlignment.h>
+
 #include <algorithm>
 
 using namespace std;
