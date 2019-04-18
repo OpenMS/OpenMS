@@ -36,6 +36,18 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 project("OpenMS_coding_tests")
 
 # --------------------------------------------------------------------------
+# Own style tests
+if (NOT WIN32)
+  add_test(
+    NAME potential_for_loop_copies
+    COMMAND "grep -R for ${OPENMS_HOST_DIRECTORY} | grep auto | grep -v begin | grep ':' | grep -v '&' | grep -v '//' | grep 'for[ ]*(' || echo 'Success' "
+  )
+
+  set_tests_properties(potential_for_loop_copies PROPERTIES
+    FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed"
+  )
+endif()
+# --------------------------------------------------------------------------
 # cppcheck tests
 find_package(cppcheck)
 if( CPPCHECK_FOUND )
