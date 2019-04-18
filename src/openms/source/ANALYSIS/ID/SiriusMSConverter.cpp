@@ -344,6 +344,7 @@ namespace OpenMS
               {
                 os << it->first << " " << it->second << "\n";
               }
+              cmpinfo.pint_mono = f_isotopes[0].second;
             }
             else if (num_isotopes > 0) // if ms1 spectrum was present
             {
@@ -352,12 +353,14 @@ namespace OpenMS
               {
                 os << it->getMZ() << " " << it->getIntensity() << "\n";
               }
+              cmpinfo.pint_mono = isotopes[0].getIntensity();
             }
             else
             {
               if (precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
               {
                 os << ">ms1merged" << "\n" << precursor_mz << " " << precursor_int << "\n\n";
+                cmpinfo.pint_mono = precursor_int;
               }
             }
           }

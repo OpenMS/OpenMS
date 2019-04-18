@@ -542,7 +542,7 @@ protected:
     {
       pair<String,String> pair_mta = make_pair(it.compound_name, it.compound_adduct);
 
-      // check if value in map with key k does not exists  and fill with current pair
+      // check if value in map with key k does not exists and fill with current pair
       if (map_mta.count(pair_mta) == 0)
       {
         map_mta[pair_mta] = it;
