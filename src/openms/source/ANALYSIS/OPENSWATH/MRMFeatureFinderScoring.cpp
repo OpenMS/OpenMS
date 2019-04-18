@@ -360,37 +360,25 @@ namespace OpenMS
                                               signal_noise_estimators_identification,
                                               idscores);
 
-      std::stringstream ind_transition_names;
-      std::stringstream ind_area_intensity;
-      std::stringstream ind_total_area_intensity;
-      std::stringstream ind_intensity_score;
-      std::stringstream ind_apex_intensity;
-      std::stringstream ind_total_mi;
-      std::stringstream ind_log_intensity;
-      std::stringstream ind_intensity_ratio;
-      std::stringstream ind_mi_ratio;
+      std::vector<String> ind_transition_names;
+      std::vector<double> ind_area_intensity;
+      std::vector<double> ind_total_area_intensity;
+      std::vector<double> ind_intensity_score;
+      std::vector<double> ind_apex_intensity;
+      std::vector<double> ind_total_mi;
+      std::vector<double> ind_log_intensity;
+      std::vector<double> ind_intensity_ratio;
+      std::vector<double> ind_mi_ratio;
 
       std::vector<double> ind_mi_score;
       if (su_.use_mi_score_)
       {
-        ind_mi_score = ListUtils::create<double>((String)idscores.ind_mi_score,';');
+        ind_mi_score = idscores.ind_mi_score;
       }
 
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
-        if (i != 0)
-        {
-          ind_transition_names << ";";
-          ind_area_intensity << ";";
-          ind_total_area_intensity << ";";
-          ind_intensity_score << ";";
-          ind_apex_intensity << ";";
-          ind_total_mi << ";";
-          ind_log_intensity << ";";
-          ind_intensity_ratio << ";";
-          ind_mi_ratio << ";";
-        }
-        ind_transition_names << native_ids_identification[i];
+        ind_transition_names.push_back(native_ids_identification[i]);
         if (idmrmfeature.getFeature(native_ids_identification[i]).getIntensity() > 0)
         {
           double intensity_score = double(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()) / double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
@@ -412,36 +400,36 @@ namespace OpenMS
             if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
           }
 
-          ind_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
-          ind_total_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic");
-          ind_intensity_score << intensity_score;
-          ind_apex_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int");
-          ind_total_mi << total_mi;
-          ind_log_intensity << std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
-          ind_intensity_ratio << intensity_ratio;
-          ind_mi_ratio << mi_ratio;
+          ind_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
+          ind_total_area_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
+          ind_intensity_score.push_back(intensity_score);
+          ind_apex_intensity.push_back(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int"));
+          ind_total_mi .push_back(total_mi);
+          ind_log_intensity.push_back(std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()));
+          ind_intensity_ratio.push_back(intensity_ratio);
+          ind_mi_ratio.push_back(mi_ratio);
         }
         else
         {
-          ind_area_intensity << 0;
-          ind_total_area_intensity << 0;
-          ind_intensity_score << 0;
-          ind_apex_intensity << 0;
-          ind_total_mi << 0;
-          ind_log_intensity << 0;
-          ind_intensity_ratio << 0;
-          ind_mi_ratio << 0;
+          ind_area_intensity.push_back(0);
+          ind_total_area_intensity.push_back(0);
+          ind_intensity_score.push_back(0);
+          ind_apex_intensity.push_back(0);
+          ind_total_mi.push_back(0);
+          ind_log_intensity.push_back(0);
+          ind_intensity_ratio.push_back(0);
+          ind_mi_ratio.push_back(0);
         }
       }
-      idscores.ind_transition_names = ind_transition_names.str();
-      idscores.ind_area_intensity = ind_area_intensity.str();
-      idscores.ind_total_area_intensity = ind_total_area_intensity.str();
-      idscores.ind_intensity_score = ind_intensity_score.str();
-      idscores.ind_apex_intensity = ind_apex_intensity.str();
-      idscores.ind_total_mi = ind_total_mi.str();
-      idscores.ind_log_intensity = ind_log_intensity.str();
-      idscores.ind_intensity_ratio = ind_intensity_ratio.str();
-      idscores.ind_mi_ratio = ind_mi_ratio.str();
+      idscores.ind_transition_names = ind_transition_names;
+      idscores.ind_area_intensity = ind_area_intensity;
+      idscores.ind_total_area_intensity = ind_total_area_intensity;
+      idscores.ind_intensity_score = ind_intensity_score;
+      idscores.ind_apex_intensity = ind_apex_intensity;
+      idscores.ind_total_mi = ind_total_mi;
+      idscores.ind_log_intensity = ind_log_intensity;
+      idscores.ind_intensity_ratio = ind_intensity_ratio;
+      idscores.ind_mi_ratio = ind_mi_ratio;
       idscores.ind_num_transitions = native_ids_identification.size();
     }
 
@@ -449,7 +437,7 @@ namespace OpenMS
     bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
     if (swath_present && su_.use_dia_scores_ && native_ids_identification.size() > 0)
     {
-      std::stringstream ind_isotope_correlation, ind_isotope_overlap, ind_massdev_score;
+      std::vector<double> ind_isotope_correlation, ind_isotope_overlap, ind_massdev_score;
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         OpenSwath_Scores tmp_scores;
@@ -458,19 +446,13 @@ namespace OpenMS
                                     trgr_ident.getTransition(native_ids_identification[i]),
                                     swath_maps, diascoring_, tmp_scores, drift_lower, drift_upper);
 
-        if (i != 0)
-        {
-          ind_isotope_correlation << ";";
-          ind_isotope_overlap << ";";
-          ind_massdev_score << ";";
-        }
-        ind_isotope_correlation << tmp_scores.isotope_correlation;
-        ind_isotope_overlap << tmp_scores.isotope_overlap;
-        ind_massdev_score << tmp_scores.massdev_score;
+        ind_isotope_correlation.push_back(tmp_scores.isotope_correlation);
+        ind_isotope_overlap.push_back(tmp_scores.isotope_overlap);
+        ind_massdev_score.push_back(tmp_scores.massdev_score);
       }
-      idscores.ind_isotope_correlation = ind_isotope_correlation.str();
-      idscores.ind_isotope_overlap = ind_isotope_overlap.str();
-      idscores.ind_massdev_score = ind_massdev_score.str();
+      idscores.ind_isotope_correlation = ind_isotope_correlation;
+      idscores.ind_isotope_overlap = ind_isotope_overlap;
+      idscores.ind_massdev_score = ind_massdev_score;
     }
 
     delete idimrmfeature;
@@ -728,14 +710,13 @@ namespace OpenMS
                                                            swath_maps);
 
           mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
-          mrmfeature->addScore("id_target_num_transitions", idscores.ind_num_transitions);
+          mrmfeature->setMetaValue("id_target_num_transitions", idscores.ind_num_transitions);
           mrmfeature->setMetaValue("id_target_area_intensity", idscores.ind_area_intensity);
           mrmfeature->setMetaValue("id_target_total_area_intensity", idscores.ind_total_area_intensity);
           mrmfeature->setMetaValue("id_target_intensity_score", idscores.ind_intensity_score);
           mrmfeature->setMetaValue("id_target_intensity_ratio_score", idscores.ind_intensity_ratio);
           mrmfeature->setMetaValue("id_target_apex_intensity", idscores.ind_apex_intensity);
           mrmfeature->setMetaValue("id_target_total_mi", idscores.ind_total_mi);
-          mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
           mrmfeature->setMetaValue("id_target_ind_log_intensity", idscores.ind_log_intensity);
           mrmfeature->setMetaValue("id_target_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
           mrmfeature->setMetaValue("id_target_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
@@ -761,7 +742,7 @@ namespace OpenMS
                                                            swath_maps);
 
           mrmfeature->setMetaValue("id_decoy_transition_names", idscores.ind_transition_names);
-          mrmfeature->addScore("id_decoy_num_transitions", idscores.ind_num_transitions);
+          mrmfeature->setMetaValue("id_decoy_num_transitions", idscores.ind_num_transitions);
           mrmfeature->setMetaValue("id_decoy_area_intensity", idscores.ind_area_intensity);
           mrmfeature->setMetaValue("id_decoy_total_area_intensity", idscores.ind_total_area_intensity);
           mrmfeature->setMetaValue("id_decoy_intensity_score", idscores.ind_intensity_score);
