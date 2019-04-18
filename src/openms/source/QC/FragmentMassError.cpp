@@ -278,7 +278,7 @@ namespace OpenMS
   }
 
 
-  std::vector<FragmentMassError::FMEStatistics> FragmentMassError::getResults() const
+  const std::vector<FragmentMassError::FMEStatistics>& FragmentMassError::getResults() const
   {
     return results_;
   }

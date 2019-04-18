@@ -35,16 +35,12 @@
 
 #pragma once
 
-#include <vector>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/QC/QCBase.h>
+#include <vector>
 
 namespace OpenMS
 {
+  class FeatureMap;
   /**
    * @brief This class is a metric for the QualityControl TOPP Tool.
    *

@@ -34,18 +34,15 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
+#include "OpenMS/QC/QCBase.h"
 #include <string>
 #include <vector>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include "OpenMS/QC/QCBase.h"
 
 namespace OpenMS
 {
+  class FeatureMap;
+  class MSExperiment;
   /**
    * @brief This class is a metric for the QualityControl-ToppTool.
    *

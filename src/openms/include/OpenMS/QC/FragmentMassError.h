@@ -83,7 +83,7 @@ namespace OpenMS
     void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const String tolerance_unit = "ppm");
 
     /// returns results
-    std::vector<FMEStatistics> getResults() const;
+    const std::vector<FMEStatistics>& getResults() const;
 
 
     /**
