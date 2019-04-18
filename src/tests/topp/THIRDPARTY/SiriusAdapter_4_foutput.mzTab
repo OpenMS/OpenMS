@@ -3,9 +3,9 @@ MTD	mzTab-mode	null
 MTD	mzTab-type	null
 MTD	description	CSI:FingerID-4.0.1
 MTD	smallmolecule_search_engine_score[1]	[, , score, ]
-MTD	ms_run[1]-location	/Users/alka/Documents/work/software/openms/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_2_input.mzML
+MTD	ms_run[1]-location	/home/alka/software/openms_oa/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_2_input.mzML
 
-SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	modifications	rank	compoundId	compoundScanNumber	featureId	native_id
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	modifications	opt_global_rank	opt_global_compoundId	opt_global_compoundScanNumber	opt_global_featureId	opt_global_native_id
 SML	55574	C21H10O	C1=CC2=C3C(=C1)C=CC4=CC5=CC=CC6=C5C(=C43)C(=C2)C6=O	HIHHXINILQCLMA	""	320.107879171514981	null	null	421.673999999999978	null	null	null	null	null	null	-117.640158756417563	null	1	79	2207006	null	sample=1 period=1 cycle=2207 experiment=6
 SML	55051	C21H10O	C1=CC2=C3C(=C1)C4=C5C(=CC=C4)C=CC6=C5C3=C(C=C2)C6=O	RBNAOTRBNWXQNH	""	320.107879171514981	null	null	421.673999999999978	null	null	null	null	null	null	-122.9378090173077	null	2	79	2207006	null	sample=1 period=1 cycle=2207 experiment=6
 SML	101127975	C21H10O	C1=CC2=CC3=CC=C4C(=O)C=C5C=CC=C6C(=C1)C2=C3C4=C56	RYYXNUSOFMAGIR	""	320.107879171514981	null	null	421.673999999999978	null	null	null	null	null	null	-138.540355231833701	null	3	79	2207006	null	sample=1 period=1 cycle=2207 experiment=6
