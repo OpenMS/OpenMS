@@ -517,6 +517,7 @@ Section "-hidden VSRuntime"
     ClearErrors
     ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /install /passive /norestart' $0
     StrCmp $0 0 vs_install_success
+    StrCmp $0 1638 vs_install_success
     MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Visual Studio redistributable package '${VS_REDISTRIBUTABLE_EXE}' failed! OpenMS will not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
 		
     ## reasons why the install might fail:
