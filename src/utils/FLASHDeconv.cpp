@@ -62,6 +62,7 @@ public:
   {
     vector<IsotopeDistribution> isotopes;
     vector<double> norms;
+    vector<Size> mostAbundantIndices;
 
     double massInterval;
     double minMass;
@@ -87,11 +88,26 @@ public:
         iso.trimRight(0.01 * iso.getMostAbundant().getIntensity());
         isotopes.push_back(iso);
         double norm = .0;
+        Size mostAbundantIndex = 0;
+        double mostAbundantInt = 0;
+
         for (Size k = 0; k < iso.size(); k++)
         {
           norm += iso[k].getIntensity() * iso[k].getIntensity();
+          if (mostAbundantInt >= iso[k].getIntensity())
+          {
+            continue;
+          }
+          mostAbundantInt = iso[k].getIntensity();
+          mostAbundantIndex = k;
         }
+        mostAbundantIndices.push_back(mostAbundantIndex);
         norms.push_back(norm);
+
+
+        //auto mostAbundant = iso.getMostAbundant();
+
+
       }
     }
 
@@ -108,6 +124,13 @@ public:
       i = i >= isotopes.size() ? isotopes.size() - 1 : i;
       return norms[i];
     }
+
+    Size getMostAbundantIndex(double mass){
+      Size i = (Size) (.5 + (mass - minMass) / massInterval);
+      i = i >= isotopes.size() ? isotopes.size() - 1 : i;
+      return mostAbundantIndices[i];
+    }
+
   };
 
   struct LogMzPeak
@@ -1609,8 +1632,6 @@ protected:
                                                     PrecalcularedAveragine &averagines,
                                                     const Parameter &param)
   {
-
-    //removeOverlappingPeakGroups(peakGroups, param.tolerance);
     vector<double> intensities;
     vector<PeakGroup> filteredPeakGroups;
     filteredPeakGroups.reserve(peakGroups.size());
@@ -1622,7 +1643,6 @@ protected:
 
     auto perIsotopeIntensity = new double[param.maxIsotopeCount];
     auto perChargeIntensity = new double[param.chargeRange];
-
 
     for (auto &pg : peakGroups)
     {
@@ -1667,7 +1687,6 @@ protected:
       {
         continue;
       }
-      \
 
       filteredPeakGroups.push_back(pg);
       intensities.push_back(pg.intensity);
@@ -1701,14 +1720,16 @@ protected:
     {
       bool select = true;
       auto &pg = pgs[i];
+      double massTol = pg.monoisotopicMass * tol * 2;
       for (Size j = i + 1; j < pgs.size(); j++)
       {
         auto &pgo = pgs[j];
-        if (pgo.monoisotopicMass - pg.monoisotopicMass > pg.monoisotopicMass * tol * 2)
+        if (!select || pgo.monoisotopicMass - pg.monoisotopicMass > massTol)
         {
           break;
         }
         select &= pg.intensity > pgo.intensity;
+
       }
       if (!select)
       {
@@ -1717,7 +1738,7 @@ protected:
       for (int j = i - 1; j >= 0; j--)
       {
         auto &pgo = pgs[j];
-        if (pg.monoisotopicMass - pgo.monoisotopicMass > pg.monoisotopicMass * tol * 2)
+        if (!select || pg.monoisotopicMass - pgo.monoisotopicMass > massTol)
         {
           break;
         }
@@ -1791,6 +1812,7 @@ protected:
   {
     auto iso = averagines.get(pg.peaks[0].getMass());
     auto isoNorm = averagines.getNorm(pg.peaks[0].getMass());
+    auto isoMostAbundantIndex = averagines.getMostAbundantIndex(pg.peaks[0].getMass());
     int isoSize = (int) iso.size();
 
     //double isoDiff = Constants::C13C12_MASSDIFF_U;// OpenMS::Math::mean(diffs.begin(), diffs.end());
@@ -1837,21 +1859,7 @@ protected:
       pg.push_back(p);
     }
 
-    int mostAbundantIndex = 0;
-    double mostAbundantInt = 0;
-    //auto mostAbundant = iso.getMostAbundant();
-    for (int i = 0; i < isoSize; i++)
-    {
-      if (mostAbundantInt >= iso[i].getIntensity())
-      {
-        continue;
-      }
-      mostAbundantInt = iso[i].getIntensity();
-      mostAbundantIndex = i;
-
-    }
-
-    pg.updateMassesAndIntensity(mostAbundantIndex);
+    pg.updateMassesAndIntensity(isoMostAbundantIndex);
     return maxCosine;
   }
 
