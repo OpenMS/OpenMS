@@ -42,106 +42,104 @@ using namespace std;
 
 namespace OpenMS
 {
-	// check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therfore have a entry in the featureMap)
-	// MS2-Spektra without mate are added in unassignedPeptideIdentifications (only Information m/z and RT)
-	void TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features)
-	{
-		if (features.empty())
-		{
-			LOG_WARN << "The FeatureMap is empty.\n";
-		}
-		if (exp.empty())
-		{
-			throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The mzml file / MSExperiment is empty.\n");
-		}
-		ms2_included_.clear();
-		//ms2_included_.resize(exp.getSpectra.size(),make_pair(0,nullptr));
-		setScanEventNumber_(exp);
-		//if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-		setPresenceAndScanEventNumber_(exp, features);
-		std::cout << "hier4";
-		//if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT and ScanEventNumber
-		addUnassignedPeptideIdentification_(exp, features);
-		std::cout << "hier5";
-	}
-	//if ms2 spetrum not included, add to unassignedPeptideIdentification, set m/z and RT values
-	void TopNoverRT::setScanEventNumber_(const MSExperiment& exp)
-	{
-		UInt32 scan_event_number{ 0 };
-		for (const MSSpectrum& spec : exp.getSpectra())
-		{
-			if (spec.getMSLevel() == 1)
-			{
-				scan_event_number = 0;
-				ms2_included_.push_back(make_pair(scan_event_number, false));
-			}
-			else if (spec.getMSLevel() == 2)
-			{
-				++scan_event_number;
-				ms2_included_.push_back(make_pair(scan_event_number, false));
-			}
-		}
-	}
-	//marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
-	void TopNoverRT::setPresenceAndScanEventNumber_(const MSExperiment& exp, FeatureMap& features)
-	{
-		for (Feature& feature : features)
-		{
-			for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
-			{
-				setPresenceAndScanEventNumber2_(peptide_ID, exp);
-			}
-		}
-		for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
-		{
-			setPresenceAndScanEventNumber2_(unassigned_ID, exp);
-		}
-	}
-	void TopNoverRT::setPresenceAndScanEventNumber2_(PeptideIdentification& peptide_ID, const MSExperiment& exp)
-	{
-		MSExperiment::ConstIterator it = exp.RTBegin(peptide_ID.getRT() - EPSILON_);
-		if (it == exp.end())
-		{
-			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
-		}
+  // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therfore have a entry in the featureMap)
+  // MS2-Spektra without mate are added in unassignedPeptideIdentifications (only Information m/z and RT)
+  void TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features)
+  {
+    if (features.empty())
+    {
+      LOG_WARN << "The FeatureMap is empty.\n";
+    }
+    if (exp.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The mzml file / MSExperiment is empty.\n");
+    }
+    ms2_included_.clear();
+    //ms2_included_.resize(exp.getSpectra.size(),make_pair(0,nullptr));
+    setScanEventNumber_(exp);
+    //if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
+    setPresenceAndScanEventNumber_(exp, features);
+    //if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT and ScanEventNumber
+    addUnassignedPeptideIdentification_(exp, features);
+  }
+  //if ms2 spetrum not included, add to unassignedPeptideIdentification, set m/z and RT values
+  void TopNoverRT::setScanEventNumber_(const MSExperiment& exp)
+  {
+    UInt32 scan_event_number{ 0 };
+    for (const MSSpectrum& spec : exp.getSpectra())
+    {
+      if (spec.getMSLevel() == 1)
+      {
+        scan_event_number = 0;
+        ms2_included_.push_back(make_pair(scan_event_number, false));
+      }
+      else if (spec.getMSLevel() == 2)
+      {
+        ++scan_event_number;
+        ms2_included_.push_back(make_pair(scan_event_number, false));
+      }
+    }
+  }
+  //marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
+  void TopNoverRT::setPresenceAndScanEventNumber_(const MSExperiment& exp, FeatureMap& features)
+  {
+    for (Feature& feature : features)
+    {
+      for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
+      {
+        setPresenceAndScanEventNumber2_(peptide_ID, exp);
+      }
+    }
+    for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
+    {
+      setPresenceAndScanEventNumber2_(unassigned_ID, exp);
+    }
+  }
+  void TopNoverRT::setPresenceAndScanEventNumber2_(PeptideIdentification& peptide_ID, const MSExperiment& exp)
+  {
+    MSExperiment::ConstIterator it = exp.RTBegin(peptide_ID.getRT() - EPSILON_);
+    if (it == exp.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
+    }
 
-		const auto& spectrum = *it;
-		if (spectrum.getRT() - peptide_ID.getRT() > EPSILON_)
-		{
-			throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + String(peptide_ID.getRT()) + " s does not have a matching MS2 spectrum. Closest RT was " + String(spectrum.getRT()) + ", which seems too far off.\n");
-		}
+    const auto& spectrum = *it;
+    if (spectrum.getRT() - peptide_ID.getRT() > EPSILON_)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + String(peptide_ID.getRT()) + " s does not have a matching MS2 spectrum. Closest RT was " + String(spectrum.getRT()) + ", which seems too far off.\n");
+    }
 
-		if (spectrum.getMSLevel() == 2)
-		{
-			ms2_included_[distance(exp.begin(), it)].second = true;
-			peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
-			peptide_ID.setMetaValue("identified", '+');
-		}
-	}
+    if (spectrum.getMSLevel() == 2)
+    {
+      ms2_included_[distance(exp.begin(), it)].second = true;
+      peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
+      peptide_ID.setMetaValue("identified", '+');
+    }
+  }
 
-	void TopNoverRT::addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features)
-	{
-		for (vector<pair<UInt32, bool>>::iterator it = ms2_included_.begin(); it != ms2_included_.end(); it++)
-		{
-			if (!(*it).second)
-			{
-				Size pos = distance(ms2_included_.begin(), it);
-				if (exp[pos].getMSLevel() == 2)
-				{
-					PeptideIdentification unidentified_MS2;
-					unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
-					unidentified_MS2.setMetaValue("ScanEventNumber", (*it).first);
-					unidentified_MS2.setMetaValue("identified", '-');
-					unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
-					features.getUnassignedPeptideIdentifications().push_back(unidentified_MS2);	
-				}
-			}
-		}
-	}
+  void TopNoverRT::addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features)
+  {
+    for (vector<pair<UInt32, bool>>::iterator it = ms2_included_.begin(); it != ms2_included_.end(); it++)
+    {
+      if (!(*it).second)
+      {
+        Size pos = distance(ms2_included_.begin(), it);
+        if (exp[pos].getMSLevel() == 2)
+        {
+          PeptideIdentification unidentified_MS2;
+          unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
+          unidentified_MS2.setMetaValue("ScanEventNumber", (*it).first);
+          unidentified_MS2.setMetaValue("identified", '-');
+          unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
+          features.getUnassignedPeptideIdentifications().push_back(unidentified_MS2);
+        }
+      }
+    }
+  }
 
-	//required input files
-	QCBase::Status TopNoverRT::requires() const
-	{
-		return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
-	}
+  //required input files
+  QCBase::Status TopNoverRT::requires() const
+  {
+    return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
+  }
 }

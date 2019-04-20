@@ -58,133 +58,133 @@ TopNoverRT* nullPointer = nullptr;
 
 START_SECTION(TopNoverRT())
 {
-	ptr = new TopNoverRT;
-	TEST_NOT_EQUAL(ptr, nullPointer);
+  ptr = new TopNoverRT;
+  TEST_NOT_EQUAL(ptr, nullPointer);
 }
 END_SECTION
 
 START_SECTION(~TopNoverRT())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
 START_SECTION(QCBase::Status requires() const override)
 {
-	TopNoverRT top;
-	TEST_EQUAL(top.requires() == (QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT), true);
+  TopNoverRT top;
+  TEST_EQUAL(top.requires() == (QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
 
 START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
 {
-	//Valid FeatureMap
-	FeatureMap fmap;
-	PeptideIdentification peptide_ID;
-	vector<PeptideIdentification> identifications;
-	vector<PeptideIdentification> unassignedIDs;
-	Feature feature1;
-	peptide_ID.setRT(0);
-	identifications.push_back(peptide_ID);
-	peptide_ID.setRT(1);
-	identifications.push_back(peptide_ID);
-	feature1.setPeptideIdentifications(identifications);
-	identifications.clear();
-	fmap.push_back(feature1);
-	peptide_ID.setRT(10);
-	identifications.push_back(peptide_ID);
-	peptide_ID.setRT(12);
-	identifications.push_back(peptide_ID);
-	feature1.setPeptideIdentifications(identifications);
-	fmap.push_back(feature1);
-	//unassigned PeptideHits
-	peptide_ID.setRT(1.5);
-	unassignedIDs.push_back(peptide_ID);
-	peptide_ID.setRT(2.5);
-	unassignedIDs.push_back(peptide_ID);
-	fmap.setUnassignedPeptideIdentifications(unassignedIDs);
-	
-	//MSExperiment
-	PeakMap exp;
-	MSSpectrum spec;
-	Precursor pre;
-	pre.setMZ(5.5);
-	std::vector< MSSpectrum> spectra;
-	spec.setPrecursors({ pre });
-	spec.setMSLevel(2);
-	spec.setRT(0);
-	spectra.push_back(spec);
-	spec.setMSLevel(1);
-	spec.setRT(0.5);
-	spectra.push_back(spec);
-	spec.setMSLevel(2);
-	spec.setRT(1);
-	spectra.push_back(spec);
-	spec.setRT(1.5);
-	spectra.push_back(spec);
-	spec.setRT(2.5);
-	spectra.push_back(spec);
-	spec.setMSLevel(1);
-	spec.setRT(9);
-	spectra.push_back(spec);
-	spec.setMSLevel(2);
-	spec.setRT(10);
-	spectra.push_back(spec);
-	spec.setRT(12);
-	spectra.push_back(spec);
-	//not identified
-	spec.setRT(20);
-	spectra.push_back(spec);
-	exp.setSpectra(spectra);
-	
-	TopNoverRT top;
-	top.compute(exp, fmap);
-	
-	//test features
-	TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
-	TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("identified"), '+');
-	TEST_EQUAL(fmap[0].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 1);
-	TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
-	TEST_EQUAL(fmap[1].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 2);
-	//test unassigned
-	TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 2);
-	TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("identified"), '+');
-	TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 3);
-	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getRT(), 20);
-	TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("ScanEventNumber"), 3);
-	TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("identified"), '-');
-	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getMZ(), 5.5);
+  //Valid FeatureMap
+  FeatureMap fmap;
+  PeptideIdentification peptide_ID;
+  vector<PeptideIdentification> identifications;
+  vector<PeptideIdentification> unassignedIDs;
+  Feature feature1;
+  peptide_ID.setRT(0);
+  identifications.push_back(peptide_ID);
+  peptide_ID.setRT(1);
+  identifications.push_back(peptide_ID);
+  feature1.setPeptideIdentifications(identifications);
+  identifications.clear();
+  fmap.push_back(feature1);
+  peptide_ID.setRT(10);
+  identifications.push_back(peptide_ID);
+  peptide_ID.setRT(12);
+  identifications.push_back(peptide_ID);
+  feature1.setPeptideIdentifications(identifications);
+  fmap.push_back(feature1);
+  //unassigned PeptideHits
+  peptide_ID.setRT(1.5);
+  unassignedIDs.push_back(peptide_ID);
+  peptide_ID.setRT(2.5);
+  unassignedIDs.push_back(peptide_ID);
+  fmap.setUnassignedPeptideIdentifications(unassignedIDs);
 
-	//empty FeatureMap
-	FeatureMap fmap_empty{};
-	top.compute(exp, fmap_empty);
-	TEST_EQUAL(fmap_empty.getUnassignedPeptideIdentifications().size(), 7);
-	//empty feature
-	fmap_empty.clear();
-	Feature feature_empty{};
-	fmap_empty.push_back(feature_empty);
-	top.compute(exp, fmap_empty);
-	TEST_EQUAL(fmap_empty.getUnassignedPeptideIdentifications().size(), 7);
-	//empty PeptideIdentifications
-	identifications.clear();
-	fmap_empty.clear();
-	feature_empty.setPeptideIdentifications(identifications);
-	fmap_empty.setUnassignedPeptideIdentifications(identifications);
-	fmap_empty.push_back(feature_empty);
-	top.compute(exp, fmap_empty);
-	TEST_EQUAL(fmap_empty.getUnassignedPeptideIdentifications().size(), 7);
-	//empty MSExperiment
-	PeakMap exp_empty{};
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, top.compute(exp_empty, fmap), "The mzml file / MSExperiment is empty.\n");
+  //MSExperiment
+  PeakMap exp;
+  MSSpectrum spec;
+  Precursor pre;
+  pre.setMZ(5.5);
+  std::vector< MSSpectrum> spectra;
+  spec.setPrecursors({ pre });
+  spec.setMSLevel(2);
+  spec.setRT(0);
+  spectra.push_back(spec);
+  spec.setMSLevel(1);
+  spec.setRT(0.5);
+  spectra.push_back(spec);
+  spec.setMSLevel(2);
+  spec.setRT(1);
+  spectra.push_back(spec);
+  spec.setRT(1.5);
+  spectra.push_back(spec);
+  spec.setRT(2.5);
+  spectra.push_back(spec);
+  spec.setMSLevel(1);
+  spec.setRT(9);
+  spectra.push_back(spec);
+  spec.setMSLevel(2);
+  spec.setRT(10);
+  spectra.push_back(spec);
+  spec.setRT(12);
+  spectra.push_back(spec);
+  //not identified
+  spec.setRT(20);
+  spectra.push_back(spec);
+  exp.setSpectra(spectra);
 
-	//test exceptions spectrum.getRT() - peptide_ID.getRT() > EPSILON_
-	exp.getSpectra()[0].setRT(0.25);
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "PeptideID with RT " + String(0.0) + " s does not have a matching MS2 spectrum. Closest RT was " + String(0.25) + ", which seems too far off.\n");
-	//test exception rt>end()
-	exp.getSpectra()[0].setRT(0);
-	fmap[1].getPeptideIdentifications()[1].setRT(50);
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "The retention time of the MZML and featureXML file does not match.");
-	}
+  TopNoverRT top;
+  top.compute(exp, fmap);
+
+  //test features
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("identified"), '+');
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 1);
+  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
+  TEST_EQUAL(fmap[1].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 2);
+  //test unassigned
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 2);
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("identified"), '+');
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 3);
+  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getRT(), 20);
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("ScanEventNumber"), 3);
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("identified"), '-');
+  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getMZ(), 5.5);
+
+  //empty FeatureMap
+  FeatureMap fmap_empty{};
+  top.compute(exp, fmap_empty);
+  TEST_EQUAL(fmap_empty.getUnassignedPeptideIdentifications().size(), 7);
+  //empty feature
+  fmap_empty.clear();
+  Feature feature_empty{};
+  fmap_empty.push_back(feature_empty);
+  top.compute(exp, fmap_empty);
+  TEST_EQUAL(fmap_empty.getUnassignedPeptideIdentifications().size(), 7);
+  //empty PeptideIdentifications
+  identifications.clear();
+  fmap_empty.clear();
+  feature_empty.setPeptideIdentifications(identifications);
+  fmap_empty.setUnassignedPeptideIdentifications(identifications);
+  fmap_empty.push_back(feature_empty);
+  top.compute(exp, fmap_empty);
+  TEST_EQUAL(fmap_empty.getUnassignedPeptideIdentifications().size(), 7);
+  //empty MSExperiment
+  PeakMap exp_empty{};
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, top.compute(exp_empty, fmap), "The mzml file / MSExperiment is empty.\n");
+
+  //test exceptions spectrum.getRT() - peptide_ID.getRT() > EPSILON_
+  exp.getSpectra()[0].setRT(0.25);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "PeptideID with RT " + String(0.0) + " s does not have a matching MS2 spectrum. Closest RT was " + String(0.25) + ", which seems too far off.\n");
+  //test exception rt>end()
+  exp.getSpectra()[0].setRT(0);
+  fmap[1].getPeptideIdentifications()[1].setRT(50);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "The retention time of the MZML and featureXML file does not match.");
+  }
 END_SECTION
 
 /////////////////////////////////////////////////////////////

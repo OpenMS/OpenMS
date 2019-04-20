@@ -37,42 +37,42 @@
 
 namespace OpenMS
 {
-	class FeatureMap;
-	class MSExperiment;
-	class TransformationDescription;
-	/**
-		@brief TopNoverRT add all unidentified MS2 scans to the unassignedPeptideIdentifications specifying the retention time value and 
-		sets the metaValues "ScanEventNumber" and "identified" for each PeptideIdentifications. The values of "ScanEventNumber" correspond to the number 
-		of the MS2 scan after the MS1 scan. "identified" marked all PeptideIdentifications of the FeatureMap with '+' and 
-		all unidentified MS2-Spectra with '-'. Once all these data are included, you can determine the number of MS2 scans 
-		after one MS1 scan and the part of identified MS2-Scans per "ScanEventNumber".
-		@param exp: import calibrated mzml file as MSExperiment
-		@param features: import featureXML file after FDR as FeatrueMap
-		**/
-	class OPENMS_DLLAPI TopNoverRT : public QCBase
-	{
-	public:
-		/// Constructor
-		TopNoverRT() = default;
-		/// Destructor
-		virtual ~TopNoverRT() = default;
+  class FeatureMap;
+  class MSExperiment;
+  class TransformationDescription;
+  /**
+    @brief TopNoverRT add all unidentified MS2 scans to the unassignedPeptideIdentifications specifying the retention time value and
+    sets the metaValues "ScanEventNumber" and "identified" for each PeptideIdentifications. The values of "ScanEventNumber" correspond to the number
+    of the MS2 scan after the MS1 scan. "identified" marked all PeptideIdentifications of the FeatureMap with '+' and
+    all unidentified MS2-Spectra with '-'. Once all these data are included, you can determine the number of MS2 scans
+    after one MS1 scan and the part of identified MS2-Scans per "ScanEventNumber".
+    @param exp: import calibrated mzml file as MSExperiment
+    @param features: import featureXML file after FDR as FeatrueMap
+    **/
+  class OPENMS_DLLAPI TopNoverRT : public QCBase
+  {
+  public:
+    /// Constructor
+    TopNoverRT() = default;
+    /// Destructor
+    virtual ~TopNoverRT() = default;
 
-		/// calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications. Writes meta values "ScanEventNumber" and "identified" in PeptideIdentification
-		void compute(const MSExperiment& exp, FeatureMap& features);
-		/// define the required input file: featureXML after FDR (=POSTFDRFEAT), mzml-file (MSExperiment) with all MS2-Spectra (=RAWMZML)
-		Status requires() const override;
+    /// calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications. Writes meta values "ScanEventNumber" and "identified" in PeptideIdentification
+    void compute(const MSExperiment& exp, FeatureMap& features);
+    /// define the required input file: featureXML after FDR (=POSTFDRFEAT), mzml-file (MSExperiment) with all MS2-Spectra (=RAWMZML)
+    Status requires() const override;
 
-	private:
-		///error tolerance RT
-		double EPSILON_{ 0.05 };
-		///ms2_included_ contains for every spectrum the information "ScanEventNumber" and presence MS2-scan in PeptideIDs
-		std::vector<std::pair<UInt32, bool>> ms2_included_{};
-		///compute "ScanEventNumber" for every spectrum: MS1=0, MS2=1-n, write into ms2_included_
-		void setScanEventNumber_(const MSExperiment& exp);
-		///set ms2_included_ bool to true, if PeptideID exist and set "ScanEventNumber" for every PeptideID
-		void setPresenceAndScanEventNumber_(const MSExperiment& exp, FeatureMap& features);
-		void setPresenceAndScanEventNumber2_(PeptideIdentification& peptide_ID, const MSExperiment& exp);
-		///add all unidentified MS2-Scans to unassignedPeptideIDs, the new unassignedPeptideIDs contains only Information about RT and "ScanEventNumber" 
-		void addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features) ;
-	};
+  private:
+    ///error tolerance RT
+    double EPSILON_{ 0.05 };
+    ///ms2_included_ contains for every spectrum the information "ScanEventNumber" and presence MS2-scan in PeptideIDs
+    std::vector<std::pair<UInt32, bool>> ms2_included_{};
+    ///compute "ScanEventNumber" for every spectrum: MS1=0, MS2=1-n, write into ms2_included_
+    void setScanEventNumber_(const MSExperiment& exp);
+    ///set ms2_included_ bool to true, if PeptideID exist and set "ScanEventNumber" for every PeptideID
+    void setPresenceAndScanEventNumber_(const MSExperiment& exp, FeatureMap& features);
+    void setPresenceAndScanEventNumber2_(PeptideIdentification& peptide_ID, const MSExperiment& exp);
+    ///add all unidentified MS2-Scans to unassignedPeptideIDs, the new unassignedPeptideIDs contains only Information about RT and "ScanEventNumber"
+    void addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features) ;
+  };
 }
