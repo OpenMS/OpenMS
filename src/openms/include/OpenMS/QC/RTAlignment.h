@@ -37,26 +37,31 @@
 
 namespace OpenMS
 {
-	class FeatureMap;
+  class FeatureMap;
 
-	class TransformationDescription;
-	/**
-		@brief take the original retention time before map alignment and use the transformation information of the post alignment trafoXML
-		for calculation of the post map alignment retention times.
-		@param trafo: Transformation information of map alignment
-		@param features: featureMap before map alignment, contains original retention time
-		**/
-	class OPENMS_DLLAPI RTAlignment : public QCBase
-	{
-		public:
-		/// Constructor
-		RTAlignment() = default;
-		/// Destructor
-		virtual ~RTAlignment() = default;
+  class TransformationDescription;
+  /**
+    @brief take the original retention time before map alignment and use the transformation information of the post alignment trafoXML
+    for calculation of the post map alignment retention times. Set meta values "rt_raw" and "rt_align" in PeptideIdentifications of the featureMap
+    @param trafo: Transformation information of map alignment
+    @param features: featureMap before map alignment, contains original retention time
+    **/
+  class OPENMS_DLLAPI RTAlignment : public QCBase
+  {
+    public:
+    /// Constructor
+    RTAlignment() = default;
+    /// Destructor
+    virtual ~RTAlignment() = default;
 
-		/// calculate post map alignment retention time, set meta values "rt_raw" and "rt_align"
-		void compute(FeatureMap& features, const TransformationDescription& trafo);
-		/// define the required input file: featureXML before map alignment (=POSTFDRFEAT), trafoXML after map alignment (=TRAFOALIGN)
-		Status requires() const override;
-	};
+    /**
+     @brief Calculates post map alignment retention time
+     and sets meta values "rt_raw" and "rt_align" in PeptideIdentification
+     @param features: FeatureMap where the meta values are annotated
+     @param trafo: Transformation information to get needed data from
+    **/
+    void compute(FeatureMap& features, const TransformationDescription& trafo);
+    /// define the required input file: featureXML before map alignment (=POSTFDRFEAT), trafoXML after map alignment (=TRAFOALIGN)
+    Status requires() const override;
+  };
 }

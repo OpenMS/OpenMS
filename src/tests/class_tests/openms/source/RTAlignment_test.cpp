@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Chris Bielow, Juliane Schmachtenberg $
+// $Maintainer: Chris Bielow
+// $Authors: Juliane Schmachtenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -57,103 +57,103 @@ RTAlignment* nullPointer = nullptr;
 
 START_SECTION(RTAlignment())
 {
-	ptr = new RTAlignment;
-	TEST_NOT_EQUAL(ptr, nullPointer);
+  ptr = new RTAlignment;
+  TEST_NOT_EQUAL(ptr, nullPointer);
 }
 END_SECTION
 
 START_SECTION(~RTAlignment())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
 START_SECTION(QCBase::Status requires() const override)
 {
-	RTAlignment rtA;
-	TEST_EQUAL(rtA.requires() == (QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::POSTFDRFEAT), true);
+  RTAlignment rtA;
+  TEST_EQUAL(rtA.requires() == (QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
 
 START_SECTION((compute(FeatureMap& features, TransformationDescription& trafo)))
 {
-	//Valid FeatureMap
-	FeatureMap fmap;
-	PeptideIdentification peptide_ID;
-	vector<PeptideIdentification> identifications;
-	vector<PeptideIdentification> unassignedIDs;
-	Feature feature1, feature2;
-	peptide_ID.setRT(0);
-	identifications.push_back(peptide_ID);
-	peptide_ID.setRT(1);
-	identifications.push_back(peptide_ID);
-	feature1.setPeptideIdentifications(identifications);
-	identifications.clear();
-	fmap.push_back(feature1);
-	peptide_ID.setRT(10);
-	identifications.push_back(peptide_ID);
-	peptide_ID.setRT(12);
-	identifications.push_back(peptide_ID);
-	feature2.setPeptideIdentifications(identifications);
-	fmap.push_back(feature2);
-	//unassigned PeptideHits
-	peptide_ID.setRT(0.5);
-	unassignedIDs.push_back(peptide_ID);
-	peptide_ID.setRT(2.5);
-	unassignedIDs.push_back(peptide_ID);
-	fmap.setUnassignedPeptideIdentifications(unassignedIDs);
-		
-	//Transformation
-	TransformationDescription td;
-	td.fitModel("identity", Param());
-	vector<pair<double, double> > pairs;
-	pairs.push_back(make_pair(0.0, 1.0));
-	pairs.push_back(make_pair(0.25, 1.5));
-	pairs.push_back(make_pair(0.5, 2.0));
-	pairs.push_back(make_pair(1.0, 3.0));
-	td.setDataPoints(pairs);
-	Param params;
-	td.fitModel("linear", params);
-	RTAlignment rtA;
-	rtA.compute(fmap, td);
-	//test features
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getMetaValue("rt_align"), 1);
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getMetaValue("rt_raw"), 0);
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("rt_align"), 3);
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("rt_raw"), 1);
-	TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[0].getMetaValue("rt_align"), 21);
-	TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[0].getMetaValue("rt_raw"), 10);
-	//test unassigned
-	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("rt_align"), 2);
-	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("rt_raw"), 0.5);
-	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("rt_align"), 6);
-	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("rt_raw"), 2.5);
+  //Valid FeatureMap
+  FeatureMap fmap;
+  PeptideIdentification peptide_ID;
+  vector<PeptideIdentification> identifications;
+  vector<PeptideIdentification> unassignedIDs;
+  Feature feature1, feature2;
+  peptide_ID.setRT(0);
+  identifications.push_back(peptide_ID);
+  peptide_ID.setRT(1);
+  identifications.push_back(peptide_ID);
+  feature1.setPeptideIdentifications(identifications);
+  identifications.clear();
+  fmap.push_back(feature1);
+  peptide_ID.setRT(10);
+  identifications.push_back(peptide_ID);
+  peptide_ID.setRT(12);
+  identifications.push_back(peptide_ID);
+  feature2.setPeptideIdentifications(identifications);
+  fmap.push_back(feature2);
+  //unassigned PeptideHits
+  peptide_ID.setRT(0.5);
+  unassignedIDs.push_back(peptide_ID);
+  peptide_ID.setRT(2.5);
+  unassignedIDs.push_back(peptide_ID);
+  fmap.setUnassignedPeptideIdentifications(unassignedIDs);
 
-	//empty FeatureMap
-	FeatureMap fmap_empty{};
-	rtA.compute(fmap_empty, td);
-	//empty feature
-	Feature feature_empty{};
-	fmap_empty.push_back(feature_empty);
-	rtA.compute(fmap_empty, td);
-	//empty PeptideIdentifications
-	identifications.clear();
-	feature1.setPeptideIdentifications(identifications);
-	fmap_empty.push_back(feature1);
-	rtA.compute(fmap_empty, td);
-	//empty PeptideIdentification
-	PeptideIdentification peptide_ID_empty{};
-	identifications.push_back(peptide_ID_empty);
-	feature1.setPeptideIdentifications(identifications);
-	fmap_empty.push_back(feature1);
-	rtA.compute(fmap_empty, td);
+  //Transformation
+  TransformationDescription td;
+  td.fitModel("identity", Param());
+  vector<pair<double, double> > pairs;
+  pairs.push_back(make_pair(0.0, 1.0));
+  pairs.push_back(make_pair(0.25, 1.5));
+  pairs.push_back(make_pair(0.5, 2.0));
+  pairs.push_back(make_pair(1.0, 3.0));
+  td.setDataPoints(pairs);
+  Param params;
+  td.fitModel("linear", params);
+  RTAlignment rtA;
+  rtA.compute(fmap, td);
+  //test features
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getMetaValue("rt_align"), 1);
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getMetaValue("rt_raw"), 0);
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("rt_align"), 3);
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("rt_raw"), 1);
+  TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[0].getMetaValue("rt_align"), 21);
+  TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[0].getMetaValue("rt_raw"), 10);
+  //test unassigned
+  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("rt_align"), 2);
+  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("rt_raw"), 0.5);
+  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("rt_align"), 6);
+  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("rt_raw"), 2.5);
 
-	//data processing: after alignment
-	DataProcessing processing_method{};
-	std::set<DataProcessing::ProcessingAction> dp{ DataProcessing::ProcessingAction::ALIGNMENT };
-	processing_method.setProcessingActions(dp);
-	fmap.setDataProcessing({ processing_method });
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, rtA.compute(fmap, td), "Metric RTAlignment received a featureXML AFTER map alignment, but need a featureXML BEFORE map alignment");
+  //empty FeatureMap
+  FeatureMap fmap_empty{};
+  rtA.compute(fmap_empty, td);
+  //empty feature
+  Feature feature_empty{};
+  fmap_empty.push_back(feature_empty);
+  rtA.compute(fmap_empty, td);
+  //empty PeptideIdentifications
+  identifications.clear();
+  feature1.setPeptideIdentifications(identifications);
+  fmap_empty.push_back(feature1);
+  rtA.compute(fmap_empty, td);
+  //empty PeptideIdentification
+  PeptideIdentification peptide_ID_empty{};
+  identifications.push_back(peptide_ID_empty);
+  feature1.setPeptideIdentifications(identifications);
+  fmap_empty.push_back(feature1);
+  rtA.compute(fmap_empty, td);
+
+  //data processing: after alignment
+  DataProcessing processing_method{};
+  std::set<DataProcessing::ProcessingAction> dp{ DataProcessing::ProcessingAction::ALIGNMENT };
+  processing_method.setProcessingActions(dp);
+  fmap.setDataProcessing({ processing_method });
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, rtA.compute(fmap, td), "Metric RTAlignment received a featureXML AFTER map alignment, but need a featureXML BEFORE map alignment");
 
 }
 END_SECTION
