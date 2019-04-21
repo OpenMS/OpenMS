@@ -51,13 +51,13 @@
 #include <vector>
 
 namespace OpenMS
-{ 
+{
   class EmpiricalFormula;
 
   class OPENMS_DLLAPI AdductInfo
   {
 
-  public: 
+  public:
     /**
       C'tor, to build a representation of an adduct.
 
@@ -85,6 +85,9 @@ namespace OpenMS
 
     /// original string used for parsing
     const String& getName() const;
+
+    /// EF of adduct itself. Useful for comparison with feature adduct annotation
+    const EmpiricalFormula& getEmpiricalFormula() const;
 
     /// parse an adduct string containing a formula (must contain 'M') and charge, separated by ';'.
     /// e.g. M+H;1+
@@ -190,7 +193,7 @@ namespace OpenMS
     /// return trace intensities of the underlying feature;
     const std::vector<double>& getMasstraceIntensities() const;
     void setMasstraceIntensities(const std::vector<double>&);
-    
+
     double getIsotopesSimScore() const;
     void setIsotopesSimScore(const double&);
 
@@ -214,7 +217,7 @@ private:
     String found_adduct_;
     String empirical_formula_;
     std::vector<String> matching_hmdb_ids_;
-    
+
     std::vector<double> mass_trace_intensities_;
     double isotopes_sim_score_;
   };
@@ -235,9 +238,9 @@ private:
     only the absolute value is used since many FeatureFinders will only report positive charges even in negative ion mode.
     Entities with charge=0 are treated as "unknown charge" and are tested with all potential adducts and subsequently matched against the database.
 
-    A file with a list of potential adducts can be given for each mode separately. 
+    A file with a list of potential adducts can be given for each mode separately.
     Each line contains a chemical formula (plus quantor) and a charge (separated by semicolon), e.g.
-    M+H;1+ 
+    M+H;1+
     The M can be preceded by a quantor (e.g.2M, 3M), implicitly assumed as 1.
     The chemical formula can contain multiple segments, separated by + or - operators, e.g. M+H-H2O;+1 (water loss in positive mode).
     Brackets are implicit per segment, i.e. M+H-H2O is parsed as M + (H) - (H2O).
@@ -264,10 +267,11 @@ public:
     ~AccurateMassSearchEngine() override;
 
     /**
-      @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
+      @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database.
+      If use_feature_adducts is activated, queryByMZ uses annotated, observed adducts as EmpiricalFormulas, restricting M+X candidates.
 
        */
-    void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct = EmpiricalFormula()) const;
     void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
     void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
 
@@ -332,7 +336,7 @@ private:
 
       return ion_mode_internal;
     }
-    
+
     void parseMappingFile_(const StringList&);
     void parseStructMappingFile_(const StringList&);
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
@@ -409,4 +413,3 @@ private:
   };
 
 }
-
