@@ -430,25 +430,27 @@ protected:
       auto t_start = chrono::high_resolution_clock::now();
       //continue;
       auto peakGroups = Deconvolution(map, param, averagines, specCntr, qspecCntr, massCntr);
-      auto t_end = chrono::high_resolution_clock::now();
-      auto end = clock();
-      elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
-      elapsed_wall_secs = chrono::duration<double>(t_end - t_start).count();
-
-      cout << endl << "writing results ...";
-      cout.flush();
-
-
-      for (auto &pg : peakGroups)
-      {
-        //  writePeakGroup(pg, param, fs, fsm, fsp);
-      }
-      cout << "done" << endl;
 
       if (param.RTwindow > 0 && !peakGroups.empty() && specCntr > 0 && map.size() > 1)
       {
         findFeatures(peakGroups, map, featureCntr, fsf, param);
       }
+
+      auto t_end = chrono::high_resolution_clock::now();
+      auto end = clock();
+      elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
+      elapsed_wall_secs = chrono::duration<double>(t_end - t_start).count();
+
+      /*cout << endl << "writing results ...";
+      cout.flush();
+
+      for (auto &pg : peakGroups)
+      {
+        //  writePeakGroup(pg, param, fs, fsm, fsp);
+      }
+
+      cout << "done" << endl;
+      */
 
       if (isOutPathDir)
       {
@@ -489,11 +491,17 @@ protected:
         total_massCntr = massCntr;
         total_featureCntr = featureCntr;
       }
+      cout << "-- done [took " << elapsed_cpu_secs << " s (CPU), " << elapsed_wall_secs
+           << " s (Wall)] --"
+           << endl;
+      cout << "-- per spectrum [took " << 1000.0 * elapsed_cpu_secs / specCntr
+           << " ms (CPU), " << 1000.0 * elapsed_wall_secs / specCntr << " ms (Wall)] --" << endl;
+
       total_elapsed_cpu_secs += elapsed_cpu_secs;
       total_elapsed_wall_secs += elapsed_wall_secs;
     }
 
-    cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " << total_elapsed_wall_secs
+    cout << "Total elapsed time\n-- done [took " << total_elapsed_cpu_secs << " s (CPU), " << total_elapsed_wall_secs
          << " s (Wall)] --"
          << endl;
     cout << "-- per spectrum [took " << 1000.0 * total_elapsed_cpu_secs / total_specCntr
@@ -611,7 +619,6 @@ protected:
           charges[p.charge] = true;
         }
       }
-
 
       auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
@@ -746,8 +753,8 @@ protected:
     double &intensity = pg.intensity;
     int nm = getNominalMass(m);
     sort(pg.peaks.begin(), pg.peaks.end());
-    int minCharge = 100;
-    int maxCharge = 0;
+    int minCharge = param.chargeRange + param.minCharge;
+    int maxCharge = -1;
     for (auto &p : pg.peaks)
     {
       minCharge = minCharge < p.charge ? minCharge : p.charge;
