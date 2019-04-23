@@ -42,6 +42,9 @@ using namespace std;
 
 namespace OpenMS
 {
+  /// error tolerance RT
+  const double EPSILON_{ 0.05 };
+
   // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therfore have a entry in the featureMap)
   // MS2-Spektra without mate are added in unassignedPeptideIdentifications (only Information m/z and RT)
   void TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features)
@@ -66,7 +69,7 @@ namespace OpenMS
   void TopNoverRT::setScanEventNumber_(const MSExperiment& exp)
   {
     ms2_included_.clear();
-    ms2_included_.reserve(exp.size()-1);
+    ms2_included_.reserve(exp.size());
     UInt32 scan_event_number{ 0 };
     for (const MSSpectrum& spec : exp.getSpectra())
     {

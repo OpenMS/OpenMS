@@ -69,13 +69,13 @@ namespace OpenMS
     virtual ~TopNoverRT() = default;
 
     /**
-      @brief calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications,
+      @brief Calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications,
              write meta values "ScanEventNumber" and "identified" in PeptideIdentification.
-      @param exp: imported calibrated MzML file as MSExperiment
-      @param features: imported featureXML file after FDR as FeatureMap
-      @throws MissingInformation: if exp is empty
-      @throws IllegalArgument: if retention time of the MzML and featureXML file does not match
-      @throws IllegalArgument: if a peptide identification does not have a corresponding MS2 scan
+      @param exp Imported calibrated MzML file as MSExperiment
+      @param features Imported featureXML file after FDR as FeatureMap
+      @throws MissingInformation If exp is empty
+      @throws IllegalArgument If retention time of the MzML and featureXML file does not match
+      @throws IllegalArgument If a peptide identification does not have a corresponding MS2 scan
     **/
     void compute(const MSExperiment& exp, FeatureMap& features);
 
@@ -83,8 +83,6 @@ namespace OpenMS
     Status requires() const override;
 
   private:
-    /// error tolerance RT
-    double EPSILON_{ 0.05 };
 
     /// ms2_included_ contains for every spectrum the information "ScanEventNumber" and presence MS2-scan in PeptideIDs
     std::vector<ScanEvent> ms2_included_{};
