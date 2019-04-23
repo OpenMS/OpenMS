@@ -34,67 +34,74 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h>
 #include "OpenMS/QC/QCBase.h"
-#include <string>
 #include <vector>
 
 namespace OpenMS
 {
   class FeatureMap;
   class MSExperiment;
-  /**
-   * @brief This class is a metric for the QualityControl-ToppTool.
-   *
-   * This class computes the MS2 Identification Rate given a FeatureMap and an MSExperiment.
-   */
-  class OPENMS_DLLAPI Ms2IdentificationRate : QCBase
+  
+  class OPENMS_DLLAPI FragmentMassError : QCBase
   {
   public:
-    /// Structure for storing results
-    struct IdentificationRateData
+
+    enum class ToleranceUnit
     {
-      UInt64 num_peptide_identification;
-      UInt64 num_ms2_spectra;
-      double identification_rate;
+      PPM,
+      DA
     };
+
+
+    /// Default constructor
+    FragmentMassError() = default;
+
+    /// Destructor
+    virtual ~FragmentMassError() = default;
+
+    /**
+     * @brief Structure for storing results: average and variance of all FragmentMassErrors in ppm
+     */
+    struct FMEStatistics
+    {
+      double average_ppm = 0;
+      double variance_ppm = 0;
+    };
+
+    /**
+     * @brief computes FragmentMassError in ppm
+     *
+     * stores average and variance of FragmentMassErrors in ppm as a struct in a vector
+     * each FragmentMassError (in ppm) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_ppm"
+     * each FragmentMassError (in Da) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_da"
+     *
+     * @param fmap Input FeatureMap for annotation and data for theoretical spectra
+     * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
+     * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
+     * @param tolerance_unit_ppm Tolerance in ppm or m/z
+     * @throws Exception::Precondition MSExperiment is not sorted by ascending RT, catch by TOPPTool
+     * @throws Exception::IllegalArgument Retention time of the mzML and featureXML file does not match
+     * @throws Exception::IllegalArgument PeptideID does not have a matching MS2 Spectrum
+     * @throws Exception::IllegalArgument Missing MS2 spectrum at RT of a PepID
+     * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
+     * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
+     */
+    void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit tolerance_unit = ToleranceUnit::PPM);
+
+    /// returns results
+    const std::vector<FMEStatistics>& getResults() const;
+
+
+    /**
+    * @brief Returns the input data requirements of the compute(...) function
+    * @return Status for RAWMZML and POSTFDRFEAT
+    */
+    QCBase::Status requires() const override;
+
 
   private:
     /// container that stores results
-    std::vector<IdentificationRateData> rate_result_;
-
-  public:
-    /// Default constructor
-    Ms2IdentificationRate() = default;
-
-    /// Destructor
-    virtual ~Ms2IdentificationRate() = default;
-
-    /**
-     * @brief computes Ms2 Identification Rate
-     *
-     * stores results as a struct in a vector
-     * Only pep-ids with FDR metavalue annotation as 'target' are counted, unless force_fdr flag is set (assumes all pep-ids are target peptides)
-     *
-     * @param feature_map Input featuremap with target/decoy annotation
-     * @param exp MSExperiment for counting number of MS2 spectra
-     * @param force_fdr bool for forceflag
-     * @exception Exception::MissingInformation is thrown if the FeatureXML is empty
-     * @exception Exception::MissingInformation is thrown if the mzML is empty
-     * @exception Exception::MissingInformation is thrown if the experiment doesn't contain ms2 spectra
-     * @exception Exception::Precondition is thrown if there are more identifications than ms2 spectra
-     */
-    void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
-
-    /// returns results
-    const std::vector<IdentificationRateData>& getResults() const;
-
-    /**
-     * @brief Returns the input data requirements of the compute(...) function
-     * @return Status for RAWMZML and POSTFDRFEAT
-     */
-    QCBase::Status requires() const override;
-
+    std::vector<FMEStatistics> results_{};
   };
 
-} // namespace OpenMS
+} //namespace OpenMS

@@ -58,6 +58,8 @@ namespace OpenMS
 
     struct ScanEvent
     {
+      ScanEvent(const UInt32 sen, const bool ms2_present)
+        : scan_event_number(sen), ms2_presence(ms2_present) {}
       UInt32 scan_event_number;
       bool ms2_presence;
     };

@@ -32,8 +32,12 @@
 // $Authors: Swenja Wagner, Patricia Scheil $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/MissedCleavages.h>
 #include <iostream>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/QC/MissedCleavages.h>
 
 namespace OpenMS
 {

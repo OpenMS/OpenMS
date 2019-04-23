@@ -16,6 +16,8 @@ set(concept_executables_list
   UniqueIdInterface_test
 )
 set(qc_executables_list
+  Contaminants_test
+  FragmentMassError_test
   MissedCleavages_test
   Ms2IdentificationRate_test
   RTAlignment_test
