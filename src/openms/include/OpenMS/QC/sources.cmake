@@ -10,6 +10,7 @@ set(sources_list_h
   QCBase.h
   RTAlignment.h
   TIC.h
+  TopNoverRT.h
 )
 
 ### add path to the filenames

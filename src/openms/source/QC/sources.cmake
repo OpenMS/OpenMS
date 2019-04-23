@@ -10,6 +10,7 @@ set(sources_list
     QCBase.cpp
     RTAlignment.cpp
     TIC.cpp
+    TopNoverRT.cpp
     )
 
 
