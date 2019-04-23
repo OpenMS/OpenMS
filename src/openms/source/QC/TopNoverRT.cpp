@@ -57,15 +57,15 @@ namespace OpenMS
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The mzml file / MSExperiment is empty.\n");
     }
-    //ms2_included_.resize(exp.getSpectra.size(),make_pair(0,nullptr));
+    // ms2_included_.resize(exp.getSpectra.size(),make_pair(0,nullptr));
     setScanEventNumber_(exp);
-    //if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
+    // if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
     auto f = [&exp,this] (PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id,exp); };
     iterateFeatureMap(features, f);
-    //if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT and ScanEventNumber
+    // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT and ScanEventNumber
     addUnassignedPeptideIdentification_(exp, features);
   }
-  //if ms2 spetrum not included, add to unassignedPeptideIdentification, set m/z and RT values
+  // if ms2 spetrum not included, add to unassignedPeptideIdentification, set m/z and RT values
   void TopNoverRT::setScanEventNumber_(const MSExperiment& exp)
   {
     ms2_included_.clear();
@@ -86,7 +86,7 @@ namespace OpenMS
     }
   }
 
-  //marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
+  // marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
   void TopNoverRT::setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp)
   {
     MSExperiment::ConstIterator it = exp.RTBegin(peptide_ID.getRT() - EPSILON_);
@@ -111,7 +111,7 @@ namespace OpenMS
 
   void TopNoverRT::addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features)
   {
-    for (vector<ScanEvent>::iterator it = ms2_included_.begin(); it != ms2_included_.end(); it++)
+    for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
       if (!(*it).ms2_presence)
       {
@@ -129,7 +129,7 @@ namespace OpenMS
     }
   }
 
-  //required input files
+  // required input files
   QCBase::Status TopNoverRT::requires() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
