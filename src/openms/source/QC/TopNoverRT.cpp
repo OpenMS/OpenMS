@@ -54,48 +54,37 @@ namespace OpenMS
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The mzml file / MSExperiment is empty.\n");
     }
-    ms2_included_.clear();
     //ms2_included_.resize(exp.getSpectra.size(),make_pair(0,nullptr));
     setScanEventNumber_(exp);
     //if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-    setPresenceAndScanEventNumber_(exp, features);
+    auto f = [&exp,this] (PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id,exp); };
+    iterateFeatureMap(features, f);
     //if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT and ScanEventNumber
     addUnassignedPeptideIdentification_(exp, features);
   }
   //if ms2 spetrum not included, add to unassignedPeptideIdentification, set m/z and RT values
   void TopNoverRT::setScanEventNumber_(const MSExperiment& exp)
   {
+    ms2_included_.clear();
+    ms2_included_.reserve(exp.size()-1);
     UInt32 scan_event_number{ 0 };
     for (const MSSpectrum& spec : exp.getSpectra())
     {
       if (spec.getMSLevel() == 1)
       {
         scan_event_number = 0;
-        ms2_included_.push_back(make_pair(scan_event_number, false));
+        ms2_included_.emplace_back(scan_event_number, false);
       }
       else if (spec.getMSLevel() == 2)
       {
         ++scan_event_number;
-        ms2_included_.push_back(make_pair(scan_event_number, false));
+        ms2_included_.emplace_back(scan_event_number, false);
       }
     }
   }
+
   //marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
-  void TopNoverRT::setPresenceAndScanEventNumber_(const MSExperiment& exp, FeatureMap& features)
-  {
-    for (Feature& feature : features)
-    {
-      for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
-      {
-        setPresenceAndScanEventNumber2_(peptide_ID, exp);
-      }
-    }
-    for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
-    {
-      setPresenceAndScanEventNumber2_(unassigned_ID, exp);
-    }
-  }
-  void TopNoverRT::setPresenceAndScanEventNumber2_(PeptideIdentification& peptide_ID, const MSExperiment& exp)
+  void TopNoverRT::setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp)
   {
     MSExperiment::ConstIterator it = exp.RTBegin(peptide_ID.getRT() - EPSILON_);
     if (it == exp.end())
@@ -111,24 +100,24 @@ namespace OpenMS
 
     if (spectrum.getMSLevel() == 2)
     {
-      ms2_included_[distance(exp.begin(), it)].second = true;
-      peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].first);
+      ms2_included_[distance(exp.begin(), it)].ms2_presence = true;
+      peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].scan_event_number);
       peptide_ID.setMetaValue("identified", '+');
     }
   }
 
   void TopNoverRT::addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features)
   {
-    for (vector<pair<UInt32, bool>>::iterator it = ms2_included_.begin(); it != ms2_included_.end(); it++)
+    for (vector<ScanEvent>::iterator it = ms2_included_.begin(); it != ms2_included_.end(); it++)
     {
-      if (!(*it).second)
+      if (!(*it).ms2_presence)
       {
         Size pos = distance(ms2_included_.begin(), it);
         if (exp[pos].getMSLevel() == 2)
         {
           PeptideIdentification unidentified_MS2;
           unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
-          unidentified_MS2.setMetaValue("ScanEventNumber", (*it).first);
+          unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
           unidentified_MS2.setMetaValue("identified", '-');
           unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
           features.getUnassignedPeptideIdentifications().push_back(unidentified_MS2);
