@@ -9,6 +9,7 @@ Ms2IdentificationRate.h
 QCBase.h
 RTAlignment.h
 TIC.h
+TopNoverRT.h
 )
 
 ### add path to the filenames
