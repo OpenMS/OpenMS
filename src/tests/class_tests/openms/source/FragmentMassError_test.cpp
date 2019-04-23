@@ -49,226 +49,42 @@
 
 using namespace OpenMS;
 
+// Functions to create input data
+
+// create a MSSpectrum with Precursor, MSLevel and RT
+const MSSpectrum createMSSpectrum(UInt ms_level, double rt, Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
+{
+  Precursor precursor;
+  std::set<Precursor::ActivationMethod> am;
+  am.insert(precursor_method);
+  precursor.setActivationMethods(am);
+
+  MSSpectrum ms_spec;
+  ms_spec.setRT(rt);
+  ms_spec.setMSLevel(ms_level);
+  ms_spec.setPrecursors({precursor});
+
+  return ms_spec;
+
+}
+
+// create a PeptideIdentifiaction with a PeptideHit (sequence, charge), rt and mz
+// default values for sequence PEPTIDE
+const PeptideIdentification createPeptideIdentification(double rt, String sequence = "PEPTIDE", Int charge = 3, double mz = 266)
+{
+  PeptideHit peptide_hit;
+  peptide_hit.setSequence(AASequence::fromString(sequence));
+  peptide_hit.setCharge(charge);
+
+  PeptideIdentification peptide_id;
+  peptide_id.setRT(rt);
+  peptide_id.setMZ(mz);
+  peptide_id.setHits({peptide_hit});
+
+  return peptide_id;
+}
+
 START_TEST(FragmentMassError, "$Id$")
-
-  /////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////
-
-  //--------------------------------------------------------------------
-  // Input Data
-  //--------------------------------------------------------------------
-
-  //-------------------------------------------------
-  // create MSExperiment
-  //-------------------------------------------------
-
-  // Precursor
-  Precursor precursor_cid;
-  std::set<Precursor::ActivationMethod> am_cid;
-  am_cid.insert(Precursor::ActivationMethod::CID);
-  precursor_cid.setActivationMethods(am_cid);
-
-  Precursor precursor_ecd;
-  std::set<Precursor::ActivationMethod> am_ecd;
-  am_ecd.insert(Precursor::ActivationMethod::ECD);
-  precursor_ecd.setActivationMethods(am_ecd);
-
-  Precursor precursor_sori;
-  std::set<Precursor::ActivationMethod> am_sori;
-  am_sori.insert(Precursor::ActivationMethod::SORI);
-  precursor_sori.setActivationMethods(am_sori);
-
-
-  // create spectrum for HIMALAYA
-  // generate b- and y-ion spectrum of peptide seq with charge 1
-  // set precursor, RT and MSLevel
-  PeakSpectrum ms_spec_2_himalaya;
-  TheoreticalSpectrumGenerator theo_gen_hi;
-  theo_gen_hi.getSpectrum(ms_spec_2_himalaya, AASequence::fromString("HIMALAYA"), 1, 1);
-  ms_spec_2_himalaya.setPrecursors({precursor_cid});
-  ms_spec_2_himalaya.setRT(3.7);
-  ms_spec_2_himalaya.setMSLevel(2);
-
-  // create spectrum for ALABAMA
-  // generate c- and z-ion spectrum of peptide seq with charge 2
-  // set precursor, RT and MSLevel
-  PeakSpectrum ms_spec_2_alabama;
-  TheoreticalSpectrumGenerator theo_gen_al;
-  Param theo_gen_settings_al = theo_gen_al.getParameters();
-  theo_gen_settings_al.setValue("add_c_ions", "true");
-  theo_gen_settings_al.setValue("add_z_ions", "true");
-  theo_gen_settings_al.setValue("add_b_ions", "false");
-  theo_gen_settings_al.setValue("add_y_ions", "false");
-  theo_gen_al.setParameters(theo_gen_settings_al);
-  theo_gen_al.getSpectrum(ms_spec_2_alabama, AASequence::fromString("ALABAMA"), 2, 2);
-  ms_spec_2_alabama.setPrecursors({precursor_ecd});
-  ms_spec_2_alabama.setRT(2);
-  ms_spec_2_alabama.setMSLevel(2);
-
-
-  //shift every peak by 0.001 mz
-  for(Peak1D& peak : ms_spec_2_himalaya)
-  {
-    double mz = peak.getMZ() + 0.001;
-    peak.setMZ(mz);
-  };
-
-  for(Peak1D& peak : ms_spec_2_alabama)
-  {
-    double mz = peak.getMZ() + 0.001;
-    peak.setMZ(mz);
-  };
-
-  // MSSpectrum with fragmentation method SORI (not supported)
-  MSSpectrum ms_spec_2_sori;
-  ms_spec_2_sori.setPrecursors({precursor_sori});
-  ms_spec_2_sori.setRT(7);
-  ms_spec_2_sori.setMSLevel(2);
-
-  //MSSpectrum with no given fragmentation method given
-  MSSpectrum ms_spec_2_no_precursor;
-  ms_spec_2_no_precursor.setRT(8);
-  ms_spec_2_no_precursor.setMSLevel(2);
-
-  // MS1Spectrum
-  MSSpectrum ms_spec_1;
-  ms_spec_1.setRT(5);
-  ms_spec_1.setMSLevel(1);
-  ms_spec_1.setPrecursors({precursor_cid});
-
-  // MSSpectrum without peaks
-  MSSpectrum ms_spec_2_excp;
-  ms_spec_2_excp.setRT(4);
-  ms_spec_2_excp.setMSLevel(2);
-  ms_spec_2_excp.setPrecursors({precursor_cid});
-
-  // MS_Empty
-  MSSpectrum ms_spec_empty;
-
-  // MSExperiment with unsorted spectrum
-  MSExperiment exp_unsort;
-  exp_unsort.setSpectra({ ms_spec_1, ms_spec_2_himalaya, ms_spec_2_alabama, ms_spec_2_excp, ms_spec_empty, ms_spec_2_sori, ms_spec_2_no_precursor});
-
-  // sorted MSSpectrum
-  MSExperiment exp(exp_unsort);
-  exp.sortSpectra();
-
-  //-------------------------------------------------
-  // create FeatureMap
-  //-------------------------------------------------
-
-  // PepHit Himalaya
-  PeptideHit pep_hit_hi;
-  pep_hit_hi.setSequence(AASequence::fromString("HIMALAYA"));
-  pep_hit_hi.setCharge(1);
-
-  // PepHit Alabama
-  PeptideHit pep_hit_al;
-  pep_hit_al.setSequence(AASequence::fromString("ALABAMA"));
-  pep_hit_al.setCharge(2);
-
-  // PeptideHit Peptide
-  PeptideHit pep_hit_pe;
-  pep_hit_pe.setSequence(AASequence::fromString("PEPTIDE"));
-  pep_hit_pe.setCharge(3);
-
-  // PepID empty
-  PeptideIdentification pep_id_empty;
-  pep_id_empty.setRT(6);
-
-  // PepID himalaya
-  PeptideIdentification pep_id_hi;
-  pep_id_hi.setRT(3.72);
-  pep_id_hi.setMZ(888);
-  pep_id_hi.setHits({pep_hit_hi});
-
-  // PepID alabama
-  PeptideIdentification pep_id_al;
-  pep_id_al.setRT(2);
-  pep_id_al.setMZ(264);
-  pep_id_al.setHits({pep_hit_al});
-
-  // PepID with RT out of tolerance
-  PeptideIdentification pep_id_tol_out;
-  pep_id_tol_out.setRT(2.1);
-  pep_id_tol_out.setMZ(266);
-  pep_id_tol_out.setHits({pep_hit_pe});
-
-  // PepID matches with ms1 spectrum
-  PeptideIdentification pep_id_ms1;
-  pep_id_ms1.setRT(5);
-  pep_id_ms1.setMZ(266);
-  pep_id_ms1.setHits({pep_hit_pe});
-
-  // PepID peak_RT does not exist in msExp
-  PeptideIdentification pep_id_notExist;
-  pep_id_notExist.setRT(10);
-  pep_id_notExist.setMZ(266);
-  pep_id_notExist.setHits({pep_hit_pe});
-
-  // PepID matches with spectrum without peaks
-  PeptideIdentification pep_id_excp;
-  pep_id_excp.setRT(4);
-  pep_id_excp.setMZ(266);
-  pep_id_excp.setHits({pep_hit_pe});
-
-  // PepID matches spectrum which have no Precursor
-  PeptideIdentification pep_id_no_precursor;
-  pep_id_no_precursor.setRT(8);
-  pep_id_no_precursor.setMZ(266);
-  pep_id_no_precursor.setHits({pep_hit_pe});
-
-  // PepID matches spectrum with fragmentation method sori
-  PeptideIdentification pep_id_sori;
-  pep_id_sori.setRT(7);
-  pep_id_sori.setMZ(266);
-  pep_id_sori.setHits({pep_hit_pe});
-
-  // Feature valid data
-  Feature feat_valid;
-  feat_valid.setPeptideIdentifications({pep_id_hi, pep_id_al});
-
-  // Feature empty
-  Feature feat_empty;
-
-  // FeatureMap valid data
-  FeatureMap fmap;
-  fmap.setUnassignedPeptideIdentifications({pep_id_empty});
-  fmap.push_back(feat_empty);
-  fmap.push_back(feat_valid);
-
-  // FeatureMap tol_out
-  FeatureMap fmap_tol_out;
-  fmap_tol_out.setUnassignedPeptideIdentifications({pep_id_tol_out});
-
-  // FeatureMap ms1
-  FeatureMap fmap_ms1;
-  fmap_ms1.setUnassignedPeptideIdentifications({pep_id_ms1});
-
-  // FeatureMap not exist
-  FeatureMap fmap_notExist;
-  fmap_notExist.setUnassignedPeptideIdentifications({pep_id_notExist});
-
-  // FeatureMap for no peak
-  FeatureMap fmap_excp;
-  fmap_excp.setUnassignedPeptideIdentifications({pep_id_excp});
-
-  // FeatureMap no precursor
-  FeatureMap fmap_no_precursor;
-  fmap_no_precursor.setUnassignedPeptideIdentifications({pep_id_no_precursor});
-
-  // FeatureMap with fragmentation method sori
-  FeatureMap fmap_sori;
-  fmap_sori.setUnassignedPeptideIdentifications({pep_id_sori});
-
-
-  //--------------------------------------------------------------------
-  // Tests
-  //--------------------------------------------------------------------
-
-  //////////////////////////////////////////////////////////////////
-  // start Section
-  /////////////////////////////////////////////////////////////////
 
   FragmentMassError* ptr = nullptr;
   FragmentMassError* nulpt = nullptr;
@@ -287,18 +103,59 @@ START_TEST(FragmentMassError, "$Id$")
 
 
   FragmentMassError frag_ma_err;
-  FragmentMassError frag_ma_err_flag;
-  FragmentMassError frag_ma_err_tol_out;
-  FragmentMassError frag_ma_err_ms1;
-  FragmentMassError frag_ma_err_notExits;
-  FragmentMassError frag_ma_err_excp;
-  FragmentMassError frag_ma_err_no_precusor;
-  FragmentMassError frag_ma_err_sori;
 
   //tests compute function
-  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit& tolerance_unit = ToleranceUnit::PPM))
+  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit tolerance_unit = ToleranceUnit::PPM))
   {
-    //test with valid input
+    //--------------------------------------------------------------------
+    // create valid input data
+    //--------------------------------------------------------------------
+    // FeatureMap
+    FeatureMap fmap;
+
+    // empty PeptideIdentification
+    PeptideIdentification pep_id_empty;
+    pep_id_empty.setRT(6);
+
+    // empty Feature
+    Feature feat_empty;
+
+    // put valid data in fmap
+    fmap.setUnassignedPeptideIdentifications({createPeptideIdentification(3.72, "HIMALAYA", 1, 888), createPeptideIdentification(2, "ALABAMA", 2, 264), pep_id_empty});
+    fmap.push_back(feat_empty);
+
+    // MSExperiment
+    MSExperiment exp;
+
+    // create b- and y-ion spectrum of peptide sequence HIMALAYA with charge 1
+    // shift every peak by 0.001 mz
+    PeakSpectrum ms_spec_2_himalaya = createMSSpectrum(2, 3.7);
+    TheoreticalSpectrumGenerator theo_gen_hi;
+    theo_gen_hi.getSpectrum(ms_spec_2_himalaya, AASequence::fromString("HIMALAYA"), 1, 1);
+    for(Peak1D& peak : ms_spec_2_himalaya) peak.setMZ(peak.getMZ() + 0.001);
+
+    // create c- and z-ion spectrum of peptide sequence ALABAMA with charge 2
+    // shift every peak by 0.001 mz
+    PeakSpectrum ms_spec_2_alabama = createMSSpectrum(2, 2, Precursor::ActivationMethod::ECD);
+    TheoreticalSpectrumGenerator theo_gen_al;
+    Param theo_gen_settings_al = theo_gen_al.getParameters();
+    theo_gen_settings_al.setValue("add_c_ions", "true");
+    theo_gen_settings_al.setValue("add_z_ions", "true");
+    theo_gen_settings_al.setValue("add_b_ions", "false");
+    theo_gen_settings_al.setValue("add_y_ions", "false");
+    theo_gen_al.setParameters(theo_gen_settings_al);
+    theo_gen_al.getSpectrum(ms_spec_2_alabama, AASequence::fromString("ALABAMA"), 2, 2);
+    for(Peak1D& peak : ms_spec_2_alabama) peak.setMZ(peak.getMZ() + 0.001);
+
+    // empty MSSpectrum
+    MSSpectrum ms_spec_empty;
+
+    // put valid data in exp
+    exp.setSpectra({ms_spec_empty, ms_spec_2_alabama, ms_spec_2_himalaya});
+
+    //--------------------------------------------------------------------
+    // test with valid input
+    //--------------------------------------------------------------------
     frag_ma_err.compute(fmap, exp);
     std::vector<FragmentMassError::FMEStatistics> result;
     result = frag_ma_err.getResults();
@@ -306,42 +163,101 @@ START_TEST(FragmentMassError, "$Id$")
     TEST_REAL_SIMILAR(result[0].average_ppm, 4.758327) // mz: 0.001     // old window mower 4.698439
     TEST_REAL_SIMILAR(result[0].variance_ppm, 9.05026) //mz: 5.915844  // old window mower 10.93094
 
-
-    //test with valid input and flags
+    //--------------------------------------------------------------------
+    // test with valid input and flags
+    //--------------------------------------------------------------------
+    FragmentMassError frag_ma_err_flag;
     frag_ma_err_flag.compute(fmap, exp, 1, FragmentMassError::ToleranceUnit::DA);
     std::vector<FragmentMassError::FMEStatistics> result_flag;
     result_flag = frag_ma_err_flag.getResults();
 
     TEST_REAL_SIMILAR(result_flag[0].average_ppm, 5.685647)       // old window mower 5.938193
-    TEST_REAL_SIMILAR(result_flag[0].variance_ppm, 28.45137)       // old window mower 36.45247
+    TEST_REAL_SIMILAR(result_flag[0].variance_ppm, 28.45137)     // old window mower 36.4524
 
-
-    // test if MSExperiment is not sorted
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, frag_ma_err_ms1.compute(fmap, exp_unsort),"MSExperiment is not sorted by ascending RT")
-
-    // test with matching ms1 spectrum
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_ms1.compute(fmap_ms1, exp), "The matching retention time of the mzML is not a MS2 Spectrum.")
-
-    // test if RT from FeatureMap does not match to any RT in MSExp
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_notExits.compute(fmap_notExist, exp);, "The retention time of the mzML and featureXML file does not match.")
-
+    //--------------------------------------------------------------------
     // test with RT out of tolerance
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err_tol_out.compute(fmap_tol_out, exp), "PeptideID with RT 2.1 s does not have a matching MS2 Spectrum. Closest RT was 3.7, which seems to far off.")
+    //--------------------------------------------------------------------
 
-    // test with no fragmentation method given
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, frag_ma_err_no_precusor.compute(fmap_no_precursor, exp), "No fragmentation method given.")
+    // put PeptideIdentification with RT out of tolerance in fmap
+    fmap.setUnassignedPeptideIdentifications({createPeptideIdentification(2.1)});
 
-    // test with fragmentation method sori, which is not supported
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, frag_ma_err_sori.compute(fmap_sori, exp), "Fragmentation method is not supported.")
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err.compute(fmap, exp), "PeptideID with RT 2.1 s does not have a matching MS2 Spectrum. Closest RT was 3.7, which seems to far off.")
 
+    //--------------------------------------------------------------------
+    // test with RT from FeatureMap does not match to any RT in MSExp
+    //--------------------------------------------------------------------
+
+    // put PeptideIdentification with not existing RT in fmap
+    fmap.setUnassignedPeptideIdentifications({createPeptideIdentification(10)});
+
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err.compute(fmap, exp);, "The retention time of the mzML and featureXML file does not match.")
+
+    //--------------------------------------------------------------------
+    // test with MSExperiment is not sorted
+    //--------------------------------------------------------------------
+
+    //create unsort MSExperiment
+    exp.setSpectra({ms_spec_2_himalaya, ms_spec_2_alabama});
+
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, frag_ma_err.compute(fmap, exp),"MSExperiment is not sorted by ascending RT")
+
+    //--------------------------------------------------------------------
+    // test with matching ms1 spectrum
+    //--------------------------------------------------------------------
+
+    // fmap with PeptideIdentification with RT matching to a MS1 Spectrum
+    fmap.setUnassignedPeptideIdentifications({createPeptideIdentification(5)});
+
+    // set MS1 Spectrum to exp
+    exp.setSpectra({createMSSpectrum(1, 5)});
+
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err.compute(fmap, exp), "The matching retention time of the mzML is not a MS2 Spectrum.")
+
+    //--------------------------------------------------------------------
+    // test with no given fragmentation method
+    //--------------------------------------------------------------------
+
+    // put PeptideIdentification with RT matching to MSSpectrum without given fragmentation method to fmap
+    fmap.setUnassignedPeptideIdentifications({createPeptideIdentification(8)});
+
+    // create MSExperiment with no given fragmentation method
+    MSSpectrum ms_spec_2_no_precursor;
+    ms_spec_2_no_precursor.setRT(8);
+    ms_spec_2_no_precursor.setMSLevel(2);
+    exp.setSpectra({ms_spec_2_no_precursor});
+
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, frag_ma_err.compute(fmap, exp), "No fragmentation method given.")
+
+    //--------------------------------------------------------------------
+    // test with fragmentation method SORI, which is not supported
+    //--------------------------------------------------------------------
+
+    // put PeptideIdentification with RT matching to MSSpectrum with fragmentation method SORI to fmap
+    FeatureMap fmap_sori;
+    fmap_sori.setUnassignedPeptideIdentifications({createPeptideIdentification(7)});
+
+    // MSExperiment with fragmentation method SORI (not supported)
+    exp.setSpectra({createMSSpectrum(2, 7, Precursor::ActivationMethod::SORI)});
+
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, frag_ma_err.compute(fmap_sori, exp), "Fragmentation method is not supported.")
+
+    //--------------------------------------------------------------------
     // test if spectrum has no peaks
-    frag_ma_err_excp.compute(fmap_excp, exp);
+    //--------------------------------------------------------------------
+
+    // put PeptideIdentification with RT matching to MSSpectrum with no peaks to fmap
+    fmap.setUnassignedPeptideIdentifications({createPeptideIdentification(4)});
+
+    // MSExperiment without peaks
+    exp.setSpectra({createMSSpectrum(2, 4)});
+
+    FragmentMassError frag_ma_err_excp;
+    frag_ma_err_excp.compute(fmap, exp);
     std::vector<FragmentMassError::FMEStatistics> result_excp;
     result_excp = frag_ma_err_excp.getResults();
 
     TEST_REAL_SIMILAR(result_excp[0].average_ppm, 0)
     TEST_REAL_SIMILAR(result_excp[0].variance_ppm, 0)
-
 
   }
   END_SECTION
@@ -354,9 +270,6 @@ START_TEST(FragmentMassError, "$Id$")
   }
   END_SECTION
 
-
-  /////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////
 END_TEST
 
 

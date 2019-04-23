@@ -49,7 +49,7 @@
 
 namespace OpenMS
 {
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const ToleranceUnit& tolerance_unit)
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const ToleranceUnit tolerance_unit)
   {
     FMEStatistics result;
 
@@ -59,7 +59,7 @@ namespace OpenMS
     // counts number of ppm errors
     UInt32 counter_ppm{};
 
-    float rt_tolerance = 0.05;
+    const float rt_tolerance = 0.05;
 
     //---------------------------------------------------------------------
     // Prepare MSExperiment
@@ -92,10 +92,10 @@ namespace OpenMS
       //---------------------------------------------------------------------
 
       // sequence
-      const AASequence seq = pep_id.getHits()[0].getSequence();
+      const AASequence& seq = pep_id.getHits()[0].getSequence();
 
       // charge
-      Int charge = round(seq.getMonoWeight() / pep_id.getMZ());
+      Int charge = static_cast<Int>(round(seq.getMonoWeight() / pep_id.getMZ()));
 
       // if computed charge and the given charge in PeptideHits is not equal programm is terminated
       assert(charge == pep_id.getHits()[0].getCharge());
@@ -148,7 +148,13 @@ namespace OpenMS
 
       Precursor::ActivationMethod fm = (*exp_spectrum.getPrecursors()[0].getActivationMethods().begin());
 
-      if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
+      if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
+      {
+        theo_gen_settings.setValue("add_b_ions", "true");
+        theo_gen_settings.setValue("add_y_ions", "true");
+      }
+
+      else if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
       {
         theo_gen_settings.setValue("add_c_ions", "true");
         theo_gen_settings.setValue("add_z_ions", "true");
@@ -156,7 +162,7 @@ namespace OpenMS
         theo_gen_settings.setValue("add_y_ions", "false");
       }
 
-      else if (!(fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID))
+      else
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
       }
