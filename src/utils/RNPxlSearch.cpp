@@ -177,7 +177,6 @@ class AnnotatedHit
   float partial_loss_score = 0;
   float immonium_score = 0;
   float precursor_score = 0;
-  float a_ion_score = 0;
   float marker_ions_score = 0;
 
   float best_localization_score = 0;
@@ -417,14 +416,24 @@ protected:
       return z;
     }
 
-  static void scorePeptideLadderIons_(
-      const vector<double>& total_loss_template_z1_b_ions,
-      const vector<double>& total_loss_template_z1_y_ions,
-      double fragment_mass_tolerance, 
-      bool fragment_mass_tolerance_unit_ppm, 
+  static void scorePeptideIons_(
       const PeakSpectrum& exp_spectrum, 
       const DataArrays::IntegerDataArray& exp_charges,
-      std::vector<double>& intensity_sum)
+      const vector<double>& total_loss_template_z1_b_ions,
+      const vector<double>& total_loss_template_z1_y_ions,
+      const double peptide_mass_without_NA,
+      const unsigned int pc_charge,
+      const ImmoniumIonsInPeptide& iip, 
+      const double fragment_mass_tolerance, 
+      const bool fragment_mass_tolerance_unit_ppm,
+      std::vector<double>& intensity_sum,
+      float& hyperScore,
+      float& MIC,
+      float& Morph,
+      float& modds,
+      float& err,
+      float& pc_MIC,
+      float& im_MIC)
   {
     OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
     OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
@@ -438,16 +447,17 @@ protected:
     std::vector<float> b_ions(N, 0.0), y_ions(N, 0.0);
 
     // maximum charge considered
-    const Size max_z = std::min(pc_charge - 1, 2U);
+    const unsigned int max_z = std::max(3U, static_cast<unsigned int>(std::min(pc_charge - 1, 2U)));
 
-    // match b-ions only 
-    for (Size z = 1; z <= max_z; ++z)
-    {
-      for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
+    // match b- and a-ions (we record a-ions as b-ions)
+    for (double diff2b : {0.0, -27.994915} ) // b-ion and a-ion ('CO' mass diff from b- to a-ion)
+    { 
+      for (Size z = 1; z <= max_z; ++z)
       {
         for (Size i = 0; i < total_loss_template_z1_b_ions.size(); ++i)
         {
-          const double theo_mz = (total_loss_template_z1_b_ions[i] + (z-1) * Constants::PROTON_MASS_U) / z;
+          const double theo_mz = (total_loss_template_z1_b_ions[i] + diff2b 
+            + (z-1) * Constants::PROTON_MASS_U) / z;
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
           // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
@@ -465,7 +475,7 @@ protected:
             b_ions[i] += intensity ;            
           }
         }
-      } 
+      }
     }
 
     // match y-ions
@@ -522,21 +532,119 @@ protected:
 
     if (y_ion_count == 0 && b_ion_count == 0) 
     {
-      plss_hyperScore = 0;
-      plss_MIC = 0;
-      plss_Morph = 0;
-      plss_err = fragment_mass_tolerance_unit_ppm ? 2000.0 * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+      hyperScore = 0;
+      MIC = 0;
+      Morph = 0;
+      err = fragment_mass_tolerance_unit_ppm ? 2000.0 * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
     }
     else
     {
       const double yFact = logfactorial_(y_ion_count);
       const double bFact = logfactorial_(b_ion_count);
-      plss_hyperScore = log1p(dot_product) + yFact + bFact;
-      plss_MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
-      plss_MIC /= TIC;
-      plss_Morph = b_ion_count + y_ion_count + plss_MIC;
-      plss_err = (y_mean_err + b_mean_err)/(b_sum + y_sum);
+      hyperScore = log1p(dot_product) + yFact + bFact;
+      MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
+      MIC /= TIC;
+      Morph = b_ion_count + y_ion_count + MIC;
+      err = (y_mean_err + b_mean_err)/(b_sum + y_sum);
     }
+
+    // match precusor ions z = 1..pc_charge
+    for (double pc_loss : {0.0, -18.010565, -17.026548} ) // normal, loss of water, loss of ammonia
+    { 
+      const double peptide_mass = peptide_mass_without_NA + pc_loss;
+      for (Size z = 1; z <= pc_charge; ++z)
+      {
+        const double theo_mz = (peptide_mass + z * Constants::PROTON_MASS_U) / z;
+
+        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+        Size index = exp_spectrum.findNearest(theo_mz);
+        const double exp_mz = exp_spectrum[index].getMZ();
+        const Size exp_z = exp_charges[index];
+
+        // found peak match
+        if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
+        {
+          const double intensity = exp_spectrum[index].getIntensity();
+          pc_MIC += intensity;
+        }
+      }      
+    }
+    pc_MIC /= TIC;
+
+    // shifted immonium ions
+
+    // lambda to match one peak and sum up in score
+    auto match_one_peak_z1 = [&](const double& theo_mz, float& score)
+      {
+        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;      
+        auto index = exp_spectrum.findNearest(theo_mz);
+        if (exp_charges[index] == 1 && 
+          std::abs(theo_mz - exp_spectrum[index].getMZ()) < max_dist_dalton) // found peak match
+        {
+          score += exp_spectrum[index].getIntensity();      
+        } 
+      };
+
+    // TODO: complete with others from  DOI: 10.1021/pr3007045
+    // A Systematic Investigation into the Nature of Tryptic HCD Spectra
+
+    static const double imY = EmpiricalFormula("C8H10NO").getMonoWeight(); // 85%
+    static const double imW = EmpiricalFormula("C10H11N2").getMonoWeight(); // 84%
+    static const double imF = EmpiricalFormula("C8H10N").getMonoWeight(); // 84%
+    static const double imL = EmpiricalFormula("C5H12N").getMonoWeight(); // I/L 76%
+    static const double imH = EmpiricalFormula("C5H8N3").getMonoWeight(); // 70%
+    static const double imC = EmpiricalFormula("C2H6NS").getMonoWeight(); // CaC 61%
+//    static const double imQ = EmpiricalFormula("?").getMonoWeight(); // 52%
+//    static const double imE = EmpiricalFormula("?").getMonoWeight(); // 37%
+//    static const double imN = EmpiricalFormula("?").getMonoWeight(); // 11%
+//    static const double imD = EmpiricalFormula("?").getMonoWeight(); // 4%
+//    static const double imM = EmpiricalFormula("?").getMonoWeight(); // 3%
+    static const double imK1 = EmpiricalFormula("C5H13N2").getMonoWeight(); // 2%
+
+    static const double imP = EmpiricalFormula("C4H8N").getMonoWeight(); //?
+
+    if (iip.Y) 
+    {
+      match_one_peak_z1(imY, im_MIC);
+    }
+    if (iip.W) 
+    {
+      match_one_peak_z1(imW, im_MIC);
+    }
+    if (iip.F) 
+    {
+      match_one_peak_z1(imF, im_MIC);
+    }
+    if (iip.H) 
+    {
+      match_one_peak_z1(imH, im_MIC);
+    }
+    if (iip.C) 
+    {
+      match_one_peak_z1(imC, im_MIC);
+    }
+    if (iip.P) 
+    {
+      match_one_peak_z1(imP, im_MIC);
+    }
+    if (iip.L) 
+    {
+      match_one_peak_z1(imL, im_MIC);
+    }
+    if (iip.K) 
+    {
+      match_one_peak_z1(imK1, im_MIC);
+    }
+    if (iip.M) 
+    {
+      match_one_peak_z1(104.05285, im_MIC);
+    }
+    im_MIC /= TIC;
+
+    // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
+    err = Morph > 2 ? err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
+    modds = matchOddsScore_(total_loss_template_z1_b_ions.size() 
+      + total_loss_template_z1_y_ions.size(), (int)Morph);
   }
 
   static void scoreShiftedLadderIons_(
@@ -546,8 +654,8 @@ protected:
                         const double peptide_mass_without_NA,
                         const unsigned int pc_charge,
                         const ImmoniumIonsInPeptide& iip,
-                        double fragment_mass_tolerance, 
-                        bool fragment_mass_tolerance_unit_ppm, 
+                        const double fragment_mass_tolerance, 
+                        const bool fragment_mass_tolerance_unit_ppm, 
                         const PeakSpectrum& exp_spectrum, 
                         const DataArrays::IntegerDataArray& exp_charges,
                         std::vector<double>& intensity_sum,
@@ -555,6 +663,7 @@ protected:
                         float& plss_MIC,
                         float& plss_Morph,
                         float& plss_err,
+                        float& plss_modds,
                         float& plss_pc_MIC,
                         float& plss_im_MIC)
   {
@@ -570,7 +679,7 @@ protected:
     std::vector<float> b_ions(N, 0.0), y_ions(N, 0.0);
 
     // maximum charge considered
-    const Size max_z = std::min(pc_charge - 1, 2U);
+    const unsigned int max_z = std::max(3U, static_cast<unsigned int>(std::min(pc_charge - 1, 2U)));
 
     // match b- and a-ions (we record a-ions as b-ions)
     for (double diff2b : {0.0, -27.994915} ) // b-ion and a-ion ('CO' mass diff from b- to a-ion)
@@ -773,6 +882,11 @@ protected:
       }
     }
     plss_im_MIC /= TIC;
+
+    // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
+    plss_err = plss_Morph > 2 ? plss_err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
+    plss_modds = matchOddsScore_(partial_loss_template_z1_b_ions.size() 
+      + partial_loss_template_z1_y_ions.size(), (int)plss_Morph);
   } 
 
   static float calculateCombinedScore(const AnnotatedHit& ah, const bool isXL)
@@ -917,13 +1031,9 @@ static void scoreShiftedFragments_(
                         plss_MIC,
                         plss_Morph,
                         plss_err,
+                        plss_modds,
                         plss_pc_MIC,
                         plss_im_MIC);
-
-      // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
-      plss_err = plss_Morph > 2 ? plss_err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
-      plss_modds = matchOddsScore_(partial_loss_template_z1_b_ions.size() 
-        + partial_loss_template_z1_y_ions.size(), (int)plss_Morph);
     }
 #ifdef DEBUG_RNPXLSEARCH
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
@@ -1943,7 +2053,6 @@ static void scoreShiftedFragments_(
           ph.setMetaValue(String("RNPxl:total_loss_score"), ah.total_loss_score);
           ph.setMetaValue(String("RNPxl:immonium_score"), ah.immonium_score);
           ph.setMetaValue(String("RNPxl:precursor_score"), ah.precursor_score);
-          ph.setMetaValue(String("RNPxl:a_ion_score"), ah.a_ion_score);
           ph.setMetaValue(String("RNPxl:marker_ions_score"), ah.marker_ions_score);
           ph.setMetaValue(String("RNPxl:partial_loss_score"), ah.partial_loss_score);
 
@@ -2028,7 +2137,6 @@ static void scoreShiftedFragments_(
        << "RNPxl:modds"
        << "RNPxl:immonium_score"
        << "RNPxl:precursor_score"
-       << "RNPxl:a_ion_score"
        << "RNPxl:marker_ions_score"
        << "RNPxl:partial_loss_score"
        << "RNPxl:MIC"
@@ -2183,52 +2291,55 @@ static void scoreShiftedFragments_(
     const Size & mod_pep_idx,
     const Size & rna_mod_idx,
     const double & current_peptide_mass,
+    const double & current_peptide_mass_without_NA,
     const double & exp_pc_mass,
+    const ImmoniumIonsInPeptide & iip, 
     const int & isotope_error,
-    const PeakSpectrum & total_loss_spectrum_z1, 
-    const PeakSpectrum & total_loss_spectrum_z2,
-    const PeakSpectrum & a_ion_sub_score_spectrum,
-    const PeakSpectrum & precursor_sub_score_spectrum, 
-    const PeakSpectrum & immonium_sub_score_spectrum,
+    const vector<double> & total_loss_template_z1_b_ions, 
+    const vector<double> & total_loss_template_z1_y_ions, 
     const boost::math::normal & gaussian_mass_error,
     const double & mass_error_prior_negatives,  
     const double & fragment_mass_tolerance,
     const bool & fragment_mass_tolerance_unit_ppm,
     vector<AnnotatedHit> & annotated_hits,
     omp_lock_t & annotated_hits_lock,
-    const Size& report_top_hits
-    )
+    const Size& report_top_hits)
   {  
     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
-
-    const PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
 
     float total_loss_score(0),
       immonium_sub_score(0),
       precursor_sub_score(0),
-      a_ion_sub_score(0),
       tlss_MIC(0),
       tlss_err(1.0),
       tlss_Morph(0),
-      tlss_modds(0);
+      tlss_modds(0),
+      pc_MIC(0),
+      im_MIC(0);
 
-    scoreTotalLossFragments_(exp_spectrum, 
-                              total_loss_spectrum, 
-                              fragment_mass_tolerance,
-                              fragment_mass_tolerance_unit_ppm, 
-                              a_ion_sub_score_spectrum,
-                              precursor_sub_score_spectrum, 
-                              immonium_sub_score_spectrum, 
-                              total_loss_score, 
-                              tlss_MIC,
-                              tlss_err,
-                              tlss_Morph,
-                              tlss_modds,
-                              immonium_sub_score,
-                              precursor_sub_score,
-                              a_ion_sub_score) 
+    vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0); 
 
-    const double total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
+    scorePeptideIons_(
+      exp_spectrum, 
+      exp_spectrum.getIntegerDataArrays()[0],
+      total_loss_template_z1_b_ions,
+      total_loss_template_z1_y_ions,
+      current_peptide_mass_without_NA,
+      exp_pc_charge,
+      iip, 
+      fragment_mass_tolerance, 
+      fragment_mass_tolerance_unit_ppm,
+      intensity_sum,
+      total_loss_score,
+      tlss_MIC,
+      tlss_Morph,
+      tlss_modds,
+      tlss_err,
+      pc_MIC,
+      im_MIC   
+    );
+
+    const double total_MIC = tlss_MIC + im_MIC + pc_MIC;
 
     // super bad score
     if (total_loss_score < MIN_HYPERSCORE 
@@ -2255,7 +2366,6 @@ static void scoreShiftedFragments_(
     ah.modds = tlss_modds;
     ah.immonium_score = immonium_sub_score;
     ah.precursor_score = precursor_sub_score;
-    ah.a_ion_score = a_ion_sub_score;
 
     ah.total_MIC = total_MIC;
 
@@ -2287,7 +2397,30 @@ static void scoreShiftedFragments_(
   #endif
   }
 
+  // check for misannotation (absolute m/z instead of offset) and correct
+  void checkAndCorrectIsolationWindows_(MSExperiment& e)
+  {
+    bool isolation_windows_reannotated = false;
 
+    for (MSSpectrum & s : e)
+    {
+      if (s.getMSLevel() == 2 && s.getPrecursors().size() == 1)
+      {
+        Precursor& p = s.getPrecursors()[0];
+        if (p.getIsolationWindowLowerOffset() > 100.0 && p.getIsolationWindowUpperOffset() > 100.0)
+        {
+          isolation_windows_reannotated = true;          
+          p.setIsolationWindowLowerOffset(p.getIsolationWindowLowerOffset() - p.getMZ());
+          p.setIsolationWindowUpperOffset(p.getIsolationWindowUpperOffset() - p.getMZ());
+        }
+      }
+    }
+
+    if (isolation_windows_reannotated)
+    {
+      LOG_WARN << "Isolation windows format was incorrect. Reannotated." << endl;
+    }
+  }
 
   ExitCodes main_(int, const char**) override
   {
@@ -2421,6 +2554,8 @@ static void scoreShiftedFragments_(
       int nMS1 = std::count_if(tmp_spectra.begin(), tmp_spectra.end(), [](MSSpectrum& s){return s.getMSLevel() == 1;});
       if (nMS1 != 0)
       {
+        // if isolation windows are properly annotated and correct if necessary
+        checkAndCorrectIsolationWindows_(tmp_spectra);
         purities = PrecursorPurity::computePrecursorPurities(tmp_spectra, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
       }
     } // free spectra  
@@ -2466,6 +2601,7 @@ static void scoreShiftedFragments_(
                                  a_ion_sub_score_spectrum_generator,
                                  immonium_ion_sub_score_spectrum_generator,
                                  precursor_ion_sub_score_spectrum_generator);
+  
 
     // preallocate storage for PSMs
     vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
@@ -2585,7 +2721,7 @@ static void scoreShiftedFragments_(
           double current_peptide_mass_without_NA = fixed_and_variable_modified_peptide.getMonoWeight();
 
           //create empty theoretical spectrum.  total_loss_spectrum_z2 contains both charge 1 and charge 2 peaks
-          PeakSpectrum total_loss_spectrum_z1, total_loss_spectrum_z2;
+          vector<double> total_loss_template_z1_b_ions, total_loss_template_z1_y_ions;
 
           // spectrum containing additional peaks for sub scoring
           PeakSpectrum immonium_sub_score_spectrum, 
@@ -2622,10 +2758,11 @@ static void scoreShiftedFragments_(
             // add peaks for b- and y- ions with charge 1 (sorted by m/z)
 
             // total / complete loss spectra are generated for fast and (slow) full scoring
-            if (total_loss_spectrum_z1.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
+            if (total_loss_template_z1_b_ions.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
             {
-              total_loss_spectrum_generator.getSpectrum(total_loss_spectrum_z1, fixed_and_variable_modified_peptide, 1, 1);
-              total_loss_spectrum_generator.getSpectrum(total_loss_spectrum_z2, fixed_and_variable_modified_peptide, 1, 2);
+              generateTheoreticalMZsZ1_(fixed_and_variable_modified_peptide, Residue::ResidueType::BIon, total_loss_template_z1_b_ions);
+              generateTheoreticalMZsZ1_(fixed_and_variable_modified_peptide, Residue::ResidueType::YIon, total_loss_template_z1_y_ions);
+/*
               immonium_ion_sub_score_spectrum_generator.getSpectrum(immonium_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
               RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
                 unmodified_sequence, 
@@ -2640,6 +2777,7 @@ static void scoreShiftedFragments_(
               a_ion_sub_score_spectrum.resize(4);
               a_ion_sub_score_spectrum.getStringDataArrays()[0].resize(4); 
               a_ion_sub_score_spectrum.getIntegerDataArrays()[0].resize(4); 
+*/
             }
 
             if (!fast_scoring_)
@@ -2652,24 +2790,47 @@ static void scoreShiftedFragments_(
               if (precursor_rna_adduct == "none")
               {
                 // score peptide without NA (same method as fast scoring)
-                for (auto l = low_it; l != up_it; ++l)
+                for (auto & l = low_it; l != up_it; ++l)
                 {
                   //const double exp_pc_mass = l->first;
                   const Size & scan_index = l->second.first;
                   const int & isotope_error = l->second.second;
                   const PeakSpectrum & exp_spectrum = spectra[scan_index];
                   const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
-                  PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
 
-                  float total_loss_score(0), 
+                  float hyperScore(0), 
                         immonium_sub_score(0), 
                         precursor_sub_score(0), 
                         a_ion_sub_score(0), 
                         tlss_MIC(0),
                         tlss_err(0), 
                         tlss_Morph(0),
-                        tlss_modds(0);
+                        tlss_modds(0),
+                        pc_MIC,
+                        im_MIC;
 
+                  vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0);
+                  scorePeptideIons_(
+                    exp_spectrum, 
+                    exp_spectrum.getIntegerDataArrays()[0],
+                    total_loss_template_z1_b_ions,
+                    total_loss_template_z1_y_ions,
+                    current_peptide_mass_without_NA,
+                    exp_pc_charge,
+                    iip, 
+                    fragment_mass_tolerance, 
+                    fragment_mass_tolerance_unit_ppm,
+                    intensity_sum,
+                    hyperScore,
+                    tlss_MIC,
+                    tlss_Morph,
+                    tlss_modds,
+                    tlss_err,
+                    pc_MIC,
+                    im_MIC   
+                  );
+
+                  /*
                   scoreTotalLossFragments_(exp_spectrum,
                                          total_loss_spectrum,
                                          fragment_mass_tolerance,
@@ -2685,9 +2846,10 @@ static void scoreShiftedFragments_(
                                          immonium_sub_score,
                                          precursor_sub_score,
                                          a_ion_sub_score);
+                  */
 
                   // bad score or less then two peaks matching
-                  if (total_loss_score < MIN_HYPERSCORE 
+                  if (hyperScore < MIN_HYPERSCORE 
                     || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
 	                  || tlss_modds < 1e-10
                     || tlss_MIC < 0.01) 
@@ -2708,10 +2870,9 @@ static void scoreShiftedFragments_(
                   ah.err = tlss_err;
                   ah.Morph = tlss_Morph;
                   ah.modds = tlss_modds;
-                  ah.total_loss_score = total_loss_score;
+                  ah.total_loss_score = hyperScore;
                   ah.immonium_score = immonium_sub_score;
                   ah.precursor_score = precursor_sub_score;
-                  ah.a_ion_score = a_ion_sub_score;
                   ah.total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
 
                   ah.rna_mod_index = rna_mod_index;
@@ -2818,11 +2979,11 @@ static void scoreShiftedFragments_(
                     generateTheoreticalMZsZ1_(fixed_and_variable_modified_peptide, Residue::YIon, partial_loss_template_z1_yions);
                   } 
 
-                  for (auto l = low_it; l != up_it; ++l)
+                  for (auto & l = low_it; l != up_it; ++l)
                   {
-                    const Size& scan_index = l->second.first;
-                    const int& isotope_error = l->second.second;
-                    const PeakSpectrum& exp_spectrum = spectra[scan_index];
+                    const Size & scan_index = l->second.first;
+                    const int & isotope_error = l->second.second;
+                    const PeakSpectrum & exp_spectrum = spectra[scan_index];
                     float tlss_MIC(0), 
                       tlss_err(1.0), 
                       tlss_Morph(0),
@@ -2832,11 +2993,33 @@ static void scoreShiftedFragments_(
                       a_ion_sub_score(0), 
                       partial_loss_sub_score(0), 
                       marker_ions_sub_score(0),
-                      tlss_score(0);
+                      hyperScore(0),
+                      pc_MIC,
+                      im_MIC;
 
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
-                    PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
 
+                    vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0);
+                    scorePeptideIons_(
+                      exp_spectrum, 
+                      exp_spectrum.getIntegerDataArrays()[0],
+                      total_loss_template_z1_b_ions,
+                      total_loss_template_z1_y_ions,
+                      current_peptide_mass_without_NA,
+                      exp_pc_charge,
+                      iip, 
+                      fragment_mass_tolerance, 
+                      fragment_mass_tolerance_unit_ppm,
+                      intensity_sum,
+                      hyperScore,
+                      tlss_MIC,
+                      tlss_Morph,
+                      tlss_modds,
+                      tlss_err,
+                      pc_MIC,
+                      im_MIC   
+                    );
+                    /*
                     scoreTotalLossFragments_(exp_spectrum,
                                              total_loss_spectrum,
                                              fragment_mass_tolerance, 
@@ -2861,6 +3044,7 @@ static void scoreShiftedFragments_(
                     { 
                       continue; 
                     }
+                    */
 
                     float plss_MIC(0), 
                       plss_err(1.0), 
@@ -2909,7 +3093,7 @@ static void scoreShiftedFragments_(
 
                     ah.sequence = *cit; // copy StringView
                     ah.peptide_mod_index = mod_pep_idx;
-                    ah.total_loss_score = tlss_score;
+                    ah.total_loss_score = hyperScore;
                     ah.MIC = tlss_MIC;
                     ah.err = tlss_err;
                     ah.Morph = tlss_Morph;
@@ -2922,7 +3106,6 @@ static void scoreShiftedFragments_(
                     ah.pl_im_MIC = plss_im_MIC;
                     ah.immonium_score = immonium_sub_score;
                     ah.precursor_score = precursor_sub_score;
-                    ah.a_ion_score = a_ion_sub_score;
                     ah.cross_linked_nucleotide = cross_linked_nucleotide;
                     ah.total_MIC = total_MIC; 
                     // scores from shifted peaks
@@ -2961,11 +3144,11 @@ static void scoreShiftedFragments_(
             }
             else // fast scoring
             {
-              for (auto l = low_it; l != up_it; ++l)
+              for (auto & l = low_it; l != up_it; ++l)
               {
                 const Size & scan_index = l->second.first;
                 const int & isotope_error = l->second.second;
-                const double exp_pc_mass = l->first;
+                const double & exp_pc_mass = l->first;
 
                 // generate PSMs for spectrum[scan_index] and add them to annotated_hits[scan_index]
                 addPSMsTotalLossScoring_(
@@ -2974,13 +3157,12 @@ static void scoreShiftedFragments_(
                   mod_pep_idx, // index of peptide mod
                   rna_mod_index, // index of RNA mod
                   current_peptide_mass,
+                  current_peptide_mass_without_NA,
                   exp_pc_mass,
+                  iip,
                   isotope_error, 
-                  total_loss_spectrum_z1, 
-                  total_loss_spectrum_z2,
-                  a_ion_sub_score_spectrum,
-                  precursor_sub_score_spectrum, 
-                  immonium_sub_score_spectrum,
+                  total_loss_template_z1_b_ions, 
+                  total_loss_template_z1_y_ions,
                   gaussian_mass_error,
                   mass_error_prior_negatives, 
                   fragment_mass_tolerance,
@@ -3204,6 +3386,8 @@ static void scoreShiftedFragments_(
     }
   }
 */
+
+
   static void scorePartialLossFragments_(const Size peptide_size,
                                   const PeakSpectrum &exp_spectrum,
                                   double fragment_mass_tolerance,
