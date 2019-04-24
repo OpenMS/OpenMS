@@ -40,7 +40,7 @@ project("OpenMS_coding_tests")
 if (NOT WIN32)
   add_test(
     NAME potential_for_loop_copies
-    COMMAND sh -c "grep -R for ${OPENMS_HOST_DIRECTORY} | grep auto | grep -v begin | grep ':' | grep -v '&' | grep -v '//' | grep 'for[ ]*(' || echo 'Success' "
+    COMMAND sh -c "grep -R for --exclude-dir=contrib --exclude-dir=cppcheck --exclude-dir=src/openms/thirdparty ${OPENMS_HOST_DIRECTORY} | grep auto | grep -v begin | grep ':' | grep -v '&' | grep -v '//' | grep 'for[ ]*(' || echo 'Success' "
   )
 
   set_tests_properties(potential_for_loop_copies PROPERTIES
