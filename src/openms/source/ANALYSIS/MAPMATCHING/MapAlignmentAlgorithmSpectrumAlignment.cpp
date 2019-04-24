@@ -191,7 +191,7 @@ namespace OpenMS
       double rt = tempalign[xcoordinate[i]]->getRT();
       data.push_back(std::make_pair(rt, double(ycoordinate[i])));
     }
-    transformation.push_back(TransformationDescription(data));
+    transformation.emplace_back(data);
   }
 
   void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum*>& pattern, std::vector<MSSpectrum*>& aligned, std::vector<int>& xcoordinate, std::vector<float>& ycoordinate, std::vector<int>& xcoordinatepattern)
@@ -307,7 +307,7 @@ namespace OpenMS
                 else
                   traceback[i][j] = 0;
               }
-              catch (Exception::OutOfRange /*&e*/)
+              catch (Exception::OutOfRange& /*e*/)
               {
                 throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
               }
@@ -367,7 +367,7 @@ namespace OpenMS
           {
             if (debug_)
             {
-              debugtraceback_.push_back(std::make_pair(float(i + xbegin - 1), float(j + ybegin - 1)));
+              debugtraceback_.emplace_back(float(i + xbegin - 1), float(j + ybegin - 1));
             }
             xvar.push_back(j + (int)ybegin - 1);
             yvar.push_back((*pattern[i + xbegin - 1]).getRT());
@@ -377,7 +377,7 @@ namespace OpenMS
           {
             if (debug_)
             {
-              debugtraceback_.push_back(std::make_pair(float(j + xbegin - 1), float(i + ybegin - 1)));
+              debugtraceback_.emplace_back(float(j + xbegin - 1), float(i + ybegin - 1));
             }
             xvar.push_back(i + (int)ybegin - 1);
             yvar.push_back((*pattern[j + xbegin - 1]).getRT());
@@ -395,7 +395,7 @@ namespace OpenMS
 
     for (Size k = 0; k < xvar.size(); ++k)
     {
-      if (xcoordinate.size() > 0)
+      if (!xcoordinate.empty())
       {
         if (xvar[xvar.size() - 1 - k] != xcoordinate[xcoordinate.size() - 1])
         {
@@ -561,7 +561,7 @@ namespace OpenMS
         //modification only view as a possible data point if the score is higher than 0
         if (score >= threshold_)
         {
-          temp.push_back(std::make_pair(std::make_pair(xcoordinate[(i * bucketsize_) + j], ycoordinate[(i * bucketsize_) + j]), score));
+          temp.emplace_back(std::make_pair(xcoordinate[(i * bucketsize_) + j], ycoordinate[(i * bucketsize_) + j]), score);
         }
       }
       /*for(Size i=0; i < temp.size();++i)
@@ -572,7 +572,7 @@ namespace OpenMS
       */
       std::sort(temp.begin(), temp.end(), Compare(false));
       //Int anchor=(Int)(size*anchorPoints_/100);
-      float anchor = (temp.size() * anchorPoints_ / 100);
+      float anchor = temp.size() * anchorPoints_ / 100.0;
       if (anchor <= 0 && !temp.empty())
       {
         anchor = 1;
@@ -831,14 +831,7 @@ namespace OpenMS
     }
 
     String tmp = (String)param_.getValue("debug");
-    if (tmp == "true")
-    {
-      debug_ = true;
-    }
-    else
-    {
-      debug_ = false;
-    }
+    debug_ = tmp == "true";
     threshold_ = 1 - cutoffScore_;
   }
 

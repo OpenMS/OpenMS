@@ -61,7 +61,7 @@ void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSec
   } 
 }
 
-void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection sampleSection, const String& bioreplicate, const String& condition, const String& mixture)
+void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition, const String& mixture)
 {
   checkConditionLFQ_(sampleSection, bioreplicate, condition);
   
@@ -166,7 +166,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
       LOG_FATAL_ERROR << s << endl;
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
-  };
+  }
 
   // Extract information from the consensus features.
   for (const ConsensusFeature &consensus_feature : consensus_map)
@@ -179,7 +179,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
     vector< unsigned > cf_labels;
 
     // Store the file names and the run intensities of this feature
-    const ConsensusFeature::HandleSetType fs(consensus_feature.getFeatures());
+    const ConsensusFeature::HandleSetType& fs(consensus_feature.getFeatures());
     for (ConsensusFeature::HandleSetType::const_iterator fit = fs.begin(); fit != fs.end(); ++fit)
     {
       filenames.push_back(spectra_paths[fit->getMapIndex()]);
@@ -243,8 +243,8 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
         const std::vector< PeptideEvidence > & original_peptide_evidences = pep_hit.getPeptideEvidences();
 
         // Decide whether to use original or placeholder iterator
-        const std::vector< PeptideHit::PeakAnnotation > & fragment_annotations = (original_fragment_annotations.size() == 0) ? placeholder_fragment_annotations : original_fragment_annotations;
-        const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.size() == 0) ? placeholder_peptide_evidences : original_peptide_evidences;
+        const std::vector< PeptideHit::PeakAnnotation > & fragment_annotations = (original_fragment_annotations.empty()) ? placeholder_fragment_annotations : original_fragment_annotations;
+        const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.empty()) ? placeholder_peptide_evidences : original_peptide_evidences;
 
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
@@ -265,7 +265,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
             frag_ions.insert(sm.begin(), sm.end());
             if (frag_ions.size() == 1)
             {
-              for (auto frag_ions_elem : frag_ions)
+              for (const auto& frag_ions_elem : frag_ions)
               {
                 fragment_ion = frag_ions_elem;
               }
@@ -334,12 +334,12 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
   // test
   int count_similar = 0;
 
-  for (const pair< String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
+  for (const pair<const String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
   {
     // Only write if unique peptide
     if (peptideseq_accessions.second.size() == 1)
     {
-      for (const pair< MSstatsLine, set< pair< Intensity, Coordinate > > > &line :
+      for (const pair<const MSstatsLine, set< pair< Intensity, Coordinate > > > &line :
               peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
       {
         // First, we collect all retention times and intensities
@@ -559,7 +559,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
         const std::vector< PeptideEvidence > & original_peptide_evidences = pep_hit.getPeptideEvidences();
 
         // Decide whether to use original or placeholder iterator
-        const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.size() == 0) ? placeholder_peptide_evidences : original_peptide_evidences;
+        const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.empty()) ? placeholder_peptide_evidences : original_peptide_evidences;
 
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
@@ -624,12 +624,12 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
   // test
   int count_similar = 0;
 
-  for (const pair< String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
+  for (const pair<const String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
   {
     // Only write if unique peptide
     if (peptideseq_accessions.second.size() == 1)
     {
-      for (const pair< MSstatsTMTLine, set< pair< Intensity, Coordinate > > > &line :
+      for (const pair<const MSstatsTMTLine, set< pair< Intensity, Coordinate > > > &line :
               peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
       {
         // First, we collect all retention times and intensities

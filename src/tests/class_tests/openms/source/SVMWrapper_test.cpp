@@ -106,9 +106,9 @@ START_SECTION((Int getIntParameter(SVM_parameter_type type)))
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, LINEAR);
 	svm.setParameter(SVMWrapper::DEGREE, 2);
 
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true)
 END_SECTION
 
 START_SECTION((Int train(struct svm_problem *problem)))
@@ -866,10 +866,10 @@ START_SECTION((void setParameter(SVM_parameter_type type, Int value)))
 	svm.setParameter(SVMWrapper::C, 23);
 	svm.setParameter(SVMWrapper::PROBABILITY, 1);
 
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true);
-	TEST_EQUAL((int) svm.getDoubleParameter(SVMWrapper::C), 23);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true)
+	TEST_EQUAL((int) svm.getDoubleParameter(SVMWrapper::C), 23)
 	TEST_EQUAL(svm.getIntParameter(SVMWrapper::PROBABILITY), 1)
 END_SECTION
 

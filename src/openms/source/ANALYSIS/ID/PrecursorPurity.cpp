@@ -74,7 +74,7 @@ namespace OpenMS
     double total_intensity(0);
     double target_intensity(0);
     Size target_peak_count(0);
-    for (auto peak : isolated_window)
+    for (const auto& peak : isolated_window)
     {
       total_intensity += peak.getIntensity();
     }

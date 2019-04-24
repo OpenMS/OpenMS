@@ -213,7 +213,7 @@ protected:
 
     if (in_type == FileTypes::UNKNOWN)
     {
-      in_type = fh.getType(in);
+      in_type = FileHandler::getType(in);
       writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
@@ -474,8 +474,8 @@ protected:
 
       os << "\n";
       os << "Number of sequences   : " << entries.size() << "\n";
-      os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 : (dup_header * 1000 / entries.size()) / 10.0) << "%)\n";
-      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : (dup_seq * 1000 / entries.size()) / 10.0) << "%) [by exact string matching]\n";
+      os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 : (dup_header * 1000.0 / entries.size()) / 10.0) << "%)\n";
+      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : (dup_seq * 1000.0 / entries.size()) / 10.0) << "%) [by exact string matching]\n";
       os << "Total amino acids     : " << number_of_aacids << "\n\n";
       os << "Amino acid counts: \n";
 
@@ -485,8 +485,8 @@ protected:
       }
       size_t amb = aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x'];
       size_t amb_I = amb + aacids['I'] + aacids['i'];
-      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (amb * 10000 / number_of_aacids / 100.0) : 0) << "%)\n";
-      os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (amb_I * 10000 / number_of_aacids / 100.0) : 0) << "%)\n\n";
+      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (amb * 10000.0 / number_of_aacids / 100.0) : 0) << "%)\n";
+      os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (amb_I * 10000.0 / number_of_aacids / 100.0) : 0) << "%)\n\n";
     }
 
     else if (in_type == FileTypes::FEATUREXML) //features
@@ -932,7 +932,7 @@ protected:
       }
 
       // Detailed listing of scans
-      if (getFlag_("d") && exp.size() > 0)
+      if (getFlag_("d") && !exp.empty())
       {
         os << "\n"
            << "-- Detailed spectrum listing --"
@@ -1096,7 +1096,7 @@ protected:
     //-------------------------------------------------------------
     // meta information
     //-------------------------------------------------------------
-    if (getFlag_("m") || getStringOption_("out_tsv") != "")
+    if (getFlag_("m") || !getStringOption_("out_tsv").empty())
     {
 
       //basic info
@@ -1424,7 +1424,7 @@ protected:
             }
             mz_aad_by_elems.push_back(mz_diff);
             mz_aad += mz_diff;
-            double it_ratio = hs_iter->getIntensity() / (cm_iter->getIntensity() ? cm_iter->getIntensity() : 1.);
+            double it_ratio = hs_iter->getIntensity() / (cm_iter->getIntensity() > 0 ? cm_iter->getIntensity() : 1.);
             it_delta_by_elems.push_back(it_ratio);
             if (it_ratio < 1.)
             {
@@ -1569,7 +1569,7 @@ protected:
     String out_tsv = getStringOption_("out_tsv");
 
     TOPPBase::ExitCodes ret;
-    if (out != "" && out_tsv != "")
+    if (!out.empty() && !out_tsv.empty())
     {
       ofstream os(out.c_str());
       ofstream os_tsv(out_tsv.c_str());
@@ -1577,7 +1577,7 @@ protected:
       os.close();
       os_tsv.close();
     }
-    else if (out != "" && out_tsv == "")
+    else if (!out.empty() && out_tsv.empty())
     {
       ofstream os(out.c_str());
       // Output stream with null output
@@ -1586,7 +1586,7 @@ protected:
       ret = outputTo_(os, os_tsv);
       os.close();
     }
-    else if (out == "" && out_tsv != "")
+    else if (out.empty() && !out_tsv.empty())
     {
       ofstream os_tsv(out_tsv.c_str());
       ret = outputTo_(LOG_INFO, os_tsv);

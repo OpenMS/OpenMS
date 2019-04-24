@@ -141,7 +141,7 @@ protected:
 
     // MSExperiment
     vector<MSExperiment> ms_maps;
-    for (auto mzml_file_path : mzml_file_paths)
+    for (const auto& mzml_file_path : mzml_file_paths)
     {
       MzMLFile mzml_file;
       MSExperiment map;

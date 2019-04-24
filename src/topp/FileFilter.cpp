@@ -1227,7 +1227,7 @@ protected:
 
     for (Size i = 0; i != exp.size(); ++i)
     {
-      if (find(blacklist_idx.begin(), blacklist_idx.end(), i) ==
+      if (blacklist_idx.find(i) ==
           blacklist_idx.end())
       {
         exp2.addSpectrum(exp[i]);
@@ -1298,14 +1298,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
+        if (list_idx.find(i) == list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non MS2 spectra, and MS2 only if in list
       {
-        if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
@@ -1374,14 +1374,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
+        if (list_idx.find(i) == list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non-MS2 spectra + matched MS2 spectra
       {
-        if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }

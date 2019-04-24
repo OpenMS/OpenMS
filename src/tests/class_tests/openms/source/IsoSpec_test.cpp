@@ -148,7 +148,7 @@ for (auto elem : ef_fructose)
 
   std::vector<double> masses;
   std::vector<double> probs;
-  for (auto iso : elem.first->getIsotopeDistribution())
+  for (const auto& iso : elem.first->getIsotopeDistribution())
   {
     if (iso.getIntensity() <= 0.0) continue; // Note: there will be an Isospec exception if one of the intensities is zero!
     masses.push_back(iso.getMZ());

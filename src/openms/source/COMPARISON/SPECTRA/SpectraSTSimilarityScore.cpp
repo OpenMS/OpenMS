@@ -95,6 +95,7 @@ namespace OpenMS
     double min_high_intensity = 0;
     if (!spec.empty())
     {
+      //@todo timosachsenberg Is this a dirty undocumented hack or just wrong?
       min_high_intensity = (1 / cut_peaks_below) * spec[0].getIntensity();
     }
     spec.sortByPosition();
@@ -129,7 +130,7 @@ namespace OpenMS
   {
     double numerator = (bin1.getBins().cwiseProduct(bin2.getBins())).norm();
     
-    if (dot_product)
+    if (dot_product != 0)
     {
       return (double)numerator / dot_product;
     }
