@@ -36,16 +36,17 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/QC/MissedCleavages.h>
 
-#include <vector>
-#include <string>
-#include <OpenMS/QC/QCBase.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/QC/MissedCleavages.h>
+#include <string>
+#include <vector>
 
 //////////////////////////
 

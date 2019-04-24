@@ -29,57 +29,40 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Swenja Wagner, Patricia Scheil $
+// $Authors: Juliane Schmachtenberg $
 // --------------------------------------------------------------------------
-
 
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
-#include <vector>
 
 namespace OpenMS
 {
   class FeatureMap;
+  class TransformationDescription;
+
   /**
-   * @brief This class is a metric for the QualityControl TOPP Tool.
-   *
-   * This class counts the number of MissedCleavages per PeptideIdentification given a FeatureMap
-   * and returns an agglomeration statistic (observed counts).
-   * Additionally the PeptideHits in the FeatureMap are augmented with MetaInformation.
-   *
-   */
-  class OPENMS_DLLAPI MissedCleavages : QCBase
+    @brief take the original retention time before map alignment and use the transformation information of the post alignment trafoXML
+    for calculation of the post map alignment retention times. Set meta values "rt_raw" and "rt_align" in PeptideIdentifications of the featureMap
+    @param trafo: Transformation information of map alignment
+    @param features: featureMap before map alignment, contains original retention time
+    **/
+  class OPENMS_DLLAPI RTAlignment : public QCBase
   {
-  public:
-    ///constructor
-    MissedCleavages() = default;
-
-    ///destructor
-    virtual ~MissedCleavages() = default;
-
-    /**
-     * @brief Counts the number of MissedCleavages per PeptideIdentification.
-     *
-     * The result is a key/value map: missed_cleavages --> counts
-     * Additionally the first PeptideHit in each PeptideIdentification of the FeattureMap is annotated with metavalue 'missed_cleavages'.
-     * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParamter therein) within the FeatureMap itself.
-     *
-     * @param fmap FeatureMap with Peptide and ProteinIdentifications
-     */
-    void compute(FeatureMap& fmap);
-
-    /// returns the result
-    const std::vector<std::map<UInt32, UInt32>>& getResults() const;
+    public:
+    /// Constructor
+    RTAlignment() = default;
+    /// Destructor
+    virtual ~RTAlignment() = default;
 
     /**
-     * @brief Returns the input data requirements of the compute(...) function
-     * @return Status for POSTFDRFEAT;
-     */
-    QCBase::Status requires() const override;
-
-  private:
-    /// container that stores results
-    std::vector<std::map<UInt32, UInt32>> mc_result_;
+     @brief Calculates post map alignment retention time
+     and sets meta values "rt_raw" and "rt_align" in PeptideIdentification
+     @param features: FeatureMap where the meta values are annotated
+     @param trafo: Transformation information to get needed data from
+    **/
+    void compute(FeatureMap& features, const TransformationDescription& trafo);
+    /// define the required input file: featureXML before map alignment (=POSTFDRFEAT), trafoXML after map alignment (=TRAFOALIGN)
+    Status requires() const override;
   };
-} // namespace OpenMS
+}

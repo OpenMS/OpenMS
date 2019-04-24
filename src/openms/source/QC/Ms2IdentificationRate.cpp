@@ -32,8 +32,17 @@
 // $Authors: Patricia Scheil, Swenja Wagner$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <algorithm>
+
+
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+//#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/QC/Ms2IdentificationRate.h>
+
 
 
 

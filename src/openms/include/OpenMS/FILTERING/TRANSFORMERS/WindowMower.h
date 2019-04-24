@@ -198,12 +198,7 @@ public:
 
       double last_window_size = peaks_in_window.back().getMZ() - window_start;
       double last_window_size_fraction = last_window_size / windowsize_;
-      Size last_window_peakcount = last_window_size_fraction * peakcount_;
-
-      if (last_window_peakcount) // handle single peak in last window (will produce no proper fraction)
-      {
-        last_window_peakcount = std::round(last_window_peakcount);
-      }
+      Size last_window_peakcount = static_cast<Size>(std::round(last_window_size_fraction * peakcount_));
 
       // sort for last_window_peakcount highest peaks
       std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
