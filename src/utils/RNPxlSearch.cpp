@@ -2298,7 +2298,8 @@ static void scoreShiftedFragments_(
   // check for misannotation (absolute m/z instead of offset) and correct
   void checkAndCorrectIsolationWindows_(MSExperiment& e)
   {
-    bool isolation_windows_reannotated = false;
+    int isolation_windows_reannotated(0);
+    int isolation_windows_reannotation_error(0);
 
     for (MSSpectrum & s : e)
     {
@@ -2307,16 +2308,36 @@ static void scoreShiftedFragments_(
         Precursor& p = s.getPrecursors()[0];
         if (p.getIsolationWindowLowerOffset() > 100.0 && p.getIsolationWindowUpperOffset() > 100.0)
         {
-          isolation_windows_reannotated = true;          
-          p.setIsolationWindowLowerOffset(p.getIsolationWindowLowerOffset() - p.getMZ());
-          p.setIsolationWindowUpperOffset(p.getIsolationWindowUpperOffset() - p.getMZ());
+          // in most cases lower and upper offset contain the absolute values.
+          // if that is the case we use those
+          double left = -(p.getIsolationWindowLowerOffset() - p.getMZ());
+          double right = p.getIsolationWindowUpperOffset() - p.getMZ();
+          if (left > 0.0 && right > 0.0)
+          {
+            p.setIsolationWindowLowerOffset(left);
+            p.setIsolationWindowUpperOffset(right);
+          }
+          else // in some files from PD the target m/z is sometimes to the left of the lower isolation window (bug?)
+          {
+            // something wrong with left boundary... use information from right
+            left = p.getMZ() - right;
+            p.setIsolationWindowLowerOffset(left);
+            p.setIsolationWindowUpperOffset(right);
+            isolation_windows_reannotation_error++;
+          }
+          isolation_windows_reannotated++;          
         }
       }
     }
 
-    if (isolation_windows_reannotated)
+    if (isolation_windows_reannotated > 0)
     {
-      LOG_WARN << "Isolation windows format was incorrect. Reannotated." << endl;
+      LOG_WARN << "Isolation windows format was incorrect. Reannotated " << isolation_windows_reannotated << " precursors windows. " << endl;
+      if (isolation_windows_reannotation_error > 0)
+      {
+        LOG_WARN << "Reannotation failed for " << isolation_windows_reannotation_error 
+          << " precursors windows because the target m/z was outside of boundaries." << endl;
+      }
     }
   }
 
