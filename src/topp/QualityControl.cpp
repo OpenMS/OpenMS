@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/Contaminants.h>
@@ -50,7 +51,9 @@
 #include <OpenMS/QC/MissedCleavages.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
+#include <OpenMS/QC/TopNoverRT.h>
 #include <cstdio>
 
 using namespace OpenMS;
@@ -81,11 +84,15 @@ protected:
     setValidFormats_("in_postFDR", {"featureXML"});
     //possible additions:
     //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
+    registerTOPPSubsection_("FragmentMassError", "test");
     registerStringOption_("FragmentMassError:unit", "<unit>", "ppm", "Unit for tolerance", false);
     setValidStrings_("FragmentMassError:unit", {"ppm", "Da"});
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "Search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Contaminant database input", false);
     setValidFormats_("in_contaminants", {"fasta"});
+    registerInputFileList_("in_trafo", "<file>", {}, "trafoXML input", false);
+    setValidFormats_("in_trafo", {"trafoXML"});
+    registerTOPPSubsection_("MS2_id_rate", "test");
     registerFlag_("MS2_id_rate:force_no_fdr", "Forces the metric to run if FDR was not made, accept all pep_ids as target hits.", false);
     registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
     setValidFormats_("out", {"mzTab"});
@@ -104,6 +111,7 @@ protected:
     UInt64 number_exps(0);
     StringList in_raw = updateFileStatus_(status, number_exps, "in_raw", QCBase::Requires::RAWMZML);
     StringList in_postFDR = updateFileStatus_(status, number_exps, "in_postFDR", QCBase::Requires::POSTFDRFEAT);
+    StringList in_trafo = updateFileStatus_(status, number_exps, "in_trafo", QCBase::Requires::TRAFOALIGN);
 
     // load databases and other single file inputs
     String in_contaminants = getStringOption_("in_contaminants");
@@ -134,11 +142,13 @@ protected:
 
     // Instantiate the QC metrics
     Contaminants qc_contaminants;
-    Ms2IdentificationRate qc_ms2ir;
-    MissedCleavages qc_missed_cleavages;
     FragmentMassError qc_frag_mass_err;
+    MissedCleavages qc_missed_cleavages;
+    Ms2IdentificationRate qc_ms2ir;
+    RTAlignment qc_rt_alignment;
     TIC qc_tic;
- 
+    TopNoverRT qc_top_n_over_rt;
+
     // Loop through file lists
     for (Size i = 0; i < number_exps; ++i)
     {
@@ -158,6 +168,13 @@ protected:
       {
         fxml_file.load(in_postFDR[i], fmap);
       }
+
+      TransformationXMLFile trafo_file;
+      TransformationDescription trafo_descr;
+      if (!in_trafo.empty())
+      {
+        trafo_file.load(in_trafo[i], trafo_descr);
+      }
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -167,9 +184,9 @@ protected:
         qc_contaminants.compute(fmap, contaminants);
       }
 
-      if (status.isSuperSetOf(qc_ms2ir.requires()))
+      if (status.isSuperSetOf(qc_frag_mass_err.requires()))
       {
-        qc_ms2ir.compute(fmap, exp, fdr_flag);
+        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit);
       }
 
       if (status.isSuperSetOf(qc_missed_cleavages.requires()))
@@ -177,19 +194,24 @@ protected:
         qc_missed_cleavages.compute(fmap);
       }
 
-      if (status.isSuperSetOf(qc_frag_mass_err.requires()))
+      if (status.isSuperSetOf(qc_ms2ir.requires()))
       {
-        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit);
+        qc_ms2ir.compute(fmap, exp, fdr_flag);
       }
 
-      if (status.isSuperSetOf(qc_contaminants.requires()))
+      if (status.isSuperSetOf(qc_rt_alignment.requires()))
       {
-        qc_contaminants.compute(fmap, contaminants);
+        qc_rt_alignment.compute(fmap, trafo_descr);
       }
 
       if (status.isSuperSetOf(qc_tic.requires()))
       {
         qc_tic.compute(exp);
+      }
+
+      if (status.isSuperSetOf(qc_top_n_over_rt.requires()))
+      {
+        qc_top_n_over_rt.compute(exp, fmap);
       }
 
       //-------------------------------------------------------------
