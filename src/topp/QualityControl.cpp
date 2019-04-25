@@ -274,7 +274,7 @@ private:
   {
     vector<String> keys;
     from.getKeys(keys);
-    for(String& key : keys)
+    for (String& key : keys)
     {
       to.setMetaValue(key, from.getMetaValue(key));
     }
