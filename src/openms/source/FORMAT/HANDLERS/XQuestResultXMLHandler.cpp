@@ -962,7 +962,7 @@ namespace OpenMS
       String current_spectrum_light("");
       String current_spectrum_heavy("");
 
-      for (auto current_pep_id : *cpep_id_)
+      for (const auto& current_pep_id : *cpep_id_)
       {
         std::vector< PeptideHit > pep_hits = current_pep_id.getHits();
         if (pep_hits.size() < 1)

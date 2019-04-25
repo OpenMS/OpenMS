@@ -3557,7 +3557,7 @@ namespace OpenMS
 
     // Add spectra into a MSExperiment, sort and prepare it for display
     ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
-    for (auto s : im_map)
+    for (const auto& s : im_map)
     {
       tmpe->addSpectrum( *(s.second) );
     }

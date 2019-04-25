@@ -253,7 +253,7 @@ namespace OpenMS
       else
       {
         int count_ms2 = 0;
-        for (auto spec_it : spectra)
+        for (const auto& spec_it : spectra)
         {
           if (spec_it.getMSLevel() == 2)
           {
