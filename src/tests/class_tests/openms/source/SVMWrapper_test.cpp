@@ -78,13 +78,17 @@ START_SECTION((double getSVRProbability()))
 	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	Int count = 100;
+	Int count2 = 6;
+	temp_vector.reserve(count);
+	vectors.reserve(count2);
 	vector<double> labels;
+	labels.reserve(count);
 	svm_problem* problem;
 
 	for (Int j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Int i = 0; i < 6; i++)
+		for (Int i = 0; i < count2; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
@@ -135,7 +139,9 @@ START_SECTION((Int train(SVMData &problem)))
 	SVMData problem;
 	UInt count = 4;
 	vector<double> labels;
+	labels.reserve(count);
 	vector< vector<pair<Int, double> > > sequences;
+	sequences.reserve(count);
 	vector<pair<Int, double> > sequence;
 	
 	svm2.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
@@ -166,7 +172,9 @@ START_SECTION((static void getLabels(svm_problem *problem, std::vector< double >
 	svm_node** nodes = new svm_node*[count];
 	double* labels = new double[count];
 	std::vector<double> label_vector1;
+	label_vector.reserve(count);
 	std::vector<double> label_vector2;
+	label_vector2.reserve(count);
 
 	for (Size i = 0; i < count; i++)
 	{
@@ -215,7 +223,9 @@ START_SECTION((static void createRandomPartitions(const SVMData &problem, Size n
 	SVMData problem;
 	UInt count = 4;
 	vector<double> labels;
+	labels.reserve(count);
 	vector< vector<pair<Int, double> > > sequences;
+	sequence.reserve(count);
 	vector<pair<Int, double> > sequence;
 	std::vector< SVMData > partitions;
 	

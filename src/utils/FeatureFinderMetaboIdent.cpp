@@ -142,7 +142,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -870,7 +870,7 @@ protected:
   }
 
   /// Main function
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     FeatureMap features;
 

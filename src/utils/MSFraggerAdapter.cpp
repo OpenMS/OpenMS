@@ -206,7 +206,7 @@ public:
 
 
 protected:
-  void registerOptionsAndFlags_() final override
+  void registerOptionsAndFlags_() override
   {
     const StringList emptyStrings;
     const std::vector< double > emptyDoubles;
@@ -375,7 +375,7 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**) final
+  ExitCodes main_(int, const char**) override
   {  
     try
     {

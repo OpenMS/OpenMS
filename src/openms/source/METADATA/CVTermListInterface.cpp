@@ -88,7 +88,7 @@ namespace OpenMS
     return *this;
   }
 
-  CVTermListInterface& CVTermListInterface::operator=(CVTermListInterface&& rhs)
+  CVTermListInterface& CVTermListInterface::operator=(CVTermListInterface&& rhs) noexcept
   {
     if (&rhs == this)
     {

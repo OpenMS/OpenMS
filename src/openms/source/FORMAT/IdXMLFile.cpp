@@ -95,7 +95,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void IdXMLFile::store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id)
+  void IdXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
     {

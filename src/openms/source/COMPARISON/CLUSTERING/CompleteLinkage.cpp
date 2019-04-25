@@ -103,7 +103,7 @@ namespace OpenMS
     while (original_distance(min.first, min.second) < threshold)
     {
       //grow the tree
-      cluster_tree.push_back(BinaryTreeNode(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second)));
+      cluster_tree.emplace_back(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second));
       if (cluster_tree.back().left_child > cluster_tree.back().right_child)
       {
         std::swap(cluster_tree.back().left_child, cluster_tree.back().right_child);
@@ -155,7 +155,7 @@ namespace OpenMS
     Size sad(*clusters.front().begin());
     for (Size i = 1; i < clusters.size() && (cluster_tree.size() < cluster_tree.capacity()); ++i)
     {
-      cluster_tree.push_back(BinaryTreeNode(sad, *clusters[i].begin(), -1.0));
+      cluster_tree.emplace_back(sad, *clusters[i].begin(), -1.0);
     }
     //~ while(cluster_tree.size() < cluster_tree.capacity())
     //~ {

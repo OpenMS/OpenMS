@@ -252,11 +252,11 @@ protected:
 
     FragmentAdductDefinition_(const FragmentAdductDefinition_&) = default;
 
-    FragmentAdductDefinition_(FragmentAdductDefinition_&&) = default;
+    FragmentAdductDefinition_(FragmentAdductDefinition_&&) noexcept = default;
 
     FragmentAdductDefinition_& operator=(const FragmentAdductDefinition_&) = default;
 
-    FragmentAdductDefinition_& operator=(FragmentAdductDefinition_&&) = default;
+    FragmentAdductDefinition_& operator=(FragmentAdductDefinition_&&) noexcept = default;
 
     bool operator<(const FragmentAdductDefinition_& other) const
     {

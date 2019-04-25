@@ -233,7 +233,7 @@ public:
     PeptideHit(double score,
                UInt rank,
                Int charge,
-               const AASequence& sequence);
+               AASequence sequence);
     /// Copy constructor
     PeptideHit(const PeptideHit& source);
     /// Move constructor

@@ -507,7 +507,7 @@ namespace OpenMS
     }
   }
 
-  void MzTabSpectraRef::setSpecRef(String spec_ref)
+  void MzTabSpectraRef::setSpecRef(const String& spec_ref)
   {
     if (!spec_ref.empty())
     {
@@ -1467,8 +1467,8 @@ namespace OpenMS
   void MzTab::addMetaInfoToOptionalColumns(
     const set<String>& keys, 
     vector<MzTabOptionalColumnEntry>& opt, 
-    const String id, 
-    const MetaInfoInterface meta)
+    const String& id,
+    const MetaInfoInterface& meta)
   {
     for (String const & key : keys)
     {
@@ -2615,7 +2615,7 @@ Not sure how to handle these:
     const String& filename, 
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
-    String title)
+    const String& title)
   {  
     LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
     vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
