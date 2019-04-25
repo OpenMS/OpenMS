@@ -114,13 +114,13 @@ protected:
       fasta_file.load(in_contaminants, contaminants);
       status |= QCBase::Requires::CONTAMINANTS;
     }
-
+    ConsensusMap cmap;
     String in_consensus = getStringOption_("in_consensus");
-    map<Int64, PeptideIdentification*> map_to_id;
     ConsensusXMLFile().load(in_consensus, cmap);
     //-------------------------------------------------------------
     // Build the map to later find the original PepID in given ConsensusMap.
     //-------------------------------------------------------------
+    map<Int64, PeptideIdentification*> map_to_id;
     for (ConsensusFeature& cf : cmap)
     {
       fillPepIDMap_(map_to_id, cf.getPeptideIdentifications());
