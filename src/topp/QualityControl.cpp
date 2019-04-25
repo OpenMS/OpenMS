@@ -140,7 +140,7 @@ protected:
     TIC qc_tic;
 
 
-    map<Int64,const PeptideIdentification*> map_to_id;
+    map<Int64, PeptideIdentification*> map_to_id;
     
     // Loop through file lists
     for (Size i = 0; i < number_exps; ++i)
@@ -198,11 +198,6 @@ protected:
       //-------------------------------------------------------------
       // Build the map to later find the original PepID in given ConsensusMap.
       //-------------------------------------------------------------
-     /// for (Feature& feature : fmap)
-     /// {
-     ///   fillPepIDMap_(map_to_id, feature.getPeptideIdentifications());
-     /// }
-     /// fillPepIDMap_(map_to_id, fmap.getUnassignedPeptideIdentifications());
 
       for (ConsensusFeature& cf : cmap)
       {
@@ -215,16 +210,9 @@ protected:
       //-------------------------------------------------------------
 
       // copy MetaValues of unassigned PepIDs
-
-      ///copyPepIDMetaValues_(cmap.getUnassignedPeptideIdentifications(), map_to_id);
       copyPepIDMetaValues_(fmap.getUnassignedPeptideIdentifications(), map_to_id);
 
       // copy MetaValues of assigned PepIDs
-
-      ///for (ConsensusFeature& cf : cmap)
-      ///{
-      ///  copyPepIDMetaValues_(cf.getPeptideIdentifications(), map_to_id);
-      ///}
       for (Feature& feature : fmap)
       {
         copyPepIDMetaValues_(feature.getPeptideIdentifications(), map_to_id);
@@ -293,30 +281,27 @@ private:
     }
   }
 
-  void copyPepIDMetaValues_(const vector<PeptideIdentification>& pep_ids, const map<Int64,const PeptideIdentification*>& map_to_id) const
+  void copyPepIDMetaValues_(const vector<PeptideIdentification>& pep_ids, const map<Int64, PeptideIdentification*>& map_to_id) const
   {
-    for (const PeptideIdentification& pep_id : pep_ids)
+    for (const PeptideIdentification& ref_pep_id : pep_ids)
     {
-      if (!pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
+      if (!ref_pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
       {
         throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at unassigned peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
       }
-      ///const PeptideIdentification& ref_pep_id = *(map_to_id.at(pep_id.getMetaValue("UID"))); // look up annotated PepID
-      PeptideIdentification& ref_pep_id = const_cast<PeptideIdentification&>(*(map_to_id.at(pep_id.getMetaValue("UID"))));
+      PeptideIdentification& pep_id = *(map_to_id.at(ref_pep_id.getMetaValue("UID"))); 
 
       // copy all MetaValues that are at PepID level
-      ///copyMetaValues_(ref_pep_id, pep_id);
-      copyMetaValues_(pep_id, ref_pep_id);
+      copyMetaValues_(ref_pep_id, pep_id);
 
       // copy all MetaValues that are at Hit level
-      ///copyMetaValues_(ref_pep_id.getHits()[0], pep_id.getHits()[0]);
-      copyMetaValues_(pep_id.getHits()[0], ref_pep_id.getHits()[0]);
+      copyMetaValues_(ref_pep_id.getHits()[0], pep_id.getHits()[0]);
     }
   }
 
-  void fillPepIDMap_(map<Int64,const PeptideIdentification*>& map_to_id, const vector<PeptideIdentification>& pep_ids) const
+  void fillPepIDMap_(map<Int64, PeptideIdentification*>& map_to_id, vector<PeptideIdentification>& pep_ids) const
   {
-    for (const PeptideIdentification& pep_id : pep_ids)
+    for ( PeptideIdentification& pep_id : pep_ids)
     {
       if (!pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
       {
