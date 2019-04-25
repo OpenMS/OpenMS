@@ -56,7 +56,6 @@ RNPxlMarkerIonExtractor::MarkerIonsType RNPxlMarkerIonExtractor::extractMarkerIo
   PeakSpectrum spec(s);
   Normalizer normalizer;
   normalizer.filterSpectrum(spec);
-  spec.sortByPosition();
 
   // for each nucleotide with marker ions
   for (MarkerIonsType::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
