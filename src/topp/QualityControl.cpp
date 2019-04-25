@@ -240,7 +240,6 @@ protected:
 
 private:
   StringList updateFileStatus_(QCBase::Status& status, UInt64& number_exps, const String& port, const QCBase::Requires& req)
-
   {
     // since files are optional, leave function if non are provided by the user
     StringList files = getStringList_(port);
