@@ -220,7 +220,7 @@ public:
         {
           continue;
         }
-				typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
+        typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
         for (typename SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
         {
           cont.push_back(s);
@@ -538,15 +538,6 @@ public:
     **/
     const MSChromatogram getTIC(float rt_bin_size=0) const;
 
-		/// returns a const reference to the description of the applied data processing
-		const std::vector<DataProcessing>& getDataProcessing() const;
-
-		/// returns a mutable reference to the description of the applied data processing
-		std::vector<DataProcessing>& getDataProcessing();
-
-		/// sets the description of the applied data processing
-		void setDataProcessing(const std::vector<DataProcessing>& processing_method);
-
     /**
       @brief Clears all data and meta data
 
@@ -566,9 +557,6 @@ protected:
 
     /// spectra
     std::vector<SpectrumType> spectra_;
-		
-		/// applied data processing
-		std::vector<DataProcessing> data_processing_;
 
 private:
 

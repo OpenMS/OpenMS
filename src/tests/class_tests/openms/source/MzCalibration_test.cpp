@@ -38,6 +38,7 @@
 #include <OpenMS/QC/MzCalibration.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 ///////////////////////////
 
 START_TEST(MzCalibration, "$Id$")
@@ -60,8 +61,8 @@ END_SECTION
 
 START_SECTION(QCBase::Status requires() const override)
 {
-		MzCalibration mzCal;
-		TEST_EQUAL(mzCal.requires() == (QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT), true);
+    MzCalibration mzCal;
+    TEST_EQUAL(mzCal.requires() == (QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
 
@@ -85,11 +86,18 @@ spec.setPrecursors({ pre });
 spec.setRT(1);
 spectra.push_back(spec);
 exp.setSpectra(spectra);
-//set DataProcessing
-DataProcessing processing_method{};
-std::set<DataProcessing::ProcessingAction> dp{ DataProcessing::ProcessingAction::CALIBRATION };
-processing_method.setProcessingActions(dp);
-exp.setDataProcessing({ processing_method });
+// adding processing info
+DataProcessing p;
+p.setProcessingActions({ OpenMS::DataProcessing::CALIBRATION });
+boost::shared_ptr< DataProcessing > p_(new DataProcessing(p));
+for (Size i = 0; i < exp.size(); ++i)
+{
+  exp[i].getDataProcessing().push_back(p_);
+}
+for (Size i = 0; i < exp.getNrChromatograms(); ++i)
+{
+  exp.getChromatogram(i).getDataProcessing().push_back(p_);
+}
 
 //FeatureMap
 FeatureMap fmap;
@@ -129,90 +137,82 @@ MzCalibration cal;
 //tests compute function
 START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp))
 {
-	cal.compute(fmap, exp);
-	for (Feature f:fmap)
-	{
-		for (auto pepID : f.getPeptideIdentifications())
-		{
-			ABORT_IF(!pepID.getHits()[0].metaValueExists("mz_raw"));
-		}
-	}
-	//test with valid input
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_raw"), 5);
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getHits()[0].getMetaValue("mz_raw"), 7);
-	//test unassigned
-	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_raw"), 6);
-	
-	//test refMZ
-	double ref = AASequence::fromString("AAAA").getMonoWeight(OpenMS::Residue::Full, 2) / 2;
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_ref"), ref);
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getHits()[0].getMetaValue("mz_ref"), AASequence::fromString("WWWW").getMonoWeight(OpenMS::Residue::Full, 3) / 3);
-	TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_ref"), AASequence::fromString("YYYY").getMonoWeight(OpenMS::Residue::Full, 2) / 2);
-	
-	//test  mz_error
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("uncalibrated_mz_error_ppm"),(5-ref)/ref*1000000);
-	TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("calibrated_mz_error_ppm"), (5.5-ref)/ref*1000000);
-	
-	// test exception for empty MSExperiment
-	MSExperiment exp_empty{};
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, cal.compute(fmap, exp_empty), "The PeakMap is empty.");
-	
-	// test empty FeatureMap
-	FeatureMap fmap_empty{};
-	cal.compute(fmap_empty, exp);
-	TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
-	
-	//test feature is empty
-	Feature feature_empty{};
-	fmap_empty.push_back(feature_empty);
-	cal.compute(fmap_empty, exp);
-	TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
+  cal.compute(fmap, exp);
+  for (Feature f:fmap)
+  {
+    for (auto pepID : f.getPeptideIdentifications())
+    {
+      ABORT_IF(!pepID.getHits()[0].metaValueExists("mz_raw"));
+    }
+  }
+  //test with valid input
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_raw"), 5);
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getHits()[0].getMetaValue("mz_raw"), 7);
+  //test unassigned
+  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_raw"), 6);
 
-	//test empty PeptideIdentification
-	fmap_empty.clear();
-	PeptideIdentification peptide_ID_empty {};
-	identifications.push_back(peptide_ID_empty);
-	feature1.setPeptideIdentifications(identifications);
-	fmap.push_back(feature1);
-	cal.compute(fmap_empty, exp);
-	TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
+  //test refMZ
+  double ref = AASequence::fromString("AAAA").getMonoWeight(OpenMS::Residue::Full, 2) / 2;
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_ref"), ref);
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getHits()[0].getMetaValue("mz_ref"), AASequence::fromString("WWWW").getMonoWeight(OpenMS::Residue::Full, 3) / 3);
+  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_ref"), AASequence::fromString("YYYY").getMonoWeight(OpenMS::Residue::Full, 2) / 2);
 
-	//test empty hit
-	peptide_ID.setHits(std::vector<PeptideHit>{});
-	identifications.clear();
-	identifications.push_back(peptide_ID);
-	fmap.push_back(feature1);
-	cal.compute(fmap_empty, exp);
-	TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
+  //test  mz_error
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("uncalibrated_mz_error_ppm"),(5-ref)/ref*1000000);
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("calibrated_mz_error_ppm"), (5.5-ref)/ref*1000000);
 
-	//test exception if RT-values of the feature map are greater than the greatest RT-values in MSexpriment
-	fmap[0].getPeptideIdentifications()[0].setRT(4);
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "The retention time of the MZML and featureXML file does not match.");
+  // test exception for empty MSExperiment
+  MSExperiment exp_empty{};
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, cal.compute(fmap, exp_empty), "The PeakMap is empty.");
 
-	//test exception if RT difference between mz_raw (get from MSexpriment) and mz after calibration (in FeatureMap) is greater than EPSILON_
-	fmap[0].getPeptideIdentifications()[0].setRT(0.1);
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "PeptideID with RT " + to_string(0.1) + " s does not have a matching MS2 spectrum. Closest RT was " + to_string(0.5) + ", which seems too far off.\n");
+  // test empty FeatureMap
+  FeatureMap fmap_empty{};
+  cal.compute(fmap_empty, exp);
+  TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
 
-	//test exception if no calibrtion was performed and the meta_value mz_raw does not exist
-	fmap[0].getPeptideIdentifications()[0].setRT(0);
-	Precursor pre_without_meta;
-	pre_without_meta.setMetaValue("dummy", 1);
-	exp.getSpectra()[0].setPrecursors({ pre_without_meta });
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, cal.compute(fmap, exp), "InternalCalibration was not called; MetaValue 'mz_raw' missing from MSExperiment.");
-	
-	//test wrong MS-Level
-	fmap[0].getPeptideIdentifications()[0].setRT(0);
-	exp.getSpectra()[0].setRT(0);
-	exp.getSpectra()[0].setMSLevel(1);
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "The matching retention time of the MZML has the wrong MSLevel");
-	
-		//test exception if no m/z-calibration
-	DataProcessing processing_method2{};
-	std::set<DataProcessing::ProcessingAction> dp{};
-	processing_method.setProcessingActions(dp);
-	exp.setDataProcessing({ processing_method });
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "Metric MzCalibration received a mzml file BEFORE map calibration, but need a mzml file AFTER map alignment");
-	
+  //test feature is empty
+  Feature feature_empty{};
+  fmap_empty.push_back(feature_empty);
+  cal.compute(fmap_empty, exp);
+  TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
+
+  //test empty PeptideIdentification
+  fmap_empty.clear();
+  PeptideIdentification peptide_ID_empty {};
+  identifications.push_back(peptide_ID_empty);
+  feature1.setPeptideIdentifications(identifications);
+  fmap.push_back(feature1);
+  cal.compute(fmap_empty, exp);
+  TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
+
+  //test empty hit
+  peptide_ID.setHits(std::vector<PeptideHit>{});
+  identifications.clear();
+  identifications.push_back(peptide_ID);
+  fmap.push_back(feature1);
+  cal.compute(fmap_empty, exp);
+  TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
+
+  //test exception if RT-values of the feature map are greater than the greatest RT-values in MSexpriment
+  fmap[0].getPeptideIdentifications()[0].setRT(4);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "The retention time of the MZML and featureXML file does not match.");
+
+  //test exception if RT difference between mz_raw (get from MSexpriment) and mz after calibration (in FeatureMap) is greater than EPSILON_
+  fmap[0].getPeptideIdentifications()[0].setRT(0.25);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "PeptideID with RT 0.25 s does not have a matching MS2 spectrum. Closest RT was 0.5 s, which seems too far off.\n");
+
+  //test exception if no calibrtion was performed and the meta_value mz_raw does not exist
+  fmap[0].getPeptideIdentifications()[0].setRT(0);
+  Precursor pre_without_meta;
+  pre_without_meta.setMetaValue("dummy", 1);
+  exp.getSpectra()[0].setPrecursors({ pre_without_meta });
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, cal.compute(fmap, exp), "InternalCalibration was not called; MetaValue 'mz_raw' missing from MSExperiment.");
+
+  //test wrong MS-Level
+  fmap[0].getPeptideIdentifications()[0].setRT(0);
+  exp.getSpectra()[0].setRT(0);
+  exp.getSpectra()[0].setMSLevel(1);
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "The matching retention time of the MZML has the wrong MSLevel");
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
