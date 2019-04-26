@@ -32,8 +32,12 @@
 // $Authors: Swenja Wagner, Patricia Scheil $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/MissedCleavages.h>
 #include <iostream>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/QC/MissedCleavages.h>
 
 namespace OpenMS
 {
@@ -46,7 +50,7 @@ namespace OpenMS
     mapU32 result{};
 
     //Warning if the FeatureMap is empty, result is 0
-    if(fmap.empty())
+    if (fmap.empty())
     {
       LOG_WARN << "FeatureXML is empty.";
       mc_result_.push_back(result);
@@ -54,7 +58,7 @@ namespace OpenMS
     }
 
     //Exception if ProteinIdentification is empty
-    if(fmap.getProteinIdentifications().empty())
+    if (fmap.getProteinIdentifications().empty())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing information in ProteinIdentifications.");
     }
@@ -63,7 +67,7 @@ namespace OpenMS
     auto max_mc = fmap.getProteinIdentifications()[0].getSearchParameters().missed_cleavages;
 
     //Exception if digestion enzyme is not given
-    if(enzyme == "unknown_enzyme")
+    if (enzyme == "unknown_enzyme")
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in FeatureMap detected. No computation possible.");
     }
@@ -76,7 +80,7 @@ namespace OpenMS
     //lambda function: digests the Sequence in PeptideHit and counts the number of missed cleavages
     auto l = [&digestor, &result, &max_mc](PeptideIdentification& pep_id)
     {
-      if(pep_id.getHits().empty())
+      if (pep_id.getHits().empty())
       {
         return;
       }
