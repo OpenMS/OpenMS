@@ -59,10 +59,11 @@ namespace OpenMS
     if (exp.empty())
     {
       no_mzml_ = true;
-      LOG_WARN << "Metric MzCalibration received an empty mzml file. Only reporting uncalibrated mz error.";
+      LOG_WARN << "Metric MzCalibration received an empty mzml file. Only reporting uncalibrated mz error.\n";
     }
     else
     {
+      no_mzml_ = false;
       // check for Calibration
       auto is_not_elem = [](const boost::shared_ptr<const OpenMS::DataProcessing> &dp)
       {
@@ -71,7 +72,7 @@ namespace OpenMS
       if (all_of(exp[0].getDataProcessing().begin(), exp[0].getDataProcessing().end(), is_not_elem))
       {
         no_mzml_ = true;
-        LOG_WARN << "Metric MzCalibration received an mzml file which did not undergo InternalCalibration. Only reporting uncalibrated mz error.";
+        LOG_WARN << "Metric MzCalibration received an mzml file which did not undergo InternalCalibration. Only reporting uncalibrated mz error.\n";
       }
     }
 
@@ -131,12 +132,20 @@ namespace OpenMS
           LOG_WARN << "A PeptideHit is empty.\n";
           continue;
         }
-        mz_raw_ = getMZraw_(unassigned_ID.getRT(), exp);
-        mz_ref_ = (unassigned_ID.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, unassigned_ID.getHits()[0].getCharge())) / unassigned_ID.getHits()[0].getCharge();
-        unassigned_ID.getHits()[0].setMetaValue("mz_raw", mz_raw_);
-        unassigned_ID.getHits()[0].setMetaValue("mz_ref", mz_ref_);
-        unassigned_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(mz_raw_,mz_ref_));
-        unassigned_ID.getHits()[0].setMetaValue("calibrated_mz_error_ppm", Math::getPPM(unassigned_ID.getMZ(), mz_ref_));
+        mz_ref_ = (unassigned_ID.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, unassigned_ID.getHits()[0].getCharge()))
+                  / unassigned_ID.getHits()[0].getCharge();
+        if (no_mzml_)
+        {
+          unassigned_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(unassigned_ID.getMZ(), mz_ref_));
+        }
+        else
+        {
+          mz_raw_ = getMZraw_(unassigned_ID.getRT(), exp);
+          unassigned_ID.getHits()[0].setMetaValue("mz_raw", mz_raw_);
+          unassigned_ID.getHits()[0].setMetaValue("mz_ref", mz_ref_);
+          unassigned_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(mz_raw_, mz_ref_));
+          unassigned_ID.getHits()[0].setMetaValue("calibrated_mz_error_ppm", Math::getPPM(unassigned_ID.getMZ(), mz_ref_));
+        }
       }
     }
   }
