@@ -172,7 +172,7 @@ START_SECTION((static void getLabels(svm_problem *problem, std::vector< double >
 	svm_node** nodes = new svm_node*[count];
 	double* labels = new double[count];
 	std::vector<double> label_vector1;
-	label_vector.reserve(count);
+	label_vector1.reserve(count);
 	std::vector<double> label_vector2;
 	label_vector2.reserve(count);
 
@@ -225,7 +225,7 @@ START_SECTION((static void createRandomPartitions(const SVMData &problem, Size n
 	vector<double> labels;
 	labels.reserve(count);
 	vector< vector<pair<Int, double> > > sequences;
-	sequence.reserve(count);
+	sequences.reserve(count);
 	vector<pair<Int, double> > sequence;
 	std::vector< SVMData > partitions;
 	
