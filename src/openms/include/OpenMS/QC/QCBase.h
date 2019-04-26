@@ -35,6 +35,10 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -50,15 +54,17 @@ namespace OpenMS
     /**
      * @brief Enum to encode a file type as a bit.
      */
-    enum class Requires :
-        UInt64
-    {
-      FAIL = 0,
-      RAWMZML = 1,
-      POSTFDRFEAT = 2,
-      PREFDRFEAT = 4,
-      CONTAMINANTS = 8
-    };
+    //POSTFDRFEAT = PREALIGNFEAT
+      enum class Requires :
+          UInt64
+      {
+          FAIL = 0,         //< default, does not encode for anything
+          RAWMZML = 1,      //< mzML file is required
+          POSTFDRFEAT = 2,  //< Features with FDR-filtered pepIDs
+          PREFDRFEAT = 4,   //< Features with unfiltered pepIDs
+          CONTAMINANTS = 8, //< Contaminant Database
+          TRAFOALIGN = 16   //< transformationXMLs for RT-alignment
+       };
     /**
      * @brief Storing a status as a UInt64
      *
@@ -68,74 +74,95 @@ namespace OpenMS
     class Status
     {
     public:
-      // Constructors
+
+      /// stream output for Status
+      friend std::ostream& operator<<(std::ostream& os, const Status& stat);
+
+      /// Constructors
       Status() : value_(0)
       {}
+
       Status(const Requires& req)
       {
         value_ = UInt64(req);
       }
+
       Status(const Status& stat)
       {
         value_ = stat.value_;
       }
+
       // Assignment
       Status& operator=(const Requires& req)
       {
         value_ = UInt64(req);
         return *this;
       }
+
+      /// Destructor
+      ~Status() = default;
+
       // Equal
-      bool operator==(const Status& stat)
+      bool operator==(const Status& stat) const
       {
         return (value_ == stat.value_);
       }
+
       Status& operator=(const Status& stat) = default;
       // Bitwise operators
+
       Status operator&(const Requires& req) const
       {
         Status s = *this;
         s.value_ &= UInt64(req);
         return s;
       }
+
       Status operator&(const Status& stat) const
       {
         Status s = *this;
         s.value_ &= stat.value_;
         return s;
       }
+
       Status& operator&=(const Requires& req)
       {
         value_ &= UInt64(req);
         return *this;
       }
+
       Status& operator&=(const Status& stat)
       {
         value_ &= stat.value_;
         return *this;
       }
+
       Status operator|(const Requires& req) const
       {
         Status s = *this;
         s.value_ |= UInt64(req);
         return s;
       }
+
       Status operator|(const Status& stat) const
       {
         Status s = *this;
         s.value_ |= stat.value_;
         return s;
       }
+
       Status& operator|=(const Requires& req)
       {
         value_ |= UInt64(req);
         return *this;
       }
+
       Status& operator|=(const Status& stat)
       {
         value_ |= stat.value_;
         return *this;
       }
+
       /**
        * @brief Check if input status fulfills requirement status.
        */
@@ -143,12 +170,57 @@ namespace OpenMS
       {
         return ((value_ & stat.value_) == stat.value_);
       }
+
     private:
       UInt64 value_;
     };
+
     /**
      *@brief Returns the input data requirements of the compute(...) function
      */
     virtual Status requires() const = 0;
+
+    /**
+     * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
+     *
+     * PeptideIdentifications without PeptideHits are not passed to the Lambda function.
+     * The Lambda may or may not change the PeptideIdentification
+     */
+
+    template <typename MAP, typename T>
+    static void iterateFeatureMap(MAP& fmap, T lambda)
+    {
+      for (auto& pep_id : fmap.getUnassignedPeptideIdentifications())
+      {
+        if (pep_id.getHits().empty())
+        {
+          LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
+        }
+        else
+        {
+          lambda(pep_id);
+        }
+      }
+
+      for (auto& features : fmap)
+      {
+        for (auto& pep_id : features.getPeptideIdentifications())
+        {
+          if (pep_id.getHits().empty())
+          {
+            LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
+          }
+          else
+          {
+            lambda(pep_id);
+          }
+        }
+      }
+    }
   };
+
+  inline std::ostream& operator<<(std::ostream& os, const QCBase::Status& stat)
+  {
+    return os << stat.value_;
+  }
 }

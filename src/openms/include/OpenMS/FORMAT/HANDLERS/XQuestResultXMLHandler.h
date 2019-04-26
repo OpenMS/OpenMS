@@ -127,8 +127,8 @@ namespace OpenMS
     private:
 
 
-      // Decoy string used by xQuest
-      String decoy_string_;
+      // Decoy string used by xQuest, initialize to a default value
+      String decoy_string_ = "decoy_";
       int spectrum_index_light_;
       int spectrum_index_heavy_;
       String cross_linker_name_;

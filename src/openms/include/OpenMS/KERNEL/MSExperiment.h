@@ -529,9 +529,9 @@ public:
     //@}
 
     /**
-    @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+    @brief Compute Total Ion Count per MS1 spectrum and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
 
-    All MS1 TICs within a bin are summed up.
+    By default, each MS1 spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
 
     @param bin_size RT bin size in seconds
     @return TIC Chromatogram
@@ -638,9 +638,8 @@ private:
 
   };
 
-
   /// Print the contents to a stream.
-  std::ostream& operator<<(std::ostream& os, const MSExperiment& exp);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MSExperiment& exp);
 
 } // namespace OpenMS
 

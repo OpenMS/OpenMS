@@ -71,7 +71,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
 // spectra comparison
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
@@ -79,12 +79,13 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
-#include <boost/regex.hpp>
 
 #include <QtCore/QProcess>
 
-#include <iostream>
+#include <boost/regex.hpp>
+
 #include <algorithm>
+#include <iostream>
 #include <vector>
 #include <map>
 
@@ -96,8 +97,6 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-//#define DEBUG_NASEARCH
-
 using namespace OpenMS;
 using namespace std;
 
@@ -108,18 +107,28 @@ using namespace std;
 /**
     @page UTILS_NucleicAcidSearchEngine NucleicAcidSearchEngine
 
-    @brief Searches an mzML file for specified nucleic acid sequences.
+    @brief Matches tandem mass spectra to nucleic acid sequences.
 
-    Given a FASTA file containing oligonucleotide sequences (and optionally decoys) and a mzML file from a nucleic acid mass spec experiment:
-    - Generate a list of digest fragments from the FASTA file with a specified RNAse
-    - Search the mzML input for MS2 spectra with parent masses corresponding to any of these digests
+    Given a FASTA file containing RNA sequences (and optionally decoys) and an mzML file from a nucleic acid mass spec experiment:
+    - Generate a list of digestion fragments from the FASTA file (based on a specified RNase)
+    - Search the mzML input for MS2 spectra with parent masses corresponding to any of these sequence fragments
     - Match the MS2 spectra to theoretically generated spectra
     - Score the resulting matches
 
-    Output is in the form of an mzTab file containing the search results and an optional idXML file containing identifications.
+    Output is in the form of an mzTab-like text file containing the search results.
+    Optionally, an idXML file suitable for visualizing search results in TOPPView (parameter @p id_out) and a "target coordinates" file for label-free quantification using FeatureFinderMetaboIdent (parameter @p lfq_out) can be generated.
 
-    Modified nucleic acids can either be included in the FASTA input file, or set as @p variable or @p fixed modifications in the tool options.
-    All modification syntax is taken from the Modomics database (http://modomics.genesilico.pl/)
+    Modified ribonucleotides can either be specified in the FASTA input file (as @e fixed modifications), or set as @e variable modifications in the tool options.
+    Information on available modifications is taken from the Modomics database (http://modomics.genesilico.pl/).
+    In addition to these "standard" modifications, OpenMS defines "generic" and "ambiguous" ones:
+    <br>
+    A generic modification represents a group of modifications that cannot be distinguished by tandem mass spectrometry.
+    For example, "mA" stands for any methyladenosine (could be "m1A", "m2A", "m6A" or "m8A"), "mmA" for any dimethyladenosine (with two methyl groups on the base), and "mAm" for any 2'-O-dimethyladenosine (with one methyl group each on base and ribose).
+    There is no technical difference between searching for "mA" or e.g. "m1A", but the generic code better represents that no statement can be made about the position of the methyl group on the base.
+    <br>
+    In contrast, an ambiguous modification represents two isobaric modifications (or modification groups) with a methyl group on either the base or the ribose, that could in principle be distinguished based on a-B ions.
+    For example, "mA?" stands for methyladenosine ("mA", see above) or 2'-O-methyladenosine ("Am").
+    When using ambiguous modifications in a search, NucleicAcidSearchEngine can optionally try to assign the alternative that generates better a-B ion matches in a spectrum (see parameter @p modifications:resolve_ambiguities).
 
 
     <B>The command line parameters of this tool are:</B>
@@ -136,12 +145,16 @@ class NucleicAcidSearchEngine :
 public:
   NucleicAcidSearchEngine() :
     TOPPBase("NucleicAcidSearchEngine", "Annotate nucleic acid identifications to MS/MS spectra.", false),
-    fragment_ion_codes_(ListUtils::create<String>("a-B,a,b,c,d,w,x,y,z"))
+    fragment_ion_codes_({"a-B", "a", "b", "c", "d", "w", "x", "y", "z"}),
+    resolve_ambiguous_mods_(false)
   {
   }
 
 protected:
   vector<String> fragment_ion_codes_;
+  map<String, String> ambiguous_mods_; //< map: specific code -> ambig. code
+  bool resolve_ambiguous_mods_;
+
 
   void registerOptionsAndFlags_()
   {
@@ -206,18 +219,19 @@ protected:
       {
         String code = r->getCode();
         // commas aren't allowed in parameter string restrictions:
-        all_mods.push_back(code.substitute(',', '_'));
+        all_mods.push_back(code.remove(','));
       }
     }
 
-    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications", false);
-    setValidStrings_("modifications:fixed", all_mods);
     registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligonucleotide", false, false);
+    registerFlag_("modifications:resolve_ambiguities", "Attempt to resolve ambiguous modifications (e.g. 'mA?' for 'mA'/'Am') based on a-B ions.\nThis incurs a performance cost because two modifications have to be considered for each case.\nRequires a-B ions to be enabled in parameter 'fragment:ions'.");
 
     registerTOPPSubsection_("oligo", "Oligonucleotide Options");
     registerIntOption_("oligo:min_size", "<num>", 5, "Minimum size an oligonucleotide must have after digestion to be considered in the search", false);
+    registerIntOption_("oligo:max_size", "<num>", 0, "Maximum size an oligonucleotide must have after digestion to be considered in the search, leave at 0 for no limit", false);
+
     registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages", false, false);
 
     StringList all_enzymes;
@@ -256,7 +270,7 @@ protected:
   struct AnnotatedHit
   {
     IdentificationData::IdentifiedOligoRef oligo_ref;
-    SignedSize mod_index; // enumeration index of the modification
+    NASequence sequence;
     double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
     Int charge;
@@ -266,28 +280,58 @@ protected:
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
 
   // query modified residues from database
-  vector<ConstRibonucleotidePtr> getModifications_(const set<String>& mod_names)
+  set<ConstRibonucleotidePtr> getModifications_(const set<String>& mod_names)
   {
-    vector<ConstRibonucleotidePtr> modifications;
+    set<ConstRibonucleotidePtr> modifications;
+    auto db_ptr = RibonucleotideDB::getInstance();
+    boost::regex double_digits("(\\d)(?=\\d)");
     for (String m : mod_names)
     {
-      m.substitute('_', ',');
-      ConstRibonucleotidePtr rm = RibonucleotideDB::getInstance()->getRibonucleotide(m);
-      modifications.push_back(rm);
+      ConstRibonucleotidePtr mod = 0;
+      try
+      {
+        mod = db_ptr->getRibonucleotide(m);
+      }
+      catch (Exception::ElementNotFound& e)
+      {
+        // commas between numbers were removed - try reinserting them:
+        m = boost::regex_replace(m, double_digits, "$&,");
+        mod = db_ptr->getRibonucleotide(m);
+      }
+      if (resolve_ambiguous_mods_ && mod->isAmbiguous())
+      {
+        pair<ConstRibonucleotidePtr, ConstRibonucleotidePtr> alternatives =
+          db_ptr->getRibonucleotideAlternatives(m);
+        modifications.insert(alternatives.first);
+        modifications.insert(alternatives.second);
+        // keep track of reverse associations (specific -> ambiguous);
+        // constraint: each mod. can only occur in one ambiguity group!
+        ambiguous_mods_[alternatives.first->getCode()] = m;
+        ambiguous_mods_[alternatives.second->getCode()] = m;
+      }
+      else
+      {
+        modifications.insert(mod);
+      }
+    }
+    if (ambiguous_mods_.empty()) // no ambiguous mods to resolve
+    {
+      resolve_ambiguous_mods_ = false;
     }
     return modifications;
   }
 
-  // check for minimum size
+  // check for minimum and maximum size
   class HasInvalidLength
   {
     Size min_size_;
+    Size max_size_;
   public:
-    explicit HasInvalidLength(Size min_size)
-      : min_size_(min_size)
+    explicit HasInvalidLength(Size min_size, Size max_size)
+      : min_size_(min_size), max_size_(max_size)
     {
     }
-    bool operator()(const NASequence& s) { return s.size() < min_size_; }
+    bool operator()(const NASequence& s) { return (s.size() < min_size_ || s.size() > max_size_); }
   };
 
   // turn an adduct string (param. "precursor:potential_adducts") into a formula
@@ -622,12 +666,70 @@ protected:
   }
 
 
+  void resolveAmbiguousMods_(HitsByScore& hits)
+  {
+    OPENMS_PRECONDITION(hits.size() > 1, "more than one hit expected");
+    auto previous_it = hits.begin();
+    // If the current hit is an ambiguity variant of the previous one, combine
+    // both into one hit. For example, if we have two hits with these sequences:
+    // 1. "AUC[mA]Gp", 2. "AUC[Am]Gp"
+    // The result should be: 1. "AUC[mA?]Gp" (note ambiguity code), 2. removed.
+    for (auto hit_it = ++hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    {
+      double previous_score = previous_it->first;
+      NASequence& previous_seq = previous_it->second.sequence;
+      const NASequence& current_seq = hit_it->second.sequence;
+      if ((hit_it->first != previous_score) ||
+          (current_seq.size() != previous_seq.size())) // different hits
+      {
+        previous_it = hit_it;
+        ++hit_it;
+        continue;
+      }
+      bool remove_current = true;
+      NASequence replacement; // potential replacement sequence for previous hit
+      for (Size i = 0; i < current_seq.size(); ++i)
+      {
+        if (previous_seq[i]->getCode() == current_seq[i]->getCode()) continue;
+        auto pos_current = ambiguous_mods_.find(current_seq[i]->getCode());
+        if (pos_current == ambiguous_mods_.end())
+        {
+          // difference is not due to an ambiguous mod. - don't combine hits:
+          remove_current = false;
+          break;
+        }
+        // is this ribonucleotide in the previous hit already ambiguous?
+        const String& ambig_code = pos_current->second;
+        if (previous_seq[i]->getCode() == ambig_code) continue;
+        // if not, should we replace it with an ambiguous mod.?
+        auto pos_previous = ambiguous_mods_.find(previous_seq[i]->getCode());
+        if ((pos_previous == ambiguous_mods_.end()) ||
+            (pos_previous->second != ambig_code)) // mods don't match
+        {
+          remove_current = false;
+          break;
+        }
+        if (replacement.empty()) replacement = previous_seq;
+        replacement[i] = RibonucleotideDB::getInstance()->
+          getRibonucleotide(ambig_code);
+      }
+      if (remove_current) // current hit is redundant -> remove it
+      {
+        if (!replacement.empty()) previous_seq = replacement;
+        hit_it = hits.erase(hit_it);
+      }
+      else
+      {
+        previous_it = hit_it;
+        ++hit_it;
+      }
+    }
+  }
+
+
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
-                        const vector<ConstRibonucleotidePtr>& fixed_mods,
-                        const vector<ConstRibonucleotidePtr>& variable_mods,
-                        Size max_variable_mods_per_oligo,
                         bool negative_mode)
   {
     IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
@@ -650,25 +752,21 @@ protected:
 #pragma omp critical (id_data_access)
       query_ref = id_data.registerDataQuery(query);
 
+      if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
+      {
+        resolveAmbiguousMods_(annotated_hits[scan_index]);
+      }
+
       // create full oligo hit structure from annotated hits
       for (const auto& pair : annotated_hits[scan_index])
       {
-        const AnnotatedHit& hit = pair.second;
         double score = pair.first;
-        // get unmodified string
-        NASequence seq = hit.oligo_ref->sequence;
-        LOG_DEBUG << "Hit sequence: " << seq << endl;
-        // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
-        vector<NASequence> all_modified_oligos;
-        ModifiedNASequenceGenerator::applyFixedModifications(
-          fixed_mods.begin(), fixed_mods.end(), seq);
-        ModifiedNASequenceGenerator::applyVariableModifications(
-          variable_mods.begin(), variable_mods.end(), seq,
-          max_variable_mods_per_oligo, all_modified_oligos);
+        const AnnotatedHit& hit = pair.second;
+        LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
 
         // transfer parent matches from unmodified oligo:
         IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
-        oligo.sequence = all_modified_oligos[hit.mod_index];
+        oligo.sequence = hit.sequence;
         IdentificationData::IdentifiedOligoRef oligo_ref;
 #pragma omp critical (id_data_access)
         oligo_ref = id_data.registerIdentifiedOligo(oligo);
@@ -844,18 +942,14 @@ protected:
     search_param.fragment_tolerance_ppm =
       (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
     search_param.min_length = getIntOption_("oligo:min_size");
-
-    StringList fixed_mod_names = getStringList_("modifications:fixed");
-    search_param.fixed_mods.insert(fixed_mod_names.begin(),
-                                   fixed_mod_names.end());
+    search_param.max_length = getIntOption_("oligo:max_size");
 
     StringList var_mod_names = getStringList_("modifications:variable");
     search_param.variable_mods.insert(var_mod_names.begin(),
                                       var_mod_names.end());
 
-    vector<ConstRibonucleotidePtr> fixed_modifications =
-      getModifications_(search_param.fixed_mods);
-    vector<ConstRibonucleotidePtr> variable_modifications =
+    resolve_ambiguous_mods_ = getFlag_("modifications:resolve_ambiguities");
+    set<ConstRibonucleotidePtr> variable_modifications =
       getModifications_(search_param.variable_mods);
 
     // @TODO: add slots for these to "IdentificationData::DBSearchParam"?
@@ -970,10 +1064,15 @@ protected:
     }
 
     // create spectrum generator
-    TheoreticalSpectrumGenerator spectrum_generator;
+    NucleicAcidSpectrumGenerator spectrum_generator;
     Param param = spectrum_generator.getParameters();
     vector<String> temp = getStringList_("fragment:ions");
     set<String> selected_ions(temp.begin(), temp.end());
+    if (resolve_ambiguous_mods_ && !selected_ions.count("a-B"))
+    {
+      LOG_WARN << "Warning: option 'modifications:resolve_ambiguities' requires a-B ions in parameter 'fragment:ions' - disabling the option." << endl;
+      resolve_ambiguous_mods_ = false;
+    }
     for (const auto& code : fragment_ion_codes_)
     {
       String param_name = "add_" + code + "_ions";
@@ -988,6 +1087,7 @@ protected:
     }
     param.setValue("add_first_prefix_ion", "true");
     param.setValue("add_metainfo", "true");
+    param.setValue("add_precursor_peaks", "false");
     spectrum_generator.setParameters(param);
 
     vector<HitsByScore> annotated_hits(spectra.size());
@@ -1005,8 +1105,9 @@ protected:
     RNaseDigestion digestor;
     digestor.setEnzyme(search_param.digestion_enzyme);
     digestor.setMissedCleavages(search_param.missed_cleavages);
-    // set minimum size of oligo after digestion
+    // set minimum and maximum size of oligo after digestion
     Size min_oligo_length = getIntOption_("oligo:min_size");
+    Size max_oligo_length = getIntOption_("oligo:max_size");
 
     IdentificationData id_data;
     vector<String> primary_files;
@@ -1018,7 +1119,7 @@ protected:
     LOG_INFO << "Performing in-silico digestion..." << endl;
     IdentificationDataConverter::importSequences(
       id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
-    digestor.digest(id_data, min_oligo_length);
+    digestor.digest(id_data, min_oligo_length, max_oligo_length);
 
     String msg =  "scoring oligonucleotide models against spectra...";
     progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), msg);
@@ -1034,6 +1135,8 @@ protected:
       digest.push_back(it);
     }
 
+    Int base_charge = negative_mode ? -1 : 1;
+
 // shorter oligos take (possibly much) less time to process than longer ones;
 // due to the sorting order of "NASequence", they also appear earlier in the
 // container - therefore use dynamic scheduling to distribute work evenly:
@@ -1048,22 +1151,25 @@ protected:
       IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
       vector<NASequence> all_modified_oligos;
       NASequence ns = oligo_ref->sequence;
-      ModifiedNASequenceGenerator::applyFixedModifications(
-        fixed_modifications.begin(), fixed_modifications.end(), ns);
       ModifiedNASequenceGenerator::applyVariableModifications(
-        variable_modifications.begin(), variable_modifications.end(), ns,
-        max_variable_mods_per_oligo, all_modified_oligos, true);
+        variable_modifications, ns, max_variable_mods_per_oligo,
+        all_modified_oligos, true);
 
-      for (SignedSize mod_idx = 0;
-           mod_idx < SignedSize(all_modified_oligos.size()); ++mod_idx)
+      // group modified oligos by precursor mass - oligos with the same
+      // combination of mods (just different placements) will have same mass:
+      map<double, vector<const NASequence*>> modified_oligos_by_mass;
+      for (const NASequence& seq : all_modified_oligos)
       {
-        const NASequence& candidate = all_modified_oligos[mod_idx];
-        double candidate_mass = (use_avg_mass ? candidate.getAverageWeight() :
-                                 candidate.getMonoWeight());
-        LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
-                  << float(candidate_mass) << " Da)" << endl;
+        double mass = (use_avg_mass ? seq.getAverageWeight() :
+                       seq.getMonoWeight());
+        modified_oligos_by_mass[mass].push_back(&seq);
+      }
 
-        // determine MS2 precursors that match to the current mass
+      for (const auto& pair : modified_oligos_by_mass)
+      {
+        double candidate_mass = pair.first;
+
+        // determine MS2 precursors that match to the current mass:
         double tol = search_param.precursor_mass_tolerance;
         if (search_param.precursor_tolerance_ppm)
         {
@@ -1075,88 +1181,97 @@ protected:
 
         if (low_it == up_it) continue; // no matching precursor in data
 
-        Int base_charge = negative_mode ? -1 : 1;
-        map<Int, PeakSpectrum> theo_spectra_by_charge;
-        for (; low_it != up_it; ++low_it)
+        // collect all relevant charge states for theoret. spectrum generation:
+        set<Int> precursor_charges;
+        for (auto prec_it = low_it; prec_it != up_it; ++prec_it)
         {
-          LOG_DEBUG << "Matching precursor mass: " << float(low_it->first)
-                    << endl;
+          precursor_charges.insert(prec_it->second.charge * base_charge);
+        }
 
-          Size charge = low_it->second.charge;
-          // look up theoretical spectrum for this charge:
-          auto pos = theo_spectra_by_charge.find(charge);
-          if (pos == theo_spectra_by_charge.end())
+        for (const NASequence* seq_ptr : pair.second)
+        {
+          const NASequence& candidate = *seq_ptr;
+          LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
+                    << float(candidate_mass) << " Da)" << endl;
+
+          // pre-generate spectra:
+          map<Int, MSSpectrum> theo_spectra_by_charge;
+          spectrum_generator.getMultipleSpectra(theo_spectra_by_charge,
+                                                candidate, precursor_charges,
+                                                base_charge);
+
+          for (auto prec_it = low_it; prec_it != up_it; ++prec_it)
           {
-            // no spectrum for this charge yet - generate it:
-            PeakSpectrum theo_spectrum;
-            // @TODO: avoid regenerating spectra with lower charges as part of
-            // higher-charged spectra
-            spectrum_generator.getSpectrum(theo_spectrum, candidate,
-                                           base_charge, charge * base_charge);
-            theo_spectrum.setName(candidate.toString());
-            pos = theo_spectra_by_charge.insert(make_pair(charge,
-                                                          theo_spectrum)).first;
-          }
-          const PeakSpectrum& theo_spectrum = pos->second;
+            LOG_DEBUG << "Matching precursor mass: " << float(prec_it->first)
+                      << endl;
 
-          Size scan_index = low_it->second.scan_index;
-          const PeakSpectrum& exp_spectrum = spectra[scan_index];
-          vector<PeptideHit::PeakAnnotation> annotations;
-          double score = MetaboliteSpectralMatching::computeHyperScore(
-            search_param.fragment_mass_tolerance,
-            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-            annotations);
+            Size charge = prec_it->second.charge;
+            // look up theoretical spectrum for this charge:
+            MSSpectrum& theo_spectrum =
+              theo_spectra_by_charge[charge * base_charge];
 
-          if (!exp_ms2_out.empty())
-          {
+            Size scan_index = prec_it->second.scan_index;
+            const MSSpectrum& exp_spectrum = spectra[scan_index];
+            vector<PeptideHit::PeakAnnotation> annotations;
+            double score = MetaboliteSpectralMatching::computeHyperScore(
+              search_param.fragment_mass_tolerance,
+              search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+              annotations);
+
+            if (!exp_ms2_out.empty())
+            {
 #pragma omp critical (exp_ms2_out)
-            exp_ms2_spectra.addSpectrum(exp_spectrum);
-          }
-          if (!theo_ms2_out.empty())
-          {
+              exp_ms2_spectra.addSpectrum(exp_spectrum);
+            }
+            if (!theo_ms2_out.empty())
+            {
+              theo_spectrum.setName(candidate.toString());
 #pragma omp critical (theo_ms2_out)
-            theo_ms2_spectra.addSpectrum(theo_spectrum);
-          }
+              theo_ms2_spectra.addSpectrum(theo_spectrum);
+            }
 
-          if (score < 1e-16) continue; // no hit
-
-          // add oligo hit
-          AnnotatedHit ah;
-          ah.oligo_ref = oligo_ref;
-          ah.mod_index = mod_idx;
-          // @TODO: is "observed - calculated" the right way around?
-          ah.precursor_error_ppm =
-            (low_it->first - candidate_mass) / candidate_mass * 1.0e6;
-          ah.annotations = annotations;
-          ah.charge = charge;
-          ah.adduct = low_it->second.adduct;
+            if (score < 1e-16) continue; // no hit
 
 #pragma omp atomic
-          ++hit_counter;
+            ++hit_counter;
 
-#ifdef DEBUG_NASEARCH
-          cout << "best score in pre-score: " << score << endl;
-#endif
+            LOG_DEBUG << "Score: " << score << endl;
 
 #pragma omp critical (annotated_hits_access)
-          {
-            HitsByScore& scan_hits = annotated_hits[scan_index];
-            if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits))
             {
-              scan_hits.insert(make_pair(score, ah));
-            }
-            else // we already have enough hits for this spectrum - replace one?
-            {
-              double worst_score = (--scan_hits.end())->first;
-              if (score >= worst_score)
+              HitsByScore& scan_hits = annotated_hits[scan_index];
+              HitsByScore::iterator pos = scan_hits.end();
+              if ((report_top_hits == 0) ||
+                  (scan_hits.size() < report_top_hits))
               {
-                scan_hits.insert(make_pair(score, ah));
-                // prune list of hits if possible (careful about tied scores!):
-                Size n_worst = scan_hits.count(worst_score);
-                if (scan_hits.size() - n_worst >= report_top_hits)
+                pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
+              }
+              else // already have enough hits for this spectrum - replace one?
+              {
+                double worst_score = (--scan_hits.end())->first;
+                if (score >= worst_score)
                 {
-                  scan_hits.erase(worst_score);
+                  pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
+                  // prune list of hits if possible (careful about tied scores):
+                  Size n_worst = scan_hits.count(worst_score);
+                  if (scan_hits.size() - n_worst >= report_top_hits)
+                  {
+                    scan_hits.erase(worst_score);
+                  }
                 }
+              }
+              // add oligo hit data only if necessary (good enough score):
+              if (pos != scan_hits.end())
+              {
+                AnnotatedHit& ah = pos->second;
+                ah.oligo_ref = oligo_ref;
+                ah.sequence = candidate;
+                // @TODO: is "observed - calculated" the right way around?
+                ah.precursor_error_ppm =
+                  (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
+                ah.annotations = annotations;
+                ah.charge = charge;
+                ah.adduct = prec_it->second.adduct;
               }
             }
           }
@@ -1180,9 +1295,7 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, fixed_modifications,
-                     variable_modifications, max_variable_mods_per_oligo,
-                     negative_mode);
+    postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
     progresslogger.endProgress();
 
     // FDR:

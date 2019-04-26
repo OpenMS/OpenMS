@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
         #     - one ion source
         #     - one or many mass analyzers
         #     - one ion detector
-        #     For more complex instuments, the order should be defined.
+        #     For more complex instruments, the order should be defined.
         Int getOrder() nogil except +
         # sets the order
         void setOrder(Int order) nogil except +
