@@ -182,6 +182,9 @@ class AnnotatedHit
   float precursor_score = 0;
   float marker_ions_score = 0;
 
+  float ladder_score = 0;
+  float sequence_score = 0;
+
   float best_localization_score = 0;
   String localization_scores;
   String best_localization;  
@@ -436,13 +439,13 @@ protected:
   {
     OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
     OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
-    OPENMS_PRECONDITION(intensity_sum.size() == total_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
-    OPENMS_PRECONDITION(intensity_sum.size() == total_loss_template_z1_y_ions.size(), "Sum array needs to be of same size as y-ion array");
     OPENMS_PRECONDITION(total_loss_template_z1_b_ions.size() == total_loss_template_z1_y_ions.size(), "b- and y-ion arrays must have same size.");
     OPENMS_PRECONDITION(total_loss_template_z1_b_ions.size() > 0, "b- and y-ion arrays must not be empty.");
+    OPENMS_PRECONDITION(intensity_sum.size() == total_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
+    OPENMS_PRECONDITION(intensity_sum.size() == total_loss_template_z1_y_ions.size(), "Sum array needs to be of same size as y-ion array");
 
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
-    const Size N = intensity_sum.size(); // number of bonds = length of peptide - 1
+    const Size N = intensity_sum.size();
     std::vector<float> b_ions(N, 0.0), y_ions(N, 0.0);
 
     // maximum charge considered
@@ -553,11 +556,9 @@ protected:
     // match precusor ions z = 1..pc_charge
     for (double pc_loss : {0.0, -18.010565, -17.026548} ) // normal, loss of water, loss of ammonia
     { 
-      const double peptide_mass = peptide_mass_without_NA + pc_loss;
       for (Size z = 1; z <= pc_charge; ++z)
       {
-        const double theo_mz = (peptide_mass + z * Constants::PROTON_MASS_U) / z;
-
+        const double theo_mz = (peptide_mass_without_NA + pc_loss + z * Constants::PROTON_MASS_U) / z;
         const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
         Size index = exp_spectrum.findNearest(theo_mz);
         const double exp_mz = exp_spectrum[index].getMZ();
@@ -918,7 +919,6 @@ protected:
 */
 static void scoreShiftedFragments_(
                                   const vector<RNPxlFragmentAdductDefinition> &partial_loss_modification,
-                                  const Size peptide_size,
                                   const ImmoniumIonsInPeptide& iip,
                                   const PeakSpectrum &exp_spectrum,
                                   const double peptide_mass_without_NA,
@@ -927,6 +927,7 @@ static void scoreShiftedFragments_(
                                   const vector<double> &partial_loss_template_z1_b_ions,
                                   const vector<double> &partial_loss_template_z1_y_ions,
                                   const PeakSpectrum &marker_ions_sub_score_spectrum_z1,
+                                  vector<double>& intensity_sum,
                                   float &partial_loss_sub_score,
                                   float &marker_ions_sub_score,
                                   float &plss_MIC, 
@@ -936,6 +937,10 @@ static void scoreShiftedFragments_(
                                   float &plss_pc_MIC,
                                   float &plss_im_MIC)
   {
+    OPENMS_PRECONDITION(!partial_loss_template_z1_b_ions.empty(), "Empty partial loss spectrum provided.");
+    OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
+    OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_y_ions.size(), "Sum array needs to be of same size as y-ion array");
+
     const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
     //const double exp_pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
 
@@ -957,30 +962,25 @@ static void scoreShiftedFragments_(
                                shifted_immonium_ions_sub_score(0),
               }
 */
-    if (!partial_loss_template_z1_b_ions.empty()) // check if we generated partial loss spectra
-    {
-      vector<double> intensity_sum(peptide_size - 1, 0.0);
-
-      scoreShiftedLadderIons_(
-                        partial_loss_modification,                        
-                        partial_loss_template_z1_b_ions,
-                        partial_loss_template_z1_y_ions,
-                        peptide_mass_without_NA,
-                        exp_pc_charge,
-                        iip,
-                        fragment_mass_tolerance, 
-                        fragment_mass_tolerance_unit_ppm, 
-                        exp_spectrum, 
-                        exp_spectrum.getIntegerDataArrays()[0],
-                        intensity_sum,
-                        partial_loss_sub_score,
-                        plss_MIC,
-                        plss_Morph,
-                        plss_err,
-                        plss_modds,
-                        plss_pc_MIC,
-                        plss_im_MIC);
-    }
+    scoreShiftedLadderIons_(
+                      partial_loss_modification,                        
+                      partial_loss_template_z1_b_ions,
+                      partial_loss_template_z1_y_ions,
+                      peptide_mass_without_NA,
+                      exp_pc_charge,
+                      iip,
+                      fragment_mass_tolerance, 
+                      fragment_mass_tolerance_unit_ppm, 
+                      exp_spectrum, 
+                      exp_spectrum.getIntegerDataArrays()[0],
+                      intensity_sum,
+                      partial_loss_sub_score,
+                      plss_MIC,
+                      plss_Morph,
+                      plss_err,
+                      plss_modds,
+                      plss_pc_MIC,
+                      plss_im_MIC);
 #ifdef DEBUG_RNPXLSEARCH
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
@@ -2056,6 +2056,8 @@ static void scoreShiftedFragments_(
 
           ph.setPeakAnnotations(ah.fragment_annotations);
           ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
+          ph.setMetaValue(String("RNPxl:ladder_score"), ah.ladder_score);
+          ph.setMetaValue(String("RNPxl:sequence_score"), ah.sequence_score);
           ph.setMetaValue("rank", rank);
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
@@ -2118,7 +2120,10 @@ static void scoreShiftedFragments_(
        << "RNPxl:pl_im_MIC"
        << "RNPxl:total_MIC"
        << "RNPxl:RNA_MASS_z0"
+       << "RNPxl:ladder_score"
+       << "RNPxl:sequence_score"
        << "precursor_intensity_log10";
+
     if (!purities.empty()) feature_set << "precursor_purity";
 
     search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
@@ -2270,6 +2275,11 @@ static void scoreShiftedFragments_(
     ah.rna_mod_index = rna_mod_idx;
     ah.isotope_error = isotope_error;
 
+    auto range = make_pair(intensity_sum.begin(), intensity_sum.end());
+    ah.ladder_score = ladderScore_(range); 
+    range = longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end());
+    ah.sequence_score = ladderScore_(range);
+
     // simple combined score in fast scoring:
     ah.score = total_loss_score + ah.total_MIC + mass_error_score / 3.0; 
 
@@ -2339,6 +2349,51 @@ static void scoreShiftedFragments_(
           << " precursors windows because the target m/z was outside of boundaries." << endl;
       }
     }
+  }
+
+  // returns iterator on start of longest non-zero sequence and end on one-after non-zero sequence (complete ladder)
+  template<class Iterator>
+  static pair<Iterator, Iterator> longestCompleteLadder_(Iterator b, Iterator e)
+  {
+    int max_l = 0;
+    Iterator best_start(b);
+    for(auto i = b; i != e;) // iterate once over vector
+    {
+      for (; i != e && *i <= 0.0; ++i) {}; // skip zeros
+      if (i == e) // end?
+      {
+        return make_pair(best_start, best_start + max_l);
+      }
+      unsigned int l = 0;
+      Iterator start(i);
+      for (; i != e && *i > 0.0; ++i) { ++l; } // count sequence of non-zeros
+      if (l > max_l) // longer sequence found?  
+      {
+        best_start = start;
+        max_l = l;
+      }
+      if (i == e) // end?
+      {
+        return make_pair(best_start, best_start + max_l);
+      }
+    }
+    return make_pair(best_start, best_start + max_l);
+  }
+
+  template<class Iterator>
+  static float ladderScore_(pair<Iterator, Iterator> p)
+  {
+    float MIC(0);
+    int count(0);
+    for (; p.first != p.second; ++p.first)
+    {
+      if (*p.first > 0.0)
+      {
+        MIC += *p.first;
+        ++count;
+      }
+    }
+    return count + MIC; // Morph score of matched (complete / partial) ladder
   }
 
   ExitCodes main_(int, const char**) override
@@ -2685,15 +2740,12 @@ static void scoreShiftedFragments_(
                   const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
                   float hyperScore(0), 
-                        immonium_sub_score(0), 
-                        precursor_sub_score(0), 
-                        a_ion_sub_score(0), 
                         tlss_MIC(0),
                         tlss_err(0), 
                         tlss_Morph(0),
                         tlss_modds(0),
-                        pc_MIC,
-                        im_MIC;
+                        pc_MIC(0),
+                        im_MIC(0);
 
                   vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0);
                   scorePeptideIons_(
@@ -2714,12 +2766,12 @@ static void scoreShiftedFragments_(
                     tlss_err,
                     pc_MIC,
                     im_MIC   
-                  );
+                  );                  
 
                   // bad score or less then two peaks matching
                   if (hyperScore < MIN_HYPERSCORE 
                     || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-	                  || tlss_modds < 1e-10
+	            || tlss_modds < 1e-10
                     || tlss_MIC < 0.01) 
                   { 
                     continue; 
@@ -2739,12 +2791,15 @@ static void scoreShiftedFragments_(
                   ah.Morph = tlss_Morph;
                   ah.modds = tlss_modds;
                   ah.total_loss_score = hyperScore;
-                  ah.immonium_score = immonium_sub_score;
-                  ah.precursor_score = precursor_sub_score;
-                  ah.total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
+                  ah.immonium_score = im_MIC;
+                  ah.precursor_score = pc_MIC;
+                  ah.total_MIC = tlss_MIC + im_MIC + pc_MIC;
 
                   ah.rna_mod_index = rna_mod_index;
                   ah.isotope_error = isotope_error;
+
+                  ah.ladder_score = ladderScore_(make_pair(intensity_sum.begin(), intensity_sum.end()));
+                  ah.sequence_score = ladderScore_(longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end()));
 
                   // combined score
                   ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
@@ -2825,14 +2880,11 @@ static void scoreShiftedFragments_(
                       tlss_err(1.0), 
                       tlss_Morph(0),
                       tlss_modds(0),
-                      immonium_sub_score(0), 
-                      precursor_sub_score(0),
-                      a_ion_sub_score(0), 
                       partial_loss_sub_score(0), 
                       marker_ions_sub_score(0),
                       hyperScore(0),
-                      pc_MIC,
-                      im_MIC;
+                      pc_MIC(0),
+                      im_MIC(0);
 
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
@@ -2874,7 +2926,6 @@ static void scoreShiftedFragments_(
                       plss_im_MIC(0);
 
                     scoreShiftedFragments_(    partial_loss_modification,
-                                               unmodified_sequence.size(),
                                                iip,
                                                exp_spectrum,
                                                current_peptide_mass_without_NA,
@@ -2883,6 +2934,7 @@ static void scoreShiftedFragments_(
                                                partial_loss_template_z1_bions, 
                                                partial_loss_template_z1_yions,
                                                marker_ions_sub_score_spectrum_z1,
+                                               intensity_sum,
                                                partial_loss_sub_score,
                                                marker_ions_sub_score,
                                                plss_MIC, 
@@ -2892,8 +2944,7 @@ static void scoreShiftedFragments_(
                                                plss_pc_MIC,
                                                plss_im_MIC);
 
-                    const double total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score +
-                      plss_MIC + plss_pc_MIC + plss_im_MIC;
+                    const double total_MIC = tlss_MIC + im_MIC + pc_MIC + plss_MIC + plss_pc_MIC + plss_im_MIC;
 
 /* 
                   // less then two shifted peaks? seems to throw out some good hits ???
@@ -2916,6 +2967,8 @@ static void scoreShiftedFragments_(
                     ah.peptide_mod_index = mod_pep_idx;
                     ah.total_loss_score = hyperScore;
                     ah.MIC = tlss_MIC;
+                    ah.immonium_score = im_MIC;
+                    ah.precursor_score = pc_MIC;
                     ah.err = tlss_err;
                     ah.Morph = tlss_Morph;
                     ah.modds = tlss_modds;
@@ -2925,8 +2978,6 @@ static void scoreShiftedFragments_(
                     ah.pl_modds = plss_modds;
                     ah.pl_pc_MIC = plss_pc_MIC;
                     ah.pl_im_MIC = plss_im_MIC;
-                    ah.immonium_score = immonium_sub_score;
-                    ah.precursor_score = precursor_sub_score;
                     ah.cross_linked_nucleotide = cross_linked_nucleotide;
                     ah.total_MIC = total_MIC; 
                     // scores from shifted peaks
@@ -2935,6 +2986,9 @@ static void scoreShiftedFragments_(
 
                     ah.rna_mod_index = rna_mod_index;
                     ah.isotope_error = isotope_error;
+
+                    ah.ladder_score = ladderScore_(make_pair(intensity_sum.begin(), intensity_sum.end()));
+                    ah.sequence_score = ladderScore_(longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end()));
 
                     // combined score
                     ah.score = RNPxlSearch::calculateCombinedScore(ah, true);
