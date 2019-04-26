@@ -43,19 +43,26 @@ namespace OpenMS
 {
   
   /**
-    @brief Iterates over all elements of a reference container, and finding the closest match in another target container.
+    @brief For each element in the reference container the closest peak in the target will be searched. If no match is found within the tolerance window, the peak will be skipped over.
 
-    Both containers must be sorted with respect to the comparator.
-    The TRAIT template argument (DaTrait or PpmTrait) encodes the distance metric (ppm or Da) and the threshold.
+
     The iterator always choses the closest matching peak in the target container, if more than one candidate is found in the
-    match-window.
+    match-window. If two peaks have equal distance, the smaller value is preferred.
+    If no peak is found within the given tolerance (distance), the reference peak does not yield a result and the next reference peak is tested.
+    This means the operator++ can be called at most(!) ref.size()-1 times before it == is.end().
+    
+    The TRAIT template argument (e.g., ValueTrait, DaTrait or PpmTrait) encodes the distance metric (on the value directly, or a member of the value_type, e.g. ppm or Da for m/z, or RT or any other metric you like).
+    The simplest use case would be a vector<float> or similar.
+    The TRAIT struct just defines two functions which return some distance metrics and accept elements of the container CONT as arguments.
+    Both containers must be sorted with respect to the comparator used in TRAIT.
 
-
-    This iterator is much more efficient than iterating over the reference container and calling findNearest() on the target container
-    O(n+m) vs. O(n*log(m). Since this container is much more cache-friendly, the actual speedups are even larger.
+    The CONST template argument switches between a 'const_iterator' and an 'iterator'.
+        
+    This iterator is much more efficient than iterating over the reference container and calling findNearest(), i.e. binary search on the target container,
+    i.e. O(n+m) vs. O(n*log(m)). Since this container is much more cache-friendly, the actual speedups are even larger.
 
   */
-  template <typename CONT, typename TRAIT>
+  template <typename CONT, typename TRAIT, bool CONST = true >
   class MatchedIterator
   {
     public:
@@ -63,28 +70,63 @@ namespace OpenMS
       using iterator_category = std::forward_iterator_tag;
       using value_type = typename CONT::value_type; //< dereferences to an element in the target container
       using difference_type = std::ptrdiff_t;
-      using pointer = typename CONT::value_type*;
-      using reference = typename CONT::value_type&;
-
+      using pointer = typename std::conditional<CONST, typename const CONT::value_type*, typename CONT::value_type*>::type;
+      using reference = typename std::conditional<CONST, typename const CONT::value_type&, typename CONT::value_type&>::type;
+      
+      typedef typename std::conditional<CONST, typename CONT::const_iterator, typename CONT::iterator>::type CONT_IT; // for dereferencing etc
+      typedef typename CONT::const_iterator CONST_CONT_IT; // for input containers
       typedef typename TRAIT DiffType;
+      
       /**
-        @brief Constructs a MatchedIterator using two containers. The way a match is found, depends on the TRAIT type (ppm or Da tolerance)
+        @brief Constructs a MatchedIterator on two containers. The way a match is found, depends on the TRAIT type (ppm or Da tolerance)
 
+        For each element in the reference container the closest peak in the target will be searched. If no match is found within the tolerance window, the peak will be skipped over.
+
+        @param ref For each element in this reference container the closest peak in the target will be searched
+        @param target Target container
+        @param tolerance Maximal distance between a valid matching pair in reference and target (unit is according to TRAIT::getDiffAbsolute(), i.e. could be ppm, Da, seconds, ...)
       */
       explicit MatchedIterator(const CONT& ref, const CONT& target, float tolerance)
-        : ref_(ref), target_(target), it_ref_(ref.begin()), it_tgt_(target.begin()), tol_(tolerance), is_end_(false)
+        : MatchedIterator(ref.begin(), ref.end(), target.begin(), target.end(), tolerance)
       {
-        advanceTarget_();
       }
     
-      /// same as end()
+      /**
+      @brief Constructs a MatchedIterator on two containers. The way a match is found, depends on the TRAIT type (ppm or Da tolerance)
+
+      For each element in the reference container the closest peak in the target will be searched. If no match is found within the tolerance window, the peak will be skipped over.
+
+      @param ref_begin Begin range of reference container
+      @param ref_end End range of reference container
+      @param tgt_begin Begin range of reference container
+      @param tgt_end End range of reference container
+      @param tolerance Maximal distance between a valid matching pair in reference and target (unit is according to TRAIT::getDiffAbsolute(), i.e. could be ppm, Da, seconds, ...)
+      */
+      explicit MatchedIterator(const CONST_CONT_IT ref_begin, const CONST_CONT_IT ref_end,
+                               const CONST_CONT_IT tgt_begin, const CONST_CONT_IT tgt_end,
+                               float tolerance)
+        : ref_begin_(ref_begin), ref_end_(ref_end), tgt_begin_(tgt_begin), tgt_end_(tgt_end), it_ref_(ref_begin), it_tgt_(tgt_begin), tol_(tolerance)
+      {
+        if (tgt_begin_ == tgt_end_)
+        { // nothing to iterate over in target (if ref_ were empty, isEnd_() is automatically true)
+          setToEnd_();
+        }
+        advanceTarget_();
+      }
+
+      /**
+          @brief Default CTor; same as MatchedIterator::end()
+      */ 
       explicit MatchedIterator()
-        : ref_(empty_), target_(empty_), it_ref_(empty_.end()), it_tgt_(empty_.end()), is_end_(true)
+        : ref_begin_(), ref_end_(), tgt_begin_(), tgt_end_(), it_ref_(), it_tgt_(), tol_()
       {
       }
 
-      /// assignment operator (default)
+      /// Copy CTor (default)
       MatchedIterator(const MatchedIterator& rhs) = default;
+      
+      /// assignment operator (deleted, since we use references to containers)
+      MatchedIterator& operator=(const MatchedIterator& rhs) = delete;
 
       bool operator==(const MatchedIterator& rhs) const
       {
@@ -97,80 +139,63 @@ namespace OpenMS
 
         return (it_ref_ == rhs.it_ref_ &&
                 it_tgt_ == rhs.it_tgt_ &&
-                &ref_ == &rhs.ref_ &&
-                &target_ == &rhs.target_);
+                ref_begin_ == rhs.ref_begin_ &&
+                ref_end_ == rhs.ref_end_ &&
+                tgt_begin_ == rhs.tgt_begin_ &&
+                tgt_end_ == rhs.tgt_end_);
       }
       bool operator!=(const MatchedIterator& rhs) const
       {
         return !(*this == rhs);
       }
 
-      const value_type& operator*() const
+      /// dereference current target element
+      template< bool _CONST = CONST >
+      std::enable_if_t< _CONST, reference > operator*() const
       {
         return *it_tgt_;
       }
-      const value_type& operator->() const
+      template< bool _CONST = CONST >
+      std::enable_if_t< !_CONST, reference > operator*()
       {
         return *it_tgt_;
       }
 
-      const value_type& curRef() const
+      /// pointer to current target element
+      template< bool _CONST = CONST >
+      std::enable_if_t< _CONST, pointer > operator->() const
+      {
+        return &(*it_tgt_);
+      }
+      template< bool _CONST = CONST >
+      std::enable_if_t< !_CONST, pointer > operator->()
+      {
+        return &(*it_tgt_);
+      }
+
+      /// current element in reference container
+      const value_type& ref() const
       {
         return *it_ref_;
       }
 
+      /// index into reference container
       size_t refIdx() const
       {
-        return it_ref_ - ref_.begin();
-      }
-
-
-      void setToEnd_()
-      {
-        is_end_ = true;
-      }
-      bool isEnd_() const
-      {
-        return is_end_;
+        return it_ref_ - ref_begin_;
       }
       
-      void advanceTarget_()
+      /// index into target container
+      size_t tgtIdx() const
       {
-        while (it_ref_ != ref_.end() && it_tgt_ != target_.end())
-        {
-
-          double max_dist_dalton = DiffType::allowedTol(tol_, *it_ref_);
-          
-          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-          float diff = std::numeric_limits<float>::max();
-          do
-          {
-            auto d = getMZDiffAbs_(*it_ref_, *it_tgt_);
-            if (diff >= d) // we need >=, so the very first comparison is true sets 'diff'
-            {
-              diff = d; // getting better
-            }
-            else {
-              // getting worse (overshot)
-              --it_tgt_;
-              break;
-            }
-            ++it_tgt_;
-          } while (it_tgt_ != target_.end());
-
-          if (it_tgt_ == target_.end())
-          { // reset to last valid entry
-            --it_tgt_;
-          }
-          if (diff < max_dist_dalton) return; // ok, found match
-          
-          // try next ref peak
-          ++it_ref_;
-        }
-        // reached end of ref or target container
-        setToEnd_();
+        return it_tgt_ - tgt_begin_;
       }
 
+      /**
+        @brief Advances to the next valid pair
+
+        @exception Exception::InvalidIterator If iterator is already at end
+      */
       MatchedIterator& operator++()
       {
         // are we at end already? --> wrong usage
@@ -180,13 +205,15 @@ namespace OpenMS
         return *this;
       }
 
-      MatchedIterator operator++(int) const
+      /// post-increment
+      MatchedIterator operator++(int)
       {
         MatchedIterator n(*this);
-        ++n;
+        ++(*this);
         return n;
       }
-
+      
+      /// the end iterator
       static const MatchedIterator& end()
       {
         const static MatchedIterator it_end;
@@ -194,44 +221,105 @@ namespace OpenMS
       }
 
     protected:
-      const CONT& ref_;
-      const CONT& target_;
-      typename CONT::const_iterator it_ref_, it_tgt_;
-      float tol_;
-
-      static const CONT empty_;
-      bool is_end_;
-
-      /// for Peak1D & Co
-      template <typename T>
-      static float getMZDiffAbs_(const T& mz_ref, const T& mz_obs)
+      void setToEnd_()
       {
-        return fabs(getMZ(mz_ref) - getMZ(mz_obs));
+        it_ref_ = ref_end_;
       }
+
+      bool isEnd_() const
+      {
+        return it_ref_ == ref_end_;
+      }
+
+      void advanceTarget_()
+      {
+        while (!isEnd_())
+        { // note: it_tgt_ always points to a valid element (unless the whole container was empty -- see CTor)
+
+          double max_dist = DiffType::allowedTol(tol_, *it_ref_);
+
+          // forward iterate over elements in target data until distance gets worse
+          float diff = std::numeric_limits<float>::max();
+          do
+          {
+            auto d = DiffType::getDiffAbsolute(*it_ref_, *it_tgt_);
+            if (diff > d) // getting better
+            {
+              diff = d;
+            }
+            else   // getting worse (overshot)
+            {
+              --it_tgt_;
+              break;
+            }
+            ++it_tgt_;
+          } while (it_tgt_ != tgt_end_);
+
+          if (it_tgt_ == tgt_end_)
+          { // reset to last valid entry
+            --it_tgt_;
+          }
+          if (diff <= max_dist) return; // ok, found match
+
+          // try next ref peak
+          ++it_ref_;
+        }
+        
+        // reached end of ref or target container
+        // i.e. isEnd() is true now
+      }
+      
+      CONST_CONT_IT ref_begin_, ref_end_;
+      CONST_CONT_IT tgt_begin_, tgt_end_; 
+      CONT_IT it_ref_, it_tgt_;
+      float tol_;
   };
-
-  template <typename CONT, typename TRAIT>
-  const CONT MatchedIterator<CONT, TRAIT>::empty_;
-
-  inline float getMZ(float m) { return m;}
-  template <typename T>
-  float getMZ(const T& o) { return o.getMZ(); }
-
-  struct PpmTrait
+  
+  /// Trait for MatchedIterator to find pairs with a certain Th/Da distance in m/z
+  struct ValueTrait
   {
     template <typename T>
-    static float allowedTol(float tol, const T& mz_ref)
+    static float allowedTol(float tol, const T& /*mz_ref*/)
     {
-      return Math::ppmToMass(tol, getMZ(mz_ref));
+      return tol;
+    }
+    /// just use fabs on the value directly
+    template <typename T>
+    static T getDiffAbsolute(const T& elem_ref, const T& elem_tgt)
+    {
+      return fabs(elem_ref - elem_tgt);
     }
   };
 
+  /// Trait for MatchedIterator to find pairs with a certain ppm distance in m/z
+  struct PpmTrait
+  {
+    template <typename T>
+    static float allowedTol(float tol, const T& elem_ref)
+    {
+      return Math::ppmToMass(tol, (float)elem_ref.getMZ());
+    }
+    /// for Peak1D & Co
+    template <typename T>
+    static float getDiffAbsolute(const T& elem_ref, const T& elem_tgt)
+    {
+      return fabs(elem_ref.getMZ() - elem_tgt.getMZ());
+    }
+  };
+
+  /// Trait for MatchedIterator to find pairs with a certain Th/Da distance in m/z
   struct DaTrait
   {
     template <typename T>
     static float allowedTol(float tol, const T& /*mz_ref*/)
     {
       return tol;
+    }
+    /// for Peak1D & Co
+    template <typename T>
+    static float getDiffAbsolute(const T& elem_ref, const T& elem_tgt)
+    {
+      return fabs(elem_ref.getMZ() - elem_tgt.getMZ());
     }
   };
 

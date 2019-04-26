@@ -47,6 +47,7 @@ set(datastructures_executables_list
   LPWrapper_test
   Map_test
   MassExplainer_test
+  MatchedIterator_test
   Matrix_test
   #MatrixUtils_test
   OPXLDataStructs_test

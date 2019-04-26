@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 
 #include <boost/math/special_functions/binomial.hpp>
@@ -364,32 +365,19 @@ namespace OpenMS
     }
     
     window_reduced.sortByPosition();
-    Size n = 0;
-    for (Size i = 0; i < th.size(); ++i)
+    Size matched_peaks(0);
+    if (fragment_tolerance_ppm_)
     {
-      Size nearest_peak = -1;
-      try
-      {
-        nearest_peak = window_reduced.findNearest(th[i].getMZ());
-      }
-      catch (Exception::Precondition) {}
-      
-      if (nearest_peak < window_reduced.size())
-      {
-        double window_mz = window_reduced[nearest_peak].getMZ();
-        double error = abs(window_mz - th[i].getMZ());
-        
-        if (fragment_tolerance_ppm_)
-        {
-          error = error / window_mz * 1e6;
-        }
-        if (error < fragment_mass_tolerance_)
-        {
-          ++n;
-        }
-      }      
+      MatchedIterator<PeakSpectrum, PpmTrait> it(th, window_reduced, fragment_mass_tolerance_);
+      for (; it != it.end(); ++it) ++matched_peaks;
     }
-    return n;
+    else
+    {
+      MatchedIterator<PeakSpectrum, DaTrait> it(th, window_reduced, fragment_mass_tolerance_);
+      for (; it != it.end(); ++it) ++matched_peaks;
+    }
+    
+    return matched_peaks;
   }
 
   double AScore::peptideScore_(const std::vector<double>& scores) const

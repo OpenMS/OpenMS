@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
@@ -42,11 +42,14 @@ using std::vector;
 
 namespace OpenMS
 {
-  inline double HyperScore::logfactorial_(UInt x)
+  inline double HyperScore::logfactorial_(const int x, int base)
   {
-    if (x < 2) { return 0; }
     double z(0);
-    for (double y = 2; y <= static_cast<double>(x); ++y) { z += log(static_cast<double>(y)); }
+    base = std::max(base, 2);
+    for (int i = base; i <= x; ++i)
+    {
+      z += log(i);
+    }
     return z;
   }
 
@@ -71,15 +74,15 @@ namespace OpenMS
       return 0.0;
     }
 
-    UInt y_ion_count = 0;
-    UInt b_ion_count = 0;
+    int y_ion_count = 0;
+    int b_ion_count = 0;
     double dot_product = 0.0;
     if (fragment_mass_tolerance_unit_ppm) 
     {
       MatchedIterator<PeakSpectrum, PpmTrait> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
       for (; it != it.end(); ++it)
       {
-        dot_product += (*it).getIntensity() * it.curRef().getIntensity(); /* * mass_error */;
+        dot_product += (*it).getIntensity() * it.ref().getIntensity(); /* * mass_error */;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
         auto i = it.refIdx();
         if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
@@ -97,7 +100,7 @@ namespace OpenMS
       MatchedIterator<PeakSpectrum, DaTrait> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
       for (; it != it.end(); ++it)
       {
-        dot_product += (*it).getIntensity() * it.curRef().getIntensity(); /* * mass_error */;
+        dot_product += (*it).getIntensity() * it.ref().getIntensity(); /* * mass_error */;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
         auto i = it.refIdx();
         if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
@@ -111,9 +114,15 @@ namespace OpenMS
       }
 
     }
-    const double yFact = logfactorial_(y_ion_count);
-    const double bFact = logfactorial_(b_ion_count);
-    const double hyperScore = log1p(dot_product) + yFact + bFact;
+
+    // inefficient: calculates logs repeatedly
+    //const double yFact = logfactorial_(y_ion_count);
+    //const double bFact = logfactorial_(b_ion_count);
+    //const double hyperScore = log1p(dot_product) + yFact + bFact;
+
+    const int i_min = std::min(y_ion_count, b_ion_count);
+    const int i_max = std::max(y_ion_count, b_ion_count);
+    const double hyperScore = log1p(dot_product) + 2*logfactorial_(i_min) + logfactorial_(i_max, i_min + 1);
     return hyperScore;
   }
 
