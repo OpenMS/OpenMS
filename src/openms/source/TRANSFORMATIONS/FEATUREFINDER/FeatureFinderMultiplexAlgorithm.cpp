@@ -528,8 +528,8 @@ namespace OpenMS
         }
         else if (chromatogram.size() == 1)
         {
-		  intensity_sum += chromatogram.begin()->getIntensity();
-		}
+          intensity_sum += chromatogram.begin()->getIntensity();
+        }
         
       }
       
