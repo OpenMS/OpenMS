@@ -2327,10 +2327,11 @@ static void scoreShiftedFragments_(
             p.setIsolationWindowLowerOffset(left);
             p.setIsolationWindowUpperOffset(right);
           }
-          else // in some files from PD the target m/z is sometimes to the left of the lower isolation window (bug?)
+          else // in some files from PD the target m/z is sometimes outside the isolation window (bug?)
           {
-            // something wrong with left boundary... use information from right
-            left = p.getMZ() - right;
+            double half_w = (right - left) / 2.0;
+            left = p.getMZ() - half_w;
+            right = p.getMZ() + half_w;
             p.setIsolationWindowLowerOffset(left);
             p.setIsolationWindowUpperOffset(right);
             isolation_windows_reannotation_error++;
