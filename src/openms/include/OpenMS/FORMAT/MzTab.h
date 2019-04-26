@@ -429,7 +429,7 @@ public:
 
     void setMSFile(Size index);
 
-    void setSpecRef(String spec_ref);
+    void setSpecRef(const String& spec_ref);
 
     String getSpecRef() const;
 
