@@ -1,4 +1,4 @@
-import Constants
+from . import Constants
 
 class SimpleOpenMSSpectraFactory:
 
