@@ -309,7 +309,7 @@ public:
       else  // relative alignment (ppm tolerance)
       {        
         // find  closest match of s1[i] in s2 for all i
-        MatchedIterator<PeakSpectrum, PpmTrait> it(s1, s2, tolerance);
+        MatchedIterator<SpectrumType1, PpmTrait> it(s1, s2, tolerance);
         for (; it != it.end(); ++it) alignment.emplace_back(it.refIdx(), it.tgtIdx());
       }
     }

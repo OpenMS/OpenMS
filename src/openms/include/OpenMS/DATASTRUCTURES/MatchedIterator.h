@@ -38,6 +38,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <iterator>
+#include <type_traits>
 
 namespace OpenMS
 {
@@ -70,12 +71,11 @@ namespace OpenMS
       using iterator_category = std::forward_iterator_tag;
       using value_type = typename CONT::value_type; //< dereferences to an element in the target container
       using difference_type = std::ptrdiff_t;
-      using pointer = typename std::conditional<CONST, typename const CONT::value_type*, typename CONT::value_type*>::type;
-      using reference = typename std::conditional<CONST, typename const CONT::value_type&, typename CONT::value_type&>::type;
+      using pointer = typename std::conditional<CONST, typename CONT::value_type const*, typename CONT::value_type*>::type;
+      using reference = typename std::conditional<CONST, typename CONT::value_type const&, typename CONT::value_type&>::type;
       
-      typedef typename std::conditional<CONST, typename CONT::const_iterator, typename CONT::iterator>::type CONT_IT; // for dereferencing etc
-      typedef typename CONT::const_iterator CONST_CONT_IT; // for input containers
-      typedef typename TRAIT DiffType;
+      using CONT_IT = typename std::conditional<CONST, typename CONT::const_iterator, typename CONT::iterator>::type; // for dereferencing etc
+      using CONST_CONT_IT = typename CONT::const_iterator; // for input containers
       
       /**
         @brief Constructs a MatchedIterator on two containers. The way a match is found, depends on the TRAIT type (ppm or Da tolerance)
@@ -151,24 +151,24 @@ namespace OpenMS
 
       /// dereference current target element
       template< bool _CONST = CONST >
-      std::enable_if_t< _CONST, reference > operator*() const
+      typename std::enable_if< _CONST, reference >::type operator*() const
       {
         return *it_tgt_;
       }
       template< bool _CONST = CONST >
-      std::enable_if_t< !_CONST, reference > operator*()
+      typename std::enable_if< !_CONST, reference >::type operator*()
       {
         return *it_tgt_;
       }
 
       /// pointer to current target element
       template< bool _CONST = CONST >
-      std::enable_if_t< _CONST, pointer > operator->() const
+      typename std::enable_if< _CONST, pointer >::type operator->() const
       {
         return &(*it_tgt_);
       }
       template< bool _CONST = CONST >
-      std::enable_if_t< !_CONST, pointer > operator->()
+      typename std::enable_if< !_CONST, pointer >::type operator->()
       {
         return &(*it_tgt_);
       }
@@ -236,13 +236,13 @@ namespace OpenMS
         while (!isEnd_())
         { // note: it_tgt_ always points to a valid element (unless the whole container was empty -- see CTor)
 
-          double max_dist = DiffType::allowedTol(tol_, *it_ref_);
+          double max_dist = TRAIT::allowedTol(tol_, *it_ref_);
 
           // forward iterate over elements in target data until distance gets worse
           float diff = std::numeric_limits<float>::max();
           do
           {
-            auto d = DiffType::getDiffAbsolute(*it_ref_, *it_tgt_);
+            auto d = TRAIT::getDiffAbsolute(*it_ref_, *it_tgt_);
             if (diff > d) // getting better
             {
               diff = d;
