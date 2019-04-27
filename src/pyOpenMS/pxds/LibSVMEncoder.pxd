@@ -15,6 +15,6 @@ cdef extern from "<OpenMS/FORMAT/LibSVMEncoder.h>" namespace "OpenMS::LibSVMEnco
         
         # static members
         libcpp_vector[double] predictPeptideRT(libcpp_vector[String] sequences,
-                                               const String & allowed_characters,
                                                const SVMWrapper & svm,
+                                               const String & allowed_characters,
                                                UInt maximum_sequence_length) nogil except + # wrap-attach:LibSVMEncoder

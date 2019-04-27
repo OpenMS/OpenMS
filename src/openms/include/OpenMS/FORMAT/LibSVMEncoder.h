@@ -184,16 +184,15 @@ public:
     static void destroyProblem(svm_problem * problem);
 
     static std::vector<double> predictPeptideRT(const std::vector<String> & sequences,
-                                                const String & allowed_characters,
                                                 SVMWrapper& svm,
-                                                UInt maximum_sequence_length)
+                                                const String & allowed_characters = "ACDEFGHIKLMNPQRSTVWY",
+                                                UInt maximum_sequence_length = 50)
     {
       std::vector<double> predicted_retention_times;
 
       LibSVMEncoder encoder;
       std::vector<double> temp_rts;
       temp_rts.resize(sequences.size(), 0);
-      String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
       svm_problem * prediction_data =
           encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(sequences,
                                                                      temp_rts,
