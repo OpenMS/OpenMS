@@ -36,11 +36,14 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 project("OpenMS_coding_tests")
 
 # --------------------------------------------------------------------------
-# Own style tests
+# OpenMS internal style tests
 if (NOT WIN32)
+  # Check for unintended copies in "for (auto it : cont)" loops
   add_test(
     NAME potential_for_loop_copies
-    COMMAND sh -c "grep -R for --exclude-dir=contrib --exclude-dir=cppcheck --exclude-dir=thirdparty ${OPENMS_HOST_DIRECTORY} | grep auto | grep -v begin | grep -v areaBegin | grep -v MZBegin | grep -v OMS_CODING_TEST_EXCLUDE | grep ':' | grep -v '&' | grep -v '//' | grep 'for[ ]*(' || echo 'Success' "
+    COMMAND sh -c "grep -R for --exclude-dir=contrib --exclude-dir=cppcheck --exclude-dir=thirdparty ${OPENMS_HOST_DIRECTORY} \
+    | grep auto | grep -v begin | grep -v areaBegin | grep -v MZBegin | grep -v OMS_CODING_TEST_EXCLUDE | grep ':' 
+    | grep -v '&' | grep -v '//' | grep 'for[ ]*(' || echo 'Success' "
   )
 
   set_tests_properties(potential_for_loop_copies PROPERTIES
