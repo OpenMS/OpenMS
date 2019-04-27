@@ -11,6 +11,12 @@ cdef extern from "<OpenMS/FORMAT/Base64.h>" namespace "OpenMS":
 
         void encode(libcpp_vector[ double ] & in_, ByteOrder to_byte_order, String &out, bool zlib_compression) nogil except +
         void decode(const String & in_, ByteOrder from_byte_order, libcpp_vector[ double ] &out, bool zlib_compression) nogil except +
+
+        void encode64(libcpp_vector[ double ] & in_, ByteOrder to_byte_order, String &out, bool zlib_compression) nogil except + #wrap-ignore
+        void decode64(const String & in_, ByteOrder from_byte_order, libcpp_vector[ double ] &out, bool zlib_compression) nogil except + #wrap-ignore
+        void encode32(libcpp_vector[ float ] & in_, ByteOrder to_byte_order, String &out, bool zlib_compression) nogil except + #wrap-ignore
+        void decode32(const String & in_, ByteOrder from_byte_order, libcpp_vector[ float ] &out, bool zlib_compression) nogil except + #wrap-ignore
+
         void encodeIntegers(libcpp_vector[ int ] & in_, ByteOrder to_byte_order, String &out, bool zlib_compression) nogil except +
         void decodeIntegers(const String & in_, ByteOrder from_byte_order, libcpp_vector[ int ] &out, bool zlib_compression) nogil except +
 
