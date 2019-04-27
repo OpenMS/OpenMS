@@ -42,7 +42,7 @@ if (NOT WIN32)
   add_test(
     NAME potential_for_loop_copies
     COMMAND sh -c "grep -R for --exclude-dir=contrib --exclude-dir=cppcheck --exclude-dir=thirdparty ${OPENMS_HOST_DIRECTORY} \
-    | grep auto | grep -v begin | grep -v areaBegin | grep -v MZBegin | grep -v OMS_CODING_TEST_EXCLUDE | grep ':' 
+    | grep auto | grep -v begin | grep -v areaBegin | grep -v MZBegin | grep -v OMS_CODING_TEST_EXCLUDE | grep ':' \
     | grep -v '&' | grep -v '//' | grep 'for[ ]*(' || echo 'Success' "
   )
 
