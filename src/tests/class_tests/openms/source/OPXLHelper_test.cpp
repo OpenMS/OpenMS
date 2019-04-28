@@ -197,9 +197,9 @@ std::vector< ProteinIdentification > protein_ids;
 IdXMLFile id_file;
 id_file.load(OPENMS_GET_TEST_DATA_PATH("OPXLHelper_test.idXML"), protein_ids, peptide_ids);
 
-for (const auto& id : peptide_ids)
+for (auto& id : peptide_ids)  //OMS_CODING_TEST_EXCLUDE
 {
-  for (const auto& hit : id.getHits())
+  for (auto& hit : id.getHits())  //OMS_CODING_TEST_EXCLUDE
   {
     hit.removeMetaValue("XL_Protein_position_alpha");
     hit.removeMetaValue("XL_Protein_position_beta");
