@@ -45,12 +45,13 @@ public:
 
     double intensityThreshold;// advanced parameters
     double minIsotopeCosine;
+    double maxIsotopeCosine;
     int minContinuousChargePeakCount;
     int maxIsotopeCount;
     int maxMassCount;
     //double chargeDistributionScoreThreshold;
     double RTwindow;
-    double minRTSapn;
+    double minRTSpan;
     vector<int> hCharges{2, 3, 5, 7}; // automated or fixed parameters
     int chargeRange;
     double binWidth;
@@ -297,15 +298,16 @@ protected:
 
     registerIntOption_("minCC", "<min continuous charge peak count>", 3,
                        "minimum number of peaks of continuous charges per mass", false, true);
-    registerDoubleOption_("minIsotopeCosine", "<...>", .7, "minimum cosine between avg. isotope and observed intensities", false, true);
+    registerDoubleOption_("minIsotopeCosine", "<...>", .3, "cosine threshold between avg. isotope and observed intensities for max mass", false, true);
+    registerDoubleOption_("maxIsotopeCosine", "<...>", .7, "cosine threshold between avg. isotope and observed intensities for min mass", false, true);
     //registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
 
     registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
     //
     registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
-    registerDoubleOption_("RTwindow", "<seconds>", 240.0,
+    registerDoubleOption_("RTwindow", "<seconds>", 180.0,
                           "RT window for feature extraction", false, true);
-    registerDoubleOption_("minRTSapn", "<seconds>", 10.0,
+    registerDoubleOption_("minRTSpan", "<seconds>", 10.0,
                           "Min feature RT span for feature extraction", false, true);
     registerIntOption_("writeSpecTsv", "<1:true 0:false>", 0, "to write per spectrum deconvoluted values or not", false, true);
   }
@@ -322,11 +324,12 @@ protected:
     param.intensityThreshold = getDoubleOption_("minInt");
     param.minContinuousChargePeakCount = getIntOption_("minCC");
     param.minIsotopeCosine = getDoubleOption_("minIsotopeCosine");
+    param.maxIsotopeCosine = getDoubleOption_("maxIsotopeCosine");
     //param.maxIsotopeCount = getIntOption_("maxIC");
     param.maxMassCount = getIntOption_("maxMC");
     //param.chargeDistributionScoreThreshold = getDoubleOption_("minCDScore");
     param.RTwindow = getDoubleOption_("RTwindow");
-    param.minRTSapn = getDoubleOption_("minRTSapn");
+    param.minRTSpan = getDoubleOption_("minRTSpan");
     param.threads = getIntOption_("threads");
     param.writeSpecTsv = getIntOption_("writeSpecTsv");
     return param;
@@ -620,7 +623,7 @@ protected:
     //double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
     mtd_param.setValue("min_sample_rate", 0.01, "");
     mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans, "");
-    mtd_param.setValue("min_trace_length", param.minRTSapn, "");
+    mtd_param.setValue("min_trace_length", param.minRTSpan, "");
     //mtd_param.setValue("max_trace_length", 1000.0, "");
     mtdet.setParameters(mtd_param);
 
@@ -629,9 +632,14 @@ protected:
 
     for (auto &mt : m_traces)
     {
+      //if(mt.getSize()<3) continue;
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
       boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
+      //mt.getIntensity()
+      double sum_intensity = .0;
+      //auto mass = mt.getCentroidMZ();
+      //double max_intensity = .0;
 
       for (auto &p2 : mt)
       {
@@ -640,12 +648,19 @@ protected:
         auto &pg = pgMap[(float) p2.getMZ()];
         minCharge = min(minCharge, pg.minCharge);
         maxCharge = max(maxCharge, pg.maxCharge);
+        sum_intensity += p2.getIntensity();
+
         for (auto &p : pg.peaks)
         {
           charges[p.charge] = true;
         }
+        /*if (max_intensity > pg.intensity)
+        {
+          continue;
+        }
+        max_intensity = pg.intensity;
+        mass = pg.monoisotopicMass;*/
       }
-
       auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
@@ -1744,9 +1759,10 @@ protected:
                                                                     param.maxIsotopeCount,
                                                                     averagines);
 
-      //double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.monoisotopicMass, .7, .3, 10000, 100000);
+      double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.monoisotopicMass, param.maxIsotopeCosine,  param.minIsotopeCosine,
+          param.minMass, param.maxMass);
 
-      if (pg.peaks.empty() || pg.isotopeCosineScore <= param.minIsotopeCosine)
+      if (pg.peaks.empty() || pg.isotopeCosineScore <= isotopeCosineThreshold)
       {
         continue;
       }
