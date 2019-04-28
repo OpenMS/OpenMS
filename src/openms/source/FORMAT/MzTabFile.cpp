@@ -644,7 +644,7 @@ namespace OpenMS
         s.substitute("ms_run[","").substitute("]","");
         vector<String> ms_run;
         s.split(',', ms_run);
-        for (auto a : ms_run)
+        for (auto& a : ms_run)
         {
           a.trim();
           mz_tab_metadata.assay[n].ms_run_ref.push_back(a.toInt());
@@ -657,7 +657,7 @@ namespace OpenMS
         s.substitute("assay[","").substitute("]","");
         vector<String> assays;
         s.split(',', assays);
-        for (auto a : assays)
+        for (auto& a : assays)
         {
           a.trim();
           mz_tab_metadata.study_variable[n].assay_refs.push_back(a.toInt());
@@ -671,7 +671,7 @@ namespace OpenMS
 
         vector<String> assays;
         s.split(',', assays);
-        for (auto a : assays)
+        for (auto& a : assays)
         {
           a.trim();
           mz_tab_metadata.study_variable[n].sample_refs.push_back(a.toInt());

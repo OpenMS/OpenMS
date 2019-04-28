@@ -166,7 +166,7 @@ namespace OpenMS
 
     EmpiricalFormula our_form;
     // Add all the ribonucleotide masses
-    for (auto i : seq_)
+    for (const auto& i : seq_)
     {
       our_form += i->getFormula();
     }

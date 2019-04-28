@@ -359,15 +359,15 @@ namespace OpenMS
 
       //need elements sorted canonically (by string)
       map<String, String> sorted_elem_map;
-      for (auto element_count : ef_)
+      for (const auto& element_count : ef_)
       {
         String e_symbol(element_count.first->getSymbol());
         String tmp = element_count.second > 0 ? "+" : "-";
         tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
         tmp += e_symbol;
-        sorted_elem_map[e_symbol] = tmp;
+        sorted_elem_map[e_symbol] = std::move(tmp);
       }
-      for (auto sorted_e_cnt : sorted_elem_map)
+      for (const auto& sorted_e_cnt : sorted_elem_map)
       {
         s += sorted_e_cnt.second;
       }

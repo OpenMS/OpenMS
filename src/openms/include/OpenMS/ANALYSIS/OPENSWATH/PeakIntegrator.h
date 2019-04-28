@@ -617,7 +617,7 @@ protected:
               areas[3] = simpson_(p.PosBegin(left), p.PosEnd(right) + 1); // with one more point on the right
             }
             UInt valids = 0;
-            for (auto area : areas)
+            for (const auto& area : areas)
             {
               if (area != -1.0)
               {

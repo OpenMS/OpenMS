@@ -204,7 +204,7 @@ namespace OpenMS
     // fix legend if its a chromatogram
     w->xAxis()->setLegend("Time [sec]");
 
-    for (auto index : indices)
+    for (const auto& index : indices)
     {
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
@@ -340,7 +340,7 @@ namespace OpenMS
         widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
       }
 
-      for (auto index : indices)
+      for (const auto& index : indices)
       {
         ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 

@@ -812,7 +812,7 @@ protected:
 
       // write peak types (centroided / profile mode)
       os << "Peak type metadata (estimated)\n";
-      for (auto const l : levels)
+      for (const auto& l : levels)
       {
         os << "  level " << l << ": "
            << SpectrumSettings::NamesOfSpectrumType[level_annotated_picked[l]] << " ("

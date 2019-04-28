@@ -213,7 +213,7 @@ protected:
 
     // add modified ribos from database
     vector<String> all_mods;
-    for (auto r : *RibonucleotideDB::getInstance())
+    for (const auto& r : *RibonucleotideDB::getInstance())
     {
       if (r->isModified())
       {

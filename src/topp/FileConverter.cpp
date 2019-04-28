@@ -194,7 +194,7 @@ void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSS
       name += " (MS:1002815)";
     }
     fda.setName(name);
-    for (auto s : stack)
+    for (const auto& s : stack)
     {
       new_spec.insert(new_spec.end(), s.begin(), s.end());
       fda.insert(fda.end(), s.size(), s.getDriftTime());
@@ -261,7 +261,7 @@ void expandIMSpectrum(const MSSpectrum& tmps, std::vector<MSSpectrum>& result)
 
   // Add spectra to result, note that this is guaranteed to be
   // sorted by ion mobility (through std::map).
-  for (auto s : im_map)
+  for (const auto& s : im_map)
   {
     result.push_back(s.second);
   }

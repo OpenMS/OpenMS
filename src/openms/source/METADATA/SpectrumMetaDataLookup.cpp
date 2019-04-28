@@ -235,9 +235,7 @@ namespace OpenMS
         it->setMetaValue("spectra_data", spectra_data);
       }
     }
-    for (auto it =
-          peptides.begin(); it !=
-          peptides.end(); ++it)
+    for (auto it = peptides.begin(); it != peptides.end(); ++it)
     {
       // spectrum reference already set? skip if we don't want to overwrite
       if (!override_spectra_references 

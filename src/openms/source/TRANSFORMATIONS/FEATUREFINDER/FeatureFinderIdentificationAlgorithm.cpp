@@ -425,7 +425,7 @@ namespace OpenMS
     // same peptide sequence may be quantified based on internal and external
     // IDs if charge states differ!
     set<AASequence> quantified_internal, quantified_all;
-    for (auto const f : features)
+    for (const auto& f : features)
     {
       const PeptideIdentification& pep_id = f.getPeptideIdentifications()[0];
       const AASequence& seq = pep_id.getHits()[0].getSequence();

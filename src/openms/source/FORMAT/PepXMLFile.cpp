@@ -1202,13 +1202,29 @@ namespace OpenMS
 
         optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
         aa_mod.terminus = String(attributeAsString_(attributes, "terminus")).toLower();
+        // "y" if protein terminus, "n" if peptide terminus
+        aa_mod.protein_terminus = String(attributeAsString_(attributes, "protein_terminus")).toLower() == "y";
         if (aa_mod.terminus == "n")
         {
-          term_spec = ResidueModification::N_TERM;
+          if (aa_mod.protein_terminus)
+          {
+            term_spec = ResidueModification::PROTEIN_N_TERM;
+          }
+          else
+          {
+            term_spec = ResidueModification::N_TERM;
+          }
         }
         else if (aa_mod.terminus == "c")
         {
-          term_spec = ResidueModification::C_TERM;
+          if (aa_mod.protein_terminus)
+          {
+            term_spec = ResidueModification::PROTEIN_C_TERM;
+          }
+          else
+          {
+            term_spec = ResidueModification::C_TERM;
+          }
         }
       }
       String desc = "";
@@ -1573,4 +1589,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-
