@@ -38,7 +38,7 @@ project("OpenMS_coding_tests")
 # --------------------------------------------------------------------------
 # OpenMS internal style tests
 if (NOT WIN32)
-  # Check for unintended copies in "for (auto it : cont)" loops
+  # Check for unintended copies in C++11 for loops
   add_test(
     NAME potential_for_loop_copies
     COMMAND sh -c "grep -R for --exclude-dir=contrib --exclude-dir=cppcheck --exclude-dir=thirdparty ${OPENMS_HOST_DIRECTORY} \

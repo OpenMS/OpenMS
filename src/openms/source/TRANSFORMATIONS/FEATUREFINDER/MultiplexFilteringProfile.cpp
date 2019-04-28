@@ -400,12 +400,12 @@ namespace OpenMS
           auto satellites_2 = satellites_profile.equal_range(idx_2);
           
           // loop over satellites in mass trace 1
-          for (auto satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
+          for (auto satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1) //OMS_CODING_TEST_EXCLUDE
           {
             double rt_1 = (satellite_it_1->second).getRT();
             
             // loop over satellites in mass trace 2
-            for (auto satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
+            for (auto satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2) //OMS_CODING_TEST_EXCLUDE
             {
               double rt_2 = (satellite_it_2->second).getRT();
               

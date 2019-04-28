@@ -572,7 +572,7 @@ protected:
       PeakArea pa;
       pa.apex_pos = (left + right) / 2; // initial estimate, to avoid apex being outside of [left,right]
       UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
-      for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
+      for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it) //OMS_CODING_TEST_EXCLUDE
       {
         pa.hull_points.push_back(DPosition<2>(it->getPos(), it->getIntensity()));
         if (pa.height < it->getIntensity())
@@ -677,7 +677,7 @@ protected:
           // sign of delta_int will determine line direction
           // area += delta_int / delta_pos * (it->getPos() - left) + int_l;
           double pos_sum = 0.0; // rt or mz
-          for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
+          for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it) //OMS_CODING_TEST_EXCLUDE
           {
             pos_sum += it->getPos();
           }
@@ -744,7 +744,7 @@ protected:
     double simpson_(PeakContainerConstIteratorT it_begin, PeakContainerConstIteratorT it_end) const
     {
       double integral = 0.0;
-      for (auto it = it_begin + 1; it < it_end - 1; it = it + 2)
+      for (auto it = it_begin + 1; it < it_end - 1; it = it + 2) //OMS_CODING_TEST_EXCLUDE
       {
         const double h = it->getPos() - (it - 1)->getPos();
         const double k = (it + 1)->getPos() - it->getPos();
@@ -776,7 +776,7 @@ protected:
       typename PeakContainerT::ConstIterator it_PosBegin_l = p.PosBegin(left);
       typename PeakContainerT::ConstIterator it_PosEnd_apex = p.PosBegin(peak_apex_pos); // if peak_apex_pos is correct, this will get the underlying iterator
       typename PeakContainerT::ConstIterator it_PosEnd_r = p.PosEnd(right); // past the end. Do not dereference (might be the true .end())
-      for (auto it = it_PosBegin_l; it != it_PosEnd_r; ++it)
+      for (auto it = it_PosBegin_l; it != it_PosEnd_r; ++it) //OMS_CODING_TEST_EXCLUDE
       {
         // points across the peak
         ++(psm.points_across_baseline);
