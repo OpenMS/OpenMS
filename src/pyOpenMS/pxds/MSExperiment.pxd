@@ -42,13 +42,13 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         
         # COMMENT: Spectra functions
         MSSpectrum operator[](int) nogil except + # wrap-upper-limit:size()
-        MSSpectrum getSpectrum(Size id_) nogil except +
+        MSSpectrum getSpectrum(Size id_) nogil except + # wrap-ignore
         void addSpectrum(MSSpectrum spec) nogil except +
         void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) nogil except +
         libcpp_vector[MSSpectrum] getSpectra() nogil except +
 
         # COMMENT: Chromatogram functions
-        MSChromatogram getChromatogram(Size id_) nogil except +
+        MSChromatogram getChromatogram(Size id_) nogil except + # wrap-ignore
         void addChromatogram(MSChromatogram chromatogram) nogil except +
         void setChromatograms(libcpp_vector[MSChromatogram] chromatograms) nogil except +
         libcpp_vector[MSChromatogram] getChromatograms() nogil except +
