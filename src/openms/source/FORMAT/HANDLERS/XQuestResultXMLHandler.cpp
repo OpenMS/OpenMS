@@ -728,7 +728,7 @@ namespace OpenMS
           }
           peptide_hit_beta.setSequence(AASequence::fromString(seq2));
           peptide_hit_alpha.setMetaValue("beta_sequence", seq2);
-          peptide_hit_alpha.setMetaValue("beta_sequence", seq2);
+          peptide_hit_beta.setMetaValue("beta_sequence", seq2);
 
           peptide_hit_beta.setCharge(charge);
 
@@ -802,6 +802,7 @@ namespace OpenMS
           peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second - 1));
           peptide_hit_alpha.setMetaValue("xl_mass", xlinkermass);
           peptide_hit_alpha.setMetaValue("xl_mod", this->cross_linker_name_);
+          peptide_hit_alpha.setMetaValue("beta_sequence", "-");
         }
         else if (xlink_type_string == "monolink")
         {
@@ -815,6 +816,7 @@ namespace OpenMS
           this->getLinkPosition_(attributes, xlink_pos);
           peptide_hit_alpha.setMetaValue("xl_pos", DataValue(xlink_pos.first - 1));
           peptide_hit_alpha.setMetaValue("xl_pos2", DataValue("-"));
+          peptide_hit_alpha.setMetaValue("beta_sequence", "-");
         }
         else
         {

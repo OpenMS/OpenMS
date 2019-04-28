@@ -157,7 +157,7 @@ protected:
     setMinInt_("allowed_missed_cleavages", 0);
     setMaxInt_("allowed_missed_cleavages", 5);
     //Fragment Ions
-    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true); 
+    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
     setMinFloat_("fragment_bin_tolerance", 0.01);
     registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins scaled by tolerance. Ion trap: 0.4, high res: 0.0.", false, true);
     setMinFloat_("fragment_bin_offset", 0.0);
@@ -332,13 +332,15 @@ protected:
         // 2 and -1 should be equal for now.
         nc_term = 2;
       }
-      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM) // not yet available
+      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
       {
+        residues = "n";
         term_distance = 0;
         nc_term = 0;
       }
-      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM) // not yet available
+      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
       {
+        residues = "c";
         term_distance = 0;
         nc_term = 1;
       }
@@ -510,7 +512,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    
+
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
     String tmp_param = File::getTemporaryFile();
@@ -563,7 +565,7 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2 
+    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
