@@ -303,7 +303,7 @@ protected:
 
           const BinnedSpectrum binned_highest_int(ms_maps[peptides[0].second.first][peptides[0].second.second], BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
-          for (auto peptide : peptides)
+          for (const auto& peptide : peptides)
           {
             int map_index = peptide.second.first;
             int spectra_index = peptide.second.second;

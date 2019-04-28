@@ -1929,7 +1929,7 @@ protected:
               if (precursor_rna_adduct == "none")
               {
                 // score peptide without RNA (same method as fast scoring)
-                for (auto l = low_it; l != up_it; ++l)
+                for (auto l = low_it; l != up_it; ++l) // OMS_CODING_TEST_EXCLUDE
                 {
                   //const double exp_pc_mass = l->first;
                   const Size & scan_index = l->second.first;
@@ -2072,7 +2072,7 @@ protected:
                     marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0],
                     marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
 
-                  for (auto l = low_it; l != up_it; ++l)
+                  for (auto l = low_it; l != up_it; ++l) // OMS_CODING_TEST_EXCLUDE
                   {
                     //const double exp_pc_mass = l->first;
                     const Size& scan_index = l->second.first;
@@ -2164,7 +2164,7 @@ protected:
             }
             else // fast scoring
             {
-              for (auto l = low_it; l != up_it; ++l)
+              for (auto l = low_it; l != up_it; ++l) // OMS_CODING_TEST_EXCLUDE
               {
                 //const double exp_pc_mass = l->first;
                 const Size &scan_index = l->second.first;

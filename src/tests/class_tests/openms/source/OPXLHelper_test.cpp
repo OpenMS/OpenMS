@@ -197,9 +197,9 @@ std::vector< ProteinIdentification > protein_ids;
 IdXMLFile id_file;
 id_file.load(OPENMS_GET_TEST_DATA_PATH("OPXLHelper_test.idXML"), protein_ids, peptide_ids);
 
-for (auto& id : peptide_ids)
+for (auto& id : peptide_ids)  //OMS_CODING_TEST_EXCLUDE
 {
-  for (auto& hit : id.getHits())
+  for (auto& hit : id.getHits())  //OMS_CODING_TEST_EXCLUDE
   {
     hit.removeMetaValue("XL_Protein_position_alpha");
     hit.removeMetaValue("XL_Protein_position_beta");
@@ -211,9 +211,9 @@ for (auto& id : peptide_ids)
 START_SECTION(static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids))
 
   // test that the MetaValues were removed
-  for (auto& id : peptide_ids)
+  for (const auto& id : peptide_ids)
   {
-    for (auto& hit : id.getHits())
+    for (const auto& hit : id.getHits())
     {
       TEST_EQUAL(hit.metaValueExists("XL_Protein_position_alpha"), false)
       TEST_EQUAL(hit.metaValueExists("XL_Protein_position_beta"), false)
@@ -226,9 +226,9 @@ START_SECTION(static void addProteinPositionMetaValues(std::vector< PeptideIdent
   OPXLHelper::addProteinPositionMetaValues(peptide_ids);
 
   // check, that they were added to every PeptideHit
-  for (auto id : peptide_ids)
+  for (const auto& id : peptide_ids)
   {
-    for (auto hit : id.getHits())
+    for (const auto& hit : id.getHits())
     {
       TEST_EQUAL(hit.metaValueExists("XL_Protein_position_alpha"), true)
       TEST_EQUAL(hit.metaValueExists("XL_Protein_position_beta"), true)
@@ -251,9 +251,9 @@ START_SECTION(static void addXLTargetDecoyMV(std::vector< PeptideIdentification 
   // add xl_target_decoy MetaValue
   OPXLHelper::addXLTargetDecoyMV(peptide_ids);
   // check, that they were added to every PeptideHit
-  for (auto id : peptide_ids)
+  for (const auto& id : peptide_ids)
   {
-    for (auto hit : id.getHits())
+    for (const auto& hit : id.getHits())
     {
       TEST_EQUAL(hit.metaValueExists("xl_target_decoy"), true)
     }
@@ -270,9 +270,9 @@ START_SECTION(static void addBetaAccessions(std::vector< PeptideIdentification >
   // add accessions_beta MV
   OPXLHelper::addBetaAccessions(peptide_ids);
   // check, that they were added to every PeptideHit
-  for (auto id : peptide_ids)
+  for (const auto& id : peptide_ids)
   {
-    for (auto hit : id.getHits())
+    for (const auto& hit : id.getHits())
     {
       TEST_EQUAL(hit.metaValueExists("accessions_beta"), true)
     }
@@ -287,9 +287,9 @@ END_SECTION
 START_SECTION(static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits))
 
   // all hits are to separate spectra, so everything should be rank 1
-  for (auto id : peptide_ids)
+  for (const auto& id : peptide_ids)
   {
-    for (auto hit : id.getHits())
+    for (const auto& hit : id.getHits())
     {
       TEST_EQUAL(hit.getMetaValue("xl_rank"), 1)
     }
