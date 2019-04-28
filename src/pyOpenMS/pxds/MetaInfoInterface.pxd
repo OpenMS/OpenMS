@@ -31,3 +31,4 @@ cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
         #bool metaValueExists(unsigned int) nogil except +
         void removeMetaValue(String) nogil except +
         #void removeMetaValue(unsigned int) nogil except +
+
