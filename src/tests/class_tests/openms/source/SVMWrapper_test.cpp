@@ -1037,7 +1037,7 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 
 	labels.clear();
-	labels.resize(count / 2, 1);
+	labels.resize(static_cast<UInt>(count / 2), 1);
 	labels.resize(count, -1);
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -1047,12 +1047,14 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
 	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
+    // At probability 0.5, LibSVM will assign the first encountered label in the training data
+    // in this case "1"
 		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] < 0.5)
-							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
+							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.4999), true)
 	}
 	labels.clear();
 	// Start with -1 as "first" label
-	labels.resize(count / 2, -1);
+	labels.resize(static_cast<UInt>(count / 2), -1);
 	labels.resize(count, 1);
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -1064,7 +1066,7 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	{
 		// At probability 0.5, LibSVM will assign the first encountered label in the training data
 		// in this case "-1"
-		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5)
+		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5001)
 							|| (predicted_labels[i] > 0 && probabilities[i] > 0.5), true)
 	}
 

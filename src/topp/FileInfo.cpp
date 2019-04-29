@@ -474,8 +474,8 @@ protected:
 
       os << "\n";
       os << "Number of sequences   : " << entries.size() << "\n";
-      os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 : (dup_header * 1000.0 / entries.size()) / 10.0) << "%)\n";
-      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : (dup_seq * 1000.0 / entries.size()) / 10.0) << "%) [by exact string matching]\n";
+      os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 : (dup_header * 1000 / entries.size()) / 10) << "%)\n";
+      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : (dup_seq * 1000 / entries.size()) / 10) << "%) [by exact string matching]\n";
       os << "Total amino acids     : " << number_of_aacids << "\n\n";
       os << "Amino acid counts: \n";
 
@@ -485,8 +485,8 @@ protected:
       }
       size_t amb = aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x'];
       size_t amb_I = amb + aacids['I'] + aacids['i'];
-      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (amb * 10000.0 / number_of_aacids / 100.0) : 0) << "%)\n";
-      os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (amb_I * 10000.0 / number_of_aacids / 100.0) : 0) << "%)\n\n";
+      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (amb * 10000 / number_of_aacids / 100) : 0) << "%)\n";
+      os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (amb_I * 10000 / number_of_aacids / 100) : 0) << "%)\n\n";
     }
 
     else if (in_type == FileTypes::FEATUREXML) //features
