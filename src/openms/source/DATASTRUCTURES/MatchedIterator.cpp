@@ -32,8 +32,6 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 //
-#pragma once
-
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 
 namespace OpenMS
