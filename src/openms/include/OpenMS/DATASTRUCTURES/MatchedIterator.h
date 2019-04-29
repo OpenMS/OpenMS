@@ -34,6 +34,7 @@
 //
 #pragma once
 
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
