@@ -651,6 +651,7 @@ if(NOT DISABLE_OPENSWATH)
     SwathQC_test
     CachedMzML_test
     CachedMzMLHandler_test
+    HDF5_test
   )
 endif(NOT DISABLE_OPENSWATH)
 
