@@ -298,8 +298,8 @@ protected:
 
     registerIntOption_("minCC", "<min continuous charge peak count>", 3,
                        "minimum number of peaks of continuous charges per mass", false, true);
-    registerDoubleOption_("minIsotopeCosine", "<...>", .3, "cosine threshold between avg. isotope and observed intensities for max mass", false, true);
-    registerDoubleOption_("maxIsotopeCosine", "<...>", .7, "cosine threshold between avg. isotope and observed intensities for min mass", false, true);
+    registerDoubleOption_("minIsotopeCosine", "<...>", .7, "cosine threshold between avg. isotope and observed intensities for max mass", false, true);
+    registerDoubleOption_("maxIsotopeCosine", "<...>", .9, "cosine threshold between avg. isotope and observed intensities for min mass", false, true);
     //registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
 
     registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
@@ -1504,7 +1504,6 @@ protected:
 
     Byte *continuousChargePeakPairCount = new Byte[massBins.size()];
     fill_n(continuousChargePeakPairCount, massBins.size(), 0);
-
 
     Byte *prevCharges = new Byte[massBins.size()];
     fill_n(prevCharges, massBins.size(), (Byte) (chargeRange + 2));
