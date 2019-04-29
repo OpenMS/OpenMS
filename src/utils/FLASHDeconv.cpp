@@ -307,7 +307,7 @@ protected:
     registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 180.0,
                           "RT window for feature extraction", false, true);
-    registerDoubleOption_("minRTSpan", "<seconds>", 10.0,
+    registerDoubleOption_("minRTSpan", "<seconds>", 1.0,
                           "Min feature RT span for feature extraction", false, true);
     registerIntOption_("writeSpecTsv", "<1:true 0:false>", 0, "to write per spectrum deconvoluted values or not", false, true);
   }
@@ -632,7 +632,7 @@ protected:
 
     for (auto &mt : m_traces)
     {
-      //if(mt.getSize()<3) continue;
+      if(mt.getSize()<3) continue;
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
       boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
@@ -709,7 +709,6 @@ protected:
                                          PrecalcularedAveragine &averagines, int &specCntr, int &qspecCntr,
                                          int &massCntr)
   {
-
     double *filter = new double[param.chargeRange];
     long **hBinOffsets = new long *[param.chargeRange];
     int *random = new int[param.chargeRange];
@@ -717,7 +716,7 @@ protected:
 
     for (int i = 0; i < param.chargeRange; i++)
     {
-      random[i] = rand() % 300 - 150;
+      random[i] = rand() % 400 - 200;
       //auto r = ((float) rand()) / (float) RAND_MAX - .5;
       filter[i] = log(1.0 / (i + param.minCharge)); //.124 * (1 + i%2) + should be descending, and negative!  - 0.2 * (1+(i%3)/2.0))
 
@@ -1967,7 +1966,6 @@ protected:
 
     int prevCharge = nonZeroStart;
     int n_r = 0;
-    int n_h = 0;
 
     double spanThreshold = maxSpan / 5.0;//
 
@@ -2023,11 +2021,11 @@ protected:
           }
           prevCharge = k;
         }
-        n_h = max(n_h, t);
+        if(n_r <= t) return false;
       }
     }
 
-    return n_r > n_h;
+    return true;
   }
 
   static bool checkChargeDistribution(double *perChargeIntensity,
@@ -2053,9 +2051,8 @@ protected:
     int prevCharge = nonZeroStart;
 
     int n_r = .0;
-    int n_h = 0;
 
-    double intensityThreshold = maxPerChargeIntensity / 5.0;//intensities[intensities.size()*95/100] / 5.0;
+    double intensityThreshold = maxPerChargeIntensity / 10.0;//intensities[intensities.size()*95/100] / 5.0;
     for (int k = prevCharge + 1; k <= nonZeroEnd; k++)
     {
       if (perChargeIntensity[k] <= intensityThreshold)
@@ -2093,11 +2090,11 @@ protected:
           }
           prevCharge = k;
         }
-        n_h = max(n_h, t);
+        if(n_r <= t) return false;
       }
     }
 
-    return n_r > n_h;
+    return true;
   }
 
   static double
