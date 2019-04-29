@@ -34,6 +34,14 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #   Spectra can be accessed by direct iteration or by getSpectrum(),
         #   while chromatograms are accessed through getChromatogram().
         #   See help(ExperimentalSettings) for information about meta-data.
+        #   -----
+        #   Usage:
+        #     exp = MSExperiment()
+        #     MzMLFile().load(path_to_file, exp)
+        #     for spectrum in exp:
+        #       print(spectrum.size()) # prints number of peaks
+        #       mz, intensities = spectrum.get_peaks()
+        #   -----
 
         MSExperiment() nogil except +
         MSExperiment(MSExperiment &)  nogil except +

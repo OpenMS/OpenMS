@@ -6,6 +6,20 @@ from MetaInfoRegistry cimport *
 cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
 
     cdef cppclass MetaInfoInterface:
+        # wrap-doc:
+        #   Interface for classes that can store arbitrary meta information
+        #   (Type-Name-Value tuples).
+        #   -----
+        #   MetaInfoInterface is a base class for all classes that use one MetaInfo
+        #   object as member.  If you want to add meta information to a class, let it
+        #   publicly inherit the MetaInfoInterface.  Meta information is an array of
+        #   Type-Name-Value tuples.
+        #   -----
+        #   Usage:
+        #     k = []
+        #     exp.getKeys(k) # explore available key-value pairs
+        #     exp.getMetaValue("someMetaName")
+        #   -----
 
         MetaInfoInterface() nogil except +
         MetaInfoInterface(MetaInfoInterface) nogil except +
