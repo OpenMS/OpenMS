@@ -294,6 +294,9 @@ private:
   {
     for (const PeptideIdentification& ref_pep_id : pep_ids)
     {
+      // for empty PIs which were created by a metric
+      if (ref_pep_id.getHits().empty()) continue;
+
       if (!ref_pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
       {
         throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at unassigned peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
