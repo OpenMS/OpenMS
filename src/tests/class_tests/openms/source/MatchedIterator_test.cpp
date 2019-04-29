@@ -44,11 +44,12 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef typename MatchedIterator<vector<double>, ValueTrait> MIV;
+using MIV = MatchedIterator<vector<double>, ValueTrait, true>;
 
-ostream& operator<<(ostream& os, const MIV& m)
+std::ostream& operator<<(std::ostream& os, const MIV& m)
 {
-  return os << (*m) << "\n";
+  os << (*m) << "\n";
+  return os;
 }
 
 START_TEST(MatchedIterator, "$Id$")
@@ -81,13 +82,11 @@ START_SECTION((explicit MatchedIterator(const CONT& ref, const CONT& target, flo
   { // empty reference container
     MIV mi(empty, target, 0.001);
     TEST_EQUAL(mi == mi.end(), true);
-    TEST_EXCEPTION(Exception::InvalidIterator, ++mi);
   }
 
   { // empty target container
     MIV mi(ref, empty, 0.001);
     TEST_EQUAL(mi == mi.end(), true);
-    TEST_EXCEPTION(Exception::InvalidIterator, ++mi);
   }
 
   { // actual data
@@ -99,7 +98,6 @@ START_SECTION((explicit MatchedIterator(const CONT& ref, const CONT& target, flo
     TEST_EQUAL(mi.tgtIdx(), 3)
     ++mi; // advance to end
     TEST_EQUAL(mi == mi.end(), true);
-    TEST_EXCEPTION(Exception::InvalidIterator, ++mi);
   }
 
   { // actual data
@@ -135,7 +133,6 @@ START_SECTION((explicit MatchedIterator(const CONT& ref, const CONT& target, flo
 
     ++mi;
     TEST_EQUAL(mi == mi.end(), true);
-    TEST_EXCEPTION(Exception::InvalidIterator, ++mi);
     TEST_EQUAL(mi.refIdx(), 9) // points to ref.end()
     TEST_EQUAL(mi.tgtIdx(), 4) // points to last element of target
 
