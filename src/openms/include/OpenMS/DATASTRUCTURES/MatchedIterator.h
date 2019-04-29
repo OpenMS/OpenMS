@@ -46,13 +46,16 @@ namespace OpenMS
   /**
     @brief For each element in the reference container the closest peak in the target will be searched. If no match is found within the tolerance window, the peak will be skipped over.
 
+    This class can be used for example to iterate through the matching peaks in two spectra (e.g. experimental spectrum and reference spectrum) that are 
+    within a given tolerance (in m/z, RT, or something user-defined).
 
     The iterator always choses the closest matching peak in the target container, if more than one candidate is found in the
     match-window. If two peaks have equal distance, the smaller value is preferred.
     If no peak is found within the given tolerance (distance), the reference peak does not yield a result and the next reference peak is tested.
     This means the operator++ can be called at most(!) ref.size()-1 times before it == is.end().
     
-    The TRAIT template argument (e.g., ValueTrait, DaTrait or PpmTrait) encodes the distance metric (on the value directly, or a member of the value_type, e.g. ppm or Da for m/z, or RT or any other metric you like).
+    The TRAIT template argument (e.g., ValueTrait, DaTrait or PpmTrait) encodes the distance metric (on the value directly, or a member of the value_type, 
+    e.g. ppm or Da for m/z, or RT or any other metric you like).
     The simplest use case would be a vector<float> or similar.
     The TRAIT struct just defines two functions which return some distance metrics and accept elements of the container CONT as arguments.
     Both containers must be sorted with respect to the comparator used in TRAIT.
@@ -199,7 +202,7 @@ namespace OpenMS
       MatchedIterator& operator++()
       {
         // are we at end already? --> wrong usage
-        if (isEnd_()) throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        OPENMS_PRECONDITION(!isEnd_(), "Tried to advance beyond end iterator!");
         ++it_ref_;
         advanceTarget_();
         return *this;
@@ -275,7 +278,7 @@ namespace OpenMS
       float tol_;
   };
   
-  /// Trait for MatchedIterator to find pairs with a certain Th/Da distance in m/z
+  /// Trait for MatchedIterator to find pairs with a certain distance, which is computed directly on the value_type of the container
   struct ValueTrait
   {
     template <typename T>
@@ -291,7 +294,8 @@ namespace OpenMS
     }
   };
 
-  /// Trait for MatchedIterator to find pairs with a certain ppm distance in m/z
+  /// Trait for MatchedIterator to find pairs with a certain ppm distance in m/z.
+  /// Requires container elements to support .getMZ() as member function
   struct PpmTrait
   {
     template <typename T>
@@ -307,7 +311,8 @@ namespace OpenMS
     }
   };
 
-  /// Trait for MatchedIterator to find pairs with a certain Th/Da distance in m/z
+  /// Trait for MatchedIterator to find pairs with a certain Th/Da distance in m/z.
+  /// Requires container elements to support .getMZ() as member function
   struct DaTrait
   {
     template <typename T>
