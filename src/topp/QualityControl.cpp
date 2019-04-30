@@ -192,7 +192,7 @@ protected:
       }
       else
       {
-        std::cout << "Contaminants-Metric is not performed. If you want it to run, add the featureMap after FDR was computed (-in_postFDR <file.featureXML>) and a contaminants database (in_contaminants <file.fasta>" << std::endl;
+        std::cout << "Contaminants-Metric is not performed. If you want it to run, add the featureXML after FDR was computed (-in_postFDR <file.featureXML>) and a contaminants database (in_contaminants <file.fasta>)" << std::endl;
       }
 
       if (status.isSuperSetOf(qc_frag_mass_err.requires()))
@@ -201,7 +201,7 @@ protected:
       }
       else
       {
-        std::cout << "FragmentMassError-Metric is not performed. If you want it to run, add the featureMap after FDR was computed (-in_postFDR <file.featureXML>) and at least one RAWmzML (-in_raw <file.mzML>" << std::endl;
+        std::cout << "FragmentMassError-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>) and the featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
       }
 
       if (status.isSuperSetOf(qc_missed_cleavages.requires()))
@@ -210,7 +210,7 @@ protected:
       }
       else
       {
-        std::cout << "FragmentMassError-Metric is not performed. If you want it to run, add the featureMap after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
+        std::cout << "MissedCleavages-Metric is not performed. If you want it to run, add at least one featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
       }
 
       if (status.isSuperSetOf(qc_ms2ir.requires()))
@@ -219,7 +219,7 @@ protected:
       }
       else
       {
-        std::cout << "" << std::endl;
+        std::cout << "MS2IdentificationRate-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>) and the featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
       }
 
       if (status.isSuperSetOf(qc_rt_alignment.requires()))
@@ -228,7 +228,7 @@ protected:
       }
       else
       {
-        std::cout << "" << std::endl;
+        std::cout << "RTAlignment-Metric is not performed. If you want it to run, add at least one featureXML after FDR was computed (-in_postFDR <file.featureXML>) and the trafoXML (-in_trafo <trafoXML>)" << std::endl;
       }
 
       if (status.isSuperSetOf(qc_tic.requires()))
@@ -237,7 +237,7 @@ protected:
       }
       else
       {
-        std::cout << "" << std::endl;
+        std::cout << "TotalIonCount-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>)" << std::endl;
       }
 
       if (status.isSuperSetOf(qc_top_n_over_rt.requires()))
@@ -246,7 +246,7 @@ protected:
       }
       else
       {
-        std::cout << "" << std::endl;
+        std::cout << "TopNoverRT-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>) and the featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
       }
 
       StringList out_feat = getStringList_("out_feat");
