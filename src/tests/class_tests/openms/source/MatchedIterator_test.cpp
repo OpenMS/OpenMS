@@ -102,6 +102,7 @@ START_SECTION((explicit MatchedIterator(const CONT& ref, const CONT& target, flo
   }
 
   { // actual data
+    MIV mi_src;
     MIV mi(ref, target, 0.5);
     TEST_EQUAL(mi.ref(), 0);
     TEST_EQUAL(*mi, -0.01);
@@ -114,17 +115,18 @@ START_SECTION((explicit MatchedIterator(const CONT& ref, const CONT& target, flo
     TEST_EQUAL(mi.refIdx(), 2)
     TEST_EQUAL(mi.tgtIdx(), 1)
 
-    mi++; // throw in some post-increment
+    mi_src = mi++; // throw in some post-increment
     TEST_EQUAL(mi.ref(), 3);
     TEST_EQUAL(*mi, 2.5);
     TEST_EQUAL(mi.refIdx(), 3)
     TEST_EQUAL(mi.tgtIdx(), 1)
 
-    mi++;
+    mi_src = mi++; // throw in some post-increment
     TEST_EQUAL(mi.ref(), 4);
     TEST_EQUAL(*mi, 3.5);
     TEST_EQUAL(mi.refIdx(), 4)
     TEST_EQUAL(mi.tgtIdx(), 2)
+    *mi_src; // just to use it once;
 
     ++mi;    
     TEST_EQUAL(mi.ref(), 7);

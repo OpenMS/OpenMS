@@ -228,7 +228,7 @@ namespace OpenMS
 
       /// protected Ctor which creates and end() iterator
       /// the bool argument is only used to call the correct target (its value is ignored)
-      MatchedIterator(bool isEnd)
+      MatchedIterator(bool /*is_end*/)
         : ref_begin_(), ref_end_(), tgt_begin_(), tgt_end_(), it_ref_(), it_tgt_(), tol_(), is_end_(true)
       {
       }
