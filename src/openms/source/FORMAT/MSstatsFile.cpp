@@ -575,7 +575,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
 
               const Intensity intensity(consensus_feature_intensites[i][j]);
               const Coordinate retention_time(consensus_feature_retention_times[i][j]);
-              const unsigned channel(consensus_feature_labels[i][j]);
+              const unsigned channel(consensus_feature_labels[i][j] + 1);
 
               const String & accession = pep_ev.getProteinAccession();
               peptideseq_to_accessions[sequence].insert(accession);
