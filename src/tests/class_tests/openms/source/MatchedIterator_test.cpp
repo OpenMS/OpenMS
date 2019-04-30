@@ -37,6 +37,7 @@
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 ///////////////////////////
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <vector>
 #include <ostream>
@@ -137,22 +138,42 @@ START_SECTION((explicit MatchedIterator(const CONT& ref, const CONT& target, flo
     TEST_EQUAL(mi.tgtIdx(), 4) // points to last element of target
 
   }
- 
+  // test ppm
+  MSSpectrum s, s2;
+  s.emplace_back(90.0, 0.0);
+  s.emplace_back(100.0, 0.0);
+  s.emplace_back(200.0, 0.0);
+  s.emplace_back(300.0, 0.0);
+  s.emplace_back(400.0, 0.0);
+  s2 = s;
+  // add a constant to all peaks
+  for (auto& p : s2) p.setMZ(p.getMZ() + Math::ppmToMass(2.5, 250.0));
+  MatchedIterator<MSSpectrum, PpmTrait, true> it(s, s2, 2.5);
+  // the first 3 peaks (90, 100, 200) should not match (since 2.5ppm is smaller than the offset we added)
+  TEST_EQUAL(it.refIdx(), 3) // match 300.x
+  TEST_EQUAL(it.tgtIdx(), 3)
+  ++it;
+  TEST_EQUAL(it.refIdx(), 4) // match 400.x
+  TEST_EQUAL(it.tgtIdx(), 4)
+  ++it;
+  TEST_EQUAL(it.refIdx(), 5) // end
+  TEST_EQUAL(it == it.end(), true)
+  TEST_EQUAL(it.tgtIdx(), 4) // target is always valid
+
 }
 END_SECTION
 
 START_SECTION(explicit MatchedIterator())
 {
   MIV it;
+  TEST_EQUAL(it != it.end(), true)
+  it = MIV(empty, empty, 1.0); // assigment is the only valid thing...
   TEST_EQUAL(it == it.end(), true)
 }
 END_SECTION
 
 START_SECTION(bool operator==(const MatchedIterator& rhs) const)
 {
-  MIV it;
-  TEST_EQUAL(it == it.end(), true)
-  
   MIV mi(ref, target, 0.5);
   TEST_EQUAL(mi.ref(), 0);
   TEST_EQUAL(*mi, -0.01);
@@ -160,8 +181,7 @@ START_SECTION(bool operator==(const MatchedIterator& rhs) const)
   ++mi;
   MIV mi2(mi);
   TEST_EQUAL(mi == mi2, true)
-  TEST_EQUAL(mi == it, false)
-
+  
   TEST_EQUAL(mi.ref(), mi2.ref());
   TEST_EQUAL(*mi, *mi2);
   TEST_EQUAL(mi.refIdx(), mi2.refIdx())
@@ -247,7 +267,7 @@ START_SECTION(MatchedIterator operator++(int) const)
 }
 END_SECTION
 
-START_SECTION(static const MatchedIterator& end())
+START_SECTION(static MatchedIterator end())
 {
   NOT_TESTABLE // tested above
 }

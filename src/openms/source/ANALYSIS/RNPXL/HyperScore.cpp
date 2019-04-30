@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 
 using std::vector;
@@ -79,7 +78,7 @@ namespace OpenMS
     double dot_product = 0.0;
     if (fragment_mass_tolerance_unit_ppm) 
     {
-      MatchedIterator<PeakSpectrum, PpmTrait> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
+      MatchedIterator<PeakSpectrum, PpmTrait, true> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
       for (; it != it.end(); ++it)
       {
         dot_product += (*it).getIntensity() * it.ref().getIntensity(); /* * mass_error */;
@@ -97,7 +96,7 @@ namespace OpenMS
     }
     else
     {
-      MatchedIterator<PeakSpectrum, DaTrait> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
+      MatchedIterator<PeakSpectrum, DaTrait, true> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
       for (; it != it.end(); ++it)
       {
         dot_product += (*it).getIntensity() * it.ref().getIntensity(); /* * mass_error */;
