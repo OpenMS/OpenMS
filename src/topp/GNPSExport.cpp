@@ -209,7 +209,7 @@ protected:
           if (map_index != -1 && spectrum_index != -1)
           {
             // TEMP: log debug map index and spectrum index values once they are found
-            LOG_DEBUG << "map index\t" << map_index << "\tspectrum index\t" << spectrum_index << endl;
+            OPENMS_LOG_DEBUG << "map index\t" << map_index << "\tspectrum index\t" << spectrum_index << endl;
 
             // retrieve spectrum for current peptide annotation
             auto ms2_scan = ms_maps[map_index][spectrum_index];
@@ -316,7 +316,7 @@ protected:
 
             BinnedSpectralContrastAngle bsca;
             double cosine_sim = bsca(binned_highest_int, binned_spectrum);
-            // LOG_DEBUG << cosine_sim << " >= " << cos_sim << endl;
+            // OPENMS_LOG_DEBUG << cosine_sim << " >= " << cos_sim << endl;
 
             // compare calculated cosine sim to binned highest int
             if (cosine_sim >= cos_sim)

@@ -169,7 +169,7 @@ protected:
 
         if (protein_fdr < 1)
         {
-          LOG_INFO << "FDR control: Filtering proteins..." << endl;
+          OPENMS_LOG_INFO << "FDR control: Filtering proteins..." << endl;
           IDFilter::filterHitsByScore(prot_ids, protein_fdr);
         }
       }
@@ -181,14 +181,14 @@ protected:
 
         if (psm_fdr < 1)
         {
-          LOG_INFO << "FDR control: Filtering PSMs..." << endl;
+          OPENMS_LOG_INFO << "FDR control: Filtering PSMs..." << endl;
           IDFilter::filterHitsByScore(pep_ids, psm_fdr);
         }
       }
     }
     catch (Exception::MissingInformation)
     {
-      LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information (see above).\n";
+      OPENMS_LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information (see above).\n";
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -218,7 +218,7 @@ protected:
                                                  prot_it->getHits());
       if (!valid)
       {
-        LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
+        OPENMS_LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
                  << "The new grouping (especially the group probabilities) may not be completely valid any more." 
                  << endl;
       }
@@ -228,14 +228,14 @@ protected:
 
       if (!valid)
       {
-        LOG_WARN << "Warning: While updating indistinguishable prot_ids, some prot_ids were removed from groups that are still present. "
+        OPENMS_LOG_WARN << "Warning: While updating indistinguishable prot_ids, some prot_ids were removed from groups that are still present. "
                  << "The new grouping (especially the group probabilities) may not be completely valid any more." 
                  << endl;
       }
     }
 
     // some stats
-    LOG_INFO << "Before filtering:\n"
+    OPENMS_LOG_INFO << "Before filtering:\n"
              << n_prot_ids << " protein identification(s) with "
              << n_prot_hits << " protein hit(s),\n"
              << n_pep_ids << " peptide identification(s) with "
@@ -246,7 +246,7 @@ protected:
              << pep_ids.size() << " peptide identification(s) with "
              << IDFilter::countHits(pep_ids) << " pep_ids hit(s)." << endl;
 
-    LOG_INFO << "Writing filtered output..." << endl;
+    OPENMS_LOG_INFO << "Writing filtered output..." << endl;
     IdXMLFile().store(out, prot_ids, pep_ids);
     return EXECUTION_OK;
   }

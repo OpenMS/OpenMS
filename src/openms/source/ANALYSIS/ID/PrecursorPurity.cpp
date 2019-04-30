@@ -172,7 +172,7 @@ namespace OpenMS
     // if there is no MS1 before the first MS2, the spectra datastructure is not suitable for this function
     if (spectra[0].getMSLevel() == 2)
     {
-      LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Will be skipped!\n";
+      OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Will be skipped!\n";
       return purityscores;
     }
 

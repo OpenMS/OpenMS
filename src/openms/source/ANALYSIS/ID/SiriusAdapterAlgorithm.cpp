@@ -158,7 +158,7 @@ namespace OpenMS
       QFileInfo file_info(exe);
       exe = file_info.canonicalFilePath();
   
-      LOG_WARN << "Executable is: " + String(exe) << std::endl;
+      OPENMS_LOG_WARN << "Executable is: " + String(exe) << std::endl;
       const String path_to_executable = File::path(exe);
       executable_workdir = std::make_pair(exe.toStdString(), path_to_executable);
       
@@ -202,7 +202,7 @@ namespace OpenMS
           if (num_masstrace_filter != 1 && !feature_only)
           {
             num_masstrace_filter = 1;
-            LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
+            OPENMS_LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
           }
 
           // filter feature by number of masstraces
@@ -243,12 +243,12 @@ namespace OpenMS
       // number of features to be processed 
       if (feature_only && !featureinfo.empty())
       {
-        LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
       }
       else if (!featureinfo.empty())
       {
-        LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-        LOG_WARN << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
       } 
       else
       {
@@ -260,7 +260,7 @@ namespace OpenMS
             count_ms2++;
           }
         }
-        LOG_WARN << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
+        OPENMS_LOG_WARN << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
       }
     } 
 
@@ -323,19 +323,19 @@ namespace OpenMS
       {
           ss << " " << it->toStdString();
       }
-      LOG_DEBUG << ss.str() << std::endl;
-      LOG_WARN << "Executing: " + String(exe) << std::endl;
-      LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
+      OPENMS_LOG_DEBUG << ss.str() << std::endl;
+      OPENMS_LOG_WARN << "Executing: " + String(exe) << std::endl;
+      OPENMS_LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
       const bool success = qp.waitForFinished(-1); // wait till job is finished
   
       if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
       {
-        LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
+        OPENMS_LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
         const QString sirius_stdout(qp.readAllStandardOutput());
         const QString sirius_stderr(qp.readAllStandardError());
-        LOG_WARN << String(sirius_stdout) << std::endl;
-        LOG_WARN << String(sirius_stderr) << std::endl;
-        LOG_WARN << String(qp.exitCode()) << std::endl;
+        OPENMS_LOG_WARN << String(sirius_stdout) << std::endl;
+        OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
+        OPENMS_LOG_WARN << String(qp.exitCode()) << std::endl;
         qp.close();
 
         throw Exception::InvalidValue(__FILE__,

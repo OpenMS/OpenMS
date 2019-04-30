@@ -226,7 +226,7 @@ protected:
     TargetedExperiment targeted_decoy;
 
     // Load data
-    LOG_INFO << "Loading targets from file: " << in << std::endl;
+    OPENMS_LOG_INFO << "Loading targets from file: " << in << std::endl;
     if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
     {
       const char* tr_file = in.c_str();
@@ -256,7 +256,7 @@ protected:
     MRMDecoy decoys = MRMDecoy();
     decoys.setLogType(ProgressLogger::CMD);
 
-    LOG_INFO << "Generate decoys" << std::endl;
+    OPENMS_LOG_INFO << "Generate decoys" << std::endl;
     decoys.generateDecoys(targeted_exp, targeted_decoy, method,
                           aim_decoy_fraction, switchKR, decoy_tag, max_attempts,
                           identity_threshold, precursor_mz_shift,
@@ -266,10 +266,10 @@ protected:
                           enable_detection_unspecific_losses);
 
     // Check if we have enough peptides left
-    LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
-    LOG_INFO << "Number of decoy peptides: " << targeted_decoy.getPeptides().size() << std::endl;
-    LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
-    LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of decoy peptides: " << targeted_decoy.getPeptides().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
 
     if ((float)targeted_decoy.getPeptides().size() / (float)targeted_exp.getPeptides().size() < min_decoy_fraction || (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
     {
@@ -279,12 +279,12 @@ protected:
     TargetedExperiment targeted_merged;
     if (separate)
     {
-      LOG_INFO << "Writing only decoys to file: " << out << std::endl;
+      OPENMS_LOG_INFO << "Writing only decoys to file: " << out << std::endl;
       targeted_merged = targeted_decoy;
     }
     else
     {
-      LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
+      OPENMS_LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
       targeted_merged = targeted_exp + targeted_decoy;
     }
 

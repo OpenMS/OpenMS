@@ -197,7 +197,7 @@ using namespace OpenMS;
       fragment_mass_tolerance_xlinks_ = fragment_mass_tolerance_;
     }
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "XLinks Tolerance: " << fragment_mass_tolerance_xlinks_ << endl;
+    OPENMS_LOG_DEBUG << "XLinks Tolerance: " << fragment_mass_tolerance_xlinks_ << endl;
 #endif
 
     std::sort(cross_link_mass_mono_link_.begin(), cross_link_mass_mono_link_.end(), std::greater< double >());
@@ -212,7 +212,7 @@ using namespace OpenMS;
     if (fixed_unique.size() != fixedModNames_.size())
     {
 #ifdef DEBUG_OPENPEPXLALGO
-      LOG_DEBUG << "duplicate fixed modification provided." << endl;
+      OPENMS_LOG_DEBUG << "duplicate fixed modification provided." << endl;
 #endif
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
@@ -221,7 +221,7 @@ using namespace OpenMS;
     if (var_unique.size() != varModNames_.size())
     {
 #ifdef DEBUG_OPENPEPXLALGO
-      LOG_DEBUG << "duplicate variable modification provided." << endl;
+      OPENMS_LOG_DEBUG << "duplicate variable modification provided." << endl;
 #endif
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
@@ -384,7 +384,7 @@ using namespace OpenMS;
     specGen_mainscore.setParameters(specGenParams_mainscore);
 
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
+    OPENMS_LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
 #endif
 
     search_params = protein_ids[0].getSearchParameters();
@@ -392,7 +392,7 @@ using namespace OpenMS;
     protein_ids[0].setSearchParameters(search_params);
 
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "Number of paired precursor masses: " << spectrum_precursors.size() << endl;
+    OPENMS_LOG_DEBUG << "Number of paired precursor masses: " << spectrum_precursors.size() << endl;
 #endif
 
     sort(peptide_masses.begin(), peptide_masses.end(), OPXLDataStructs::AASeqWithMassComparator());
@@ -416,7 +416,7 @@ using namespace OpenMS;
     double max_peptide_mass = max_precursor_mass - cross_link_mass_light_ + max_peptide_allowed_error;
 
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "Filtering peptides with precursors" << endl;
+    OPENMS_LOG_DEBUG << "Filtering peptides with precursors" << endl;
 #endif
 
     // search for the first mass greater than the maximum, use everything before that peptide
@@ -439,7 +439,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "New scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
+      OPENMS_LOG_DEBUG << "New scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
 #endif
       const PeakSpectrum& spectrum_light = spectra[scan_index];
       const double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
@@ -621,7 +621,7 @@ using namespace OpenMS;
         double candidate_mz = (alpha.getMonoWeight() + beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "Pair: " << alpha.toString() << "-" << beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
+          OPENMS_LOG_DEBUG << "Pair: " << alpha.toString() << "-" << beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
               << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
         }
 #endif
@@ -721,9 +721,9 @@ using namespace OpenMS;
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "matched peaks: " << matched_alpha_count + matched_beta_count << endl;
-          LOG_DEBUG << "theoretical peaks: " << theor_alpha_count + theor_beta_count << endl;
-          LOG_DEBUG << "exp peaks: " << all_peaks.size() << endl;
+          OPENMS_LOG_DEBUG << "matched peaks: " << matched_alpha_count + matched_beta_count << endl;
+          OPENMS_LOG_DEBUG << "theoretical peaks: " << theor_alpha_count + theor_beta_count << endl;
+          OPENMS_LOG_DEBUG << "exp peaks: " << all_peaks.size() << endl;
         }
 #endif
 
@@ -1032,7 +1032,7 @@ using namespace OpenMS;
           // write fragment annotations
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "Start writing annotations" << endl;
+          OPENMS_LOG_DEBUG << "Start writing annotations" << endl;
 #endif
 
           vector<PeptideHit::PeakAnnotation> frag_annotations;
@@ -1044,7 +1044,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "End writing fragment annotations, size: " << frag_annotations.size() << endl;
+          OPENMS_LOG_DEBUG << "End writing fragment annotations, size: " << frag_annotations.size() << endl;
 #endif
 
           // make annotations unique
@@ -1091,14 +1091,14 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Next Spectrum #############################################" << endl;
+      OPENMS_LOG_DEBUG << "Next Spectrum #############################################" << endl;
 #endif
     } // end of matching / scoring, end of parallel for-loop
 
     progresslogger.endProgress();
 
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "# Peptide IDs: " << peptide_ids.size() << " | # all_top_csms: " << all_top_csms.size() << endl;
+    OPENMS_LOG_DEBUG << "# Peptide IDs: " << peptide_ids.size() << " | # all_top_csms: " << all_top_csms.size() << endl;
 #endif
 
     peptide_ids = OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits_);
@@ -1145,7 +1145,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << " heavy_light comparison, matching peaks without shift: " << matched_fragments_without_shift.size() << endl;
+      OPENMS_LOG_DEBUG << " heavy_light comparison, matching peaks without shift: " << matched_fragments_without_shift.size() << endl;
 #endif
 
       // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
@@ -1215,7 +1215,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Spectrum heavy to light: " << spectrum_heavy_to_light.size() << endl;
+        OPENMS_LOG_DEBUG << "Spectrum heavy to light: " << spectrum_heavy_to_light.size() << endl;
 #endif
 
         // align peaks from light spectrum with shifted peaks from heavy spectrum
@@ -1230,7 +1230,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "matched with shift: " << matched_fragments_with_shift.size() << endl;
+          OPENMS_LOG_DEBUG << "matched with shift: " << matched_fragments_with_shift.size() << endl;
 #endif
 
           // fill xlink_peaks spectrum with matched peaks from the light spectrum and add the currently considered charge
@@ -1254,7 +1254,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "done shifting peaks, total xlink peaks: " << xlink_peaks.size() << endl;
+      OPENMS_LOG_DEBUG << "done shifting peaks, total xlink peaks: " << xlink_peaks.size() << endl;
 #endif
 
       // generate linear peaks spectrum, include charges determined through deisotoping in preprocessing
@@ -1285,12 +1285,12 @@ using namespace OpenMS;
       }
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "done creating linear ion spectrum, total linear peaks: " << linear_peaks.size() << endl;
+      OPENMS_LOG_DEBUG << "done creating linear ion spectrum, total linear peaks: " << linear_peaks.size() << endl;
 #endif
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Peaks to match: " << linear_peaks.size() << endl;
+      OPENMS_LOG_DEBUG << "Peaks to match: " << linear_peaks.size() << endl;
 #endif
 
       // TODO make this a tool parameter ? Leave it out completely? Comparing Light/Heavy spectra should already be good enough filtering
@@ -1312,7 +1312,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "paired up, linear peaks: " << linear_peaks.size() << " | xlink peaks: " << xlink_peaks.size() << " | all peaks: " << all_peaks.size() << endl;
+      OPENMS_LOG_DEBUG << "paired up, linear peaks: " << linear_peaks.size() << " | xlink peaks: " << xlink_peaks.size() << " | all peaks: " << all_peaks.size() << endl;
 #endif
 
   #ifdef _OPENMP
@@ -1327,8 +1327,8 @@ using namespace OpenMS;
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "spectrum_linear_peaks: " << preprocessed_pair_spectra.spectra_linear_peaks[pair_index].size() << endl;
-          LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
+          OPENMS_LOG_DEBUG << "spectrum_linear_peaks: " << preprocessed_pair_spectra.spectra_linear_peaks[pair_index].size() << endl;
+          OPENMS_LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
         }
 #endif
 

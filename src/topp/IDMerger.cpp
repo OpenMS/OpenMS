@@ -270,7 +270,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    LOG_DEBUG << "protein IDs: " << proteins.size() << endl
+    OPENMS_LOG_DEBUG << "protein IDs: " << proteins.size() << endl
               << "peptide IDs: " << peptides.size() << endl;
     IdXMLFile().store(out, proteins, peptides);
 
@@ -375,10 +375,10 @@ protected:
             if (pep_it->getHits().empty()) continue;
             pep_it->sort();
             const PeptideHit& hit = pep_it->getHits()[0];
-            LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
+            OPENMS_LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
             // skip ahead if peptide is not new:
             if (sequences.find(hit.getSequence()) != sequences.end()) continue;
-            LOG_DEBUG << "new peptide!" << endl;
+            OPENMS_LOG_DEBUG << "new peptide!" << endl;
             pep_it->getHits().resize(1); // restrict to best hit for simplicity
             peptides.push_back(*pep_it);
 
@@ -387,13 +387,13 @@ protected:
             // copy over proteins:
             for (String const & acc : protein_accessions)
             {
-              LOG_DEBUG << "accession: " << acc << endl;
+              OPENMS_LOG_DEBUG << "accession: " << acc << endl;
               // skip ahead if accession is not new:
               if (accessions.find(acc) != accessions.end()) continue;
-              LOG_DEBUG << "new accession!" << endl;
+              OPENMS_LOG_DEBUG << "new accession!" << endl;
               // first find the right protein identification:
               const String& id = pep_it->getIdentifier();
-              LOG_DEBUG << "identifier: " << id << endl;
+              OPENMS_LOG_DEBUG << "identifier: " << id << endl;
               if (proteins_by_id.find(id) == proteins_by_id.end())
               {
                 writeLog_("Error: identifier '" + id + "' linking peptides and proteins not found. Skipping.");
@@ -411,7 +411,7 @@ protected:
               // we may need to copy protein ID meta data, if we haven't yet:
               if (selected_proteins.find(id) == selected_proteins.end())
               {
-                LOG_DEBUG << "adding protein identification" << endl;
+                OPENMS_LOG_DEBUG << "adding protein identification" << endl;
                 selected_proteins[id] = protein;
                 selected_proteins[id].getHits().clear();
                 // remove potentially invalid information:

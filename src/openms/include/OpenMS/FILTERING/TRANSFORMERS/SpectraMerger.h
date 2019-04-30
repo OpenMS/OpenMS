@@ -236,7 +236,7 @@ public:
           }
           if (pcs.size() > 1)
           {
-            LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
+            OPENMS_LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
           }
           bf.setMZ(pcs[0].getMZ());
           data.push_back(bf);
@@ -608,7 +608,7 @@ protected:
           consensus_spec.sortByPosition(); // sort, otherwise next alignment will fail
           if (spec_a + spec_b - align_size != consensus_spec.size())
           {
-            LOG_WARN << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
+            OPENMS_LOG_WARN << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
           }
         }
         rt_average /= it->second.size() + 1;
@@ -621,7 +621,7 @@ protected:
             precursor_mz_average /= precursor_count;
           }
           std::vector<Precursor> pcs = consensus_spec.getPrecursors();
-          //if (pcs.size()>1) LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
+          //if (pcs.size()>1) OPENMS_LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
           pcs.resize(1);
           pcs[0].setMZ(precursor_mz_average);
           consensus_spec.setPrecursors(pcs);
@@ -637,16 +637,16 @@ protected:
         }
       }
 
-      LOG_INFO << "Cluster sizes:\n";
+      OPENMS_LOG_INFO << "Cluster sizes:\n";
       for (Map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
       {
-        LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
+        OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
       }
 
       char buffer[200];
       sprintf(buffer, "%d/%d (%.2f %%) of blocked spectra", (int)count_peaks_aligned,
               (int)count_peaks_overall, float(count_peaks_aligned) / float(count_peaks_overall) * 100.);
-      LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
+      OPENMS_LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
 
       // remove all spectra that were within a cluster
       typename MapType::SpectrumType empty_spec;

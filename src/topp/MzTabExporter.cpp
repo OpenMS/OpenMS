@@ -163,7 +163,7 @@ protected:
         }
         catch (Exception::MissingInformation& e)
         {
-          LOG_WARN << "Non-critical exception: " << e.what() << "\n";
+          OPENMS_LOG_WARN << "Non-critical exception: " << e.what() << "\n";
         }
         feature_map.setProteinIdentifications(prot_ids);
 

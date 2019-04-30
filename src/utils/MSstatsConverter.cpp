@@ -210,7 +210,7 @@ private:
     {
       if (error_condition)
       {
-        LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
+        OPENMS_LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
         throw exit_code;
       }
     }

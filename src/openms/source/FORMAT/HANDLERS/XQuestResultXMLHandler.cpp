@@ -90,7 +90,7 @@ namespace OpenMS
       this->enzymes_db_ = ProteaseDB::getInstance();
 
       // TODO Produce some warnings that are associated with the reading of xQuest result files
-      // LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n" << std::endl;
+      // OPENMS_LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n" << std::endl;
     }
 
     // writer
@@ -820,7 +820,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_ERROR << "ERROR: Unsupported Cross-Link type: " << xlink_type_string << endl;
+          OPENMS_LOG_ERROR << "ERROR: Unsupported Cross-Link type: " << xlink_type_string << endl;
           throw std::exception();
         }
 

@@ -153,17 +153,17 @@ namespace OpenMS
 
     if (pos >= (int)sequence.size())
     {
-      LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      OPENMS_LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
     if (pos + length > (int)sequence.size())
     {
-      LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      OPENMS_LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
     if (length == 0 || sequence.empty())
     {
-      LOG_WARN << "Error: fragment and sequence must not be empty!" << endl;
+      OPENMS_LOG_WARN << "Error: fragment and sequence must not be empty!" << endl;
       return false;
     }
 

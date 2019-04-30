@@ -310,7 +310,7 @@ private:
             if (pols[0] == "positive" || pols[0] == "negative")
             {
               ion_mode_internal = pols[0];
-              LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
+              OPENMS_LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
             }
             else ion_mode_detect_msg = String("Meta value 'scan_polarity' does not contain unknown ion mode") + String(map[0].getMetaValue("scan_polarity"));
           }
@@ -326,7 +326,7 @@ private:
       }
       else
       { // do nothing, since map is
-        LOG_INFO << "Meta value 'scan_polarity' cannot be determined since (Consensus-)Feature map is empty!" << std::endl;
+        OPENMS_LOG_INFO << "Meta value 'scan_polarity' cannot be determined since (Consensus-)Feature map is empty!" << std::endl;
       }
 
       if (ion_mode_detect_msg.size() > 0)

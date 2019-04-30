@@ -62,7 +62,7 @@ namespace OpenMS
       meta.scan_number = extractScanNumber(meta.native_id, scan_regexp, true);
       if (meta.scan_number < 0)
       {
-        LOG_ERROR << "Error: Could not extract scan number from spectrum native ID '" + meta.native_id + "' using regular expression '" + scan_regexp.str() + "'." << endl;
+        OPENMS_LOG_ERROR << "Error: Could not extract scan number from spectrum native ID '" + meta.native_id + "' using regular expression '" + scan_regexp.str() + "'." << endl;
       }
     }
     if (!spectrum.getPrecursors().empty())
@@ -80,7 +80,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_ERROR << "Error: Could not set precursor RT for spectrum with native ID '" + meta.native_id + "' - precursor spectrum not found." << endl;
+          OPENMS_LOG_ERROR << "Error: Could not set precursor RT for spectrum with native ID '" + meta.native_id + "' - precursor spectrum not found." << endl;
         }
       }
     } 
@@ -200,7 +200,7 @@ namespace OpenMS
         }
         catch (Exception::ElementNotFound&)
         {
-          LOG_ERROR << "Error: Failed to look up retention time for peptide identification with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
+          OPENMS_LOG_ERROR << "Error: Failed to look up retention time for peptide identification with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
           success = false;
           if (stop_on_error) break;
         }
@@ -253,7 +253,7 @@ namespace OpenMS
       }
       catch (Exception::ElementNotFound&)
       {
-        LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(it->getRT()) + "'." << endl;
+        OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(it->getRT()) + "'." << endl;
         success = false;
         if (stop_on_error) break;
       }

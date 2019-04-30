@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
+#include <OpenMS/CONCEPT/LogStream.h> // OPENMS_LOG_DEBUG
 #include <OpenMS/MATH/MISC/RANSAC.h> // RANSAC algorithm
 
 #include <numeric>
@@ -152,7 +152,7 @@ namespace OpenMS
     {
       x.push_back(it->first);
       y.push_back(it->second);
-      LOG_DEBUG << "RT Normalization pairs: " << it->first << " : " << it->second << std::endl;
+      OPENMS_LOG_DEBUG << "RT Normalization pairs: " << it->first << " : " << it->second << std::endl;
     }
 
     double rsq;
@@ -177,7 +177,7 @@ namespace OpenMS
           double intercept = lin_reg.getIntercept();
           double slope = (double)lin_reg.getSlope();
           residuals.push_back(abs(it->second - (intercept + it->first * slope)));
-          LOG_DEBUG << " RT Normalization residual is " << residuals.back() << std::endl;
+          OPENMS_LOG_DEBUG << " RT Normalization residual is " << residuals.back() << std::endl;
         }
 
         int pos;
@@ -200,7 +200,7 @@ namespace OpenMS
 
         // remove if residual is an outlier according to Chauvenet's criterion
         // or if testing is turned off
-        LOG_DEBUG << " Got outlier candidate " << pos << "(" << x[pos] << " / " << y[pos] << std::endl;
+        OPENMS_LOG_DEBUG << " Got outlier candidate " << pos << "(" << x[pos] << " / " << y[pos] << std::endl;
         if (!use_chauvenet || chauvenet(residuals, pos))
         {
           x.erase(x.begin() + pos);
@@ -249,7 +249,7 @@ namespace OpenMS
     double criterion = 1.0 / (2 * residuals.size());
     double prob = MRMRTNormalizer::chauvenet_probability(residuals, pos);
 
-    LOG_DEBUG << " Chauvinet testing " << prob << " < " << criterion << std::endl;
+    OPENMS_LOG_DEBUG << " Chauvinet testing " << prob << " < " << criterion << std::endl;
     if (prob < criterion)
     {
       return true;
@@ -297,7 +297,7 @@ namespace OpenMS
     int binsFilled = 0;
     for (Size i = 0; i < binCounter.size(); i++)
     {
-      LOG_DEBUG <<" In bin " << i << " out of " << binCounter.size() << 
+      OPENMS_LOG_DEBUG <<" In bin " << i << " out of " << binCounter.size() << 
         " we have " << binCounter[i] << " peptides " << std::endl;
       if (binCounter[i] >= minPeptidesPerBin) 
       {

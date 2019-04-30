@@ -692,13 +692,13 @@ namespace OpenMS
 
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Searching mono-link for " << residue << " | " << alpha_pos << endl;
+        OPENMS_LOG_DEBUG << "Searching mono-link for " << residue << " | " << alpha_pos << endl;
 #endif
         ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, residue, ResidueModification::ANYWHERE);
 
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "number of modifications fitting the diff mass: " << mods.size() << endl;
+        OPENMS_LOG_DEBUG << "number of modifications fitting the diff mass: " << mods.size() << endl;
 #endif
 
         bool mod_set = false;
@@ -710,7 +710,7 @@ namespace OpenMS
             {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-              LOG_DEBUG << "applied modification: " << mods[s] << endl;
+              OPENMS_LOG_DEBUG << "applied modification: " << mods[s] << endl;
 #endif
               seq_alpha.setModification(alpha_pos, mods[s]);
               mod_set = true;
@@ -722,7 +722,7 @@ namespace OpenMS
         {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "No residue specific mono-link found, searching for terminal mods..." << endl;
+          OPENMS_LOG_DEBUG << "No residue specific mono-link found, searching for terminal mods..." << endl;
 #endif
           ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, "", alpha_term_spec);
           if (mods.size() > 0)
@@ -739,7 +739,7 @@ namespace OpenMS
             {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-              LOG_DEBUG << "Setting N-term mono-link: " << mods[mod_index] << endl;
+              OPENMS_LOG_DEBUG << "Setting N-term mono-link: " << mods[mod_index] << endl;
 #endif
               seq_alpha.setNTerminalModification(mods[mod_index]);
             }
@@ -747,7 +747,7 @@ namespace OpenMS
             {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-              LOG_DEBUG << "Setting C-term mono-link: " << mods[mod_index] << endl;
+              OPENMS_LOG_DEBUG << "Setting C-term mono-link: " << mods[mod_index] << endl;
 #endif
               seq_alpha.setCTerminalModification(mods[mod_index]);
             }
@@ -878,7 +878,7 @@ namespace OpenMS
 
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Annotations of size " << ph_alpha.getPeakAnnotations().size() << endl;
+      OPENMS_LOG_DEBUG << "Annotations of size " << ph_alpha.getPeakAnnotations().size() << endl;
 #endif
 
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)

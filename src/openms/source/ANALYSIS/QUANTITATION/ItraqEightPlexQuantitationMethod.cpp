@@ -140,7 +140,7 @@ namespace OpenMS
     }
     else if (ref_ch == 120)
     {
-      LOG_WARN << "Invalid channel selection." << std::endl;
+      OPENMS_LOG_WARN << "Invalid channel selection." << std::endl;
     }
     else
     {

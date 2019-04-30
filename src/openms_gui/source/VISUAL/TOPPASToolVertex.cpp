@@ -178,7 +178,7 @@ namespace OpenMS
       {
         String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
         if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
-        else LOG_ERROR << msg << std::endl;
+        else OPENMS_LOG_ERROR << msg << std::endl;
         tool_ready_ = false;
         return false;
       }
@@ -196,7 +196,7 @@ namespace OpenMS
           "\noutput:\n" + String(QString(p.readAll())) +
           "\n";
       if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
-      else LOG_ERROR << msg << std::endl;
+      else OPENMS_LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;
     }
@@ -204,7 +204,7 @@ namespace OpenMS
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
       String msg = String("Could not open '") + ini_file + "'! It does not exist!";
       if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
-      else LOG_ERROR << msg << std::endl;
+      else OPENMS_LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;
     }
@@ -540,7 +540,7 @@ namespace OpenMS
 
     if (finished_)
     {
-      LOG_ERROR << "This should not happen. Calling an already finished node '" << this->name_ << "' (#" << this->getTopoNr() << ")!" << std::endl;
+      OPENMS_LOG_ERROR << "This should not happen. Calling an already finished node '" << this->name_ << "' (#" << this->getTopoNr() << ")!" << std::endl;
       throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     TOPPASScene* ts = getScene_();
@@ -559,7 +559,7 @@ namespace OpenMS
     bool success = buildRoundPackages(pkg, error_msg);
     if (!success)
     {
-      LOG_ERROR << "Could not retrieve input files from upstream nodes...\n";
+      OPENMS_LOG_ERROR << "Could not retrieve input files from upstream nodes...\n";
       emit toolFailed(error_msg.toQString());
       return;
     }
@@ -608,7 +608,7 @@ namespace OpenMS
         int param_index = incoming_edge.getTargetInParam();
         if (param_index < 0 || param_index >= in_params.size())
         {
-          LOG_ERROR << "TOPPAS: Input parameter index out of bounds!" << std::endl;
+          OPENMS_LOG_ERROR << "TOPPAS: Input parameter index out of bounds!" << std::endl;
           return;
         }
 
@@ -723,7 +723,7 @@ namespace OpenMS
       if (round == 0)
       {
         // active if TOPPAS is run with --debug; will print to console
-        LOG_DEBUG << msg_enqueue << std::endl;
+        OPENMS_LOG_DEBUG << msg_enqueue << std::endl;
         // show sys-call in logWindow of TOPPAS (or console for non-gui)
         if ((int) param_tmp.getValue("debug") > 0)
         {
@@ -772,7 +772,7 @@ namespace OpenMS
 
         if (finished_)
         {
-          LOG_ERROR << "SOMETHING is very fishy. The vertex is already set to finished, yet there was still a thread spawning..." << std::endl;
+          OPENMS_LOG_ERROR << "SOMETHING is very fishy. The vertex is already set to finished, yet there was still a thread spawning..." << std::endl;
           throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         if (!ts->isDryRun())
@@ -858,14 +858,14 @@ namespace OpenMS
             bool success = File::remove(new_filename);
             if (!success)
             {
-              LOG_ERROR << "Could not remove '" << new_filename << "'.\n";
+              OPENMS_LOG_ERROR << "Could not remove '" << new_filename << "'.\n";
               throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_filename);
             }
           }
           bool success = file.rename(new_filename.toQString());
           if (!success)
           {
-            LOG_ERROR << "Could not rename '" << String(it->second.filenames[fi]) << "' to '" << new_filename << "'\n";
+            OPENMS_LOG_ERROR << "Could not rename '" << String(it->second.filenames[fi]) << "' to '" << new_filename << "'\n";
             throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_filename);
           }
           it->second.filenames.set(new_filename.toQString(), fi);
@@ -895,7 +895,7 @@ namespace OpenMS
     if (pkg.empty())
     {
       error_msg = "Less than one round received from upstream tools. Something is fishy!\n";
-      LOG_ERROR << error_msg;
+      OPENMS_LOG_ERROR << error_msg;
       return false;
     }
 
@@ -942,7 +942,7 @@ namespace OpenMS
     if (max_size_index == -1)
     {
       error_msg = "Did not find upstream nodes with un-recycled names. Something is fishy!\n";
-      LOG_ERROR << error_msg;
+      OPENMS_LOG_ERROR << error_msg;
       return false;
     }
 
@@ -1012,7 +1012,7 @@ namespace OpenMS
       else if (param_.exists(p_out_format))
       { // 'out_type' or alike is specified
         if (!param_.getValue(p_out_format).toString().empty()) file_suffix = "." + param_.getValue(p_out_format).toString();
-        else LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
+        else OPENMS_LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
                       << "' of Node " + this->name_ + "(" + String(this->getTopoNr()) + "). Format is ambiguous. Use parameter '" + p_out_format + "' to name intermediate output correctly!\n";
       }
       if (file_suffix.empty())
@@ -1044,34 +1044,34 @@ namespace OpenMS
         for (const QString &input_file : per_round_basenames[r])
         {
           QString fn = path + QFileInfo(input_file).fileName(); // out_path + filename
-          LOG_DEBUG << "Single:" << fn.toStdString() << "\n";
+          OPENMS_LOG_DEBUG << "Single:" << fn.toStdString() << "\n";
           if (list_to_single)
           {
             if (fn.contains(QRegExp(".*_to_.*_mrgd")))
             {
               fn = fn.left(fn.indexOf("_to_"));
-              LOG_DEBUG << "  first merge in merge: " << fn.toStdString() << "\n";
+              OPENMS_LOG_DEBUG << "  first merge in merge: " << fn.toStdString() << "\n";
             }
             QString fn_last = QFileInfo(per_round_basenames[r].last()).fileName();
             if (fn_last.contains(QRegExp(".*_to_.*_mrgd")))
             {
               int i_start = fn_last.indexOf("_to_") + 4;
               fn_last = fn_last.mid(i_start, fn_last.indexOf("_mrgd", i_start) - i_start);
-              LOG_DEBUG << "  last merge in merge: " << fn_last.toStdString() << "\n";
+              OPENMS_LOG_DEBUG << "  last merge in merge: " << fn_last.toStdString() << "\n";
             }
             fn += "_to_" + fn_last + "_mrgd";
-            LOG_DEBUG << "  List: ..." << "_to_" + fn_last.toStdString() + "_mrgd" << "\n";
+            OPENMS_LOG_DEBUG << "  List: ..." << "_to_" + fn_last.toStdString() + "_mrgd" << "\n";
           }
           if (!fn.endsWith(file_suffix.toQString()))
           {
             fn += file_suffix.toQString();
-            LOG_DEBUG << "  Suffix-add: " << file_suffix << "\n";
+            OPENMS_LOG_DEBUG << "  Suffix-add: " << file_suffix << "\n";
           }
           fn = QDir::toNativeSeparators(fn);
           if (filename_output_set.count(fn) > 0)
           {
             error_msg = "TOPPAS failed to build correct filenames. Please report this bug, along with your Pipeline\n!";
-            LOG_ERROR << error_msg;
+            OPENMS_LOG_ERROR << error_msg;
             return false;
           }
           output_files_[r][param_index].filenames.push_back(fn);
@@ -1228,7 +1228,7 @@ namespace OpenMS
 
     if (!ok)
     {
-      LOG_ERROR << "TOPPAS: Could not create path " << getFullOutputDirectory() << std::endl;
+      OPENMS_LOG_ERROR << "TOPPAS: Could not create path " << getFullOutputDirectory() << std::endl;
     }
 
     // subsdirectories named after the output parameter name
@@ -1240,7 +1240,7 @@ namespace OpenMS
       {
         if (!dir.mkpath(sdir))
         {
-          LOG_ERROR << "TOPPAS: Could not create path " << String(sdir) << std::endl;
+          OPENMS_LOG_ERROR << "TOPPAS: Could not create path " << String(sdir) << std::endl;
         }
       }
     }

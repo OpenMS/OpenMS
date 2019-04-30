@@ -553,7 +553,7 @@ protected:
     assert(exp.size() == annotated_hits.size());
 
     #ifdef DEBUG_RNPXLSEARCH
-      LOG_DEBUG << exp.size() << " : " << annotated_hits.size() << endl;
+      OPENMS_LOG_DEBUG << exp.size() << " : " << annotated_hits.size() << endl;
     #endif
 
     SpectrumAlignment spectrum_aligner;
@@ -656,7 +656,7 @@ protected:
 
         // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
         // 1. get all possible RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
-        LOG_DEBUG << "precursor_rna_adduct: "  << precursor_rna_adduct << endl;
+        OPENMS_LOG_DEBUG << "precursor_rna_adduct: "  << precursor_rna_adduct << endl;
         const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
         if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
@@ -735,7 +735,7 @@ protected:
 
         // first annotate total loss peaks (these give no information where the actual shift occured)
         #ifdef DEBUG_RNPXLSEARCH
-          LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
+          OPENMS_LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
         #endif
         vector<pair<Size, Size>> alignment;
         spectrum_aligner.getSpectrumAlignment(alignment, total_loss_spectrum, exp_spectrum);
@@ -781,7 +781,7 @@ protected:
             Size ion_number = (Size)ion_nr_string.toInt();
             #ifdef DEBUG_RNPXLSEARCH
               const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
-              LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+              OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
             #endif
             peak_is_annotated.insert(aligned.second);
 
@@ -794,7 +794,7 @@ protected:
             #ifdef DEBUG_RNPXLSEARCH
             else
             {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              OPENMS_LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
             }
             #endif
             }
@@ -824,7 +824,7 @@ protected:
               Size ion_number = (Size)ion_nr_string.toInt();
             #ifdef DEBUG_RNPXLSEARCH
               const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-              LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+              OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
             #endif
             peak_is_annotated.insert(aligned.second);
 
@@ -837,7 +837,7 @@ protected:
             #ifdef DEBUG_RNPXLSEARCH
             else
             {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              OPENMS_LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
             }
             #endif
             }
@@ -867,7 +867,7 @@ protected:
               auto ion_number = (Size)ion_nr_string.toInt();
             #ifdef DEBUG_RNPXLSEARCH
               const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-              LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+              OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
             #endif
             peak_is_annotated.insert(aligned.second);
 
@@ -880,7 +880,7 @@ protected:
             #ifdef DEBUG_RNPXLSEARCH
             else
             {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              OPENMS_LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
             }
             #endif
             }
@@ -974,7 +974,7 @@ protected:
           String fragment_ion_name = f[0]; // e.g. y3
 
           #ifdef DEBUG_RNPXLSEARCH
-            LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
+            OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
           #endif
 
           // define which ion names are annotated
@@ -994,7 +994,7 @@ protected:
             #ifdef DEBUG_RNPXLSEARCH
             else
             {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              OPENMS_LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
             }
             #endif
           }
@@ -1014,7 +1014,7 @@ protected:
             #ifdef DEBUG_RNPXLSEARCH
             else
             {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              OPENMS_LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
             }
             #endif
           }
@@ -1034,7 +1034,7 @@ protected:
             #ifdef DEBUG_RNPXLSEARCH
             else
             {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              OPENMS_LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
             }
             #endif
           }
@@ -1052,7 +1052,7 @@ protected:
             #ifdef DEBUG_RNPXLSEARCH
             else
             {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << 1 << endl;
+              OPENMS_LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << 1 << endl;
             }
             #endif
           }
@@ -1070,7 +1070,7 @@ protected:
             #ifdef DEBUG_RNPXLSEARCH
             else
             {
-              LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << 1 << endl;
+              OPENMS_LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << 1 << endl;
             }
             #endif
           }
@@ -1183,7 +1183,7 @@ protected:
 #endif
 
         #ifdef DEBUG_RNPXLSEARCH
-          LOG_DEBUG << "Localisation based on immonium ions: ";
+          OPENMS_LOG_DEBUG << "Localisation based on immonium ions: ";
         #endif
         String aas_unmodified = aas.toUnmodifiedString();
         for (Size i = 0; i != aas_unmodified.size(); ++i)
@@ -1216,7 +1216,7 @@ protected:
         for (Size i = 0; i != sites_sum_score.size(); ++i)
         {
           #ifdef DEBUG_RNPXLSEARCH
-            LOG_DEBUG << String::number(100.0 * sites_sum_score[i], 2);
+            OPENMS_LOG_DEBUG << String::number(100.0 * sites_sum_score[i], 2);
           #endif
 
           if (i != 0) localization_scores += ' ';
@@ -1235,7 +1235,7 @@ protected:
           }
         }
         #ifdef DEBUG_RNPXLSEARCH
-          LOG_DEBUG << endl;
+          OPENMS_LOG_DEBUG << endl;
         #endif
 
         // create annotation strings for shifted fragment ions
@@ -1254,29 +1254,29 @@ protected:
         a.fragment_annotations = fas;
 
         #ifdef DEBUG_RNPXLSEARCH
-          LOG_DEBUG << "Ion centric annotation: " << endl;
-          LOG_DEBUG << "unshifted b ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
-          LOG_DEBUG << "unshifted y ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions) << endl;
-          LOG_DEBUG << "unshifted a ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions) << endl;
-          LOG_DEBUG << "shifted b ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions) << endl;
-          LOG_DEBUG << "shifted y ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions) << endl;
-          LOG_DEBUG << "shifted a ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions) << endl;
-          LOG_DEBUG << "shifted immonium ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(shifted_immonium_ions) << endl;
-          LOG_DEBUG << "shifted marker ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_marker_ions) << endl;
-          LOG_DEBUG << "shifted precursor ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_precursor_ions) << endl;
-          LOG_DEBUG << "Localization scores: ";
-          LOG_DEBUG << localization_scores << endl;
-          LOG_DEBUG << "Localisation based on ion series and immonium ions of all observed fragments: ";
-          LOG_DEBUG << best_localization << endl;
+          OPENMS_LOG_DEBUG << "Ion centric annotation: " << endl;
+          OPENMS_LOG_DEBUG << "unshifted b ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
+          OPENMS_LOG_DEBUG << "unshifted y ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions) << endl;
+          OPENMS_LOG_DEBUG << "unshifted a ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted b ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted y ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted a ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted immonium ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(shifted_immonium_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted marker ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_marker_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted precursor ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_precursor_ions) << endl;
+          OPENMS_LOG_DEBUG << "Localization scores: ";
+          OPENMS_LOG_DEBUG << localization_scores << endl;
+          OPENMS_LOG_DEBUG << "Localisation based on ion series and immonium ions of all observed fragments: ";
+          OPENMS_LOG_DEBUG << best_localization << endl;
         #endif
       }
     }
@@ -1610,7 +1610,7 @@ protected:
 
     if (fixed_unique.size() != fixedModNames.size())
     {
-      LOG_WARN << "duplicate fixed modification provided." << endl;
+      OPENMS_LOG_WARN << "duplicate fixed modification provided." << endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -1618,7 +1618,7 @@ protected:
     set<String> var_unique(varModNames.begin(), varModNames.end());
     if (var_unique.size() != varModNames.size())
     {
-      LOG_WARN << "duplicate variable modification provided." << endl;
+      OPENMS_LOG_WARN << "duplicate variable modification provided." << endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -1985,7 +1985,7 @@ protected:
                   ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
 
 #ifdef DEBUG_RNPXLSEARCH
-                  LOG_DEBUG << "best score in pre-score: " << score << endl;
+                  OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
 #ifdef _OPENMP 
@@ -2139,7 +2139,7 @@ protected:
                     ah.score = RNPxlSearch::calculateCombinedScore(ah, true);
 
 #ifdef DEBUG_RNPXLSEARCH
-                    LOG_DEBUG << "best score in pre-score: " << score << endl;
+                    OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
 #ifdef _OPENMP
@@ -2220,7 +2220,7 @@ protected:
                 ah.score = total_loss_score + ah.total_MIC; 
 
 #ifdef DEBUG_RNPXLSEARCH
-                LOG_DEBUG << "best score in pre-score: " << score << endl;
+                OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
 #ifdef _OPENMP
@@ -2247,9 +2247,9 @@ protected:
     }
     progresslogger.endProgress();
 
-    LOG_INFO << "Proteins: " << count_proteins << endl;
-    LOG_INFO << "Peptides: " << count_peptides << endl;
-    LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
+    OPENMS_LOG_INFO << "Proteins: " << count_proteins << endl;
+    OPENMS_LOG_INFO << "Peptides: " << count_peptides << endl;
+    OPENMS_LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
 
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
@@ -2484,7 +2484,7 @@ protected:
       }
     }
 #ifdef DEBUG_RNPXLSEARCH
-    LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
+    OPENMS_LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
   // TODO: cap plss_err
   float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
@@ -2521,25 +2521,25 @@ RNPxlSearch::RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
   // print feasible fragment adducts and marker ions
   for (auto const & fa : all_pc_all_feasible_adducts)
   {
-    LOG_DEBUG << "Precursor adduct: " << fa.first << "\n";
+    OPENMS_LOG_DEBUG << "Precursor adduct: " << fa.first << "\n";
 
     for (auto const & ffa : fa.second.feasible_adducts)
     {
       const char & nucleotide = ffa.first;
-      LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
+      OPENMS_LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
       for (auto const & a : ffa.second)
       {
-        LOG_DEBUG << "    " << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
+        OPENMS_LOG_DEBUG << "    " << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
       }
     }
 
-    LOG_DEBUG << "  Marker ions." << endl;
+    OPENMS_LOG_DEBUG << "  Marker ions." << endl;
     for (auto const & ffa : fa.second.marker_ions)
     {
-      LOG_DEBUG << "    "  << ffa.name << "\t" << ffa.formula.toString() << "\t" << ffa.mass << "\n";
+      OPENMS_LOG_DEBUG << "    "  << ffa.name << "\t" << ffa.formula.toString() << "\t" << ffa.mass << "\n";
     }
   }
-  LOG_DEBUG << endl;
+  OPENMS_LOG_DEBUG << endl;
 
   return all_pc_all_feasible_adducts;
 }
@@ -2559,7 +2559,7 @@ RNPxlSearch::RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(StringL
     char target_nucleotide = t[0];
     if (t[1] != ':')
     {
-      LOG_WARN << "Missing ':'. Wrong format of fragment_adduct string: " << t << endl;
+      OPENMS_LOG_WARN << "Missing ':'. Wrong format of fragment_adduct string: " << t << endl;
       return NucleotideToFragmentAdductMap();
     }
 
@@ -2581,7 +2581,7 @@ RNPxlSearch::RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(StringL
     }
     else
     {
-      LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
+      OPENMS_LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
       return NucleotideToFragmentAdductMap();
     }
 
@@ -2635,7 +2635,7 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
                                                                const RNPxlSearch::RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
                                                                const set<char> &can_xl)
 {
-  LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
+  OPENMS_LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
 
   MS2AdductsOfSinglePrecursorAdduct ret;
 
@@ -2669,7 +2669,7 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
   bool has_xl_nt(false);
   for (auto const & m : exp_pc_nucleotide_count) { if (can_xl.count(m.first)) { has_xl_nt = true; break; } }
 
-  LOG_DEBUG << "\t" << exp_pc_adduct << " has cross-linkable nucleotide (0 = false, 1 = true): " << has_xl_nt << endl;
+  OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " has cross-linkable nucleotide (0 = false, 1 = true): " << has_xl_nt << endl;
 
   // no cross-linkable nt contained in the precursor adduct? Return an empty fragment adduct definition set
   if (!has_xl_nt) { return ret; }
@@ -2679,7 +2679,7 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
   // extract loss string from precursor adduct (e.g.: "-H2O")
   // String exp_pc_loss_string(exp_pc_it, exp_pc_adduct.end());
 
-  LOG_DEBUG << "\t" << exp_pc_adduct << " is monomer (1 = true, >1 = false): " << nt_count << endl;
+  OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " is monomer (1 = true, >1 = false): " << nt_count << endl;
 
   // Handle the cases of monomer or oligo nucleotide bound to the precursor.
   // This distinction is made because potential losses on the precursor only allows us to reduce the set of chemical feasible fragment adducts if they are on a monomer.
@@ -2695,8 +2695,8 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
       // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
       {
-        LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
-        LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
 
         // store feasible adducts associated with a cross-link with character nucleotide
         vector<FragmentAdductDefinition_> faa;
@@ -2725,8 +2725,8 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
       // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
       {
-        LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
-        LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fas.size() << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fas.size() << endl;
 
         // check chemical feasibility by checking if subtraction of adduct would result in negative elemental composition
         for (auto it = fas.begin(); it != fas.end(); )
@@ -2778,18 +2778,18 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
   for (auto const & ffa : ret.feasible_adducts)
   {
     const char & nucleotide = ffa.first;
-    LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
+    OPENMS_LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
     for (auto const & a : ffa.second)
     {
-      LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
+      OPENMS_LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
     }
   }
 
   // print marker ions
-  LOG_DEBUG << "  Marker ions:" << endl;
+  OPENMS_LOG_DEBUG << "  Marker ions:" << endl;
   for (auto const & a : ret.marker_ions)
   {
-    LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
+    OPENMS_LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
   }
 
   return ret;

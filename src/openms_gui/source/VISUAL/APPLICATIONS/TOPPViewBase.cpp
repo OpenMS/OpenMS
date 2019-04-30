@@ -1247,10 +1247,10 @@ namespace OpenMS
           indexed_mzml_file_.openFile(filename);
           if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
           {
-            LOG_INFO << "INFO: will use cached MS2 spectra" << std::endl;
+            OPENMS_LOG_INFO << "INFO: will use cached MS2 spectra" << std::endl;
             if (cache_ms1_on_disc)
             {
-              LOG_INFO << "log INFO: will use cached MS1 spectra" << std::endl;
+              OPENMS_LOG_INFO << "log INFO: will use cached MS1 spectra" << std::endl;
             }
             parsing_success = true;
 
@@ -1288,7 +1288,7 @@ namespace OpenMS
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
         }
-        LOG_INFO << "INFO: done loading all " << std::endl;
+        OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in SpectrumCanvas::addLayer
