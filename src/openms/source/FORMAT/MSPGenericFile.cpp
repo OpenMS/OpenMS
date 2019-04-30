@@ -68,10 +68,6 @@ namespace OpenMS
 
   void MSPGenericFile::load(const String& filename, MSExperiment& library)
   {
-    // TODO: Remove following "clock" code when not necessary anymore
-    std::clock_t start;
-    start = std::clock();
-
     loaded_spectra_names_.clear();
     synonyms_.clear();
     std::ifstream ifs(filename, std::ifstream::in);
@@ -144,8 +140,6 @@ namespace OpenMS
     // To make sure a spectrum is added even if no empty line is present before EOF
     addSpectrumToLibrary(spectrum, library);
     OPENMS_LOG_INFO << "Loading spectra from .msp file completed." << std::endl;
-    // DEBUG
-    // std::cout << "PARSE TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
   }
 
   void MSPGenericFile::addSpectrumToLibrary(
