@@ -230,7 +230,7 @@ public:
              && this->intensity == a.intensity;
     }
 
-    void updateMassesAndIntensity(int mostAbundantIndex = -1)
+    void updateMassesAndIntensity(PrecalcularedAveragine &averagines)
     {
       double maxIntensityForMonoIsotopeMass = -1;
       intensity = .0;
@@ -244,10 +244,11 @@ public:
         }
         maxIntensityForMonoIsotopeMass = pi;
         monoisotopicMass = p.getMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U;
-        if (mostAbundantIndex >= 0)
-        {
-          avgMass = p.getMass() + (mostAbundantIndex - p.isotopeIndex) * Constants::C13C12_MASSDIFF_U;
-        }
+        //if (updateAvgMass)
+        //{
+        int mostAbundantIndex = averagines.getMostAbundantIndex(monoisotopicMass);
+        avgMass = p.getMass() + (mostAbundantIndex - p.isotopeIndex) * Constants::C13C12_MASSDIFF_U;
+        //}
       }
     }
   };
@@ -298,8 +299,8 @@ protected:
 
     registerIntOption_("minCC", "<min continuous charge peak count>", 3,
                        "minimum number of peaks of continuous charges per mass", false, true);
-    registerDoubleOption_("minIsotopeCosine", "<...>", .7, "cosine threshold between avg. isotope and observed intensities for max mass", false, true);
-    registerDoubleOption_("maxIsotopeCosine", "<...>", .9, "cosine threshold between avg. isotope and observed intensities for min mass", false, true);
+    registerDoubleOption_("minIsotopeCosine", "<...>", .3, "cosine threshold between avg. isotope and observed intensities for max mass", false, true);
+    registerDoubleOption_("maxIsotopeCosine", "<...>", .8, "cosine threshold between avg. isotope and observed intensities for min mass", false, true);
     //registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
 
     registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
@@ -1685,7 +1686,7 @@ protected:
   }
 
   static double
-  getIsotopeCosineThreshold(double &mass, double minCosine, double maxCosine, double minMass, double maxMass)
+  getIsotopeCosineThreshold(double mass, double minCosine, double maxCosine, double minMass, double maxMass)
   {
     double isotopeCosineThreshold;
     if (mass < minMass)
@@ -1700,7 +1701,7 @@ protected:
     {
       isotopeCosineThreshold = minCosine + (maxCosine - minCosine) / (maxMass - minMass) * (maxMass - mass);
     }
-
+    //cout<<mass<<" "<<minCosine<< " " << maxCosine<< " " <<  isotopeCosineThreshold<<endl;
     return isotopeCosineThreshold;
   }
 
@@ -1757,7 +1758,7 @@ protected:
                                                                     param.maxIsotopeCount,
                                                                     averagines);
 
-      double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.monoisotopicMass, param.maxIsotopeCosine,  param.minIsotopeCosine,
+      double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.peaks[0].getMass(),  param.minIsotopeCosine,param.maxIsotopeCosine,
           param.minMass, param.maxMass);
 
       if (pg.peaks.empty() || pg.isotopeCosineScore <= isotopeCosineThreshold)
@@ -1765,7 +1766,7 @@ protected:
         continue;
       }
 
-      pg.updateMassesAndIntensity(averagines.getMostAbundantIndex(pg.monoisotopicMass));
+      pg.updateMassesAndIntensity(averagines);
 
       filteredPeakGroups.push_back(pg);
       intensities.push_back(pg.intensity);
