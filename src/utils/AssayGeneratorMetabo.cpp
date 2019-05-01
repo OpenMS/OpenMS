@@ -313,7 +313,7 @@ protected:
           if (feature_map.getProteinIdentifications().empty())
           {
             use_known_unknowns = true;
-            LOG_INFO << "Due to the use of data without previous identification "
+            OPENMS_LOG_INFO << "Due to the use of data without previous identification "
                      << "use_known_unknowns will be switched on." << std::endl;
           }
         }
@@ -404,7 +404,7 @@ protected:
   
         // sort vector path list
         std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
-        LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
+        OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
   
         // get Sirius FragmentAnnotion from subdirs
         vector<MSSpectrum> annotated_spectra;

@@ -560,7 +560,7 @@ protected:
       std::function<double(const double, const double)>
       compute_peak_area_intensity_sum = [&p](const double left, const double right)
       {
-        // LOG_WARN << "WARNING: intensity_sum method is being used." << std::endl;
+        // OPENMS_LOG_WARN << "WARNING: intensity_sum method is being used." << std::endl;
         double peak_area { 0.0 };
         for (typename PeakContainerT::ConstIterator it = p.PosBegin(left); it != p.PosEnd(right); ++it)
         {
@@ -593,7 +593,7 @@ protected:
       {
         if (n_points == 2)
         {
-          LOG_WARN << std::endl << "PeakIntegrator::integratePeak:"
+          OPENMS_LOG_WARN << std::endl << "PeakIntegrator::integratePeak:"
             "number of points is 2, falling back to `trapezoid`." << std::endl;
           pa.area = compute_peak_area_trapezoid(left, right);
         }

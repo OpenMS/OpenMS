@@ -98,7 +98,7 @@ namespace OpenMS
 
   void MascotRemoteQuery::timedOut()
   {
-    LOG_FATAL_ERROR << "Mascot request timed out after " << to_ << " seconds! See 'timeout' parameter for details!" << std::endl;
+    OPENMS_LOG_FATAL_ERROR << "Mascot request timed out after " << to_ << " seconds! See 'timeout' parameter for details!" << std::endl;
   }
 
   void MascotRemoteQuery::run()
@@ -536,7 +536,7 @@ namespace OpenMS
     // Successful login? fire off the search
     if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfuly', but that might change...
     {
-      LOG_INFO << "Login successful!" << std::endl;
+      OPENMS_LOG_INFO << "Login successful!" << std::endl;
       execQuery();
     }
     else if (new_bytes.contains("Error: You have entered an invalid password"))
@@ -617,16 +617,16 @@ namespace OpenMS
       QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");
       if (response_text.contains(mascot_error_regex))
       {
-        LOG_ERROR << "Received response with Mascot error message!" << std::endl;
+        OPENMS_LOG_ERROR << "Received response with Mascot error message!" << std::endl;
         if (mascot_error_regex.cap() == "[M00380]")
         {
           // we know this error, so we give a much shorter and readable error message for the user
           error_message_ = "You must enter an email address and user name when using the Matrix Science public web site [M00380].";
-          LOG_ERROR << error_message_ << std::endl;
+          OPENMS_LOG_ERROR << error_message_ << std::endl;
         }
         else
         {
-          LOG_ERROR << "Error code: " << mascot_error_regex.cap().toStdString() << std::endl;
+          OPENMS_LOG_ERROR << "Error code: " << mascot_error_regex.cap().toStdString() << std::endl;
           error_message_ = response_text;
         }
         endRun_();
@@ -738,7 +738,7 @@ namespace OpenMS
 
     if (!url.startsWith(host_name_.toQString()))
     {
-      LOG_ERROR << "Invalid location returned by mascot! Abort." << std::endl;
+      OPENMS_LOG_ERROR << "Invalid location returned by mascot! Abort." << std::endl;
       endRun_();
       return;
     }

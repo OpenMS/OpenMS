@@ -240,7 +240,7 @@ protected:
       else
       {
         scan_identifier = "index=" + String(it - start + 1);
-        LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
+        OPENMS_LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
       }
     }
     return scan_identifier.removeWhitespaces();

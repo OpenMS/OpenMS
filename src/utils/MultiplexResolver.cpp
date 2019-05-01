@@ -464,7 +464,7 @@ private:
          ++it_mass_shift, ++it_delta_mass_matched)
     {
       
-      //LOG_DEBUG << "    index = " << (it_mass_shift - pattern.begin()) << "    shift = " << it_mass_shift->delta_mass;
+      //OPENMS_LOG_DEBUG << "    index = " << (it_mass_shift - pattern.begin()) << "    shift = " << it_mass_shift->delta_mass;
       if (*it_delta_mass_matched)
       {
         // copy feature from incomplete consensus
@@ -526,14 +526,14 @@ private:
     
     for (ConsensusMap::ConstIterator cit = map_in.begin(); cit != map_in.end(); ++cit)
     {
-      //LOG_DEBUG << "consensus = " << (cit - map_in.begin());
-      //LOG_DEBUG << "       RT = " << cit->getRT();
-      //LOG_DEBUG << "       mz = " << cit->getMZ();
+      //OPENMS_LOG_DEBUG << "consensus = " << (cit - map_in.begin());
+      //OPENMS_LOG_DEBUG << "       RT = " << cit->getRT();
+      //OPENMS_LOG_DEBUG << "       mz = " << cit->getMZ();
       
       // Consensus features without sequence annotations are written unchanged to the conflict output.
       if (cit->getPeptideIdentifications().empty())
       {
-        //LOG_DEBUG << "  (no ID)\n\n";
+        //OPENMS_LOG_DEBUG << "  (no ID)\n\n";
         
         ConsensusFeature consensus(*cit);
         map_conflicts.push_back(consensus);
@@ -551,7 +551,7 @@ private:
             
       if (index >= 0)
       {
-        //LOG_DEBUG << "  (Ok)\n\n";
+        //OPENMS_LOG_DEBUG << "  (Ok)\n\n";
         // ++found_pattern_count;
         
         ConsensusFeature consensus = completeConsensus_(*cit, theoretical_masses[index].getDeltaMasses(), delta_mass_matched, index_label_set);
@@ -559,7 +559,7 @@ private:
       }
       else
       {
-        //LOG_DEBUG << "  (Conflict)\n\n";
+        //OPENMS_LOG_DEBUG << "  (Conflict)\n\n";
         
         ConsensusFeature consensus(*cit);
         map_conflicts.push_back(consensus);
@@ -575,10 +575,10 @@ private:
     map_out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     map_conflicts.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     
-    /*LOG_DEBUG << "\n";
-    LOG_DEBUG << "number of consensuses                   = " << map_in.size() << "\n";
-    LOG_DEBUG << "number of consensuses without conflicts = " << found_pattern_count << "\n";
-    LOG_DEBUG << "\n";*/
+    /*OPENMS_LOG_DEBUG << "\n";
+    OPENMS_LOG_DEBUG << "number of consensuses                   = " << map_in.size() << "\n";
+    OPENMS_LOG_DEBUG << "number of consensuses without conflicts = " << found_pattern_count << "\n";
+    OPENMS_LOG_DEBUG << "\n";*/
   }
   
 public:

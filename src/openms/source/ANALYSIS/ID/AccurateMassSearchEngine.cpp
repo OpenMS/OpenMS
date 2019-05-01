@@ -235,7 +235,7 @@ namespace OpenMS
       }
 
       EmpiricalFormula ef_part(formula_str);
-      LOG_DEBUG << "Adducts: " << stoichio_factor << "*" << formula_str << " == " << stoichio_factor * ef_part.getMonoWeight() << std::endl;
+      OPENMS_LOG_DEBUG << "Adducts: " << stoichio_factor << "*" << formula_str << " == " << stoichio_factor * ef_part.getMonoWeight() << std::endl;
 
       if (op_plus)
       {
@@ -632,7 +632,7 @@ namespace OpenMS
         if (!it->isCompatible(EmpiricalFormula(mass_mappings_[i].formula)))
         {
           // only written if TOPP tool has --debug
-          LOG_DEBUG << "'" << mass_mappings_[i].formula << "' cannot have adduct '" << it->getName() << "'. Omitting.\n";
+          OPENMS_LOG_DEBUG << "'" << mass_mappings_[i].formula << "' cannot have adduct '" << it->getName() << "'. Omitting.\n";
           continue;
         }
 
@@ -806,7 +806,7 @@ namespace OpenMS
       {
         if (!fmap[i].metaValueExists("num_of_masstraces"))
         {
-          LOG_WARN << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
+          OPENMS_LOG_WARN << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
         }
         else if ((Size)fmap[i].getMetaValue("num_of_masstraces") > 1)
         { // compute isotope pattern similarities (do not take the best-scoring one, since it might have really bad ppm or other properties --
@@ -838,11 +838,11 @@ namespace OpenMS
 
     if (fmap.empty())
     {
-      LOG_INFO << "FeatureMap was empty! No hits found!" << std::endl;
+      OPENMS_LOG_INFO << "FeatureMap was empty! No hits found!" << std::endl;
     }
     else
     { // division by 0 if used on empty fmap
-      LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
+      OPENMS_LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
     }
 
     exportMzTab_(overall_results, 1, mztab_out);
@@ -1245,12 +1245,12 @@ namespace OpenMS
     mztab_out.setSmallMoleculeSectionRows(all_sm_rows);
 
     // print some adduct stats:
-    LOG_INFO << "Hits by adduct: #peaks explained (# matching db entries)'\n";
+    OPENMS_LOG_INFO << "Hits by adduct: #peaks explained (# matching db entries)'\n";
     for (std::map<String, UInt>::const_iterator it = adduct_stats.begin(); it != adduct_stats.end(); ++it)
     {
-      LOG_INFO << "  '" << it->first << "' : " << adduct_stats_unique[it->first].size() << " (" << it->second << ")\n";
+      OPENMS_LOG_INFO << "  '" << it->first << "' : " << adduct_stats_unique[it->first].size() << " (" << it->second << ")\n";
     }
-    LOG_INFO << std::endl;
+    OPENMS_LOG_INFO << std::endl;
 
   }
 
@@ -1302,7 +1302,7 @@ namespace OpenMS
       std::stringstream str_buf;
       std::istream_iterator<String> eol;
 
-      // LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
+      // OPENMS_LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
 
       std::ifstream ifs(filename.c_str());
       while (getline(ifs, line))
@@ -1351,7 +1351,7 @@ namespace OpenMS
 
         while (istr_it != eol)
         {
-          // LOG_DEBUG << *istr_it << " ";
+          // OPENMS_LOG_DEBUG << *istr_it << " ";
           if (word_count == 0)
           {
             entry.mass = istr_it->toDouble();
@@ -1373,7 +1373,7 @@ namespace OpenMS
           ++word_count;
           ++istr_it;
         }
-        // LOG_DEBUG << std::endl;
+        // OPENMS_LOG_DEBUG << std::endl;
 
         if (entry.massIDs.empty())
         {
@@ -1384,7 +1384,7 @@ namespace OpenMS
     }
     std::sort(mass_mappings_.begin(), mass_mappings_.end(), CompareEntryAndMass_());
 
-    LOG_INFO << "Read " << mass_mappings_.size() << " entries from mapping file!" << std::endl;
+    OPENMS_LOG_INFO << "Read " << mass_mappings_.size() << " entries from mapping file!" << std::endl;
 
     return;
   }
@@ -1406,7 +1406,7 @@ namespace OpenMS
 
       std::ifstream ifs(filename.c_str());
       String line;
-      // LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
+      // OPENMS_LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
 
       std::vector<String> parts;
       while (getline(ifs, line))
@@ -1455,14 +1455,14 @@ namespace OpenMS
       result.push_back(AdductInfo::parseAdductString(*it));
     }
 
-    LOG_INFO << "Read " << result.size() << " entries from adduct file '" << fname << "'." << std::endl;
+    OPENMS_LOG_INFO << "Read " << result.size() << " entries from adduct file '" << fname << "'." << std::endl;
 
     return;
   }
 
   void AccurateMassSearchEngine::searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const
   {
-    //LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
+    //OPENMS_LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
 
     // binary search for formulas which are within diff_mz distance
     if (mass_mappings_.empty())

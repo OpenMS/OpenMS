@@ -369,11 +369,11 @@ protected:
     double bin_offset = getDoubleOption_("fragment_bin_offset");
     if (instrument == "low_res" && (bin_tol < 0.9 || bin_offset <= 0.2))
     {
-      LOG_WARN << "Fragment bin size or tolerance is quite low for low res instruments." << "\n";
+      OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite low for low res instruments." << "\n";
     }
     else if (instrument == "high_res" && (bin_tol > 0.2 || bin_offset > 0.1))
     {
-      LOG_WARN << "Fragment bin size or tolerance is quite high for high res instruments." << "\n";
+      OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite high for high res instruments." << "\n";
     };
 
     os << "fragment_bin_tol = " << bin_tol << "\n";               // binning to use on fragment ions
@@ -410,7 +410,7 @@ protected:
     int precursor_charge_min(0), precursor_charge_max(0);
     if (!parseRange_(getStringOption_("precursor_charge"), precursor_charge_min, precursor_charge_max))
     {
-      LOG_INFO << "precursor_charge range not set. Defaulting to 0:0 (disable charge filtering)." << endl;
+      OPENMS_LOG_INFO << "precursor_charge range not set. Defaulting to 0:0 (disable charge filtering)." << endl;
     }
 
     os << "scan_range = " << "0 0" << "\n";                        // start and scan scan range to search; 0 as 1st entry ignores parameter
@@ -423,7 +423,7 @@ protected:
     double digest_mass_range_min(600.0), digest_mass_range_max(5000.0);
     if (!parseRange_(getStringOption_("digest_mass_range"), digest_mass_range_min, digest_mass_range_max))
     {
-      LOG_INFO << "digest_mass_range not set. Defaulting to 600.0 5000.0." << endl;
+      OPENMS_LOG_INFO << "digest_mass_range not set. Defaulting to 600.0 5000.0." << endl;
     }
 
     os << "digest_mass_range = " << digest_mass_range_min << " " << digest_mass_range_max << "\n";        // MH+ peptide mass range to analyze
@@ -448,7 +448,7 @@ protected:
     double clear_mz_range_min(0.0), clear_mz_range_max(0.0);
     if (!parseRange_(getStringOption_("clear_mz_range"), clear_mz_range_min, clear_mz_range_max))
     {
-      LOG_INFO << "clear_mz_range not set. Defaulting to 0:0 (disable m/z filter)." << endl;
+      OPENMS_LOG_INFO << "clear_mz_range not set. Defaulting to 0:0 (disable m/z filter)." << endl;
     }
 
     os << "minimum_peaks = " << getIntOption_("minimum_peaks") << "\n";                      // required minimum number of peaks in spectrum to search (default 10)

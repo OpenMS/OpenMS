@@ -187,7 +187,7 @@ protected:
 
     if (ms_peakmap.empty())
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
@@ -269,7 +269,7 @@ protected:
       }
       if (ffm_param.getValue("use_smoothed_intensities").toBool())
       {
-        LOG_WARN << "Without EPD, smoothing is not supported. Setting 'use_smoothed_intensities' to false!" << std::endl;
+        OPENMS_LOG_WARN << "Without EPD, smoothing is not supported. Setting 'use_smoothed_intensities' to false!" << std::endl;
         ffm_param.setValue("use_smoothed_intensities", "false");
       }
     }
@@ -302,16 +302,16 @@ protected:
     {
       if (ffm_param.getValue("remove_single_traces").toBool() == false)
       { 
-        LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
+        OPENMS_LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
         return UNEXPECTED_RESULT;
       }
       else
       {
-        LOG_INFO << "FF-Metabo: " << (m_traces_final.size() - trace_count) << " unassembled traces have been removed." << std::endl;
+        OPENMS_LOG_INFO << "FF-Metabo: " << (m_traces_final.size() - trace_count) << " unassembled traces have been removed." << std::endl;
       }     
     }
 
-    LOG_INFO << "-- FF-Metabo stats --\n"
+    OPENMS_LOG_INFO << "-- FF-Metabo stats --\n"
              << "Input traces:    " << m_traces_final.size() << "\n"
              << "Output features: " << feat_map.size() << " (total trace count: " << trace_count << ")" << std::endl;
 
@@ -332,7 +332,7 @@ protected:
         }
         else
         {
-            LOG_ERROR << "FF-Metabo: Internal error. The number of features (" << feat_chromatograms.size() << ") and chromatograms (" << feat_map.size() << ") are different! Aborting." << std::endl;
+            OPENMS_LOG_ERROR << "FF-Metabo: Internal error. The number of features (" << feat_chromatograms.size() << ") and chromatograms (" << feat_map.size() << ") are different! Aborting." << std::endl;
             return UNEXPECTED_RESULT;
         }
     }

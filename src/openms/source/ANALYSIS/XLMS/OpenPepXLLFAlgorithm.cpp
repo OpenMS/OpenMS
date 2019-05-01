@@ -205,14 +205,14 @@ using namespace OpenMS;
 
     if (fixed_unique.size() != fixedModNames_.size())
     {
-      LOG_DEBUG << "duplicate fixed modification provided." << endl;
+      OPENMS_LOG_DEBUG << "duplicate fixed modification provided." << endl;
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
 
     set<String> var_unique(varModNames_.begin(), varModNames_.end());
     if (var_unique.size() != varModNames_.size())
     {
-      LOG_DEBUG << "duplicate variable modification provided." << endl;
+      OPENMS_LOG_DEBUG << "duplicate variable modification provided." << endl;
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
     ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames_);
@@ -334,7 +334,7 @@ using namespace OpenMS;
     specGen_mainscore.setParameters(specGenParams_mainscore);
 
 #ifdef DEBUG_OPENPEPXLLFALGO
-    LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
+    OPENMS_LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
 #endif
 
     search_params = protein_ids[0].getSearchParameters();
@@ -353,7 +353,7 @@ using namespace OpenMS;
     sort(spectrum_precursors.begin(), spectrum_precursors.end());
 
 #ifdef DEBUG_OPENPEPXLLFALGO
-    LOG_DEBUG << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
+    OPENMS_LOG_DEBUG << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
 #endif
 
     sort(peptide_masses.begin(), peptide_masses.end(), OPXLDataStructs::AASeqWithMassComparator());
@@ -375,7 +375,7 @@ using namespace OpenMS;
     double max_peptide_mass = max_precursor_mass - cross_link_mass_ + max_peptide_allowed_error;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
-    LOG_DEBUG << "Filtering peptides with precursors" << endl;
+    OPENMS_LOG_DEBUG << "Filtering peptides with precursors" << endl;
 #endif
 
     // search for the first mass greater than the maximim, cut off everything larger
@@ -389,7 +389,7 @@ using namespace OpenMS;
     Size spectrum_counter = 0;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
-    LOG_DEBUG << "Spectra left after preprocessing and filtering: " << spectra.size() << " of " << unprocessed_spectra.size() << endl;
+    OPENMS_LOG_DEBUG << "Spectra left after preprocessing and filtering: " << spectra.size() << " of " << unprocessed_spectra.size() << endl;
 #endif
 
 // #ifdef _OPENMP
@@ -408,7 +408,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Size of enumerated candidates: " << double(cross_link_candidates.size()) * sizeof(OPXLDataStructs::ProteinProteinCrossLink) / 1024.0 / 1024.0 << " mb" << endl;
+      OPENMS_LOG_DEBUG << "Size of enumerated candidates: " << double(cross_link_candidates.size()) * sizeof(OPXLDataStructs::ProteinProteinCrossLink) / 1024.0 / 1024.0 << " mb" << endl;
 #endif
 
 #ifdef _OPENMP
@@ -560,7 +560,7 @@ using namespace OpenMS;
         double candidate_mz = (alpha.getMonoWeight() + beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "Pair: " << alpha.toString() << "-" << beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
+          OPENMS_LOG_DEBUG << "Pair: " << alpha.toString() << "-" << beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
             << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
         }
 #endif
@@ -636,9 +636,9 @@ using namespace OpenMS;
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "Spectrum sizes: " << spectrum.size() << " || " << theoretical_spec_linear_alpha.size() <<  " | " << theoretical_spec_linear_beta.size()
+          OPENMS_LOG_DEBUG << "Spectrum sizes: " << spectrum.size() << " || " << theoretical_spec_linear_alpha.size() <<  " | " << theoretical_spec_linear_beta.size()
                                 <<  " | " << theoretical_spec_xlinks_alpha.size() <<  " | " << theoretical_spec_xlinks_beta.size() << endl;
-          LOG_DEBUG << "Matched peaks: " << matched_spec_linear_alpha.size() << " | " << matched_spec_linear_beta.size()
+          OPENMS_LOG_DEBUG << "Matched peaks: " << matched_spec_linear_alpha.size() << " | " << matched_spec_linear_beta.size()
                                 <<  " | " << matched_spec_xlinks_alpha.size() <<  " | " << matched_spec_xlinks_beta.size() << endl;
         }
 #endif
@@ -652,7 +652,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Computing Intsum..." << endl;
+        OPENMS_LOG_DEBUG << "Computing Intsum..." << endl;
 #endif
 
         // compute intsum score
@@ -684,7 +684,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Computing TIC..." << endl;
+        OPENMS_LOG_DEBUG << "Computing TIC..." << endl;
 #endif
 
         // compute weighted TIC
@@ -697,7 +697,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Computing Match-Odds..." << endl;
+        OPENMS_LOG_DEBUG << "Computing Match-Odds..." << endl;
 #endif
 
         // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
@@ -794,7 +794,7 @@ using namespace OpenMS;
         {
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "Computing Iso Peak summeries..." << endl;
+          OPENMS_LOG_DEBUG << "Computing Iso Peak summeries..." << endl;
 #endif
 
           DataArrays::IntegerDataArray num_iso_peaks_array;
@@ -815,7 +815,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Computing ppm error summeries..." << endl;
+        OPENMS_LOG_DEBUG << "Computing ppm error summeries..." << endl;
 #endif
 
         // TODO find a better way to compute the absolute sum
@@ -919,7 +919,7 @@ using namespace OpenMS;
         // write fragment annotations
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Start writing annotations" << endl;
+        OPENMS_LOG_DEBUG << "Start writing annotations" << endl;
 #endif
 
         vector<PeptideHit::PeakAnnotation> frag_annotations;
@@ -931,7 +931,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "End writing annotations, size: " << frag_annotations.size() << endl;
+        OPENMS_LOG_DEBUG << "End writing annotations, size: " << frag_annotations.size() << endl;
 #endif
 
         // make annotations unique
@@ -976,7 +976,7 @@ using namespace OpenMS;
       }
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Next Spectrum ##################################" << endl;
+      OPENMS_LOG_DEBUG << "Next Spectrum ##################################" << endl;
 #endif
     }
 

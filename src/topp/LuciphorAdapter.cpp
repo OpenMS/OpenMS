@@ -525,7 +525,7 @@ protected:
       }
       else
       {
-        LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
+        OPENMS_LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
       }
       // create a temporary pepXML file for LuciPHOR2 input
       String id_file_name = File::removeExtension(File::basename(id));

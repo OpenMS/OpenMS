@@ -515,7 +515,7 @@ namespace OpenMS
     }
     else
     {
-      LOG_WARN << "Spectrum reference not set." << endl;
+      OPENMS_LOG_WARN << "Spectrum reference not set." << endl;
     }
   }
 
@@ -1563,7 +1563,7 @@ namespace OpenMS
     const FeatureMap & feature_map, 
     const String & filename)
   {
-    LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
+    OPENMS_LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
     MzTab mztab;
     MzTabMetaData meta_data;
 
@@ -1754,7 +1754,7 @@ namespace OpenMS
     const String& filename,
     bool first_run_inference_only)
   {
-    LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
+    OPENMS_LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
     vector<PeptideIdentification> pep_ids = peptide_ids;
 
     MzTab mztab;
@@ -1802,7 +1802,7 @@ namespace OpenMS
       bool skip_first_run = prot_ids[0].hasInferenceData() && first_run_inference_only;
       if (skip_first_run)
       {
-        LOG_DEBUG << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
+        OPENMS_LOG_DEBUG << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
       }
 
       MzTabParameter protein_score_type;
@@ -2411,7 +2411,7 @@ Not sure how to handle these:
       row.spectra_ref.setMSFile(msfile_index);
       if (spectrum_nativeID.empty())
       {
-        LOG_WARN << "spectrum_reference not set in ID with precursor (RT, m/z) " << it->getRT() << ", " << it->getMZ() << endl;
+        OPENMS_LOG_WARN << "spectrum_reference not set in ID with precursor (RT, m/z) " << it->getRT() << ", " << it->getMZ() << endl;
       }
       else
       {
@@ -2598,7 +2598,7 @@ Not sure how to handle these:
  -        mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
  -        mztab_run_metadata.location = MzTabString(m);
  -        meta_data.ms_run[run_index] = mztab_run_metadata;
- -        LOG_DEBUG << "Adding MS run for file: " << m << endl;
+ -        OPENMS_LOG_DEBUG << "Adding MS run for file: " << m << endl;
  -        ++run_index;
  -      }
  -
@@ -2617,7 +2617,7 @@ Not sure how to handle these:
     const bool export_unassigned_ids,
     String title)
   {  
-    LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
+    OPENMS_LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
     vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
 
     // extract mapped IDs (TODO: there should be a helper function)
@@ -2704,7 +2704,7 @@ Not sure how to handle these:
 
       mztab_run_metadata.location = MzTabString(m);
       meta_data.ms_run[run_index] = mztab_run_metadata;
-      LOG_DEBUG << "Adding MS run for file: " << m << endl;
+      OPENMS_LOG_DEBUG << "Adding MS run for file: " << m << endl;
       ++run_index;
     }
 
@@ -2850,7 +2850,7 @@ Not sure how to handle these:
       row.best_search_engine_score[1] = MzTabDouble();
 
       // initialize columns
-      LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
+      OPENMS_LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
       for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
       {
         row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();

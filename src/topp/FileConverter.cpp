@@ -136,7 +136,7 @@ String extractCachedMetaFilename(const String& in)
   in.split(".cachedMzML", split_out);
   if (split_out.size() != 2)
   {
-    LOG_ERROR << "Cannot deduce base path from input '" << in 
+    OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in 
       << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
     return "";
   }
@@ -492,7 +492,7 @@ protected:
       // Sanity check
       if (exp.size() != tmp_exp.size())
       {
-        LOG_ERROR << "Paired input files do not match, cannot convert: " << in_meta << " and " << in << std::endl;
+        OPENMS_LOG_ERROR << "Paired input files do not match, cannot convert: " << in_meta << " and " << in << std::endl;
         return ILLEGAL_PARAMETERS;
       }
 
@@ -803,7 +803,7 @@ protected:
     {
       if (fm.size() > 0 && cm.size() > 0)
       {
-        LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
+        OPENMS_LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
         return INTERNAL_ERROR;
       }
       if (fm.size() > 0) EDTAFile().store(out, fm);
@@ -828,7 +828,7 @@ protected:
       // IBSpectra selected as output type
       if (in_type != FileTypes::CONSENSUSXML)
       {
-        LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
 
