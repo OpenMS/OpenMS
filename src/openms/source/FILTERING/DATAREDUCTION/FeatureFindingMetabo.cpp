@@ -924,6 +924,9 @@ namespace OpenMS
         f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(use_smoothed_intensities_));
       }
 
+      // This can happen if the FWHM is zero (bc of overly skewed shape) and no peaks end up being summed up
+      if (f.getIntensity() == 0.0) {continue;}
+      
       f.setWidth(feat_hypos[hypo_idx].getFWHM());
       f.setCharge(feat_hypos[hypo_idx].getCharge());
       f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
