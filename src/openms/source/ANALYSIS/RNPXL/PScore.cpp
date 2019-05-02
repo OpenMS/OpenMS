@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 
 using std::map;
 using std::vector;
@@ -190,22 +191,17 @@ namespace OpenMS
       const PeakSpectrum& exp_spectrum = l_it->second;
 
       Size matched_peaks(0);
-      for (PeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+      if (fragment_mass_tolerance_unit_ppm)
       {
-        const double& theo_mz = theo_peak_it->getMZ();
-
-        double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-        Size index = exp_spectrum.findNearest(theo_mz);
-        double exp_mz = exp_spectrum[index].getMZ();
-
-        // found peak match
-        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
-        {
-          ++matched_peaks;
-        }
+        MatchedIterator<PeakSpectrum, PpmTrait> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
+        for (; it != it.end(); ++it) ++matched_peaks;
       }
+      else
+      {
+        MatchedIterator<PeakSpectrum, DaTrait> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
+        for (; it != it.end(); ++it) ++matched_peaks;
+      }
+
       // compute p score as e.g. in the AScore implementation or Andromeda
       const double p = (level + 1) / mz_window;
 
