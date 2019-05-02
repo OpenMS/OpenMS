@@ -127,18 +127,18 @@ public:
     Param getTransformationModelParams() const; ///< Transformation model parameters getter
 
 private:
+    Param transformation_model_params_; ///< transformation model parameters
     String component_name_; ///< id of the component
     String feature_name_; ///< name of the feature (i.e., peak_apex_int or peak_area)
     String IS_name_; ///< the internal standard (IS) name for the transition
+    String concentration_units_; ///< concentration units of the component's concentration
+    String transformation_model_; ///< transformation model
     double llod_ { 0.0 }; ///< lower limit of detection (LLOD) of the transition
     double ulod_ { 0.0 }; ///< upper limit of detection (ULOD) of the transition
     double lloq_ { 0.0 }; ///< lower limit of quantitation (LLOQ) of the transition
     double uloq_ { 0.0 }; ///< upper limit of quantitation (ULOQ) of the transition
-    Int n_points_ { 0 }; ///< number of points used in a calibration curve
     double correlation_coefficient_ { 0.0 }; ///< the Pearson R value for the correlation coefficient of the calibration curve
-    String concentration_units_; ///< concentration units of the component's concentration
-    String transformation_model_; ///< transformation model
-    Param transformation_model_params_; ///< transformation model parameters
+    Int n_points_ { 0 }; ///< number of points used in a calibration curve
   };
 }
 
