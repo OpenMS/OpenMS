@@ -297,6 +297,10 @@ namespace OpenMS
 
   }
 
+  const String& FragmentMassError::getName() const
+  {
+    return name_;
+  }
 
   const std::vector<FragmentMassError::FMEStatistics>& FragmentMassError::getResults() const
   {

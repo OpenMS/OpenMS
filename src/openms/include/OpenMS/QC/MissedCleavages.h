@@ -69,6 +69,9 @@ namespace OpenMS
      */
     void compute(FeatureMap& fmap);
 
+    /// returns the name of the metric
+    const String& getName() const override;
+    
     /// returns the result
     const std::vector<std::map<UInt32, UInt32>>& getResults() const;
 
@@ -79,6 +82,9 @@ namespace OpenMS
     QCBase::Status requires() const override;
 
   private:
+    /// name of the metric
+    const String name_ = "MissedCleavages";
+    
     /// container that stores results
     std::vector<std::map<UInt32, UInt32>> mc_result_;
   };

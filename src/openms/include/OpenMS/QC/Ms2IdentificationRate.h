@@ -60,6 +60,9 @@ namespace OpenMS
     };
 
   private:
+    /// name of the metric
+    const String name_ = "Ms2IdentificationRate";
+    
     /// container that stores results
     std::vector<IdentificationRateData> rate_result_;
 
@@ -86,6 +89,9 @@ namespace OpenMS
      */
     void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
 
+    /// returns the name of the metric
+    const String& getName() const override;
+    
     /// returns results
     const std::vector<IdentificationRateData>& getResults() const;
 

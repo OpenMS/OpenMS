@@ -217,6 +217,13 @@ START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & 
 END_SECTION
 
 
+START_SECTION(const String& getName() const override)
+{
+  TEST_EQUAL(ms2ir.getName(), "Ms2IdentificationRate")
+}
+END_SECTION
+
+
 START_SECTION(QCBase::Status requires() const override)
 {
   QCBase::Status stat = QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;

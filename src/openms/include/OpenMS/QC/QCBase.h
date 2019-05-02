@@ -67,6 +67,7 @@ namespace OpenMS
           SIZE_OF_REQUIRES
        };
       static constexpr std::array<const char*, std::size_t(Requires::SIZE_OF_REQUIRES)+1> names_of_requires = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML", "sizeOfRequires"};
+      
     /**
      * @brief Storing a status as a UInt64
      *
@@ -183,18 +184,15 @@ namespace OpenMS
     };
 
     /**
+    * @brief Returns the name of the metric
+    */
+    virtual const String& getName() const = 0;
+    
+    /**
      *@brief Returns the input data requirements of the compute(...) function
      */
     virtual Status requires() const = 0;
-
-    /**
-     * @brief Returns the name of the metric
-      else
-      {
-        std::cout << "TopNoverRT-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>) and the featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
-      }
-     */
-    virtual String getName() const = 0;
+    
 
     /**
      * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function

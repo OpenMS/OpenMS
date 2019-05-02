@@ -106,6 +106,12 @@ namespace OpenMS
     mc_result_.push_back(result);
   }
 
+  
+  const String& MissedCleavages::getName() const
+  {
+    return name_;
+  }
+  
 
   const std::vector<mapU32>& MissedCleavages::getResults() const
   {
