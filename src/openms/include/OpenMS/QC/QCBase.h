@@ -58,13 +58,15 @@ namespace OpenMS
       enum class Requires :
           UInt64
       {
-          FAIL = 0,         //< default, does not encode for anything
-          RAWMZML = 1,      //< mzML file is required
-          POSTFDRFEAT = 2,  //< Features with FDR-filtered pepIDs
-          PREFDRFEAT = 4,   //< Features with unfiltered pepIDs
-          CONTAMINANTS = 8, //< Contaminant Database
-          TRAFOALIGN = 16   //< transformationXMLs for RT-alignment
+          FAIL,         //< default, does not encode for anything
+          RAWMZML,      //< mzML file is required
+          POSTFDRFEAT,  //< Features with FDR-filtered pepIDs
+          PREFDRFEAT,   //< Features with unfiltered pepIDs
+          CONTAMINANTS, //< Contaminant Database
+          TRAFOALIGN,   //< transformationXMLs for RT-alignment
+          SIZE_OF_REQUIRES
        };
+      static constexpr std::array<const char*, std::size_t(Requires::SIZE_OF_REQUIRES)+1> names_of_requires = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML", "sizeOfRequires"};
     /**
      * @brief Storing a status as a UInt64
      *
@@ -84,7 +86,7 @@ namespace OpenMS
 
       Status(const Requires& req)
       {
-        value_ = UInt64(req);
+        value_ = getPow_(req);
       }
 
       Status(const Status& stat)
@@ -95,7 +97,7 @@ namespace OpenMS
       // Assignment
       Status& operator=(const Requires& req)
       {
-        value_ = UInt64(req);
+        value_ = getPow_(req);
         return *this;
       }
 
@@ -114,7 +116,7 @@ namespace OpenMS
       Status operator&(const Requires& req) const
       {
         Status s = *this;
-        s.value_ &= UInt64(req);
+        s.value_ &= getPow_(req);
         return s;
       }
 
@@ -127,7 +129,7 @@ namespace OpenMS
 
       Status& operator&=(const Requires& req)
       {
-        value_ &= UInt64(req);
+        value_ &= getPow_(req);
         return *this;
       }
 
@@ -140,7 +142,7 @@ namespace OpenMS
       Status operator|(const Requires& req) const
       {
         Status s = *this;
-        s.value_ |= UInt64(req);
+        s.value_ |= getPow_(req);
         return s;
       }
 
@@ -153,7 +155,7 @@ namespace OpenMS
 
       Status& operator|=(const Requires& req)
       {
-        value_ |= UInt64(req);
+        value_ |= getPow_(req);
         return *this;
       }
 
@@ -172,6 +174,11 @@ namespace OpenMS
       }
 
     private:
+
+      UInt64 getPow_(const Requires& r) const
+      {
+        return 1 << UInt64 (r);
+      }
       UInt64 value_;
     };
 
@@ -181,9 +188,17 @@ namespace OpenMS
     virtual Status requires() const = 0;
 
     /**
+     * @brief Returns the name of the metric
+      else
+      {
+        std::cout << "TopNoverRT-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>) and the featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
+      }
+     */
+    virtual String getName() const = 0;
+
+    /**
      * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
      *
-     * PeptideIdentifications without PeptideHits are not passed to the Lambda function.
      * The Lambda may or may not change the PeptideIdentification
      */
 
@@ -192,28 +207,14 @@ namespace OpenMS
     {
       for (auto& pep_id : fmap.getUnassignedPeptideIdentifications())
       {
-        if (pep_id.getHits().empty())
-        {
-          LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
-        }
-        else
-        {
-          lambda(pep_id);
-        }
+        lambda(pep_id);
       }
 
       for (auto& features : fmap)
       {
         for (auto& pep_id : features.getPeptideIdentifications())
         {
-          if (pep_id.getHits().empty())
-          {
-            LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
-          }
-          else
-          {
-            lambda(pep_id);
-          }
+          lambda(pep_id);
         }
       }
     }

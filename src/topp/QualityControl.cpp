@@ -66,6 +66,7 @@ using namespace std;
 // Doxygen docu
 //-------------------------------------------------------------
 // We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 
 
 class TOPPQualityControl : public TOPPBase
@@ -105,6 +106,21 @@ protected:
     setValidFormats_("out_feat", {"FeatureXML"});
     //TODO get ProteinQuantifier output for PRT section
 
+  }
+
+  bool isRunnable_(const QCBase* m, OpenMS::QCBase::Status s)
+  {
+    if (s.isSuperSetOf(m->requires())) return true;
+
+    for (int i=0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES;++i)
+    {
+      if (m->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
+      {
+        LOG_WARN << "Metric " << m->getName() << " cannot run because " << i << " is missing!\n";
+
+      }
+    }
+    return false;
   }
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
@@ -186,67 +202,39 @@ protected:
       // calculations
       //-------------------------------------------------------------
 
-      if (status.isSuperSetOf(qc_contaminants.requires()))
+      if (isRunnable_(*qc_contaminants, status))
       {
         qc_contaminants.compute(fmap, contaminants);
       }
-      else
-      {
-        std::cout << "Contaminants-Metric is not performed. If you want it to run, add the featureXML after FDR was computed (-in_postFDR <file.featureXML>) and a contaminants database (in_contaminants <file.fasta>)" << std::endl;
-      }
 
-      if (status.isSuperSetOf(qc_frag_mass_err.requires()))
+      if (isRunnable_(*qc_frag_mass_err, status))
       {
         qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit);
       }
-      else
-      {
-        std::cout << "FragmentMassError-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>) and the featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
-      }
 
-      if (status.isSuperSetOf(qc_missed_cleavages.requires()))
+      if (isRunnable_(*qc_missed_cleavages, status))
       {
         qc_missed_cleavages.compute(fmap);
       }
-      else
-      {
-        std::cout << "MissedCleavages-Metric is not performed. If you want it to run, add at least one featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
-      }
 
-      if (status.isSuperSetOf(qc_ms2ir.requires()))
+      if (isRunnable_(*qc_ms2ir, status))
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
       }
-      else
-      {
-        std::cout << "MS2IdentificationRate-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>) and the featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
-      }
 
-      if (status.isSuperSetOf(qc_rt_alignment.requires()))
+      if (isRunnable_(*qc_rt_alignment, status))
       {
         qc_rt_alignment.compute(fmap, trafo_descr);
       }
-      else
-      {
-        std::cout << "RTAlignment-Metric is not performed. If you want it to run, add at least one featureXML after FDR was computed (-in_postFDR <file.featureXML>) and the trafoXML (-in_trafo <trafoXML>)" << std::endl;
-      }
 
-      if (status.isSuperSetOf(qc_tic.requires()))
+      if (isRunnable_(*qc_tic, status))
       {
         qc_tic.compute(exp);
       }
-      else
-      {
-        std::cout << "TotalIonCount-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>)" << std::endl;
-      }
 
-      if (status.isSuperSetOf(qc_top_n_over_rt.requires()))
+      if (isRunnable_(*qc_top_n_over_rt, status))
       {
         qc_top_n_over_rt.compute(exp, fmap);
-      }
-      else
-      {
-        std::cout << "TopNoverRT-Metric is not performed. If you want it to run, add at least one RAWmzML (-in_raw <file.mzML>) and the featureXML after FDR was computed (-in_postFDR <file.featureXML>)" << std::endl;
       }
 
       StringList out_feat = getStringList_("out_feat");
@@ -379,3 +367,5 @@ int main(int argc, const char ** argv)
   TOPPQualityControl tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

@@ -142,17 +142,17 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
 
   //test features
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
-  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("identified"), "1");
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("identified"), 1);
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 1);
   TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
   TEST_EQUAL(fmap[1].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 2);
   //test unassigned
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 2);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("identified"), "1");
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("identified"), 1);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 3);
   TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getRT(), 20);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("ScanEventNumber"), 3);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("identified"), "0");
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("identified"), 0);
   TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getMZ(), 5.5);
 
   //empty FeatureMap

@@ -239,6 +239,7 @@ namespace OpenMS
 
             accumulator_ppm += ppm;
             ppm = current_ppm;
+            da = current_da;
             current_exp = exp_mz;
           }
 
@@ -247,6 +248,7 @@ namespace OpenMS
 
       // last peak doesn't have a successor so it has to be added manually
       ppms.push_back(ppm);
+      dalton.push_back(da);
       accumulator_ppm += ppm;
       ++ counter_ppm;
 
@@ -263,6 +265,11 @@ namespace OpenMS
 
     auto lamVar = [&result](const PeptideIdentification& pep_id)
     {
+      if (pep_id.getHits().empty())
+      {
+        LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
+        return;
+      }
       for (auto ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
       {
         result.variance_ppm += pow((ppm - result.average_ppm),2);

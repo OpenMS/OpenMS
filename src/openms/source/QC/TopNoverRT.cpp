@@ -105,7 +105,7 @@ namespace OpenMS
     {
       ms2_included_[distance(exp.begin(), it)].ms2_presence = true;
       peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].scan_event_number);
-      peptide_ID.setMetaValue("identified", "1");
+      peptide_ID.setMetaValue("identified", 1);
     }
   }
 
@@ -121,7 +121,7 @@ namespace OpenMS
           PeptideIdentification unidentified_MS2;
           unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
           unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
-          unidentified_MS2.setMetaValue("identified", "0");
+          unidentified_MS2.setMetaValue("identified", 0);
           unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
           features.getUnassignedPeptideIdentifications().push_back(unidentified_MS2);
         }
