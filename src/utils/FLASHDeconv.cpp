@@ -233,6 +233,7 @@ public:
     void updateMassesAndIntensity(PrecalcularedAveragine &averagines)
     {
       double maxIntensityForMonoIsotopeMass = -1;
+
       intensity = .0;
       for (auto &p : peaks)
       {
@@ -299,7 +300,7 @@ protected:
 
     registerIntOption_("minCC", "<min continuous charge peak count>", 3,
                        "minimum number of peaks of continuous charges per mass", false, true);
-    registerDoubleOption_("minIsotopeCosine", "<...>", .3, "cosine threshold between avg. isotope and observed intensities for max mass", false, true);
+    registerDoubleOption_("minIsotopeCosine", "<...>", .5, "cosine threshold between avg. isotope and observed intensities for max mass", false, true);
     registerDoubleOption_("maxIsotopeCosine", "<...>", .8, "cosine threshold between avg. isotope and observed intensities for min mass", false, true);
     //registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
 
@@ -758,6 +759,14 @@ protected:
         continue;
       }
 
+      /*double is = 0;
+      for(auto&p : *it){
+        is+=p.getIntensity();
+      }
+
+      cout<< it->getRT() <<" "<<is<<endl;
+      continue;
+*/
       float progress = (float) (it - map.begin()) / map.size();
       if (progress > prevProgress + .01)
       {
@@ -1100,7 +1109,80 @@ protected:
 
         if (maxIntensityPeakIndex >= 0)
         {
-          double mz = logMzPeaks[maxIntensityPeakIndex].orgPeak->getMZ() - Constants::PROTON_MASS_U;
+          double mz = logMzPeaks[maxIntensityPeakIndex].orgPeak->getMZ();
+          //double &logMz = logMzPeaks[maxIntensityPeakIndex].logMz;
+          double isof = Constants::C13C12_MASSDIFF_U / charge;
+          double mzDelta = tol * mz;
+          //cout<<mzDelta<<endl;
+          int maxI = 0;
+          for (int d = -1; d <= 1; d += 2)
+          { // negative then positive direction.
+            int peakIndex = maxIntensityPeakIndex + (d < 0 ? d : 0);
+            int lastPeakIndex = -100;
+            for (int i = 0; i < maxIsotopeCount && (peakIndex >= 0 && peakIndex < logMzPeakSize); i++)
+            {
+              maxI = max(maxI, i);
+              double centerMz = mz + isof * i * d;
+              double centerMzMin = centerMz - mzDelta;
+              double centerMzMax = centerMz + mzDelta;
+              bool isotopePeakPresent = false;
+              if (lastPeakIndex >= 0)
+              {
+                peakIndex = lastPeakIndex;
+              }//maxIntensityPeakIndex + (d < 0 ? d : 0);
+              for (; peakIndex >= 0 && peakIndex < logMzPeakSize; peakIndex += d)
+              {
+                double observedMz = logMzPeaks[peakIndex].orgPeak->getMZ();
+                if (observedMz < centerMzMin)
+                {
+                  if (d < 0)
+                  {
+                    break;
+                  }
+                  else
+                  {
+                    continue;
+                  }
+                }
+                if (observedMz > centerMzMax)
+                {
+                  if (d < 0)
+                  {
+                    continue;
+                  }
+                  else
+                  {
+                    break;
+                  }
+                }
+                isotopePeakPresent = true;
+                if (peakIndex != lastPeakIndex)
+                {
+                  LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, i * d);
+                  auto bin = peakBinNumbers[peakIndex] + binOffset;
+
+                  //if(massBinIndex == bin || unionedMassBins[bin]) {
+                  pg.push_back(p);
+                  //isoOff = min(isoOff, p.isotopeIndex);
+                  lastPeakIndex = peakIndex;
+                  //}
+                  if (massBinIndex != bin && unionedMassBins[bin])
+                  {
+                    toRemove.push_back(bin);
+                  }
+                }
+              }
+              if (!isotopePeakPresent)
+              {
+                break;
+              }
+              //if (d < 0) {
+              //    isoOff = -i > isoOff ? isoOff : -i;
+              //}
+            }
+          }
+
+          /*double mz = logMzPeaks[maxIntensityPeakIndex].orgPeak->getMZ() - Constants::PROTON_MASS_U;
           double &logMz = logMzPeaks[maxIntensityPeakIndex].logMz;
           double isof = Constants::C13C12_MASSDIFF_U / charge / mz;
           int maxI = 0;
@@ -1168,7 +1250,7 @@ protected:
               //    isoOff = -i > isoOff ? isoOff : -i;
               //}
             }
-          }
+          }*/
 
           //int minIsoIndex = maxI;
           for (auto &p : pg.peaks)
@@ -1184,8 +1266,8 @@ protected:
 
               for (int i = 0; i <= maxI; i++)
               {
-                double centerLogMz = logMz + isof * (p.isotopeIndex + i * d);
-                double delta = abs(centerLogMz - p.logMz);
+                double centerMz = mz + isof * (p.isotopeIndex + i * d);
+                double delta = abs(centerMz - p.orgPeak->getMZ());
 
                 if (delta > minMzDelta)
                 {
