@@ -108,15 +108,15 @@ protected:
 
   }
 
-  bool isRunnable_(const QCBase* m, OpenMS::QCBase::Status s)
+  bool isRunnable_(const QCBase* m, const OpenMS::QCBase::Status s)
   {
     if (s.isSuperSetOf(m->requires())) return true;
 
-    for (int i=0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES;++i)
+    for (int i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
     {
       if (m->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
       {
-        LOG_WARN << "Metric " << m->getName() << " cannot run because " << QCBase::names_of_requires[i] << " is missing!\n";
+        LOG_WARN << "Metric '" << m->getName() << "' cannot run because input data '" << QCBase::names_of_requires[i] << "' is missing!\n";
       }
     }
     return false;
