@@ -86,7 +86,7 @@ namespace OpenMS
      * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
-    void compute(FeatureMap& fmap, const MSExperiment& exp, double tolerance = 20, ToleranceUnit tolerance_unit = ToleranceUnit::PPM);
+    void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit tolerance_unit = ToleranceUnit::PPM);
 
     /// returns the name of the metric
     const String& getName() const override;
