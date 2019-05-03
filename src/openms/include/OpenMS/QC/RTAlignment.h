@@ -52,6 +52,7 @@ namespace OpenMS
     public:
     /// Constructor
     RTAlignment() = default;
+    
     /// Destructor
     virtual ~RTAlignment() = default;
 
@@ -62,7 +63,15 @@ namespace OpenMS
      @param trafo: Transformation information to get needed data from
     **/
     void compute(FeatureMap& features, const TransformationDescription& trafo);
+    
+    /// returns the name of the metric
+    const String& getName() const override;
+    
     /// define the required input file: featureXML before map alignment (=POSTFDRFEAT), trafoXML after map alignment (=TRAFOALIGN)
     Status requires() const override;
+    
+  private:
+    /// name of the metric
+    const String name_ = "RTAlignment";
   };
 }

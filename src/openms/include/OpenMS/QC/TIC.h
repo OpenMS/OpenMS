@@ -49,11 +49,12 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI TIC : QCBase
+  class OPENMS_DLLAPI TIC : public QCBase
   {
   public:
     /// Constructor
     TIC() = default;
+
     /// Destructor
     ~TIC() = default;
     void clear();
@@ -68,9 +69,15 @@ namespace OpenMS
     @return TIC Chromatogram
     **/
     void compute(const MSExperiment &exp, float bin_size=0);
+
+    const String& getName() const override;
+
     const std::vector<MSChromatogram>& getResults() const ;
+
     QCBase::Status requires() const override;
+
   private:
+    const String name_ = "TIC";
     std::vector<MSChromatogram> results_;
   };
 }
