@@ -129,6 +129,12 @@ namespace OpenMS
     }
   }
 
+  // returns the name of the metric
+  const String& TopNoverRT::getName() const
+  {
+    return name_;
+  }
+
   // required input files
   QCBase::Status TopNoverRT::requires() const
   {

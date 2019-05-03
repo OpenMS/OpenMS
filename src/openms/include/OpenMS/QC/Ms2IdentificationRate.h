@@ -48,7 +48,7 @@ namespace OpenMS
    *
    * This class computes the MS2 Identification Rate given a FeatureMap and an MSExperiment.
    */
-  class OPENMS_DLLAPI Ms2IdentificationRate : QCBase
+  class OPENMS_DLLAPI Ms2IdentificationRate : public QCBase
   {
   public:
     /// Structure for storing results

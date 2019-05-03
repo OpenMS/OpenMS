@@ -116,8 +116,7 @@ protected:
     {
       if (m->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
       {
-        LOG_WARN << "Metric " << m->getName() << " cannot run because " << i << " is missing!\n";
-
+        LOG_WARN << "Metric " << m->getName() << " cannot run because " << QCBase::names_of_requires[i] << " is missing!\n";
       }
     }
     return false;
@@ -202,37 +201,37 @@ protected:
       // calculations
       //-------------------------------------------------------------
 
-      if (isRunnable_(*qc_contaminants, status))
+      if (isRunnable_(&qc_contaminants, status))
       {
         qc_contaminants.compute(fmap, contaminants);
       }
 
-      if (isRunnable_(*qc_frag_mass_err, status))
+      if (isRunnable_(&qc_frag_mass_err, status))
       {
         qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit);
       }
 
-      if (isRunnable_(*qc_missed_cleavages, status))
+      if (isRunnable_(&qc_missed_cleavages, status))
       {
         qc_missed_cleavages.compute(fmap);
       }
 
-      if (isRunnable_(*qc_ms2ir, status))
+      if (isRunnable_(&qc_ms2ir, status))
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
       }
 
-      if (isRunnable_(*qc_rt_alignment, status))
+      if (isRunnable_(&qc_rt_alignment, status))
       {
         qc_rt_alignment.compute(fmap, trafo_descr);
       }
 
-      if (isRunnable_(*qc_tic, status))
+      if (isRunnable_(&qc_tic, status))
       {
         qc_tic.compute(exp);
       }
 
-      if (isRunnable_(*qc_top_n_over_rt, status))
+      if (isRunnable_(&qc_top_n_over_rt, status))
       {
         qc_top_n_over_rt.compute(exp, fmap);
       }

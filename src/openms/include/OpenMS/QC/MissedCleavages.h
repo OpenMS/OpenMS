@@ -49,7 +49,7 @@ namespace OpenMS
    * Additionally the PeptideHits in the FeatureMap are augmented with MetaInformation.
    *
    */
-  class OPENMS_DLLAPI MissedCleavages : QCBase
+  class OPENMS_DLLAPI MissedCleavages : public QCBase
   {
   public:
     ///constructor

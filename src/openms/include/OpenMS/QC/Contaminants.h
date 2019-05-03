@@ -49,8 +49,7 @@ namespace OpenMS
    * This class checks whether a peptide is a contaminant (given a protein DB) and adds that result as metavalue "is_contaminant"
    * to the first hit of each PeptideIdentification.
    */
-  class OPENMS_DLLAPI Contaminants:
-      QCBase
+  class OPENMS_DLLAPI Contaminants: public QCBase
   {
   public:
     /// structure for storing results

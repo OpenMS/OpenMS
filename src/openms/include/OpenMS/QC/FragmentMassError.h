@@ -42,7 +42,7 @@ namespace OpenMS
   class FeatureMap;
   class MSExperiment;
   
-  class OPENMS_DLLAPI FragmentMassError : QCBase
+  class OPENMS_DLLAPI FragmentMassError : public QCBase
   {
   public:
 

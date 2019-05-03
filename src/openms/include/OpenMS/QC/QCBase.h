@@ -66,8 +66,8 @@ namespace OpenMS
           TRAFOALIGN,   //< transformationXMLs for RT-alignment
           SIZE_OF_REQUIRES
        };
-      static constexpr std::array<const char*, std::size_t(Requires::SIZE_OF_REQUIRES)+1> names_of_requires = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML", "sizeOfRequires"};
-      
+    /// strings corresponding to enum Requires
+      static const std::string names_of_requires[];
     /**
      * @brief Storing a status as a UInt64
      *

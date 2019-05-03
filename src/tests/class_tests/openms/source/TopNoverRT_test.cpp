@@ -69,9 +69,15 @@ START_SECTION(~TopNoverRT())
 }
 END_SECTION
 
+TopNoverRT top;
+START_SECTION(const String& getName() const override)
+{
+  TEST_EQUAL(top.getName(), "TopNoverRT")
+}
+END_SECTION
+
 START_SECTION(QCBase::Status requires() const override)
 {
-  TopNoverRT top;
   TEST_EQUAL(top.requires() == (QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
