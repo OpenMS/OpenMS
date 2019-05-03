@@ -672,7 +672,7 @@ protected:
           << mt.getTraceLength() << "\t"
           << mt[mt.findMaxByIntPeak()].getRT() << "\t"
           << mt.getMaxIntensity(false) << "\t"
-          << mt.computePeakArea() << "\t"
+          //<< mt.computePeakArea() << "\t"
           << minCharge << "\t"
           << maxCharge << "\t"
           << charges.count() << "\n";
@@ -693,7 +693,7 @@ protected:
     }
     fsf << "ID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tMaxIntensity\tQuantity\tMinCharge\tMaxCharge\tChargeCount\n";
+           "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\n";
     return;
   }
 
