@@ -733,7 +733,7 @@ protected:
       }
     }
 
-    /*
+/*
     double *tfilter = new double[param.chargeRange];
     auto m = filter[0];
     auto M = filter[param.chargeRange-1];
@@ -742,7 +742,7 @@ protected:
       tfilter[i] = -filter[param.chargeRange - i - 1] + M + m;
     }
     filter = tfilter;
-    */
+*/
 
     float prevProgress = .0;
     vector<PeakGroup> allPeakGroups;
