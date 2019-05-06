@@ -50,6 +50,7 @@
 #include <OpenMS/QC/FragmentMassError.h>
 #include <OpenMS/QC/MissedCleavages.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
+#include <OpenMS/QC/MzCalibration.h>
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
@@ -145,6 +146,7 @@ protected:
     FragmentMassError qc_frag_mass_err;
     MissedCleavages qc_missed_cleavages;
     Ms2IdentificationRate qc_ms2ir;
+    MzCalibration qc_mz_calibration;
     RTAlignment qc_rt_alignment;
     TIC qc_tic;
     TopNoverRT qc_top_n_over_rt;
@@ -197,6 +199,11 @@ protected:
       if (status.isSuperSetOf(qc_ms2ir.requires()))
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
+      }
+
+      if (status.isSuperSetOf(qc_mz_calibration.requires()))
+      {
+        qc_mz_calibration.compute(fmap, exp);
       }
 
       if (status.isSuperSetOf(qc_rt_alignment.requires()))
@@ -296,8 +303,9 @@ private:
     {
       if (!ref_pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
       {
-        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at unassigned peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
+        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
       }
+      cout << ref_pep_id.getMetaValue("UID") << endl;
       PeptideIdentification& pep_id = *(map_to_id.at(ref_pep_id.getMetaValue("UID"))); 
 
       // copy all MetaValues that are at PepID level
@@ -314,7 +322,7 @@ private:
     {
       if (!pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
       {
-        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at unassigned peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
+        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
       }
       map_to_id[pep_id.getMetaValue("UID")] = &pep_id;
     }
