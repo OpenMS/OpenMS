@@ -48,7 +48,6 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
 #include <OpenMS/QC/Contaminants.h>
 #include <OpenMS/QC/FragmentMassError.h>
 #include <OpenMS/QC/MissedCleavages.h>
@@ -341,7 +340,6 @@ private:
       {
         throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
       }
-      cout << ref_pep_id.getMetaValue("UID") << endl;
       PeptideIdentification& pep_id = *(map_to_id.at(ref_pep_id.getMetaValue("UID"))); 
 
       // copy all MetaValues that are at PepID level

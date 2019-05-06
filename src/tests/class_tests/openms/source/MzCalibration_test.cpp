@@ -240,6 +240,12 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp))
   TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp), "The matching retention time of the MZML has the wrong MSLevel");
 }
 END_SECTION
+
+START_SECTION(const String& getName() const)
+{
+  TEST_EQUAL(cal.getName(), "MzCalibration");
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

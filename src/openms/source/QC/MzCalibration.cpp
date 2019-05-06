@@ -47,7 +47,7 @@ using namespace std;
  
 namespace OpenMS
 {
-  MzCalibration::MzCalibration() : mz_raw_{}, mz_ref_{}, no_mzml_(false)
+  MzCalibration::MzCalibration() : mz_raw_{}, mz_ref_{}, no_mzml_(false), name_("MzCalibration")
   {}
   // find original m/z Value, set meta value "mz_raw" and set meta value "mz_ref"
   void MzCalibration::compute(FeatureMap& features, const MSExperiment& exp)
@@ -153,6 +153,11 @@ namespace OpenMS
   QCBase::Status MzCalibration::requires() const
   {
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
+  }
+
+  const String& MzCalibration::getName() const
+  {
+    return name_;
   }
 
   // search matching RT-time in MSExperiment before calibration, and return the m/z value
