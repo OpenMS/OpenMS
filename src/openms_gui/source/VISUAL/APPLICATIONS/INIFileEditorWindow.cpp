@@ -110,8 +110,8 @@ namespace OpenMS
         }
         catch (Exception::BaseException& e)
         {
-          LOG_ERROR << "Error while parsing file '" << filename_.toStdString() << "'\n";
-          LOG_ERROR << e << "\n";
+          OPENMS_LOG_ERROR << "Error while parsing file '" << filename_.toStdString() << "'\n";
+          OPENMS_LOG_ERROR << e << "\n";
         }
       }
 

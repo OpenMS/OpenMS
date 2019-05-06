@@ -50,32 +50,34 @@ public:
   // struct to store information about accessions
   struct AccessionInfo
   {
-    String sf_path;
-    String sf_type;
-    String sf_accession;
-    String native_id_accession;
-    String native_id_type;
+    String sf_path; ///< sourcefile path for mztab-m
+    String sf_type; ///< sourcefile type for mztab-m
+    String sf_accession; ///< sourcefile accessions for mztab-m
+    String native_id_accession; ///< nativeID accession for mztab-m
+    String native_id_type; ///< nativeID type for mztab-m
   };
 
   // struct to store the compound information
+  // can be used to map compound and fragment annotated spectrum later on
   struct CompoundInfo
   {
-    String cmp;
-    double pmass;
-    double rt;
-    double fmz;
-    String fid;
-    String formula;
-    int charge;
-    String ionization;
-    String des;
-    String specref_format;
-    String source_file;
-    String source_format;
-    std::vector<String> native_ids;
-    std::vector<String> mids;
-    std::vector<String> scan_indices;
-    std::vector<String> specrefs;
+    String cmp; ///< query_id used compound in .ms file
+    double pmass; ///< parent/precursor mass of the compound
+    double pint_mono; ///< parent/precursor intensity of the compound
+    double rt; ///< retention time of the compound
+    double fmz; ///< annotated mass of a feature (if available)
+    String fid; ///< annotated feature_id (if available)
+    String formula; ///< sumformula of the compound
+    int charge; ///< precursor/feature charge
+    String ionization; ///< adduct information
+    String des; ///< description/name of the compound
+    String specref_format; ///< spectra ref format for mztab-m
+    String source_file; ///< sourcefile for mztab-m
+    String source_format; ///< format of the sourcefile for mztab-m
+    std::vector<String> native_ids; ///< native ids of the associated spectra
+    std::vector<String> mids; ///< native ids and identifier for multiple possible identification via AMS
+    std::vector<String> scan_indices; ///< index of the associated spectra
+    std::vector<String> specrefs; ///< spectra reference for mztab-m
   };
 
   /**

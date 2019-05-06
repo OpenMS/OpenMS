@@ -101,8 +101,8 @@ namespace OpenMS
     {
       select_gene = ", GENE.GENE_NAME AS gene_name ";
       select_gene_null = ", 'NA' AS gene_name ";
-      join_gene = "LEFT JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
-                  "LEFT JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
+      join_gene = "INNER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
+                  "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
     }
 
 

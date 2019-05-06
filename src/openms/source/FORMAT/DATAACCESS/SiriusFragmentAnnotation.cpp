@@ -74,7 +74,7 @@ namespace OpenMS
         }
         else if (line == ">ms1peaks")
         {
-           LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
+           OPENMS_LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
            break;
         }
       }
@@ -104,7 +104,7 @@ namespace OpenMS
         }
         else if (line == ">ms1peaks")
         {
-          LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
+          OPENMS_LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
           break;
         }
       }
@@ -194,7 +194,7 @@ namespace OpenMS
     }
     else
     {
-      LOG_WARN << "Directory 'spectra' was not found for: " << sirius_spectra_dir << std::endl;
+      OPENMS_LOG_WARN << "Directory 'spectra' was not found for: " << sirius_spectra_dir << std::endl;
     }
   }
 } // namespace OpenMS

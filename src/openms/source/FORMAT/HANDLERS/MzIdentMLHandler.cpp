@@ -709,12 +709,12 @@ namespace OpenMS
               if (it->getMZ() != it->getMZ())
             {
               emz = "nan";
-              LOG_WARN << "Found no spectrum reference and no m/z position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              OPENMS_LOG_WARN << "Found no spectrum reference and no m/z position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
             }
             if (it->getRT() != it->getRT())
             {
               ert = "nan";
-              LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              OPENMS_LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
             }
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
@@ -733,7 +733,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_WARN << "Falling back to referencing first spectrum file given because file or identifier could not be mapped." << std::endl;
+          OPENMS_LOG_WARN << "Falling back to referencing first spectrum file given because file or identifier could not be mapped." << std::endl;
         }
 
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
@@ -1093,7 +1093,7 @@ namespace OpenMS
               }
               else
               {
-                LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
+                OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
                 continue;
               }
               String idec;
@@ -1124,7 +1124,7 @@ namespace OpenMS
               }
               else
               {
-                LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
+                OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
               }
               if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
               {
@@ -1136,7 +1136,7 @@ namespace OpenMS
               }
               else
               {
-                LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
+                OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
               }
               if (!idec.empty())
               {
@@ -1169,7 +1169,7 @@ namespace OpenMS
           if (sc.empty())
           {
             sc = "NA";
-            LOG_WARN << "No score assigned to this PSM: " /*<< jt->getSequence().toString()*/ << std::endl;
+            OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< jt->getSequence().toString()*/ << std::endl;
           }
           String c(jt->getCharge()); //charge
 
@@ -1205,7 +1205,7 @@ namespace OpenMS
 
           if (pevid_ids.empty())
           {
-            LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
+            OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
           }
           for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
@@ -1278,7 +1278,7 @@ namespace OpenMS
             sii_tmp += String(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
             sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
                          + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
-            LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << std::endl;
+            OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << std::endl;
           }
           sii_tmp += "\n";
 
@@ -1393,7 +1393,7 @@ namespace OpenMS
           else
           {
             //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-            LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << std::endl;
+            OPENMS_LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << std::endl;
           }
         }
 
@@ -1421,7 +1421,7 @@ namespace OpenMS
           else
           {
             //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-            LOG_ERROR << "encountered a PeptideIdentification crosslink information which is not linked to any ProteinIdentification" << std::endl;
+            OPENMS_LOG_ERROR << "encountered a PeptideIdentification crosslink information which is not linked to any ProteinIdentification" << std::endl;
           }
         }
       }
@@ -1695,8 +1695,8 @@ namespace OpenMS
           // this would happen quite often and flood the output, but we still need them for other output formats
           // TODO find ways to represent additional fragment types or filter out known incompatible types
 
-          // LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
-          // LOG_WARN << kt->annotation << std::endl;
+          // OPENMS_LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
+          // OPENMS_LOG_WARN << kt->annotation << std::endl;
           continue;
         }
         String lt = "frag: " + iontype + " ion";

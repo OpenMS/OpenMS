@@ -270,7 +270,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    LOG_DEBUG << "protein IDs: " << proteins.size() << endl
+    OPENMS_LOG_DEBUG << "protein IDs: " << proteins.size() << endl
               << "peptide IDs: " << peptides.size() << endl;
     IdXMLFile().store(out, proteins, peptides);
 
@@ -339,8 +339,7 @@ protected:
         {
           peptides.insert(peptides.end(), peps.begin(), peps.end());
         }
-        for (auto map_it =
-               proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
+        for (auto map_it = proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
         {
           proteins.push_back(map_it->second);
         }
@@ -367,21 +366,19 @@ protected:
                         base_peptides.end());
 
         // merge in data from other files:
-        for (auto file_it =
-               ++peptides_by_file.begin(); file_it != peptides_by_file.end();
+        for (auto file_it = ++peptides_by_file.begin(); file_it != peptides_by_file.end();
              ++file_it)
         {
           set<String> accessions; // keep track to avoid duplicates
-          for (auto pep_it =
-                 file_it->begin(); pep_it != file_it->end(); ++pep_it)
+          for (auto pep_it = file_it->begin(); pep_it != file_it->end(); ++pep_it)
           {
             if (pep_it->getHits().empty()) continue;
             pep_it->sort();
             const PeptideHit& hit = pep_it->getHits()[0];
-            LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
+            OPENMS_LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
             // skip ahead if peptide is not new:
             if (sequences.find(hit.getSequence()) != sequences.end()) continue;
-            LOG_DEBUG << "new peptide!" << endl;
+            OPENMS_LOG_DEBUG << "new peptide!" << endl;
             pep_it->getHits().resize(1); // restrict to best hit for simplicity
             peptides.push_back(*pep_it);
 
@@ -390,13 +387,13 @@ protected:
             // copy over proteins:
             for (String const & acc : protein_accessions)
             {
-              LOG_DEBUG << "accession: " << acc << endl;
+              OPENMS_LOG_DEBUG << "accession: " << acc << endl;
               // skip ahead if accession is not new:
               if (accessions.find(acc) != accessions.end()) continue;
-              LOG_DEBUG << "new accession!" << endl;
+              OPENMS_LOG_DEBUG << "new accession!" << endl;
               // first find the right protein identification:
               const String& id = pep_it->getIdentifier();
-              LOG_DEBUG << "identifier: " << id << endl;
+              OPENMS_LOG_DEBUG << "identifier: " << id << endl;
               if (proteins_by_id.find(id) == proteins_by_id.end())
               {
                 writeLog_("Error: identifier '" + id + "' linking peptides and proteins not found. Skipping.");
@@ -414,7 +411,7 @@ protected:
               // we may need to copy protein ID meta data, if we haven't yet:
               if (selected_proteins.find(id) == selected_proteins.end())
               {
-                LOG_DEBUG << "adding protein identification" << endl;
+                OPENMS_LOG_DEBUG << "adding protein identification" << endl;
                 selected_proteins[id] = protein;
                 selected_proteins[id].getHits().clear();
                 // remove potentially invalid information:
@@ -428,8 +425,7 @@ protected:
             }
           }
         }
-        for (auto map_it =
-               selected_proteins.begin(); map_it != selected_proteins.end();
+        for (auto map_it = selected_proteins.begin(); map_it != selected_proteins.end();
              ++map_it)
         {
           proteins.push_back(map_it->second);

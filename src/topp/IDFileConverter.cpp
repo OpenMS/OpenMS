@@ -195,7 +195,7 @@ private:
 #pragma omp critical (IDFileConverter_ERROR)
 #endif
           {
-            LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
+            OPENMS_LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
             ret = false;
           }
         }
@@ -415,7 +415,7 @@ protected:
 
       else if (in_type == FileTypes::MZIDENTML)
       {
-        LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
+        OPENMS_LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
         MzIdentMLFile().load(in, protein_identifications,
                              peptide_identifications);
 
@@ -499,7 +499,7 @@ protected:
             }
             else
             {
-              LOG_ERROR << "XTandem xml: Error: id '" << id << "' not found in peak map!" << endl;
+              OPENMS_LOG_ERROR << "XTandem xml: Error: id '" << id << "' not found in peak map!" << endl;
             }
           }
         }
