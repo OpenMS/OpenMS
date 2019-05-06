@@ -48,7 +48,7 @@ namespace OpenMS
    *
    * This class computes the MS2 Identification Rate given a FeatureMap and an MSExperiment.
    */
-  class OPENMS_DLLAPI Ms2IdentificationRate : QCBase
+  class OPENMS_DLLAPI Ms2IdentificationRate : public QCBase
   {
   public:
     /// Structure for storing results
@@ -60,6 +60,9 @@ namespace OpenMS
     };
 
   private:
+    /// name of the metric
+    const String name_ = "Ms2IdentificationRate";
+    
     /// container that stores results
     std::vector<IdentificationRateData> rate_result_;
 
@@ -86,6 +89,9 @@ namespace OpenMS
      */
     void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
 
+    /// returns the name of the metric
+    const String& getName() const override;
+    
     /// returns results
     const std::vector<IdentificationRateData>& getResults() const;
 

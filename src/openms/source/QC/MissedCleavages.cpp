@@ -82,6 +82,7 @@ namespace OpenMS
     {
       if (pep_id.getHits().empty())
       {
+        LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
         return;
       }
       std::vector<AASequence> digest_output;
@@ -105,6 +106,12 @@ namespace OpenMS
     mc_result_.push_back(result);
   }
 
+  
+  const String& MissedCleavages::getName() const
+  {
+    return name_;
+  }
+  
 
   const std::vector<mapU32>& MissedCleavages::getResults() const
   {

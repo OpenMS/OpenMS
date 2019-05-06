@@ -69,9 +69,15 @@ START_SECTION(~TopNoverRT())
 }
 END_SECTION
 
+TopNoverRT top;
+START_SECTION(const String& getName() const override)
+{
+  TEST_EQUAL(top.getName(), "TopNoverRT")
+}
+END_SECTION
+
 START_SECTION(QCBase::Status requires() const override)
 {
-  TopNoverRT top;
   TEST_EQUAL(top.requires() == (QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
@@ -142,17 +148,17 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
 
   //test features
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
-  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("identified"), '+');
+  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("identified"), 1);
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 1);
   TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
   TEST_EQUAL(fmap[1].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 2);
   //test unassigned
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 2);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("identified"), '+');
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("identified"), 1);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 3);
   TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getRT(), 20);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("ScanEventNumber"), 3);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("identified"), '-');
+  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("identified"), 0);
   TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getMZ(), 5.5);
 
   //empty FeatureMap
