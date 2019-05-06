@@ -344,6 +344,7 @@ namespace OpenMS
               {
                 os << it->first << " " << it->second << "\n";
               }
+              cmpinfo.pint_mono = f_isotopes[0].second;
             }
             else if (num_isotopes > 0) // if ms1 spectrum was present
             {
@@ -352,12 +353,14 @@ namespace OpenMS
               {
                 os << it->getMZ() << " " << it->getIntensity() << "\n";
               }
+              cmpinfo.pint_mono = isotopes[0].getIntensity();
             }
             else
             {
               if (precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
               {
                 os << ">ms1merged" << "\n" << precursor_mz << " " << precursor_int << "\n\n";
+                cmpinfo.pint_mono = precursor_int;
               }
             }
           }
@@ -692,10 +695,10 @@ namespace OpenMS
 
     os.close();
 
-    LOG_WARN << "No MS1 spectrum for this precursor. Occurred " << count_no_ms1 << " times." << endl;
-    LOG_WARN << count_skipped_spectra << " spectra were skipped due to precursor charge below -1 and above +1." << endl;
-    LOG_WARN << "Mono charge assumed and set to charge 1 with respect to current polarity " << count_assume_mono << " times."<< endl;
-    LOG_WARN << count_skipped_features << " features were skipped due to feature charge below -1 and above +1." << endl;
+    OPENMS_LOG_WARN << "No MS1 spectrum for this precursor. Occurred " << count_no_ms1 << " times." << endl;
+    OPENMS_LOG_WARN << count_skipped_spectra << " spectra were skipped due to precursor charge below -1 and above +1." << endl;
+    OPENMS_LOG_WARN << "Mono charge assumed and set to charge 1 with respect to current polarity " << count_assume_mono << " times."<< endl;
+    OPENMS_LOG_WARN << count_skipped_features << " features were skipped due to feature charge below -1 and above +1." << endl;
 
   }
 } // namespace OpenMS

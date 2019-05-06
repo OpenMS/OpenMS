@@ -200,7 +200,7 @@ protected:
         const TransitionType* transition = assay_map[id][i];
         if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
+          OPENMS_LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
           continue;
         }
 

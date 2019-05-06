@@ -80,12 +80,18 @@ public:
     /// copy constructor
     ReactionMonitoringTransition(const ReactionMonitoringTransition & rhs);
 
+    /// Move constructor
+    ReactionMonitoringTransition(ReactionMonitoringTransition&&) noexcept;
+
     /// destructor
     ~ReactionMonitoringTransition() override;
     //@}
 
     /// assignment operator
     ReactionMonitoringTransition & operator=(const ReactionMonitoringTransition & rhs);
+
+    /// move assignment operator
+    ReactionMonitoringTransition & operator=(ReactionMonitoringTransition && rhs);
 
     /** @name Accessors
     */

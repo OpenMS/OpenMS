@@ -1589,7 +1589,7 @@ END_SECTION
 // keep outside the scope of a single test to avoid destruction, leaving
 // Log_warn in an undefined state
 ostringstream os;
-// checkDefaults sends its warnings to LOG_WARN so we register our own
+// checkDefaults sends its warnings to OPENMS_LOG_WARN so we register our own
 // listener here to check the output
 Log_warn.remove(cout);
 Log_warn.insert(os);

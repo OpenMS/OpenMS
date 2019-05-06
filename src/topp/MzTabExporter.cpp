@@ -120,7 +120,6 @@ protected:
       registerFlag_("first_run_inference_only", "(idXML/mzid only): Does the first IdentificationRun in the file "
                                                 "only represent inference results? Read peptide information only "
                                                 "from second to last runs.");
-      
       registerStringList_("opt_columns", "<mods>", {"subfeatures"}, "Add optional columns which are not part of the mzTab standard.", false);
       setValidStrings_("opt_columns", {"subfeatures"});
     }
@@ -169,7 +168,7 @@ protected:
         }
         catch (Exception::MissingInformation& e)
         {
-          LOG_WARN << "Non-critical exception: " << e.what() << "\n";
+          OPENMS_LOG_WARN << "Non-critical exception: " << e.what() << "\n";
         }
         feature_map.setProteinIdentifications(prot_ids);
 

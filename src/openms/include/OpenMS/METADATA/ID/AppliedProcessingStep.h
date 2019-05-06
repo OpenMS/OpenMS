@@ -92,7 +92,7 @@ namespace OpenMS
             }
           }
         }
-        for (auto pair: scores)
+        for (const auto& pair: scores)
         {
           if (!scores_done.count(pair.first))
           {

@@ -132,12 +132,12 @@ namespace OpenMS
         QDir dir(param_.getValue("out_plot").toString().toQString());
         if (!dir.cdUp())
         {
-          LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
           return false;
         }
         if (!dir.exists() && !dir.mkpath("."))
         {
-          LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
           return false;
         }
         //
@@ -202,8 +202,8 @@ namespace OpenMS
         {
           if (itns >= max_itns)
           {
-            LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last likelihood increase: " << (new_maxlike - maxlike) << endl;
-            LOG_WARN << "Algorithm returns probabilites for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
+            OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last likelihood increase: " << (new_maxlike - maxlike) << endl;
+            OPENMS_LOG_WARN << "Algorithm returns probabilites for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
           }
           stop_em_init = true;
           sum_posterior = sum_post(incorrect_density, correct_density);
@@ -476,7 +476,7 @@ namespace OpenMS
         StringList empty;
         if (target.size() == 0) empty.push_back("target");
         if (decoy.size() == 0) empty.push_back("decoy");
-        LOG_WARN << "Target-Decoy plot was called, but '" << ListUtils::concatenate(empty, "' and '") << "' has no data! Unable to create a target-decoy plot." << std::endl;
+        OPENMS_LOG_WARN << "Target-Decoy plot was called, but '" << ListUtils::concatenate(empty, "' and '") << "' has no data! Unable to create a target-decoy plot." << std::endl;
         return;
       }
       Int number_of_bins = param_.getValue("number_of_bins");
@@ -572,13 +572,13 @@ namespace OpenMS
 
     void PosteriorErrorProbabilityModel::tryGnuplot(const String& gp_file)
     {
-      LOG_INFO << "Attempting to call 'gnuplot' ...";
+      OPENMS_LOG_INFO << "Attempting to call 'gnuplot' ...";
       String cmd = String("gnuplot \"") + gp_file + "\"";
       if (system(cmd.c_str()))  // 0 is success!
       {
-        LOG_WARN << "Calling 'gnuplot' on '" << gp_file << "' failed. Please create plots manually." << std::endl;
+        OPENMS_LOG_WARN << "Calling 'gnuplot' on '" << gp_file << "' failed. Please create plots manually." << std::endl;
       }
-      else LOG_INFO << " success!" << std::endl;
+      else OPENMS_LOG_INFO << " success!" << std::endl;
 
     }
 

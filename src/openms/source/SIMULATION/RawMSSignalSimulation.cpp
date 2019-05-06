@@ -338,7 +338,7 @@ namespace OpenMS
 
   void RawMSSignalSimulation::generateRawSignals(SimTypes::FeatureMapSim& features, SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& experiment_ct, SimTypes::FeatureMapSim& c_map)
   {
-    LOG_INFO << "Raw MS1 Simulation ... ";
+    OPENMS_LOG_INFO << "Raw MS1 Simulation ... ";
     // TODO: check if signal intensities scale linear with actual abundance, e.g. DOI: 10.1021/ac0202280 for NanoFlow-ESI
 
     // we rely on the same size of Raw and Peak Map
@@ -349,12 +349,12 @@ namespace OpenMS
 
     if (param_.getValue("enabled") == "false")
     {
-      LOG_INFO << "disabled" << std::endl;
+      OPENMS_LOG_INFO << "disabled" << std::endl;
       return;
     }
     else
     {
-      LOG_INFO << "started" << std::endl;
+      OPENMS_LOG_INFO << "started" << std::endl;
     }
 
     // retrieve mz boundary parameters from experiment:
@@ -364,7 +364,7 @@ namespace OpenMS
     // grid is constant over scans, so we compute it only once
     getSamplingGrid_(grid_, minimal_mz_measurement_limit, maximal_mz_measurement_limit, 5); // every 5 Da we adjust the sampling width by local FWHM
 
-    LOG_INFO << "  Simulating signal for " << features.size() << " features ..." << std::endl;
+    OPENMS_LOG_INFO << "  Simulating signal for " << features.size() << " features ..." << std::endl;
 
     this->startProgress(0, features.size(), "RawMSSignal");
 
@@ -647,7 +647,7 @@ namespace OpenMS
   {
     SimTypes::SimIntensityType intensity_sum = 0.0;
 
-    //LOG_DEBUG << "Sampling at [mz] " << mz_start << ":" << mz_end << std::endl;
+    //OPENMS_LOG_DEBUG << "Sampling at [mz] " << mz_start << ":" << mz_end << std::endl;
 
     SimTypes::SimPointType point;
 
@@ -752,7 +752,7 @@ namespace OpenMS
         point.setMZ(*it_grid);
         point.setIntensity(intensity);
 
-        //LOG_ERROR << "Sampling " << rt << " , " << mz << " -> " << point.getIntensity() << std::endl;
+        //OPENMS_LOG_ERROR << "Sampling " << rt << " , " << mz << " -> " << point.getIntensity() << std::endl;
 
         // add Gaussian distributed m/z error
 #ifdef _OPENMP
@@ -979,8 +979,8 @@ namespace OpenMS
     }
 
     c_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-    LOG_INFO << "Contaminants out-of-RT-range: " << out_of_range_RT << " / " << contaminants_.size() << std::endl;
-    LOG_INFO << "Contaminants out-of-MZ-range: " << out_of_range_MZ << " / " << contaminants_.size() << std::endl;
+    OPENMS_LOG_INFO << "Contaminants out-of-RT-range: " << out_of_range_RT << " / " << contaminants_.size() << std::endl;
+    OPENMS_LOG_INFO << "Contaminants out-of-MZ-range: " << out_of_range_MZ << " / " << contaminants_.size() << std::endl;
 
   }
 
@@ -1009,7 +1009,7 @@ namespace OpenMS
     boost::uniform_real<SimTypes::SimCoordinateType> udist(mz_lw, mz_up);
     boost::random::exponential_distribution<SimTypes::SimCoordinateType> edist(intensity_mean);
 
-    LOG_INFO << "Adding shot noise to spectra ..." << std::endl;
+    OPENMS_LOG_INFO << "Adding shot noise to spectra ..." << std::endl;
     Size num_intervals = std::ceil((maximal_mz_measurement_limit - minimal_mz_measurement_limit) / window_size);
 
     for (SimTypes::MSSimExperiment::Iterator spectrum_it = experiment.begin(); spectrum_it != experiment.end(); ++spectrum_it)
@@ -1065,7 +1065,7 @@ namespace OpenMS
 
   void RawMSSignalSimulation::addWhiteNoise_(SimTypes::MSSimExperiment& experiment)
   {
-    LOG_INFO << "Adding white noise to spectra ..." << std::endl;
+    OPENMS_LOG_INFO << "Adding white noise to spectra ..." << std::endl;
 
     // get white noise parameters
     double white_noise_mean = param_.getValue("noise:white:mean");
@@ -1099,7 +1099,7 @@ namespace OpenMS
 
   void RawMSSignalSimulation::addDetectorNoise_(SimTypes::MSSimExperiment& experiment)
   {
-    LOG_INFO << "Adding detector noise to spectra ..." << std::endl;
+    OPENMS_LOG_INFO << "Adding detector noise to spectra ..." << std::endl;
 
     // get white noise parameters
     double detector_noise_mean = param_.getValue("noise:detector:mean");
@@ -1107,7 +1107,7 @@ namespace OpenMS
 
     if (detector_noise_mean == 0.0 && detector_noise_stddev == 0.0)
     {
-      LOG_INFO << "Detector noise was disabled." << std::endl;
+      OPENMS_LOG_INFO << "Detector noise was disabled." << std::endl;
       return;
     }
 
@@ -1185,7 +1185,7 @@ namespace OpenMS
 
     if (min_mz >= max_mz)
     {
-      LOG_WARN << "No data to compress." << std::endl;
+      OPENMS_LOG_WARN << "No data to compress." << std::endl;
       return;
     }
 
@@ -1195,7 +1195,7 @@ namespace OpenMS
 
     if (grid.size() < 3)
     {
-      LOG_WARN << "Data spacing is weird - either you selected a very small interval or a very low resolution - or both. Not compressing." << std::endl;
+      OPENMS_LOG_WARN << "Data spacing is weird - either you selected a very small interval or a very low resolution - or both. Not compressing." << std::endl;
       return;
     }
 
@@ -1275,11 +1275,11 @@ namespace OpenMS
 
     if (point_count_before != 0)
     {
-      LOG_INFO << "Compressed data to grid ... " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after * 100 / point_count_before) << "%)\n";
+      OPENMS_LOG_INFO << "Compressed data to grid ... " <<  point_count_before << " --> " << point_count_after << " (" << (point_count_after * 100 / point_count_before) << "%)\n";
     }
     else
     {
-      LOG_INFO << "Not enough points in map .. did not compress!\n";
+      OPENMS_LOG_INFO << "Not enough points in map .. did not compress!\n";
     }
 
     return;

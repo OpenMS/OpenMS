@@ -352,7 +352,7 @@ namespace OpenMS
 
     if (MS2_RT_time < elution_bounds[1] || elution_bounds[3] < MS2_RT_time)
     {
-      LOG_WARN << "Warn: requesting MS2 RT for " << MS2_RT_time << ", but bounds are only from [" << elution_bounds[1] << "," << elution_bounds[3] << "]\n";
+      OPENMS_LOG_WARN << "Warn: requesting MS2 RT for " << MS2_RT_time << ", but bounds are only from [" << elution_bounds[1] << "," << elution_bounds[3] << "]\n";
       return 0;
     }
 
