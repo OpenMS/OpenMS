@@ -35,6 +35,260 @@
 //##############################################################################
 
 /**
+        @page TOPP_example_qualitycontrol Qualitycontrol
+
+                @section TOPP_example_qualitycontrol_section Ueberschrift
+                @section TOPP_example_qualitycontrol_section ueberschrift2
+
+
+        @b Goal: Check the quality of the data.
+
+The QualityControl TOPP tool executes all metrics that have provided the required input data.
+        <TABLE border=1>
+
+        <TR>
+            <TD> <b>Contaminants</b> <br>
+            </TD>
+            <TD>
+            </TD>
+        </TR>
+        <TR>
+            <TD>
+                <b>Input data:</b> Fasta file (Contaminants database), PostFDR FeatureXML
+            </TD>
+            <TD>
+                <b> Output</b>
+            </TD>
+        </TR>
+        <TR>
+            <TD>
+                @b Brief: <br>
+                This metric checks whether the peptides are contaminants or not.<br>
+                @b Description: <br>
+                The Contaminants metric takes the contaminants database and digests the protein sequences with the digestion enzyme that is given in the featureXML.
+                Afterwards it checks whether each of all peptide sequences of the featureXML (including the unassigned peptide identifications) is registered in the contaminants database. <br>
+                To all peptides that are identified as a contaminant, the metric will add the metavalue 'is_contaminant  = 1' to the first hit of the peptide identification of each. <br>
+                Peptides that could not match any contaminant get an 'is_contaminant = 0' as a new metavalue.
+
+            </TD>
+            <TD>
+                <b> Changes in files:</b> <br>
+                This metric adds the new metavalue 'is_contaminant' into the first hit of each
+                peptideidentification and sets it to '1' if the peptide sequence is found in the database
+                and sets a '0' if not.<br>
+                <b> Other outputs:</b> <br>
+                For each FeatureMap the metric calculates the contaminant ratio of 1.) all peptides,
+                2.) all assigned peptides and 3.) all unassigned peptides as well as the intensity
+                ratio of all contaminants in the assigned peptides. Furthermore the number of empty
+                features and the number of all found features is also stored.
+            </TD>
+        </TR>
+
+        <TR>
+            <TD>
+                <b>FragmentMassError</b> <br>
+            </TD>
+            <TD>
+            </TD>
+        </TR>
+        <TR>
+             <TD>
+                  <b>Input data:</b> PostFDR FeatureXML, raw mzML file
+             </TD>
+             <TD>
+                  <b>Output</b>
+             </TD>
+        </TR>
+        <TR>
+             <TD>
+                  @b Brief: <br>
+                  This metric computes the FragmentMassError in ppm.<br>
+                  @b Description: <br>
+                  The FragmentMassError metric calculates the difference between the measured peaks and the expected ones.
+             </TD>
+
+             <TD>
+                  <b> Changes in files:</b> <br>
+                  This metric adds the new metavalues 'fragment_mass_error_ppm' for the FragmentMassError in parts per
+                  million and 'fragment_mass_error_da'for the FragmentMassError in Dalton<br>
+                  <b> Other Output:</b> <br>
+                  The FragmentMassError metric stores the average and the variance of FragmentMassErrors in ppm.
+             </TD>
+        </TR>
+        <TR>
+             <TD>
+                 <b>MissedCleavages</b> <br>
+             </TD>
+             <TD>
+             </TD>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Input data:</b> PostFDR FeatureXML
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Brief: <br>
+                   This metric counts the number of peptideidentifications in a FeatureMap.<br>
+                   @b Description: <br>
+                   The MissedCleavages metric
+                   zählt Anzahl der MissedCleavages für jede PeptideIdentification einer FeatureMap.
+                   peptideHits der FeatureMap erhalten setMetaValue("missed_cleavages", zahl), daneben Statistik aller MIssedCleavages im Vector
+                   The FragmentMassError metric calculates the difference between the measured peaks and the expected ones.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   (”Missed_cleavages” an 1.Pep-Hit der PepIDs oder getResult  map<key=number missedClevages, wie oft diese Anzahl>)
+                   theoretischer verdau peptide-ID zählen wenn mehr als eins
+
+                   This metric adds the new metavalues 'missed_cleavages' for the 
+                   FragmentMassError in parts per
+                   million and 'fragment_mass_error_da'for the FragmentMassError in Dalton<br>
+                   <b> Other Output:</b> <br>
+                   The MissedCleavages metric stores the number of cuts of all peptides in a map.
+              </TD>
+        </TR>
+        <TR>
+             <TD>
+                 <b>FragmentMassError</b> <br>
+             </TD>
+             <TD>
+             </TD>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Input data:</b> PostFDR FeatureXML, raw mzML file
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Brief: <br>
+                   This metric computes the FragmentMassError in ppm.<br>
+                   @b Description: <br>
+                   The FragmentMassError metric calculates the difference between the measured peaks and the expected ones.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   This metric adds the new metavalues 'fragment_mass_error_ppm' for the FragmentMassError in parts per
+                   million and 'fragment_mass_error_da'for the FragmentMassError in Dalton<br>
+                   <b> Other Output:</b> <br>
+                   The FragmentMassError metric stores the average and the variance of FragmentMassErrors in ppm.
+              </TD>
+        </TR>
+
+        <TR>
+             <TD>
+                 <b>FragmentMassError</b> <br>
+             </TD>
+             <TD>
+             </TD>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Input data:</b> PostFDR FeatureXML, raw mzML file
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Brief: <br>
+                   This metric computes the FragmentMassError in ppm.<br>
+                   @b Description: <br>
+                   The FragmentMassError metric calculates the difference between the measured peaks and the expected ones.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   This metric adds the new metavalues 'fragment_mass_error_ppm' for the FragmentMassError in parts per
+                   million and 'fragment_mass_error_da'for the FragmentMassError in Dalton<br>
+                   <b> Other Output:</b> <br>
+                   The FragmentMassError metric stores the average and the variance of FragmentMassErrors in ppm.
+              </TD>
+        </TR>
+        <TR>
+             <TD>
+                 <b>FragmentMassError</b> <br>
+             </TD>
+             <TD>
+             </TD>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Input data:</b> PostFDR FeatureXML, raw mzML file
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Brief: <br>
+                   This metric computes the FragmentMassError in ppm.<br>
+                   @b Description: <br>
+                   The FragmentMassError metric calculates the difference between the measured peaks and the expected ones.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   This metric adds the new metavalues 'fragment_mass_error_ppm' for the FragmentMassError in parts per
+                   million and 'fragment_mass_error_da'for the FragmentMassError in Dalton<br>
+                   <b> Other Output:</b> <br>
+                   The FragmentMassError metric stores the average and the variance of FragmentMassErrors in ppm.
+              </TD>
+        </TR>
+        <TR>
+             <TD>
+                 <b>FragmentMassError</b> <br>
+             </TD>
+             <TD>
+             </TD>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Input data:</b> PostFDR FeatureXML, raw mzML file
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Brief: <br>
+                   This metric computes the FragmentMassError in ppm.<br>
+                   @b Description: <br>
+                   The FragmentMassError metric calculates the difference between the measured peaks and the expected ones.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   This metric adds the new metavalues 'fragment_mass_error_ppm' for the FragmentMassError in parts per
+                   million and 'fragment_mass_error_da'for the FragmentMassError in Dalton<br>
+                   <b> Other Output:</b> <br>
+                   The FragmentMassError metric stores the average and the variance of FragmentMassErrors in ppm.
+              </TD>
+        </TR>
+
+
+
+
+        </TABLE>
+
+*/
+
+//##############################################################################
+
+/**
 	@page TOPP_general General introduction
 
 	This tutorial will give you a brief overview of the most important TOPP tools.
@@ -758,3 +1012,5 @@ TextImporter -in infile.txt -out outfile.featureXML
 IDFileConverter -in infile.pepXML -out outfile.idXML
 		@endcode
 */
+
+
