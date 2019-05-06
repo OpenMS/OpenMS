@@ -2615,6 +2615,7 @@ Not sure how to handle these:
     const String& filename, 
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
+    const bool export_subfeatures,
     String title)
   {  
     OPENMS_LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
@@ -2654,6 +2655,7 @@ Not sure how to handle these:
       var_mods.insert(std::end(var_mods), std::begin(sp.variable_modifications), std::end(sp.variable_modifications));
       fixed_mods.insert(std::end(fixed_mods), std::begin(sp.fixed_modifications), std::end(sp.fixed_modifications));
     }
+    
     // make mods unique
     std::sort(var_mods.begin(), var_mods.end());
     auto v_it = std::unique(var_mods.begin(), var_mods.end()); 
@@ -2898,6 +2900,19 @@ Not sure how to handle these:
         row.peptide_abundance_stdev_study_variable[study_variable];
         row.peptide_abundance_std_error_study_variable[study_variable];
         row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
+        
+        if (export_subfeatures)
+        {
+	      MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
+	      opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + String(study_variable) + "]";
+	      opt_global_mass_to_charge_study_variable.second = MzTabString(String(fit->getMZ()));
+	      row.opt_.push_back(opt_global_mass_to_charge_study_variable);
+
+	      MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
+	      opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + String(study_variable) + "]";
+	      opt_global_retention_time_study_variable.second = MzTabString(String(fit->getRT()));
+	      row.opt_.push_back(opt_global_retention_time_study_variable);
+		}
       }
 
       vector<PeptideIdentification> pep_ids = c.getPeptideIdentifications();
