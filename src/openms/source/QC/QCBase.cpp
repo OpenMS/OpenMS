@@ -36,5 +36,5 @@
 
 namespace OpenMS
 {
-
+  const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML"};
 } //namespace OpenMS

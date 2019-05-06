@@ -42,7 +42,7 @@ namespace OpenMS
   class FeatureMap;
   class MSExperiment;
   
-  class OPENMS_DLLAPI FragmentMassError : QCBase
+  class OPENMS_DLLAPI FragmentMassError : public QCBase
   {
   public:
 
@@ -88,6 +88,9 @@ namespace OpenMS
      */
     void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit tolerance_unit = ToleranceUnit::PPM);
 
+    /// returns the name of the metric
+    const String& getName() const override;
+    
     /// returns results
     const std::vector<FMEStatistics>& getResults() const;
 
@@ -100,6 +103,9 @@ namespace OpenMS
 
 
   private:
+    /// name of the metric
+    const String name_ = "FragmentMassError";
+    
     /// container that stores results
     std::vector<FMEStatistics> results_{};
   };
