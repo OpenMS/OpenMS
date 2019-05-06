@@ -86,8 +86,6 @@ protected:
     setValidFormats_("in_raw", {"mzML"});
     registerInputFileList_("in_postFDR", "<file>", {}, "featureXML input", false);
     setValidFormats_("in_postFDR", {"featureXML"});
-    //possible additions:
-    //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
     registerTOPPSubsection_("FragmentMassError", "test");
     registerStringOption_("FragmentMassError:unit", "<unit>", "ppm", "Unit for tolerance", false);
     setValidStrings_("FragmentMassError:unit", {"ppm", "Da"});
@@ -108,11 +106,11 @@ protected:
 
   }
 
-  bool isRunnable_(const QCBase* m, const OpenMS::QCBase::Status s)
+  bool isRunnable_(const QCBase* m, const OpenMS::QCBase::Status& s) const
   {
     if (s.isSuperSetOf(m->requires())) return true;
 
-    for (int i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
+    for (Size i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
     {
       if (m->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
       {

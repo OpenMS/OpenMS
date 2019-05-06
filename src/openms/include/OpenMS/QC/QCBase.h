@@ -169,7 +169,7 @@ namespace OpenMS
       /**
        * @brief Check if input status fulfills requirement status.
        */
-      bool isSuperSetOf(const Status& stat)
+      bool isSuperSetOf(const Status& stat) const
       {
         return ((value_ & stat.value_) == stat.value_);
       }
