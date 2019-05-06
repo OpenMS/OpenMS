@@ -197,7 +197,7 @@ namespace OpenMS
           unsigned int num_masstrace_filter = sirius_algo.filter_by_num_masstraces_;
           double precursor_mz_tol = sirius_algo.precursor_mz_tolerance_;
           double precursor_rt_tol = sirius_algo.precursor_rt_tolerance_;
-          bool ppm_prec = (sirius_algo.precursor_mz_tolerance_unit_ == "true") ? true : false; 
+          bool ppm_prec = (sirius_algo.precursor_mz_tolerance_unit_ == "ppm") ? true : false; 
           
           if (num_masstrace_filter != 1 && !feature_only)
           {
