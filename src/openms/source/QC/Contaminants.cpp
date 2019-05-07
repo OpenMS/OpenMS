@@ -49,7 +49,7 @@ namespace OpenMS
     // empty FeatureMap
     if (features.empty())
     {
-      LOG_WARN << "FeatureMap is empty" << "\n";
+      OPENMS_LOG_WARN << "FeatureMap is empty" << "\n";
     }
     // empty contaminants database
     if (contaminants.empty())

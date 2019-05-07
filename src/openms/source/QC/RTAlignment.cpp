@@ -50,7 +50,7 @@ namespace OpenMS
   {
     if (features.empty())
     {
-      LOG_WARN << "The FeatureMap is empty.\n";
+      OPENMS_LOG_WARN << "The FeatureMap is empty.\n";
     }
 
     // if featureMap after map alignment was handed, return Exception

@@ -83,7 +83,7 @@ namespace OpenMS
     {
       if (pep_id.getHits().empty())
       {
-        LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
+        OPENMS_LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
         return;
       }
 
@@ -179,7 +179,7 @@ namespace OpenMS
 
       if (exp_spectrum.empty() || theo_spectrum.empty())
       {
-        LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
+        OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
         return;
       }
 

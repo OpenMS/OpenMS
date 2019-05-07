@@ -52,7 +52,7 @@ namespace OpenMS
     //Warning if the FeatureMap is empty, result is 0
     if (fmap.empty())
     {
-      LOG_WARN << "FeatureXML is empty.";
+      OPENMS_LOG_WARN << "FeatureXML is empty.";
       mc_result_.push_back(result);
       return;
     }
@@ -91,7 +91,7 @@ namespace OpenMS
       //Warning if number of missed cleavages is greater than the allowed maximum number of missed cleavages
       if (num_mc > max_mc)
       {
-        LOG_WARN << "Observed number of missed cleavages: " << num_mc << " is greater than: " << max_mc << " the allowed maximum number of missed cleavages during MS2-Search in: " << pep_id.getHits()[0].getSequence();
+        OPENMS_LOG_WARN << "Observed number of missed cleavages: " << num_mc << " is greater than: " << max_mc << " the allowed maximum number of missed cleavages during MS2-Search in: " << pep_id.getHits()[0].getSequence();
       }
 
       ++result[num_mc];

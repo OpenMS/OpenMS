@@ -232,7 +232,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_consensus, true, true);
+    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_consensus, true, true, true);
 
     // Adding TIC information to meta data
     MzTabMetaData meta = mztab.getMetaData();

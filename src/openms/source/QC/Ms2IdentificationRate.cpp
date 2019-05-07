@@ -85,7 +85,6 @@ namespace OpenMS
       {
         if (pep_id.getHits().empty())
         {
-          LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
           return;
         }
         if (force_fdr)
