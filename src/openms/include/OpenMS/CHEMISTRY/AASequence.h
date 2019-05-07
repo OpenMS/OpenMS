@@ -442,8 +442,15 @@ protected:
     /// if an empty string is passed replaces the residue with its unmodified version 
     void setModification(Size index, const String& modification);
 
+    // sets the (potentially modified) residue
+    void setModification(Size index, const Residue* modification) { peptide_[index] = modification; }
+
     /// sets the N-terminal modification
+    /// Note: Don't use this method if speed is critical
     void setNTerminalModification(const String& modification);
+
+    /// sets the N-terminal modification
+    void setNTerminalModification(const ResidueModification* modification);
 
     /// returns the name (ID) of the N-terminal modification, or an empty string if none is set
     const String& getNTerminalModificationName() const;
@@ -452,7 +459,11 @@ protected:
     const ResidueModification* getNTerminalModification() const;
 
     /// sets the C-terminal modification
+    /// Note: Don't use this method if speed is critical
     void setCTerminalModification(const String& modification);
+
+    /// sets the C-terminal modification
+    void setCTerminalModification(const ResidueModification* modification);
 
     /// returns the name (ID) of the C-terminal modification, or an empty string if none is set
     const String& getCTerminalModificationName() const;

@@ -61,7 +61,7 @@ namespace OpenMS
 
   Details on the FileSection:
 
-  To unambigously map a single quantitative value we need to define:
+  To unambiguously map a single quantitative value we need to define:
     a. the label (e.g., label = 2 in the case of a heavy peptide in a light/heavy experiment)
     b. which spectra file did produce the result (e.g., path = "/data/SILAC_file.mzML")  
     c. which fraction the file corresponds to (e.g., fraction = 1)

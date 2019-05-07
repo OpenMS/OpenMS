@@ -37,7 +37,8 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <string>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <vector>
 
 namespace OpenMS
 {
@@ -179,22 +180,22 @@ namespace OpenMS
   struct OPENMS_DLLAPI OpenSwath_Ind_Scores
   {
     int ind_num_transitions = 0;
-    std::string ind_isotope_correlation = "";
-    std::string ind_isotope_overlap = "";
-    std::string ind_massdev_score = "";
-    std::string ind_xcorr_coelution_score = "";
-    std::string ind_xcorr_shape_score = "";
-    std::string ind_log_sn_score = "";
-    std::string ind_transition_names = "";
-    std::string ind_area_intensity = "";
-    std::string ind_total_area_intensity = "";
-    std::string ind_intensity_score = "";
-    std::string ind_apex_intensity = "";
-    std::string ind_total_mi = "";
-    std::string ind_log_intensity = "";
-    std::string ind_intensity_ratio = "";
-    std::string ind_mi_ratio = "";
-    std::string ind_mi_score = "";
+    std::vector<OpenMS::String> ind_transition_names;
+    std::vector<double> ind_isotope_correlation;
+    std::vector<double> ind_isotope_overlap;
+    std::vector<double> ind_massdev_score;
+    std::vector<double> ind_xcorr_coelution_score;
+    std::vector<double> ind_xcorr_shape_score;
+    std::vector<double> ind_log_sn_score;
+    std::vector<double> ind_area_intensity;
+    std::vector<double> ind_total_area_intensity;
+    std::vector<double> ind_intensity_score;
+    std::vector<double> ind_apex_intensity;
+    std::vector<double> ind_total_mi;
+    std::vector<double> ind_log_intensity;
+    std::vector<double> ind_intensity_ratio;
+    std::vector<double> ind_mi_ratio;
+    std::vector<double> ind_mi_score;
 
     OpenSwath_Ind_Scores() = default;
 

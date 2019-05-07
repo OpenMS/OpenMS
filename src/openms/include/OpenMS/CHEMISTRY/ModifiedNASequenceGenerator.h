@@ -44,19 +44,21 @@
 namespace OpenMS
 {
   /*
-   * @brief This class applies fixed and variable modifications to (unmodified) nucleic acid sequences, combinatorically generating modified sequences.
+   * @brief This class applies fixed and variable modifications to (unmodified)
+   * nucleic acid sequences, combinatorially generating modified sequences.
+   *
    */
   class OPENMS_DLLAPI ModifiedNASequenceGenerator
   {
   public:
     using ConstRibonucleotidePtr = const Ribonucleotide*;
 
-    // Applies fixed modifications to a single NASequence
+    /// Applies fixed modifications to a single NASequence
     static void applyFixedModifications(
       const std::set<ConstRibonucleotidePtr>& fixed_mods,
       NASequence& sequence);
 
-    // Applies variable modifications to a single NASequence. If keep_original is set the original (e.g. unmodified version) is also returned
+    /// Applies variable modifications to a single NASequence. If keep_original is set the original (e.g. unmodified version) is also returned
     static void applyVariableModifications(
       const std::set<ConstRibonucleotidePtr>& var_mods,
       const NASequence& seq, Size max_variable_mods_per_NASequence,
@@ -64,7 +66,7 @@ namespace OpenMS
       bool keep_original = true);
 
   protected:
-    // Recursively generate all combinatoric placements at compatible sites
+    /// Recursively generate all combinatorial placements at compatible sites
     static void recurseAndGenerateVariableModifiedSequences_(
       const std::vector<int>& subset_indices,
       const std::map<int, std::vector<ConstRibonucleotidePtr>>& map_compatibility,
@@ -72,9 +74,9 @@ namespace OpenMS
       const NASequence& current_NASequence,
       std::vector<NASequence>& modified_NASequences);
 
-    // Fast implementation of modification placement. No combinatoric placement is needed in this case
-    // - just every site is modified once by each compatible modification.
-    // Already modified residues are skipped
+    /// Fast implementation of modification placement. No combinatorial placement is needed in this case
+    /// - just every site is modified once by each compatible modification.
+    /// Already modified residues are skipped
     static void applyAtMostOneVariableModification_(
       const std::set<ConstRibonucleotidePtr>& var_mods,
       const NASequence& seq,
@@ -82,3 +84,4 @@ namespace OpenMS
       bool keep_original = true);
   };
 }
+

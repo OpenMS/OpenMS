@@ -31,14 +31,42 @@
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
-
-## WARNING: THIS PACKAGING TYPE IS PROBABLY HEAVILY DEPRECATED AND DYSFUNCTIONAL
-## NOT FOR OFFICIAL USE
-
-if (OPENMS_64BIT_ARCHITECTURE)
-	set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
-endif()
 set(CPACK_GENERATOR "RPM")
-set(CPACK_RPM_PACKAGE_REQUIRES "qt")
-#set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/run_ldconfig.sh")
-set(CPACK_COMPONENTS_ALL applications library share)
+
+set(CPACK_RPM_PACKAGE_VENDOR "OpenMS developers <open-ms-general@lists.sourceforge.net>")
+if (OPENMS_64BIT_ARCHITECTURE)
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-RedHat-Linux-x86_64")
+else()
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-RedHat-Linux-x86")
+endif()
+
+## Debug for now.
+set(CPACK_RPM_PACKAGE_DEBUG ON)
+
+## TODO also install headers? make a dev package configuration?
+set(CPACK_COMPONENTS_ALL applications doc library share ${THIRDPARTY_COMPONENT_GROUP})
+
+SET(CPACK_RPM_PACKAGE_LICENSE "BSD clause 3")
+#SET(CPACK_RPM_PACKAGE_AUTOREQ ON)
+#SET(CPACK_RPM_PACKAGE_AUTOPROV ON)
+SET(CPACK_RPM_PACKAGE_AUTOREQPROV ON)
+SET(CPACK_RPM_COMPRESSION_TYPE xz)
+SET(CPACK_RPM_INSTALL_WITH_EXEC ON)
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "package for LC/MS data management and analysis")
+SET(CPACK_PACKAGE_DESCRIPTION "
+ OpenMS is a package for LC/MS data management and analysis. OpenMS
+ offers an infrastructure for the development of mass
+ spectrometry-related software and powerful 2D and 3D visualization
+ solutions.
+ .
+ TOPP (the OpenMS proteomic pipeline) is a pipeline for the analysis
+ of HPLC/MS data. It consists of a set of numerous small applications
+ that can be chained together to create analysis pipelines tailored
+ for a specific problem."
+ )
+
+## Create own target because you cannot "depend" on the internal target 'package'
+add_custom_target(dist
+  COMMAND cpack -G ${CPACK_GENERATOR}
+  COMMENT "Building ${CPACK_GENERATOR} package"
+)

@@ -282,7 +282,7 @@ namespace OpenMS
     {
       checkScoreTypes_(group.scores);
 
-      for (auto ref : group.parent_molecule_refs)
+      for (const auto& ref : group.parent_molecule_refs)
       {
         if (!isValidHashedReference_(ref, parent_molecule_lookup_))
         {
@@ -355,7 +355,7 @@ namespace OpenMS
   IdentificationData::MatchGroupRef
   IdentificationData::registerQueryMatchGroup(const QueryMatchGroup& group)
   {
-    for (auto ref : group.query_match_refs)
+    for (const auto& ref : group.query_match_refs)
     {
       if (!isValidHashedReference_(ref, query_match_lookup_))
       {
@@ -738,7 +738,7 @@ namespace OpenMS
     }
     if (warn)
     {
-      LOG_WARN << "Warning: filtering removed elements from parent molecule groups - associated scores may not be valid any more" << endl;
+      OPENMS_LOG_WARN << "Warning: filtering removed elements from parent molecule groups - associated scores may not be valid any more" << endl;
     }
 
     // remove entries from query match groups based on molecule-query matches:
@@ -768,7 +768,7 @@ namespace OpenMS
     }
     if (warn)
     {
-      LOG_WARN << "Warning: filtering removed elements from query match groups - associated scores may not be valid any more" << endl;
+      OPENMS_LOG_WARN << "Warning: filtering removed elements from query match groups - associated scores may not be valid any more" << endl;
     }
   }
 

@@ -46,7 +46,7 @@ namespace OpenMS
                                                                               const double& precursor_rt_tolerance,
                                                                               bool ppm)
   {
-    std::map<const BaseFeature*, std::vector<size_t>>  assigned_ms2;
+    Map<const BaseFeature*, std::vector<size_t>>  assigned_ms2;
     vector<size_t> unassigned_ms2;
 
     // map precursors to closest feature and retrieve annotated metadata (if possible)

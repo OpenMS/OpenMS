@@ -146,7 +146,7 @@ namespace OpenMS
             break;
           }
           default:
-            LOG_WARN << "Annotation of MS level > 2 not supported.!" << endl;
+            OPENMS_LOG_WARN << "Annotation of MS level > 2 not supported.!" << endl;
         }
       }
 
@@ -165,7 +165,7 @@ namespace OpenMS
 
     if (current_layer.getCurrentSpectrum().empty())
     {
-      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
+      OPENMS_LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
     }
 
     // mass precision to match a peak's m/z to a feature m/z
@@ -219,7 +219,7 @@ namespace OpenMS
           StringList msg;
           if (!ith->metaValueExists("identifier")) msg.push_back("identifier");
           if (!ith->metaValueExists("chemical_formula")) msg.push_back("chemical_formula");
-          LOG_WARN << "Missing meta-value(s): " << ListUtils::concatenate(msg, ", ") << ". Cannot annotate!\n";
+          OPENMS_LOG_WARN << "Missing meta-value(s): " << ListUtils::concatenate(msg, ", ") << ". Cannot annotate!\n";
         }
       }
 
@@ -450,7 +450,7 @@ namespace OpenMS
           break;
         }
         default:
-          LOG_WARN << "Annotation of MS level > 2 not supported." << endl;
+          OPENMS_LOG_WARN << "Annotation of MS level > 2 not supported." << endl;
       }
     } // end DT_PEAK
     // else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
@@ -1147,7 +1147,7 @@ namespace OpenMS
 
     if (current_spectrum.empty())
     {
-      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
+      OPENMS_LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
     }
     else if (!current_spectrum.isSorted())
     {
@@ -1164,7 +1164,7 @@ namespace OpenMS
       Int peak_idx = current_spectrum.findNearest(ann.mz, 1e-2);
       if (peak_idx == -1) // no match
       {
-        LOG_WARN << "Annotation present for missing peak. m/z: " << ann.mz
+        OPENMS_LOG_WARN << "Annotation present for missing peak. m/z: " << ann.mz
                   << endl;
         continue;
       }

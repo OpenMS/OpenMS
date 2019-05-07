@@ -101,7 +101,7 @@ namespace OpenMS
       /**
       @brief logs number of features and spectra used
 
-      Prints the number of features and spectra used (LOG_INFO)
+      Prints the number of features and spectra used (OPENMS_LOG_INFO)
 
       @param featureinfo: Path to featureXML
       @param feature_mapping: FeatureToMs2Indices with feature mapping
@@ -135,7 +135,6 @@ namespace OpenMS
       // getter (used to call functions from SiriusMSConverter, SiriusMzTabWriter, CsiFingerIDMzTabWriter)
       String getFeatureOnly();  
       String getNoMasstraceInfoIsotopePattern();
-      String getConverterMode();
       int getIsotopePatternIterations();
       int getCandidates();
       int getTopNHits();
@@ -151,7 +150,6 @@ namespace OpenMS
       // flags
       String feature_only_;
       String no_masstrace_info_isotope_pattern_;
-      String converter_mode_;
       // parameters for SIRIUS (sirius)
       String profile_;
       int candidates_;

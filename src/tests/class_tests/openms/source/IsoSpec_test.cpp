@@ -142,13 +142,13 @@ std::vector<int> fructose_atomCounts;
 std::vector<std::vector<double> > fructose_isotopeMasses;
 std::vector<std::vector<double> > fructose_isotopeProbabilities;
 
-for (auto elem : ef_fructose)
+for (const auto& elem : ef_fructose)
 {
   fructose_atomCounts.push_back( elem.second );
 
   std::vector<double> masses;
   std::vector<double> probs;
-  for (auto iso : elem.first->getIsotopeDistribution())
+  for (const auto& iso : elem.first->getIsotopeDistribution())
   {
     if (iso.getIntensity() <= 0.0) continue; // Note: there will be an Isospec exception if one of the intensities is zero!
     masses.push_back(iso.getMZ());

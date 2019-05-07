@@ -63,9 +63,9 @@ namespace OpenMS
         ///Destructor
         ~MSstatsFile();
 
-        // store label free experiemnt (MSstats)
+        /// store label free experiment (MSstats)
         void storeLFQ(const String& filename, 
-                      ConsensusMap &consensus_map,
+                      const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const bool is_isotope_label_type,
@@ -73,9 +73,9 @@ namespace OpenMS
                       const String& condition,
                       const String& retention_time_summarization_method);
         
-        // store isobaric experiment (MSstatsTMT)
+        /// store isobaric experiment (MSstatsTMT)
         void storeISO(const String& filename, 
-                      ConsensusMap &consensus_map,
+                      const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const String& bioreplicate,
@@ -87,21 +87,21 @@ namespace OpenMS
      
         const String na_string = "NA";
         
-        // The meta value of the peptide identification which is going to be used for the experimental design link
+        /// The meta value of the peptide identification which is going to be used for the experimental design link
         const String meta_value_exp_design_key = "spectra_data";
 
         /*
-        *  @Brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition in Experimental Design
+        *  @brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition in Experimental Design
         */
         static void checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition);
 
         /*
-         *  @Brief: Internal function to check if MSstats_BioReplicate, MSstats_Condition and MSstats_Mixture in Experimental Design
+         *  @brief: Internal function to check if MSstats_BioReplicate, MSstats_Condition and MSstats_Mixture in Experimental Design
          */
         static void checkConditionISO_(const ExperimentalDesign::SampleSection sampleSection, const String& bioreplicate, const String& condition, const String& mixture);
 
         /*
-         *  MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)
+         *  @brief MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)
          *  In OpenMS, a run is split into multiple fractions.
          *
          */

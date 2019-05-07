@@ -173,7 +173,7 @@ public:
     static bool tableExists(sqlite3 *db, const String& tablename);
 
     /**
-      @brief Checkes whether the given table contains a certain column
+      @brief Checks whether the given table contains a certain column
 
       @p db The sqlite database (needs to be open)
       @p tablename The name of the table (needs to exist)

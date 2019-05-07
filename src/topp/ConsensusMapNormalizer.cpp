@@ -148,7 +148,7 @@ protected:
     {
       if (acc_filter != "" || desc_filter != "")
       {
-        LOG_WARN << endl << "NOTE: Accession / description filtering is not supported in quantile normalization mode. Ignoring filters." << endl << endl;
+        OPENMS_LOG_WARN << endl << "NOTE: Accession / description filtering is not supported in quantile normalization mode. Ignoring filters." << endl << endl;
       }
       ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(map);
     }

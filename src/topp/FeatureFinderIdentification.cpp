@@ -224,7 +224,7 @@ protected:
       //-------------------------------------------------------------
       // load input
       //-------------------------------------------------------------
-      LOG_INFO << "Loading input data..." << endl;
+      OPENMS_LOG_INFO << "Loading input data..." << endl;
       MzMLFile mzml;
       mzml.setLogType(log_type_);
       mzml.getOptions().addMSLevel(1);
@@ -280,9 +280,9 @@ protected:
       //-------------------------------------------------------------
       // load feature candidates
       //-------------------------------------------------------------
-      LOG_INFO << "Reading feature candidates from a previous run..." << endl;
+      OPENMS_LOG_INFO << "Reading feature candidates from a previous run..." << endl;
       FeatureXMLFile().load(candidates_in, features);
-      LOG_INFO << "Found " << features.size() << " feature candidates in total."
+      OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
                << endl;
       ffid_algo.runOnCandidates(features);
     }
@@ -291,7 +291,7 @@ protected:
     // write output
     //-------------------------------------------------------------
 
-    LOG_INFO << "Writing final results..." << endl;
+    OPENMS_LOG_INFO << "Writing final results..." << endl;
     FeatureXMLFile().store(out, features);
 
 

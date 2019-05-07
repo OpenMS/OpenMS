@@ -40,8 +40,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Meta data for the association between an identified molecule (e.g. peptide) and a parent molecule (e.g. protein).
+    /** @brief Meta data for the association between an identified molecule (e.g. peptide) and a parent molecule (e.g. protein).
     */
     struct MoleculeParentMatch: public MetaInfoInterface
     {
@@ -97,7 +96,7 @@ namespace OpenMS
       }
     };
 
-    // mapping: parent molecule -> match information
+    /// mapping: parent molecule -> match information
     typedef std::map<ParentMoleculeRef,
                      std::set<MoleculeParentMatch>> ParentMatches;
 

@@ -90,7 +90,9 @@ START_SECTION((MSExperiment(const MSExperiment&& source)))
   // Ensure that MSExperiment has a no-except move constructor (otherwise
   // std::vector is inefficient and will copy instead of move).
   // TODO: wont work for MSVS (yet)
-  // TEST_EQUAL(noexcept(MSExperiment(std::declval<MSExperiment&&>())), true)
+#ifndef OPENMS_COMPILER_MSVC
+  TEST_EQUAL(noexcept(MSExperiment(std::declval<MSExperiment&&>())), true)
+#endif
 
   PeakMap tmp;
   tmp.getContacts().resize(1);

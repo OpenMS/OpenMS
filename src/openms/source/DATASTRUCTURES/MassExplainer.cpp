@@ -220,7 +220,7 @@ namespace OpenMS
         explanations_.push_back(cmpr);
       }
 
-      LOG_DEBUG << "valid explanations: " << explanations_.size() << " after " << it->getFormula() << std::endl;
+      OPENMS_LOG_DEBUG << "valid explanations: " << explanations_.size() << " after " << it->getFormula() << std::endl;
 
     } // END adduct add
 
@@ -369,7 +369,7 @@ namespace OpenMS
   {
 
     EmpiricalFormula ef(formula);
-    LOG_DEBUG << "createAdduct_: " << formula << " " << charge << "\n";
+    OPENMS_LOG_DEBUG << "createAdduct_: " << formula << " " << charge << "\n";
     //effectively subtract charge electron masses: (-H plus one Proton)*charge
     ef -= EmpiricalFormula("H" + String(charge)); // subtracts x hydrogen
     ef.setCharge(charge); // adds x protons

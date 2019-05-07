@@ -502,17 +502,17 @@ private:
     */
     static void printToVoid_(const char* /*s*/);
 
-    svm_parameter* param_; // the parameters for the svm
-    svm_model* model_; // the learned svm discriminant
-    double sigma_; // for the oligo kernel (amount of positional smearing)
-    std::vector<double> sigmas_; // for the combined oligo kernel (amount of positional smearing)
-    std::vector<double> gauss_table_; // lookup table for fast computation of the oligo kernel
-    std::vector<std::vector<double> > gauss_tables_; // lookup table for fast computation of the combined oligo kernel
-    Size kernel_type_; // the actual kernel type
-    Size  border_length_; // the actual kernel type
-    svm_problem* training_set_; // the training set
-    svm_problem* training_problem_; // the training set
-    SVMData training_data_; // the training set (different encoding)
+    svm_parameter* param_; ///< the parameters for the svm
+    svm_model* model_; ///< the learned svm discriminant
+    double sigma_; ///< for the oligo kernel (amount of positional smearing)
+    std::vector<double> sigmas_; ///< for the combined oligo kernel (amount of positional smearing)
+    std::vector<double> gauss_table_; ///< lookup table for fast computation of the oligo kernel
+    std::vector<std::vector<double> > gauss_tables_; ///< lookup table for fast computation of the combined oligo kernel
+    Size kernel_type_; ///< the actual kernel type
+    Size  border_length_; ///< the actual kernel type
+    svm_problem* training_set_; ///< the training set
+    svm_problem* training_problem_; ///< the training set
+    SVMData training_data_; ///< the training set (different encoding)
   };
 
 } // namespace OpenMS

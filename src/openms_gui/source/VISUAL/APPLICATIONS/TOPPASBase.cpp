@@ -320,7 +320,7 @@ namespace OpenMS
     else
     {
       proposed_filename = "Workflow.toppas";
-      LOG_WARN << "The URL format of downloads from the TOPPAS Online-Repository has changed. Please notify developers!";
+      OPENMS_LOG_WARN << "The URL format of downloads from the TOPPAS Online-Repository has changed. Please notify developers!";
     }
     QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
 
@@ -356,7 +356,7 @@ namespace OpenMS
   {
     QNetworkReply::NetworkError ne = network_reply_->error();
     qint64 ba = network_reply_->bytesAvailable();
-    LOG_DEBUG << "Error code (QNetworkReply::NetworkError): " << ne << "  bytes available: " << ba << std::endl;
+    OPENMS_LOG_DEBUG << "Error code (QNetworkReply::NetworkError): " << ne << "  bytes available: " << ba << std::endl;
     return;
   }
 
@@ -546,7 +546,7 @@ namespace OpenMS
 
     if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
     {
-      LOG_ERROR << "The file '" << file_name << "' is not a .toppas file" << std::endl;
+      OPENMS_LOG_ERROR << "The file '" << file_name << "' is not a .toppas file" << std::endl;
       return;
     }
 

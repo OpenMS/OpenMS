@@ -155,7 +155,7 @@ protected:
 
     if (out_type == FileTypes::UNKNOWN)
     {
-      LOG_ERROR << ("Error: Could not determine output file type!") << std::endl;
+      OPENMS_LOG_ERROR << ("Error: Could not determine output file type!") << std::endl;
       return PARSE_ERROR;
     }
 
@@ -259,7 +259,7 @@ protected:
     }
 
     Size pep_remaining_count = (has_FASTA_output ? fasta_out_count : identifications.size());
-    LOG_INFO << "Statistics:\n"
+    OPENMS_LOG_INFO << "Statistics:\n"
              << "  file:                                    " << inputfile_name << "\n"
              << "  total #peptides after digestion:         " << pep_remaining_count + dropped_by_length << "\n"
              << "  removed #peptides (length restrictions): " << dropped_by_length << "\n"
