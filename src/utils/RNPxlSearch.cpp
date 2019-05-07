@@ -449,7 +449,7 @@ protected:
     std::vector<float> b_ions(N, 0.0), y_ions(N, 0.0);
 
     // maximum charge considered
-    const unsigned int max_z = std::max(3U, static_cast<unsigned int>(std::min(pc_charge - 1, 2U)));
+    const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
 
     // match b- and a-ions (we record a-ions as b-ions)
     for (double diff2b : {0.0, -27.994915} ) // b-ion and a-ion ('CO' mass diff from b- to a-ion)
@@ -682,7 +682,7 @@ protected:
     std::vector<float> b_ions(N, 0.0), y_ions(N, 0.0);
 
     // maximum charge considered
-    const unsigned int max_z = std::max(3U, static_cast<unsigned int>(std::min(pc_charge - 1, 2U)));
+    const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
 
     // match b- and a-ions (we record a-ions as b-ions)
     for (double diff2b : {0.0, -27.994915} ) // b-ion and a-ion ('CO' mass diff from b- to a-ion)
@@ -954,14 +954,7 @@ static void scoreShiftedFragments_(
                                              marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0]);
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
     }
-    //TODO: these are currently empty
-/*
-              if (!shifted_immonium_ions_sub_score_spectrum.empty())
-              {
-                shifted_immonium_ions_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, shifted_immonium_ions_sub_score_spectrum);
-                               shifted_immonium_ions_sub_score(0),
-              }
-*/
+
     scoreShiftedLadderIons_(
                       partial_loss_modification,                        
                       partial_loss_template_z1_b_ions,
@@ -2276,9 +2269,12 @@ static void scoreShiftedFragments_(
     ah.isotope_error = isotope_error;
 
     auto range = make_pair(intensity_sum.begin(), intensity_sum.end());
-    ah.ladder_score = ladderScore_(range); 
+    ah.ladder_score = ladderScore_(range) / (double)intensity_sum.size(); 
     range = longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end());
-    ah.sequence_score = ladderScore_(range);
+    if (range.second != range.first)
+    {
+      ah.sequence_score = ladderScore_(range) / (double)(range.second - range.first);
+    }
 
     // simple combined score in fast scoring:
     ah.score = total_loss_score + ah.total_MIC + mass_error_score / 3.0; 
@@ -2772,7 +2768,6 @@ static void scoreShiftedFragments_(
                   // bad score or less then two peaks matching
                   if (hyperScore < MIN_HYPERSCORE 
                     || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-	            || tlss_modds < 1e-10
                     || tlss_MIC < 0.01) 
                   { 
                     continue; 
@@ -2799,8 +2794,13 @@ static void scoreShiftedFragments_(
                   ah.rna_mod_index = rna_mod_index;
                   ah.isotope_error = isotope_error;
 
-                  ah.ladder_score = ladderScore_(make_pair(intensity_sum.begin(), intensity_sum.end()));
-                  ah.sequence_score = ladderScore_(longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end()));
+                  auto range = make_pair(intensity_sum.begin(), intensity_sum.end());
+                  ah.ladder_score = ladderScore_(range) / (double)intensity_sum.size(); 
+                  range = longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end());
+                  if (range.second != range.first)
+                  {
+                    ah.sequence_score = ladderScore_(range) / (double)(range.second - range.first);
+                  }
 
                   // combined score
                   ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
@@ -2913,8 +2913,7 @@ static void scoreShiftedFragments_(
                     // bad score or less then two peaks matching
                     if (hyperScore < MIN_HYPERSCORE 
                       || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-                      || tlss_MIC < 0.01 
-                      || tlss_modds < 1e-10) 
+                      || tlss_MIC < 0.01) 
                     { 
                       continue; 
                     }
@@ -2988,8 +2987,13 @@ static void scoreShiftedFragments_(
                     ah.rna_mod_index = rna_mod_index;
                     ah.isotope_error = isotope_error;
 
-                    ah.ladder_score = ladderScore_(make_pair(intensity_sum.begin(), intensity_sum.end()));
-                    ah.sequence_score = ladderScore_(longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end()));
+                    auto range = make_pair(intensity_sum.begin(), intensity_sum.end());
+                    ah.ladder_score = ladderScore_(range) / (double)intensity_sum.size(); 
+                    range = longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end());
+                    if (range.second != range.first)
+                    {
+                      ah.sequence_score = ladderScore_(range) / (double)(range.second - range.first);
+                    }
 
                     // combined score
                     ah.score = RNPxlSearch::calculateCombinedScore(ah, true);
