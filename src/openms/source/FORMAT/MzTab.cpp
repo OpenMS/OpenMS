@@ -1473,7 +1473,7 @@ namespace OpenMS
     for (String const & key : keys)
     {
       MzTabOptionalColumnEntry opt_entry;
-      opt_entry.first = String("opt_") + id + String("_") + String(key).substitute(' ','_');
+      opt_entry.first = "opt_" + id + "_" + String(key).substitute(' ','_');
       if (meta.metaValueExists(key))
       {
         opt_entry.second = MzTabString(meta.getMetaValue(key).toString().substitute(' ','_'));
@@ -1567,12 +1567,12 @@ namespace OpenMS
     MzTab mztab;
     MzTabMetaData meta_data;
 
-    vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();        
+    const vector<ProteinIdentification> &prot_ids = feature_map.getProteinIdentifications();        
     vector<String> var_mods, fixed_mods;
     MzTabString db, db_version;
     if (!prot_ids.empty())
     {
-      ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
+      const ProteinIdentification::SearchParameters &sp = prot_ids[0].getSearchParameters();
       var_mods = sp.variable_modifications;
       fixed_mods = sp.fixed_modifications;
       db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
@@ -2952,7 +2952,7 @@ Not sure how to handle these:
         row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
 
         const set<String>& accessions = best_ph.extractProteinAccessionsSet();
-        const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
+        const vector<PeptideEvidence> &peptide_evidences = best_ph.getPeptideEvidences();
 
         row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
         // select accession of first peptide_evidence as representative ("leading") accession
