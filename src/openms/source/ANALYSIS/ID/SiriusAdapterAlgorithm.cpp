@@ -196,7 +196,7 @@ namespace OpenMS
           bool feature_only;
           if (sirius_algo.feature_only_ == "true") feature_only = true;
           else if (sirius_algo.feature_only_ == "false") feature_only = false;
-          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feautre only is either true or false");
+          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature only is either true or false");
           
           unsigned int num_masstrace_filter = sirius_algo.filter_by_num_masstraces_;
           double precursor_mz_tol = sirius_algo.precursor_mz_tolerance_;
