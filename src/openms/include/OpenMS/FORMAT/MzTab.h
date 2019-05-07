@@ -940,6 +940,18 @@ public:
  
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename);
 
+		/**
+		 * @brief export peptide and protein identifications to mzTab
+		 *
+		 * @param prot_ids		data structure containing protein identifications
+		 * @param peptide_ids		data structure containing peptide identifications
+		 * @param filename		input idXML file name 
+		 * @param first_run_inference_only		Is all protein inference information stored in the first run? 
+		 * @param map_run_fileidx_2_msfileidx		mapping from (run index, file index) to MS file index
+		 * @param idrun_2_run_index		mapping from protein identification identifier (search engine + date) to run index, i.e. for storing file origins from different runs
+		 *
+		 * @return mzTab object 
+		 */
     static MzTab exportIdentificationsToMzTab(
         const std::vector<ProteinIdentification>& prot_ids,
         const std::vector<PeptideIdentification>& peptide_ids,
