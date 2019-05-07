@@ -7,6 +7,7 @@ set(sources_list_h
   FragmentMassError.h
   MissedCleavages.h
   Ms2IdentificationRate.h
+  MzCalibration.h
   QCBase.h
   RTAlignment.h
   TIC.h

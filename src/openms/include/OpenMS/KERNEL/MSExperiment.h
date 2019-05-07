@@ -220,7 +220,7 @@ public:
         {
           continue;
         }
-				typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
+        typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
         for (typename SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
         {
           cont.push_back(s);

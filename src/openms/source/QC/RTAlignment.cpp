@@ -76,6 +76,11 @@ namespace OpenMS
         unassigned_ID.setMetaValue("rt_raw", unassigned_ID.getRT());
     }
   }
+  
+  const String& RTAlignment::getName() const
+  {
+    return name_;
+  }
 
   //required input files
   QCBase::Status RTAlignment::requires() const

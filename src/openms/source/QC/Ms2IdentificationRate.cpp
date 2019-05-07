@@ -125,6 +125,12 @@ namespace OpenMS
       rate_result_.push_back(id_rate_data);
   }
 
+  
+  const String& Ms2IdentificationRate::getName() const
+  {
+    return name_;
+  }
+  
 
   const std::vector<OpenMS::Ms2IdentificationRate::IdentificationRateData>& Ms2IdentificationRate::getResults() const
   {

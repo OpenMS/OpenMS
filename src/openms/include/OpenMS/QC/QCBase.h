@@ -58,13 +58,16 @@ namespace OpenMS
       enum class Requires :
           UInt64
       {
-          FAIL = 0,         //< default, does not encode for anything
-          RAWMZML = 1,      //< mzML file is required
-          POSTFDRFEAT = 2,  //< Features with FDR-filtered pepIDs
-          PREFDRFEAT = 4,   //< Features with unfiltered pepIDs
-          CONTAMINANTS = 8, //< Contaminant Database
-          TRAFOALIGN = 16   //< transformationXMLs for RT-alignment
+          FAIL,         //< default, does not encode for anything
+          RAWMZML,      //< mzML file is required
+          POSTFDRFEAT,  //< Features with FDR-filtered pepIDs
+          PREFDRFEAT,   //< Features with unfiltered pepIDs
+          CONTAMINANTS, //< Contaminant Database
+          TRAFOALIGN,   //< transformationXMLs for RT-alignment
+          SIZE_OF_REQUIRES
        };
+    /// strings corresponding to enum Requires
+      static const std::string names_of_requires[];
     /**
      * @brief Storing a status as a UInt64
      *
@@ -84,7 +87,7 @@ namespace OpenMS
 
       Status(const Requires& req)
       {
-        value_ = UInt64(req);
+        value_ = getPow_(req);
       }
 
       Status(const Status& stat)
@@ -95,7 +98,7 @@ namespace OpenMS
       // Assignment
       Status& operator=(const Requires& req)
       {
-        value_ = UInt64(req);
+        value_ = getPow_(req);
         return *this;
       }
 
@@ -114,7 +117,7 @@ namespace OpenMS
       Status operator&(const Requires& req) const
       {
         Status s = *this;
-        s.value_ &= UInt64(req);
+        s.value_ &= getPow_(req);
         return s;
       }
 
@@ -127,7 +130,7 @@ namespace OpenMS
 
       Status& operator&=(const Requires& req)
       {
-        value_ &= UInt64(req);
+        value_ &= getPow_(req);
         return *this;
       }
 
@@ -140,7 +143,7 @@ namespace OpenMS
       Status operator|(const Requires& req) const
       {
         Status s = *this;
-        s.value_ |= UInt64(req);
+        s.value_ |= getPow_(req);
         return s;
       }
 
@@ -153,7 +156,7 @@ namespace OpenMS
 
       Status& operator|=(const Requires& req)
       {
-        value_ |= UInt64(req);
+        value_ |= getPow_(req);
         return *this;
       }
 
@@ -166,24 +169,34 @@ namespace OpenMS
       /**
        * @brief Check if input status fulfills requirement status.
        */
-      bool isSuperSetOf(const Status& stat)
+      bool isSuperSetOf(const Status& stat) const
       {
         return ((value_ & stat.value_) == stat.value_);
       }
 
     private:
+
+      UInt64 getPow_(const Requires& r) const
+      {
+        return 1 << UInt64 (r);
+      }
       UInt64 value_;
     };
 
     /**
+    * @brief Returns the name of the metric
+    */
+    virtual const String& getName() const = 0;
+    
+    /**
      *@brief Returns the input data requirements of the compute(...) function
      */
     virtual Status requires() const = 0;
+    
 
     /**
      * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
      *
-     * PeptideIdentifications without PeptideHits are not passed to the Lambda function.
      * The Lambda may or may not change the PeptideIdentification
      */
 
@@ -192,28 +205,14 @@ namespace OpenMS
     {
       for (auto& pep_id : fmap.getUnassignedPeptideIdentifications())
       {
-        if (pep_id.getHits().empty())
-        {
-          OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
-        }
-        else
-        {
-          lambda(pep_id);
-        }
+        lambda(pep_id);
       }
 
       for (auto& features : fmap)
       {
         for (auto& pep_id : features.getPeptideIdentifications())
         {
-          if (pep_id.getHits().empty())
-          {
-            OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
-          }
-          else
-          {
-            lambda(pep_id);
-          }
+          lambda(pep_id);
         }
       }
     }

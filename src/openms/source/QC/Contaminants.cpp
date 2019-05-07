@@ -166,11 +166,17 @@ namespace OpenMS
     // add the object to the results vector
     results_.push_back(final);
   }
-
+  
+  const String& Contaminants::getName() const
+  {
+    return name_;
+  }
+  
   const std::vector<Contaminants::ContaminantsSummary>& Contaminants::getResults()
   {
     return results_;
   }
+  
 
   // Check if peptide is in contaminants database or not and add the is_contaminant = 0/1.
   // If so, raise the contaminant ratio.
