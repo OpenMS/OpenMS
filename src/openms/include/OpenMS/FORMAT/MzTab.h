@@ -965,6 +965,17 @@ public:
     /// In contrast, all modifications are reported in the PSM section (see standard document for details).
     static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
 
+		/**
+		 * @brief export linked peptide features aka consensus map
+		 *
+		 * @param consensus_map		data structure of the linked peptide features
+		 * @param filename		input consensusXML file name 
+		 * @param export_unidentified_features		Should not identified peptide features be exported?
+		 * @param export_unassigned_ids		Should unassigned identifications be exported?
+		 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
+		 *
+		 * @return mzTab object 
+		 */
     static MzTab exportConsensusMapToMzTab(
       const ConsensusMap & consensus_map, 
       const String & filename,
