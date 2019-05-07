@@ -54,12 +54,13 @@ namespace OpenMS
 {
 /**
       @brief Data model of MzTab files.
+      
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO
   */
 
-// MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
+  /// MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
   enum MzTabCellStateType
   {
     MZTAB_CELLSTATE_DEFAULT,
@@ -69,7 +70,7 @@ namespace OpenMS
     SIZE_OF_MZTAB_CELLTYPE
   };
 
-// basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
+  /// basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
   class OPENMS_DLLAPI MzTabNullAbleInterface
   {
 public:
@@ -80,7 +81,7 @@ public:
     virtual void fromCellString(const String&) = 0;
   };
 
-// interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
+  /// interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
   class OPENMS_DLLAPI MzTabNullNaNAndInfAbleInterface :
     public MzTabNullAbleInterface
   {
@@ -92,7 +93,7 @@ public:
     virtual void setInf() = 0;
   };
 
-// base class for atomic, non-container types (Double, Int)
+  /// base class for atomic, non-container types (Double, Int)
   class OPENMS_DLLAPI MzTabNullAbleBase :
     public MzTabNullAbleInterface
   {
@@ -442,7 +443,7 @@ public:
     void fromCellString(const String& s) override;
 
 protected:
-    Size ms_run_; // number is specified in the meta data section.
+    Size ms_run_; //< number is specified in the meta data section.
     String spec_ref_;
   };
 
@@ -582,7 +583,7 @@ public:
     std::vector<String> colunit_small_molecule;
   };
 
-  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; ///<  column name (not null able), value (null able)
+  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //<  column name (not null able), value (null able)
 
   /// PRT - Protein section (Table based)
   struct OPENMS_DLLAPI MzTabProteinSectionRow
@@ -940,18 +941,20 @@ public:
  
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename);
 
-		/**
-		 * @brief export peptide and protein identifications to mzTab
-		 *
-		 * @param prot_ids		data structure containing protein identifications
-		 * @param peptide_ids		data structure containing peptide identifications
-		 * @param filename		input idXML file name 
-		 * @param first_run_inference_only		Is all protein inference information stored in the first run? 
-		 * @param map_run_fileidx_2_msfileidx		mapping from (run index, file index) to MS file index
-		 * @param idrun_2_run_index		mapping from protein identification identifier (search engine + date) to run index, i.e. for storing file origins from different runs
-		 *
-		 * @return mzTab object 
-		 */
+    /**
+      * @brief Export peptide and protein identifications to mzTab
+      *
+      * Additionally this function fills two std::maps with mappings for external usage.
+      *
+      * @param[IN] prot_ids Data structure containing protein identifications
+      * @param[IN] peptide_ids Data structure containing peptide identifications
+      * @param[IN] filename Input idXML file name 
+      * @param[IN] first_run_inference_only Is all protein inference information stored in the first run? 
+      * @param[OUT] map_run_fileidx_2_msfileidx Mapping from (run index, file index) to MS file index
+      * @param[OUT] idrun_2_run_index Mapping from protein identification identifier (search engine + date) to run index, i.e. for storing file origins from different runs
+      *
+      * @return mzTab object 
+    */
     static MzTab exportIdentificationsToMzTab(
         const std::vector<ProteinIdentification>& prot_ids,
         const std::vector<PeptideIdentification>& peptide_ids,
