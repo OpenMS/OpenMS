@@ -61,7 +61,7 @@ namespace OpenMS
     {
       for (Size i = 0; i < pcs.size(); ++i)
       {
-				pcs[i].setMetaValue("mz_raw", pcs[i].getMZ());
+        pcs[i].setMetaValue("mz_raw", pcs[i].getMZ());
         pcs[i].setMZ(trafo.predict(pcs[i].getMZ()));
       }
     }

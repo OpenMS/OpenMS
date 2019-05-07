@@ -47,15 +47,14 @@ using namespace std;
  
 namespace OpenMS
 {
+  /// EPSILON: error tolerance for RT-searching in MSExperiment
+  static const double EPSILON_{ 0.05 };
+
   MzCalibration::MzCalibration() : mz_raw_{}, mz_ref_{}, no_mzml_(false), name_("MzCalibration")
   {}
   // find original m/z Value, set meta value "mz_raw" and set meta value "mz_ref"
   void MzCalibration::compute(FeatureMap& features, const MSExperiment& exp)
   {
-    if (features.empty())
-    {
-      LOG_WARN << "The FeatureMap is empty.\n";
-    }
     if (exp.empty())
     {
       no_mzml_ = true;
@@ -81,74 +80,47 @@ namespace OpenMS
     {
       if (feature.getPeptideIdentifications().empty())
       {
-        LOG_WARN << "A Feature is empty.\n";
         continue;
       }
 
       for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
       {
-        if (!peptide_ID.hasRT())
-        {
-          LOG_WARN << "A PeptideIdentification has no retention time value.\n";
-          continue;
-        }
-
-        if (peptide_ID.hasRT())
-        {
-          if (peptide_ID.getHits().empty())
-          {
-            LOG_WARN << "A PeptideHit is empty.\n";
-            continue;
-          }
-          mz_ref_ = peptide_ID.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, peptide_ID.getHits()[0].getCharge())
-                    / peptide_ID.getHits()[0].getCharge();
-          if (no_mzml_)
-          {
-            peptide_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(peptide_ID.getMZ(), mz_ref_));
-          }
-          else
-          {
-            mz_raw_ = getMZraw_(peptide_ID.getRT(), exp);
-            peptide_ID.getHits()[0].setMetaValue("mz_raw", mz_raw_);
-            peptide_ID.getHits()[0].setMetaValue("mz_ref", mz_ref_);
-            peptide_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(mz_raw_, mz_ref_));
-            peptide_ID.getHits()[0].setMetaValue("calibrated_mz_error_ppm", Math::getPPM(peptide_ID.getMZ(), mz_ref_));
-          }
-        }
+        addMzMetaValues_(peptide_ID, exp);
       }
     }
     // set meta values for the first hit of all unasssigned PeptideIdentifications
     for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
     {
-      if (!unassigned_ID.hasRT())
-      {
-        LOG_WARN << "A PeptideIdentification has no retention time value.\n";
-        continue;
-      }
-      if (unassigned_ID.hasRT())
-      {
-        if (unassigned_ID.getHits().empty())
-        {
-          LOG_WARN << "A PeptideHit is empty.\n";
-          continue;
-        }
-        mz_ref_ = (unassigned_ID.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, unassigned_ID.getHits()[0].getCharge()))
-                  / unassigned_ID.getHits()[0].getCharge();
-        if (no_mzml_)
-        {
-          unassigned_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(unassigned_ID.getMZ(), mz_ref_));
-        }
-        else
-        {
-          mz_raw_ = getMZraw_(unassigned_ID.getRT(), exp);
-          unassigned_ID.getHits()[0].setMetaValue("mz_raw", mz_raw_);
-          unassigned_ID.getHits()[0].setMetaValue("mz_ref", mz_ref_);
-          unassigned_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(mz_raw_, mz_ref_));
-          unassigned_ID.getHits()[0].setMetaValue("calibrated_mz_error_ppm", Math::getPPM(unassigned_ID.getMZ(), mz_ref_));
-        }
-      }
+      addMzMetaValues_(unassigned_ID, exp);
     }
   }
+
+  void MzCalibration::addMzMetaValues_(PeptideIdentification& peptide_ID, const PeakMap& exp)
+  {
+    if (!peptide_ID.hasRT())
+    {
+      return;
+    }
+    if (peptide_ID.getHits().empty())
+    {
+      return;
+    }
+    mz_ref_ = (peptide_ID.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, peptide_ID.getHits()[0].getCharge()))
+              / peptide_ID.getHits()[0].getCharge();
+    if (no_mzml_)
+    {
+      peptide_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(peptide_ID.getMZ(), mz_ref_));
+    }
+    else
+    {
+      mz_raw_ = getMZraw_(peptide_ID.getRT(), exp);
+      peptide_ID.getHits()[0].setMetaValue("mz_raw", mz_raw_);
+      peptide_ID.getHits()[0].setMetaValue("mz_ref", mz_ref_);
+      peptide_ID.getHits()[0].setMetaValue("uncalibrated_mz_error_ppm", Math::getPPM(mz_raw_, mz_ref_));
+      peptide_ID.getHits()[0].setMetaValue("calibrated_mz_error_ppm", Math::getPPM(peptide_ID.getMZ(), mz_ref_));
+    }
+  }
+
   // required input files
   QCBase::Status MzCalibration::requires() const
   {

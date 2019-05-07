@@ -75,16 +75,17 @@ namespace OpenMS
       const String& getName() const override;
 
     private:
-      /// search matching RT-time in MSExperiment before calibration, and return the m/z value. Search with error tolerance EPSILON
+      /// search matching RT-time in MSExperiment before calibration, and return the m/z value. Search with a small tolerance window of 0.05
       double getMZraw_(double rt, const MSExperiment& exp) const;
+
+      /// calculate the m/z values and m/z errors and add them to the PeptideIdentification
+      void addMzMetaValues_(PeptideIdentification& peptide_ID, const MSExperiment& exp);
 
       double mz_raw_;
       double mz_ref_;
       bool no_mzml_;
       String name_;
   };
-  /// EPSILON: error tolerance for RT-searching in MSExperiment
-  static const double EPSILON_{ 0.05 };
 }
 
 
