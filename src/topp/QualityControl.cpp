@@ -48,11 +48,11 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
 #include <OpenMS/QC/Contaminants.h>
 #include <OpenMS/QC/FragmentMassError.h>
 #include <OpenMS/QC/MissedCleavages.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
+#include <OpenMS/QC/MzCalibration.h>
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
@@ -86,8 +86,6 @@ protected:
     setValidFormats_("in_raw", {"mzML"});
     registerInputFileList_("in_postFDR", "<file>", {}, "featureXML input", false);
     setValidFormats_("in_postFDR", {"featureXML"});
-    //possible additions:
-    //"mzData,mzXML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"
     registerTOPPSubsection_("FragmentMassError", "test");
     registerStringOption_("FragmentMassError:unit", "<unit>", "ppm", "Unit for tolerance", false);
     setValidStrings_("FragmentMassError:unit", {"ppm", "Da"});
@@ -108,11 +106,11 @@ protected:
 
   }
 
-  bool isRunnable_(const QCBase* m, const OpenMS::QCBase::Status s)
+  bool isRunnable_(const QCBase* m, const OpenMS::QCBase::Status& s) const
   {
     if (s.isSuperSetOf(m->requires())) return true;
 
-    for (int i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
+    for (Size i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
     {
       if (m->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
       {
@@ -167,6 +165,7 @@ protected:
     FragmentMassError qc_frag_mass_err;
     MissedCleavages qc_missed_cleavages;
     Ms2IdentificationRate qc_ms2ir;
+    MzCalibration qc_mz_calibration;
     RTAlignment qc_rt_alignment;
     TIC qc_tic;
     TopNoverRT qc_top_n_over_rt;
@@ -219,6 +218,10 @@ protected:
       if (isRunnable_(&qc_ms2ir, status))
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
+      }
+      if (isRunnable_(&qc_mz_calibration, status))
+      {
+        qc_mz_calibration.compute(fmap, exp);
       }
 
       if (isRunnable_(&qc_rt_alignment, status))
@@ -335,7 +338,7 @@ private:
 
       if (!ref_pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
       {
-        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at unassigned peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
+        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
       }
       PeptideIdentification& pep_id = *(map_to_id.at(ref_pep_id.getMetaValue("UID"))); 
 
@@ -353,7 +356,7 @@ private:
     {
       if (!pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
       {
-        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at unassigned peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
+        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
       }
       map_to_id[pep_id.getMetaValue("UID")] = &pep_id;
     }
