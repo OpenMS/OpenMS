@@ -55,7 +55,8 @@ namespace OpenMS
 
     // if featureMap after map alignment was handed, return Exception
     auto is_elem = [](DataProcessing dp) { return (find(dp.getProcessingActions().begin(), dp.getProcessingActions().end(), DataProcessing::ProcessingAction::ALIGNMENT) != dp.getProcessingActions().end());  };
-    if (any_of(features.getDataProcessing().begin(), features.getDataProcessing().end(), is_elem))
+    auto vdp = features.getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
+    if (all_of(vdp.begin(), vdp.end(), is_elem))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metric RTAlignment received a featureXML AFTER map alignment, but needs a featureXML BEFORE map alignment!");
     }
