@@ -89,6 +89,11 @@ using namespace std;
   Maybe most importantly, data from MS experiments in a number of different formats can be converted to mzML,
   the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
   supports traceability of analysis steps.)
+  
+  Thermo raw files can be converted to mzML using the ThermoRawFileParser provided in the THIRDPARTY folder.
+  On windows, a recent .NET framwork needs to be installed. On linux and mac, the mono runtime needs to be
+  present and accessible via the -NET_executable parameter. The path to the ThermoRawFileParser can be set
+  via the -ThermoRaw_executable option.
 
   For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
 
