@@ -300,15 +300,15 @@ protected:
 
     registerIntOption_("minCC", "<min continuous charge peak count>", 3,
                        "minimum number of peaks of continuous charges per mass", false, true);
-    registerDoubleOption_("minIsotopeCosine", "<...>", .5, "cosine threshold between avg. isotope and observed intensities for max mass", false, true);
-    registerDoubleOption_("maxIsotopeCosine", "<...>", .8, "cosine threshold between avg. isotope and observed intensities for min mass", false, true);
+    registerDoubleOption_("minIsotopeCosine", "<...>", .6, "cosine threshold between avg. isotope and observed intensities for max mass", false, true);
+    registerDoubleOption_("maxIsotopeCosine", "<...>", .9, "cosine threshold between avg. isotope and observed intensities for min mass", false, true);
     //registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
 
     registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
     //
     registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold", false, true);
-    registerDoubleOption_("RTwindow", "<seconds>", 180.0,
-                          "RT window for feature extraction", false, true);
+    registerDoubleOption_("RTwindow", "<seconds>", 0.0,
+                          "RT window for feature extraction (default 1.5% total gradient time)", false, true);
     registerDoubleOption_("minRTSpan", "<seconds>", 1.0,
                           "Min feature RT span for feature extraction", false, true);
     registerIntOption_("writeSpecTsv", "<1:true 0:false>", 0, "to write per spectrum deconvoluted values or not", false, true);
@@ -381,12 +381,12 @@ protected:
     if (!isOutPathDir)
     {
       fs.open(outfilePath + ".tsv", fstream::out);
-      if (param.RTwindow > 0)
-      {
+     // if (param.RTwindow > 0)
+     // {
         fsf.open(outfilePath + "feature.tsv", fstream::out);
-      }
+    //  }
 
-      writeHeader(fs, fsf, param.RTwindow > 0);
+      writeHeader(fs, fsf, true);
       fsm.open(outfilePath + ".m", fstream::out);
       fsm << "m=[";
 
@@ -425,8 +425,13 @@ protected:
         ms1Cntr++;
       }
 
-      double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
-      param.numOverlappedScans = max(param.minNumOverLappedScans, (int) (.5 + param.RTwindow / rtDuration));
+      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
+      double rtDelta = rtDuration / ms1Cntr;
+      if (param.RTwindow <=0) {
+        param.RTwindow = rtDuration  * .02;
+      }
+
+      param.numOverlappedScans = max(param.minNumOverLappedScans, (int) (.5 + param.RTwindow / rtDelta));
       cout << "# Overlapped MS1 scans:" << param.numOverlappedScans << endl;
       if (isOutPathDir)
       {
@@ -434,11 +439,10 @@ protected:
         std::size_t found = outfileName.find_last_of(".");
         outfileName = outfileName.substr(0, found);
         fs.open(outfilePath + outfileName + ".tsv", fstream::out);
-        if (param.RTwindow > 0)
-        {
-          fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
-        }
-        writeHeader(fs, fsf, param.RTwindow > 0);
+
+        fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
+
+        writeHeader(fs, fsf, true);
 
         outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
         outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
@@ -456,7 +460,7 @@ protected:
       auto deconv_t_end = chrono::high_resolution_clock::now();
       auto deconv_end = clock();
 
-      if (param.RTwindow > 0 && !peakGroups.empty() && specCntr > 0 && map.size() > 1)
+      if (!peakGroups.empty() && specCntr > 0 && map.size() > 1)
       {
         findFeatures(peakGroups, map, featureCntr, fsf, param);
       }
@@ -489,10 +493,9 @@ protected:
         fsm.close();
         fsp.close();
         fs.close();
-        if (param.RTwindow > 0)
-        {
-          fsf.close();
-        }
+
+        fsf.close();
+
 
         total_specCntr += specCntr;
         total_qspecCntr += qspecCntr;
@@ -555,10 +558,8 @@ protected:
       fsm.close();
       fsp.close();
       fs.close();
-      if (param.RTwindow > 0)
-      {
-        fsf.close();
-      }
+      fsf.close();
+
     }
     return EXECUTION_OK;
   }
@@ -982,7 +983,7 @@ protected:
 
     vector<Size> mb;
     mb.reserve(filteredPeakGroups.size());
-    for (auto &pg : filteredPeakGroups)
+    for (auto &pg : filteredPeakGroups)//filteredPeakGroups
     {
       if (massBins[pg.massBinIndex])
       {
@@ -1811,7 +1812,7 @@ protected:
                                       pg, param);
 
       bool isIsotopeSpanGood = checkSpanDistribution(perChargeMinIsotope, perChargeMaxIsotope,
-                                                     param.chargeRange, param.minContinuousChargePeakCount);
+                                                     param.chargeRange, 3);
 
       if (!isIsotopeSpanGood)
       {
@@ -1828,7 +1829,7 @@ protected:
 
       bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
                                                              param.chargeRange,
-                                                             param.minContinuousChargePeakCount);
+                                                             3);
 
       if (!isChargeWellDistributed)
       {
@@ -1840,8 +1841,9 @@ protected:
                                                                     param.maxIsotopeCount,
                                                                     averagines);
 
-      double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.peaks[0].getMass(),  param.minIsotopeCosine,param.maxIsotopeCosine,
-          param.minMass, param.maxMass);
+      double isotopeCosineThreshold = getIsotopeCosineThreshold(pg.peaks[0].getMass(),
+          param.minIsotopeCosine,param.maxIsotopeCosine,
+          1000, 100000);
 
       if (pg.peaks.empty() || pg.isotopeCosineScore <= isotopeCosineThreshold)
       {
@@ -2049,7 +2051,7 @@ protected:
     int prevCharge = nonZeroStart;
     int n_r = 0;
 
-    double spanThreshold = maxSpan / 5.0;//
+    double spanThreshold = maxSpan / 1.5;//
 
     for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++)
     {
