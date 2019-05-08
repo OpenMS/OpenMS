@@ -323,7 +323,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
-    String formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
+    String formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta,raw");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
     
@@ -351,6 +351,14 @@ protected:
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
+#ifdef OPENMS_WINDOWSPLATFORM
+    String net_executable = "";
+#else
+    String net_executable = "mono";
+#endif
+    registerInputFile_("NET_executable", "<executable>", net_executable, "The .NET framework executable. Only required on linux and mac.", false, true, ListUtils::create<String>("skipexists"));
+    registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, ListUtils::create<String>("skipexists"));
+
   }
 
   ExitCodes main_(int, const char**) override
@@ -574,6 +582,37 @@ protected:
         cacher.writeMetadata(exp_meta, out_meta);
 
         return EXECUTION_OK;
+      }
+      else if (FileTypes::RAW)
+      {
+        if (out_type != FileTypes::MZML)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Only conversion to mzML supported at this point.");
+        }
+        std::cout << "RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved" << std::endl;
+        String net_executable = getStringOption_("NET_executable");
+        TOPPBase::ExitCodes exit_code;
+        if (net_executable.empty()) // windows
+        {
+          QStringList arguments;
+          arguments << String("-i=" + in).toQString()
+                    << String("-o=" + out).toQString()
+                    << String("-f=2").toQString() // indexedMzML
+                    << String("-e").toQString(); // ignore instrument errors
+          exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
+        }
+        else
+        {
+          QStringList arguments;
+          arguments << getStringOption_("ThermoRaw_executable").toQString()
+                    << String("-i=" + in).toQString()
+                    << String("-o=" + out).toQString()
+                    << String("-f=2").toQString()
+                    << String("-e").toQString();
+          exit_code = runExternalProcess_(net_executable.toQString(), arguments);
+        }
+        return exit_code;
       }
       else
       {
