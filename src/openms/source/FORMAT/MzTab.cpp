@@ -2876,7 +2876,7 @@ Not sure how to handle these:
       row.opt_.push_back(opt_global_modified_sequence);
 
 			// Defines how to consume user value keys for the upcoming keys
-      for (set<String>::const_iterator mit = consensus_feature_user_value_keys.begin(); mit != consensus_feature_user_value_keys.end(); ++mit)	        const auto addUserValueToRowBy = [&](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
+      const auto addUserValueToRowBy = [&](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
       {
 				return [&](const String &user_value_key)
 				{
@@ -2888,27 +2888,20 @@ Not sure how to handle these:
           row.opt_.push_back(opt_entry);
         };
       };
-        
-      // create opt_ columns for consensus feature (peptide) user values
-      for (String const & key : consensus_feature_user_value_keys)
+      
+			// create opt_ columns for consensus map user values
+      for_each(consensus_feature_user_value_keys.begin(), consensus_feature_user_value_keys.end(),
+						addUserValueToRowBy([&](const String &key, MzTabOptionalColumnEntry &opt_entry)
       {
-        MzTabOptionalColumnEntry opt_entry;
-        opt_entry.first = String("opt_global_") + key;
-        if (c.metaValueExists(key))
-        {
-          opt_entry.second = MzTabString(c.getMetaValue(key).toString());
-        } // otherwise it is default ("null")
-        row.opt_.push_back(opt_entry);
-      }
+				if (c.metaValueExists(key))
+				{
+					opt_entry.second = MzTabString(c.getMetaValue(key).toString());
+				}
+			}));
 
       // create opt_ columns for psm (PeptideHit) user values
-      for (String const & key : peptide_hit_user_value_keys)
-      {
-        MzTabOptionalColumnEntry opt_entry;
-        opt_entry.first = String("opt_global_") + key;
-        // leave value empty as we have to fill it with the value from the best peptide hit
-        row.opt_.push_back(opt_entry);
-      }
+      for_each(peptide_hit_user_value_keys.begin(), peptide_hit_user_value_keys.end(),
+					addUserValueToRowBy([](const String&, MzTabOptionalColumnEntry&){}));
 
       row.mass_to_charge = MzTabDouble(c.getMZ());
       MzTabDoubleList rt_list;
@@ -3093,6 +3086,10 @@ Not sure how to handle these:
         continue; 
       } 
       rows.push_back(row);
+    }
+    for (auto &row : rows)
+    {
+			remapTargetDecoy_(row.opt_);
     }
 
     mztab.setPeptideSectionRows(rows);
