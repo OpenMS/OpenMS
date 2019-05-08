@@ -114,7 +114,7 @@ protected:
     {
       if (m->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
       {
-        LOG_WARN << "Metric '" << m->getName() << "' cannot run because input data '" << QCBase::names_of_requires[i] << "' is missing!\n";
+        OPENMS_LOG_WARN << "Metric '" << m->getName() << "' cannot run because input data '" << QCBase::names_of_requires[i] << "' is missing!\n";
       }
     }
     return false;
