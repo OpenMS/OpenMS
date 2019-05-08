@@ -2372,7 +2372,13 @@ Not sure how to handle these:
           // Add protein(group) row to MzTab 
           protein_rows.push_back(protein_row);
         }
+        
       }
+      for (auto &row : protein_rows)
+      {
+				remapTargetDecoy_(row.opt_);
+      }
+
       mztab.setProteinSectionRows(protein_rows);
     }
     // end protein groups
@@ -2522,6 +2528,11 @@ Not sure how to handle these:
 
       // pass common row entries and create rows for all peptide evidences
       addPepEvidenceToRows(peptide_evidences, row, rows);
+    }
+    // remap target/decoy column
+    for (auto &row : rows)
+    {
+        remapTargetDecoy_(row.opt_);
     }
 
     mztab.setMetaData(meta_data);
@@ -2864,6 +2875,20 @@ Not sure how to handle these:
       opt_global_modified_sequence.first = String("opt_global_modified_sequence");
       row.opt_.push_back(opt_global_modified_sequence);
 
+			// Defines how to consume user value keys for the upcoming keys
+      for (set<String>::const_iterator mit = consensus_feature_user_value_keys.begin(); mit != consensus_feature_user_value_keys.end(); ++mit)	        const auto addUserValueToRowBy = [&](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
+      {
+				return [&](const String &user_value_key)
+				{
+					MzTabOptionalColumnEntry opt_entry;
+          opt_entry.first = "opt_global_" + user_value_key;
+          f(user_value_key, opt_entry);
+
+          // Use default column_header for target decoy
+          row.opt_.push_back(opt_entry);
+        };
+      };
+        
       // create opt_ columns for consensus feature (peptide) user values
       for (String const & key : consensus_feature_user_value_keys)
       {
