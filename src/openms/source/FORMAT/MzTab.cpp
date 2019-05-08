@@ -3044,5 +3044,29 @@ Not sure how to handle these:
     mztab.setPeptideSectionRows(rows);
     return mztab;
   }
+	
+	// static method remapping the target/decoy column from an opt_ to a standardized column
+	static MzTab remapTargetDecoy_(std::vector<MzTabOptionalColumnEntry> &opt_entries)
+	{
+		const String old_header("opt_global_target_decoy");
+    const String new_header("opt_global_cv_MS:1002217_decoy_peptide");
+    for (auto &opt_entry : opt_entries)
+    {
+			if (opt_entry.first == old_header || opt_entry.first == new_header)
+      {
+				opt_entry.first = new_header;
+        const String &current_value = opt_entry.second.get();
+        if (current_value == "target" || current_value == "target+decoy")
+        {
+					opt_entry.second = MzTabString("0");
+        }
+        else if (current_value == "decoy")
+        {
+					opt_entry.second = MzTabString("1");
+        }
+      }
+    }
+	}
+	
 }
 
