@@ -118,6 +118,13 @@ KissFFT
  - License:
  https://sourceforge.net/p/kissfft/code/ci/default/tree/COPYING
 
+---------------------   Raw file conversion:  ------------------------
+
+RawFileReader (via ThermoRawFileParser)
+- URL:
+https://github.com/compomics/ThermoRawFileParse
+- License:
+https://github.com/compomics/ThermoRawFileParser/blob/master/LICENSE
 
 ---------------------   Search engines:  ------------------------
  
@@ -194,3 +201,4 @@ MaRaCluster:
   https://github.com/statisticalbiotechnology/maracluster
   - License
   http://www.apache.org/licenses/LICENSE-2.0.html
+  
