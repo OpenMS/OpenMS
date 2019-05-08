@@ -58,7 +58,7 @@ namespace OpenMS
     if (exp.empty())
     {
       no_mzml_ = true;
-      LOG_WARN << "Metric MzCalibration received an empty mzml file. Only reporting uncalibrated mz error.\n";
+      OPENMS_LOG_WARN << "Metric MzCalibration received an empty mzml file. Only reporting uncalibrated mz error.\n";
     }
     else
     {
@@ -71,7 +71,7 @@ namespace OpenMS
       if (all_of(exp[0].getDataProcessing().begin(), exp[0].getDataProcessing().end(), is_not_elem))
       {
         no_mzml_ = true;
-        LOG_WARN << "Metric MzCalibration received an mzml file which did not undergo InternalCalibration. Only reporting uncalibrated mz error.\n";
+        OPENMS_LOG_WARN << "Metric MzCalibration received an mzml file which did not undergo InternalCalibration. Only reporting uncalibrated mz error.\n";
       }
     }
 
