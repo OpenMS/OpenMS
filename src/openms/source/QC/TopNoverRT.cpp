@@ -106,6 +106,19 @@ namespace OpenMS
       ms2_included_[distance(exp.begin(), it)].ms2_presence = true;
       peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].scan_event_number);
       peptide_ID.setMetaValue("identified", 1);
+      float peak_sum{0};
+      float peak_max{0};
+      for (const Peak1D& peak : spectrum)
+      {
+        float intensity = peak.getIntensity();
+        peak_sum += intensity;
+        if (intensity > peak_max)
+        {
+          peak_max = intensity;
+        }
+      }
+      peptide_ID.setMetaValue("current_ion_count", peak_sum);
+      peptide_ID.setMetaValue("base_peak_intensity", peak_max);
     }
   }
 
@@ -123,6 +136,19 @@ namespace OpenMS
           unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
           unidentified_MS2.setMetaValue("identified", 0);
           unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
+          float peak_sum{0};
+          float peak_max{0};
+          for (const Peak1D& peak : exp.getSpectra()[pos])
+          {
+            float intensity = peak.getIntensity();
+            peak_sum += intensity;
+            if (intensity > peak_max)
+            {
+              peak_max = intensity;
+            }
+          }
+          unidentified_MS2.setMetaValue("current_ion_count", peak_sum);
+          unidentified_MS2.setMetaValue("base_peak_intensity", peak_max);
           features.getUnassignedPeptideIdentifications().push_back(unidentified_MS2);
         }
       }
