@@ -272,8 +272,8 @@ protected:
 
     MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true);
 
-    // Adding TIC information to meta data
     MzTabMetaData meta = mztab.getMetaData();
+    // Adding TIC information to meta data
     const auto& tics = qc_tic.getResults();
     for (Size i = 0; i < tics.size(); ++i)
     {
@@ -291,7 +291,19 @@ protected:
       tic.setValue(value);
       meta.custom[meta.custom.size()] = tic;
     }
+    // Adding MS2_ID_Rate to meta data
+    const auto& ms2_irs = qc_ms2ir.getResults();
+    for (Size i = 0; i < ms2_irs.size(); ++i)
+    {
+      MzTabParameter ms2_ir;
+      ms2_ir.setCVLabel("MS2 identification rate");
+      ms2_ir.setAccession("null");
+      ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
+      ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
+      meta.custom[meta.custom.size()] = ms2_ir;
+    }
     mztab.setMetaData(meta);
+
 
     MzTabFile mztab_out;
     mztab_out.store(getStringOption_("out"), mztab);
