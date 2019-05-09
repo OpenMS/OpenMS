@@ -588,8 +588,8 @@ namespace OpenMS
   }
 
 	// static method remapping the target/decoy column from an opt_ to a standardized column
-	static void remapTargetDecoy_(std::vector<MzTabOptionalColumnEntry> &opt_entries)
-	{
+	static void remapTargetDecoy_(std::vector<MzTabOptionalColumnEntry>& opt_entries)
+  {
 		const String old_header("opt_global_target_decoy");
     const String new_header("opt_global_cv_MS:1002217_decoy_peptide");
     for (auto &opt_entry : opt_entries)
