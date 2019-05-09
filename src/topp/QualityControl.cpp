@@ -299,7 +299,7 @@ protected:
       ms2_ir.setCVLabel("MS2 identification rate");
       ms2_ir.setAccession("null");
       ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
-      ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate) + " %");
+      ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
       meta.custom[meta.custom.size()] = ms2_ir;
     }
     mztab.setMetaData(meta);
