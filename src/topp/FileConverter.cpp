@@ -460,6 +460,41 @@ protected:
         exp.set2DData(cm);
       }
     }
+    else if (in_type == FileTypes::RAW)
+    {
+      if (out_type != FileTypes::MZML)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Only conversion to mzML supported at this point.");
+      }
+      writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
+      String net_executable = getStringOption_("NET_executable");
+      TOPPBase::ExitCodes exit_code;
+      String temp_directory_body = makeAutoRemoveTempDirectory_();
+      String new_filename = temp_directory_body + "/" + File::removeExtension(File::basename(in)) + ".mzML";
+      if (net_executable.empty()) // windows
+      {
+        QStringList arguments;
+        arguments << String("-i=" + in).toQString()
+                  << String("-o=" + temp_directory_body).toQString()
+                  << String("-f=2").toQString() // indexedMzML
+                  << String("-e").toQString(); // ignore instrument errors
+        exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
+        File::rename(new_filename, out, true, false);
+      }
+      else
+      {
+        QStringList arguments;
+        arguments << getStringOption_("ThermoRaw_executable").toQString()
+                  << String("-i=" + in).toQString()
+                  << String("-o=" + temp_directory_body).toQString()
+                  << String("-f=2").toQString()
+                  << String("-e").toQString();
+        exit_code = runExternalProcess_(net_executable.toQString(), arguments);
+        File::rename(new_filename, out, true, false);
+      }
+      return exit_code;
+    }
     else if (in_type == FileTypes::EDTA)
     {
       EDTAFile().load(in, cm);
@@ -587,37 +622,6 @@ protected:
         cacher.writeMetadata(exp_meta, out_meta);
 
         return EXECUTION_OK;
-      }
-      else if (FileTypes::RAW)
-      {
-        if (out_type != FileTypes::MZML)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Only conversion to mzML supported at this point.");
-        }
-        std::cout << "RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved" << std::endl;
-        String net_executable = getStringOption_("NET_executable");
-        TOPPBase::ExitCodes exit_code;
-        if (net_executable.empty()) // windows
-        {
-          QStringList arguments;
-          arguments << String("-i=" + in).toQString()
-                    << String("-o=" + out).toQString()
-                    << String("-f=2").toQString() // indexedMzML
-                    << String("-e").toQString(); // ignore instrument errors
-          exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
-        }
-        else
-        {
-          QStringList arguments;
-          arguments << getStringOption_("ThermoRaw_executable").toQString()
-                    << String("-i=" + in).toQString()
-                    << String("-o=" + out).toQString()
-                    << String("-f=2").toQString()
-                    << String("-e").toQString();
-          exit_code = runExternalProcess_(net_executable.toQString(), arguments);
-        }
-        return exit_code;
       }
       else
       {
