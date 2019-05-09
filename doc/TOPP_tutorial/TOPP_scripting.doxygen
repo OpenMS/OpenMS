@@ -43,7 +43,8 @@
 
         The QualityControl TOPP tool is able to check the quality of different aspects if enough data is provided.
         Depending on the given data this tool executes different metrics that have access to all of their required
-        files. They will then add new metavalues to the data and write all possiblbe information into the mzTab output file.
+        files (see section 'Metrics'). They will then add new metavalues to the data and write all possiblbe
+        information into the mzTab output file.
 
         @section TOPP_example_qualitycontrol_section2 Workflow
 
@@ -57,14 +58,13 @@
         <TABLE border=1>
 
         <TR>
-            <TD> <b>Contaminants</b> <br>
-            </TD>
-            <TD>
-            </TD>
+            <TH colspan="2">
+                <b><br>Contaminants</b>
+                </TH>
         </TR>
         <TR>
             <TD>
-                <b>Input data:</b> Fasta file (Contaminants database), PostFDR FeatureXML
+                <b>Essential input data:</b> Fasta file (Contaminants database), PostFDR FeatureXML
             </TD>
             <TD>
                 <b> Output</b>
@@ -99,15 +99,13 @@
         </TR>
 
         <TR>
-            <TD>
-                <b>FragmentMassError</b> <br>
-            </TD>
-            <TD>
-            </TD>
+            <TH colspan="2">
+                <br><b>FragmentMassError</b>
+            </TH>
         </TR>
         <TR>
              <TD>
-                  <b>Input data:</b> PostFDR FeatureXML, raw mzML file
+                  <b>Essential input data:</b> PostFDR FeatureXML, raw mzML file
              </TD>
              <TD>
                   <b>Output</b>
@@ -130,15 +128,13 @@
              </TD>
         </TR>
         <TR>
-             <TD>
-                 <b>MissedCleavages</b> <br>
-             </TD>
-             <TD>
-             </TD>
+            <TH colspan="2">
+                <br><b>MissedCleavages</b>
+            </TH>
         </TR>
         <TR>
               <TD>
-                   <b>Input data:</b> PostFDR FeatureXML
+                   <b>Essential input data:</b> PostFDR FeatureXML
               </TD>
               <TD>
                    <b>Output</b>
@@ -164,15 +160,13 @@
               </TD>
         </TR>
         <TR>
-             <TD>
-                 <b>MS2IdentificationRate</b> <br>
-             </TD>
-             <TD>
-             </TD>
+            <TH colspan="2">
+                <br><b>MS2IdentificationRate</b>
+            </TH>
         </TR>
         <TR>
               <TD>
-                   <b>Input data:</b> PostFDR FeatureXML, raw mzML file
+                   <b>Essential input data:</b> PostFDR FeatureXML, raw mzML file
               </TD>
               <TD>
                    <b>Output</b>
@@ -198,15 +192,13 @@
         </TR>
 
         <TR>
-             <TD>
-                 <b>RTAlignment</b> <br>
-             </TD>
-             <TD>
-             </TD>
+            <TH colspan="2">
+                <br><b>RTAlignment</b>
+            </TH>
         </TR>
         <TR>
               <TD>
-                   <b>Input data:</b> PostFDR FeatureXML, trafoXML file
+                   <b>Essential input data:</b> PostFDR FeatureXML, trafoXML file
               </TD>
               <TD>
                    <b>Output</b>
@@ -231,15 +223,13 @@
               </TD>
         </TR>
         <TR>
-             <TD>
-                 <b>TIC</b> <br>
-             </TD>
-             <TD>
-             </TD>
+            <TH colspan="2">
+                <br><b>TIC</b>
+            </TH>
         </TR>
         <TR>
               <TD>
-                   <b>Input data:</b> raw mzML file
+                   <b>Essential input data:</b> raw mzML file
               </TD>
               <TD>
                    <b>Output</b>
@@ -262,15 +252,13 @@
               </TD>
         </TR>
         <TR>
-             <TD>
-                 <b>TopNoverRT</b> <br>
-             </TD>
-             <TD>
-             </TD>
+            <TH colspan="2">
+                <br><b>TopNoverRT</b>
+            </TH>
         </TR>
         <TR>
               <TD>
-                   <b>Input data:</b> PostFDR FeatureXML, raw mzML file
+                   <b>Essential input data:</b> PostFDR FeatureXML, raw mzML file
               </TD>
               <TD>
                    <b>Output</b>
