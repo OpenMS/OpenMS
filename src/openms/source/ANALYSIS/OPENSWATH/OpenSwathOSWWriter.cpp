@@ -178,7 +178,25 @@ namespace OpenMS
 
     if (!feature.getMetaValue(score_name).isEmpty())
     {
-      separated_scores = feature.getMetaValue(score_name).toStringList();
+      if (feature.getMetaValue(score_name).valueType() == DataValue::STRING_LIST)
+      {
+        separated_scores = feature.getMetaValue(score_name).toStringList();
+      }
+      else if (feature.getMetaValue(score_name).valueType() == DataValue::INT_LIST)
+      {
+        std::vector<int> int_separated_scores = feature.getMetaValue(score_name).toIntList();
+        std::transform(int_separated_scores.begin(), int_separated_scores.end(), std::back_inserter(separated_scores), [](const int& num) { return String(num); });
+
+      }
+      else if (feature.getMetaValue(score_name).valueType() == DataValue::DOUBLE_LIST)
+      {
+        std::vector<double> double_separated_scores = feature.getMetaValue(score_name).toDoubleList();
+        std::transform(double_separated_scores.begin(), double_separated_scores.end(), std::back_inserter(separated_scores), [](const double& num) { return String(num); });
+      }
+      else
+      {
+        separated_scores.push_back(feature.getMetaValue(score_name).toString());
+      }
     }
 
     return separated_scores;
