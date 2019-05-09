@@ -148,12 +148,12 @@ protected:
     //-------------------------------------------------------------
     // Build the map to later find the original PepID in given ConsensusMap.
     //-------------------------------------------------------------
-    map<Int64, PeptideIdentification*> map_to_id;
-    for (ConsensusFeature& cf : cmap)
+    map<String, PeptideIdentification*> map_to_id;
+    for (Size i = 0; i < cmap.size(); ++i)
     {
-      fillPepIDMap_(map_to_id, cf.getPeptideIdentifications());
+      fillPepIDMap_(map_to_id, cmap[i].getPeptideIdentifications(), i);
     }
-    fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications());      
+    fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications(), -1);      
 
     // check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
@@ -301,7 +301,7 @@ protected:
 private:
   StringList updateFileStatus_(QCBase::Status& status, UInt64& number_exps, const String& port, const QCBase::Requires& req)
   {
-    // since files are optional, leave function if non are provided by the user
+    // since files are optional, leave function if none are provided by the user
     StringList files = getStringList_(port);
     if (!files.empty())
     {
@@ -328,7 +328,7 @@ private:
     }
   }
 
-  void copyPepIDMetaValues_(const vector<PeptideIdentification>& pep_ids, const map<Int64, PeptideIdentification*>& map_to_id) const
+  void copyPepIDMetaValues_(const vector<PeptideIdentification>& pep_ids, const map<String, PeptideIdentification*>& map_to_id) const
   {
     for (const PeptideIdentification& ref_pep_id : pep_ids)
     {
@@ -349,7 +349,7 @@ private:
     }
   }
 
-  void fillPepIDMap_(map<Int64, PeptideIdentification*>& map_to_id, vector<PeptideIdentification>& pep_ids) const
+  void fillPepIDMap_(map<String, PeptideIdentification*>& map_to_id, vector<PeptideIdentification>& pep_ids, const int group_id) const
   {
     for ( PeptideIdentification& pep_id : pep_ids)
     {
@@ -357,6 +357,7 @@ private:
       {
         throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
       }
+      pep_id.setMetaValue("cf_id", group_id);
       map_to_id[pep_id.getMetaValue("UID")] = &pep_id;
     }
   }

@@ -199,7 +199,7 @@ protected:
     {
       for (PeptideIdentification &pep_id : pep_ids)
       {
-        pep_id.setMetaValue("UID", UniqueIdGenerator::getUniqueId());
+        pep_id.setMetaValue("UID", String(UniqueIdGenerator::getUniqueId()));
       }
     }
 
