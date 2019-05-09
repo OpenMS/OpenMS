@@ -105,7 +105,7 @@ START_TEST(FragmentMassError, "$Id$")
   FragmentMassError frag_ma_err;
 
   //tests compute function
-  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit tolerance_unit = ToleranceUnit::PPM))
+  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance = 20, const ToleranceUnit tolerance_unit = ToleranceUnit::PPM, bool unit_auto = true))
   {
     //--------------------------------------------------------------------
     // create valid input data

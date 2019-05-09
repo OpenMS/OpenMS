@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -49,7 +50,27 @@
 
 namespace OpenMS
 {
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const ToleranceUnit tolerance_unit)
+  template <typename MIV>
+  void twoSpecErrors (MIV mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
+  {
+    while (mi != mi.end())
+    {
+      // difference between peaks
+      auto dalt_diff = mi->getMZ() - mi.ref().getMZ();
+      auto ppm_diff = Math::getPPM(mi->getMZ(), mi.ref().getMZ());
+
+      ppms.push_back(ppm_diff);
+      dalton.push_back(dalt_diff);
+
+      // for statistics
+      accumulator_ppm += ppm_diff;
+      ++ counter_ppm;
+
+      ++mi;
+    }
+  }
+
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, double tolerance, ToleranceUnit tolerance_unit, const bool unit_auto)
   {
     FMEStatistics result;
 
@@ -77,6 +98,16 @@ namespace OpenMS
     filter_param.setValue("peakcount", 6, "The number of peaks that should be kept.");
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
+
+    //-------------------------------------------------------------------
+    // find tolerance unit and value
+    //------------------------------------------------------------------
+    if (unit_auto)
+    {
+      //Warning
+      tolerance_unit = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
+      tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
+    }
 
     // computes the FragmentMassError
     auto lamCompPPM = [&exp, rt_tolerance, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
@@ -171,7 +202,7 @@ namespace OpenMS
       theo_gen.setParameters(theo_gen_settings);
 
       // generate a-, b- and y-ion spectrum of peptide seq with charge
-      theo_gen.getSpectrum(theo_spectrum, seq, charge, charge);
+      theo_gen.getSpectrum(theo_spectrum, seq, 1, charge);
 
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
@@ -190,6 +221,22 @@ namespace OpenMS
       DoubleList ppms{};
       DoubleList dalton{};
 
+      // iterator, finds nearest peak of a target container to a given peak in a reference container
+      if (tolerance_unit == ToleranceUnit::DA)
+      {
+        using MIV = MatchedIterator<MSSpectrum, DaTrait, true>;
+        MIV mi(theo_spectrum, exp_spectrum_filtered, tolerance);
+        twoSpecErrors(mi, ppms, dalton, accumulator_ppm, counter_ppm);
+      }
+      else
+      {
+        using MIV = MatchedIterator<MSSpectrum, PpmTrait, true>;
+        MIV mi(theo_spectrum, exp_spectrum_filtered, tolerance);
+        twoSpecErrors(mi, ppms, dalton, accumulator_ppm, counter_ppm);
+      }
+
+
+      /*
       // exp_peak matching to previous theo_peak
       double current_exp = std::numeric_limits<double>::max();
       
@@ -252,6 +299,7 @@ namespace OpenMS
       accumulator_ppm += ppm;
       ++ counter_ppm;
 
+       */
 
       //-----------------------------------------------------------------------
       // WRITE PPM ERROR IN PEPTIDEHIT
@@ -259,6 +307,7 @@ namespace OpenMS
 
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_ppm", ppms);
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
+      std::cout << "frag: ppm: " << pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm") << " dalton: " << pep_id.getHits()[0].getMetaValue("fragment_mass_error_da") << std::endl;
 
 
     };

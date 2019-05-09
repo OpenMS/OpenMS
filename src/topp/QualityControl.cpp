@@ -87,8 +87,8 @@ protected:
     registerInputFileList_("in_postFDR", "<file>", {}, "featureXML input", false);
     setValidFormats_("in_postFDR", {"featureXML"});
     registerTOPPSubsection_("FragmentMassError", "test");
-    registerStringOption_("FragmentMassError:unit", "<unit>", "ppm", "Unit for tolerance", false);
-    setValidStrings_("FragmentMassError:unit", {"ppm", "Da"});
+    registerStringOption_("FragmentMassError:unit", "<unit>", "auto", "Unit for tolerance", false);
+    setValidStrings_("FragmentMassError:unit", {"auto","ppm", "Da"});
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "Search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Contaminant database input", false);
     setValidFormats_("in_contaminants", {"fasta"});
@@ -157,7 +157,11 @@ protected:
 
     // check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
-    FragmentMassError::ToleranceUnit tolerance_unit = getStringOption_("FragmentMassError:unit") == "Da" ? FragmentMassError::ToleranceUnit::DA : FragmentMassError::ToleranceUnit::PPM;
+    String tolerance_unit_s = getStringOption_("FragmentMassError:unit");
+    bool unit_auto = false;
+    if (tolerance_unit_s == "auto") unit_auto = true;
+    FragmentMassError::ToleranceUnit tolerance_unit = tolerance_unit_s == "Da" ? FragmentMassError::ToleranceUnit::DA : FragmentMassError::ToleranceUnit::PPM;
+
     double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
 
     // Instantiate the QC metrics
@@ -207,7 +211,7 @@ protected:
 
       if (isRunnable_(&qc_frag_mass_err, status))
       {
-        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit);
+        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit, unit_auto);
       }
 
       if (isRunnable_(&qc_missed_cleavages, status))
