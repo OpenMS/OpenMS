@@ -2897,7 +2897,7 @@ Not sure how to handle these:
 							{
 							  opt_entry.second = MzTabString(c.getMetaValue(key).toString());
 							}
-						  }
+						  })
 	  );
 
       // create opt_ columns for psm (PeptideHit) user values
