@@ -2875,12 +2875,12 @@ Not sure how to handle these:
       opt_global_modified_sequence.first = String("opt_global_modified_sequence");
       row.opt_.push_back(opt_global_modified_sequence);
 
-			// Defines how to consume user value keys for the upcoming keys
-      const auto addUserValueToRowBy = [&](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
+	  // Defines how to consume user value keys for the upcoming keys
+      const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
       {
-				return [&](const String &user_value_key)
-				{
-					MzTabOptionalColumnEntry opt_entry;
+	    return [f,&row](const String &user_value_key)
+		{
+		  MzTabOptionalColumnEntry opt_entry;
           opt_entry.first = "opt_global_" + user_value_key;
           f(user_value_key, opt_entry);
 
@@ -2891,13 +2891,14 @@ Not sure how to handle these:
       
 			// create opt_ columns for consensus map user values
       for_each(consensus_feature_user_value_keys.begin(), consensus_feature_user_value_keys.end(),
-						addUserValueToRowBy([&](const String &key, MzTabOptionalColumnEntry &opt_entry)
-      {
-				if (c.metaValueExists(key))
-				{
-					opt_entry.second = MzTabString(c.getMetaValue(key).toString());
-				}
-			}));
+						addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
+						  {
+							if (c.metaValueExists(key))
+							{
+							  opt_entry.second = MzTabString(c.getMetaValue(key).toString());
+							}
+						  }
+	  );
 
       // create opt_ columns for psm (PeptideHit) user values
       for_each(peptide_hit_user_value_keys.begin(), peptide_hit_user_value_keys.end(),
