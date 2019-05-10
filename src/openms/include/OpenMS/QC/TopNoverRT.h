@@ -40,6 +40,7 @@ namespace OpenMS
   class FeatureMap;
   class MSExperiment;
   class TransformationDescription;
+  class MSSpectrum;
 
   /**
     @brief  QC metric to determine the number of MS2 scans per MS1 scan over RT
@@ -100,6 +101,13 @@ namespace OpenMS
     void setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp);
 
     /// add all unidentified MS2-Scans to unassignedPeptideIDs, the new unassignedPeptideIDs contains only Information about RT and "ScanEventNumber"
-    void addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features) ;
+    void addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features);
+
+    /// returns highest the highest intensity of a spectrum
+    float getBasePeakIntensity_(const MSSpectrum& spec); //TODO move functionality to MSSpectrum
+
+    /// calculates sum of all peak intensities of a spectrum
+    float getCurrentIonCount_(const MSSpectrum& spec); //TODO move functionality to MSSpectrum
+
   };
 }
