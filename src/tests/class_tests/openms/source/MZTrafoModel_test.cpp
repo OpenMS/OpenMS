@@ -220,7 +220,7 @@ END_SECTION
 START_SECTION(void getCoefficients(double& intercept, double& slope, double& power))
   MZTrafoModel m;
   double a,b,c;
-  TEST_EXCEPTION(Exception::Precondition, m.getCoefficients(a,b,c))
+  TEST_EXCEPTION(Exception::Precondition&, m.getCoefficients(a,b,c))
   // more tests see above
 END_SECTION
 

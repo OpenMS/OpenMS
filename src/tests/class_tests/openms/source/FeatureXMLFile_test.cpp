@@ -80,7 +80,7 @@ START_SECTION((Size loadSize(const String &filename)))
   FeatureMap e;
   FeatureXMLFile dfmap_file;
   //test exception
-  TEST_EXCEPTION(Exception::FileNotFound, dfmap_file.loadSize("dummy/dummy.MzData"))
+  TEST_EXCEPTION(Exception::FileNotFound&, dfmap_file.loadSize("dummy/dummy.MzData"))
   // real test
   Size r = dfmap_file.loadSize(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"));
   TEST_EQUAL(r, 2);
@@ -98,7 +98,7 @@ START_SECTION((void load(const String &filename, FeatureMap&feature_map)))
   FeatureXMLFile dfmap_file;
 
   //test exception
-  TEST_EXCEPTION(Exception::FileNotFound, dfmap_file.load("dummy/dummy.MzData", e))
+  TEST_EXCEPTION(Exception::FileNotFound&, dfmap_file.load("dummy/dummy.MzData", e))
 
   // real test
   dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);

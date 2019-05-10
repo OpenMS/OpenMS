@@ -278,10 +278,10 @@ START_SECTION((void set(const String &date)))
   date_time.set("2011-08-05T15:32:07+02:00");
   TEST_EQUAL(date_time.get(), "2011-08-05 15:32:07")
 
-  TEST_EXCEPTION(Exception::ParseError, date_time.set("2006ff-12-14+11:00"))
-  TEST_EXCEPTION(Exception::ParseError, date_time.set("2006-12-14-11:00"))
-  TEST_EXCEPTION(Exception::ParseError, date_time.set("2006-12-14Z11:00"))
-  TEST_EXCEPTION(Exception::ParseError, date_time.set("-2006-12-14Z11:00"))
+  TEST_EXCEPTION(Exception::ParseError&, date_time.set("2006ff-12-14+11:00"))
+  TEST_EXCEPTION(Exception::ParseError&, date_time.set("2006-12-14-11:00"))
+  TEST_EXCEPTION(Exception::ParseError&, date_time.set("2006-12-14Z11:00"))
+  TEST_EXCEPTION(Exception::ParseError&, date_time.set("-2006-12-14Z11:00"))
 
 }
 END_SECTION

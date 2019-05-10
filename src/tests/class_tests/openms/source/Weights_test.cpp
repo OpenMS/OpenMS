@@ -233,7 +233,7 @@ START_SECTION((alphabet_mass_type getParentMass(const std::vector< unsigned int 
   }
 
   vector<unsigned int> wrong_decomposition(3,0);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ptr->getParentMass(wrong_decomposition),"The passed decomposition has the wrong size. Expected 5 but got 3.")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter&, ptr->getParentMass(wrong_decomposition),"The passed decomposition has the wrong size. Expected 5 but got 3.")
 }
 END_SECTION
 

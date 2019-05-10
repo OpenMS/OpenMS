@@ -1236,7 +1236,7 @@ namespace OpenMS
           const ResidueModification* r = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec);
           desc = r->getFullId();
         }
-        catch (Exception::BaseException)
+        catch ( Exception::BaseException& )
         {
           error(LOAD, "Modification '" + aa_mod.description + "' of residue '" + aa_mod.aminoacid + "' could not be matched. Trying by modification mass.");
         }
