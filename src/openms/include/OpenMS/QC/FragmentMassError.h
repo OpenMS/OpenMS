@@ -49,8 +49,13 @@ namespace OpenMS
     enum class ToleranceUnit
     {
       PPM,
-      DA
+      DA,
+      AUTO,
+      SIZE_OF_TOLERANCEUNIT
     };
+    /// strings corresponding to enum ToleranceUnit
+    static const std::string names_of_toleranceUnit[];
+
 
 
     /// Default constructor

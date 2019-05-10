@@ -50,6 +50,8 @@
 
 namespace OpenMS
 {
+  const std::string FragmentMassError::names_of_toleranceUnit[] = {"PPM", "DA", "AUTO"};
+
   template <typename MIV>
   void twoSpecErrors (MIV mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
   {
@@ -70,7 +72,7 @@ namespace OpenMS
     }
   }
 
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, double tolerance, ToleranceUnit tolerance_unit, const bool unit_auto)
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, double tolerance, ToleranceUnit tolerance_unit)
   {
     FMEStatistics result;
 
@@ -104,7 +106,10 @@ namespace OpenMS
     //------------------------------------------------------------------
     if (unit_auto)
     {
-      //Warning
+      if (fmap.getProteinIdentifications().empty() )
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There is no information about fragment mass tolerance given in the FeatureXML. Please choose a fragment_mass_unit");
+      }
       tolerance_unit = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
       tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
     }
@@ -234,72 +239,6 @@ namespace OpenMS
         MIV mi(theo_spectrum, exp_spectrum_filtered, tolerance);
         twoSpecErrors(mi, ppms, dalton, accumulator_ppm, counter_ppm);
       }
-
-
-      /*
-      // exp_peak matching to previous theo_peak
-      double current_exp = std::numeric_limits<double>::max();
-      
-      // max ppm
-      double ppm = std::numeric_limits<double>::max();
-
-      //max da
-      double da = std::numeric_limits<double>::max();
-
-      for (const Peak1D& peak : theo_spectrum)
-      {
-        const double theo_mz = peak.getMZ();
-        Size index = exp_spectrum_filtered.findNearest(theo_mz);
-        const double exp_mz = exp_spectrum_filtered[index].getMZ();
-        
-        const double mz_tolerance = (tolerance_unit==ToleranceUnit::PPM) ?  Math::ppmToMass(tolerance, theo_mz) : tolerance;
-
-        // found peak match
-        if (std::abs(theo_mz-exp_mz) < mz_tolerance)
-        {
-          auto current_ppm = Math::getPPM(exp_mz, theo_mz);
-          auto current_da = exp_mz - theo_mz;
-
-          // first peak in tolerance range
-          if (current_exp == std::numeric_limits<double>::max())
-          {
-            ppm = current_ppm;
-            da = current_da;
-            current_exp = exp_mz;
-          }
-
-          // theo_peak matches to a exp_peak that is already matched
-          // && ppm is smaller than before
-          if (current_exp == exp_mz && abs(current_ppm) < abs(ppm))
-          {
-            ppm = current_ppm;
-            da = current_da;
-          }
-
-          // theo_peak matches to another exp_peaks
-          if (current_exp != exp_mz)
-          {
-            ppms.push_back(ppm);
-            dalton.push_back(da);
-
-            ++ counter_ppm;
-
-            accumulator_ppm += ppm;
-            ppm = current_ppm;
-            da = current_da;
-            current_exp = exp_mz;
-          }
-
-         }
-      }
-
-      // last peak doesn't have a successor so it has to be added manually
-      ppms.push_back(ppm);
-      dalton.push_back(da);
-      accumulator_ppm += ppm;
-      ++ counter_ppm;
-
-       */
 
       //-----------------------------------------------------------------------
       // WRITE PPM ERROR IN PEPTIDEHIT
