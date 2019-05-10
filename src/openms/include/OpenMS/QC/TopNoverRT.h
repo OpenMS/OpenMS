@@ -75,11 +75,12 @@ namespace OpenMS
              write meta values "ScanEventNumber" and "identified" in PeptideIdentification.
       @param exp Imported calibrated MzML file as MSExperiment
       @param features Imported featureXML file after FDR as FeatureMap
+      @return unassigned peptide identifications newly generated from unidentified MS2-Spectra
       @throws MissingInformation If exp is empty
       @throws IllegalArgument If retention time of the MzML and featureXML file does not match
       @throws IllegalArgument If a peptide identification does not have a corresponding MS2 scan
     **/
-    void compute(const MSExperiment& exp, FeatureMap& features);
+    std::vector<PeptideIdentification> compute(const MSExperiment& exp, FeatureMap& features);
 
     /// returns the name of the metric
     const String& getName() const override;
@@ -99,7 +100,7 @@ namespace OpenMS
     /// set ms2_included_ bool to true, if PeptideID exist and set "ScanEventNumber" for every PeptideID
     void setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp);
 
-    /// add all unidentified MS2-Scans to unassignedPeptideIDs, the new unassignedPeptideIDs contains only Information about RT and "ScanEventNumber"
-    void addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features) ;
+    /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
+    std::vector<PeptideIdentification> getUnassignedPeptideIdentifications_(const MSExperiment& exp);
   };
 }

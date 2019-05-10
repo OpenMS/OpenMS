@@ -46,8 +46,8 @@ namespace OpenMS
   const double EPSILON_{ 0.05 };
 
   // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therfore have a entry in the featureMap)
-  // MS2-Spektra without mate are added in unassignedPeptideIdentifications (only Information m/z and RT)
-  void TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features)
+  // MS2-Spektra without mate are returned as vector of unassignedPeptideIdentifications (only Information m/z and RT)
+  std::vector<PeptideIdentification> TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features)
   {
     if (features.empty())
     {
@@ -63,7 +63,7 @@ namespace OpenMS
     auto f = [&exp,this] (PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id,exp); };
     iterateFeatureMap(features, f);
     // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT and ScanEventNumber
-    addUnassignedPeptideIdentification_(exp, features);
+    return getUnassignedPeptideIdentifications_(exp);
   }
   // if ms2 spetrum not included, add to unassignedPeptideIdentification, set m/z and RT values
   void TopNoverRT::setScanEventNumber_(const MSExperiment& exp)
@@ -109,8 +109,9 @@ namespace OpenMS
     }
   }
 
-  void TopNoverRT::addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features)
+  std::vector<PeptideIdentification> TopNoverRT::getUnassignedPeptideIdentifications_(const MSExperiment& exp)
   {
+    std::vector<PeptideIdentification> result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
       if (!(*it).ms2_presence)
@@ -123,10 +124,11 @@ namespace OpenMS
           unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
           unidentified_MS2.setMetaValue("identified", 0);
           unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
-          features.getUnassignedPeptideIdentifications().push_back(unidentified_MS2);
+          result.push_back(unidentified_MS2);
         }
       }
     }
+    return result;
   }
 
   // returns the name of the metric
