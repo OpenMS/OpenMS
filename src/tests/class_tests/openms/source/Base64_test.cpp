@@ -182,7 +182,7 @@ START_SECTION((template < typename ToType > void decode(const String &in, ByteOr
 
   // corrupted data
   src = "whoPutMeHere:somecrazyperson,obviously!WhatifIcontaininvalidcharacterslikethese";
-  TEST_EXCEPTION(Exception::ConversionError, b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res) );
+  TEST_EXCEPTION(Exception::ConversionError&, b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res) );
 
   // TODO : some error checking and handling
   // currently there is no "safe" Base64 decoding that checks that all

@@ -176,7 +176,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
     STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
   }
 
-  TEST_EXCEPTION(Exception::IllegalArgument, trafo.fitModel("mumble_pfrwoarpfz"));
+  TEST_EXCEPTION(Exception::IllegalArgument&, trafo.fitModel("mumble_pfrwoarpfz"));
 #if 0
   String tmp_file_bspline;
   NEW_TMP_FILE(tmp_file_bspline);

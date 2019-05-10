@@ -151,7 +151,7 @@ START_SECTION((bool tag(DocumentIdentifier &map) const ))
 	// 1 left
 	TEST_EQUAL(tagme.tag(myD), true);
 	//0 left, expect it to go wrong
-	TEST_EXCEPTION(Exception::DepletedIDPool, tagme.tag(myD));
+	TEST_EXCEPTION(Exception::DepletedIDPool&, tagme.tag(myD));
 	// confirm 0 left
 	TEST_EQUAL(tagme.countFreeIDs(cnt), true);
 	TEST_EQUAL(cnt, 0);

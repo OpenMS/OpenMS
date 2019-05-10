@@ -92,7 +92,7 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
   //test exception when the width is too small
   //param.setValue( "gaussian_width", 0.1);
   //gauss.setParameters(param);
-  //TEST_EXCEPTION(Exception::IllegalArgument,gauss.filter(spectrum))
+  //TEST_EXCEPTION(Exception::IllegalArgument&,gauss.filter(spectrum))
 END_SECTION 
 
 START_SECTION((template <typename PeakType> void filter(MSChromatogram<PeakType>& chromatogram)))
@@ -193,7 +193,7 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
   //test exception for too low gaussian width
   //param.setValue("gaussian_width", 0.01);
   //gauss.setParameters(param);
-  //TEST_EXCEPTION(Exception::IllegalArgument,gauss.filterExperiment(exp))
+  //TEST_EXCEPTION(Exception::IllegalArgument&,gauss.filterExperiment(exp))
 
 END_SECTION
 

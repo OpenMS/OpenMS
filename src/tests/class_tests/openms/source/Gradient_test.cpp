@@ -76,7 +76,7 @@ START_SECTION((void addEluent(const String& eluent) ))
   TEST_EQUAL(tmp.getEluents()[0],"A");
   TEST_EQUAL(tmp.getEluents()[1],"B");
   
-  TEST_EXCEPTION(Exception::InvalidValue,tmp.addEluent("B"))
+  TEST_EXCEPTION(Exception::InvalidValue&,tmp.addEluent("B"))
 END_SECTION
 
 START_SECTION((void clearEluents()))
@@ -104,8 +104,8 @@ START_SECTION((void addTimepoint(Int timepoint) ))
   TEST_EQUAL(tmp.getTimepoints()[0],5);
   TEST_EQUAL(tmp.getTimepoints()[1],7);
 
-  TEST_EXCEPTION(Exception::OutOfRange,tmp.addTimepoint(6));
-  TEST_EXCEPTION(Exception::OutOfRange,tmp.addTimepoint(7));
+  TEST_EXCEPTION(Exception::OutOfRange&,tmp.addTimepoint(6));
+  TEST_EXCEPTION(Exception::OutOfRange&,tmp.addTimepoint(7));
   tmp.addTimepoint(8);
 END_SECTION
 
@@ -162,9 +162,9 @@ START_SECTION((void setPercentage(const String& eluent, Int timepoint, UInt perc
   TEST_EQUAL(tmp.getPercentages()[2][0],0);
   TEST_EQUAL(tmp.getPercentages()[2][1],20);
   
-  TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("D",7,20));
-  TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("C",9,20));
-  TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("C",7,101));
+  TEST_EXCEPTION(Exception::InvalidValue&,tmp.setPercentage("D",7,20));
+  TEST_EXCEPTION(Exception::InvalidValue&,tmp.setPercentage("C",9,20));
+  TEST_EXCEPTION(Exception::InvalidValue&,tmp.setPercentage("C",7,101));
 END_SECTION
 
 START_SECTION((UInt getPercentage(const String& eluent, Int timepoint) const ))
@@ -189,8 +189,8 @@ START_SECTION((UInt getPercentage(const String& eluent, Int timepoint) const ))
   TEST_EQUAL(tmp.getPercentage("C",5),0);
   TEST_EQUAL(tmp.getPercentage("C",7),20);
   
-  TEST_EXCEPTION(Exception::InvalidValue,tmp.getPercentage("D",7));
-  TEST_EXCEPTION(Exception::InvalidValue,tmp.getPercentage("C",9));
+  TEST_EXCEPTION(Exception::InvalidValue&,tmp.getPercentage("D",7));
+  TEST_EXCEPTION(Exception::InvalidValue&,tmp.getPercentage("C",9));
 END_SECTION
 
 START_SECTION((void clearPercentages()))
