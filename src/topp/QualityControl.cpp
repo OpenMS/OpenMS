@@ -148,12 +148,12 @@ protected:
     //-------------------------------------------------------------
     // Build the map to later find the original PepID in given ConsensusMap.
     //-------------------------------------------------------------
-    map<Int64, PeptideIdentification*> map_to_id;
-    for (ConsensusFeature& cf : cmap)
+    map<String, PeptideIdentification*> map_to_id;
+    for (Size i = 0; i < cmap.size(); ++i)
     {
-      fillPepIDMap_(map_to_id, cf.getPeptideIdentifications());
+      fillPepIDMap_(map_to_id, cmap[i].getPeptideIdentifications(), i);
     }
-    fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications());      
+    fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications(), -1);      
 
     // check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
@@ -279,8 +279,8 @@ protected:
 
     MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true);
 
-    // Adding TIC information to meta data
     MzTabMetaData meta = mztab.getMetaData();
+    // Adding TIC information to meta data
     const auto& tics = qc_tic.getResults();
     for (Size i = 0; i < tics.size(); ++i)
     {
@@ -298,7 +298,19 @@ protected:
       tic.setValue(value);
       meta.custom[meta.custom.size()] = tic;
     }
+    // Adding MS2_ID_Rate to meta data
+    const auto& ms2_irs = qc_ms2ir.getResults();
+    for (Size i = 0; i < ms2_irs.size(); ++i)
+    {
+      MzTabParameter ms2_ir;
+      ms2_ir.setCVLabel("MS2 identification rate");
+      ms2_ir.setAccession("null");
+      ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
+      ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
+      meta.custom[meta.custom.size()] = ms2_ir;
+    }
     mztab.setMetaData(meta);
+
 
     MzTabFile mztab_out;
     mztab_out.store(getStringOption_("out"), mztab);
@@ -308,7 +320,7 @@ protected:
 private:
   StringList updateFileStatus_(QCBase::Status& status, UInt64& number_exps, const String& port, const QCBase::Requires& req)
   {
-    // since files are optional, leave function if non are provided by the user
+    // since files are optional, leave function if none are provided by the user
     StringList files = getStringList_(port);
     if (!files.empty())
     {
@@ -335,7 +347,7 @@ private:
     }
   }
 
-  void copyPepIDMetaValues_(const vector<PeptideIdentification>& pep_ids, const map<Int64, PeptideIdentification*>& map_to_id) const
+  void copyPepIDMetaValues_(const vector<PeptideIdentification>& pep_ids, const map<String, PeptideIdentification*>& map_to_id) const
   {
     for (const PeptideIdentification& ref_pep_id : pep_ids)
     {
@@ -356,7 +368,7 @@ private:
     }
   }
 
-  void fillPepIDMap_(map<Int64, PeptideIdentification*>& map_to_id, vector<PeptideIdentification>& pep_ids) const
+  void fillPepIDMap_(map<String, PeptideIdentification*>& map_to_id, vector<PeptideIdentification>& pep_ids, const int group_id) const
   {
     for ( PeptideIdentification& pep_id : pep_ids)
     {
@@ -364,6 +376,7 @@ private:
       {
         throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
       }
+      pep_id.setMetaValue("cf_id", group_id);
       map_to_id[pep_id.getMetaValue("UID")] = &pep_id;
     }
   }

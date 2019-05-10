@@ -50,6 +50,10 @@ namespace OpenMS
     "ScanEventNumber": number of the MS2 scans after the MS1 scan
     "identified": All PeptideIdentifications of the FeatureMap are marked with '+' and all unidentified MS2-Spectra with '-'.
 
+    "FWHM": RT peak width for all assigned PIs (if present)
+    "ion_injection_time": from MS2 spectrum (if present)
+    "activation_method": from MS2 spectrum (if present)
+
     Once all this data is included, you can determine the number of MS2 scans after one MS1 scan and the part of identified MS2-Scans per "ScanEventNumber".
     **/
   class OPENMS_DLLAPI TopNoverRT : public QCBase
