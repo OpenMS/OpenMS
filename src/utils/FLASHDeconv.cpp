@@ -708,7 +708,7 @@ protected:
           << mt.getTraceLength() << "\t"
           << mt[mt.findMaxByIntPeak()].getRT() << "\t"
           << mt.getMaxIntensity(false) << "\t"
-          //<< mt.computePeakArea() << "\t"
+          << mt.computePeakArea() << "\t"
           << minCharge << "\t"
           << maxCharge << "\t"
           << charges.count() << "\n";
@@ -729,7 +729,7 @@ protected:
     }
     fsf << "ID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\n";
+           "\tMaxIntensity\tQuantity\tMinCharge\tMaxCharge\tChargeCount\n";
     return;
   }
 
@@ -766,7 +766,7 @@ protected:
         auto &hc = param.hCharges[k];
         float n = (float) (hc / 2);
         auto harmonicFilter = log(1.0 / (i + n / hc + param.minCharge));
-        hBinOffsets[i][k] = (long) round((filter[i] - harmonicFilter) * param.binWidth);
+        hBinOffsets[i][k] = (long) floor((filter[i] - harmonicFilter) * param.binWidth);
       }
     }
 
@@ -998,7 +998,7 @@ protected:
     for (int i = 0; i < param.chargeRange; i++)
     {
       binOffsets[i] = (long) round((jitter? random[i] : 0) +
-          (mzBinMinValue - filter[i] - massBinMinValue) * param.binWidth);//rand() %10000 + 100 +
+                                   (mzBinMinValue - filter[i] - massBinMinValue) * param.binWidth);//rand() %10000 + 100 +
       //cout << i << binOffsets[i]<<endl;
     }
 
@@ -1027,7 +1027,7 @@ protected:
                                                 param);
 
     //cout<<2<<endl;
-   // cout<<peakGroups.size() << " "; //
+    // cout<<peakGroups.size() << " "; //
     auto filteredPeakGroups = scoreAndFilterPeakGroups(peakGroups, averagines, param);
     if (prevMassBinVector.size() > 0 && prevMassBinVector.size() >= (Size) param.numOverlappedScans)
     {
@@ -1056,7 +1056,7 @@ protected:
 
     //cout<<4<<endl;
     delete[] binOffsets;
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 3; i++)
     {
       delete[] perMassChargeRanges[i]; // delete array within matrix
     }// delete actual matrix
@@ -1106,8 +1106,8 @@ protected:
       //boost::dynamic_bitset<> &massBins,
                                                      vector<LogMzPeak> &logMzPeaks,
                                                      double &mzBinMinValue,
-                                                 //    double &massBinMinValue,
-                                                  //   float *sumLogIntensities,
+      //    double &massBinMinValue,
+      //   float *sumLogIntensities,
                                                      long *binOffsets,
                                                      Byte **chargeRanges,
                                                      const Parameter &param)
@@ -1127,6 +1127,8 @@ protected:
     peakGroups.reserve(unionedMassBins.count());
     auto &minChargeRanges = chargeRanges[0];
     auto &maxChargeRanges = chargeRanges[1];
+    auto &mzChargeRanges = chargeRanges[2];
+
     vector<Size> toRemove;
     toRemove.reserve(1000);
     //boost::dynamic_bitset<> tmp(logMzPeaks.size());
@@ -1167,6 +1169,10 @@ protected:
         int maxIntensityPeakIndex = -1;
 
         auto bi = massBinIndex - binOffset;
+        if (mzChargeRanges[bi]>0 && mzChargeRanges[bi] != j)//TODO
+        {
+          continue;
+        }
         while (cpi < logMzPeakSize - 1)
         {
           //auto bi = peakBinNumbers[cpi] + binOffset;
@@ -1239,7 +1245,7 @@ protected:
                 if (peakIndex != lastPeakIndex)
                 {
                   auto bin = peakBinNumbers[peakIndex] + binOffset;
-                  if(bin < massBinSize)
+                  if(bin < massBinSize) //
                   {
                     LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, i * d);
                     pg.peaks.push_back(p);
@@ -1540,7 +1546,7 @@ protected:
                        hBinOffsets, binOffsets,
                        logIntensities,
                        param);
-   // cout<<1<<endl;
+    // cout<<1<<endl;
     //printMasses(isQualified, massBinMinValue, continuousChargePeakPairCount, param);
     //auto toSkip = (isQualified | isQualified).flip();
     auto perMassChargeRanges = getFinalMassBins(massBins, mzBins, isQualified, unionMassBins,
@@ -1590,7 +1596,7 @@ protected:
                                  long *binOffsets,
                                  float *logIntensities,
                                  const Parameter &param
-                                 )
+  )
   {
     int chargeRange = param.chargeRange;
     int hChargeSize = (int) param.hCharges.size();
@@ -1647,7 +1653,7 @@ protected:
         for (int k = 0; k < hChargeSize; k++)
         {
           long hbi = mzBinIndex - hbOffsets[k];// + rand() % 10000 - 5000 ;
-          for (int i = -1; i <= 1; i++)
+          for (int i = -1; i <= 0; i++)
           {
             auto bin = hbi + i;
             if (bin < 0 || bin >= mzBinSize)
@@ -1657,7 +1663,7 @@ protected:
             if (mzBins[bin]
                 && (abs(logIntensity - logIntensities[bin]) <= 1)
                 && (abs(prevIntensity - logIntensities[bin]) <= 1)
-               )//
+                )//
             {
               h = true;
               break;
@@ -1689,39 +1695,39 @@ protected:
       }
       mzBinIndex = mzBins.find_next(mzBinIndex);
     }
-/*
-    auto th = minContinuousChargePeakCount + 1;
-    while (isQualified.count()>300){
-      Size massIndex = isQualified.find_first();
-      while (massIndex != isQualified.npos)
-      {
-        if(continuousChargePeakPairCount[massIndex] < th)isQualified[massIndex] = false;
-        massIndex = isQualified.find_next(massIndex);
-      }
-      th++;
-    }*/
-/*
-    if(isQualified.count()>20)
-    {
-      Size massIndex = isQualified.find_first();
-      vector<double> intensities(isQualified.count());
-      while (massIndex != isQualified.npos)
-      {
-        intensities.push_back(sumLogIntensities[massIndex]);
-        massIndex = isQualified.find_next(massIndex);
-      }
-      sort(intensities.begin(), intensities.end());
+    /*
+        auto th = minContinuousChargePeakCount + 1;
+        while (isQualified.count()>300){
+          Size massIndex = isQualified.find_first();
+          while (massIndex != isQualified.npos)
+          {
+            if(continuousChargePeakPairCount[massIndex] < th)isQualified[massIndex] = false;
+            massIndex = isQualified.find_next(massIndex);
+          }
+          th++;
+        }*/
+    /*
+        if(isQualified.count()>20)
+        {
+          Size massIndex = isQualified.find_first();
+          vector<double> intensities(isQualified.count());
+          while (massIndex != isQualified.npos)
+          {
+            intensities.push_back(sumLogIntensities[massIndex]);
+            massIndex = isQualified.find_next(massIndex);
+          }
+          sort(intensities.begin(), intensities.end());
 
-      double threshold = intensities[intensities.size() - 20];
-      massIndex = isQualified.find_first();
-      while (massIndex != isQualified.npos)
-      {
-        if(sumLogIntensities[massIndex] < threshold)  {
-          isQualified[massIndex] = false;
-        }
-        massIndex = isQualified.find_next(massIndex);
-      }
-    }*/
+          double threshold = intensities[intensities.size() - 20];
+          massIndex = isQualified.find_first();
+          while (massIndex != isQualified.npos)
+          {
+            if(sumLogIntensities[massIndex] < threshold)  {
+              isQualified[massIndex] = false;
+            }
+            massIndex = isQualified.find_next(massIndex);
+          }
+        }*/
 
     delete[] prevCharges;
     delete[] prevIntensities;
@@ -1749,7 +1755,8 @@ protected:
     Byte *minChargeRanges = new Byte[massBins.size()];
     fill_n(minChargeRanges, massBins.size(), chargeRange + 1);
 
-
+    Byte *mzChargeRanges = new Byte[mzBins.size()];
+    fill_n(mzChargeRanges, mzBins.size(), 0);
     //Byte *selected = new Byte[massBins.size()];
     //fill_n(selected, massBins.size(), 0);
 
@@ -1797,7 +1804,7 @@ protected:
         }
       }
 
-     // if (maxIndex >= 0)
+      // if (maxIndex >= 0)
       //{
       if (maxIndex > binStart && maxIndex < binEnd-1)
       {
@@ -1806,6 +1813,7 @@ protected:
         {
           massBins[maxIndex] = isQualified[maxIndex];
 
+          mzChargeRanges[mzBinIndex] = charge;
           maxChargeRanges[maxIndex] = max(maxChargeRanges[maxIndex], charge);
           minChargeRanges[maxIndex] = min(minChargeRanges[maxIndex], charge);
           //  ++selected[maxIndex];
@@ -1823,15 +1831,16 @@ protected:
     }
 
 
-   // bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
+    // bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
     //                                                       param.chargeRange,
-     //                                                      3);
+    //                                                      3);
 
     //cout<<" " <<massBins.count()<<endl; //
-    Byte **chargeRanges = new Byte *[2];
+    Byte **chargeRanges = new Byte *[3];
     chargeRanges[0] = minChargeRanges;
     chargeRanges[1] = maxChargeRanges;
-   // delete[] selected;
+    chargeRanges[2] = mzChargeRanges;
+    // delete[] selected;
     return chargeRanges;
   }
 
