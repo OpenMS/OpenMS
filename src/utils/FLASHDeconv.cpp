@@ -26,7 +26,6 @@ using namespace std;
 class FLASHDeconv :
     public TOPPBase
 {
-
 public:
   FLASHDeconv() :
       TOPPBase("FLASHDeconv & FeatureFinderIntact",
@@ -34,6 +33,7 @@ public:
                false)
   {
   }
+  static const bool jitter = false;
 
   struct Parameter
   {
@@ -770,16 +770,17 @@ protected:
       }
     }
 
-    /*
-       double *tfilter = new double[param.chargeRange];
-       auto m = filter[0];
-       auto M = filter[param.chargeRange-1];
-       for (int i = 0; i < param.chargeRange; i++)
-       {
-         tfilter[i] = -filter[param.chargeRange - i - 1] + M + m;
-       }
-       filter = tfilter;
-    */
+    if(jitter)
+    {
+      double *tfilter = new double[param.chargeRange];
+      auto m = filter[0];
+      auto M = filter[param.chargeRange - 1];
+      for (int i = 0; i < param.chargeRange; i++)
+      {
+        tfilter[i] = -filter[param.chargeRange - i - 1] + M + m;
+      }
+      filter = tfilter;
+    }
 
     float prevProgress = .0;
     vector<PeakGroup> allPeakGroups;
@@ -996,7 +997,7 @@ protected:
 
     for (int i = 0; i < param.chargeRange; i++)
     {
-      binOffsets[i] = (long) round(//random[i] +
+      binOffsets[i] = (long) round((jitter? random[i] : 0) +
           (mzBinMinValue - filter[i] - massBinMinValue) * param.binWidth);//rand() %10000 + 100 +
       //cout << i << binOffsets[i]<<endl;
     }
@@ -1020,10 +1021,12 @@ protected:
                                            logIntensities, param,
                                            minMass,maxMass);
 
+    //cout<<1<<endl;
     auto peakGroups = getPeakGroupsWithMassBins(unionMassBins, logMzPeaks, mzBinMinValue, //massBinMinValue,sumLogIntensities,
                                                 binOffsets, perMassChargeRanges,
                                                 param);
 
+    //cout<<2<<endl;
    // cout<<peakGroups.size() << " "; //
     auto filteredPeakGroups = scoreAndFilterPeakGroups(peakGroups, averagines, param);
     if (prevMassBinVector.size() > 0 && prevMassBinVector.size() >= (Size) param.numOverlappedScans)
@@ -1031,6 +1034,7 @@ protected:
       prevMassBinVector.erase(prevMassBinVector.begin());
       prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
     }
+    //cout<<3<<endl;
     //cout<<filteredPeakGroups.size() << endl; //
 
     vector<Size> mb;
@@ -1050,6 +1054,7 @@ protected:
     prevMassBinVector.shrink_to_fit();
     prevMinBinLogMassVector.shrink_to_fit();
 
+    //cout<<4<<endl;
     delete[] binOffsets;
     for (int i = 0; i < 2; i++)
     {
@@ -1114,7 +1119,7 @@ protected:
     int maxIsotopeCount = param.maxIsotopeCount;
 
     int logMzPeakSize = (int) logMzPeaks.size();
-    auto massBinSize = unionedMassBins.size();
+    Size massBinSize = unionedMassBins.size();
     int *currentPeakIndex = new int[param.chargeRange];
     fill_n(currentPeakIndex, param.chargeRange, 0); //
 
@@ -1233,19 +1238,21 @@ protected:
                 isotopePeakPresent = true;
                 if (peakIndex != lastPeakIndex)
                 {
-                  // tmp[peakIndex] = true;
-                  LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, i * d);
                   auto bin = peakBinNumbers[peakIndex] + binOffset;
-                  pg.peaks.push_back(p);
-                  //isoOff = min(isoOff, p.isotopeIndex);
-                  lastPeakIndex = peakIndex;
-                  //}
-                  if (massBinIndex != bin && unionedMassBins[bin])
+                  if(bin < massBinSize)
                   {
-                    //unionedMassBins[bin] = false;
-                    //if (bin>0) unionedMassBins[bin-1] = false;
-                    //if (bin < massBinSize -1)unionedMassBins[bin+1] = false;
-                     toRemove.push_back(bin);
+                    LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, i * d);
+                    pg.peaks.push_back(p);
+                    //isoOff = min(isoOff, p.isotopeIndex);
+                    lastPeakIndex = peakIndex;
+                    //}
+                    if (massBinIndex != bin && unionedMassBins[bin])
+                    {
+                      //unionedMassBins[bin] = false;
+                      //if (bin>0) unionedMassBins[bin-1] = false;
+                      //if (bin < massBinSize -1)unionedMassBins[bin+1] = false;
+                      toRemove.push_back(bin);
+                    }
                   }
                 }
               }
