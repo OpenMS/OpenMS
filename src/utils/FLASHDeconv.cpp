@@ -318,14 +318,14 @@ protected:
                        "minimum number of peaks of continuous charges per mass", false, true);
     registerDoubleOption_("minIsotopeCosine",
                           "<...>",
-                          .7,
-                          "cosine threshold between avg. isotope and observed intensities for max mass",
+                          .75,
+                          "cosine threshold between avg. isotope and observed intensities for mass=100kDa",
                           false,
                           true);
     registerDoubleOption_("maxIsotopeCosine",
                           "<...>",
                           .9,
-                          "cosine threshold between avg. isotope and observed intensities for min mass",
+                          "cosine threshold between avg. isotope and observed intensities for mass=1kDa",
                           false,
                           true);
     //registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
@@ -708,7 +708,7 @@ protected:
           << mt.getTraceLength() << "\t"
           << mt[mt.findMaxByIntPeak()].getRT() << "\t"
           << mt.getMaxIntensity(false) << "\t"
-          //<< mt.computePeakArea() << "\t"
+          << mt.computePeakArea() << "\t"
           << minCharge << "\t"
           << maxCharge << "\t"
           << charges.count() << "\n";
@@ -729,7 +729,7 @@ protected:
     }
     fsf << "ID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\n";
+           "\tMaxIntensity\tQuantity\tMinCharge\tMaxCharge\tChargeCount\n";
     return;
   }
 
@@ -2155,7 +2155,7 @@ protected:
     int prevCharge = nonZeroStart;
     int n_r = 0;
 
-    double spanThreshold = maxSpan / 2;//
+    double spanThreshold = maxSpan / 1.5;//
 
     for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++)
     {
@@ -2243,7 +2243,7 @@ protected:
 
     int n_r = .0;
 
-    double intensityThreshold = maxPerChargeIntensity / 5.0;//intensities[intensities.size()*95/100] / 5.0;
+    double intensityThreshold = maxPerChargeIntensity / 4.0;//intensities[intensities.size()*95/100] / 5.0;
     for (int k = prevCharge + 1; k <= nonZeroEnd; k++)
     {
       if (perChargeIntensity[k] <= intensityThreshold)
