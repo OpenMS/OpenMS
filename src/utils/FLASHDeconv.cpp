@@ -1143,36 +1143,24 @@ protected:
 
     while (massBinIndex != unionedMassBins.npos)
     {
-      //auto tt = getBinValue(massBinIndex, massBinMinValue, binWidth);
-
-      //auto boff = getBinNumber(log(exp(tt)+Constants::C13C12_MASSDIFF_U), massBinMinValue, binWidth);//
-
-      /*if (massBinIndex < massBinSize-1 && massBinIndex > 0 &&
-          (sumLogIntensities[massBinIndex] < sumLogIntensities[massBinIndex+1]
-      || sumLogIntensities[massBinIndex] < sumLogIntensities[massBinIndex-1])
-      )
-      {
-        massBinIndex = unionedMassBins.find_next(massBinIndex);
-        continue;
-      }*/
-
       int isoOff = 0;
       PeakGroup pg;
       pg.reserve(chargeRange * 100);
 
       for (auto j = minChargeRanges[massBinIndex]; j <= maxChargeRanges[massBinIndex]; j++)
       {
-        int charge = j + minCharge;
         long &binOffset = binOffsets[j];
+        auto bi = massBinIndex - binOffset;
+        if (mzChargeRanges[bi]<chargeRange && mzChargeRanges[bi] != j)//
+        {
+          continue;
+        }
+
+        int charge = j + minCharge;
         auto &cpi = currentPeakIndex[j];
         double maxIntensity = 0.0;
         int maxIntensityPeakIndex = -1;
 
-        auto bi = massBinIndex - binOffset;
-        if (mzChargeRanges[bi]>0 && mzChargeRanges[bi] != j)//TODO
-        {
-          continue;
-        }
         while (cpi < logMzPeakSize - 1)
         {
           //auto bi = peakBinNumbers[cpi] + binOffset;
@@ -1244,6 +1232,7 @@ protected:
                 isotopePeakPresent = true;
                 if (peakIndex != lastPeakIndex)
                 {
+                 // auto &mzBin = ;
                   auto bin = peakBinNumbers[peakIndex] + binOffset;
                   if(bin < massBinSize) //
                   {
@@ -1756,7 +1745,7 @@ protected:
     fill_n(minChargeRanges, massBins.size(), chargeRange + 1);
 
     Byte *mzChargeRanges = new Byte[mzBins.size()];
-    fill_n(mzChargeRanges, mzBins.size(), 0);
+    fill_n(mzChargeRanges, mzBins.size(), chargeRange + 1);
     //Byte *selected = new Byte[massBins.size()];
     //fill_n(selected, massBins.size(), 0);
 
