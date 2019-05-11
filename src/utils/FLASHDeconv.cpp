@@ -318,13 +318,13 @@ protected:
                        "minimum number of peaks of continuous charges per mass", false, true);
     registerDoubleOption_("minIsotopeCosine",
                           "<...>",
-                          .75,
+                          .8,
                           "cosine threshold between avg. isotope and observed intensities for mass=100kDa",
                           false,
                           true);
     registerDoubleOption_("maxIsotopeCosine",
                           "<...>",
-                          .9,
+                          .8,
                           "cosine threshold between avg. isotope and observed intensities for mass=1kDa",
                           false,
                           true);
@@ -1166,7 +1166,7 @@ protected:
         double maxIntensity = 0.0;
         int maxIntensityPeakIndex = -1;
 
-        auto bi = massBinIndex -binOffset;
+        auto bi = massBinIndex - binOffset;
         while (cpi < logMzPeakSize - 1)
         {
           //auto bi = peakBinNumbers[cpi] + binOffset;
