@@ -334,7 +334,7 @@ protected:
     //
     registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 0.0,
-                          "RT window for feature extraction (if 0, 2% total gradient time)", false, true);
+                          "RT window for feature extraction (if 0, 3% total gradient time)", false, true);
     registerDoubleOption_("minRTSpan", "<seconds>", 1.0,
                           "Min feature RT span for feature extraction", false, true);
     registerIntOption_("writeSpecTsv",
@@ -460,7 +460,7 @@ protected:
       double rtDelta = rtDuration / ms1Cntr;
       if (param.RTwindow <= 0)
       {
-        param.RTwindow = rtDuration * .02;
+        param.RTwindow = rtDuration * .03;
       }
 
       param.numOverlappedScans = max(param.minNumOverLappedScans, (int) (.5 + param.RTwindow / rtDelta));
@@ -708,7 +708,7 @@ protected:
           << mt.getTraceLength() << "\t"
           << mt[mt.findMaxByIntPeak()].getRT() << "\t"
           << mt.getMaxIntensity(false) << "\t"
-          << mt.computePeakArea() << "\t"
+         // << mt.computePeakArea() << "\t"
           << minCharge << "\t"
           << maxCharge << "\t"
           << charges.count() << "\n";
@@ -729,7 +729,7 @@ protected:
     }
     fsf << "ID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tMaxIntensity\tQuantity\tMinCharge\tMaxCharge\tChargeCount\n";
+           "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\n";
     return;
   }
 
