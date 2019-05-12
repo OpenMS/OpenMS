@@ -171,6 +171,7 @@ protected:
     TopNoverRT qc_top_n_over_rt;
 
     // Loop through file lists
+    vector<PeptideIdentification> all_new_upep_ids;
     for (Size i = 0; i < number_exps; ++i)
     {
       //-------------------------------------------------------------
@@ -236,7 +237,10 @@ protected:
 
       if (isRunnable_(&qc_top_n_over_rt, status))
       {
-        qc_top_n_over_rt.compute(exp, fmap);
+        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap);
+        // save the just calculated IDs
+        // this is needed like this, because appending the unassigned PepIDs directly to the ConsensusMap would destroy the mapping
+        all_new_upep_ids.insert(all_new_upep_ids.end(),new_upep_ids.begin(),new_upep_ids.end());
       }
 
       StringList out_feat = getStringList_("out_feat");
@@ -244,7 +248,7 @@ protected:
       {
         FeatureXMLFile().store(out_feat[i], fmap);
       }
-      //-------------------------------------------------------------
+      //------------------------------------------------------------- 
       // Annotate calculated meta values from FeatureMap to given ConsensusMap
       //-------------------------------------------------------------
 
@@ -261,6 +265,9 @@ protected:
     // mztab writer requires single PIs per CF
     IDConflictResolverAlgorithm::resolve(cmap);
 
+    // add calculated new unassigned PeptideIdentifications
+    cmap.getUnassignedPeptideIdentifications().insert(cmap.getUnassignedPeptideIdentifications().end(), all_new_upep_ids.begin(), all_new_upep_ids.end());
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
@@ -270,7 +277,7 @@ protected:
       ConsensusXMLFile().store(out_cm, cmap);
     }
 
-    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true);
+    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true);
 
     MzTabMetaData meta = mztab.getMetaData();
     // Adding TIC information to meta data
