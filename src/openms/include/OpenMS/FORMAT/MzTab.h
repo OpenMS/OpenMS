@@ -961,7 +961,8 @@ public:
         const String& filename,
         bool first_run_inference_only,
         std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-        std::map<String, size_t>& idrun_2_run_index);
+        std::map<String, size_t>& idrun_2_run_index,
+        bool export_empty_pep_ids = false);
 
     /// Generate MzTab style list of PTMs from AASequence object. 
     /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
@@ -980,11 +981,12 @@ public:
 		 * @return mzTab object 
 		 */
     static MzTab exportConsensusMapToMzTab(
-      const ConsensusMap & consensus_map, 
-      const String & filename,
+      const ConsensusMap& consensus_map,
+      const String& filename,
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
       const bool export_subfeatures,
+      const bool export_empty_pep_ids = false,
       String title = "ConsensusMap export from OpenMS");
 
   protected:
