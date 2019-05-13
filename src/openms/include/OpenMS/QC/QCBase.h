@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <iostream>
 
 namespace OpenMS
@@ -68,6 +69,27 @@ namespace OpenMS
        };
     /// strings corresponding to enum Requires
       static const std::string names_of_requires[];
+
+    /**
+     * @brief Map to find a spectrum via its ID
+    */
+    class SpectraMap
+    {
+    public:
+      // Constructor
+      SpectraMap();
+
+      SpectraMap(const MSExperiment& exp);
+
+      // Destructor
+      ~SpectraMap();
+      
+      void calculateMap(const MSExperiment& exp);
+      const UInt64& getIndex(const String& identifier);
+      void clear();
+    private:
+      std::map<String,UInt64> map_to_index_;
+    };
     /**
      * @brief Storing a status as a UInt64
      *

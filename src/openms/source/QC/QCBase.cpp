@@ -37,4 +37,32 @@
 namespace OpenMS
 {
   const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML"};
+
+  QCBase::SpectraMap::SpectraMap() = default;
+
+  QCBase::SpectraMap::SpectraMap(const MSExperiment& exp)
+  {
+    calculateMap(exp);
+  }
+
+  QCBase::SpectraMap::~SpectraMap() = default;
+
+  void QCBase::SpectraMap::calculateMap(const MSExperiment& exp)
+  {
+    map_to_index_.clear();
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      map_to_index_[exp[i].getNativeID()] = i;
+    }
+  }
+
+  const UInt64& QCBase::SpectraMap::getIndex(const String& identifier)
+  {
+    return map_to_index_[identifier];
+  }
+
+  void QCBase::SpectraMap::clear()
+  {
+    map_to_index_.clear();
+  }
 } //namespace OpenMS
