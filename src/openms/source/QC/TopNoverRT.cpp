@@ -123,11 +123,14 @@ namespace OpenMS
 
     if (spectrum.getMSLevel() == 2)
     {
+      Peak1D::IntensityType bpi;
+      Peak1D::IntensityType tic;
+      getBPIandCIC_(spectrum, bpi, tic);
       ms2_included_[distance(exp.begin(), it)].ms2_presence = true;
       peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].scan_event_number);
       peptide_ID.setMetaValue("identified", 1);
-      peptide_ID.setMetaValue("current_ion_count", getCurrentIonCount_(spectrum));
-      peptide_ID.setMetaValue("base_peak_intensity", getBasePeakIntensity_(spectrum));
+      peptide_ID.setMetaValue("current_ion_count", tic);
+      peptide_ID.setMetaValue("base_peak_intensity", bpi);
       annotatePepIDfromSpectrum_(spectrum, peptide_ID);
     }
   }
@@ -143,12 +146,15 @@ namespace OpenMS
         if (exp[pos].getMSLevel() == 2)
         {
           PeptideIdentification unidentified_MS2;
+          Peak1D::IntensityType bpi;
+          Peak1D::IntensityType tic;
+          getBPIandCIC_(exp.getSpectra()[pos], bpi, tic);
           unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
           unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
           unidentified_MS2.setMetaValue("identified", 0);
           unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
-          unidentified_MS2.setMetaValue("current_ion_count", getCurrentIonCount_(exp.getSpectra()[pos]));
-          unidentified_MS2.setMetaValue("base_peak_intensity", getBasePeakIntensity_(exp.getSpectra()[pos]));
+          unidentified_MS2.setMetaValue("current_ion_count", tic);
+          unidentified_MS2.setMetaValue("base_peak_intensity", bpi);
           annotatePepIDfromSpectrum_(exp.getSpectra()[pos], unidentified_MS2);
           result.push_back(unidentified_MS2);
         }
@@ -169,28 +175,22 @@ namespace OpenMS
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
 
-  // get maximal intensity
-  float TopNoverRT::getBasePeakIntensity_(const MSSpectrum& spec)
+  // calculate maximal and summed intensity
+  void TopNoverRT::getBPIandCIC_(MSSpectrum const &spec,
+                                  Peak1D::IntensityType& bpi,
+                                  Peak1D::IntensityType& tic)
   {
-    float peak_max{0};
+    Peak1D::IntensityType peak_max{0};
+    Peak1D::IntensityType sum{0};
     for (const Peak1D& peak : spec)
     {
+      sum += peak.getIntensity();
       if (peak.getIntensity() > peak_max)
       {
         peak_max = peak.getIntensity();
       }
     }
-    return peak_max;
-  }
-
-  // get summed intensity
-  float TopNoverRT::getCurrentIonCount_(const MSSpectrum& spec)
-  {
-    float sum{0};
-    for (const Peak1D& peak : spec)
-    {
-      sum += peak.getIntensity();
-    }
-    return sum;
+    bpi = peak_max;
+    tic = sum;
   }
 }

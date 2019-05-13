@@ -108,10 +108,8 @@ namespace OpenMS
     /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
     std::vector<PeptideIdentification> getUnassignedPeptideIdentifications_(const MSExperiment& exp);
 
-    /// returns highest the highest intensity of a spectrum
-    float getBasePeakIntensity_(const MSSpectrum& spec); //TODO move functionality to MSSpectrum
-
-    /// calculates sum of all peak intensities of a spectrum
-    float getCurrentIonCount_(const MSSpectrum& spec); //TODO move functionality to MSSpectrum
+    /// calculate highest intensity (base peak intensity) and summed intensities (total ion count)
+    /// writes result into given variables
+    void getBPIandCIC_(const MSSpectrum& spec, Peak1D::IntensityType& bpi, Peak1D::IntensityType& tic); //TODO move functionality to MSSpectrum
   };
 }
