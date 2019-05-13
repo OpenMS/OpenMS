@@ -144,7 +144,8 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
   exp.setSpectra(spectra);
 
   TopNoverRT top;
-  top.compute(exp, fmap);
+  vector<PeptideIdentification> new_unassigned_pep_ids;
+  new_unassigned_pep_ids = top.compute(exp, fmap);
 
   //test features
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
@@ -156,29 +157,29 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 2);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("identified"), 1);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 3);
-  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getRT(), 20);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("ScanEventNumber"), 3);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[2].getMetaValue("identified"), 0);
-  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[2].getMZ(), 5.5);
+  TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getRT(), 20);
+  TEST_EQUAL(new_unassigned_pep_ids[0].getMetaValue("ScanEventNumber"), 3);
+  TEST_EQUAL(new_unassigned_pep_ids[0].getMetaValue("identified"), 0);
+  TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getMZ(), 5.5);
 
   //empty FeatureMap
   FeatureMap fmap_empty{};
-  top.compute(exp, fmap_empty);
-  TEST_EQUAL(fmap_empty.getUnassignedPeptideIdentifications().size(), 7);
+  new_unassigned_pep_ids = top.compute(exp, fmap_empty);
+  TEST_EQUAL(new_unassigned_pep_ids.size(), 7);
   //empty feature
   fmap_empty.clear();
   Feature feature_empty{};
   fmap_empty.push_back(feature_empty);
-  top.compute(exp, fmap_empty);
-  TEST_EQUAL(fmap_empty.getUnassignedPeptideIdentifications().size(), 7);
+  new_unassigned_pep_ids = top.compute(exp, fmap_empty);
+  TEST_EQUAL(new_unassigned_pep_ids.size(), 7);
   //empty PeptideIdentifications
   identifications.clear();
   fmap_empty.clear();
   feature_empty.setPeptideIdentifications(identifications);
   fmap_empty.setUnassignedPeptideIdentifications(identifications);
   fmap_empty.push_back(feature_empty);
-  top.compute(exp, fmap_empty);
-  TEST_EQUAL(fmap_empty.getUnassignedPeptideIdentifications().size(), 7);
+  new_unassigned_pep_ids = top.compute(exp, fmap_empty);
+  TEST_EQUAL(new_unassigned_pep_ids.size(), 7);
   //empty MSExperiment
   PeakMap exp_empty{};
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, top.compute(exp_empty, fmap), "The mzml file / MSExperiment is empty.\n");

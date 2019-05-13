@@ -87,7 +87,7 @@ namespace OpenMS
       }
       std::vector<AASequence> digest_output;
       digestor.digest(pep_id.getHits()[0].getSequence(), digest_output);
-      size_t num_mc = digest_output.size() - 1;
+      UInt32 num_mc = UInt32(digest_output.size() - 1);
 
       //Warning if number of missed cleavages is greater than the allowed maximum number of missed cleavages
       if (num_mc > max_mc)

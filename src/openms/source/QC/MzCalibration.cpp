@@ -68,7 +68,8 @@ namespace OpenMS
       {
         return (dp->getProcessingActions().count(DataProcessing::CALIBRATION) == 0);
       };
-      if (all_of(exp[0].getDataProcessing().begin(), exp[0].getDataProcessing().end(), is_not_elem))
+      auto vdp = exp[0].getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
+      if (all_of(vdp.begin(), vdp.end(), is_not_elem))
       {
         no_mzml_ = true;
         OPENMS_LOG_WARN << "Metric MzCalibration received an mzml file which did not undergo InternalCalibration. Only reporting uncalibrated mz error.\n";

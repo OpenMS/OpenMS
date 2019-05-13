@@ -178,7 +178,7 @@ namespace OpenMS
 
       UInt64 getPow_(const Requires& r) const
       {
-        return 1 << UInt64 (r);
+        return UInt64(1) << UInt64 (r);
       }
       UInt64 value_;
     };

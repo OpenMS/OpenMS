@@ -83,7 +83,7 @@ namespace OpenMS
     // counts number of ppm errors
     UInt32 counter_ppm{};
 
-    const float rt_tolerance = 0.05;
+    const float rt_tolerance = 0.05f;
 
     //---------------------------------------------------------------------
     // Prepare MSExperiment

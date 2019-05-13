@@ -163,7 +163,7 @@ public:
     std::vector< DataProcessingPtr > & getDataProcessing();
 
     /// returns a const reference to the description of the applied processing
-    const std::vector< boost::shared_ptr<const DataProcessing > >& getDataProcessing() const;
+    const std::vector< boost::shared_ptr<const DataProcessing > > getDataProcessing() const;
 
 protected:
 

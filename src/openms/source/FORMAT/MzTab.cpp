@@ -1754,7 +1754,8 @@ namespace OpenMS
     const String& filename,
     bool first_run_inference_only,
     std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-    std::map<String, size_t>& idrun_2_run_index)
+    std::map<String, size_t>& idrun_2_run_index,
+    bool export_empty_pep_ids)
   {
     OPENMS_LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
     vector<PeptideIdentification> pep_ids = peptide_ids;
@@ -2375,14 +2376,51 @@ Not sure how to handle these:
     Size psm_id(0);
     for (auto it = pep_ids.begin(); it != pep_ids.end(); ++it, ++psm_id)
     {
-      // skip empty peptide identification objects
-      if (it->getHits().empty()) { continue; }
+      // skip empty peptide identification objects, if they are not wanted
+      if (it->getHits().empty() && !export_empty_pep_ids)
+      {
+        continue;
+      }
+      
+      /////// Information that doesn't require a peptide hit ///////
+      MzTabPSMSectionRow row;
+      row.PSM_ID = MzTabInteger(psm_id);
+      row.database = db;
+      row.database_version = db_version;
+      
+      vector<MzTabDouble> rts_vector;
+      rts_vector.emplace_back(MzTabDouble(it->getRT()));
 
+      MzTabDoubleList rts;
+      rts.set(rts_vector);
+      row.retention_time = rts;
+
+      row.exp_mass_to_charge = MzTabDouble(it->getMZ());
+
+      // meta data on peptide identifications
+      vector<String> pid_keys;
+      it->getKeys(pid_keys);
+      for (String & s : pid_keys)
+      {
+        if (s.has(' '))
+        {
+          s.substitute(' ', '_');
+        }
+      }
+      set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
+      addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), *it);
+      
+      // add the row and continue to next PepID, if the current one was an empty one
+      if (it->getHits().empty())
+      {
+        rows.push_back(row);
+        continue;
+      }
+
+      /////// Information that does require a peptide hit ///////
       // sort by rank
       it->assignRanks();
-
-      MzTabPSMSectionRow row;
-
+      
       // link to spectrum in MS run
       String spectrum_nativeID = it->getMetaValue("spectrum_reference").toString();
       size_t run_index = idrun_2_run_index[it->getIdentifier()];
@@ -2424,10 +2462,7 @@ Not sure how to handle these:
 
       // extract all modifications in the current sequence for reporting. In contrast to peptide and protein section all modifications are reported.
       row.modifications = extractModificationListFromAASequence(aas);
-
-      row.PSM_ID = MzTabInteger(psm_id);
-      row.database = db;
-      row.database_version = db_version;
+      
       MzTabParameterList search_engines;
 
       if (run_to_search_engines[run_index].size() != 1)
@@ -2440,15 +2475,8 @@ Not sure how to handle these:
       row.search_engine = search_engines;
 
       row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
-
-      vector<MzTabDouble> rts_vector;
-      rts_vector.emplace_back(MzTabDouble(it->getRT()));
-
-      MzTabDoubleList rts;
-      rts.set(rts_vector);
-      row.retention_time = rts;
+      
       row.charge = MzTabInteger(best_ph.getCharge());
-      row.exp_mass_to_charge = MzTabDouble(it->getMZ());
       row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMonoWeight(Residue::Full, best_ph.getCharge()) / best_ph.getCharge()) : MzTabDouble();
 
       // add opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
@@ -2469,19 +2497,6 @@ Not sure how to handle these:
       } 
       set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
       addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
-
-      // meta data on peptide identifications
-      vector<String> pid_keys;
-      it->getKeys(pid_keys);
-      for (String & s : pid_keys)      
-      { 
-        if (s.has(' '))
-        {
-          s.substitute(' ', '_');
-        }
-      } 
-      set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
-      addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), *it);
 
       // TODO Think about if the uniqueness can be determined by # of peptide evidences
       // b/c this would only differ when evidences come from different DBs
@@ -2615,6 +2630,7 @@ Not sure how to handle these:
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
     const bool export_subfeatures,
+    const bool export_empty_pep_ids,
     String title)
   {  
     OPENMS_LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
@@ -2643,7 +2659,7 @@ Not sure how to handle these:
     map<String, size_t> idrun_2_run_index;
     MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, true,
                                                map_run_fileidx_2_msfileidx,
-                                               idrun_2_run_index);
+                                               idrun_2_run_index, export_empty_pep_ids);
 
 
     // determine number of samples

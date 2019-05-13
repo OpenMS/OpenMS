@@ -979,13 +979,14 @@ namespace OpenMS
     //check if formats are known
     if (force_OpenMS_format)
     {
-      for (Size i = 0; i < formats.size(); ++i)
+      for (const auto& f : formats)
       {
-        if (formats[i] != "fid")
+        if (f != "fid")
         {
-          if (FileHandler::getTypeByFileName(String(".") + formats[i]) == FileTypes::UNKNOWN)
+          auto ft = FileHandler::getTypeByFileName(String(".") + f);
+          if (ft == FileTypes::UNKNOWN)
           {
-            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The file format '" + formats[i] + "' is invalid!");
+            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The file format '" + f + "' is invalid!");
           }
         }
       }
