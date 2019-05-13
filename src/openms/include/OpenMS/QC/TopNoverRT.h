@@ -40,6 +40,7 @@ namespace OpenMS
   class FeatureMap;
   class MSExperiment;
   class TransformationDescription;
+  class MSSpectrum;
 
   /**
     @brief  QC metric to determine the number of MS2 scans per MS1 scan over RT
@@ -106,5 +107,9 @@ namespace OpenMS
 
     /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
     std::vector<PeptideIdentification> getUnassignedPeptideIdentifications_(const MSExperiment& exp);
+
+    /// calculate highest intensity (base peak intensity) and summed intensities (total ion count)
+    /// writes result into given variables
+    void getBPIandCIC_(const MSSpectrum& spec, Peak1D::IntensityType& bpi, Peak1D::IntensityType& tic); //TODO move functionality to MSSpectrum
   };
 }
