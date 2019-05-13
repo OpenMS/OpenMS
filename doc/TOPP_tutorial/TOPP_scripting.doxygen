@@ -54,7 +54,13 @@
 
         @section  TOPP_example_qualitycontrol_section3 Metrics
         This Table shows what each of the included metrics does, what they need to be executed and what they add to
-        the data or what they store in their output.
+        the data or what they return.
+        @subsection TOPP_example_qualitycontrol_section3_subsection Input Data
+        PostFDR FeatureXML: A FeatureXML after FDR filtering. <br>
+        Contaminants Fasta file: A Fasta file containing the contaminants database. <br>
+        Raw mzML file: An unchanged mzML file. <br>
+        TrafoXML file: <br>
+
         <TABLE border=1>
 
         <TR>
@@ -64,7 +70,7 @@
         </TR>
         <TR>
             <TD>
-                <b>Essential input data:</b> Fasta file (Contaminants database), PostFDR FeatureXML
+                <b>Required input data:</b> Contaminants Fasta file, PostFDR FeatureXML
             </TD>
             <TD>
                 <b> Output</b>
@@ -78,23 +84,23 @@
                 The Contaminants metric takes the contaminants database and digests the protein sequences with the
                 digestion enzyme that is given in the featureXML.
                 Afterwards it checks whether each of all peptide sequences of the featureXML (including the
-                unassigned peptide identifications) is registered in the contaminants database. <br>
+                unassigned PeptideIdentifications) is registered in the contaminants database. <br>
                 To all peptides that are identified as a contaminant, the metric will add the metavalue
-                'is_contaminant  = 1' to the first hit of the peptide identification of all features as well
-                as to every unassigned peptideIdentification. <br>
+                'is_contaminant  = 1' to the first (best) hit of the PeptideIdentification of all features as well
+                as to every unassigned PeptideIdentification. <br>
                 Peptides that could not match any contaminant get an 'is_contaminant = 0' as a new metavalue.
 
             </TD>
             <TD>
                 <b> Changes in files:</b> <br>
-                This metric adds the new metavalue 'is_contaminant' into the first hit of each
-                peptideidentification and sets it to '1' if the peptide sequence is found in the database
+                This metric adds the new metavalue 'is_contaminant' into the first (best) hit of each
+                PeptideIdentification and sets it to '1' if the peptide sequence is found in the database
                 and sets a '0' if not.<br>
                 <b> Other outputs:</b> <br>
                 For each FeatureMap the metric calculates the contaminant ratio of 1.) all peptides,
                 2.) all assigned peptides and 3.) all unassigned peptides as well as the intensity
                 ratio of all contaminants in the assigned peptides. Furthermore the number of empty
-                features and the number of all found features is also stored.
+                features and the number of all found features is also returned.
             </TD>
         </TR>
 
@@ -105,7 +111,7 @@
         </TR>
         <TR>
              <TD>
-                  <b>Essential input data:</b> PostFDR FeatureXML, raw mzML file
+                  <b>Required input data:</b> PostFDR FeatureXML, raw mzML file
              </TD>
              <TD>
                   <b>Output</b>
@@ -114,17 +120,17 @@
         <TR>
              <TD>
                   @b Brief: <br>
-                  This metric computes the FragmentMassError in ppm.<br>
+                  This metric computes a list of fragment mass errors for each annotated MS2 spectrum in ppm and Da.<br>
                   @b Description: <br>
-                  The FragmentMassError metric calculates the difference between the measured peaks and the expected ones.
+                  The FragmentMassError metric calculates the mass delta between observed and theoretical peaks.
              </TD>
 
              <TD>
                   <b> Changes in files:</b> <br>
                   This metric adds the new metavalues 'fragment_mass_error_ppm' for the FragmentMassError in parts per
-                  million and 'fragment_mass_error_da'for the FragmentMassError in Dalton into the first hit of the peptideIdentifications.<br>
+                  million and 'fragment_mass_error_da'for the FragmentMassError in Dalton into the first (best) hit of the PeptideIdentifications.<br>
                   <b> Other Output:</b> <br>
-                  The FragmentMassError metric stores the average and the variance of FragmentMassErrors in ppm.
+                  The FragmentMassError metric returns the average and the variance of FragmentMassErrors in ppm.
              </TD>
         </TR>
         <TR>
@@ -134,7 +140,7 @@
         </TR>
         <TR>
               <TD>
-                   <b>Essential input data:</b> PostFDR FeatureXML
+                   <b>Required input data:</b> PostFDR FeatureXML
               </TD>
               <TD>
                    <b>Output</b>
@@ -153,10 +159,10 @@
 
               <TD>
                    <b> Changes in files:</b> <br>
-                   This metric adds the new metavalues 'missed_cleavages' to the first peptidehit in each peptideidentification
+                   This metric adds the new metavalues 'missed_cleavages' to the first PeptideHit in each PeptideIdentification
                    of the featureMap. <br>
                    <b> Other Output:</b> <br>
-                   The MissedCleavages metric stores the number of cuts of all peptides in a map.
+                   The MissedCleavages metric returns the number of cuts of all peptides in a map.
               </TD>
         </TR>
         <TR>
@@ -166,7 +172,7 @@
         </TR>
         <TR>
               <TD>
-                   <b>Essential input data:</b> PostFDR FeatureXML, raw mzML file
+                   <b>Required input data:</b> PostFDR FeatureXML, raw mzML file
               </TD>
               <TD>
                    <b>Output</b>
@@ -177,16 +183,16 @@
                    @b Brief: <br>
                    This metric computes the MS2IdentificationRate.<br>
                    @b Description: <br>
-                   The MS2IdentificationRate metric calculates the Rate of the MS2Identification as follows:
-                   The number of all peptideIdentification are counted and that number is devided by the number of
-                   counted ms2 spectra.
+                   The MS2IdentificationRate metric calculates the Rate of the MS2 identification as follows:
+                   The number of all PeptideIdentifications are counted and that number is divided by the total
+                   number of MS2 spectra.
               </TD>
 
               <TD>
                    <b> Changes in files:</b> <br>
                    This metric does not change anything in the data.<br>
                    <b> Other Output:</b> <br>
-                   The MS2IdentificationRate metric stores the number of peptideIdentifications, the number of ms2 spectra
+                   The MS2IdentificationRate metric returns the number of PeptideIdentifications, the number of ms2 spectra
                    and the ratio of #pepID/#ms2.
               </TD>
         </TR>
@@ -198,7 +204,7 @@
         </TR>
         <TR>
               <TD>
-                   <b>Essential input data:</b> PostFDR FeatureXML, trafoXML file
+                   <b>Required input data:</b> PostFDR FeatureXML, trafoXML file
               </TD>
               <TD>
                    <b>Output</b>
@@ -212,12 +218,12 @@
                    @b Description: <br>
                    The RTAlignment metric checks what the retention time was before the alignment
                    and how it is after the alignment. These two values are added to the metavalues
-                   in the peptideIdentification.
+                   in the PeptideIdentification.
               </TD>
 
               <TD>
                    <b> Changes in files:</b> <br>
-                   This metric adds the new metavalues 'rt_align' and 'rt_raw' to the peptideidentifications.<br>
+                   This metric adds the new metavalues 'rt_align' and 'rt_raw' to the PeptideIdentifications.<br>
                    <b> Other Output:</b> <br>
                    No additional output.
               </TD>
@@ -229,7 +235,7 @@
         </TR>
         <TR>
               <TD>
-                   <b>Essential input data:</b> raw mzML file
+                   <b>Required input data:</b> raw mzML file
               </TD>
               <TD>
                    <b>Output</b>
@@ -240,7 +246,7 @@
                    @b Brief: <br>
                    This metric calculates the total ion count of an MSExperiment.<br>
                    @b Description: <br>
-                   Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+                   The TIC metric computes the Total Ion Count if a bin size in RT seconds greater than 0 is given.
                    All MS1 TICs within a bin are summed up.
               </TD>
 
@@ -248,7 +254,7 @@
                    <b> Changes in files:</b> <br>
                    This metric does not change anything in the data.<br>
                    <b> Other Output:</b> <br>
-                   The TIC metric stores the TIC chromatograms.
+                   The TIC metric returns the TIC chromatograms.
               </TD>
         </TR>
         <TR>
@@ -258,7 +264,7 @@
         </TR>
         <TR>
               <TD>
-                   <b>Essential input data:</b> PostFDR FeatureXML, raw mzML file
+                   <b>Required input data:</b> PostFDR FeatureXML, raw mzML file
               </TD>
               <TD>
                    <b>Output</b>
@@ -267,21 +273,22 @@
         <TR>
               <TD>
                    @b Brief: <br>
-                   This metric Calculates the ScanEventNumber, finds all unidentified MS2-Spectra and adds them to the
-                   unassigned peptideIdentifications. Additionally it writes new metavalues in the peptideIdentification.<br>
+                   This metric Calculates the ScanEventNumber, finds all unidentified MS2-Spectra and adds corresponding
+                   empty PeptideIdentifications as placeholders to the unassigned PeptideIdentification list. Additionally
+                   it writes new metavalues in the PeptideIdentification.<br>
                    @b Description: <br>
                    The TopNoverRT metric calculates the ScanEventNumber (number of the MS2 scans after the MS1 scan) and adds
-                   them as the new metavalue 'ScanEventNumber' to the peptideIdentifications. Furthermore it adds the metavalue
-                   'identified' to the peptideIdentification and sets the 'identified' value to '+' if the MS2-Spectra belongs
-                   to the assigned peptideIdentifications or to '-' if the MS2-Spectra belongs to the unassigned
-                   peptideIdentifications. The metric will as well add the unassigned MS2-Spectra to the unassigned peptideIdentifications.
+                   them as the new metavalue 'ScanEventNumber' to the PeptideIdentifications. Furthermore it adds the metavalue
+                   'identified' to the PeptideIdentification. This is set to '+' or '-'whether the MS2-Spectrum belongs to
+                   the assigned or the unassigned PeptideIdentifications. The metric will as well add the unassigned
+                   MS2-Spectra to the unassigned PeptideIdentifications.
               </TD>
 
               <TD>
                    <b> Changes in files:</b> <br>
-                   This metric adds the new metavalues 'ScanEventNumber' and 'identified' to the peptideIdentifications.
+                   This metric adds the new metavalues 'ScanEventNumber' and 'identified' to the PeptideIdentifications.
                    The metavalue 'identified' is set to '+' or '-' whether it belongs to the assigned ('+') or the unassigned
-                   ('-') peptideIdentifications.
+                   ('-') PeptideIdentifications.
                    <br>
                    <b> Other Output:</b> <br>
                    The TopNoverRT metric has no additional output.
