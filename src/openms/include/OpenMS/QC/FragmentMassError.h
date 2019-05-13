@@ -74,7 +74,7 @@ namespace OpenMS
     };
 
     /**
-     * @brief computes FragmentMassError in ppm
+     * @brief computes FragmentMassError in ppm and Dalton
      *
      * stores average and variance of FragmentMassErrors in ppm as a struct in a vector
      * each FragmentMassError (in ppm) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_ppm"
@@ -83,15 +83,16 @@ namespace OpenMS
      * @param fmap Input FeatureMap for annotation and data for theoretical spectra
      * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
      * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
-     * @param tolerance_unit_ppm Tolerance in ppm or m/z
+     * @param tolerance_unit Tolerance in ppm or Dalton, if auto was chosen, unit and value will be looked up in the FeatureXML
      * @throws Exception::Precondition MSExperiment is not sorted by ascending RT, catch by TOPPTool
+     * @throws Exceptions::MissingInformation about fragment mass tolerance in FeatureXML.
      * @throws Exception::IllegalArgument Retention time of the mzML and featureXML file does not match
      * @throws Exception::IllegalArgument PeptideID does not have a matching MS2 Spectrum
      * @throws Exception::IllegalArgument Missing MS2 spectrum at RT of a PepID
      * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
-    void compute(FeatureMap& fmap, const MSExperiment& exp, double tolerance = 20, ToleranceUnit tolerance_unit = ToleranceUnit::PPM, bool unit_auto = true);
+    void compute(FeatureMap& fmap, const MSExperiment& exp, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /// returns the name of the metric
     const String& getName() const override;

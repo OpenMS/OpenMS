@@ -72,8 +72,9 @@ namespace OpenMS
     }
   }
 
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, double tolerance, ToleranceUnit tolerance_unit)
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, ToleranceUnit tolerance_unit, double tolerance)
   {
+    std::cout << "unit: " << names_of_toleranceUnit[int(tolerance_unit)] << std::endl;
     FMEStatistics result;
 
     // accumulates ppm errors over all first PeptideHits
@@ -104,7 +105,7 @@ namespace OpenMS
     //-------------------------------------------------------------------
     // find tolerance unit and value
     //------------------------------------------------------------------
-    if (unit_auto)
+    if (tolerance_unit == ToleranceUnit::AUTO)
     {
       if (fmap.getProteinIdentifications().empty() )
       {
@@ -246,7 +247,6 @@ namespace OpenMS
 
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_ppm", ppms);
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
-      std::cout << "frag: ppm: " << pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm") << " dalton: " << pep_id.getHits()[0].getMetaValue("fragment_mass_error_da") << std::endl;
 
 
     };

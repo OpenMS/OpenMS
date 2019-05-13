@@ -87,7 +87,7 @@ protected:
     registerInputFileList_("in_postFDR", "<file>", {}, "featureXML input", false);
     setValidFormats_("in_postFDR", {"featureXML"});
     registerTOPPSubsection_("FragmentMassError", "test");
-    registerStringOption_("FragmentMassError:unit", "<unit>", "auto", "Unit for tolerance", false);
+    registerStringOption_("FragmentMassError:unit", "<unit>", "AUTO", "Unit for tolerance. auto: information from FeatureXML", false);
     setValidStrings_("FragmentMassError:unit", std::vector<String>(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT));
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "Search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Contaminant database input", false);
@@ -106,6 +106,8 @@ protected:
 
   }
 
+  // function tests if a metric has the required input files
+  // gives a warning with the name of the metric that can not be performed
   bool isRunnable_(const QCBase* m, const OpenMS::QCBase::Status& s) const
   {
     if (s.isSuperSetOf(m->requires())) return true;
@@ -157,12 +159,12 @@ protected:
 
     // check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
-    String tolerance_unit_s = getStringOption_("FragmentMassError:unit");
-    auto it = std::find(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, tolerance_unit_s);
-    auto idx = std::distance(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT);
-    FragmentMassError::ToleranceUnit tolerance_unit = FragmentMassError::ToleranceUnit(idx);
-
     double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
+
+    auto it = std::find(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
+    auto idx = std::distance(FragmentMassError::names_of_toleranceUnit, it);
+    auto tolerance_unit = FragmentMassError::ToleranceUnit(idx);
+
 
     // Instantiate the QC metrics
     Contaminants qc_contaminants;
@@ -211,7 +213,7 @@ protected:
 
       if (isRunnable_(&qc_frag_mass_err, status))
       {
-        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit);
+        qc_frag_mass_err.compute(fmap, exp, tolerance_unit, tolerance_value);
       }
 
       if (isRunnable_(&qc_missed_cleavages, status))
@@ -223,9 +225,10 @@ protected:
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
       }
+
       if (isRunnable_(&qc_mz_calibration, status))
       {
-        qc_mz_calibration.compute(fmap, exp);
+      //  qc_mz_calibration.compute(fmap, exp);
       }
 
       if (isRunnable_(&qc_rt_alignment, status))
