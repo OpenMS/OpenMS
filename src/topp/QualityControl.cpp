@@ -229,7 +229,7 @@ protected:
 
       if (isRunnable_(&qc_mz_calibration, status))
       {
-      //  qc_mz_calibration.compute(fmap, exp);
+        qc_mz_calibration.compute(fmap, exp);
       }
 
       if (isRunnable_(&qc_rt_alignment, status))
