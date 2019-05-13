@@ -56,7 +56,7 @@ addons:
          - coinor-libosi-dev
          - coinor-libvol-dev
          - libpcre3-dev
-         - mono-devel
+         - mono-complete
          
 before_script:
   ./tools/travis/cibuild.before.sh
