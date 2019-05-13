@@ -50,7 +50,7 @@
 // we ignore the -Wunused-value warning here, since we do not want the compiler
 // to report problems like
 // DataValue_test.cpp:285:3: warning: expression result unused [-Wunused-value]
-//   TEST_EXCEPTION(Exception::ConversionError, (StringList)DataValue("abc,ab"))
+//   TEST_EXCEPTION(Exception::ConversionError&, (StringList)DataValue("abc,ab"))
 
 #ifdef __clang__
   #pragma clang diagnostic push
@@ -487,7 +487,7 @@ START_SECTION((operator IntList() const))
   DataValue d(il);
   IntList il_op = d;
   TEST_EQUAL(il_op == il, true)
-  TEST_EXCEPTION(Exception::ConversionError, StringList sl = DataValue("abc,ab");)
+  TEST_EXCEPTION(Exception::ConversionError&, StringList sl = DataValue("abc,ab");)
 END_SECTION
 
 START_SECTION((IntList toIntList() const))
@@ -497,7 +497,7 @@ START_SECTION((IntList toIntList() const))
   DataValue d(il);
   IntList il_op = d.toIntList();
   TEST_EQUAL(il_op == il, true)
-  TEST_EXCEPTION(Exception::ConversionError, StringList sl = DataValue("abc,ab").toStringList();)
+  TEST_EXCEPTION(Exception::ConversionError&, StringList sl = DataValue("abc,ab").toStringList();)
 END_SECTION
 
 START_SECTION((operator DoubleList() const))
@@ -541,7 +541,7 @@ START_SECTION((operator int() const ))
   int k = d;
   TEST_EQUAL(k,-55)
 
-  TEST_EXCEPTION(Exception::ConversionError, (int)DataValue(55.4))
+  TEST_EXCEPTION(Exception::ConversionError&, (int)DataValue(55.4))
 END_SECTION
 
 START_SECTION((operator unsigned int() const ))
@@ -549,8 +549,8 @@ START_SECTION((operator unsigned int() const ))
   unsigned int k = d;
   TEST_EQUAL(k,55)
 
-  TEST_EXCEPTION(Exception::ConversionError, (unsigned int)DataValue(-55))
-  TEST_EXCEPTION(Exception::ConversionError, (unsigned int)DataValue(55.4))
+  TEST_EXCEPTION(Exception::ConversionError&, (unsigned int)DataValue(-55))
+  TEST_EXCEPTION(Exception::ConversionError&, (unsigned int)DataValue(55.4))
 END_SECTION
 
 START_SECTION((operator short int() const))
@@ -558,7 +558,7 @@ START_SECTION((operator short int() const))
   short int k = d;
   TEST_EQUAL(k,-55)
 
-  TEST_EXCEPTION(Exception::ConversionError, (short int)DataValue(55.4))
+  TEST_EXCEPTION(Exception::ConversionError&, (short int)DataValue(55.4))
 END_SECTION
 
 START_SECTION((operator unsigned short int() const))
@@ -566,8 +566,8 @@ START_SECTION((operator unsigned short int() const))
   unsigned short int k = d;
   TEST_EQUAL(k,55)
 
-  TEST_EXCEPTION(Exception::ConversionError, (unsigned short int)DataValue(-55))
-  TEST_EXCEPTION(Exception::ConversionError, (unsigned short int)DataValue(55.4))
+  TEST_EXCEPTION(Exception::ConversionError&, (unsigned short int)DataValue(-55))
+  TEST_EXCEPTION(Exception::ConversionError&, (unsigned short int)DataValue(55.4))
 END_SECTION
 
 START_SECTION((operator long int() const))
@@ -575,7 +575,7 @@ START_SECTION((operator long int() const))
   long int k = d;
   TEST_EQUAL(k,-55)
 
-  TEST_EXCEPTION(Exception::ConversionError, (long int)DataValue(55.4))
+  TEST_EXCEPTION(Exception::ConversionError&, (long int)DataValue(55.4))
 END_SECTION
 
 START_SECTION((operator unsigned long int() const))
@@ -583,8 +583,8 @@ START_SECTION((operator unsigned long int() const))
   unsigned long int k = d;
   TEST_EQUAL(k,55)
 
-  TEST_EXCEPTION(Exception::ConversionError, (unsigned long int)DataValue(-55))
-  TEST_EXCEPTION(Exception::ConversionError, (unsigned long int)DataValue(55.4))
+  TEST_EXCEPTION(Exception::ConversionError&, (unsigned long int)DataValue(-55))
+  TEST_EXCEPTION(Exception::ConversionError&, (unsigned long int)DataValue(55.4))
 END_SECTION
 
 START_SECTION((operator long long() const))
@@ -605,7 +605,7 @@ START_SECTION((operator long long() const))
   TEST_EQUAL(k,-55)
   }
 
-  TEST_EXCEPTION(Exception::ConversionError, (long int)DataValue(55.4))
+  TEST_EXCEPTION(Exception::ConversionError&, (long int)DataValue(55.4))
 }
 END_SECTION
 
@@ -622,8 +622,8 @@ START_SECTION((operator unsigned long long() const))
   TEST_EQUAL(k,55)
   }
 
-  TEST_EXCEPTION(Exception::ConversionError, (unsigned long int)DataValue(-55))
-  TEST_EXCEPTION(Exception::ConversionError, (unsigned long int)DataValue(55.4))
+  TEST_EXCEPTION(Exception::ConversionError&, (unsigned long int)DataValue(-55))
+  TEST_EXCEPTION(Exception::ConversionError&, (unsigned long int)DataValue(55.4))
 }
 END_SECTION
 
@@ -686,10 +686,10 @@ START_SECTION((const char* toChar() const))
   a = DataValue("hello");
   TEST_STRING_EQUAL(a.toChar(),"hello")
   a = DataValue(5);
-  TEST_EXCEPTION(Exception::ConversionError, a.toChar() )
+  TEST_EXCEPTION(Exception::ConversionError&, a.toChar() )
 END_SECTION
 
-START_SECTION((String toString() const))
+START_SECTION((String toString(bool full_precision) const))
   DataValue a;
   TEST_EQUAL(a.toString(), "")
   a = DataValue("hello");
@@ -697,15 +697,17 @@ START_SECTION((String toString() const))
   a = DataValue(5);
   TEST_EQUAL(a.toString(), "5")
   a = DataValue(47.11);
-  TEST_EQUAL(a.toString(), "47.11")
+  TEST_EQUAL(a.toString(), "47.109999999999999")
+  TEST_EQUAL(a.toString(false), "47.11")
   a = DataValue(-23456.78);
-  TEST_EQUAL(a.toString(), "-23456.78")
+  TEST_EQUAL(a.toString(), "-23456.779999999998836")
   a = DataValue(ListUtils::create<String>("test string,string2,last string"));
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
   a = DataValue(ListUtils::create<Int>("1,2,3,4,5"));
   TEST_EQUAL(a.toString(),"[1, 2, 3, 4, 5]")
-  a= DataValue(ListUtils::create<double>("1.2,23.3333"));
-  TEST_EQUAL(a.toString(),"[1.2, 23.3333]")
+  a = DataValue(ListUtils::create<double>("1.2,47.11"));
+  TEST_EQUAL(a.toString(),"[1.2, 47.109999999999999]")
+  TEST_EQUAL(a.toString(false), "[1.2, 47.11]")
 END_SECTION
 
 START_SECTION((bool toBool() const))
@@ -717,13 +719,13 @@ START_SECTION((bool toBool() const))
 
   //invalid cases
   a = DataValue();
-  TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
+  TEST_EXCEPTION(Exception::ConversionError&, a.toBool() )
   a = DataValue("bla");
-  TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
+  TEST_EXCEPTION(Exception::ConversionError&, a.toBool() )
   a = DataValue(12);
-  TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
+  TEST_EXCEPTION(Exception::ConversionError&, a.toBool() )
   a = DataValue(34.45);
-  TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
+  TEST_EXCEPTION(Exception::ConversionError&, a.toBool() )
 END_SECTION
 
 START_SECTION((QString toQString() const))
@@ -742,7 +744,7 @@ START_SECTION((QString toQString() const))
   a =DataValue(ListUtils::create<Int>("1,2,3"));
   TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
   a = DataValue(ListUtils::create<double>("1.22,43.23232"));
-  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.23232]")
+  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.232320000000001]")
 END_SECTION
 
 START_SECTION(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))

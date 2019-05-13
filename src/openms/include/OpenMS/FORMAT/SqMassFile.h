@@ -60,9 +60,9 @@ public:
   */
     struct OPENMS_DLLAPI SqMassConfig 
     {
-      bool write_full_meta; /// write full meta data
-      bool use_lossy_numpress; /// use lossy numpress compression
-      double linear_fp_mass_acc; /// desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
+      bool write_full_meta; ///< write full meta data
+      bool use_lossy_numpress; ///< use lossy numpress compression
+      double linear_fp_mass_acc; ///< desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
 
       SqMassConfig () :
         write_full_meta(true),

@@ -144,7 +144,7 @@ namespace OpenMS
             Size s_left = it->findNearest(mz_iso_left);
             if (Math::getPPMAbs(mz_iso_left, (*it)[s_left].getMZ()) < 0.5) // intra-scan ppm should be very good!
             { // peak nearby lock mass was not the monoisotopic
-              if (verbose) LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " is NOT monoisotopic. Skipping it!\n";
+              if (verbose) OPENMS_LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " is NOT monoisotopic. Skipping it!\n";
               failed_lock_masses.insertCalibrationPoint(it->getRT(), itl->mz, 1.0, itl->mz, 0.0, std::distance(ref_masses.begin(), itl));
               continue;
             }
@@ -156,7 +156,7 @@ namespace OpenMS
             Size s_right = it->findNearest(mz_iso_right);
             if (!(Math::getPPMAbs(mz_iso_right, (*it)[s_right].getMZ()) < 0.5)) // intra-scan ppm should be very good!
             { // peak has no +1iso.. weird
-              if (verbose) LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " has no +1 isotope (ppm to closest: " << Math::getPPM(mz_iso_right, (*it)[s_right].getMZ()) << ")... Skipping it!\n";
+              if (verbose) OPENMS_LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " has no +1 isotope (ppm to closest: " << Math::getPPM(mz_iso_right, (*it)[s_right].getMZ()) << ")... Skipping it!\n";
               failed_lock_masses.insertCalibrationPoint(it->getRT(), itl->mz, 2.0, itl->mz, 0.0, std::distance(ref_masses.begin(), itl));
               continue;
             }
@@ -168,12 +168,12 @@ namespace OpenMS
       ++stats_cal_per_spectrum[cal_data_.size()-cnt_cd];
     }
 
-    LOG_INFO << "Lock masses found across viable spectra:\n";
+    OPENMS_LOG_INFO << "Lock masses found across viable spectra:\n";
     for (std::map<Size, Size>::const_iterator its = stats_cal_per_spectrum.begin(); its != stats_cal_per_spectrum.end(); ++its)
     {
-      LOG_INFO << "  " << its->first << " [of " << ref_masses.size() << "] lock masses: " << its->second << "x\n";
+      OPENMS_LOG_INFO << "  " << its->first << " [of " << ref_masses.size() << "] lock masses: " << its->second << "x\n";
     }
-    LOG_INFO << std::endl;
+    OPENMS_LOG_INFO << std::endl;
 
     // sort CalData by RT
     cal_data_.sortByRT();
@@ -199,7 +199,7 @@ namespace OpenMS
     // unassigned peptide IDs
     fillIDs_(fm.getUnassignedPeptideIdentifications(), tol_ppm);
 
-    LOG_INFO << "Found " << cal_data_.size() << " calibrants (incl. unassigned) in FeatureMap." << std::endl;
+    OPENMS_LOG_INFO << "Found " << cal_data_.size() << " calibrants (incl. unassigned) in FeatureMap." << std::endl;
 
     // sort CalData by RT
     cal_data_.sortByRT();
@@ -235,9 +235,9 @@ namespace OpenMS
       const double intensity = 1.0;
       cal_data_.insertCalibrationPoint(it->getRT(), it->getMZ(), intensity, mz_ref, weight);
     }
-    LOG_INFO << "Found " << cal_data_.size() << " calibrants in peptide IDs." << std::endl;
-    if (cnt_nomz > 0) LOG_WARN << "Warning: " << cnt_nomz << "/" << pep_ids.size() << " were skipped, since they have no m/z value set! They cannot be used as calibration point." << std::endl;
-    if (cnt_nort > 0) LOG_WARN << "Warning: " << cnt_nort << "/" << pep_ids.size() << " were skipped, since they have no RT value set! They cannot be used as calibration point." << std::endl;
+    OPENMS_LOG_INFO << "Found " << cal_data_.size() << " calibrants in peptide IDs." << std::endl;
+    if (cnt_nomz > 0) OPENMS_LOG_WARN << "Warning: " << cnt_nomz << "/" << pep_ids.size() << " were skipped, since they have no m/z value set! They cannot be used as calibration point." << std::endl;
+    if (cnt_nort > 0) OPENMS_LOG_WARN << "Warning: " << cnt_nort << "/" << pep_ids.size() << " were skipped, since they have no RT value set! They cannot be used as calibration point." << std::endl;
   }
 
   Size InternalCalibration::fillCalibrants( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm )
@@ -284,7 +284,7 @@ namespace OpenMS
     bool global_model = (rt_chunk < 0);
     if (global_model)
     { // build one global modal
-      LOG_INFO << "Building a global model..." << std::endl;
+      OPENMS_LOG_INFO << "Building a global model..." << std::endl;
       tms.push_back(MZTrafoModel());
       tms[0].train(cal_data_, model_type, use_RANSAC);
       if (MZTrafoModel::isValidModel(tms[0]))
@@ -335,7 +335,7 @@ namespace OpenMS
       {
         // 2nd attempt to calibrate spectra using neighboring models
         // (will not be entered for global model since could_not_cal is empty)
-        LOG_INFO << "\nCalibration failed on " << invalid_models.size() << "/" << tms.size() << " [" <<  invalid_models.size() * 100 / tms.size() << " %] spectra. "
+        OPENMS_LOG_INFO << "\nCalibration failed on " << invalid_models.size() << "/" << tms.size() << " [" <<  invalid_models.size() * 100 / tms.size() << " %] spectra. "
           << "Using the closest successful model on these." << std::endl;
 
         std::vector<MZTrafoModel> tms_new = tms; // will contain corrected models (this wastes a bit of memory)
@@ -374,7 +374,7 @@ namespace OpenMS
     {
       if (!RWrapper::findR(rscript_executable, true))
       {
-        LOG_ERROR << "The R interpreter is required to create PNG plot files. To avoid the error, either do not request 'quality_control:*_plot' (not recommended) or fix your R installation." << std::endl;
+        OPENMS_LOG_ERROR << "The R interpreter is required to create PNG plot files. To avoid the error, either do not request 'quality_control:*_plot' (not recommended) or fix your R installation." << std::endl;
         return false;
       }
     }
@@ -405,7 +405,7 @@ namespace OpenMS
       {
         if (!RWrapper::runScript("InternalCalibration_Models.R", QStringList() << out_table.toQString() << file_models_plot.toQString(), rscript_executable))
         {
-          LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:models_plot' (not recommended) or fix your R installation." << std::endl;
+          OPENMS_LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:models_plot' (not recommended) or fix your R installation." << std::endl;
           return false;
         }
       }
@@ -462,7 +462,7 @@ namespace OpenMS
     {
       if (!RWrapper::runScript("InternalCalibration_Residuals.R", QStringList() << out_table_residuals.toQString() << file_residuals_plot.toQString(), rscript_executable))
       {
-        LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:residuals_plot' (not recommended) or fix your R installation." << std::endl;
+        OPENMS_LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:residuals_plot' (not recommended) or fix your R installation." << std::endl;
         return false;
       }
     }
@@ -470,8 +470,8 @@ namespace OpenMS
 
     if (!hasValidModels)
     { // QC tables are done; quit
-      LOG_ERROR << "Error: Could not build a single local calibration model! Check your calibrants and/or extend the search window!" << std::endl;
-      if (use_RANSAC) LOG_ERROR << "       Since you are using RANSAC, check the parameters as well and test different setups." << std::endl;
+      OPENMS_LOG_ERROR << "Error: Could not build a single local calibration model! Check your calibrants and/or extend the search window!" << std::endl;
+      if (use_RANSAC) OPENMS_LOG_ERROR << "       Since you are using RANSAC, check the parameters as well and test different setups." << std::endl;
 
       return false;
     }
@@ -479,21 +479,21 @@ namespace OpenMS
     // use median and MAD to ignore outliers
     double median_ppm_before = Math::median(vec_ppm_before.begin(), vec_ppm_before.end());
     double MAD_ppm_before =  Math::MAD(vec_ppm_before.begin(), vec_ppm_before.end(), median_ppm_before);
-    LOG_INFO << "\n-----\n" <<
+    OPENMS_LOG_INFO << "\n-----\n" <<
       "ppm stats before calibration: median = " << median_ppm_before << "  MAD = " << MAD_ppm_before << "\n";
     double median_ppm_after = Math::median(vec_ppm_after.begin(), vec_ppm_after.end());
     double MAD_ppm_after =  Math::MAD(vec_ppm_after.begin(), vec_ppm_after.end(), median_ppm_after);
-    LOG_INFO << "ppm stats after calibration: median = " << median_ppm_after << "  MAD = " << MAD_ppm_after << "\n";
+    OPENMS_LOG_INFO << "ppm stats after calibration: median = " << median_ppm_after << "  MAD = " << MAD_ppm_after << "\n";
 
     // check desired limits
     if (post_ppm_median < fabs(median_ppm_after))
     {
-      LOG_INFO << "Post calibration median threshold (" << post_ppm_median << " ppm) not reached (median = |" << median_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
+      OPENMS_LOG_INFO << "Post calibration median threshold (" << post_ppm_median << " ppm) not reached (median = |" << median_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
       return false;
     }
     if (post_ppm_MAD < fabs(MAD_ppm_after))
     {
-      LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << " ppm) not reached (median = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
+      OPENMS_LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << " ppm) not reached (median = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
       return false;
     }
 

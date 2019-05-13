@@ -46,6 +46,8 @@
 #include <QFileInfo>
 #include <QtCore/QRegExp>
 
+#include <iomanip>     // setw
+
 #define HIGH_PRECISION 5
 #define LOW_PRECISION 3
 
@@ -441,7 +443,7 @@ namespace OpenMS
       }
       else if (experiment[i].getMSLevel() == 0)
       {
-        LOG_WARN << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
+        OPENMS_LOG_WARN << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
       }
     }
     // close file

@@ -56,16 +56,15 @@ namespace OpenMS
                      TheoreticalSpectrumGenerator const * generator,
                      UInt charge)
     {
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      //too slow!
-      //TheoreticalSpectrumGenerator generator;
-      //Param p;
-      //p.setValue("add_metainfo", "true",
-      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      //generator.setParameters(p);
+
+      if (a.empty()) return;
+      
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
 
+      // Data array is present if AASequence is not empty
       const PeakSpectrum::StringDataArray& ion_name = spec.getStringDataArrays()[0];
 
       for (Size i = 0; i != spec.size(); ++i)
@@ -82,18 +81,14 @@ namespace OpenMS
     } // end getBYSeries
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
-    void getTheorMasses(const AASequence& a, std::vector<double>& masses,
+    void getTheorMasses(const AASequence& a,
+                        std::vector<double>& masses,
                         TheoreticalSpectrumGenerator const * generator,
                         UInt charge)
     {
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.      
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      //too slow!
-      //TheoreticalSpectrumGenerator generator;
-      //Param p;
-      //p.setValue("add_metainfo", "false",
-      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      //p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-      //generator.setParameters(p);
+
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
       for (PeakSpectrum::iterator it = spec.begin();
@@ -104,14 +99,15 @@ namespace OpenMS
     } // end getBYSeries
 
     void getAveragineIsotopeDistribution(const double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec, const double charge,
-                                         const int nr_isotopes, const double mannmass)
+                                         std::vector<std::pair<double, double> >& isotopesSpec,
+                                         const double charge,
+                                         const int nr_isotopes,
+                                         const double mannmass)
     {
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
       // create the theoretical distribution
       CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
-      //std::cout << product_mz * charge << std::endl;
       auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;

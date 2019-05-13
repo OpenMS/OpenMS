@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/MzTabFile.h>
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI SiriusMzTabWriter
@@ -82,6 +84,9 @@ namespace OpenMS
 
     struct SiriusAdapterIdentification
     {
+      double mz;
+      double rt;
+      OpenMS::String native_id;
       int scan_index;
       int scan_number;
       OpenMS::String feature_id;

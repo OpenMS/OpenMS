@@ -50,7 +50,7 @@
   @subsection install_win_contrib Contrib installation
         In order to make the
         installation of the remaining required libraries easier, we composed a
-        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C.
+        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, libHDF5, SeqAn, glpk, zlib, libbz2 and Xerces-C.
         This contrib package has several advantages over manual installation
         <ul>
             <li>You get all the libraries in versions tested with %OpenMS.</li>
@@ -76,9 +76,11 @@
     After you got the source code for the contrib package follow these steps:
 
     <ol>
-      <li>Open a <b>VisualStudio Developer Command prompt</b> (use the x64 version if you want 64 bit apps!)<br>
-					@note VS2015 does not provide a commandline shortcut for a 64bit Command Prompt. Call <tt>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64</tt> to get one!
-      <li>Create a build directory for the %OpenMS contrib <br>
+      <li>Open a <b>VisualStudio Developer Command prompt</b> (by default you will get a 32-bit environment which you most likely do not want; use a x64 environment if you want 64 bit apps!)<br>
+					@note VS2015 does not provide a commandline shortcut for a 64bit command prompt. Call <tt>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64</tt> to get one!
+					@note VS2017 has a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
+					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>
+      <li>Create a build directory for the %OpenMS contrib<br>
           e.g. <tt>mkdir contrib_win64_build</tt>
       <li>Call CMake to build the contrib<br>
         Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be

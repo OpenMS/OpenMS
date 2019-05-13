@@ -635,7 +635,7 @@ protected:
       }
       else
       {
-        LOG_WARN << "WARNING: Crosslink could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
+        OPENMS_LOG_WARN << "WARNING: Crosslink could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
       }
     }
 
@@ -698,7 +698,7 @@ private:
 
   void logFatal(const String &message) const
   {
-    LOG_ERROR << "FATAL: " << message << " Terminating now!" << std::endl;
+    OPENMS_LOG_ERROR << "FATAL: " << message << " Terminating now!" << std::endl;
   }
 
   bool validateDataStructures() const
@@ -983,7 +983,7 @@ private:
 
   static String getSpectrumReference(const PeptideIdentification &pep_id)
   {
-    return pep_id.getMetaValue("spectrum_reference");
+    return pep_id.getHits()[0].getMetaValue("spectrum_index");
   }
 
   /**

@@ -79,7 +79,7 @@ namespace OpenMS
       // check the version number of the mzML handler
       if (VersionInfo::VersionDetails::create(version_) == VersionInfo::VersionDetails::EMPTY)
       {
-        LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
+        OPENMS_LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
       }
     }
 
@@ -1057,7 +1057,7 @@ namespace OpenMS
         }
         catch (Exception::ParseError& /*e*/)
         {
-          LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" <<
+          OPENMS_LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" <<
           "The software tool which generated this mzML should be fixed. Please notify the maintainers." << std::endl;
         }
         processing_[current_id_].push_back(dp);
@@ -1693,7 +1693,7 @@ namespace OpenMS
             chromatogram_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
           }
         }
-        else if (accession == "MS:1002476") //ion mobility drift time
+        else if (accession == "MS:1002476" || accession == "MS:1002815") //ion mobility drift time
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -1705,16 +1705,29 @@ namespace OpenMS
           // In most cases, there is a single precursor with a single drift
           // time.
           //
-          // Note that only milliseconds are valid units
+          // Note that only milliseconds and VSSC are valid units
+
+          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          if (accession == "MS:1002476")
+          {
+            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          }
+          else if (accession == "MS:1002815")
+          {
+            unit = MSSpectrum::DriftTimeUnit::VSSC;
+          }
 
           if (in_spectrum_list_)
           {
             spec_.getPrecursors().back().setDriftTime(value.toDouble());
             spec_.setDriftTime(value.toDouble());
+            spec_.setDriftTimeUnit(unit);
+            spec_.getPrecursors().back().setDriftTimeUnit(unit);
           }
           else
           {
             chromatogram_.getPrecursor().setDriftTime(value.toDouble());
+            chromatogram_.getPrecursor().setDriftTimeUnit(unit);
           }
         }
         else
@@ -2020,7 +2033,7 @@ namespace OpenMS
           //No member => meta data
           spec_.setMetaValue("dwell time", termValue);
         }
-        else if (accession == "MS:1002476") //ion mobility drift time
+        else if (accession == "MS:1002476" || accession == "MS:1002815") //ion mobility drift time
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -2030,8 +2043,20 @@ namespace OpenMS
           // If we find it here, it relates to the scan or spectrum itself and
           // not to a particular precursor.
           //
-          // Note that only milliseconds are valid units
+          // Note: this is where pwiz stores the ion mobility for a spectrum
+
+          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          if (accession == "MS:1002476")
+          {
+            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          }
+          else if (accession == "MS:1002815")
+          {
+            unit = MSSpectrum::DriftTimeUnit::VSSC;
+          }
+
           spec_.setDriftTime(value.toDouble());
+          spec_.setDriftTimeUnit(unit);
         }
         else if (accession == "MS:1000011") //mass resolution
         {
@@ -3721,7 +3746,23 @@ namespace OpenMS
         }
         if (precursor.getDriftTime() >= 0.0)
         {
-          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+            if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::MILLISECOND)
+            {
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
+                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+            }
+            else if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::VSSC)
+            {
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
+                 << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
+            }
+            else
+            {
+              // assume milliseconds, but warn
+              warning(STORE, String("Precursor drift time unit not set, assume milliseconds"));
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
+                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+            }
         }
         //userParam: no extra object for it => no user parameters
         os << "\t\t\t\t\t\t\t</selectedIon>\n";
@@ -4841,7 +4882,7 @@ namespace OpenMS
         native_id = String("spectrum=") + s;
       }
 
-      long offset = os.tellp();
+      Int64 offset = os.tellp();
       spectra_offsets_.push_back(make_pair(native_id, offset + 3));
 
       // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
@@ -5001,8 +5042,23 @@ namespace OpenMS
           // if drift time was never set, don't report it
           if (spec.getDriftTime() >= 0.0)
           {
-            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime() 
-               << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+            if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
+            {
+              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
+                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+            }
+            else if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::VSSC)
+            {
+              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << spec.getDriftTime()
+                 << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
+            }
+            else
+            {
+              // assume milliseconds, but warn
+              warning(STORE, String("Spectrum drift time unit not set, assume milliseconds"));
+              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
+                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+            }
           }
         }
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
@@ -5383,7 +5439,7 @@ namespace OpenMS
                                          Size c,
                                          const Internal::MzMLValidator& validator)
     {
-      long offset = os.tellp();
+      Int64 offset = os.tellp();
       chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
 
       // TODO native id with chromatogram=?? prefix?

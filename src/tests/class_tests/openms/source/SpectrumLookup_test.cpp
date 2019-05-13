@@ -97,7 +97,7 @@ START_SECTION((Size findByRT(double) const))
 {
   TEST_EQUAL(lookup.findByRT(2.0), 1);
 
-  TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByRT(5.0));
+  TEST_EXCEPTION(Exception::ElementNotFound&, lookup.findByRT(5.0));
 }
 END_SECTION
 
@@ -106,7 +106,7 @@ START_SECTION((Size findByNativeID(const String&) const))
 {
   TEST_EQUAL(lookup.findByNativeID("spectrum=1"), 1);
 
-  TEST_EXCEPTION(Exception::ElementNotFound, 
+  TEST_EXCEPTION(Exception::ElementNotFound&, 
                  lookup.findByNativeID("spectrum=3"));
 }
 END_SECTION
@@ -117,7 +117,7 @@ START_SECTION((Size findByIndex(Size, bool) const))
   TEST_EQUAL(lookup.findByIndex(1), 1);
   TEST_EQUAL(lookup.findByIndex(1, true), 0);
 
-  TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByIndex(0, true));
+  TEST_EXCEPTION(Exception::ElementNotFound&, lookup.findByIndex(0, true));
 }
 END_SECTION
 
@@ -126,14 +126,14 @@ START_SECTION((Size findByScanNumber(Size) const))
 {
   TEST_EQUAL(lookup.findByScanNumber(1), 1);
 
-  TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByScanNumber(5));
+  TEST_EXCEPTION(Exception::ElementNotFound&, lookup.findByScanNumber(5));
 }
 END_SECTION
 
 
 START_SECTION((void addReferenceFormat(const String&)))
 {
-  TEST_EXCEPTION(Exception::IllegalArgument, lookup.addReferenceFormat("XXX"));
+  TEST_EXCEPTION(Exception::IllegalArgument&, lookup.addReferenceFormat("XXX"));
 
   // tested with other methods below:
   lookup.addReferenceFormat("scan_number=(?<SCAN>\\d+)");
@@ -147,7 +147,7 @@ START_SECTION((Size findByReference(const String&) const))
   TEST_EQUAL(lookup.findByReference("scan_number=1"), 1);
   TEST_EQUAL(lookup.findByReference("name=bla,spectrum=0"), 0);
 
-  TEST_EXCEPTION(Exception::ParseError, lookup.findByReference("test123"));
+  TEST_EXCEPTION(Exception::ParseError&, lookup.findByReference("test123"));
 }
 END_SECTION
 
@@ -159,7 +159,7 @@ START_SECTION((static Int extractScanNumber(const String&,
   TEST_EQUAL(SpectrumLookup::extractScanNumber("spectrum=42", re), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", re, true), -1);
 
-  TEST_EXCEPTION(Exception::ParseError, SpectrumLookup::extractScanNumber("scan=42", re));
+  TEST_EXCEPTION(Exception::ParseError&, SpectrumLookup::extractScanNumber("scan=42", re));
 }
 END_SECTION
 
@@ -171,7 +171,7 @@ START_SECTION((static Int extractScanNumber(const String&,
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000771"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000772"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000776"), 42);
-  TEST_EQUAL(SpectrumLookup::extractScanNumber("experiment=42", "MS:1000770"), 42);
+  TEST_EQUAL(SpectrumLookup::extractScanNumber("sample=1 period=1 cycle=42 experiment=1", "MS:1000770"), 42001);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("file=42", "MS:1000773"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("file=42", "MS:1000775"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("index=42", "MS:1000774"), 42);

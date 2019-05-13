@@ -76,7 +76,7 @@ START_SECTION((void store(const String& filename, const ConsensusMap& cm)))
   cm_no_ms2quant.setExperimentType("labeled_MS1");
 
   IBSpectraFile ibfile_no_ms2quant;
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ibfile_no_ms2quant.store("not-a-file-name", cm_no_ms2quant), "Given ConsensusMap does not hold any isobaric quantification data.")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter&, ibfile_no_ms2quant.store("not-a-file-name", cm_no_ms2quant), "Given ConsensusMap does not hold any isobaric quantification data.")
 
   // test wrong channel count
   ConsensusMap cm_wrong_channel_count;
@@ -89,7 +89,7 @@ START_SECTION((void store(const String& filename, const ConsensusMap& cm)))
   cm_wrong_channel_count.getColumnHeaders()[2] = channel3;
 
   IBSpectraFile ibfile_wrong_channel_count;
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ibfile_wrong_channel_count.store("not-a-file-name", cm_wrong_channel_count), "Could not guess isobaric quantification data from ConsensusMap due to non-matching number of input maps.")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter&, ibfile_wrong_channel_count.store("not-a-file-name", cm_wrong_channel_count), "Could not guess isobaric quantification data from ConsensusMap due to non-matching number of input maps.")
 
   // test a real example
   ConsensusMap cm;

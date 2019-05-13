@@ -65,6 +65,7 @@ START_SECTION(TheoreticalSpectrumGenerator())
 END_SECTION
 
 START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
+  ptr = new TheoreticalSpectrumGenerator();
   TheoreticalSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
@@ -472,10 +473,9 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
   {
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result_precursors[i])
   }
-
-
 }
 END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

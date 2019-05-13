@@ -179,7 +179,7 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
 
 
   ids[2].setHigherScoreBetter(true);
-  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids));
+  TEST_EXCEPTION(Exception::InvalidValue&, consensus.apply(ids));
 }
 END_SECTION
 

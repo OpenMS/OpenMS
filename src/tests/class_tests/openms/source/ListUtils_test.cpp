@@ -114,7 +114,7 @@ START_SECTION((template < typename T > static std::vector<T> create(const std::v
   ABORT_IF(sv2.size() != 4)
   TEST_EQUAL(sv2[3], iv[3])
 
-  TEST_EXCEPTION(Exception::ConversionError, ListUtils::create<double>(iv))
+  TEST_EXCEPTION(Exception::ConversionError&, ListUtils::create<double>(iv))
 }
 END_SECTION
 

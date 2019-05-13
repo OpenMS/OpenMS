@@ -158,6 +158,9 @@ if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_CometAdapter_2" PROPERTIES DEPENDS "TOPP_CometAdapter_2_prepare")
   set_tests_properties("TOPP_CometAdapter_2_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_2")
   ### Second test for optional pin file needs to be added, not sure how to do FuzzyDiff on the csv style pin file, whitelisting the first id column
+  add_test("TOPP_CometAdapter_3" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.mzML -out CometAdapter_3_out1.tmp -pin_out CometAdapter_3_out2.tmp.csv -comet_executable "${COMET_BINARY}")
+  add_test("TOPP_CometAdapter_3_out1" ${DIFF} -in1 CometAdapter_3_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  set_tests_properties("TOPP_CometAdapter_3_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_3")
 endif()
 
 #------------------------------------------------------------------------------
@@ -256,30 +259,65 @@ endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
-  # Note: Following test are performed without adduct information, since these are obtained by the MetaboliteAdductDecharger
-  # Appropriate files exceed the test size.
+  # Note: Following test are performed without adduct/id information, since these are obtained by the MetaboliteAdductDecharger/AccurateMassSearch
+  
+  if (ENABLE_SIRIUS_TEST)
+  # add dependencies for one test at a time to reduce memory and cpu consumption
   # test mzMl as input
-  add_test("TOPP_SiriusAdapter_1" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_1_output.tmp -auto_charge -profile qtof -database all)
+  add_test("TOPP_SiriusAdapter_1" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_1_output.tmp -sirius:auto_charge -sirius:profile qtof -sirius:database all -sirius:cores 1)
   add_test("TOPP_SiriusAdapter_1_out" ${DIFF} -in1 SiriusAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_output.mzTab -whitelist "MTD")
   set_tests_properties("TOPP_SiriusAdapter_1_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_1")
   # test mzML and featureXML with feature_only
-  add_test("TOPP_SiriusAdapter_2" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.featureXML -out_sirius SiriusAdapter_2_output.tmp -feature_only -filter_by_num_masstraces 3 -auto_charge -profile qtof -database all)
+  add_test("TOPP_SiriusAdapter_2" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.featureXML -out_sirius SiriusAdapter_2_output.tmp -preprocessing:feature_only -preprocessing:filter_by_num_masstraces 3 -sirius:auto_charge -sirius:profile qtof -sirius:database all -sirius:cores 1)
   add_test("TOPP_SiriusAdapter_2_out" ${DIFF} -in1 SiriusAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_output.mzTab -whitelist "MTD")
+  set_tests_properties("TOPP_SiriusAdapter_2" PROPERTIES DEPENDS "TOPP_SiriusAdapter_1")
   set_tests_properties("TOPP_SiriusAdapter_2_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_2")
-  # test mzML and featureXML without feature_only (filter_by_num_masstraces should automatically set to 1s)
-  add_test("TOPP_SiriusAdapter_3" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.featureXML -out_sirius SiriusAdapter_3_output.tmp -filter_by_num_masstraces 3 -auto_charge -profile qtof -database all)
+  # test mzML and featureXML without feature_only (filter_by_num_masstraces should automatically set to 1)
+  add_test("TOPP_SiriusAdapter_3" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.featureXML -out_sirius SiriusAdapter_3_output.tmp -preprocessing:filter_by_num_masstraces 3 -sirius:auto_charge -sirius:profile qtof -sirius:database all -sirius:cores 1)
   add_test("TOPP_SiriusAdapter_3_out" ${DIFF} -in1 SiriusAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_output.mzTab -whitelist "MTD")
+  set_tests_properties("TOPP_SiriusAdapter_3" PROPERTIES DEPENDS "TOPP_SiriusAdapter_2")
   set_tests_properties("TOPP_SiriusAdapter_3_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_3")
   # test internal .ms output (converter mode) 
-  add_test("TOPP_SiriusAdapter_5" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.featureXML -out_ms SiriusAdapter_5_output.tmp -converter_mode)
+  add_test("TOPP_SiriusAdapter_5" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.featureXML -out_ms SiriusAdapter_5_output.tmp -converter_mode) 
   add_test("TOPP_SiriusAdapter_5_out" ${DIFF} -in1 SiriusAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_5_output.ms)
+  set_tests_properties("TOPP_SiriusAdapter_5" PROPERTIES DEPENDS "TOPP_SiriusAdapter_3")
   set_tests_properties("TOPP_SiriusAdapter_5_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_5")
+  # test internal .ms output negative 
+  add_test("TOPP_SiriusAdapter_6" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_input.featureXML -out_ms SiriusAdapter_6_output.tmp -converter_mode) 
+  add_test("TOPP_SiriusAdapter_6_out" ${DIFF} -in1 SiriusAdapter_6_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_6_output.ms)
+  set_tests_properties("TOPP_SiriusAdapter_6" PROPERTIES DEPENDS "TOPP_SiriusAdapter_5")
+  set_tests_properties("TOPP_SiriusAdapter_6_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_6")
+  # test mzML and featureXML negative
+  add_test("TOPP_SiriusAdapter_7" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_input.featureXML -out_sirius SiriusAdapter_7_output.tmp -preprocessing:feature_only -sirius:profile qtof -sirius:database all -sirius:cores 1)
+  add_test("TOPP_SiriusAdapter_7_out" ${DIFF} -in1 SiriusAdapter_7_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_7_output.mzTab -whitelist "MTD")
+  set_tests_properties("TOPP_SiriusAdapter_7" PROPERTIES DEPENDS "TOPP_SiriusAdapter_6")
+  set_tests_properties("TOPP_SiriusAdapter_7_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_7")
+ 
+  # use AccurateMassSearch data
+  add_test("UTILS_AssayGeneratorMetabo_7" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_output.tmp.tsv -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_7_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_output.tsv)
+  set_tests_properties("UTILS_AssayGeneratorMetabo_7_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_7")
+
+  # use AccurateMassSearch data
+  add_test("UTILS_AssayGeneratorMetabo_8" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_ukn_output.tmp.tsv -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100 -use_known_unknowns)
+  add_test("UTILS_AssayGeneratorMetabo_8_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_ukn_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_ukn_output.tsv)
+  set_tests_properties("UTILS_AssayGeneratorMetabo_8" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_7")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_8_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_8")
+
+  # use AccurateMassSearch data
+  add_test("UTILS_AssayGeneratorMetabo_9" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_intsort_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_intsort_input.featureXML -out AssayGeneratorMetabo_ams_sirius_intsort_output.tmp.tsv -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_9_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_intsort_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_intsort_output.tsv)
+  set_tests_properties("UTILS_AssayGeneratorMetabo_9" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_8")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_9_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_9")
+  endif()
+
   # Note that with FingerID, output for compound 79 without feature only
   if (ENABLE_FINGERID_TEST)
-  add_test("TOPP_SiriusAdapter_4" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.featureXML  -out_sirius SiriusAdapter_4_output.tmp -out_fingerid SiriusAdapter_4_foutput.tmp -auto_charge -profile qtof -database all)
+  add_test("TOPP_SiriusAdapter_4" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.featureXML  -out_sirius SiriusAdapter_4_output.tmp -out_fingerid SiriusAdapter_4_foutput.tmp -sirius:auto_charge -sirius:profile qtof -sirius:database all)
   add_test("TOPP_SiriusAdapter_4_out" ${DIFF} -in1 SiriusAdapter_4_foutput.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_foutput.mzTab -whitelist "MTD")
   set_tests_properties("TOPP_SiriusAdapter_4_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_4")
   endif()
+
 endif()
 
 

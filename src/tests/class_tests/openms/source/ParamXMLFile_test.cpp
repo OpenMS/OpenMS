@@ -65,7 +65,7 @@ END_SECTION
 START_SECTION((void load(const String& filename, Param& param)))
 	Param p2;
   ParamXMLFile paramFile;
-	TEST_EXCEPTION(Exception::FileNotFound, paramFile.load("FileDoesNotExist.xml",p2))
+	TEST_EXCEPTION(Exception::FileNotFound&, paramFile.load("FileDoesNotExist.xml",p2))
 END_SECTION
 
 Param p;
@@ -91,7 +91,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 
 	//exception
 	Param p300;
-	TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store("/does/not/exist/FileDoesNotExist.xml",p300))
+	TEST_EXCEPTION(Exception::UnableToCreateFile&, paramFile.store("/does/not/exist/FileDoesNotExist.xml",p300))
 
 	String filename;
 	NEW_TMP_FILE(filename);

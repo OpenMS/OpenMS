@@ -37,6 +37,7 @@ addons:
          - libboost-serialization1.58-dev
          - libboost-system1.58-dev
          - libboost-thread1.58-dev
+         - libhdf5-dev
          - libxerces-c3.1
          - libxerces-c-dev
          - libicu-dev
@@ -56,7 +57,7 @@ addons:
          - coinor-libclp-dev
          - coinor-libosi-dev
          - coinor-libvol-dev
-         - libpcre3-dev
+         - libpcre3-dev         
          
 before_script:
   ./tools/travis/cibuild.before.sh

@@ -318,7 +318,7 @@ protected:
         {
           res = in.toInt();
         }
-        catch (Exception::ConversionError)
+        catch (Exception::ConversionError&)
         {
           error(LOAD, String("Int conversion error of \"") + in + "\"");
         }

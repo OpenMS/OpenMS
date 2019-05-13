@@ -70,17 +70,18 @@ namespace OpenMS
     return it;
   }
 
+  /// remove all peaks EXCEPT in the given range
   template <typename PeakContainerT>
   void removePeaks(
     PeakContainerT& p,
     const double pos_start,
     const double pos_end,
-    const bool ignoreDataArrays = false
+    const bool ignore_data_arrays = false
   )
   {
     typename PeakContainerT::iterator it_start = p.PosBegin(pos_start);
     typename PeakContainerT::iterator it_end = p.PosEnd(pos_end);
-    if (!ignoreDataArrays)
+    if (!ignore_data_arrays)
     {
       Size hops_left = std::distance(p.begin(), it_start);
       Size n_elems = std::distance(it_start, it_end);
@@ -115,8 +116,15 @@ namespace OpenMS
         }
       }
     }
-    p.erase(it_end, p.end());
-    p.erase(p.begin(), it_start);
+    if (it_start == it_end)
+    { // no elements left
+      p.resize(0);
+    }
+    else
+    { // if it_end != it_start, the second erase operation is safe
+      p.erase(it_end, p.end());
+      p.erase(p.begin(), it_start);
+    }
   }
 
   template <typename PeakContainerT>
@@ -164,7 +172,7 @@ namespace OpenMS
   {
     if (!p.getFloatDataArrays().empty() || !p.getStringDataArrays().empty() || !p.getIntegerDataArrays().empty())
     {
-      LOG_WARN << "Warning: data arrays are being ignored in the method SpectrumHelper::makePeakPositionUnique().\n";
+      OPENMS_LOG_WARN << "Warning: data arrays are being ignored in the method SpectrumHelper::makePeakPositionUnique().\n";
     }
     
     if (p.empty()) return;

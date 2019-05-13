@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,7 +141,7 @@ protected:
 
     // MSExperiment
     vector<MSExperiment> ms_maps;
-    for (auto mzml_file_path : mzml_file_paths)
+    for (const auto& mzml_file_path : mzml_file_paths)
     {
       MzMLFile mzml_file;
       MSExperiment map;
@@ -209,7 +209,7 @@ protected:
           if (map_index != -1 && spectrum_index != -1)
           {
             // TEMP: log debug map index and spectrum index values once they are found
-            LOG_DEBUG << "map index\t" << map_index << "\tspectrum index\t" << spectrum_index << endl;
+            OPENMS_LOG_DEBUG << "map index\t" << map_index << "\tspectrum index\t" << spectrum_index << endl;
 
             // retrieve spectrum for current peptide annotation
             auto ms2_scan = ms_maps[map_index][spectrum_index];
@@ -260,7 +260,7 @@ protected:
         // full spectra
         if (output_type == "full_spectra")
         {
-          for (auto peptide : peptides)
+          for (const auto& peptide : peptides)
           {
             feature_stream << "BEGIN IONS" << endl;
 
@@ -303,7 +303,7 @@ protected:
 
           const BinnedSpectrum binned_highest_int(ms_maps[peptides[0].second.first][peptides[0].second.second], BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
-          for (auto peptide : peptides)
+          for (const auto& peptide : peptides)
           {
             int map_index = peptide.second.first;
             int spectra_index = peptide.second.second;
@@ -316,7 +316,7 @@ protected:
 
             BinnedSpectralContrastAngle bsca;
             double cosine_sim = bsca(binned_highest_int, binned_spectrum);
-            // LOG_DEBUG << cosine_sim << " >= " << cos_sim << endl;
+            // OPENMS_LOG_DEBUG << cosine_sim << " >= " << cos_sim << endl;
 
             // compare calculated cosine sim to binned highest int
             if (cosine_sim >= cos_sim)

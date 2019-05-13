@@ -66,24 +66,22 @@ namespace OpenMS
 
   void SILACLabeler::updateMembers_()
   {
-    medium_channel_lysine_label_ = param_.getValue("medium_channel:modification_lysine");
-    medium_channel_arginine_label_ = param_.getValue("medium_channel:modification_arginine");
+    medium_channel_lysine_label_ = (String)param_.getValue("medium_channel:modification_lysine");
+    medium_channel_arginine_label_ = (String)param_.getValue("medium_channel:modification_arginine");
 
-    heavy_channel_lysine_label_ = param_.getValue("heavy_channel:modification_lysine");
-    heavy_channel_arginine_label_ = param_.getValue("heavy_channel:modification_arginine");
+    heavy_channel_lysine_label_ = (String)param_.getValue("heavy_channel:modification_lysine");
+    heavy_channel_arginine_label_ = (String)param_.getValue("heavy_channel:modification_arginine");
   }
 
   bool SILACLabeler::canModificationBeApplied_(const String& modification_id, const String& aa) const
   {
     std::set<const ResidueModification*> modifications;
-    try
+    ModificationsDB::getInstance()->searchModifications(modifications, modification_id, aa);
+    
+    if (modifications.empty())
     {
-      ModificationsDB::getInstance()->searchModifications(modifications, modification_id, aa);
-    }
-    catch (Exception::ElementNotFound& ex)
-    {
-      ex.setMessage("The modification \"" + modification_id + "\" could not be found in the local UniMod DB! Please check if you used the correct format (e.g. UniMod:Accession#)");
-      throw;
+      String message = String("The modification '") + modification_id + "' could not be found in the local UniMod DB! Please check if you used the correct format (e.g. UniMod:Accession#)";
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
     }
 
     return !modifications.empty();

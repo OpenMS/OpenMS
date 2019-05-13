@@ -101,7 +101,7 @@ namespace OpenMS
                           + "Rename the file to fix this.";
       }
 
-      LOG_FATAL_ERROR << error_message_ << std::endl;
+      OPENMS_LOG_FATAL_ERROR << error_message_ << std::endl;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message_);
     }
 
@@ -119,7 +119,7 @@ namespace OpenMS
       {
         error_message_ += String("( in line ") + line + " column " + column + ")";
       }
-      LOG_ERROR << error_message_ << std::endl;
+      OPENMS_LOG_ERROR << error_message_ << std::endl;
     }
 
     void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
@@ -139,9 +139,9 @@ namespace OpenMS
 
 // warn only in Debug mode but suppress warnings in release mode (more happy users)
 #ifdef OPENMS_ASSERTIONS
-      LOG_WARN << error_message_ << std::endl;
+      OPENMS_LOG_WARN << error_message_ << std::endl;
 #else
-      LOG_DEBUG << error_message_ << std::endl;
+      OPENMS_LOG_DEBUG << error_message_ << std::endl;
 #endif
 
     }
@@ -181,22 +181,23 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    void XMLHandler::writeUserParam_(const String & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const
+    void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
     {
       std::vector<String> keys;
       meta.getKeys(keys);
 
+      String val;
+      String p_prefix = String(indent, '\t') + "<" + writeXMLEscape(tag_name) + " type=\"";
       for (Size i = 0; i != keys.size(); ++i)
       {
-        os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"";
+        os << p_prefix;
 
-        DataValue d = meta.getMetaValue(keys[i]);
-        String val;
+        const DataValue& d = meta.getMetaValue(keys[i]);
         // determine type
         if (d.valueType() == DataValue::STRING_VALUE || d.valueType() == DataValue::EMPTY_VALUE)
         {
           os << "string";
-          val = d;
+          val = writeXMLEscape(d);
         }
         else if (d.valueType() == DataValue::INT_VALUE)
         {
@@ -221,16 +222,15 @@ namespace OpenMS
         else if (d.valueType() == DataValue::STRING_LIST)
         {
           os << "stringList";
-          StringList sld = d;
           // concatenate manually, as operator<< inserts spaces, which are bad
           // for reconstructing the list
-          val = "[" + ListUtils::concatenate(sld, ",") + "]";
+          val = "[" + writeXMLEscape(ListUtils::concatenate(d.toStringList(), ",")) + "]";
         }
         else
         {
           throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
-        os << "\" name=\"" << keys[i] << "\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+        os << "\" name=\"" << keys[i] << "\" value=\"" << val << "\"/>\n";
       }
     }
 

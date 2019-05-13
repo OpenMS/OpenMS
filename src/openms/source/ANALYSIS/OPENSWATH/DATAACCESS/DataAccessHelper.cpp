@@ -237,6 +237,11 @@ namespace OpenMS
     p.sequence = pep.sequence;
     p.peptide_group_label = pep.getPeptideGroupLabel();
 
+    if (pep.metaValueExists("GeneName"))
+    {
+      p.gene_name = (std::string)pep.getMetaValue("GeneName");
+    }
+
     // Is it potentially a metabolomics compound
     if (pep.metaValueExists("SumFormula"))
     {

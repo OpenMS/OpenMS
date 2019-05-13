@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,20 +14,31 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef ISOMATH_HPP
-#define ISOMATH_HPP
+#pragma once
 
 #include <cmath>
 #include <fenv.h>
 
-#define G_FACT_TABLE_SIZE 1024*1024*10
+#if !defined(ISOSPEC_G_FACT_TABLE_SIZE)
+// 10M should be enough for anyone, right?
+// Actually, yes. If anyone tries to input a molecule that has more than 10M atoms, 
+// he deserves to get an exception thrown in his face.
+#define ISOSPEC_G_FACT_TABLE_SIZE 1024 // *1024*10
+#endif
+
+namespace IsoSpec
+{
+
 extern double* g_lfact_table;
 
 static inline double minuslogFactorial(int n) 
 { 
+    // check if value is too small or too large to be found in the lookup table
     if (n < 2) 
         return 0.0;
+    if (n >= ISOSPEC_G_FACT_TABLE_SIZE) return -lgamma(n+1);
+
+    // store in lookup table if not present yet
     if (g_lfact_table[n] == 0.0)
         g_lfact_table[n] = -lgamma(n+1);
 
@@ -38,4 +49,5 @@ double NormalCDFInverse(double p, double mean, double stdev);
 double NormalCDF(double x, double mean, double stdev);
 double NormalPDF(double x, double mean = 0.0, double stdev = 1.0);
 
-#endif /* ISOMATH_HPP */
+} // namespace IsoSpec
+

@@ -43,6 +43,7 @@
 #include <nlohmann/json.hpp>
 
 #include <cmath>       // round
+#include <iomanip>     // setw
 
 namespace OpenSwath
 {
@@ -103,6 +104,11 @@ namespace OpenSwath
       else
       {
         return; // unknown: too dangerous to analyse
+      }
+
+      if (tmp.empty())
+      {
+        return; // something went wrong with the spectrum after peak picking (e.g. returned empty spectrum)
       }
 
       // Note: this will pick up also non-peptide signals; filtering by averagine might yield better results

@@ -185,10 +185,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "M+1") != var_mods.end(), true)
 
   // wrong "experiment_name" produces an exception:
-  TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));
+  TEST_EXCEPTION(Exception::ParseError&, file.load(filename, proteins, peptides, "abcxyz"));
 
   // throw an exception if the pepXML file does not exist:
-  TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
+  TEST_EXCEPTION(Exception::FileNotFound&, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
 }
 END_SECTION
 
@@ -285,10 +285,10 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   TEST_REAL_SIMILAR(a.sub_scores.find("nrs")->second, 10.2137);
 
   // wrong "experiment_name" produces an exception:
-  TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));
+  TEST_EXCEPTION(Exception::ParseError&, file.load(filename, proteins, peptides, "abcxyz"));
 
   // throw an exception if the pepXML file does not exist:
-  TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
+  TEST_EXCEPTION(Exception::FileNotFound&, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
 }
 END_SECTION
 
@@ -488,8 +488,8 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
   TEST_EQUAL(fix_mods.size(), reread_fix_mods.size())
   TEST_EQUAL(var_mods.size(), reread_var_mods.size())
 
-  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), reread_fix_mods[0]) != var_mods.end(), true)
-  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), "Carbamidometyhl (C)") != var_mods.end(), true)
+  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), reread_fix_mods[0]) != fix_mods.end(), true)
+  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), "Carbamidomethyl (C)") != fix_mods.end(), true)
 
   for (size_t i = 0; i < reread_var_mods.size(); ++i)
   {

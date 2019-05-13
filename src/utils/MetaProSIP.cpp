@@ -223,7 +223,7 @@ public:
 
     if (debug)
     {
-      LOG_DEBUG << x[0] << " " << x[n - 1] << " " << n << endl;
+      OPENMS_LOG_DEBUG << x[0] << " " << x[n - 1] << " " << n << endl;
     }
 
     double last_dxdy = 0;
@@ -249,10 +249,10 @@ public:
 
     if (debug)
     {
-      LOG_DEBUG << "Found: " << high_points.size() << " local maxima." << endl;
+      OPENMS_LOG_DEBUG << "Found: " << high_points.size() << " local maxima." << endl;
       for (Size i = 0; i != high_points.size(); ++i)
       {
-        LOG_DEBUG << high_points[i].rate << " " << high_points[i].score << endl;
+        OPENMS_LOG_DEBUG << high_points[i].rate << " " << high_points[i].score << endl;
       }
     }
 
@@ -787,16 +787,16 @@ public:
     }
 
     // heat map based on peptide RIAs
-    LOG_INFO << "Plotting peptide heat map of " << sip_peptides.size() << endl;
+    OPENMS_LOG_INFO << "Plotting peptide heat map of " << sip_peptides.size() << endl;
     vector<vector<double> > binned_peptide_ria;
     vector<String> class_labels;
     createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
     plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels, 0, executable);
 
-    LOG_INFO << "Plotting filtered spectra for quality report" << endl;
+    OPENMS_LOG_INFO << "Plotting filtered spectra for quality report" << endl;
     plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, 0, executable);
 
-    LOG_INFO << "Plotting correlation score and weight distribution" << endl;
+    OPENMS_LOG_INFO << "Plotting correlation score and weight distribution" << endl;
     plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min, 0, executable);
 
     if (file_extension != "pdf") // html doesn't support pdf as image
@@ -1116,7 +1116,7 @@ public:
       }
     }
 
-    LOG_INFO << "Writing " << peptide_to_cluster_index.size() << " peptides to peptide centric csv." << endl;
+    OPENMS_LOG_INFO << "Writing " << peptide_to_cluster_index.size() << " peptides to peptide centric csv." << endl;
 
     // sort by sequence
     sort(peptide_to_cluster_index.begin(), peptide_to_cluster_index.end(), SequenceLess());
@@ -1858,7 +1858,7 @@ public:
         }
         else
         {
-          LOG_WARN << "RT: " << rt << " not contained in rt set." << endl;
+          OPENMS_LOG_WARN << "RT: " << rt << " not contained in rt set." << endl;
         }
       }
 
@@ -1941,7 +1941,7 @@ public:
     checkRInPath.addLine("q()");
     checkRInPath.store(script_filename);
 
-    LOG_INFO << "Checking R...";
+    OPENMS_LOG_INFO << "Checking R...";
     {
       QProcess p;
       p.setProcessChannelMode(QProcess::MergedChannels);
@@ -1956,14 +1956,14 @@ public:
 
       if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
       {
-        LOG_INFO << " failed" << std::endl;
-        LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
+        OPENMS_LOG_INFO << " failed" << std::endl;
+        OPENMS_LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
         return false;
       }
-      LOG_INFO << " success" << std::endl;
+      OPENMS_LOG_INFO << " success" << std::endl;
     }
     // check dependencies
-    LOG_INFO << "Checking R dependencies. If package is not found we will try to install it in your temp directory...";
+    OPENMS_LOG_INFO << "Checking R dependencies. If package is not found we will try to install it in your temp directory...";
     TextFile current_script;
     current_script.addLine("LoadOrInstallPackage <-function(x)");
     current_script.addLine("{");
@@ -2001,16 +2001,16 @@ public:
 
     if (status != 0)
     {
-      LOG_ERROR << "\nProblem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
+      OPENMS_LOG_ERROR << "\nProblem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
       for (TextFile::ConstIterator line_it = current_script.begin(); line_it != current_script.end(); ++line_it)
       {
-        LOG_ERROR << *line_it  << std::endl;
+        OPENMS_LOG_ERROR << *line_it  << std::endl;
       }
       QString s = p.readAllStandardOutput();
-      LOG_ERROR << s.toStdString() << std::endl;
+      OPENMS_LOG_ERROR << s.toStdString() << std::endl;
       return false;
     }
-    LOG_INFO << " success" << std::endl;
+    OPENMS_LOG_INFO << " success" << std::endl;
     return true;
   }
 
@@ -2123,7 +2123,7 @@ protected:
   {
     if (std::distance(pattern_begin, pattern_end) != std::distance(intensities_begin, intensities_end))
     {
-      LOG_ERROR << "Error: size of pattern and collected intensities don't match!: (pattern " << std::distance(pattern_begin, pattern_end) << ") (intensities " << std::distance(intensities_begin, intensities_end) << ")" << endl;
+      OPENMS_LOG_ERROR << "Error: size of pattern and collected intensities don't match!: (pattern " << std::distance(pattern_begin, pattern_end) << ") (intensities " << std::distance(intensities_begin, intensities_end) << ")" << endl;
     }
 
     if (pattern_begin == pattern_end)
@@ -2462,7 +2462,7 @@ protected:
 
     if (debug_level_ >= 10)
     {
-      LOG_DEBUG << "best rate + score: " << best_rate << " " << best_score << endl;
+      OPENMS_LOG_DEBUG << "best rate + score: " << best_rate << " " << best_score << endl;
     }
 
     // normalize weights to max(weights)=1
@@ -2657,16 +2657,16 @@ protected:
         {
           if (debug_level_ > 1)
           {
-            LOG_WARN << "warning: prevented adding of 0 abundance decomposition at rate " << rate << endl;
-            LOG_WARN << "decomposition: " << endl;
+            OPENMS_LOG_WARN << "warning: prevented adding of 0 abundance decomposition at rate " << rate << endl;
+            OPENMS_LOG_WARN << "decomposition: " << endl;
             for (MapRateToScoreType::const_iterator it = map_rate_to_decomposition_weight.begin(); it != map_rate_to_decomposition_weight.end(); ++it)
             {
-              LOG_WARN << it->first << " " << it->second << endl;
+              OPENMS_LOG_WARN << it->first << " " << it->second << endl;
             }
-            LOG_WARN << "correlation: " << endl;
+            OPENMS_LOG_WARN << "correlation: " << endl;
             for (MapRateToScoreType::const_iterator it = map_rate_to_correlation_score.begin(); it != map_rate_to_correlation_score.end(); ++it)
             {
-              LOG_WARN << it->first << " " << it->second << endl;
+              OPENMS_LOG_WARN << it->first << " " << it->second << endl;
             }
           }
 
@@ -2954,7 +2954,7 @@ protected:
       bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names, executable);
       if (!R_is_working)
       {
-        LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
+        OPENMS_LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
@@ -2985,7 +2985,7 @@ protected:
     bool cluster_flag = getFlag_("cluster");
 
     // read descriptions from FASTA and create map for fast annotation
-    LOG_INFO << "loading sequences..." << endl;
+    OPENMS_LOG_INFO << "loading sequences..." << endl;
     String in_fasta = getStringOption_("in_fasta");
     vector<FASTAFile::FASTAEntry> fasta_entries;
     FASTAFile().load(in_fasta, fasta_entries);
@@ -2999,7 +2999,7 @@ protected:
       }
     }
 
-    LOG_INFO << "loading feature map..." << endl;
+    OPENMS_LOG_INFO << "loading feature map..." << endl;
     FeatureXMLFile fh;
     FeatureMap feature_map;
     fh.load(in_features, feature_map);
@@ -3041,7 +3041,7 @@ protected:
         }
       }
       feature_map.updateRanges();
-      LOG_INFO << "Evaluating " << unassigned_id_features << " unassigned identifications." << endl;
+      OPENMS_LOG_INFO << "Evaluating " << unassigned_id_features << " unassigned identifications." << endl;
     }
 
     // determine all spectra that have not been identified and assign an averagine peptide to it
@@ -3134,7 +3134,7 @@ protected:
       feature_map.updateRanges();
     }
 
-    LOG_INFO << "loading experiment..." << endl;
+    OPENMS_LOG_INFO << "loading experiment..." << endl;
     PeakMap peak_map;
     MzMLFile mh;
     std::vector<Int> ms_level(1, 1);
@@ -3196,7 +3196,7 @@ protected:
         }
         else
         {
-          LOG_WARN << "Empty peptide hit encountered on feature. Ignoring." << endl;
+          OPENMS_LOG_WARN << "Empty peptide hit encountered on feature. Ignoring." << endl;
         }
       }
 
@@ -3233,7 +3233,7 @@ protected:
 
       if (debug_level_ > 1)
       {
-        LOG_DEBUG << "Feature type: (" << sip_peptide.feature_type << ") Seq.: " << feature_hit_seq << " m/z: " << feature_hit_theoretical_mz << endl;
+        OPENMS_LOG_DEBUG << "Feature type: (" << sip_peptide.feature_type << ") Seq.: " << feature_hit_seq << " m/z: " << feature_hit_theoretical_mz << endl;
       }
 
       const set<String> protein_accessions = feature_hit.extractProteinAccessionsSet();
@@ -3307,7 +3307,7 @@ protected:
       // collect 13C / 15N peaks
       if (debug_level_ >= 10)
       {
-        LOG_DEBUG << "Extract XICs" << endl;
+        OPENMS_LOG_DEBUG << "Extract XICs" << endl;
       }
 
       vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(isotopic_trace_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
@@ -3357,7 +3357,7 @@ protected:
       // collect 13C / 15N peaks
       if (debug_level_ >= 10)
       {
-        LOG_DEBUG << "TIC of XICs: " << TIC << endl;
+        OPENMS_LOG_DEBUG << "TIC of XICs: " << TIC << endl;
         for (Size i = 0; i != isotopic_intensities.size(); ++i)
         {
           cout << isotopic_intensities[i] << endl;
@@ -3370,7 +3370,7 @@ protected:
         ++spectrum_with_no_isotopic_peaks;
         if (debug_level > 0)
         {
-          LOG_INFO << "no isotopic peaks in spectrum" << endl;
+          OPENMS_LOG_INFO << "no isotopic peaks in spectrum" << endl;
         }
         continue;
       }
@@ -3398,7 +3398,7 @@ protected:
         cout << "Isotopic intensities found / total: " << non_zero_isotopic_intensities << "/" << isotopic_intensities.size() << endl;
       }
 
-      LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
+      OPENMS_LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
 
       // correlation filtering
       MapRateToScoreType map_rate_to_correlation_score;
@@ -3518,7 +3518,7 @@ protected:
       {
         if (debug_level > 0)
         {
-          LOG_INFO << "SIP peptides: " << sip_peptide.incorporations.size() << endl;
+          OPENMS_LOG_INFO << "SIP peptides: " << sip_peptide.incorporations.size() << endl;
         }
         sip_peptides.push_back(sip_peptide);
       }
@@ -3532,17 +3532,17 @@ protected:
       correlation_maps.push_back(map_rate_to_correlation_score);
     }
 
-    LOG_INFO << "Spectra with / without isotopic peaks " << spectrum_with_isotopic_peaks << "/" << spectrum_with_no_isotopic_peaks << endl;
+    OPENMS_LOG_INFO << "Spectra with / without isotopic peaks " << spectrum_with_isotopic_peaks << "/" << spectrum_with_no_isotopic_peaks << endl;
 
     if (nPSMs == 0)
     {
-      LOG_ERROR << "No assigned identifications found in featureXML. Did you forget to run IDMapper?" << endl;
+      OPENMS_LOG_ERROR << "No assigned identifications found in featureXML. Did you forget to run IDMapper?" << endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
 
     if (sip_peptides.size() == 0)
     {
-      LOG_ERROR << "No peptides passing the incorporation threshold found." << endl;
+      OPENMS_LOG_ERROR << "No peptides passing the incorporation threshold found." << endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -3556,12 +3556,12 @@ protected:
     {
       if (debug_level > 0)
       {
-        LOG_INFO << "Determine cluster center of RIAs: " << endl;
+        OPENMS_LOG_INFO << "Determine cluster center of RIAs: " << endl;
       }
       vector<double> cluster_center(MetaProSIPClustering::getRIAClusterCenter(sip_peptides));
       if (debug_level > 0)
       {
-        LOG_INFO << "Assigning peptides to cluster: " << endl;
+        OPENMS_LOG_INFO << "Assigning peptides to cluster: " << endl;
       }
       sippeptide_clusters = MetaProSIPClustering::clusterSIPPeptides(cluster_center, sip_peptides);
 
@@ -3586,7 +3586,7 @@ protected:
       {
         for (Size i = 0; i != sippeptide_clusters.size(); ++i)
         {
-          LOG_INFO << "Cluster: " << (i + 1) << " contains " << sippeptide_clusters[i].size() << " peptides." << endl;
+          OPENMS_LOG_INFO << "Cluster: " << (i + 1) << " contains " << sippeptide_clusters[i].size() << " peptides." << endl;
         }
       }
     }
@@ -3598,14 +3598,14 @@ protected:
     // create group/cluster centric report
     if (!out_csv.empty())
     {
-      LOG_INFO << "Create CSV report." << endl;
+      OPENMS_LOG_INFO << "Create CSV report." << endl;
       MetaProSIPReporting::createCSVReport(sippeptide_clusters, out_csv_stream, proteinid_to_description);
     }
 
     // create peptide centric report
     if (!out_peptide_centric_csv.empty())
     {
-      LOG_INFO << "Creating peptide centric report: " << out_peptide_centric_csv << std::endl;
+      OPENMS_LOG_INFO << "Creating peptide centric report: " << out_peptide_centric_csv << std::endl;
 
       if (getFlag_("test")) 
       {

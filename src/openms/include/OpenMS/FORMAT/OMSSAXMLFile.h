@@ -146,7 +146,7 @@ private:
     bool load_empty_hits_;
 
     /// modifications mapping file from OMSSA mod num to UniMod accession
-    Map<UInt, std::vector<ResidueModification> > mods_map_;
+    Map<UInt, std::vector<const ResidueModification*> > mods_map_;
 
     /// modification mapping reverse, from the modification to the mod_num
     Map<String, UInt> mods_to_num_;

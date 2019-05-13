@@ -36,3 +36,5 @@ application/x-qcml qcml
 application/x-mztab mzTab
 application/x-paramxml paramXML
 application/x-percolatortab tab
+application/x-pqp pqp
+application/x-ms ms

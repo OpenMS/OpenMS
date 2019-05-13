@@ -72,7 +72,7 @@ START_SECTION((const DigestionEnzymeProtein* getEnzyme(const String &name) const
     TEST_EQUAL(ptr->getEnzyme("Trypsin")->getName(), "Trypsin")
     // test the synonyms
     TEST_EQUAL(ptr->getEnzyme("Clostripain")->getName(), "Arg-C")
-    TEST_EXCEPTION(Exception::ElementNotFound, ptr->getEnzyme("DOESNOTEXIST"))
+    TEST_EXCEPTION(Exception::ElementNotFound&, ptr->getEnzyme("DOESNOTEXIST"))
 END_SECTION
 
 START_SECTION((bool hasRegEx(const String& cleavage_regex) const))
@@ -160,6 +160,25 @@ START_SECTION((void getAllOMSSANames(std::vector<String>& all_names) const))
     Size old_size=names.size();
     ptr->getAllOMSSANames(names);
     TEST_EQUAL(names.size(), old_size)
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+
+   int nr_iterations (1e2), test (0);
+#pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    auto p = ProteaseDB::getInstance();
+    int tmp (0);
+    if (p->hasEnzyme("Trypsin"), true)
+    {
+      tmp++;
+    }
+    test += tmp;
+  }
+  TEST_EQUAL(test, nr_iterations)
+}
 END_SECTION
 
 END_TEST

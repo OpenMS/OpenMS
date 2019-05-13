@@ -90,6 +90,10 @@ const vector<double> position = {
   3.190133333,3.198016667,3.205916667,3.213166667
 };
 
+const vector<double> position_2 = {
+  2270.93, 2272.86, 2273.16
+};
+
 const vector<double> intensity = {
   1447,2139,1699,755,1258,1070,944,1258,1573,1636,
   1762,1447,1133,1321,1762,1133,1447,2391,692,1636,2957,1321,1573,1196,1258,881,
@@ -99,6 +103,10 @@ const vector<double> intensity = {
   6733,6481,5726,6921,6670,5537,4971,4719,4782,5097,5789,4279,5411,4530,3524,
   2139,3335,3083,4342,4279,3083,3649,4216,4216,3964,2957,2202,2391,2643,3524,
   2328,2202,3649,2706,3020,3335,2580,2328,2894,3146,2769,2517
+};
+
+const vector<double> intensity_2 = {
+  410430.0, 166125.0, 896669.0
 };
 
 const double left_past_5 = position[41];   // 2.64065
@@ -116,6 +124,14 @@ for (Size i = 0; i < position.size(); ++i)
 {
   chromatogram.push_back(ChromatogramPeak(position[i], intensity[i]));
   spectrum.push_back(Peak1D(position[i], intensity[i]));
+}
+
+MSChromatogram chromatogram_2;
+MSSpectrum spectrum_2;
+for (Size i = 0; i < position_2.size(); ++i)
+{
+  chromatogram_2.push_back(ChromatogramPeak(position_2[i], intensity_2[i]));
+  spectrum_2.push_back(Peak1D(position_2[i], intensity_2[i]));
 }
 
 MSChromatogram::ConstIterator chrom_left_it = chromatogram.RTBegin(left);
@@ -413,6 +429,23 @@ START_SECTION(PeakBackground estimateBackground(
   pb = ptr->estimateBackground(spectrum, spec_left_it, spec_right_it, pa.apex_pos);
   TEST_REAL_SIMILAR(pb.area, 1804.179415555)
   TEST_REAL_SIMILAR(pb.height, 3335)
+}
+END_SECTION
+
+START_SECTION(PeakArea integratePeak(
+  const MSChromatogram& chromatogram, const double left, const double right
+) const)
+{
+  Param params = ptr->getParameters();
+  PeakIntegrator::PeakArea pa;
+  MSChromatogram::ConstIterator it;
+
+  params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
+  ptr->setParameters(params);
+  STATUS("Integration type: simpson")
+  
+  pa = ptr->integratePeak(chromatogram_2, 2270.93, 2273.16);
+  TEST_REAL_SIMILAR(pa.area, -665788.77663627)    // TO DO: Simpson rule results in negative area for strictly positive input.
 }
 END_SECTION
 
@@ -959,8 +992,8 @@ START_SECTION([EXTRA]  template <typename PeakContainerConstIteratorT> double fi
 
 
   // corner cases: empty range
-  TEST_EXCEPTION(Exception::InvalidRange, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, false))
-  TEST_EXCEPTION(Exception::InvalidRange, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, true))
+  TEST_EXCEPTION(Exception::InvalidRange&, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, false))
+  TEST_EXCEPTION(Exception::InvalidRange&, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, true))
 }
 END_SECTION
 

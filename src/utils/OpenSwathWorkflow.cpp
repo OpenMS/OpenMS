@@ -747,14 +747,14 @@ protected:
     // Check swath window input
     if (!swath_windows_file.empty())
     {
-      LOG_INFO << "Validate provided Swath windows file:" << std::endl;
+      OPENMS_LOG_INFO << "Validate provided Swath windows file:" << std::endl;
       std::vector<double> swath_prec_lower;
       std::vector<double> swath_prec_upper;
       SwathWindowLoader::readSwathWindows(swath_windows_file, swath_prec_lower, swath_prec_upper);
 
       for (Size i = 0; i < swath_prec_lower.size(); i++)
       {
-        LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;
+        OPENMS_LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;
       }
     }
 
@@ -805,7 +805,7 @@ protected:
     // Load the transitions
     ///////////////////////////////////
     OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(tr_type, tr_file, tsv_reader_param);
-    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
+    OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
       transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
     if (tr_type == FileTypes::PQP)

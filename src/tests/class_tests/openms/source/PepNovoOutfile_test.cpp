@@ -95,11 +95,11 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
   map< String, double > filenames_and_precursor_retention_times;
 
   // test exceptions
-  //TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), "the file 'a' could not be found")
+  //TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.load("a", peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), "the file 'a' could not be found")
 
-  //TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out1"), peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "PepNovoOutfile.out1", " in: Not enough columns in file in line 2 (should be 8)!"))
+  //TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out1"), peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "PepNovoOutfile.out1", " in: Not enough columns in file in line 2 (should be 8)!"))
 
-  //TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out2"), peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "PepNovoOutfile.out2", " in: Not enough columns in file in line 7 (should be 8)!" ))
+  //TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out2"), peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "PepNovoOutfile.out2", " in: Not enough columns in file in line 7 (should be 8)!" ))
 
   peptide_identifications.clear();
   protein_identification.setHits(vector< ProteinHit >());
@@ -117,7 +117,7 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
   rt_and_index[1] = std::make_pair(1530.11535644531, 549.856262207031);
 
   // check missing index-key ( rt_and_index[2] )
-  TEST_EXCEPTION(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, -2.000f, rt_and_index, key_to_mod));
+  TEST_EXCEPTION(Exception::ParseError&, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, -2.000f, rt_and_index, key_to_mod));
   rt_and_index[2] = std::make_pair(1533.16589355469, 358.174530029297);
   rt_and_index[3] = std::make_pair(1111, 2222);
 

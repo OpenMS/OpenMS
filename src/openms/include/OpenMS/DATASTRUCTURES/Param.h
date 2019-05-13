@@ -463,7 +463,7 @@ protected:
     /**
       @brief Rescue parameter <b>values</b> from @p p_outdated to current param
 
-      Calls ::update(p_outdated, true, add_unknown, false, false, LOG_WARN) and returns its value.
+      Calls ::update(p_outdated, true, add_unknown, false, false, OPENMS_LOG_WARN) and returns its value.
     */
     bool update(const Param& p_outdated, const bool add_unknown = false);
 
@@ -535,7 +535,7 @@ protected:
       @param defaults The default values.
       @param prefix The prefix where to check for the defaults.
 
-      Warnings etc. will be send to LOG_WARN.
+      Warnings etc. will be send to OPENMS_LOG_WARN.
 
       @exception Exception::InvalidParameter is thrown if errors occur during the check
     */

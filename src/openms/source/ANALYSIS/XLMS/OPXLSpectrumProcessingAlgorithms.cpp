@@ -40,6 +40,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 
 using namespace std;
 
@@ -108,7 +109,17 @@ namespace OpenMS
 
     // sort by rt
     exp.sortSpectra(false);
-    LOG_DEBUG << "Deisotoping and filtering spectra." << endl;
+    OPENMS_LOG_DEBUG << "Deisotoping and filtering spectra." << endl;
+
+    // filter settings
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
+
+    NLargest nlargest_filter = NLargest(500);
 
     PeakMap filtered_spectra;
     Size MS2_counter(0);
@@ -159,6 +170,9 @@ namespace OpenMS
         if (deisotoped.size() > peptide_min_size * 2 || labeled)
         {
           deisotoped.sortByPosition();
+          window_mower_filter.filterPeakSpectrum(deisotoped);
+          nlargest_filter.filterPeakSpectrum(deisotoped);
+          deisotoped.sortByPosition();
 
 #ifdef _OPENMP
 #pragma omp critical
@@ -179,8 +193,8 @@ namespace OpenMS
         PeakSpectrum filtered = exp[exp_index];
         if (!labeled) // this kind of filtering is not necessary for labeled cross-links, since they area filtered by comparing heavy and light spectra later
         {
-          NLargest nfilter(500);
-          nfilter.filterSpectrum(filtered);
+          window_mower_filter.filterPeakSpectrum(filtered);
+          nlargest_filter.filterPeakSpectrum(filtered);
         }
 
         // only consider spectra, that have at least as many peaks as two times the minimal peptide size after filtering
@@ -264,7 +278,7 @@ namespace OpenMS
             double new_ei = exp_spectrum[e_candidate].getIntensity();
             const bool charge_matches = (new_ez == tz || !new_ez || !tz);
             const bool intensity_matches = ( std::min(ti, new_ei) / std::max(ti, new_ei) ) > intensity_cutoff;
-            double new_d = exp_spectrum[e].getMZ() - theo_mz;
+            double new_d = exp_spectrum[e_candidate].getMZ() - theo_mz;
             if (charge_matches && new_d <= max_dist_dalton && intensity_matches)
             { // found a match
               break;
@@ -350,7 +364,141 @@ namespace OpenMS
         double ppm_error = (exp_spectrum[closest_exp_peak].getMZ() - theo_mz) / theo_mz * 1e6;
         ppm_error_array.emplace_back(ppm_error);
 
+        e = closest_exp_peak + 1;  // advance experimental peak to 1-after the best match
+        ++t; // advance theoretical peak
+      }
+      else if (d < 0) // exp. peak is left of theo. peak (outside of tolerance window)
+      {
+        ++e;
+      }
+      else if (d > 0) // theo. peak is left of exp. peak (outside of tolerance window)
+      {
+        ++t;
+      }
+    }
+  }
 
+  void OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(
+    std::vector<std::pair<Size, Size> > & alignment,
+    double fragment_mass_tolerance,
+    bool fragment_mass_tolerance_unit_ppm,
+    const std::vector< SimpleTSGXLMS::SimplePeak >& theo_spectrum,
+    const PeakSpectrum& exp_spectrum,
+    const DataArrays::IntegerDataArray& exp_charges)
+  {
+    alignment.clear();
+    const Size n_t(theo_spectrum.size());
+    const Size n_e(exp_spectrum.size());
+    const bool has_charge = !(exp_charges.empty());
+
+    if (n_t == 0 || n_e == 0) { return; }
+
+    Size t(0), e(0);
+    alignment.reserve(theo_spectrum.size());
+
+    while (t < n_t && e < n_e)
+    {
+      const double theo_mz = theo_spectrum[t].mz;
+      const double exp_mz = exp_spectrum[e].getMZ();
+
+      int tz(0), ez(0);
+      if (has_charge)
+      {
+        tz = theo_spectrum[t].charge;
+        ez = exp_charges[e];
+      }
+      const bool tz_matches_ez = (ez == tz || !ez || !tz);
+
+      double d = exp_mz - theo_mz;
+      const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+      if (fabs(d) <= max_dist_dalton) // match in tolerance window?
+      {
+        // get first peak with matching charge in tolerance window
+        if (!tz_matches_ez)
+        {
+          Size e_candidate(e);
+          while (e_candidate < n_e-1)
+          {
+            ++e_candidate;
+            double new_ez = has_charge ? exp_charges[e_candidate] : 0;
+            const bool charge_matches = (new_ez == tz || !new_ez || !tz);
+            double new_d = exp_spectrum[e_candidate].getMZ() - theo_mz;
+            if (charge_matches && new_d <= max_dist_dalton)
+            { // found a match
+              break;
+            }
+            else if (new_d > max_dist_dalton)
+            { // no match found
+              e_candidate = e;
+              break;
+            }
+          }
+          if (e == e_candidate)
+          { // no match found continue with next theo. peak
+            ++t;
+            continue;
+          }
+          else
+          { // match found
+            e = e_candidate;
+          }
+        }
+
+        // Invariant: e now points to the first peak in tolerance window, that matches in charge and intensity
+
+        // last peak? there can't be a better one in this tolerance window
+        if (e >= n_e - 1)
+        {
+          // add match
+          alignment.emplace_back(std::make_pair(t, e));
+          return;
+        }
+
+        Size closest_exp_peak(e);
+
+        // Invariant: closest_exp_peak always point to best match
+
+        double new_ez(0);
+        double best_d = exp_spectrum[closest_exp_peak].getMZ() - theo_mz;
+
+        do // check for better match in tolerance window
+        {
+          // advance to next exp. peak
+          ++e;
+
+          // determine distance of next peak
+          double new_d = exp_spectrum[e].getMZ() - theo_mz;
+          const bool in_tolerance_window = (fabs(new_d) < max_dist_dalton);
+
+          if (!in_tolerance_window) { break; }
+
+          // Invariant: e is in tolerance window
+
+          // check if charge and intensity of next peak matches
+          if (has_charge) { new_ez = exp_charges[e]; }
+          const bool charge_matches = (new_ez == tz || !new_ez || !tz);
+          if (!charge_matches) { continue; }
+
+          // Invariant: charge and intensity matches
+
+          const bool better_distance = (fabs(new_d) <= fabs(best_d));
+
+          // better distance (and matching charge)? better match found
+          if (better_distance)
+          { // found a better match
+            closest_exp_peak = e;
+            best_d = new_d;
+          }
+          else
+          { // distance got worse -> no additional matches!
+            break;
+          }
+        }
+        while (e < n_e - 1);
+
+        // search in tolerance window for an experimental peak closer to theoretical one
+        alignment.emplace_back(std::make_pair(t, closest_exp_peak));
         e = closest_exp_peak + 1;  // advance experimental peak to 1-after the best match
         ++t; // advance theoretical peak
       }

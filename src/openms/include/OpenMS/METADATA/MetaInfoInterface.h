@@ -34,11 +34,16 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/MetaInfo.h>
+#include <vector>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 namespace OpenMS
 {
   class String;
+  class MetaInfo;
 
   /**
     @brief Interface for classes that can store arbitrary meta information
@@ -111,8 +116,10 @@ public:
     void clearMetaInfo();
 
 protected:
+
     /// Creates the MetaInfo object if it does not exist
     inline void createIfNotExists_();
+
     /// Pointer to the MetaInfo object (0 by default)
     MetaInfo* meta_;
   };

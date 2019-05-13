@@ -49,7 +49,7 @@ xercesc::XMLPlatformUtils::Initialize();
 GzipInputStream* ptr = nullptr;
 GzipInputStream* nullPointer = nullptr;
 START_SECTION(GzipInputStream(const char *const file_name))
-	TEST_EXCEPTION(Exception::FileNotFound, GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
+	TEST_EXCEPTION(Exception::FileNotFound&, GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	ptr = new GzipInputStream(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	TEST_EQUAL(ptr->getIsOpen(),true)
@@ -60,7 +60,7 @@ START_SECTION((~GzipInputStream()))
 END_SECTION
 
 START_SECTION(GzipInputStream(const String& file_name))
-	TEST_EXCEPTION(Exception::FileNotFound, GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
+	TEST_EXCEPTION(Exception::FileNotFound&, GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	String filename(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	ptr = new GzipInputStream(filename);
 	TEST_NOT_EQUAL(ptr, nullPointer)

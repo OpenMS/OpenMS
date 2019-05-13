@@ -95,17 +95,17 @@ DataFilters::DataFilter filter_12;
 
 START_SECTION(([EXTRA]void DataFilter::fromString(const String& filter)))
 
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "the value '' was used but is not valid; invalid filter format")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "the value 'not_enough_arguments' was used but is not valid; invalid filter format")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("invalid_fieldname = 0"), "the value 'invalid_fieldname' was used but is not valid; invalid field name")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity invalid_operator 5"), "the value 'invalid_operator' was used but is not valid; invalid operator")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Meta::test = string without enclosing quotation marks"), "the value 'string without enclosing quotation marks' was used but is not valid; invalid value")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue&, filter_1.fromString(""), "the value '' was used but is not valid; invalid filter format")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue&, filter_1.fromString("not_enough_arguments"), "the value 'not_enough_arguments' was used but is not valid; invalid filter format")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue&, filter_1.fromString("invalid_fieldname = 0"), "the value 'invalid_fieldname' was used but is not valid; invalid field name")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue&, filter_1.fromString("Intensity invalid_operator 5"), "the value 'invalid_operator' was used but is not valid; invalid operator")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue&, filter_1.fromString("Meta::test = string without enclosing quotation marks"), "the value 'string without enclosing quotation marks' was used but is not valid; invalid value")
 	//second argument of binary relation missing:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Charge = "), "the value '=' was used but is not valid; invalid filter format")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue&, filter_1.fromString("Charge = "), "the value '=' was used but is not valid; invalid filter format")
 	//string value and non-meta field:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Quality = \"a string\""), "the value 'a string' was used but is not valid; invalid value")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue&, filter_1.fromString("Quality = \"a string\""), "the value 'a string' was used but is not valid; invalid value")
 	//operation "exists" and non-meta field:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity exists"), "the value 'exists' was used but is not valid; invalid operator")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue&, filter_1.fromString("Intensity exists"), "the value 'exists' was used but is not valid; invalid operator")
 	
 	filter_1.fromString("Intensity <= 201.334");
 	filter_2.fromString("Intensity >= 1000");
@@ -126,12 +126,12 @@ END_SECTION
 
 START_SECTION(([EXTRA]String DataFilter::toString() const))
 	
-	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334")
-	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000")
-	TEST_STRING_EQUAL(filter_3.toString(), "Charge = 4")
-	TEST_STRING_EQUAL(filter_4.toString(), "Quality <= 1")
-	TEST_STRING_EQUAL(filter_5.toString(), "Meta::test_int <= 0")
-	TEST_STRING_EQUAL(filter_6.toString(), "Meta::test_double = 0")
+	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334000000000003")
+	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000.0")
+	TEST_STRING_EQUAL(filter_3.toString(), "Charge = 4.0")
+	TEST_STRING_EQUAL(filter_4.toString(), "Quality <= 1.0")
+	TEST_STRING_EQUAL(filter_5.toString(), "Meta::test_int <= 0.0")
+	TEST_STRING_EQUAL(filter_6.toString(), "Meta::test_double = 0.0")
 	TEST_STRING_EQUAL(filter_7.toString(), "Meta::test_string = \"hello world 2\"")
 	TEST_STRING_EQUAL(filter_8.toString(), "Meta::test_dummy exists")
 	TEST_STRING_EQUAL(filter_9.toString(), "Meta::test_string >= \"a string\"")
@@ -184,7 +184,7 @@ END_SECTION
 
 START_SECTION((const DataFilter& operator[](Size index) const ))
 	
-	TEST_EXCEPTION(Exception::IndexOverflow, filters[3])
+	TEST_EXCEPTION(Exception::IndexOverflow&, filters[3])
 	filters.add(filter_1);
 	TEST_EQUAL(filters[0] == filters[3], true)
 	filters.remove(3);
@@ -213,7 +213,7 @@ END_SECTION
 
 START_SECTION((void remove(Size index)))
 
-	TEST_EXCEPTION(Exception::IndexOverflow, filters.remove(7))
+	TEST_EXCEPTION(Exception::IndexOverflow&, filters.remove(7))
 	filters.remove(0);
 	TEST_EQUAL(filters[0] == filter_4, true)
 	filters.remove(0);
@@ -224,7 +224,7 @@ END_SECTION
 
 START_SECTION((void replace(Size index, const DataFilter &filter)))
 	
-	TEST_EXCEPTION(Exception::IndexOverflow, filters.replace(10, filter_1))
+	TEST_EXCEPTION(Exception::IndexOverflow&, filters.replace(10, filter_1))
 	//at the moment: filters[0] == filter_5, ..., filters[4] == filter_9
 	filters.replace(0, filter_1);
 	filters.replace(1, filter_2);
@@ -447,9 +447,9 @@ START_SECTION(([DataFilters::DataFilter] String toString() const ))
   DataFilters::DataFilter df1;
   df1.field = DataFilters::INTENSITY;
   df1.op = DataFilters::LESS_EQUAL;
-  df1.value = 25.3;
+  df1.value = 25.5;
 
-  TEST_EQUAL(df1.toString(), "Intensity <= 25.3")
+  TEST_EQUAL(df1.toString(), "Intensity <= 25.5")
 
   df1.field = DataFilters::META_DATA;
   df1.meta_name = "meta-value";
@@ -489,10 +489,10 @@ START_SECTION(([DataFilters::DataFilter] void fromString(const String &filter)))
 
   // test some wrong cases
   DataFilters::DataFilter exception_filter;
-  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Intensity <> 24.5"))
-  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Intensity < 24.5"))
-  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Insenity = 2.0"))
-  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Charge = text-value"))
+  TEST_EXCEPTION(Exception::InvalidValue&, exception_filter.fromString("Intensity <> 24.5"))
+  TEST_EXCEPTION(Exception::InvalidValue&, exception_filter.fromString("Intensity < 24.5"))
+  TEST_EXCEPTION(Exception::InvalidValue&, exception_filter.fromString("Insenity = 2.0"))
+  TEST_EXCEPTION(Exception::InvalidValue&, exception_filter.fromString("Charge = text-value"))
 }
 END_SECTION
 

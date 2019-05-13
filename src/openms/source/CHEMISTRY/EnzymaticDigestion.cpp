@@ -42,6 +42,7 @@ using namespace std;
 namespace OpenMS
 {
   const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
+  const std::string EnzymaticDigestion::NoCleavage = "no cleavage";
   const std::string EnzymaticDigestion::UnspecificCleavage = "unspecific cleavage";
 
   EnzymaticDigestion::EnzymaticDigestion() :
@@ -152,17 +153,17 @@ namespace OpenMS
 
     if (pos >= (int)sequence.size())
     {
-      LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      OPENMS_LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
     if (pos + length > (int)sequence.size())
     {
-      LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      OPENMS_LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
     if (length == 0 || sequence.empty())
     {
-      LOG_WARN << "Error: fragment and sequence must not be empty!" << endl;
+      OPENMS_LOG_WARN << "Error: fragment and sequence must not be empty!" << endl;
       return false;
     }
 
@@ -322,4 +323,5 @@ namespace OpenMS
     std::vector<int> fragment_positions = tokenize_(sequence.getString());
     return digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
   }
+
 } //namespace

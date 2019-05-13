@@ -136,7 +136,7 @@ String extractCachedMetaFilename(const String& in)
   in.split(".cachedMzML", split_out);
   if (split_out.size() != 2)
   {
-    LOG_ERROR << "Cannot deduce base path from input '" << in 
+    OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in 
       << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
     return "";
   }
@@ -156,7 +156,8 @@ IMType determineIMType(const MSExperiment& exp)
 {
   for (Size k = 0; k < exp.size(); k++)
   {
-    if (!exp[k].getFloatDataArrays().empty() && exp[k].getFloatDataArrays()[0].getName() == "Ion Mobility")
+    if (!exp[k].getFloatDataArrays().empty() && 
+        exp[k].getFloatDataArrays()[0].getName().find("Ion Mobility") == 0)
     {
       return IMType::IM_STACKED;
     }
@@ -173,7 +174,6 @@ void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSS
 {
   OPENMS_PRECONDITION(!stack.empty(), "Stack cannot be empty")
 
-
   // either no drift time or different RT!
   if (stack[0].getDriftTime() >= 0.0)
   {
@@ -182,16 +182,26 @@ void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSS
     new_spec.clear(false);
     std::vector<OpenMS::DataArrays::FloatDataArray> empty;
     new_spec.setFloatDataArrays(empty);
-    new_spec.setDriftTime(-1); // drift time is now encoded in the FloatDataArray
 
     OpenMS::DataArrays::FloatDataArray fda;
-    fda.setName("Ion Mobility");
-    for (auto s : stack)
+    String name = "Ion Mobility";
+    if (new_spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
+    {
+      name += " (MS:1002476)";
+    }
+    else if (new_spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::VSSC)
+    {
+      name += " (MS:1002815)";
+    }
+    fda.setName(name);
+    for (const auto& s : stack)
     {
       new_spec.insert(new_spec.end(), s.begin(), s.end());
       fda.insert(fda.end(), s.size(), s.getDriftTime());
     }
     new_spec.setFloatDataArrays({fda});
+    new_spec.setDriftTime(-1); // drift time is now encoded in the FloatDataArray
+    new_spec.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::NONE); // drift time is now encoded in the FloatDataArray
     result.push_back(new_spec);
   }
   else
@@ -221,6 +231,19 @@ void expandIMSpectrum(const MSSpectrum& tmps, std::vector<MSSpectrum>& result)
   // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
   std::map< int, MSSpectrum > im_map;
   auto im_arr = tmps.getFloatDataArrays()[0];
+
+  // Determine unit name
+  String im_name = im_arr.getName();
+  auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+  if (im_name == "Ion Mobility (MS:1002476)")
+  {
+    unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+  }
+  else if (im_name == "Ion Mobility (MS:1002815)")
+  {
+    unit = MSSpectrum::DriftTimeUnit::VSSC;
+  }
+
   for (Size k = 0;  k < tmps.size(); k++)
   {
     double im = im_arr[ k ];
@@ -229,6 +252,7 @@ void expandIMSpectrum(const MSSpectrum& tmps, std::vector<MSSpectrum>& result)
       // use meta data from combined spectrum, set new name and current drift time
       MSSpectrum news = settings;
       news.setDriftTime(im);
+      news.setDriftTimeUnit(unit);
       news.setName(tmps.getName() + "_combined"); // we will not recover original scan ids
       im_map[ int(im*IM_BINNING) ] = news;
     }
@@ -237,7 +261,7 @@ void expandIMSpectrum(const MSSpectrum& tmps, std::vector<MSSpectrum>& result)
 
   // Add spectra to result, note that this is guaranteed to be
   // sorted by ion mobility (through std::map).
-  for (auto s : im_map)
+  for (const auto& s : im_map)
   {
     result.push_back(s.second);
   }
@@ -468,7 +492,7 @@ protected:
       // Sanity check
       if (exp.size() != tmp_exp.size())
       {
-        LOG_ERROR << "Paired input files do not match, cannot convert: " << in_meta << " and " << in << std::endl;
+        OPENMS_LOG_ERROR << "Paired input files do not match, cannot convert: " << in_meta << " and " << in << std::endl;
         return ILLEGAL_PARAMETERS;
       }
 
@@ -779,7 +803,7 @@ protected:
     {
       if (fm.size() > 0 && cm.size() > 0)
       {
-        LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
+        OPENMS_LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
         return INTERNAL_ERROR;
       }
       if (fm.size() > 0) EDTAFile().store(out, fm);
@@ -804,7 +828,7 @@ protected:
       // IBSpectra selected as output type
       if (in_type != FileTypes::CONSENSUSXML)
       {
-        LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
 

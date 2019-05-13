@@ -82,7 +82,7 @@ START_SECTION((Int registerStream(StreamType const type, const String &stream_na
 
   // if you try to register a stream with the same name, but a different type
   // an Exception should be thrown
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, handler.registerStream(StreamHandler::STRING, filename), "This stream was already registered with a different type.")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument&, handler.registerStream(StreamHandler::STRING, filename), "This stream was already registered with a different type.")
 }
 END_SECTION
 
@@ -103,7 +103,7 @@ START_SECTION((void unregisterStream(StreamType const type, const String &stream
   // now it should be gone
   handler.unregisterStream(StreamHandler::FILE, filename);
 
-  TEST_EXCEPTION(Exception::ElementNotFound, handler.unregisterStream(StreamHandler::FILE, filename))
+  TEST_EXCEPTION(Exception::ElementNotFound&, handler.unregisterStream(StreamHandler::FILE, filename))
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,31 +45,29 @@ namespace OpenMS
       {
           public:
 
+          struct FeatureToMs2Indices
+          {
+             Map<const BaseFeature*, std::vector<size_t>> assignedMS2;
+             std::vector<size_t> unassignedMS2;
+          };
+
           /**
             @brief Allocate ms2 spectra to feature within the minimal distance
 
-            @return FeatureToMS2Indices
+            @return FeatureToMs2Indices
 
             @param spectra: Input of PeakMap/MSExperiment with spectra information
             @param fp_map_kd: KDTree used for query and match spectra with features
             @param precursor_mz_tolerance: mz_tolerance used for query
             @param precursor_rt_tolernace: rt tolerance used for query
-            @param ppm: mz tolernace window calculation in ppm or Da
+            @param ppm: mz tolerance window calculation in ppm or Da
 
           */
-
-          struct FeatureToMs2Indices
-          {
-             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
-             std::vector<size_t> unassignedMS2;
-          };
-
-          // return map of ms2 to feature and a vector of unassigned ms2
-          static FeatureToMs2Indices assignMS2IndexToFeature(PeakMap& spectra,
+          static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
                                                              const KDTreeFeatureMaps& fp_map_kd,
                                                              const double& precursor_mz_tolerance,
                                                              const double& precursor_rt_tolerance,
-                                                             bool& ppm);
+                                                             bool ppm);
 
       };
-}
+} // namespace OpenMS

@@ -29,67 +29,33 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Rost $
-// $Authors: Hannes Rost $
+// $Authors: Hannes Rost, Michał Startek, Mateusz Łącki $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpec.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h>
 
 namespace OpenMS
 {
 
   IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
-    IsoSpec algorithm(threshold_, absolute_);
-#if 0
-    // Use IsoSpec's isotopic tables
-    algorithm.run(formula.toString());
-#else
-    // Use our own isotopic tables
-    std::vector<int> isotopeNumbers, atomCounts;
-    std::vector<std::vector<double> > isotopeMasses, isotopeProbabilities;
 
-    // Iterate through all elements in the molecular formula
-    for (auto elem : formula)
+    if (use_total_prob_)
     {
-      atomCounts.push_back(elem.second);
-
-      std::vector<double> masses;
-      std::vector<double> probs;
-      for (auto iso : elem.first->getIsotopeDistribution())
-      {
-        if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
-        masses.push_back(iso.getMZ());
-        probs.push_back(iso.getIntensity());
-      }
-
-      // For each element store how many isotopes it has and their masses/probabilities
-      isotopeNumbers.push_back( masses.size() );
-      isotopeMasses.push_back(masses);
-      isotopeProbabilities.push_back(probs);
+        IsotopeDistribution result(IsoSpecTotalProbWrapper(formula, 1.0-stop_condition_).run());
+        result.sortByMass();
+        return result;
     }
-
-    algorithm.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
-#endif
-
-    // Store the data in a IsotopeDistribution
-    std::vector<Peak1D> c;
-    c.reserve( algorithm.getMasses().size() );
-    auto mit = algorithm.getMasses().cbegin();
-    auto pit = algorithm.getProbabilities().cbegin();
-    while (mit != algorithm.getMasses().cend())
+    else
     {
-      c.emplace_back( Peak1D(*mit, *pit) );
-      mit++; pit++;
+        IsotopeDistribution result(IsoSpecThresholdWrapper(formula, stop_condition_, absolute_).run());
+        result.sortByMass();
+        return result;
     }
-
-    IsotopeDistribution result;
-    result.set(std::move(c));
-    result.sortByMass();
-    return result;
   }
 
 }
+

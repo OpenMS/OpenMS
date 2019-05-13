@@ -46,13 +46,6 @@
 using namespace std;
 using namespace OpenMS;
 
-#ifdef _OPENMP
-#include <omp.h>
-#define NUMBER_OF_THREADS (omp_get_num_threads())
-#else
-#define NUMBER_OF_THREADS (1)
-#endif
-
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
@@ -177,6 +170,9 @@ protected:
     const string out_xquest = getStringOption_("out_xquestxml");
     const string out_xquest_specxml = getStringOption_("out_xquest_specxml");
     const string out_mzIdentML = getStringOption_("out_mzIdentML");
+
+    OPENMS_LOG_INFO << "Analyzing file: " << endl;
+    OPENMS_LOG_INFO << in_mzml << endl;
 
     // load MS2 map
     PeakMap unprocessed_spectra;

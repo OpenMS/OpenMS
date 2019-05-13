@@ -24,7 +24,7 @@
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(UniMod:4)LLPK"/>
       <ProteinRef ref="P02768"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
@@ -37,7 +37,7 @@
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(UniMod:4)LLPKLDELRDEGK"/>
       <ProteinRef ref="P02768"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
@@ -47,13 +47,15 @@
     </Peptide>
     <Peptide id="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3" sequence="AACAQLNDFLQEYGTQGCQV">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+      <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.2" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(UniMod:4)AQLNDFLQEYGTQGC(UniMod:4)QV"/>
+      <userParam name="GeneName" type="xsd:string" value="Gene1"/>
       <ProteinRef ref="P0C0L5;P0C0L4"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <Modification location="18" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
@@ -66,10 +68,10 @@
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(UniMod:4)IC(UniMod:4)AEEEKEEL"/>
       <ProteinRef ref="Q9BX93"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <Modification location="5" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
@@ -79,13 +81,15 @@
     </Peptide>
     <Peptide id="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2" sequence="AACGPSSCYALFPR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+      <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.6" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(UniMod:4)GPSSC(UniMod:4)YALFPR"/>
+      <userParam name="GeneName" type="xsd:string" value="Gene2"/>
       <ProteinRef ref="Q9HCU0"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <Modification location="8" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <RetentionTimeList>
         <RetentionTime>

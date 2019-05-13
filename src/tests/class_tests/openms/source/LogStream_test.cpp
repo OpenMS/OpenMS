@@ -95,10 +95,10 @@ START_SECTION(([EXTRA] OpenMP - test))
     #endif
     for (int i=0;i<10000;++i)
     {
-      LOG_DEBUG << "1\n";
-      LOG_DEBUG << "2" << endl;
-      LOG_INFO << "1\n";
-      LOG_INFO << "2" << endl;
+      OPENMS_LOG_DEBUG << "1\n";
+      OPENMS_LOG_DEBUG << "2" << endl;
+      OPENMS_LOG_INFO << "1\n";
+      OPENMS_LOG_INFO << "2" << endl;
     }
   }
 
@@ -393,7 +393,7 @@ START_SECTION(([EXTRA]Test log caching))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_FATAL_ERROR))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
@@ -402,8 +402,8 @@ START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
   {
     Log_fatal.insert(stream_by_logger);
 
-    LOG_FATAL_ERROR << "1\n";
-    LOG_FATAL_ERROR << "2" << endl;
+    OPENMS_LOG_FATAL_ERROR << "1\n";
+    OPENMS_LOG_FATAL_ERROR << "2" << endl;
   }
 
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
@@ -417,7 +417,7 @@ START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_ERROR))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_ERROR))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
@@ -428,14 +428,14 @@ START_SECTION(([EXTRA] Macro test - LOG_ERROR))
   {
     Log_error.insert(s);
 
-    LOG_ERROR << "1\n";
-    LOG_ERROR << "2" << endl;
+    OPENMS_LOG_ERROR << "1\n";
+    OPENMS_LOG_ERROR << "2" << endl;
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_WARN))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_WARN))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
@@ -446,14 +446,14 @@ START_SECTION(([EXTRA] Macro test - LOG_WARN))
   {
     Log_warn.insert(s);
 
-    LOG_WARN << "1\n";
-    LOG_WARN << "2" << endl;
+    OPENMS_LOG_WARN << "1\n";
+    OPENMS_LOG_WARN << "2" << endl;
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_INFO))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_INFO))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
@@ -469,14 +469,14 @@ START_SECTION(([EXTRA] Macro test - LOG_INFO))
   {
     Log_info.insert(s);
 
-    LOG_INFO << "1\n";
-    LOG_INFO << "2" << endl;
+    OPENMS_LOG_INFO << "1\n";
+    OPENMS_LOG_INFO << "2" << endl;
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
@@ -490,8 +490,8 @@ START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
   {
     Log_debug.insert(stream_by_logger);
 
-    LOG_DEBUG << "1\n";
-    LOG_DEBUG << "2" << endl;
+    OPENMS_LOG_DEBUG << "1\n";
+    OPENMS_LOG_DEBUG << "2" << endl;
   }
 
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
