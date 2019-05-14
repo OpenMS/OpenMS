@@ -816,6 +816,11 @@ namespace OpenMS
     // share a single filestream and call seek on it, chaos will ensue).
     if (use_ms1_traces_)
     {
+      if (ms1_map_ == nullptr) 
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Error, you attempted to use MS1 trances but no MS1 map provided." );
+      }
       OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
       featureFinder.setMS1Map( threadsafe_ms1 );
     }

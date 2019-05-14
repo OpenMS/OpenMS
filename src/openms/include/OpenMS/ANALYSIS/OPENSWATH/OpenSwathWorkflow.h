@@ -192,7 +192,7 @@ protected:
      * @note This pointer may be NULL if use_ms1_traces_ is set to false
      *
      */
-    OpenSwath::SpectrumAccessPtr ms1_map_;
+    OpenSwath::SpectrumAccessPtr ms1_map_ = nullptr;
 
     /// Whether to use the MS1 traces
     bool use_ms1_traces_;
