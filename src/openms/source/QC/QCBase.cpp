@@ -56,13 +56,27 @@ namespace OpenMS
     }
   }
 
-  const UInt64& QCBase::SpectraMap::getIndex(const String& identifier)
+  const UInt64& QCBase::SpectraMap::at(const String& identifier) const
   {
-    return map_to_index_[identifier];
+    if (map_to_index_.find(identifier) == map_to_index_.end())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum with given identifier in MSExperiment!");
+    }
+    return map_to_index_.at(identifier);
   }
 
   void QCBase::SpectraMap::clear()
   {
     map_to_index_.clear();
+  }
+
+  bool QCBase::SpectraMap::empty() const
+  {
+    return map_to_index_.empty();
+  }
+  
+  Size QCBase::SpectraMap::size() const
+  {
+    return map_to_index_.size();
   }
 } //namespace OpenMS

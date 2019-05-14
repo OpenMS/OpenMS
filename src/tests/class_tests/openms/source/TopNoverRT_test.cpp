@@ -82,7 +82,7 @@ START_SECTION(QCBase::Status requires() const override)
 }
 END_SECTION
 
-START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
+START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum))
 {
   //Valid FeatureMap
   FeatureMap fmap;
@@ -90,23 +90,23 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
   vector<PeptideIdentification> identifications;
   vector<PeptideIdentification> unassignedIDs;
   Feature feature1;
-  peptide_ID.setRT(0);
+  peptide_ID.setMetaValue("spectrum_reference","XTandem::0");
   identifications.push_back(peptide_ID);
-  peptide_ID.setRT(1);
+  peptide_ID.setMetaValue("spectrum_reference","XTandem::1");
   identifications.push_back(peptide_ID);
   feature1.setPeptideIdentifications(identifications);
   identifications.clear();
   fmap.push_back(feature1);
-  peptide_ID.setRT(10);
+  peptide_ID.setMetaValue("spectrum_reference","XTandem::10");
   identifications.push_back(peptide_ID);
-  peptide_ID.setRT(12);
+  peptide_ID.setMetaValue("spectrum_reference","XTandem::12");
   identifications.push_back(peptide_ID);
   feature1.setPeptideIdentifications(identifications);
   fmap.push_back(feature1);
   //unassigned PeptideHits
-  peptide_ID.setRT(1.5);
+  peptide_ID.setMetaValue("spectrum_reference","XTandem::1.5");
   unassignedIDs.push_back(peptide_ID);
-  peptide_ID.setRT(2.5);
+  peptide_ID.setMetaValue("spectrum_reference","XTandem::2.5");
   unassignedIDs.push_back(peptide_ID);
   fmap.setUnassignedPeptideIdentifications(unassignedIDs);
 
@@ -119,33 +119,44 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
   spec.setPrecursors({ pre });
   spec.setMSLevel(2);
   spec.setRT(0);
+  spec.setNativeID("XTandem::0");
   spectra.push_back(spec);
   spec.setMSLevel(1);
   spec.setRT(0.5);
+  spec.setNativeID("XTandem::0.5");
   spectra.push_back(spec);
   spec.setMSLevel(2);
   spec.setRT(1);
+  spec.setNativeID("XTandem::1");
   spectra.push_back(spec);
   spec.setRT(1.5);
+  spec.setNativeID("XTandem::1.5");
   spectra.push_back(spec);
   spec.setRT(2.5);
+  spec.setNativeID("XTandem::2.5");
   spectra.push_back(spec);
   spec.setMSLevel(1);
   spec.setRT(9);
+  spec.setNativeID("XTandem::9");
   spectra.push_back(spec);
   spec.setMSLevel(2);
   spec.setRT(10);
+  spec.setNativeID("XTandem::10");
   spectra.push_back(spec);
   spec.setRT(12);
+  spec.setNativeID("XTandem::12");
   spectra.push_back(spec);
   //not identified
   spec.setRT(20);
+  spec.setNativeID("XTandem::20");
   spectra.push_back(spec);
   exp.setSpectra(spectra);
 
+  QCBase::SpectraMap map_to_spectrum(exp);
+
   TopNoverRT top;
   vector<PeptideIdentification> new_unassigned_pep_ids;
-  new_unassigned_pep_ids = top.compute(exp, fmap);
+  new_unassigned_pep_ids = top.compute(exp, fmap, map_to_spectrum);
 
   //test features
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
@@ -164,13 +175,13 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
 
   //empty FeatureMap
   FeatureMap fmap_empty{};
-  new_unassigned_pep_ids = top.compute(exp, fmap_empty);
+  new_unassigned_pep_ids = top.compute(exp, fmap_empty, map_to_spectrum);
   TEST_EQUAL(new_unassigned_pep_ids.size(), 7);
   //empty feature
   fmap_empty.clear();
   Feature feature_empty{};
   fmap_empty.push_back(feature_empty);
-  new_unassigned_pep_ids = top.compute(exp, fmap_empty);
+  new_unassigned_pep_ids = top.compute(exp, fmap_empty, map_to_spectrum);
   TEST_EQUAL(new_unassigned_pep_ids.size(), 7);
   //empty PeptideIdentifications
   identifications.clear();
@@ -178,19 +189,16 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
   feature_empty.setPeptideIdentifications(identifications);
   fmap_empty.setUnassignedPeptideIdentifications(identifications);
   fmap_empty.push_back(feature_empty);
-  new_unassigned_pep_ids = top.compute(exp, fmap_empty);
+  new_unassigned_pep_ids = top.compute(exp, fmap_empty, map_to_spectrum);
   TEST_EQUAL(new_unassigned_pep_ids.size(), 7);
   //empty MSExperiment
   PeakMap exp_empty{};
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, top.compute(exp_empty, fmap), "The mzml file / MSExperiment is empty.\n");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, top.compute(exp_empty, fmap, map_to_spectrum), "The mzml file / MSExperiment is empty.\n");
 
-  //test exceptions spectrum.getRT() - peptide_ID.getRT() > EPSILON_
-  exp.getSpectra()[0].setRT(0.25);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "PeptideID with RT " + String(0.0) + " s does not have a matching MS2 spectrum. Closest RT was " + String(0.25) + ", which seems too far off.\n");
-  //test exception rt>end()
-  exp.getSpectra()[0].setRT(0);
-  fmap[1].getPeptideIdentifications()[1].setRT(50);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, top.compute(exp, fmap), "The retention time of the MZML and featureXML file does not match.");
+  //test exception PepID without 'spectrum_reference'
+  PeptideIdentification pep_no_spec_ref;
+  fmap[1].setPeptideIdentifications({pep_no_spec_ref});
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, top.compute(exp, fmap, map_to_spectrum), "No spectrum reference annotated at peptide identifiction!");
   }
 END_SECTION
 

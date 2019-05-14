@@ -83,10 +83,22 @@ namespace OpenMS
 
       // Destructor
       ~SpectraMap();
-      
+
+      // calculate a new map, delete the old one
       void calculateMap(const MSExperiment& exp);
-      const UInt64& getIndex(const String& identifier);
+
+      // get index from identifier
+      const UInt64& at(const String& identifier) const;
+
+      // clear the map
       void clear();
+      
+      // check if empty
+      bool empty() const;
+      
+      // get size of map
+      Size size() const;
+
     private:
       std::map<String,UInt64> map_to_index_;
     };

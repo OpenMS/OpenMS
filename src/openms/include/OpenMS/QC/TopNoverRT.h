@@ -79,12 +79,12 @@ namespace OpenMS
              write meta values "ScanEventNumber" and "identified" in PeptideIdentification.
       @param exp Imported calibrated MzML file as MSExperiment
       @param features Imported featureXML file after FDR as FeatureMap
+      @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
       @return unassigned peptide identifications newly generated from unidentified MS2-Spectra
       @throws MissingInformation If exp is empty
-      @throws IllegalArgument If retention time of the MzML and featureXML file does not match
-      @throws IllegalArgument If a peptide identification does not have a corresponding MS2 scan
+      @throws InvalidParameter PeptideID is missing meta value 'spectrum_reference'
     **/
-    std::vector<PeptideIdentification> compute(const MSExperiment& exp, FeatureMap& features);
+    std::vector<PeptideIdentification> compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum);
 
     /// returns the name of the metric
     const String& getName() const override;
@@ -95,6 +95,7 @@ namespace OpenMS
 
     /// name of the metric
     const String name_ = "TopNoverRT";
+    
     /// ms2_included_ contains for every spectrum the information "ScanEventNumber" and presence MS2-scan in PeptideIDs
     std::vector<ScanEvent> ms2_included_{};
 
@@ -102,7 +103,7 @@ namespace OpenMS
     void setScanEventNumber_(const MSExperiment& exp);
 
     /// set ms2_included_ bool to true, if PeptideID exist and set "ScanEventNumber" for every PeptideID
-    void setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp);
+    void setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 
     /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
     std::vector<PeptideIdentification> getUnassignedPeptideIdentifications_(const MSExperiment& exp);

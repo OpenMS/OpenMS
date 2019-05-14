@@ -42,12 +42,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  /// error tolerance RT
-  const double EPSILON_{ 0.05 };
-
   // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therfore have a entry in the featureMap)
   // MS2 spectra without mate are returned as vector of unassignedPeptideIdentifications (with empty sequence but some metavalue)
-  std::vector<PeptideIdentification> TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features)
+  std::vector<PeptideIdentification> TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (exp.empty())
     {
@@ -56,7 +53,7 @@ namespace OpenMS
 
     setScanEventNumber_(exp);
     // if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-    auto l_f = [&exp,this] (PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id,exp); };
+    auto l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id,exp,map_to_spectrum); };
     iterateFeatureMap(features, l_f);
     for (auto& f : features)
     {
@@ -107,24 +104,20 @@ namespace OpenMS
   }
 
   // marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
-  void TopNoverRT::setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp)
+  void TopNoverRT::setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum)
   {
-    MSExperiment::ConstIterator it = exp.RTBegin(peptide_ID.getRT() - EPSILON_);
-    if (it == exp.end())
+    if (!peptide_ID.metaValueExists("spectrum_reference"))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the MZML and featureXML file does not match.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identifiction!");
     }
-
-    const auto& spectrum = *it;
-    if (spectrum.getRT() - peptide_ID.getRT() > EPSILON_)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + String(peptide_ID.getRT()) + " s does not have a matching MS2 spectrum. Closest RT was " + String(spectrum.getRT()) + ", which seems too far off.\n");
-    }
+    
+    UInt64 index = map_to_spectrum.at(peptide_ID.getMetaValue("spectrum_reference").toString());
+    const MSSpectrum& spectrum = exp[index];
 
     if (spectrum.getMSLevel() == 2)
     {
-      ms2_included_[distance(exp.begin(), it)].ms2_presence = true;
-      peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].scan_event_number);
+      ms2_included_[index].ms2_presence = true;
+      peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[index].scan_event_number);
       peptide_ID.setMetaValue("identified", 1);
       annotatePepIDfromSpectrum_(spectrum, peptide_ID);
     }
