@@ -78,29 +78,24 @@
         </TR>
         <TR>
             <TD>
-                @b Brief: <br>
-                This metric checks whether the peptides are contaminants or not.<br>
                 @b Description: <br>
                 The Contaminants metric takes the contaminants database and digests the protein sequences with the
                 digestion enzyme that is given in the featureXML.
                 Afterwards it checks whether each of all peptide sequences of the featureXML (including the
-                unassigned PeptideIdentifications) is registered in the contaminants database. <br>
-                To all peptides that are identified as a contaminant, the metric will add the metavalue
-                'is_contaminant  = 1' to the first (best) hit of the PeptideIdentification of all features as well
-                as to every unassigned PeptideIdentification. <br>
-                Peptides that could not match any contaminant get an 'is_contaminant = 0' as a new metavalue.
-
+                unassigned PeptideIdentifications) is registered in the contaminants database.
             </TD>
             <TD>
                 <b> Changes in files:</b> <br>
-                This metric adds the new metavalue 'is_contaminant' into the first (best) hit of each
-                PeptideIdentification and sets it to '1' if the peptide sequence is found in the database
+                Metavalue: <br>
+                &emsp;- 'is_contaminant' set to '1' or to '0' if the peptide is found in the contaminant database or not
                 and sets a '0' if not.<br>
                 <b> Other outputs:</b> <br>
-                For each FeatureMap the metric calculates the contaminant ratio of 1.) all peptides,
-                2.) all assigned peptides and 3.) all unassigned peptides as well as the intensity
-                ratio of all contaminants in the assigned peptides. Furthermore the number of empty
-                features and the number of all found features is also returned.
+                Returns:<br>
+                &emsp;- Contaminant ratio of all peptides<br>
+                &emsp;- Contaminant ratio of all assigned peptides<br>
+                &emsp;- Contaminant ratio of all unassigned peptides<br>
+                &emsp;- Intensity ratio of all contaminants in the assigned peptides <br>
+                &emsp;- Number of empty features, Number of all found features
             </TD>
         </TR>
 
@@ -119,18 +114,19 @@
         </TR>
         <TR>
              <TD>
-                  @b Brief: <br>
-                  This metric computes a list of fragment mass errors for each annotated MS2 spectrum in ppm and Da.<br>
                   @b Description: <br>
-                  The FragmentMassError metric calculates the mass delta between observed and theoretical peaks.
+                  The FragmentMassError metric computes a list of fragment mass errors for each annotated MS2 spectrum in ppm and Da.
+                  Afterwards it calculates the mass delta between observed and theoretical peaks. <br>
              </TD>
 
              <TD>
                   <b> Changes in files:</b> <br>
-                  This metric adds the new metavalues 'fragment_mass_error_ppm' for the FragmentMassError in parts per
-                  million and 'fragment_mass_error_da'for the FragmentMassError in Dalton into the first (best) hit of the PeptideIdentifications.<br>
+                  Metavalue: <br>
+                  &emsp;- 'fragment_mass_error_ppm' set to the fragment mass error in parts per million <br>
+                  &emsp;- 'fragment_mass_error_da' set to the fragment mass error in Dalton. <br>
                   <b> Other Output:</b> <br>
-                  The FragmentMassError metric returns the average and the variance of FragmentMassErrors in ppm.
+                  Returns: <br>
+                  &emsp;- average and variance of fragment mass errors in ppm
              </TD>
         </TR>
         <TR>
@@ -159,7 +155,8 @@
                    Metavalue:<br>
                    &emsp;- 'missed_cleavages' <br>
                    <b> Other Output:</b> <br>
-                   Returns the number of cuts of all peptides in a key/value map.
+                   Returns: <br>
+                   &emsp;- number of cuts of all peptides in a key/value map
               </TD>
         </TR>
         <TR>
@@ -189,8 +186,8 @@
                    <b> Other Output:</b> <br>
                    Returns: <br>
                    &emsp;- number of PeptideIdentifications <br>
-                   &emsp;- number of ms2 spectra <br>
-                   &emsp;- ratio of #pepID/#ms2.
+                   &emsp;- number of MS2 spectra <br>
+                   &emsp;- ratio of #pepID/#MS2
               </TD>
         </TR>
 
@@ -248,7 +245,8 @@
                    <b> Changes in files:</b> <br>
                    This metric does not change anything in the data.<br>
                    <b> Other Output:</b> <br>
-                   Returns the TIC chromatograms.
+                   Returns:<br>
+                   &emsp;- TIC chromatograms
               </TD>
         </TR>
         <TR>
