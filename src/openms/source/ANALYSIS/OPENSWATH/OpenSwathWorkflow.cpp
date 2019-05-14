@@ -469,6 +469,41 @@ namespace OpenMS
       writeOutFeaturesAndChroms_(chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
     }
 
+    std::vector<int> prm_map;
+    if (prm_)
+    {
+      // Here we deal with overlapping PRM / DIA windows: we only want to extract
+      // each peptide from a single window and we assume that PRM windows are
+      // centered around the target peptide. We therefore select for each peptide
+      // the best-matching PRM / DIA window:
+      prm_map.resize(transition_exp.transitions.size(), -1);
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      {
+        for (Size k = 0; k < transition_exp.transitions.size(); k++)
+        {
+          const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+
+          // If the transition falls inside the current PRM / DIA window, check
+          // if the window is potentially a better match for extraction than
+          // the one previously stored in the map:
+          if (swath_maps[i].lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < swath_maps[i].upper &&
+              std::fabs(swath_maps[i].upper - tr.getPrecursorMZ()) >= cp.min_upper_edge_dist)
+          {
+
+            if (prm_map[k] == -1) prm_map[k] = i;
+            if (
+                std::fabs(swath_maps[ prm_map[k] ].center - tr.getPrecursorMZ() ) > 
+                std::fabs(swath_maps[ i ].center - tr.getPrecursorMZ() ) )
+            {
+              // current PRM / DIA window "i" is a better match
+              prm_map[k] = i;
+            }
+
+          }
+        }
+      }
+    }
+
     // (iii) Perform extraction and scoring of fragment ion chromatograms (MS2)
     // We set dynamic scheduling such that the maps are worked on in the order
     // in which they were given to the program / acquired. This gives much
@@ -492,8 +527,26 @@ namespace OpenMS
 
         // Step 1: select which transitions to extract (proceed in batches)
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
-        OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
-            cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
+        if (!prm_)
+        {
+          // Step 1.1: select transitions matching the window
+          OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
+              cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
+        }
+        else
+        {
+          // Step 1.2: select transitions based on matching PRM window (best window)
+          for (Size k = 0; k < prm_map.size(); k++)
+          {
+            if (prm_map[k] == i)
+            {
+               transition_exp_used_all.transitions.push_back(transition_exp.transitions[k]);
+            }
+          }
+          transition_exp_used_all.compounds = transition_exp.compounds; // copy all compounds
+          transition_exp_used_all.proteins = transition_exp.proteins; // copy all proteins
+        }
+
         if (transition_exp_used_all.getTransitions().size() > 0) // skip if no transitions found
         {
 
