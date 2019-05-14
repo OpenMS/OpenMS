@@ -87,7 +87,7 @@ protected:
     registerInputFileList_("in_postFDR", "<file>", {}, "featureXML input", false);
     setValidFormats_("in_postFDR", {"featureXML"});
     registerTOPPSubsection_("FragmentMassError", "test");
-    registerStringOption_("FragmentMassError:unit", "<unit>", "AUTO", "Unit for tolerance. auto: information from FeatureXML", false);
+    registerStringOption_("FragmentMassError:unit", "<unit>", "auto", "Unit for tolerance. auto: information from FeatureXML", false);
     setValidStrings_("FragmentMassError:unit", std::vector<String>(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT));
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "Search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Contaminant database input", false);

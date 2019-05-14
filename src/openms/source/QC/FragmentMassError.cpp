@@ -50,10 +50,10 @@
 
 namespace OpenMS
 {
-  const std::string FragmentMassError::names_of_toleranceUnit[] = {"PPM", "DA", "AUTO"};
+  const std::string FragmentMassError::names_of_toleranceUnit[] = {"ppm", "da", "auto"};
 
   template <typename MIV>
-  void twoSpecErrors (MIV mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
+  void twoSpecErrors (MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
   {
     while (mi != mi.end())
     {
@@ -74,7 +74,6 @@ namespace OpenMS
 
   void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, ToleranceUnit tolerance_unit, double tolerance)
   {
-    std::cout << "unit: " << names_of_toleranceUnit[int(tolerance_unit)] << std::endl;
     FMEStatistics result;
 
     // accumulates ppm errors over all first PeptideHits
