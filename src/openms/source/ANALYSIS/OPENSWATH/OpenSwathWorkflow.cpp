@@ -536,15 +536,36 @@ namespace OpenMS
         else
         {
           // Step 1.2: select transitions based on matching PRM window (best window)
+          std::set<std::string> matching_compounds;
           for (Size k = 0; k < prm_map.size(); k++)
           {
             if (prm_map[k] == i)
             {
-               transition_exp_used_all.transitions.push_back(transition_exp.transitions[k]);
+               const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+               transition_exp_used_all.transitions.push_back(tr);
+               matching_compounds.insert(tr.getPeptideRef());
             }
           }
-          transition_exp_used_all.compounds = transition_exp.compounds; // copy all compounds
-          transition_exp_used_all.proteins = transition_exp.proteins; // copy all proteins
+
+          std::set<std::string> matching_proteins;
+          for (Size i = 0; i < transition_exp.compounds.size(); i++)
+          {
+            if (matching_compounds.find(transition_exp.compounds[i].id) != matching_compounds.end())
+            {
+              transition_exp_used_all.compounds.push_back( transition_exp.compounds[i] );
+              for (Size j = 0; j < transition_exp.compounds[i].protein_refs.size(); j++)
+              {
+                matching_proteins.insert(transition_exp.compounds[i].protein_refs[j]);
+              }
+            }
+          }
+          for (Size i = 0; i < transition_exp.proteins.size(); i++)
+          {
+            if (matching_proteins.find(transition_exp.proteins[i].id) != matching_proteins.end())
+            {
+              transition_exp_used_all.proteins.push_back( transition_exp.proteins[i] );
+            }
+          }
         }
 
         if (transition_exp_used_all.getTransitions().size() > 0) // skip if no transitions found
