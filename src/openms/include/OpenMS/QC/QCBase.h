@@ -35,9 +35,9 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <iostream>
 
 namespace OpenMS

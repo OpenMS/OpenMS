@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Juliane Schmachtenberg $
+// $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -45,17 +45,19 @@ namespace OpenMS
   /**
     @brief  QC metric to determine the number of MS2 scans per MS1 scan over RT
 
-    TopNoverRT adds all unidentified MS2 scans to the unassignedPeptideIdentifications specifying the retention time value and
-    setting the metaValues "ScanEventNumber" and "identified" for all PeptideIdentifications.
+    TopNoverRT adds empty PeptideIdentifications (with no sequence) for all unidentified MS2 scans to the unassignedPeptideIdentifications()
+    specifying the RT and the metaValues "ScanEventNumber" and "identified".
 
-    "ScanEventNumber": number of the MS2 scans after the MS1 scan
+    "ScanEventNumber": consecutive number of each MS2 scan after the MS1 scan
     "identified": All PeptideIdentifications of the FeatureMap are marked with '+' and all unidentified MS2-Spectra with '-'.
 
-    "FWHM": RT peak width for all assigned PIs (if present)
-    "ion_injection_time": from MS2 spectrum (if present)
-    "activation_method": from MS2 spectrum (if present)
+    Additional metavalues are added for each PeptideIdentification:
+    "FWHM": RT peak width for all assigned PIs (if provided)
+    "ion_injection_time": from MS2 spectrum (if provided)
+    "activation_method": from MS2 spectrum (if provided)
+    "total_ion_count": summed intensity from MS2 spectrum (if provided)
+    "base_peak_intensity": highest intensity from MS2 spectrum (if provided)
 
-    Once all this data is included, you can determine the number of MS2 scans after one MS1 scan and the part of identified MS2-Scans per "ScanEventNumber".
     **/
   class OPENMS_DLLAPI TopNoverRT : public QCBase
   {

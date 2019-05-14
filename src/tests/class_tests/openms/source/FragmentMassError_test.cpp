@@ -38,7 +38,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>

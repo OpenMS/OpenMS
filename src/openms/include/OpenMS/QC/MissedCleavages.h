@@ -36,8 +36,9 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
-#include <vector>
 
+#include <vector>
+#include <map>
 namespace OpenMS
 {
   class FeatureMap;

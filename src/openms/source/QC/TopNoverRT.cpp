@@ -28,7 +28,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Juliane Schmachtenberg $
+// $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 
@@ -129,7 +129,7 @@ namespace OpenMS
       ms2_included_[distance(exp.begin(), it)].ms2_presence = true;
       peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[distance(exp.begin(), it)].scan_event_number);
       peptide_ID.setMetaValue("identified", 1);
-      peptide_ID.setMetaValue("current_ion_count", tic);
+      peptide_ID.setMetaValue("total_ion_count", tic);
       peptide_ID.setMetaValue("base_peak_intensity", bpi);
       annotatePepIDfromSpectrum_(spectrum, peptide_ID);
     }
@@ -153,7 +153,7 @@ namespace OpenMS
           unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
           unidentified_MS2.setMetaValue("identified", 0);
           unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
-          unidentified_MS2.setMetaValue("current_ion_count", tic);
+          unidentified_MS2.setMetaValue("total_ion_count", tic);
           unidentified_MS2.setMetaValue("base_peak_intensity", bpi);
           annotatePepIDfromSpectrum_(exp.getSpectra()[pos], unidentified_MS2);
           result.push_back(unidentified_MS2);

@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow$
-// $Authors: Juliane Schmachtenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -187,10 +187,10 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("identified"), 1);
   TEST_EQUAL(fmap[0].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 1);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("current_ion_count"), 6);
+  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("total_ion_count"), 6);
   TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("base_peak_intensity"), 4);
   TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
-  TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[1].getMetaValue("current_ion_count"), 10);
+  TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[1].getMetaValue("total_ion_count"), 10);
   TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[1].getMetaValue("base_peak_intensity"), 9);
   TEST_EQUAL(fmap[1].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 2);
   //test unassigned
@@ -200,7 +200,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features))
   TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getRT(), 20);
   TEST_EQUAL(new_unassigned_pep_ids[0].getMetaValue("ScanEventNumber"), 3);
   TEST_EQUAL(new_unassigned_pep_ids[0].getMetaValue("identified"), 0);
-  TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getMetaValue("current_ion_count"), 12);
+  TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getMetaValue("total_ion_count"), 12);
   TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getMetaValue("base_peak_intensity"), 7);
   TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getMZ(), 5.5);
 
