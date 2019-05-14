@@ -39,9 +39,10 @@
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/MissedCleavages.h>

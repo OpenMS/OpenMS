@@ -41,7 +41,7 @@
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-
+#include <OpenMS/METADATA/PeptideIdentification.h>
 ///////////////////////////
 
 START_TEST(RTAlignment, "$Id$");

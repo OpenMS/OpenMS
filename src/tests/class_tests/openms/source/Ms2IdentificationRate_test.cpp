@@ -37,7 +37,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideHit.h>

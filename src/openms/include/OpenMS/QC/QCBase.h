@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/DATASTRUCTURES/String.h
 #include <iostream>
 
 namespace OpenMS

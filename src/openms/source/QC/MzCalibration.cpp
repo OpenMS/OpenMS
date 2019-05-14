@@ -32,16 +32,15 @@
 // $Authors: Juliane Schmachtenberg $
 // --------------------------------------------------------------------------
 
-
-#include <OpenMS/QC/QCBase.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/QC/MzCalibration.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 using namespace std;
  
