@@ -819,7 +819,7 @@ namespace OpenMS
       if (ms1_map_ == nullptr) 
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Error, you attempted to use MS1 trances but no MS1 map provided." );
+            "Error, attempted to use MS1 traces, but no MS1 map was provided." );
       }
       OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
       featureFinder.setMS1Map( threadsafe_ms1 );
