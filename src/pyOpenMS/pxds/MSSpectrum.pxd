@@ -21,6 +21,12 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #   Iterations yields access to underlying peak objects but is slower
         #   Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
         #   See help(SpectrumSettings) for information about meta-information
+        #   -----
+        #   Usage:
+        #     ms_level = spectrum.getMSLevel()
+        #     rt = spectrum.getRT()
+        #     mz, intensities = spectrum.get_peaks()
+        #   -----
 
         MSSpectrum() nogil except +
         MSSpectrum(MSSpectrum &) nogil except +
