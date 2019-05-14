@@ -154,11 +154,12 @@ START_SECTION(static void checkSwathMap(const OpenMS::PeakMap &swath_map, double
   spectrum.setPrecursors(precursors);
   swath_map.addSpectrum(spectrum);
 
-  double lower, upper;
-  OpenSwathHelper::checkSwathMap(swath_map, lower, upper);
+  double lower, upper, center;
+  OpenSwathHelper::checkSwathMap(swath_map, lower, upper, center);
 
   TEST_REAL_SIMILAR(lower, 200);
   TEST_REAL_SIMILAR(upper, 300);
+  TEST_REAL_SIMILAR(center, 250);
 }
 END_SECTION
 
