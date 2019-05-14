@@ -1007,13 +1007,22 @@ namespace OpenMS
       String p_out_format = out_params[i].param_name + "_type"; // expected parameter name which determines output format
       if (out_params[i].valid_types.size() == 1)
       { // only one format allowed
-        file_suffix = "." + out_params[i].valid_types[0];
+        auto t = FileTypes::nameToType(out_params[i].valid_types[0]);
+        if (t != FileTypes::UNKNOWN) 
+        { // only use canonical names for suffixes, i.e. exact upper/lowercase match, i.e. always use "consensusXML", not "ConsensusXML" or "cOnsensusXML"
+          // (TOPPAS requires this, to avoid errors when copying temporary files)
+          file_suffix = "." + FileTypes::typeToName(t);
+        }
+        else
+        { // unknown type... just use it as it is
+          file_suffix = "." + out_params[i].valid_types[0];
+        }
       }
       else if (param_.exists(p_out_format))
       { // 'out_type' or alike is specified
         if (!param_.getValue(p_out_format).toString().empty()) file_suffix = "." + param_.getValue(p_out_format).toString();
         else OPENMS_LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
-                      << "' of Node " + this->name_ + "(" + String(this->getTopoNr()) + "). Format is ambiguous. Use parameter '" + p_out_format + "' to name intermediate output correctly!\n";
+                             << "' of Node " + this->name_ + "(" + String(this->getTopoNr()) + "). Format is ambiguous. Use parameter '" + p_out_format + "' to name intermediate output correctly!\n";
       }
       if (file_suffix.empty())
       { // tag as unknown (TOPPAS will try to rename the output file once its written - see renameOutput_())
