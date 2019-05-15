@@ -72,7 +72,7 @@ void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSec
   } 
 }
 
-void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap &consensus_map,
+void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const ConsensusMap &consensus_map,
                                 const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
                                 const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
                                 const String& retention_time_summarization_method)
@@ -154,16 +154,16 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
 
   if (!checkUnorderedContent_(spectra_paths, design_filenames))
   {
-    LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
-    LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
+    OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
+    OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
     for (auto const & s : spectra_paths)
     {
-      LOG_FATAL_ERROR << s << endl;
+      OPENMS_LOG_FATAL_ERROR << s << endl;
     }
-    LOG_FATAL_ERROR << "Spectra files (design): \n";
+    OPENMS_LOG_FATAL_ERROR << "Spectra files (design): \n";
     for (auto const & s : design_filenames)
     {
-      LOG_FATAL_ERROR << s << endl;
+      OPENMS_LOG_FATAL_ERROR << s << endl;
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   };
@@ -265,7 +265,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
             frag_ions.insert(sm.begin(), sm.end());
             if (frag_ions.size() == 1)
             {
-              for (auto frag_ions_elem : frag_ions)
+              for (const auto& frag_ions_elem : frag_ions)
               {
                 fragment_ion = frag_ions_elem;
               }
@@ -349,7 +349,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
         {
           if (retention_times.find(p.second) != retention_times.end())
           {
-            LOG_WARN <<  "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
+            OPENMS_LOG_WARN <<  "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
           }
           else
           {
@@ -408,7 +408,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
 }
 
 
-void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap &consensus_map,
+void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const ConsensusMap &consensus_map,
                                    const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
                                    const String& bioreplicate, const String& condition,
                                    const String& mixture, const String& retention_time_summarization_method)
@@ -455,9 +455,9 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
 
   // For each ConsensusFeature, store several attributes
   vector< vector< String > > consensus_feature_filenames;           // Filenames of ConsensusFeature
-  vector< vector< Intensity > > consensus_feature_intensites;       // Intensites of ConsensusFeature
+  vector< vector< Intensity > > consensus_feature_intensites;       // Intensities of ConsensusFeature
   vector< vector< Coordinate > > consensus_feature_retention_times; // Retention times of ConsensusFeature
-  vector< vector< unsigned > > consensus_feature_labels;          // Labels of ConsensusFeature
+  vector< vector< unsigned > > consensus_feature_labels;            // Labels of ConsensusFeature
 
   features.reserve(consensus_map.size());
 
@@ -469,7 +469,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
   {
     spectra_paths = reannotate_filenames;
   }
-  ConsensusMap::ColumnHeaders& column_headers = consensus_map.getColumnHeaders(); // needed for label_id
+  const auto& column_headers = consensus_map.getColumnHeaders(); // needed for label_id
 
   // Reduce spectra path to the basename of the files
   for (Size i = 0; i < spectra_paths.size(); ++i)
@@ -479,16 +479,16 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
 
   if (!checkUnorderedContent_(spectra_paths, design_filenames))
   {
-    LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
-    LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
+    OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
+    OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
     for (auto const & s : spectra_paths)
     {
-      LOG_FATAL_ERROR << s << endl;
+      OPENMS_LOG_FATAL_ERROR << s << endl;
     }
-    LOG_FATAL_ERROR << "Spectra files (design): \n";
+    OPENMS_LOG_FATAL_ERROR << "Spectra files (design): \n";
     for (auto const & s : design_filenames)
     {
-      LOG_FATAL_ERROR << s << endl;
+      OPENMS_LOG_FATAL_ERROR << s << endl;
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   }
@@ -512,7 +512,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
       retention_times.push_back(fit->getRT());
 
       // Get the label_id form the file description MetaValue
-      auto & column = column_headers[fit->getMapIndex()];
+      auto & column = column_headers.at(fit->getMapIndex());
       if (column.metaValueExists("channel_id"))
       {
         cf_labels.push_back(Int(column.getMetaValue("channel_id")));
@@ -575,7 +575,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
 
               const Intensity intensity(consensus_feature_intensites[i][j]);
               const Coordinate retention_time(consensus_feature_retention_times[i][j]);
-              const unsigned channel(consensus_feature_labels[i][j]);
+              const unsigned channel(consensus_feature_labels[i][j] + 1);
 
               const String & accession = pep_ev.getProteinAccession();
               peptideseq_to_accessions[sequence].insert(accession);
@@ -639,7 +639,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap 
         {
           if (retention_times.find(p.second) != retention_times.end())
           {
-            LOG_WARN <<  "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
+            OPENMS_LOG_WARN <<  "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
           }
           else
           {

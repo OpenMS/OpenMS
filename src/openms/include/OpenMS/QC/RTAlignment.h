@@ -42,8 +42,11 @@ namespace OpenMS
   class TransformationDescription;
 
   /**
-    @brief take the original retention time before map alignment and use the transformation information of the post alignment trafoXML
-    for calculation of the post map alignment retention times. Set meta values "rt_raw" and "rt_align" in PeptideIdentifications of the featureMap
+    @brief Take the original retention time before map alignment and use the transformation information of the alignment's trafoXML
+           for calculation of the post map alignment retention times.
+           
+    Sets meta values "rt_raw" and "rt_align" in PeptideIdentifications of the featureMap.
+    
     @param trafo: Transformation information of map alignment
     @param features: featureMap before map alignment, contains original retention time
     **/
@@ -52,6 +55,7 @@ namespace OpenMS
     public:
     /// Constructor
     RTAlignment() = default;
+    
     /// Destructor
     virtual ~RTAlignment() = default;
 
@@ -62,7 +66,15 @@ namespace OpenMS
      @param trafo: Transformation information to get needed data from
     **/
     void compute(FeatureMap& features, const TransformationDescription& trafo);
+    
+    /// returns the name of the metric
+    const String& getName() const override;
+    
     /// define the required input file: featureXML before map alignment (=POSTFDRFEAT), trafoXML after map alignment (=TRAFOALIGN)
     Status requires() const override;
+    
+  private:
+    /// name of the metric
+    const String name_ = "RTAlignment";
   };
 }

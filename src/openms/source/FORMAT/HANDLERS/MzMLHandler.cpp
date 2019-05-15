@@ -79,7 +79,7 @@ namespace OpenMS
       // check the version number of the mzML handler
       if (VersionInfo::VersionDetails::create(version_) == VersionInfo::VersionDetails::EMPTY)
       {
-        LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
+        OPENMS_LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
       }
     }
 
@@ -1057,7 +1057,7 @@ namespace OpenMS
         }
         catch (Exception::ParseError& /*e*/)
         {
-          LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" <<
+          OPENMS_LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" <<
           "The software tool which generated this mzML should be fixed. Please notify the maintainers." << std::endl;
         }
         processing_[current_id_].push_back(dp);

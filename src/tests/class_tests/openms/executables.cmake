@@ -20,6 +20,7 @@ set(qc_executables_list
   FragmentMassError_test
   MissedCleavages_test
   Ms2IdentificationRate_test
+  MzCalibration_test
   RTAlignment_test
   TIC_test
   TopNoverRT_test
@@ -56,6 +57,7 @@ set(datastructures_executables_list
   LPWrapper_test
   Map_test
   MassExplainer_test
+  MatchedIterator_test
   Matrix_test
   #MatrixUtils_test
   OPXLDataStructs_test
@@ -660,6 +662,7 @@ if(NOT DISABLE_OPENSWATH)
     SwathQC_test
     CachedMzML_test
     CachedMzMLHandler_test
+    HDF5_test
   )
 endif(NOT DISABLE_OPENSWATH)
 

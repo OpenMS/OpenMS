@@ -201,7 +201,7 @@ namespace OpenMS
       {
         if (!dry_run && !File::exists(f))
         {
-          LOG_ERROR << "The file '" << String(f) << "' does not exist!" << std::endl;
+          OPENMS_LOG_ERROR << "The file '" << String(f) << "' does not exist!" << std::endl;
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, f.toStdString());
         }
         QString new_file = full_dir.toQString()
@@ -305,7 +305,7 @@ namespace OpenMS
           }
           else
           {
-            LOG_ERROR << "Could not copy tmp output file " << String(file_from) << " to " << String(file_to) << std::endl;
+            OPENMS_LOG_ERROR << "Could not copy tmp output file " << String(file_from) << " to " << String(file_to) << std::endl;
           }
         }
         update(boundingRect()); // repaint

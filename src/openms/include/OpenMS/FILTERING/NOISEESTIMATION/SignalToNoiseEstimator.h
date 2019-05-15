@@ -165,8 +165,8 @@ protected:
     */
     struct GaussianEstimate
     {
-      double mean;   ///mean of estimated Gaussian
-      double variance; ///variance of estimated Gaussian
+      double mean;   ///< mean of estimated Gaussian
+      double variance; ///< variance of estimated Gaussian
     };
 
 

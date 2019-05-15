@@ -80,6 +80,18 @@ namespace OpenMS
           static OpenMS::String extractNativeIDFromSiriusMS_(const OpenMS::String& path_to_sirius_workspace);
 
           /**
+          @brief extractMIDFromSiriusMS
+          Extract mid from SIRIUS output (./spectrum.ms).
+          Mid is the native id + an index, which is incremented based
+          on the number of possible identifications (accurate mass search).
+
+          @return String mid of current SIRIUS compound
+
+          @param path_to_sirius_workspace: Path to SIRIUS workspace.
+          */
+          static OpenMS::String extractMIDFromSiriusMS_(const String& path_to_sirius_workspace);
+
+          /**
           @brief extractAnnotationFromSiriusFile  
           Extract fragment annotation from SIRIUS  (./spectra/1_sumformula.ms).
 

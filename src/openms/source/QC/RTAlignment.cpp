@@ -31,12 +31,14 @@
 // $Authors: Juliane Schmachtenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/QC/RTAlignment.h>
+
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/QC/RTAlignment.h>
 
 #include <algorithm>
 
@@ -50,12 +52,13 @@ namespace OpenMS
   {
     if (features.empty())
     {
-      LOG_WARN << "The FeatureMap is empty.\n";
+      OPENMS_LOG_WARN << "The FeatureMap is empty.\n";
     }
 
     // if featureMap after map alignment was handed, return Exception
     auto is_elem = [](DataProcessing dp) { return (find(dp.getProcessingActions().begin(), dp.getProcessingActions().end(), DataProcessing::ProcessingAction::ALIGNMENT) != dp.getProcessingActions().end());  };
-    if (any_of(features.getDataProcessing().begin(), features.getDataProcessing().end(), is_elem))
+    auto vdp = features.getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
+    if (all_of(vdp.begin(), vdp.end(), is_elem))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metric RTAlignment received a featureXML AFTER map alignment, but needs a featureXML BEFORE map alignment!");
     }
@@ -75,6 +78,11 @@ namespace OpenMS
         unassigned_ID.setMetaValue("rt_align", trafo.apply(unassigned_ID.getRT()));
         unassigned_ID.setMetaValue("rt_raw", unassigned_ID.getRT());
     }
+  }
+  
+  const String& RTAlignment::getName() const
+  {
+    return name_;
   }
 
   //required input files

@@ -47,8 +47,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      A processing step that was applied to a data item, possibly with associated scores.
+    /** @brief A processing step that was applied to a data item, possibly with associated scores.
     */
     struct AppliedProcessingStep
     {
@@ -70,8 +69,7 @@ namespace OpenMS
                 (scores == other.scores));
       }
 
-      /*!
-        Return scores in order of priority (primary first).
+      /* @brief Return scores in order of priority (primary first).
 
         The order is defined in the @p DataProcessingSoftware referenced by the processing step (if available).
         Scores not listed there are included at the end of the output.
@@ -94,7 +92,7 @@ namespace OpenMS
             }
           }
         }
-        for (auto pair: scores)
+        for (const auto& pair: scores)
         {
           if (!scores_done.count(pair.first))
           {

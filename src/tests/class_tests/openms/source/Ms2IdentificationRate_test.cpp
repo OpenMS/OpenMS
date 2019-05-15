@@ -37,7 +37,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -213,6 +213,13 @@ START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & 
   //no ms2 spectra
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_ms1.compute(fmap, ms1_exp), "No MS2 spectra found")
 
+}
+END_SECTION
+
+
+START_SECTION(const String& getName() const override)
+{
+  TEST_EQUAL(ms2ir.getName(), "Ms2IdentificationRate")
 }
 END_SECTION
 

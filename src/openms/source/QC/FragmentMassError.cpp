@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -49,7 +50,29 @@
 
 namespace OpenMS
 {
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const double tolerance, const ToleranceUnit tolerance_unit)
+  const std::string FragmentMassError::names_of_toleranceUnit[] = {"ppm", "da", "auto"};
+
+  template <typename MIV>
+  void twoSpecErrors (MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
+  {
+    while (mi != mi.end())
+    {
+      // difference between peaks
+      auto dalt_diff = mi->getMZ() - mi.ref().getMZ();
+      auto ppm_diff = Math::getPPM(mi->getMZ(), mi.ref().getMZ());
+
+      ppms.push_back(ppm_diff);
+      dalton.push_back(dalt_diff);
+
+      // for statistics
+      accumulator_ppm += ppm_diff;
+      ++ counter_ppm;
+
+      ++mi;
+    }
+  }
+
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, ToleranceUnit tolerance_unit, double tolerance)
   {
     FMEStatistics result;
 
@@ -59,7 +82,7 @@ namespace OpenMS
     // counts number of ppm errors
     UInt32 counter_ppm{};
 
-    const float rt_tolerance = 0.05;
+    const float rt_tolerance = 0.05f;
 
     //---------------------------------------------------------------------
     // Prepare MSExperiment
@@ -78,12 +101,25 @@ namespace OpenMS
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
 
+    //-------------------------------------------------------------------
+    // find tolerance unit and value
+    //------------------------------------------------------------------
+    if (tolerance_unit == ToleranceUnit::AUTO)
+    {
+      if (fmap.getProteinIdentifications().empty() )
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There is no information about fragment mass tolerance given in the FeatureXML. Please choose a fragment_mass_unit");
+      }
+      tolerance_unit = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
+      tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
+    }
+
     // computes the FragmentMassError
     auto lamCompPPM = [&exp, rt_tolerance, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
-        LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
+        OPENMS_LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
         return;
       }
 
@@ -171,7 +207,7 @@ namespace OpenMS
       theo_gen.setParameters(theo_gen_settings);
 
       // generate a-, b- and y-ion spectrum of peptide seq with charge
-      theo_gen.getSpectrum(theo_spectrum, seq, charge, charge);
+      theo_gen.getSpectrum(theo_spectrum, seq, 1, charge);
 
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
@@ -179,7 +215,7 @@ namespace OpenMS
 
       if (exp_spectrum.empty() || theo_spectrum.empty())
       {
-        LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
+        OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
         return;
       }
 
@@ -190,66 +226,19 @@ namespace OpenMS
       DoubleList ppms{};
       DoubleList dalton{};
 
-      // exp_peak matching to previous theo_peak
-      double current_exp = std::numeric_limits<double>::max();
-      
-      // max ppm
-      double ppm = std::numeric_limits<double>::max();
-
-      //max da
-      double da = std::numeric_limits<double>::max();
-
-      for (const Peak1D& peak : theo_spectrum)
+      // iterator, finds nearest peak of a target container to a given peak in a reference container
+      if (tolerance_unit == ToleranceUnit::DA)
       {
-        const double theo_mz = peak.getMZ();
-        Size index = exp_spectrum_filtered.findNearest(theo_mz);
-        const double exp_mz = exp_spectrum_filtered[index].getMZ();
-        
-        const double mz_tolerance = (tolerance_unit==ToleranceUnit::PPM) ?  Math::ppmToMass(tolerance, theo_mz) : tolerance;
-
-        // found peak match
-        if (std::abs(theo_mz-exp_mz) < mz_tolerance)
-        {
-          auto current_ppm = Math::getPPM(exp_mz, theo_mz);
-          auto current_da = exp_mz - theo_mz;
-
-          // first peak in tolerance range
-          if (current_exp == std::numeric_limits<double>::max())
-          {
-            ppm = current_ppm;
-            da = current_da;
-            current_exp = exp_mz;
-          }
-
-          // theo_peak matches to a exp_peak that is already matched
-          // && ppm is smaller than before
-          if (current_exp == exp_mz && abs(current_ppm) < abs(ppm))
-          {
-            ppm = current_ppm;
-            da = current_da;
-          }
-
-          // theo_peak matches to another exp_peaks
-          if (current_exp != exp_mz)
-          {
-            ppms.push_back(ppm);
-            dalton.push_back(da);
-
-            ++ counter_ppm;
-
-            accumulator_ppm += ppm;
-            ppm = current_ppm;
-            current_exp = exp_mz;
-          }
-
-         }
+        using MIV = MatchedIterator<MSSpectrum, DaTrait, true>;
+        MIV mi(theo_spectrum, exp_spectrum_filtered, tolerance);
+        twoSpecErrors(mi, ppms, dalton, accumulator_ppm, counter_ppm);
       }
-
-      // last peak doesn't have a successor so it has to be added manually
-      ppms.push_back(ppm);
-      accumulator_ppm += ppm;
-      ++ counter_ppm;
-
+      else
+      {
+        using MIV = MatchedIterator<MSSpectrum, PpmTrait, true>;
+        MIV mi(theo_spectrum, exp_spectrum_filtered, tolerance);
+        twoSpecErrors(mi, ppms, dalton, accumulator_ppm, counter_ppm);
+      }
 
       //-----------------------------------------------------------------------
       // WRITE PPM ERROR IN PEPTIDEHIT
@@ -263,6 +252,11 @@ namespace OpenMS
 
     auto lamVar = [&result](const PeptideIdentification& pep_id)
     {
+      if (pep_id.getHits().empty())
+      {
+        OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
+        return;
+      }
       for (auto ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
       {
         result.variance_ppm += pow((ppm - result.average_ppm),2);
@@ -290,6 +284,10 @@ namespace OpenMS
 
   }
 
+  const String& FragmentMassError::getName() const
+  {
+    return name_;
+  }
 
   const std::vector<FragmentMassError::FMEStatistics>& FragmentMassError::getResults() const
   {

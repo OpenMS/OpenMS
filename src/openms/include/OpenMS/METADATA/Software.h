@@ -65,7 +65,7 @@ public:
 
     /// Equality operator
     bool operator==(const Software& rhs) const;
-    /// Unequality operator
+    /// Inequality operator
     bool operator!=(const Software& rhs) const;
     /// Less-than operator (for sorting)
     bool operator<(const Software& rhs) const;

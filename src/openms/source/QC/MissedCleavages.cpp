@@ -32,12 +32,15 @@
 // $Authors: Swenja Wagner, Patricia Scheil $
 // --------------------------------------------------------------------------
 
-#include <iostream>
+#include <OpenMS/QC/MissedCleavages.h>
+
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/QC/MissedCleavages.h>
+
+#include <iostream>
 
 namespace OpenMS
 {
@@ -49,10 +52,10 @@ namespace OpenMS
 
     mapU32 result{};
 
-    //Warning if the FeatureMap is empty, result is 0
+    // if the FeatureMap is empty, result is 0
     if (fmap.empty())
     {
-      LOG_WARN << "FeatureXML is empty.";
+      OPENMS_LOG_WARN << "FeatureXML is empty.";
       mc_result_.push_back(result);
       return;
     }
@@ -82,16 +85,17 @@ namespace OpenMS
     {
       if (pep_id.getHits().empty())
       {
+        OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
         return;
       }
       std::vector<AASequence> digest_output;
       digestor.digest(pep_id.getHits()[0].getSequence(), digest_output);
-      size_t num_mc = digest_output.size() - 1;
+      UInt32 num_mc = UInt32(digest_output.size() - 1);
 
       //Warning if number of missed cleavages is greater than the allowed maximum number of missed cleavages
       if (num_mc > max_mc)
       {
-        LOG_WARN << "Observed number of missed cleavages: " << num_mc << " is greater than: " << max_mc << " the allowed maximum number of missed cleavages during MS2-Search in: " << pep_id.getHits()[0].getSequence();
+        OPENMS_LOG_WARN << "Observed number of missed cleavages: " << num_mc << " is greater than: " << max_mc << " the allowed maximum number of missed cleavages during MS2-Search in: " << pep_id.getHits()[0].getSequence();
       }
 
       ++result[num_mc];
@@ -105,6 +109,12 @@ namespace OpenMS
     mc_result_.push_back(result);
   }
 
+  
+  const String& MissedCleavages::getName() const
+  {
+    return name_;
+  }
+  
 
   const std::vector<mapU32>& MissedCleavages::getResults() const
   {

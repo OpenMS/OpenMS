@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Juliane Schmachtenberg $
+// $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -40,17 +40,24 @@ namespace OpenMS
   class FeatureMap;
   class MSExperiment;
   class TransformationDescription;
+  class MSSpectrum;
 
   /**
     @brief  QC metric to determine the number of MS2 scans per MS1 scan over RT
 
-    TopNoverRT adds all unidentified MS2 scans to the unassignedPeptideIdentifications specifying the retention time value and
-    setting the metaValues "ScanEventNumber" and "identified" for all PeptideIdentifications.
+    TopNoverRT adds empty PeptideIdentifications (with no sequence) for all unidentified MS2 scans to the unassignedPeptideIdentifications()
+    specifying the RT and the metaValues "ScanEventNumber" and "identified".
 
-    "ScanEventNumber": number of the MS2 scans after the MS1 scan
+    "ScanEventNumber": consecutive number of each MS2 scan after the MS1 scan
     "identified": All PeptideIdentifications of the FeatureMap are marked with '+' and all unidentified MS2-Spectra with '-'.
 
-    Once all this data is included, you can determine the number of MS2 scans after one MS1 scan and the part of identified MS2-Scans per "ScanEventNumber".
+    Additional metavalues are added for each PeptideIdentification:
+    "FWHM": RT peak width for all assigned PIs (if provided)
+    "ion_injection_time": from MS2 spectrum (if provided)
+    "activation_method": from MS2 spectrum (if provided)
+    "total_ion_count": summed intensity from MS2 spectrum (if provided)
+    "base_peak_intensity": highest intensity from MS2 spectrum (if provided)
+
     **/
   class OPENMS_DLLAPI TopNoverRT : public QCBase
   {
@@ -75,17 +82,22 @@ namespace OpenMS
              write meta values "ScanEventNumber" and "identified" in PeptideIdentification.
       @param exp Imported calibrated MzML file as MSExperiment
       @param features Imported featureXML file after FDR as FeatureMap
+      @return unassigned peptide identifications newly generated from unidentified MS2-Spectra
       @throws MissingInformation If exp is empty
       @throws IllegalArgument If retention time of the MzML and featureXML file does not match
       @throws IllegalArgument If a peptide identification does not have a corresponding MS2 scan
     **/
-    void compute(const MSExperiment& exp, FeatureMap& features);
+    std::vector<PeptideIdentification> compute(const MSExperiment& exp, FeatureMap& features);
 
+    /// returns the name of the metric
+    const String& getName() const override;
     /// define the required input file: featureXML after FDR (=POSTFDRFEAT), MzML-file (MSExperiment) with all MS2-Spectra (=RAWMZML)
     Status requires() const override;
 
   private:
 
+    /// name of the metric
+    const String name_ = "TopNoverRT";
     /// ms2_included_ contains for every spectrum the information "ScanEventNumber" and presence MS2-scan in PeptideIDs
     std::vector<ScanEvent> ms2_included_{};
 
@@ -95,7 +107,11 @@ namespace OpenMS
     /// set ms2_included_ bool to true, if PeptideID exist and set "ScanEventNumber" for every PeptideID
     void setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp);
 
-    /// add all unidentified MS2-Scans to unassignedPeptideIDs, the new unassignedPeptideIDs contains only Information about RT and "ScanEventNumber"
-    void addUnassignedPeptideIdentification_(const MSExperiment& exp, FeatureMap& features) ;
+    /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
+    std::vector<PeptideIdentification> getUnassignedPeptideIdentifications_(const MSExperiment& exp);
+
+    /// calculate highest intensity (base peak intensity) and summed intensities (total ion count)
+    /// writes result into given variables
+    void getBPIandCIC_(const MSSpectrum& spec, Peak1D::IntensityType& bpi, Peak1D::IntensityType& tic); //TODO move functionality to MSSpectrum
   };
 }

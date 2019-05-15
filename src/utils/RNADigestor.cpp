@@ -164,7 +164,7 @@ protected:
 
     FASTAFile().store(out, all_fragments);
 
-    LOG_INFO << "Digested " << seq_data.size() << " sequence(s) into "
+    OPENMS_LOG_INFO << "Digested " << seq_data.size() << " sequence(s) into "
              << all_fragments.size()
              << " fragments meeting the length restrictions." << endl;
 

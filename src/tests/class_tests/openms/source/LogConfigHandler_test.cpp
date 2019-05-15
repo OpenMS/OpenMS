@@ -95,10 +95,10 @@ START_SECTION((void configure(const Param &param)))
 
   LogConfigHandler::getInstance().configure(p);
 
-  LOG_INFO << "1" << endl;
-  LOG_INFO << "2" << endl;
-  LOG_WARN << "3" << endl;
-  LOG_ERROR << "4" << endl;
+  OPENMS_LOG_INFO << "1" << endl;
+  OPENMS_LOG_INFO << "2" << endl;
+  OPENMS_LOG_WARN << "3" << endl;
+  OPENMS_LOG_ERROR << "4" << endl;
 
   settings.clear();
   settings.push_back("WARNING clear");
@@ -107,7 +107,7 @@ START_SECTION((void configure(const Param &param)))
   LogConfigHandler::getInstance().configure(p);
 
   // this should go into nowhere
-  LOG_WARN << "5" << endl;
+  OPENMS_LOG_WARN << "5" << endl;
 
   ostringstream& info_warn_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("testing_info_warn_stream"));
   String info_warn_stream_content(info_warn_stream.str());
@@ -151,7 +151,7 @@ START_SECTION((ostream& getStream(const String &stream_name)))
 
   LogConfigHandler::getInstance().configure(p);
 
-  LOG_INFO << "getStream 1" << endl;
+  OPENMS_LOG_INFO << "getStream 1" << endl;
 
   ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("testing_getStream"));
   String info_content(info_stream.str());

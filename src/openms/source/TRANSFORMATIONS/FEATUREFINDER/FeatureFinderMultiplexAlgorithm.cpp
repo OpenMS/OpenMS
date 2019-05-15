@@ -405,7 +405,7 @@ namespace OpenMS
           spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
         }
 
-        if (chromatogram.size() > 2)
+        if (chromatogram.size() > 1)
         {
           double rt_start = chromatogram.begin()->getPos();
           double rt_end = chromatogram.back().getPos();
@@ -413,7 +413,10 @@ namespace OpenMS
           PeakIntegrator::PeakArea pa = pi.integratePeak(chromatogram, rt_start, rt_end);          
           intensity_sum += pa.area;
         }
-
+        else if (chromatogram.size() == 1)
+        {
+          intensity_sum += chromatogram.begin()->getIntensity();
+        }
       }
       
       rt /= intensity_sum_simple;
@@ -514,7 +517,7 @@ namespace OpenMS
           spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
         }
         
-        if (chromatogram.size() > 2)
+        if (chromatogram.size() > 1)
         {
           // Positions are already sorted in makePeakPositionUnique(), i.e. sortByPosition() not necessary.
           double rt_start = chromatogram.begin()->getPos();
@@ -523,6 +526,11 @@ namespace OpenMS
           PeakIntegrator::PeakArea pa = pi.integratePeak(chromatogram, rt_start, rt_end);          
           intensity_sum += pa.area;
         }
+        else if (chromatogram.size() == 1)
+        {
+          intensity_sum += chromatogram.begin()->getIntensity();
+        }
+        
       }
       
       rt /= intensity_sum_simple;

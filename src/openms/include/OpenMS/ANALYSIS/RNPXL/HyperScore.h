@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -65,7 +65,7 @@ struct OPENMS_DLLAPI HyperScore
 
   private:
     // helper to compute the log factorial
-    static double logfactorial_(UInt x);
+    static double logfactorial_(const int x, int base = 2);
 };
 
 }

@@ -325,6 +325,24 @@ START_SECTION((void run(FeatureMap&, MzTab&) const))
     NEW_TMP_FILE(tmp_mztab_file);
     MzTabFile().store(tmp_mztab_file, test_mztab);
     TEST_EQUAL(fsc.compareFiles(tmp_mztab_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_featureXML.mzTab")), true);
+    
+    // test use of adduct information
+    Param ams_param_tmp = ams_param;
+    ams_param_tmp.setValue("use_feature_adducts", "true");
+      
+    AccurateMassSearchEngine ams_feat_test2;
+    ams_feat_test2.setParameters(ams_param_tmp);
+    ams_feat_test2.init();
+
+    FeatureMap exp_fm2;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm2);
+    MzTab test_mztab2;
+    ams_feat_test2.run(exp_fm2, test_mztab2);
+
+    String tmp_mztab_file2;
+    NEW_TMP_FILE(tmp_mztab_file2);
+    MzTabFile().store(tmp_mztab_file2, test_mztab2);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztab_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output2_featureXML.mzTab")), true);
   }
 }
 END_SECTION

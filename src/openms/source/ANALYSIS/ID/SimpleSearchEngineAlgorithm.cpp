@@ -73,9 +73,6 @@
 
 #ifdef _OPENMP
   #include <omp.h>
-  #define NUMBER_OF_THREADS (omp_get_num_threads())
-#else
-  #define NUMBER_OF_THREADS (1)
 #endif
 
 
@@ -173,18 +170,6 @@ namespace OpenMS
   }
 
   // static
-  vector<const ResidueModification*> SimpleSearchEngineAlgorithm::getModifications_(const StringList& modNames)
-  {
-    vector<const ResidueModification*> modifications;
-    // iterate over modification names and add to vector
-    for (const String& m : modNames)
-    {
-      modifications.push_back(ModificationsDB::getInstance()->getModification(m));
-    }
-    return modifications;
-  }
-
-  // static
   void SimpleSearchEngineAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     // filter MS2 map
@@ -239,8 +224,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       std::vector<ProteinIdentification>& protein_ids, 
       std::vector<PeptideIdentification>& peptide_ids, 
       Size top_hits,
-      const std::vector<const ResidueModification*>& fixed_modifications, 
-      const std::vector<const ResidueModification*>& variable_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
       Size max_variable_mods_per_peptide,
       const StringList& modifications_fixed,
       const StringList& modifications_variable,
@@ -361,8 +346,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
 
-    vector<const ResidueModification*> fixed_modifications = getModifications_(modifications_fixed_);
-    vector<const ResidueModification*> variable_modifications = getModifications_(modifications_variable_);
+    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
     // load MS2 map
     PeakMap spectra;
@@ -440,21 +425,16 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     digestor.setEnzyme(enzyme_);
     digestor.setMissedCleavages(peptide_missed_cleavages_);
 
-    startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
+    startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     set<StringView> processed_petides;
 
-    Size count_proteins(0), count_peptides(0);
+    std::atomic<Size> count_proteins(0), count_peptides(0);
 
-#ifdef _OPENMP
-#pragma omp parallel for schedule(static)
-#endif
-      for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
-      {
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
+    #pragma omp parallel for schedule(static)
+    for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
+    {
       ++count_proteins;
 
       IF_MASTERTHREAD
@@ -474,35 +454,28 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         if (!peptide_motif_.empty() && !boost::regex_match(current_peptide, peptide_motif_regex)) { continue; }          
       
         bool already_processed = false;
-#ifdef _OPENMP
-#pragma omp critical (processed_peptides_access)
-#endif
+        #pragma omp critical (processed_peptides_access)
         {
           // peptide (and all modified variants) already processed so skip it
           if (processed_petides.find(c) != processed_petides.end())
           {
             already_processed = true;
           }
-	  else
-	  {
+          else
+          {
             processed_petides.insert(c);
-	  }
+          }
         }
 
         // skip peptides that have already been processed
         if (already_processed) { continue; }
 
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
         ++count_peptides;
 
         vector<AASequence> all_modified_peptides;
 
         // this critial section is because ResidueDB is not thread safe and new residues are created based on the PTMs
-#ifdef _OPENMP
-#pragma omp critical (residuedb_access)
-#endif
+        #pragma omp critical (residuedb_access)
         {
           AASequence aas = AASequence::fromString(current_peptide);
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
@@ -578,9 +551,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     }
     endProgress();
 
-    LOG_INFO << "Proteins: " << count_proteins << endl;
-    LOG_INFO << "Peptides: " << count_peptides << endl;
-    LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
+    OPENMS_LOG_INFO << "Proteins: " << count_proteins << endl;
+    OPENMS_LOG_INFO << "Peptides: " << count_peptides << endl;
+    OPENMS_LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
 
     startProgress(0, 1, "Post-processing PSMs...");
     SimpleSearchEngineAlgorithm::postProcessHits_(spectra, 

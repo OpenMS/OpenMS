@@ -50,6 +50,12 @@ namespace OpenMS
     results_.push_back(exp.getTIC(bin_size));
   }
 
+  /// Returns the name of the metric
+  const String& TIC::getName() const
+  {
+    return name_;
+  }
+  
   /// Returns all results calculated with compute.
   const std::vector<MSChromatogram>& TIC::getResults() const
   {

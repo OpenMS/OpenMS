@@ -73,7 +73,7 @@ namespace OpenMS
       catch (XMLException& e)
       {
         char* message = XMLString::transcode(e.getMessage());
-        LOG_ERROR << "XML toolkit initialization error: " << message << endl;
+        OPENMS_LOG_ERROR << "XML toolkit initialization error: " << message << endl;
         XMLString::release(&message);
         // throw exception here to return ERROR_XERCES_INIT
       }
@@ -107,7 +107,7 @@ namespace OpenMS
       catch (XMLException& e)
       {
         char* message = XMLString::transcode(e.getMessage());
-        LOG_ERROR << "XML toolkit initialization error: " << message << endl;
+        OPENMS_LOG_ERROR << "XML toolkit initialization error: " << message << endl;
         XMLString::release(&message);
       }
 
@@ -135,7 +135,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        LOG_ERROR << "Unknown exception encountered in 'TagNames' destructor" << endl;
+        OPENMS_LOG_ERROR << "Unknown exception encountered in 'TagNames' destructor" << endl;
       }
 
       // Terminate Xerces
@@ -146,7 +146,7 @@ namespace OpenMS
       catch (xercesc::XMLException& e)
       {
         char* message = xercesc::XMLString::transcode(e.getMessage());
-        LOG_ERROR << "XML toolkit teardown error: " << message << endl;
+        OPENMS_LOG_ERROR << "XML toolkit teardown error: " << message << endl;
         XMLString::release(&message);
       }
     }
@@ -213,7 +213,7 @@ namespace OpenMS
 
         if (xl_ms_search_)
         {
-          LOG_DEBUG << "Reading a Cross-Linking MS file." << endl;
+          OPENMS_LOG_DEBUG << "Reading a Cross-Linking MS file." << endl;
         }
 
         // 0. AnalysisSoftwareList {0,1}
@@ -279,7 +279,7 @@ namespace OpenMS
         char* message = xercesc::XMLString::transcode(e.getMessage());
 //          ostringstream errBuf;
 //          errBuf << "Error parsing file: " << message << flush;
-        LOG_ERROR << "XERCES error parsing file: " << message << flush << endl;
+        OPENMS_LOG_ERROR << "XERCES error parsing file: " << message << flush << endl;
         XMLString::release(&message);
       }
     }
@@ -418,20 +418,20 @@ namespace OpenMS
           catch (const XMLException& toCatch)
           {
             char* message = XMLString::transcode(toCatch.getMessage());
-            LOG_ERROR << "Serialisation exception: \n"
+            OPENMS_LOG_ERROR << "Serialisation exception: \n"
                       << message << "\n";
             XMLString::release(&message);
           }
           catch (const DOMException& toCatch)
           {
             char* message = XMLString::transcode(toCatch.msg);
-            LOG_ERROR << "Serialisation exception: \n"
+            OPENMS_LOG_ERROR << "Serialisation exception: \n"
                       << message << "\n";
             XMLString::release(&message);
           }
           catch (...)
           {
-            LOG_ERROR << "Unexpected exception building the document tree." << endl;
+            OPENMS_LOG_ERROR << "Unexpected exception building the document tree." << endl;
           }
 
           dom_output->release();
@@ -441,21 +441,21 @@ namespace OpenMS
         }
         catch (const OutOfMemoryException&)
         {
-          LOG_ERROR << "Xerces OutOfMemoryException" << endl;
+          OPENMS_LOG_ERROR << "Xerces OutOfMemoryException" << endl;
         }
         catch (const DOMException& e)
         {
-          LOG_ERROR << "DOMException code is: " << e.code << endl;
+          OPENMS_LOG_ERROR << "DOMException code is: " << e.code << endl;
         }
         catch (const exception& e)
         {
-          LOG_ERROR << "An error occurred creating the document: " << e.what() << endl;
+          OPENMS_LOG_ERROR << "An error occurred creating the document: " << e.what() << endl;
         }
 
       } // (inpl != NULL)
       else
       {
-        LOG_ERROR << "Requested DOM implementation is not supported" << endl;
+        OPENMS_LOG_ERROR << "Requested DOM implementation is not supported" << endl;
       }
     }
 
@@ -487,7 +487,7 @@ namespace OpenMS
           }
           else
           {
-            LOG_WARN << "Misplaced elements ignored in 'ParamGroup' in " << (std::string)XMLString::transcode(element_param->getTagName()) << endl;
+            OPENMS_LOG_WARN << "Misplaced elements ignored in 'ParamGroup' in " << (std::string)XMLString::transcode(element_param->getTagName()) << endl;
           }
         }
       }
@@ -514,7 +514,7 @@ namespace OpenMS
           u = CVTerm::Unit(unitAcc, unitName, unitCvRef);
           if (unitCvRef.empty())
           {
-            LOG_WARN << "This mzid file uses a cv term with units, but without "
+            OPENMS_LOG_WARN << "This mzid file uses a cv term with units, but without "
                      << "unit cv reference (required)! Please notify the mzid "
                      << "producer of this file. \"" << name << "\" will be read as \""
                      << unitName << "\" but further actions on this unit may fail."
@@ -549,7 +549,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_ERROR << "Found float parameter not convertible to float type." << endl;
+            OPENMS_LOG_ERROR << "Found float parameter not convertible to float type." << endl;
           }
         }
         else if (type == "xsd:int" || type == "xsd:unsignedInt")
@@ -560,7 +560,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_ERROR << "Found integer parameter not convertible to integer type." << endl;
+            OPENMS_LOG_ERROR << "Found integer parameter not convertible to integer type." << endl;
           }
         }
         else
@@ -583,7 +583,7 @@ namespace OpenMS
           }
           else
           {
-            LOG_WARN << String("Unhandled unit '") + unitAcc + "' in tag '" + name + "'." << endl;
+            OPENMS_LOG_WARN << String("Unhandled unit '") + unitAcc + "' in tag '" + name + "'." << endl;
           }
         }
 
@@ -591,7 +591,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_ERROR << "No parameters found at given position." << endl;
+        OPENMS_LOG_ERROR << "No parameters found at given position." << endl;
         throw invalid_argument("no user param here");
       }
     }
@@ -656,7 +656,7 @@ namespace OpenMS
           }
           else
           {
-            LOG_ERROR << "No name/version found for 'AnalysisSoftware':" << id << "." << endl;
+            OPENMS_LOG_ERROR << "No name/version found for 'AnalysisSoftware':" << id << "." << endl;
           }
         }
       }
@@ -735,7 +735,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_ERROR << "No amino acid sequence readable from 'Peptide'" << endl;
+            OPENMS_LOG_ERROR << "No amino acid sequence readable from 'Peptide'" << endl;
           }
 
           pep_map_.insert(make_pair(id, aas));
@@ -770,7 +770,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_WARN << "'PeptideEvidence' without reference to the position in the originating sequence found." << endl;
+            OPENMS_LOG_WARN << "'PeptideEvidence' without reference to the position in the originating sequence found." << endl;
           }
           char pre = '-';
           char post = '-';
@@ -787,7 +787,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_WARN << "'PeptideEvidence' without reference to the bordering amino acids in the originating sequence found." << endl;
+            OPENMS_LOG_WARN << "'PeptideEvidence' without reference to the bordering amino acids in the originating sequence found." << endl;
           }
           bool idec = false;
           try
@@ -798,7 +798,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_WARN << "'PeptideEvidence' with unreadable 'isDecoy' status found." << endl;
+            OPENMS_LOG_WARN << "'PeptideEvidence' with unreadable 'isDecoy' status found." << endl;
           }
           PeptideEvidence temp_struct = {start, end, pre, post, idec};
           pe_ev_map_.insert(make_pair(id, temp_struct));
@@ -930,7 +930,7 @@ namespace OpenMS
 //                }
 //                catch (...)
 //                {
-//                    LOG_ERROR << "Could not cast ModificationParam massDelta from " << XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta")));
+//                    OPENMS_LOG_ERROR << "Could not cast ModificationParam massDelta from " << XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta")));
 //                }
 
                 String mname;
@@ -954,7 +954,7 @@ namespace OpenMS
                   }
                   else
                   {
-                    LOG_ERROR << "Misplaced information in 'ModificationParams' ignored." << endl;
+                    OPENMS_LOG_ERROR << "Misplaced information in 'ModificationParams' ignored." << endl;
                   }
                   sub = sub->getNextElementSibling();
                 }
@@ -1026,7 +1026,7 @@ namespace OpenMS
                 }
                 catch (exception& e)
                 {
-                  LOG_WARN << "Search engine enzyme settings for 'missedCleavages' unreadable: " << e.what()  << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << endl;
+                  OPENMS_LOG_WARN << "Search engine enzyme settings for 'missedCleavages' unreadable: " << e.what()  << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << endl;
                 }
                 sp.missed_cleavages = missedCleavages;
 
@@ -1040,7 +1040,7 @@ namespace OpenMS
 //                }
 //                catch (...)
 //                {
-//                    LOG_WARN << "Search engine settings for 'minDistance' unreadable." << endl;
+//                    OPENMS_LOG_WARN << "Search engine settings for 'minDistance' unreadable." << endl;
 //                }
                 enzymename = "UNKNOWN";
                 DOMElement* sub = enzyme->getFirstElementChild();
@@ -1060,7 +1060,7 @@ namespace OpenMS
                       }
                       else
                       {
-                        LOG_WARN << "Additional parameters for enzyme settings not readable." << endl;
+                        OPENMS_LOG_WARN << "Additional parameters for enzyme settings not readable." << endl;
                       }
                     }
                   }
@@ -1221,7 +1221,7 @@ namespace OpenMS
             }
             if (dbname.empty())
             {
-              LOG_WARN << "No DatabaseName element found, use read in results at own risk." << endl;
+              OPENMS_LOG_WARN << "No DatabaseName element found, use read in results at own risk." << endl;
               dbname = "unknown";
             }
             DatabaseInput temp_struct = {dbname, location, version, releaseDate};
@@ -1358,7 +1358,7 @@ namespace OpenMS
               }
               if (pep_id_->back().getRT() != pep_id_->back().getRT())
               {
-                LOG_WARN << "No retention time found for 'SpectrumIdentificationResult'" << endl;
+                OPENMS_LOG_WARN << "No retention time found for 'SpectrumIdentificationResult'" << endl;
               }
             }
             element_res = element_res->getNextElementSibling();
@@ -1998,7 +1998,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        LOG_WARN << "Found unreadable 'chargeState'." << endl;
+        OPENMS_LOG_WARN << "Found unreadable 'chargeState'." << endl;
       }
       long double experimentalMassToCharge = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("experimentalMassToCharge")))).toDouble();
       int rank = 0;
@@ -2008,7 +2008,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        LOG_WARN << "Found unreadable PSM rank." << endl;
+        OPENMS_LOG_WARN << "Found unreadable PSM rank." << endl;
       }
 
       String peptide_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("peptide_ref")));
@@ -2023,7 +2023,7 @@ namespace OpenMS
         pass = val->fData.fValue.f_bool;
       }
       delete val;
-      LOG_DEBUG << "'passThreshold' value " << pass;
+      OPENMS_LOG_DEBUG << "'passThreshold' value " << pass;
       // TODO @all: where to store passThreshold value? set after score type eval in pass_threshold
 
       long double score = 0;
@@ -2349,7 +2349,7 @@ namespace OpenMS
             }
             catch (...)
             {
-              LOG_WARN << "Found unreadable modification location." << endl;
+              OPENMS_LOG_WARN << "Found unreadable modification location." << endl;
             }
 
             //double monoisotopicMassDelta = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("monoisotopicMassDelta")));
@@ -2442,7 +2442,7 @@ namespace OpenMS
                         }
                         else
                         {
-                          LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
+                          OPENMS_LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
                           // TODO? @enetz look it up in XLDB?
                         }
                       }
@@ -2454,7 +2454,7 @@ namespace OpenMS
                         }
                         else
                         {
-                          LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
+                          OPENMS_LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
                           // TODO? @enetz look it up in XLDB?
                         }
                       }
@@ -2472,7 +2472,7 @@ namespace OpenMS
                         }
                         else
                         {
-                          LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
+                          OPENMS_LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
                           // TODO? @enetz look it up in XLDB?
                         }
                       }
@@ -2484,7 +2484,7 @@ namespace OpenMS
                         }
                         else
                         {
-                          LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
+                          OPENMS_LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
                           // TODO? @enetz look it up in XLDB?
                         }
                       }
@@ -2494,7 +2494,7 @@ namespace OpenMS
                         // this is a bad hack to avoid a long list of warnings in the case of XL-MS data
                         if ( !(String(e.getMessage()).hasSubstring("'DSG'") || String(e.getMessage()).hasSubstring("'DSS'") || String(e.getMessage()).hasSubstring("'EDC'")) || String(e.getMessage()).hasSubstring("'BS3'") || String(e.getMessage()).hasSubstring("'BS2G'") )
                         {
-                          LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << endl;
+                          OPENMS_LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << endl;
                         }
 */
                     }
@@ -2555,7 +2555,7 @@ namespace OpenMS
                     }
                     catch (...)
                     {
-                      LOG_WARN << "Found unreadable modification location." << endl;
+                      OPENMS_LOG_WARN << "Found unreadable modification location." << endl;
                       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
                     }
                     if (!has_mass_delta)
@@ -2683,7 +2683,7 @@ namespace OpenMS
                   }
                   catch (Exception::BaseException& e)
                   {
-                    LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
+                    OPENMS_LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
                   }
                 }
 

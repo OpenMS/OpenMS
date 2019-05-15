@@ -226,7 +226,7 @@ public:
       double best_left = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][peak_idx];
       double best_right = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][peak_idx];
       double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
-      LOG_DEBUG << "**** Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " <<
+      OPENMS_LOG_DEBUG << "**** Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " <<
         picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " <<
         best_right << " (" << best_right - best_left << ")" << std::endl;
 
@@ -851,7 +851,7 @@ protected:
 
       // Check how many chromatograms had exactly one peak picked between our
       // current left/right borders -> this would be a sign of consistency.
-      LOG_DEBUG << " Overall found missing : " << missing_peaks << " and multiple : " << multiple_peaks << std::endl;
+      OPENMS_LOG_DEBUG << " Overall found missing : " << missing_peaks << " and multiple : " << multiple_peaks << std::endl;
 
       /// left_borders / right_borders might not have the same length since we might have peaks missing!!
 
@@ -859,7 +859,7 @@ protected:
       // the same element has a bad shape and a bad coelution score) -> potential outlier
       if (min_index_shape == max_index_coel)
       {
-        LOG_DEBUG << " element " << min_index_shape << " is a candidate for removal ... " << std::endl;
+        OPENMS_LOG_DEBUG << " element " << min_index_shape << " is a candidate for removal ... " << std::endl;
         outlier = String(picked_chroms[min_index_shape].getNativeID());
       }
       else
@@ -878,7 +878,7 @@ protected:
 
       double score = shape_score - coel_score - 1.0 * missing_peaks / picked_chroms.size();
 
-      LOG_DEBUG << " computed score  " << score << " (from " <<  shape_score << 
+      OPENMS_LOG_DEBUG << " computed score  " << score << " (from " <<  shape_score << 
         " - " << coel_score << " - " << 1.0 * missing_peaks / picked_chroms.size() << ")" << std::endl;
 
       return score;
@@ -923,8 +923,8 @@ protected:
         {
           left_borders.push_back(left);
           right_borders.push_back(right);
-          LOG_DEBUG << " * " << k << " left boundary " << left_borders.back()   <<  " with int " << max_int << std::endl;
-          LOG_DEBUG << " * " << k << " right boundary " << right_borders.back() <<  " with int " << max_int << std::endl;
+          OPENMS_LOG_DEBUG << " * " << k << " left boundary " << left_borders.back()   <<  " with int " << max_int << std::endl;
+          OPENMS_LOG_DEBUG << " * " << k << " right boundary " << right_borders.back() <<  " with int " << max_int << std::endl;
         }
       }
 
@@ -952,7 +952,7 @@ protected:
                                / right_borders.size() - mean * mean);
       std::sort(right_borders.begin(), right_borders.end());
 
-      LOG_DEBUG << " - Recalculating right peak boundaries " << mean << " mean / best " 
+      OPENMS_LOG_DEBUG << " - Recalculating right peak boundaries " << mean << " mean / best " 
                 << best_right << " std " << stdev << " : "  << std::fabs(best_right - mean) / stdev 
                 << " coefficient of variation" << std::endl;
 
@@ -960,7 +960,7 @@ protected:
       if (std::fabs(best_right - mean) / stdev > max_z)
       {
         best_right = right_borders[right_borders.size() / 2]; // pseudo median
-        LOG_DEBUG << " - Setting right boundary to  " << best_right << std::endl;
+        OPENMS_LOG_DEBUG << " - Setting right boundary to  " << best_right << std::endl;
       }
 
       // Left borders
@@ -969,7 +969,7 @@ protected:
                         / left_borders.size() - mean * mean);
       std::sort(left_borders.begin(), left_borders.end());
 
-      LOG_DEBUG << " - Recalculating left peak boundaries " << mean << " mean / best " 
+      OPENMS_LOG_DEBUG << " - Recalculating left peak boundaries " << mean << " mean / best " 
                 << best_left << " std " << stdev << " : "  << std::fabs(best_left - mean) / stdev 
                 << " coefficient of variation" << std::endl;
 
@@ -977,7 +977,7 @@ protected:
       if (std::fabs(best_left - mean)  / stdev > max_z)
       {
         best_left = left_borders[left_borders.size() / 2]; // pseudo median
-        LOG_DEBUG << " - Setting left boundary to  " << best_left << std::endl;
+        OPENMS_LOG_DEBUG << " - Setting left boundary to  " << best_left << std::endl;
       }
 
     }

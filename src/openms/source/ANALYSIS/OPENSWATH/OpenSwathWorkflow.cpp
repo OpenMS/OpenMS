@@ -54,7 +54,7 @@ namespace OpenMS
     bool sonar,
     bool load_into_memory)
   {
-    LOG_DEBUG << "performRTNormalization method starting" << std::endl;
+    OPENMS_LOG_DEBUG << "performRTNormalization method starting" << std::endl;
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
     TransformationDescription trafo; // dummy
     this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, sonar, load_into_memory);
@@ -74,14 +74,14 @@ namespace OpenMS
       }
       catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
       {
-        LOG_DEBUG << "Error creating file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
+        OPENMS_LOG_DEBUG << "Error creating file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
       }
       catch (OpenMS::Exception::BaseException& /*e*/)
       {
-        LOG_DEBUG << "Error writing to file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
+        OPENMS_LOG_DEBUG << "Error writing to file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
       }
     }
-    LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
+    OPENMS_LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
 
     // perform RT and m/z correction on the data
     TransformationDescription tr = doDataNormalization_(irt_transitions,
@@ -102,18 +102,18 @@ namespace OpenMS
     double mz_extraction_window,
     bool ppm)
   {
-    LOG_DEBUG << "Start of doDataNormalization_ method" << std::endl;
+    OPENMS_LOG_DEBUG << "Start of doDataNormalization_ method" << std::endl;
     this->startProgress(0, 1, "Retention time normalization");
 
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
     if (estimateBestPeptides)
     {
-      LOG_DEBUG << "Activated the 'estimateBestPeptides' option." << std::endl;
+      OPENMS_LOG_DEBUG << "Activated the 'estimateBestPeptides' option." << std::endl;
     }
 
     // 1. Estimate the retention time range of the iRT peptides over all assays
     std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
-    LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << std::endl;
+    OPENMS_LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << std::endl;
 
     // 2. Store the peptide retention times in an intermediate map
     std::map<OpenMS::String, double> PeptideRTMap;
@@ -167,7 +167,7 @@ namespace OpenMS
     std::vector<std::pair<double, double> > pairs; // store the RT pairs to write the output trafoXML
     std::map<std::string, double> best_features = OpenSwathHelper::simpleFindBestFeature(transition_group_map,
       estimateBestPeptides, irt_detection_param.getValue("OverallQualityCutoff"));
-    LOG_DEBUG << "Extracted best features: " << best_features.size() << std::endl;
+    OPENMS_LOG_DEBUG << "Extracted best features: " << best_features.size() << std::endl;
 
     // Create pairs vector and store peaks
     std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
@@ -210,7 +210,7 @@ namespace OpenMS
         String("Illegal argument '") + outlier_method +
         "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
-    LOG_DEBUG << "Performed outlier detection, left with features: " << pairs_corrected.size() << std::endl;
+    OPENMS_LOG_DEBUG << "Performed outlier detection, left with features: " << pairs_corrected.size() << std::endl;
 
     // 6. Check whether the found peptides fulfill the binned coverage criteria
     // set by the user.
@@ -269,12 +269,12 @@ namespace OpenMS
     String model_type = irt_detection_param.getValue("alignmentMethod");
     trafo_out.fitModel(model_type, model_params);
 
-    LOG_DEBUG << "Final RT mapping:" << std::endl;
+    OPENMS_LOG_DEBUG << "Final RT mapping:" << std::endl;
     for (Size i = 0; i < pairs_corrected.size(); i++)
     {
-      LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
+      OPENMS_LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
     }
-    LOG_DEBUG << "End of doDataNormalization_ method" << std::endl;
+    OPENMS_LOG_DEBUG << "End of doDataNormalization_ method" << std::endl;
 
     this->endProgress();
     return trafo_out;
@@ -329,7 +329,7 @@ namespace OpenMS
 #pragma omp critical (osw_write_chroms)
 #endif
           {
-            LOG_DEBUG << "[simple] Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
+            OPENMS_LOG_DEBUG << "[simple] Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
               map_idx << " with m/z " << swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
             for (Size chrom_idx = 0; chrom_idx < tmp_chromatograms.size(); chrom_idx++)
             {
@@ -338,7 +338,7 @@ namespace OpenMS
               // window).
               double tic = std::accumulate(tmp_out[chrom_idx]->getIntensityArray()->data.begin(),
                                            tmp_out[chrom_idx]->getIntensityArray()->data.end(),0.0);
-              LOG_DEBUG << "Chromatogram "  << coordinates[chrom_idx].id << " with size "
+              OPENMS_LOG_DEBUG << "Chromatogram "  << coordinates[chrom_idx].id << " with size "
                 << tmp_out[chrom_idx]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
               if (tic > 0.0)
               {
@@ -355,7 +355,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_DEBUG << "Extracted no transitions from SWATH map " << map_idx << " with m/z " <<
+          OPENMS_LOG_DEBUG << "Extracted no transitions from SWATH map " << map_idx << " with m/z " <<
               swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << std::endl;
         }
       }
@@ -364,7 +364,7 @@ namespace OpenMS
     if (sonar)
     {
 
-      LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms before SONAR addition " << std::endl;
+      OPENMS_LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms before SONAR addition " << std::endl;
 
       // for SONAR: group chromatograms together and then add them up (we will have one chromatogram for every single map)
       std::vector< OpenMS::MSChromatogram > chromatograms_new;
@@ -385,7 +385,7 @@ namespace OpenMS
       }
       chromatograms = chromatograms_new; // switch
 
-      LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms after SONAR addition " << std::endl;
+      OPENMS_LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms after SONAR addition " << std::endl;
     }
 
     this->endProgress();
@@ -1036,7 +1036,7 @@ namespace OpenMS
       {
         double currwin_start = sonar_start + sonar_idx * sonar_winsize;
         double currwin_end = currwin_start + sonar_winsize;
-        LOG_DEBUG << "   ====  sonar window " << sonar_idx << " from " << currwin_start << " to " << currwin_end << std::endl;
+        OPENMS_LOG_DEBUG << "   ====  sonar window " << sonar_idx << " from " << currwin_start << " to " << currwin_end << std::endl;
 
         // Step 1: select which transitions to extract with the current windows (proceed in batches)
         OpenSwath::LightTargetedExperiment transition_exp_used_all;

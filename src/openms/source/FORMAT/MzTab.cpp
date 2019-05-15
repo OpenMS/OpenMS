@@ -515,7 +515,7 @@ namespace OpenMS
     }
     else
     {
-      LOG_WARN << "Spectrum reference not set." << endl;
+      OPENMS_LOG_WARN << "Spectrum reference not set." << endl;
     }
   }
 
@@ -1467,16 +1467,17 @@ namespace OpenMS
   void MzTab::addMetaInfoToOptionalColumns(
     const set<String>& keys, 
     vector<MzTabOptionalColumnEntry>& opt, 
-    const String id, 
-    const MetaInfoInterface meta)
+    const String& id, 
+    const MetaInfoInterface& meta)
   {
     for (String const & key : keys)
     {
       MzTabOptionalColumnEntry opt_entry;
+      // column names must not contain spaces
       opt_entry.first = String("opt_") + id + String("_") + String(key).substitute(' ','_');
       if (meta.metaValueExists(key))
       {
-        opt_entry.second = MzTabString(meta.getMetaValue(key).toString().substitute(' ','_'));
+        opt_entry.second = MzTabString(meta.getMetaValue(key).toString());
       } // otherwise it is default ("null")
       opt.push_back(opt_entry);
     }
@@ -1563,7 +1564,7 @@ namespace OpenMS
     const FeatureMap & feature_map, 
     const String & filename)
   {
-    LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
+    OPENMS_LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
     MzTab mztab;
     MzTabMetaData meta_data;
 
@@ -1624,9 +1625,9 @@ namespace OpenMS
       for (String & s : keys) 
       { 
         if (s.has(' '))
-         {
-           s.substitute(' ', '_');
-         }
+        {
+          s.substitute(' ', '_');
+        }
       }
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
@@ -1638,7 +1639,7 @@ namespace OpenMS
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          for (String & s : ph_keys) 
+          for (String& s : ph_keys) 
           { 
             if (s.has(' '))
             {
@@ -1752,9 +1753,12 @@ namespace OpenMS
     const vector<ProteinIdentification>& prot_ids, 
     const vector<PeptideIdentification>& peptide_ids, 
     const String& filename,
-    bool first_run_inference_only)
+    bool first_run_inference_only,
+    std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
+    std::map<String, size_t>& idrun_2_run_index,
+    bool export_empty_pep_ids)
   {
-    LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
+    OPENMS_LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
     vector<PeptideIdentification> pep_ids = peptide_ids;
 
     MzTab mztab;
@@ -1773,9 +1777,6 @@ namespace OpenMS
     vector<vector<pair<String, String>>> secondary_search_engines_settings;
 
     // helper to map between peptide identifications and MS run
-    //map<size_t, size_t> map_pep_idx_2_run;
-    map<pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
-    map<String, size_t> idrun_2_run_index;
 
     // used to report quantitative study variables
     Size quant_study_variables(0);
@@ -1802,7 +1803,7 @@ namespace OpenMS
       bool skip_first_run = prot_ids[0].hasInferenceData() && first_run_inference_only;
       if (skip_first_run)
       {
-        LOG_DEBUG << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
+        OPENMS_LOG_DEBUG << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
       }
 
       MzTabParameter protein_score_type;
@@ -2373,17 +2374,54 @@ Not sure how to handle these:
     meta_data.software[std::max<size_t>(1u, meta_data.software.size())] = sw;
 
     MzTabPSMSectionRows rows;
-    Size psm_id(0);
+    int psm_id(0);
     for (auto it = pep_ids.begin(); it != pep_ids.end(); ++it, ++psm_id)
     {
-      // skip empty peptide identification objects
-      if (it->getHits().empty()) { continue; }
+      // skip empty peptide identification objects, if they are not wanted
+      if (it->getHits().empty() && !export_empty_pep_ids)
+      {
+        continue;
+      }
+      
+      /////// Information that doesn't require a peptide hit ///////
+      MzTabPSMSectionRow row;
+      row.PSM_ID = MzTabInteger(psm_id);
+      row.database = db;
+      row.database_version = db_version;
+      
+      vector<MzTabDouble> rts_vector;
+      rts_vector.emplace_back(MzTabDouble(it->getRT()));
 
+      MzTabDoubleList rts;
+      rts.set(rts_vector);
+      row.retention_time = rts;
+
+      row.exp_mass_to_charge = MzTabDouble(it->getMZ());
+
+      // meta data on peptide identifications
+      vector<String> pid_keys;
+      it->getKeys(pid_keys);
+      for (String & s : pid_keys)
+      {
+        if (s.has(' '))
+        {
+          s.substitute(' ', '_');
+        }
+      }
+      set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
+      addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), *it);
+      
+      // add the row and continue to next PepID, if the current one was an empty one
+      if (it->getHits().empty())
+      {
+        rows.push_back(row);
+        continue;
+      }
+
+      /////// Information that does require a peptide hit ///////
       // sort by rank
       it->assignRanks();
-
-      MzTabPSMSectionRow row;
-
+      
       // link to spectrum in MS run
       String spectrum_nativeID = it->getMetaValue("spectrum_reference").toString();
       size_t run_index = idrun_2_run_index[it->getIdentifier()];
@@ -2411,7 +2449,7 @@ Not sure how to handle these:
       row.spectra_ref.setMSFile(msfile_index);
       if (spectrum_nativeID.empty())
       {
-        LOG_WARN << "spectrum_reference not set in ID with precursor (RT, m/z) " << it->getRT() << ", " << it->getMZ() << endl;
+        OPENMS_LOG_WARN << "spectrum_reference not set in ID with precursor (RT, m/z) " << it->getRT() << ", " << it->getMZ() << endl;
       }
       else
       {
@@ -2425,10 +2463,7 @@ Not sure how to handle these:
 
       // extract all modifications in the current sequence for reporting. In contrast to peptide and protein section all modifications are reported.
       row.modifications = extractModificationListFromAASequence(aas);
-
-      row.PSM_ID = MzTabInteger(psm_id);
-      row.database = db;
-      row.database_version = db_version;
+      
       MzTabParameterList search_engines;
 
       if (run_to_search_engines[run_index].size() != 1)
@@ -2441,15 +2476,8 @@ Not sure how to handle these:
       row.search_engine = search_engines;
 
       row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
-
-      vector<MzTabDouble> rts_vector;
-      rts_vector.emplace_back(MzTabDouble(it->getRT()));
-
-      MzTabDoubleList rts;
-      rts.set(rts_vector);
-      row.retention_time = rts;
+      
       row.charge = MzTabInteger(best_ph.getCharge());
-      row.exp_mass_to_charge = MzTabDouble(it->getMZ());
       row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMonoWeight(Residue::Full, best_ph.getCharge()) / best_ph.getCharge()) : MzTabDouble();
 
       // add opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
@@ -2470,19 +2498,6 @@ Not sure how to handle these:
       } 
       set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
       addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
-
-      // meta data on peptide identifications
-      vector<String> pid_keys;
-      it->getKeys(pid_keys);
-      for (String & s : pid_keys)      
-      { 
-        if (s.has(' '))
-        {
-          s.substitute(' ', '_');
-        }
-      } 
-      set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
-      addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), *it);
 
       // TODO Think about if the uniqueness can be determined by # of peptide evidences
       // b/c this would only differ when evidences come from different DBs
@@ -2598,7 +2613,7 @@ Not sure how to handle these:
  -        mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
  -        mztab_run_metadata.location = MzTabString(m);
  -        meta_data.ms_run[run_index] = mztab_run_metadata;
- -        LOG_DEBUG << "Adding MS run for file: " << m << endl;
+ -        OPENMS_LOG_DEBUG << "Adding MS run for file: " << m << endl;
  -        ++run_index;
  -      }
  -
@@ -2615,9 +2630,11 @@ Not sure how to handle these:
     const String& filename, 
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
+    const bool export_subfeatures,
+    const bool export_empty_pep_ids,
     String title)
   {  
-    LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
+    OPENMS_LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
     vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
 
     // extract mapped IDs (TODO: there should be a helper function)
@@ -2639,7 +2656,11 @@ Not sure how to handle these:
     ///////////////////////////////////////////////////////////////////////
     // Export protein/-group quantifications (stored as meta value in protein IDs)
     // In this case, the first run is only for inference, get peptide info from the rest of the runs.
-    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, true);
+    map<pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
+    map<String, size_t> idrun_2_run_index;
+    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, true,
+                                               map_run_fileidx_2_msfileidx,
+                                               idrun_2_run_index, export_empty_pep_ids);
 
 
     // determine number of samples
@@ -2654,6 +2675,7 @@ Not sure how to handle these:
       var_mods.insert(std::end(var_mods), std::begin(sp.variable_modifications), std::end(sp.variable_modifications));
       fixed_mods.insert(std::end(fixed_mods), std::begin(sp.fixed_modifications), std::end(sp.fixed_modifications));
     }
+    
     // make mods unique
     std::sort(var_mods.begin(), var_mods.end());
     auto v_it = std::unique(var_mods.begin(), var_mods.end()); 
@@ -2674,7 +2696,22 @@ Not sure how to handle these:
     meta_data.title = MzTabString(title);
 
     MzTabParameter quantification_method;
-    quantification_method.fromCellString("[MS,MS:1001834,LC-MS label-free quantitation analysis,]");
+    const String & experiment_type = consensus_map.getExperimentType();
+    if (experiment_type == "label-free")
+    {
+      quantification_method.fromCellString("[MS,MS:1001834,LC-MS label-free quantitation analysis,]");
+    }
+    else if (experiment_type == "labeled_MS1")
+    {
+      quantification_method.fromCellString("[PRIDE,PRIDE_0000316,MS1 based isotope labeling,]");
+    }
+    else if (experiment_type == "labeled_MS2")
+    {
+      quantification_method.fromCellString("[PRIDE,PRIDE_0000317,MS2 based isotope labeling,]");
+    }
+    
+    
+
     meta_data.quantification_method = quantification_method;
     MzTabParameter protein_quantification_unit;
     protein_quantification_unit.fromCellString("[,,Abundance,]"); // TODO: add better term to obo
@@ -2704,15 +2741,13 @@ Not sure how to handle these:
 
       mztab_run_metadata.location = MzTabString(m);
       meta_data.ms_run[run_index] = mztab_run_metadata;
-      LOG_DEBUG << "Adding MS run for file: " << m << endl;
+      OPENMS_LOG_DEBUG << "Adding MS run for file: " << m << endl;
       ++run_index;
     }
 
     // assay index (and sample index) must be unique numbers 1..n
     // fraction_group + label define the quant. values of an assay
     auto pl2fg = ed.getPathLabelToFractionGroupMapping(false);
-
-    const String & experiment_type = consensus_map.getExperimentType();    
 
     // assay meta data
     for (auto const & c : consensus_map.getColumnHeaders())
@@ -2850,7 +2885,7 @@ Not sure how to handle these:
       row.best_search_engine_score[1] = MzTabDouble();
 
       // initialize columns
-      LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
+      OPENMS_LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
       for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
       {
         row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
@@ -2898,6 +2933,19 @@ Not sure how to handle these:
         row.peptide_abundance_stdev_study_variable[study_variable];
         row.peptide_abundance_std_error_study_variable[study_variable];
         row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
+        
+        if (export_subfeatures)
+        {
+	      MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
+	      opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + String(study_variable) + "]";
+	      opt_global_mass_to_charge_study_variable.second = MzTabString(String(fit->getMZ()));
+	      row.opt_.push_back(opt_global_mass_to_charge_study_variable);
+
+	      MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
+	      opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + String(study_variable) + "]";
+	      opt_global_retention_time_study_variable.second = MzTabString(String(fit->getRT()));
+	      row.opt_.push_back(opt_global_retention_time_study_variable);
+		}
       }
 
       vector<PeptideIdentification> pep_ids = c.getPeptideIdentifications();
@@ -2935,6 +2983,31 @@ Not sure how to handle these:
           row.search_engine_score_ms_run[1][ms_run] = MzTabDouble(best_ph.getScore());
         }
 
+        if (pep_ids[0].metaValueExists("spectrum_reference"))
+        {
+          size_t run_index = idrun_2_run_index[pep_ids[0].getIdentifier()];
+          StringList filenames;
+          prot_ids[run_index].getPrimaryMSRunPath(filenames);
+          size_t msfile_index(0);
+          if (filenames.size() <= 1) //either none or only one file for this run
+          {
+            msfile_index = map_run_fileidx_2_msfileidx[{run_index, 0}];
+          }
+          else
+          {
+            if (pep_ids[0].metaValueExists("map_index"))
+            {
+              msfile_index = map_run_fileidx_2_msfileidx[{run_index, pep_ids[0].getMetaValue("map_index")}];
+            }
+            else
+            {
+              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                  "Multiple files in a run, but no map_index in PeptideIdentification found.");
+            }
+          }
+          row.spectra_ref.setSpecRef(pep_ids[0].getMetaValue("spectrum_reference").toString());
+          row.spectra_ref.setMSFile(msfile_index);
+        }
         // fill opt_ columns
 
         // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)

@@ -124,7 +124,7 @@ namespace OpenMS
 
         if (!modification_names_.has(mod_name))
         {
-          LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
+          OPENMS_LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
           found = false; 
         }
       }
@@ -166,12 +166,12 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one of:";
+      OPENMS_LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one of:";
       for (auto it = mods.begin(); it != mods.end(); ++it)
       {
-        LOG_WARN << " " << (*it)->getFullId();
+        OPENMS_LOG_WARN << " " << (*it)->getFullId();
       }
-      LOG_WARN << "\n";
+      OPENMS_LOG_WARN << "\n";
     }
     return *mods.begin();
   }
@@ -302,7 +302,7 @@ namespace OpenMS
   {
     if (has(new_mod->getFullId()))
     {
-      LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
+      OPENMS_LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
       return;
     }
 

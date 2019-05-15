@@ -101,13 +101,13 @@ namespace OpenMS
     std::vector<std::vector<double> > isotopeMasses, isotopeProbabilities;
 
     // Iterate through all elements in the molecular formula
-    for (auto elem : formula)
+    for (const auto& elem : formula)
     {
       atomCounts.push_back(elem.second);
 
       std::vector<double> masses;
       std::vector<double> probs;
-      for (auto iso : elem.first->getIsotopeDistribution())
+      for (const auto& iso : elem.first->getIsotopeDistribution())
       {
         if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
         masses.push_back(iso.getMZ());

@@ -149,7 +149,7 @@ public:
         {
           bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
         }
-        LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
+        OPENMS_LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
       }
     private:
       BinnedSpectralContrastAngle cmp_bs_;

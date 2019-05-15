@@ -59,8 +59,12 @@ START_SECTION(~TIC())
   delete ptr;
 END_SECTION
 
-START_SECTION(Status requires() const)
-  TIC tic;
+TIC tic;
+START_SECTION(const String& getName() const override)
+  TEST_EQUAL(tic.getName(), "TIC")
+END_SECTION
+
+START_SECTION(Status requires() const override)
   TEST_EQUAL((tic.requires() == QCBase::Status(QCBase::Requires::RAWMZML)),true);
 END_SECTION
 

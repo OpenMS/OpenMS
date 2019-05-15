@@ -373,7 +373,9 @@ BOOST_AUTO_TEST_CASE(test_calcSeparateXcorrContrastCoelutionScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrContrastMatrix(imrmfeature, native_ids, native_ids);
-  TEST_EQUAL(mrmscore.calcSeparateXcorrContrastCoelutionScore(), "1.5;1.5")
+  TEST_REAL_SIMILAR(mrmscore.calcSeparateXcorrContrastCoelutionScore()[0], 1.5)
+  TEST_REAL_SIMILAR(mrmscore.calcSeparateXcorrContrastCoelutionScore()[1], 1.5)
+
 }
 END_SECTION
 
@@ -411,7 +413,8 @@ BOOST_AUTO_TEST_CASE(test_calcSeparateXcorrContrastShapeScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrContrastMatrix(imrmfeature, native_ids, native_ids);
-  TEST_EQUAL(mrmscore.calcSeparateXcorrContrastShapeScore(), "0.698492;0.698492")
+  TEST_REAL_SIMILAR(mrmscore.calcSeparateXcorrContrastShapeScore()[0], 0.698492)
+  TEST_REAL_SIMILAR(mrmscore.calcSeparateXcorrContrastShapeScore()[1], 0.698492)
 }
 END_SECTION
 
@@ -614,7 +617,8 @@ BOOST_AUTO_TEST_CASE(test_SN_score)
   imrmfeature.m_features = features;
 
   TEST_REAL_SIMILAR(mrmscore.calcSNScore(&imrmfeature, sn_estimators), 1000.0)
-  TEST_EQUAL(mrmscore.calcSeparateSNScore(&imrmfeature, sn_estimators), "6.21461;7.31322")
+  TEST_REAL_SIMILAR(mrmscore.calcSeparateSNScore(&imrmfeature, sn_estimators)[0], 6.21461)
+  TEST_REAL_SIMILAR(mrmscore.calcSeparateSNScore(&imrmfeature, sn_estimators)[1], 7.31322)
 }
 END_SECTION
 
@@ -743,7 +747,8 @@ BOOST_AUTO_TEST_CASE(test_calcSeparateMIContrastScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
-  TEST_EQUAL(mrmscore.calcSeparateMIContrastScore(), "3.27761;3.36852")
+  TEST_REAL_SIMILAR(mrmscore.calcSeparateMIContrastScore()[0], 3.27761)
+  TEST_REAL_SIMILAR(mrmscore.calcSeparateMIContrastScore()[1], 3.36852)
 }
 END_SECTION
 

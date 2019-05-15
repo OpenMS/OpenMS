@@ -29,10 +29,14 @@ The most important CMake variables are:
   <\tr>
   <tr>
     <td valign="top">\c HAS_XSERVER=On/Off</td>
-    <td>Defines if a running X Server is available when building %OpenMS.
+    <td>[Linux/MacOS only] Defines if a running X Server is available when building %OpenMS.
     As building parts of the documentation and running certain tests requires
     a running X Server, this flag can be used to disable those parts of the
     documentation and the tests that need an X Server. (Default: On)</td>
+  </tr>
+  <tr>
+    <td valign="top">\c ADDRESS_SANITIZER=On/Off</td>
+    <td>[g++/clang only] Enables/Disables Address Sanitizer (ASAN) to find access violations and other bugs.</td>
   </tr>
   <tr>
     <td valign="top">\c WITH_GUI=On/Off</td>
