@@ -2003,9 +2003,36 @@ static void scoreShiftedFragments_(
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
-          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
+          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index];           
           ph.setScore(ah.score);
           ph.setMetaValue(String("RNPxl:score"), ah.score); // important for Percolator feature set because the PeptideHit score might be overwritten by a q-value
+
+          // - # of variable mods 
+          // - Phosphopeptide
+          int is_phospho(0);
+          int n_var_mods = 0;
+          for (Size i = 0; i != fixed_and_variable_modified_peptide.size(); ++i)
+          { 
+            const Residue& r = fixed_and_variable_modified_peptide[i];
+            if (!r.isModified()) continue;
+            if (std::find(variable_modifications.begin(), variable_modifications.end(), *(r.getModification())) != variable_modifications.end()) 
+            {
+              ++n_var_mods;
+            }
+            if (r.getModification()->getId() == "Phospho") { is_phospho = 1; }
+          }
+          auto n_term_mod = fixed_and_variable_modified_peptide.getNTerminalModification();
+          auto c_term_mod = fixed_and_variable_modified_peptide.getCTerminalModification();
+
+          if (n_term_mod != nullptr &&
+            std::find(variable_modifications.begin(), variable_modifications.end(), 
+            *n_term_mod) != variable_modifications.end()) ++n_var_mods;
+          if (c_term_mod != nullptr &&
+            std::find(variable_modifications.begin(), variable_modifications.end(), 
+            *c_term_mod) != variable_modifications.end()) ++n_var_mods;
+
+          ph.setMetaValue(String("variable_modifications"), n_var_mods);
+
 
           // determine NA modification from index in map
           std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
@@ -2034,6 +2061,8 @@ static void scoreShiftedFragments_(
           ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
           ph.setMetaValue(String("RNPxl:NT"), String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
           ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // NA uncharged mass via empirical formula
+          ph.setMetaValue(String("RNPxl:isXL"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight() > 0); 
+          ph.setMetaValue(String("RNPxl:isPhospho"), is_phospho); 
 
           ph.setMetaValue(String("RNPxl:best_localization_score"), ah.best_localization_score);
           ph.setMetaValue(String("RNPxl:localization_scores"), ah.localization_scores);
@@ -2095,6 +2124,9 @@ static void scoreShiftedFragments_(
     feature_set
        << "isotope_error"
        << "RNPxl:score"
+       << "variable_modifications"
+       << "RNPxl:isXL" 
+       << "RNPxl:isPhospho" 
        << "RNPxl:mass_error_p"
        << "RNPxl:total_loss_score"
        << "RNPxl:modds"
@@ -2271,9 +2303,9 @@ static void scoreShiftedFragments_(
     auto range = make_pair(intensity_sum.begin(), intensity_sum.end());
     ah.ladder_score = ladderScore_(range) / (double)intensity_sum.size(); 
     range = longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end());
-    if (range.second != range.first)
+    if (range.second != range.first) // see Macot Percolator paper
     {
-      ah.sequence_score = ladderScore_(range) / (double)(range.second - range.first);
+      ah.sequence_score = ladderScore_(range) / (double)intensity_sum.size();
     }
 
     // simple combined score in fast scoring:
@@ -2799,7 +2831,7 @@ static void scoreShiftedFragments_(
                   range = longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end());
                   if (range.second != range.first)
                   {
-                    ah.sequence_score = ladderScore_(range) / (double)(range.second - range.first);
+                    ah.sequence_score = ladderScore_(range) / (double)intensity_sum.size();
                   }
 
                   // combined score
@@ -2992,7 +3024,7 @@ static void scoreShiftedFragments_(
                     range = longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end());
                     if (range.second != range.first)
                     {
-                      ah.sequence_score = ladderScore_(range) / (double)(range.second - range.first);
+                      ah.sequence_score = ladderScore_(range) / (double)intensity_sum.size();
                     }
 
                     // combined score

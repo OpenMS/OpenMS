@@ -619,13 +619,6 @@ protected:
       IDFilter::keepNBestHits(proteins, best_n_prot);
     }
 
-    if (getFlag_("remove_decoys"))
-    {
-      LOG_INFO << "Removing decoy hits..." << endl;
-      IDFilter::removeDecoyHits(peptides);
-      IDFilter::removeDecoyHits(proteins);
-    }
-
 
     // remove peptide hits with meta values:
     if (remove_meta_enabled)
@@ -674,6 +667,13 @@ protected:
         vector<PeptideHit>& phs = pid.getHits();
         phs.erase(remove_if(phs.begin(), phs.end(), checkMVs), phs.end());
       }
+    }
+
+    if (getFlag_("remove_decoys"))
+    {
+      LOG_INFO << "Removing decoy hits..." << endl;
+      IDFilter::removeDecoyHits(peptides);
+      IDFilter::removeDecoyHits(proteins);
     }
 
     // Clean-up:

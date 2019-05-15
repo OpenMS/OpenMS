@@ -679,6 +679,7 @@ protected:
           proteins.insert(temp_hits[j].getAccession());
         }
       }
+
       if (peptide_length.empty())
       { // avoid invalid-range exception when computing mean()
         peptide_length.push_back(0);
