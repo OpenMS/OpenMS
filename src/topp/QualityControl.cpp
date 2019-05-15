@@ -245,6 +245,35 @@ protected:
       if (isRunnable_(&qc_top_n_over_rt, status))
       {
         vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap);
+        // get and set identifier for just calculated IDs via MS run path
+        String identifier;
+        StringList unique_run_path;
+        fmap.getPrimaryMSRunPath(unique_run_path);
+        UInt32 matches{0};
+        for (const ProteinIdentification& prot_id : cmap.getProteinIdentifications()) //TODO do this with a map
+        {
+          StringList prot_run_path;
+          prot_id.getPrimaryMSRunPath(prot_run_path);
+          if (unique_run_path == prot_run_path)
+          {
+            identifier = prot_id.getIdentifier();
+            ++matches;
+          }
+        }
+        if (matches == 0)
+        {
+          OPENMS_LOG_ERROR << "FeatureXML does not correspond to ConsensusXML. Check input!\n";
+          return ILLEGAL_PARAMETERS;
+        }
+        if (matches > 1)
+        {
+          OPENMS_LOG_ERROR << "FeatureXML matches more than one protein identification in ConsensusXML. Check input!\n";
+          return ILLEGAL_PARAMETERS;
+        }
+        for (PeptideIdentification& pep_id : new_upep_ids)
+        {
+          pep_id.setIdentifier(identifier);
+        }
         // save the just calculated IDs
         // this is needed like this, because appending the unassigned PepIDs directly to the ConsensusMap would destroy the mapping
         all_new_upep_ids.insert(all_new_upep_ids.end(),new_upep_ids.begin(),new_upep_ids.end());

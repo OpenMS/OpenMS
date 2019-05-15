@@ -155,6 +155,7 @@ namespace OpenMS
           unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
           unidentified_MS2.setMetaValue("total_ion_count", tic);
           unidentified_MS2.setMetaValue("base_peak_intensity", bpi);
+          unidentified_MS2.setMetaValue("spectrum_reference",exp.getSpectra()[pos].getNativeID());
           annotatePepIDfromSpectrum_(exp.getSpectra()[pos], unidentified_MS2);
           result.push_back(unidentified_MS2);
         }
