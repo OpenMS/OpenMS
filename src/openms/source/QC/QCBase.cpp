@@ -62,7 +62,7 @@ namespace OpenMS
     const auto& it = map_to_index_.find(identifier);
     if (it == map_to_index_.end())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum with given identifier in MSExperiment!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No spectrum with identifier '") + identifier + "' in MSExperiment!");
     }
     return it -> second;
   }
