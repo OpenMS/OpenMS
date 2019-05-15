@@ -363,7 +363,7 @@ protected:
 #endif
     registerInputFile_("NET_executable", "<executable>", net_executable, "The .NET framework executable. Only required on linux and mac.", false, true, ListUtils::create<String>("skipexists"));
     registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, ListUtils::create<String>("skipexists"));
-
+    registerFlag_("noRawPeakPicking", "Disables vendor peak picking for raw files.", true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -381,6 +381,7 @@ protected:
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
+    bool no_peak_picking = getFlag_("noRawPeakPicking");
 
     //input file type
     FileHandler fh;
@@ -470,28 +471,26 @@ protected:
       writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
       String net_executable = getStringOption_("NET_executable");
       TOPPBase::ExitCodes exit_code;
-      String temp_directory_body = makeAutoRemoveTempDirectory_();
-      String new_filename = temp_directory_body + "/" + File::removeExtension(File::basename(in)) + ".mzML";
       if (net_executable.empty()) // windows
       {
         QStringList arguments;
         arguments << String("-i=" + in).toQString()
-                  << String("-o=" + temp_directory_body).toQString()
+                  << String("--output_file=" + out.toQString()
                   << String("-f=2").toQString() // indexedMzML
                   << String("-e").toQString(); // ignore instrument errors
+        if (no_peak_picking)  { arguments << String("--noPeakPicking"); }
         exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
-        File::rename(new_filename, out, true, false);
       }
       else
       {
         QStringList arguments;
         arguments << getStringOption_("ThermoRaw_executable").toQString()
                   << String("-i=" + in).toQString()
-                  << String("-o=" + temp_directory_body).toQString()
+                  << String("--output_file=" + out.toQString()
                   << String("-f=2").toQString()
                   << String("-e").toQString();
+        if (no_peak_picking)  { arguments << String("--noPeakPicking"); }
         exit_code = runExternalProcess_(net_executable.toQString(), arguments);
-        File::rename(new_filename, out, true, false);
       }
       return exit_code;
     }
