@@ -35,11 +35,9 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <iostream>
+#include <map>
 
 namespace OpenMS
 {
@@ -52,6 +50,7 @@ namespace OpenMS
   class OPENMS_DLLAPI QCBase
   {
   public:
+    class MSExperiment;
     /**
      * @brief Enum to encode a file type as a bit.
      */
