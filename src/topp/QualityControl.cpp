@@ -185,9 +185,11 @@ protected:
       //-------------------------------------------------------------
       MzMLFile mzml_file;
       PeakMap exp;
+      QCBase::SpectraMap spec_map;
       if (!in_raw.empty())
       {
         mzml_file.load(in_raw[i], exp);
+        spec_map.calculateMap(exp);
       }
 
       FeatureXMLFile fxml_file;
@@ -214,7 +216,7 @@ protected:
 
       if (isRunnable_(&qc_frag_mass_err, status))
       {
-        qc_frag_mass_err.compute(fmap, exp, tolerance_unit, tolerance_value);
+        qc_frag_mass_err.compute(fmap, exp, spec_map, tolerance_unit, tolerance_value);
       }
 
       if (isRunnable_(&qc_missed_cleavages, status))
@@ -229,7 +231,7 @@ protected:
 
       if (isRunnable_(&qc_mz_calibration, status))
       {
-        qc_mz_calibration.compute(fmap, exp);
+        qc_mz_calibration.compute(fmap, exp, spec_map);
       }
 
       if (isRunnable_(&qc_rt_alignment, status))
@@ -244,7 +246,7 @@ protected:
 
       if (isRunnable_(&qc_top_n_over_rt, status))
       {
-        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap);
+        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap, spec_map);
         // save the just calculated IDs
         // this is needed like this, because appending the unassigned PepIDs directly to the ConsensusMap would destroy the mapping
         all_new_upep_ids.insert(all_new_upep_ids.end(),new_upep_ids.begin(),new_upep_ids.end());

@@ -35,10 +35,9 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
-
 #include <iostream>
+#include <map>
 
 namespace OpenMS
 {
@@ -48,6 +47,7 @@ namespace OpenMS
    * It contains the important feature of encoding the input requirements
    * for a certain QC.
    */
+  class MSExperiment;
   class OPENMS_DLLAPI QCBase
   {
   public:
@@ -68,6 +68,39 @@ namespace OpenMS
        };
     /// strings corresponding to enum Requires
       static const std::string names_of_requires[];
+
+    /**
+     * @brief Map to find a spectrum via its ID
+    */
+    class SpectraMap
+    {
+    public:
+      // Constructor
+      SpectraMap();
+
+      SpectraMap(const MSExperiment& exp);
+
+      // Destructor
+      ~SpectraMap();
+
+      // calculate a new map, delete the old one
+      void calculateMap(const MSExperiment& exp);
+
+      // get index from identifier
+      const UInt64& at(const String& identifier) const;
+
+      // clear the map
+      void clear();
+      
+      // check if empty
+      bool empty() const;
+      
+      // get size of map
+      Size size() const;
+
+    private:
+      std::map<String,UInt64> map_to_index_;
+    };
     /**
      * @brief Storing a status as a UInt64
      *
