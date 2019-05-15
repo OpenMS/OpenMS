@@ -59,11 +59,12 @@ namespace OpenMS
 
   const UInt64& QCBase::SpectraMap::at(const String& identifier) const
   {
-    if (map_to_index_.find(identifier) == map_to_index_.end())
+    const auto& it = map_to_index_.find(identifier);
+    if (it == map_to_index_.end())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum with given identifier in MSExperiment!");
     }
-    return map_to_index_.at(identifier);
+    return it -> second;
   }
 
   void QCBase::SpectraMap::clear()

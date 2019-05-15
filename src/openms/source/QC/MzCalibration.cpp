@@ -32,16 +32,15 @@
 // $Authors: Juliane Schmachtenberg $
 // --------------------------------------------------------------------------
 
-
-#include <OpenMS/QC/QCBase.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/QC/MzCalibration.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 using namespace std;
  
@@ -53,7 +52,7 @@ namespace OpenMS
   }
 
   // find original m/z Value, set meta value "mz_raw" and set meta value "mz_ref"
-  void MzCalibration::compute(FeatureMap &features, const MSExperiment &exp, const QCBase::SpectraMap &map_to_spectrum)
+  void MzCalibration::compute(FeatureMap& features, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (exp.empty())
     {
@@ -68,13 +67,11 @@ namespace OpenMS
       {
         return (dp->getProcessingActions().count(DataProcessing::CALIBRATION) == 0);
       };
-      auto vdp = exp[0]
-          .getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
+      auto vdp = exp[0].getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
       if (all_of(vdp.begin(), vdp.end(), is_not_elem))
       {
         no_mzml_ = true;
-        OPENMS_LOG_WARN
-            << "Metric MzCalibration received an mzml file which did not undergo InternalCalibration. Only reporting uncalibrated mz error.\n";
+        OPENMS_LOG_WARN << "Metric MzCalibration received an mzml file which did not undergo InternalCalibration. Only reporting uncalibrated mz error.\n";
       }
     }
 

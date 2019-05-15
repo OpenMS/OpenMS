@@ -38,7 +38,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -52,7 +52,7 @@ using namespace OpenMS;
 // Functions to create input data
 
 // create a MSSpectrum with Precursor, MSLevel and RT
-const MSSpectrum createMSSpectrum(UInt ms_level, double rt, String id, Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
+const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
 {
   Precursor precursor;
   std::set<Precursor::ActivationMethod> am;
@@ -71,7 +71,7 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, String id, Precursor
 
 // create a PeptideIdentifiaction with a PeptideHit (sequence, charge), rt and mz
 // default values for sequence PEPTIDE
-const PeptideIdentification createPeptideIdentification(String id, String sequence = "PEPTIDE", Int charge = 3, double mz = 266)
+const PeptideIdentification createPeptideIdentification(const String& id, const String& sequence = String("PEPTIDE"), Int charge = 3, double mz = 266)
 {
   PeptideHit peptide_hit;
   peptide_hit.setSequence(AASequence::fromString(sequence));
@@ -106,7 +106,7 @@ START_TEST(FragmentMassError, "$Id$")
   FragmentMassError frag_ma_err;
 
   //tests compute function
-  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std::map<String,UInt64>& map_to_spectrum, const double tolerance = 20, const ToleranceUnit tolerance_unit = ToleranceUnit::PPM))
+  START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std::map<String,UInt64>& map_to_spectrum, const ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, const double tolerance = 20))
   {
     //--------------------------------------------------------------------
     // create valid input data
@@ -124,6 +124,13 @@ START_TEST(FragmentMassError, "$Id$")
     // put valid data in fmap
     fmap.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::1", "HIMALAYA", 1, 888), createPeptideIdentification("XTandem::2", "ALABAMA", 2, 264), pep_id_empty});
     fmap.push_back(feat_empty);
+    // set ProteinIdentifications
+    ProteinIdentification protId;
+    ProteinIdentification::SearchParameters param;
+    param.fragment_mass_tolerance_ppm = false;
+    param.fragment_mass_tolerance = 0.3;
+    protId.setSearchParameters(param);
+    fmap.setProteinIdentifications( {protId} );
 
     // MSExperiment
     MSExperiment exp;
@@ -158,25 +165,46 @@ START_TEST(FragmentMassError, "$Id$")
     QCBase::SpectraMap spectra_map(exp);
 
     //--------------------------------------------------------------------
-    // test with valid input
+    // test with valid input - default parameter
     //--------------------------------------------------------------------
     frag_ma_err.compute(fmap, exp, spectra_map);
     std::vector<FragmentMassError::FMEStatistics> result;
     result = frag_ma_err.getResults();
 
-    TEST_REAL_SIMILAR(result[0].average_ppm, 4.758327) // mz: 0.001     // old window mower 4.698439
-    TEST_REAL_SIMILAR(result[0].variance_ppm, 9.05026) //mz: 5.915844  // old window mower 10.93094
+    TEST_REAL_SIMILAR(result[0].average_ppm, 5.6856486461329)
+    TEST_REAL_SIMILAR(result[0].variance_ppm, 28.4513876232475)
+
+    //--------------------------------------------------------------------
+    // test with valid input - ToleranceUnit PPM
+    //--------------------------------------------------------------------
+
+    FragmentMassError frag_ma_err_ppm;
+    frag_ma_err_ppm.compute(fmap, exp, spectra_map, FragmentMassError::ToleranceUnit::PPM, 20);
+    std::vector<FragmentMassError::FMEStatistics> result_ppm;
+    result_ppm = frag_ma_err_ppm.getResults();
+
+    TEST_REAL_SIMILAR(result_ppm[0].average_ppm, 4.75832898811882)
+    TEST_REAL_SIMILAR(result_ppm[0].variance_ppm, 9.05028252108777)
 
     //--------------------------------------------------------------------
     // test with valid input and flags
     //--------------------------------------------------------------------
-    FragmentMassError frag_ma_err_flag;
-    frag_ma_err_flag.compute(fmap, exp, spectra_map, 1, FragmentMassError::ToleranceUnit::DA);
-    std::vector<FragmentMassError::FMEStatistics> result_flag;
-    result_flag = frag_ma_err_flag.getResults();
+    FragmentMassError frag_ma_err_flag_da;
+    frag_ma_err_flag_da.compute(fmap, exp, spectra_map, FragmentMassError::ToleranceUnit::DA, 1);
+    std::vector<FragmentMassError::FMEStatistics> result_flag_da;
+    result_flag_da = frag_ma_err_flag_da.getResults();
 
-    TEST_REAL_SIMILAR(result_flag[0].average_ppm, 5.685647)       // old window mower 5.938193
-    TEST_REAL_SIMILAR(result_flag[0].variance_ppm, 28.45137)     // old window mower 36.4524
+    TEST_REAL_SIMILAR(result_flag_da[0].average_ppm, 5.685647)
+    TEST_REAL_SIMILAR(result_flag_da[0].variance_ppm, 28.45137)
+
+    //--------------------------------------------------------------------
+    // test with missing toleranceUnit and toleranceValue in featureMap
+    //--------------------------------------------------------------------
+
+    // featureMap with missing ProteinIdentifications
+    FeatureMap fmap_auto;
+
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, FragmentMassError::ToleranceUnit::AUTO), "There is no information about fragment mass tolerance given in the FeatureXML. Please choose a fragment_mass_unit")
 
     //--------------------------------------------------------------------
     // test with matching ms1 spectrum
@@ -214,6 +242,7 @@ START_TEST(FragmentMassError, "$Id$")
 
     // put PeptideIdentification with RT matching to MSSpectrum with fragmentation method SORI to fmap
     FeatureMap fmap_sori;
+    fmap_sori.setProteinIdentifications( {protId} );
     fmap_sori.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::5")});
 
     // MSExperiment with fragmentation method SORI (not supported)

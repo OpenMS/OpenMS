@@ -32,12 +32,15 @@
 // $Authors: Swenja Wagner, Patricia Scheil $
 // --------------------------------------------------------------------------
 
-#include <iostream>
+#include <OpenMS/QC/MissedCleavages.h>
+
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/QC/MissedCleavages.h>
+
+#include <iostream>
 
 namespace OpenMS
 {
@@ -49,7 +52,7 @@ namespace OpenMS
 
     mapU32 result{};
 
-    //Warning if the FeatureMap is empty, result is 0
+    // if the FeatureMap is empty, result is 0
     if (fmap.empty())
     {
       OPENMS_LOG_WARN << "FeatureXML is empty.";

@@ -47,10 +47,10 @@ namespace OpenMS
    * It contains the important feature of encoding the input requirements
    * for a certain QC.
    */
+  class MSExperiment;
   class OPENMS_DLLAPI QCBase
   {
   public:
-    class MSExperiment;
     /**
      * @brief Enum to encode a file type as a bit.
      */
