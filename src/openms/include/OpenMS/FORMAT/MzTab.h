@@ -929,7 +929,8 @@ public:
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getOligonucleotideOptionalColumnNames() const;
 
-    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String id, const MetaInfoInterface meta);
+    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String& id, const MetaInfoInterface& meta);
+
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getOSMOptionalColumnNames() const;
 
