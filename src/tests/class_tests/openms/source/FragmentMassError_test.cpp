@@ -217,7 +217,7 @@ START_TEST(FragmentMassError, "$Id$")
     exp.setSpectra({createMSSpectrum(1, 5, "XTandem::3")});
     spectra_map.calculateMap(exp);
 
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err.compute(fmap, exp, spectra_map), "The matching spectrum of the mzML is not a MS2 Spectrum.")
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err.compute(fmap, exp, spectra_map), "The matching spectrum of the mzML is not an MS2 Spectrum.")
 
     //--------------------------------------------------------------------
     // test with no given fragmentation method
