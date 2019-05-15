@@ -57,7 +57,7 @@
         the data or what they return.
         @subsection TOPP_example_qualitycontrol_section3_subsection Input Data
         PostFDR FeatureXML: A FeatureXML after FDR filtering. <br>
-        Contaminants Fasta file: A Fasta file containing the contaminants database. <br>
+        Contaminants Fasta file: A Fasta file containing contaminant proteins. <br>
         Raw mzML file: An unchanged mzML file. <br>
         TrafoXML file: A transformed XML file with aligned retention times. <br>
 
@@ -86,9 +86,11 @@
             </TD>
             <TD>
                 <b> Changes in files:</b> <br>
+                <ul>
                 Metavalue: <br>
-                &emsp;- 'is_contaminant' set to '1' or to '0' if the peptide is found in the contaminant database or not
-                and sets a '0' if not.<br>
+                <li>'is_contaminant' set to '1' or to '0' if the peptide is found in the contaminant database or not
+                and sets a '0' if not.<br> </li>
+                </ul>
                 <b> Other outputs:</b> <br>
                 Returns:<br>
                 &emsp;- Contaminant ratio of all peptides<br>
