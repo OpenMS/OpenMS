@@ -95,10 +95,10 @@
                 <b> Other outputs:</b> <br>
                 Returns:<br>
                 <ul>
-                <li>Contaminant ratio of all peptides<br></li>
-                <li>Contaminant ratio of all assigned peptides<br></li>
-                <li>Contaminant ratio of all unassigned peptides<br></li>
-                <li>Intensity ratio of all contaminants in the assigned peptides <br></li>
+                <li>Contaminant ratio of all peptides</li>
+                <li>Contaminant ratio of all assigned peptides</li>
+                <li>Contaminant ratio of all unassigned peptides</li>
+                <li>Intensity ratio of all contaminants in the assigned peptides</li>
                 <li>Number of empty features, Number of all found features</li>
                 </ul>
             </TD>
@@ -128,8 +128,8 @@
                   <b> Changes in files:</b> <br>
                   Metavalue: <br>
                   <ul>
-                  <li>'fragment_mass_error_ppm' set to the fragment mass error in parts per million <br></li>
-                  <li>'fragment_mass_error_da' set to the fragment mass error in Dalton. <br></li>
+                  <li>'fragment_mass_error_ppm' set to the fragment mass error in parts per million</li>
+                  <li>'fragment_mass_error_da' set to the fragment mass error in Dalton</li>
                   </ul>
                   <b> Other Output:</b> <br>
                   Returns: <br>
@@ -163,7 +163,7 @@
                    <b> Changes in files:</b> <br>
                    Metavalue:<br>
                    <ul>
-                   <li>'missed_cleavages' <br></li>
+                   <li>'missed_cleavages'</li>
                    </ul>
                    <b> Other Output:</b> <br>
                    Returns: <br>
@@ -199,8 +199,8 @@
                    <b> Other Output:</b> <br>
                    Returns: <br>
                    <ul>
-                   <li>Number of PeptideIdentifications <br></li>
-                   <li>Number of MS2 spectra <br></li>
+                   <li>Number of PeptideIdentifications</li>
+                   <li>Number of MS2 spectra</li>
                    <li>Ratio of #pepID/#MS2</li>
                    </ul>
               </TD>
@@ -231,10 +231,10 @@
                    <b> Changes in files:</b> <br>
                    Metavalues: <br>
                    <ul>
-                   <li>'mz_raw'set to m/z value of original experiment <br></li>
-                   <li>'mz_ref' set to m/z value of calculated reference <br></li>
-                   <li>'uncalibrated_mz_error_ppm' set to uncalibrated m/z error in parts per million <br></li>
-                   <li>'calibrated_mz_error_ppm' set to calibrated m/z error in parts per million </li>
+                   <li>'mz_raw'set to m/z value of original experiment</li>
+                   <li>'mz_ref' set to m/z value of calculated reference</li>
+                   <li>'uncalibrated_mz_error_ppm' set to uncalibrated m/z error in parts per million</li>
+                   <li>'calibrated_mz_error_ppm' set to calibrated m/z error in parts per million</li>
                    </ul>
                    <b> Other Output:</b> <br>
                    No additional output.
@@ -265,8 +265,8 @@
                    <b> Changes in files:</b> <br>
                    Metavalues: <br>
                    <ul>
-                   <li>'rt_align'set to retention time after alignment <br></li>
-                   <li>'rt_raw' set to retention time before alignment <br></li>
+                   <li>'rt_align'set to retention time after alignment</li>
+                   <li>'rt_raw' set to retention time before alignment</li>
                    </ul>
                    <b> Other Output:</b> <br>
                    No additional output.
@@ -322,25 +322,25 @@
                    them as the new metavalue 'ScanEventNumber' to the PeptideIdentifications. It finds
                    all unidentified MS2-Spectra and adds corresponding 'empty' PeptideIdentifications without sequence as
                    placeholders to the unassigned PeptideIdentification list. Furthermore
-                   it adds the metavalue 'identified' to the PeptideIdentification.<br>
+                   it adds the metavalue 'identified' to the PeptideIdentification.
               </TD>
 
               <TD>
                    <b> Changes in files:</b> <br>
                    Metavalues: <br>
                    <ul>
-                   <li>'ScanEventNumber' set to the calculated value <br></li>
-                   <li>'identified' set to '+' or '-' <br></li>
+                   <li>'ScanEventNumber' set to the calculated value</li>
+                   <li>'identified' set to '+' or '-'</li>
                    If provided:
-                   <li>'FWHM' set to RT peak width for all assigned PIs <br></li>
-                   <li>'ion_injection_time'set to injection time from MS2 spectrum <br></li>
-                   <li>'activation_method'set to activation method from MS2 spectrum <br></li>
-                   <li>'total_ion_count'set to summed intensity from MS2 spectrum<br></li>
-                   <li>'base_peak_intensity'set to highest intensity from MS2 spectrum<br></li>
+                   <li>'FWHM' set to RT peak width for all assigned PIs</li>
+                   <li>'ion_injection_time'set to injection time from MS2 spectrum</li>
+                   <li>'activation_method'set to activation method from MS2 spectrum</li>
+                   <li>'total_ion_count'set to summed intensity from MS2 spectrum</li>
+                   <li>'base_peak_intensity'set to highest intensity from MS2 spectrum</li>
                    </ul>
                    Additionally: <br>
                    <ul>
-                   <li>Adds empty PeptideIdentifications <br></li>
+                   <li>Adds empty PeptideIdentifications</li>
                    </ul>
                    <b> Other Output:</b> <br>
                    No additional output.
