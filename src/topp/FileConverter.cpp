@@ -475,7 +475,7 @@ protected:
       {
         QStringList arguments;
         arguments << String("-i=" + in).toQString()
-                  << String("--output_file=" + out.toQString()
+                  << String("--output_file=" + out.toQString())
                   << String("-f=2").toQString() // indexedMzML
                   << String("-e").toQString(); // ignore instrument errors
         if (no_peak_picking)  { arguments << String("--noPeakPicking"); }
@@ -486,7 +486,7 @@ protected:
         QStringList arguments;
         arguments << getStringOption_("ThermoRaw_executable").toQString()
                   << String("-i=" + in).toQString()
-                  << String("--output_file=" + out.toQString()
+                  << String("--output_file=" + out.toQString())
                   << String("-f=2").toQString()
                   << String("-e").toQString();
         if (no_peak_picking)  { arguments << String("--noPeakPicking"); }
