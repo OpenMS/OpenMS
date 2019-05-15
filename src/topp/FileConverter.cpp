@@ -478,7 +478,7 @@ protected:
                   << String("--output_file=" + out).toQString()
                   << String("-f=2").toQString() // indexedMzML
                   << String("-e").toQString(); // ignore instrument errors
-        if (no_peak_picking)  { arguments << String("--noPeakPicking"); }
+        if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
         exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
       }
       else
@@ -489,7 +489,7 @@ protected:
                   << String("--output_file=" + out).toQString()
                   << String("-f=2").toQString()
                   << String("-e").toQString();
-        if (no_peak_picking)  { arguments << String("--noPeakPicking"); }
+        if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
         exit_code = runExternalProcess_(net_executable.toQString(), arguments);
       }
       return exit_code;
