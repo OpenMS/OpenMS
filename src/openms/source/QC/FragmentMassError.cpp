@@ -72,7 +72,7 @@ namespace OpenMS
     }
   }
 
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, ToleranceUnit tolerance_unit, double tolerance)
+  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     FMEStatistics result;
 
@@ -82,16 +82,9 @@ namespace OpenMS
     // counts number of ppm errors
     UInt32 counter_ppm{};
 
-    const float rt_tolerance = 0.05f;
-
     //---------------------------------------------------------------------
     // Prepare MSExperiment
     //---------------------------------------------------------------------
-
-    if (!exp.isSorted())
-    {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSExperiment is not sorted by ascending RT");
-    }
 
     // filter settings
     WindowMower window_mower_filter;
@@ -115,7 +108,7 @@ namespace OpenMS
     }
 
     // computes the FragmentMassError
-    auto lamCompPPM = [&exp, rt_tolerance, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
+    auto lamCompPPM = [&exp, &map_to_spectrum, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -141,24 +134,15 @@ namespace OpenMS
       // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICTION
       //-----------------------------------------------------------------------
 
-      double rt_pep  = pep_id.getRT();
-
-      MSExperiment::ConstIterator it = exp.RTBegin(rt_pep - rt_tolerance);
-      if (it == exp.end())
+      if (!pep_id.metaValueExists("spectrum_reference"))
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The retention time of the mzML and featureXML file does not match.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identifiction!");
       }
+      const MSSpectrum& exp_spectrum = exp[map_to_spectrum.at(pep_id.getMetaValue("spectrum_reference").toString())];
 
-      const auto& exp_spectrum = *it;
-
-      if (exp_spectrum.getRT() - rt_pep > rt_tolerance)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PeptideID with RT " + String(rt_pep) + " s does not have a matching MS2 Spectrum. Closest RT was "
-        + String(exp_spectrum.getRT()) + ", which seems to far off.");
-      }
       if (exp_spectrum.getMSLevel() != 2)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching retention time of the mzML is not a MS2 Spectrum.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching spectrum of the mzML is not an MS2 Spectrum.");
       }
 
 

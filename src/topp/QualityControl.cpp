@@ -201,9 +201,11 @@ protected:
       //-------------------------------------------------------------
       MzMLFile mzml_file;
       PeakMap exp;
+      QCBase::SpectraMap spec_map;
       if (!in_raw.empty())
       {
         mzml_file.load(in_raw[i], exp);
+        spec_map.calculateMap(exp);
       }
 
       FeatureXMLFile fxml_file;
@@ -230,7 +232,7 @@ protected:
 
       if (isRunnable_(&qc_frag_mass_err, status))
       {
-        qc_frag_mass_err.compute(fmap, exp, tolerance_unit, tolerance_value);
+        qc_frag_mass_err.compute(fmap, exp, spec_map, tolerance_unit, tolerance_value);
       }
 
       if (isRunnable_(&qc_missed_cleavages, status))
@@ -245,7 +247,7 @@ protected:
 
       if (isRunnable_(&qc_mz_calibration, status))
       {
-        qc_mz_calibration.compute(fmap, exp);
+        qc_mz_calibration.compute(fmap, exp, spec_map);
       }
 
       if (isRunnable_(&qc_rt_alignment, status))

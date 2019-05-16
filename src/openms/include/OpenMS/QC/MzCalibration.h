@@ -65,11 +65,15 @@ namespace OpenMS
       virtual ~MzCalibration() = default;
 
       /**
-        @brief Writes results as meta values to the PeptideIdentification of the given FeatureMap
-        @param features FeatureMap with m/z-values of PeptideIdentification after calibration, metavalues are added here
-        @param exp PeakMap of the original experiment. Can be empty (i.e. not available).
-       **/
-      void compute(FeatureMap& features, const MSExperiment& exp);
+      * @brief Writes results as meta values to the PeptideIdentification of the given FeatureMap
+      * @param features FeatureMap with m/z-values of PeptideIdentification after calibration, meta values are added here
+      * @param exp PeakMap of the original experiment. Can be empty (i.e. not available).
+      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
+      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
+      * @throws Exception::IllegalArgument Spectrum for a PepID has MSLevel of 1
+      * @throws Exception::MissingInformation Meta value 'mz_raw' missing from MSExperiment 
+      **/
+      void compute(FeatureMap& features, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 
       /// define the required input files
       /// only FeatureXML after FDR is ultimately necessary
@@ -79,11 +83,9 @@ namespace OpenMS
       const String& getName() const override;
 
     private:
-      /// search matching RT-time in MSExperiment before calibration, and return the m/z value. Search with a small tolerance window of 0.05
-      double getMZraw_(double rt, const MSExperiment& exp) const;
 
       /// calculate the m/z values and m/z errors and add them to the PeptideIdentification
-      void addMzMetaValues_(PeptideIdentification& peptide_ID, const MSExperiment& exp);
+      void addMzMetaValues_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 
       double mz_raw_;
       double mz_ref_;
