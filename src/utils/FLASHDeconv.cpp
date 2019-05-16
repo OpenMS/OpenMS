@@ -19,7 +19,6 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
 
-
 using namespace OpenMS;
 using namespace std;
 
@@ -33,6 +32,7 @@ public:
                false)
   {
   }
+
   static const bool jitter = false;
 
   struct Parameter
@@ -52,7 +52,7 @@ public:
     //double chargeDistributionScoreThreshold;
     double RTwindow;
     double minRTSpan;
-    vector<int> hCharges{2, 3, 5, }; // automated or fixed parameters
+    vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
     int chargeRange;
     double binWidth;
     int minNumOverLappedScans = 10;
@@ -407,21 +407,24 @@ protected:
     int specCntr = 0, qspecCntr = 0, massCntr = 0, featureCntr = 0;
     int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0, total_featureCntr = 0;
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
-    fstream fs, fsf, fsm, fsp;
+    fstream fs, fsf;
 
     if (!isOutPathDir)
     {
-      fs.open(outfilePath + ".tsv", fstream::out);
+      if (param.writeSpecTsv > 0)
+      {
+        fs.open(outfilePath + ".tsv", fstream::out);
+      }
       // if (param.RTwindow > 0)
       // {
       fsf.open(outfilePath + "feature.tsv", fstream::out);
       //  }
 
       writeHeader(fs, fsf, true);
-      fsm.open(outfilePath + ".m", fstream::out);
-      fsm << "m=[";
+      //  fsm.open(outfilePath + ".m", fstream::out);
+      //  fsm << "m=[";
 
-      fsp.open(outfilePath + "peak.m", fstream::out);
+      // fsp.open(outfilePath + "peak.m", fstream::out);
     }
 
     for (auto &infile : infileArray)
@@ -470,17 +473,20 @@ protected:
         std::string outfileName(param.fileName);
         std::size_t found = outfileName.find_last_of(".");
         outfileName = outfileName.substr(0, found);
-        fs.open(outfilePath + outfileName + ".tsv", fstream::out);
 
+        if (param.writeSpecTsv > 0)
+        {
+          fs.open(outfilePath + outfileName + ".tsv", fstream::out);
+        }
         fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
 
         writeHeader(fs, fsf, true);
 
-        outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
-        outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
-        fsm.open(outfilePath + "m" + outfileName + ".m", fstream::out);
-        fsm << "m=[";
-        fsp.open(outfilePath + "m" + outfileName + "peak.m", fstream::out);
+        //outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
+        //outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
+        //   fsm.open(outfilePath + "m" + outfileName + ".m", fstream::out);
+        //   fsm << "m=[";
+        //   fsp.open(outfilePath + "m" + outfileName + "peak.m", fstream::out);
       }
 
       cout << "Running FLASHDeconv ... " << endl;
@@ -504,7 +510,7 @@ protected:
 
         for (auto &pg : peakGroups)
         {
-          writePeakGroup(pg, param, fs, fsm, fsp);
+          writePeakGroup(pg, param, fs);
         }
 
         cout << "done" << endl;
@@ -520,10 +526,13 @@ protected:
           cout << "Mass tracer found " << featureCntr << " features" << endl;
         }
 
-        fsm << "];";
-        fsm.close();
-        fsp.close();
-        fs.close();
+        //   fsm << "];";
+        //   fsm.close();
+        //   fsp.close();
+        if (param.writeSpecTsv > 0)
+        {
+          fs.close();
+        }
 
         fsf.close();
 
@@ -586,10 +595,13 @@ protected:
 
     if (!isOutPathDir)
     {
-      fsm << "];";
-      fsm.close();
-      fsp.close();
-      fs.close();
+      // fsm << "];";
+      //  fsm.close();
+      //  fsp.close();
+      if (param.writeSpecTsv > 0)
+      {
+        fs.close();
+      }
       fsf.close();
 
     }
@@ -702,13 +714,13 @@ protected:
       auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
-          << getNominalMass(mass) << "\t"
+          //<< getNominalMass(mass) << "\t"
           << mt.begin()->getRT() << "\t"
           << mt.rbegin()->getRT() << "\t"
           << mt.getTraceLength() << "\t"
           << mt[mt.findMaxByIntPeak()].getRT() << "\t"
           << mt.getMaxIntensity(false) << "\t"
-         // << mt.computePeakArea() << "\t"
+          // << mt.computePeakArea() << "\t"
           << minCharge << "\t"
           << maxCharge << "\t"
           << charges.count() << "\n";
@@ -719,7 +731,7 @@ protected:
   static void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false)
   {
     fs
-        << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassCountInSpec\tExactMass\tAvgMass\tNominalMass(round(ExactMass*0.999497))\t"
+        << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassCountInSpec\tMonoisotopicMass\tAvgMass\t"
            "PeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
            "AggregatedIntensity\tRetentionTime\tPeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\t"
            "PeakIntensities\tIsotopeCosineScore\n";
@@ -727,7 +739,7 @@ protected:
     {
       return;
     }
-    fsf << "ID\tFileName\tExactMass\tNominalMass\tStartRetentionTime"
+    fsf << "ID\tFileName\tMonoisotopicMass\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
            "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\n";
     return;
@@ -770,7 +782,7 @@ protected:
       }
     }
 
-    if(jitter)
+    if (jitter)
     {
       double *tfilter = new double[param.chargeRange];
       auto m = filter[0];
@@ -851,7 +863,7 @@ protected:
     return allPeakGroups; //
   }
 
-  static void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs, fstream &fsm, fstream &fsp)
+  static void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs)//, fstream &fsm, fstream &fsp)
   {
     //return;//
     if (pg.peaks.empty())
@@ -861,7 +873,7 @@ protected:
     double &m = pg.monoisotopicMass;
     double &am = pg.avgMass;
     double &intensity = pg.intensity;
-    int nm = getNominalMass(m);
+    //int nm = getNominalMass(m);
     sort(pg.peaks.begin(), pg.peaks.end());
     int minCharge = param.chargeRange + param.minCharge;
     int maxCharge = -1;
@@ -873,8 +885,8 @@ protected:
     //cout<<1<<endl;
     fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.spec->getNativeID() << "\t"
        << pg.massCntr << "\t"
-       << fixed << setprecision(3) << m << "\t" << am << "\t" << nm << "\t" <<
-       (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
+       << fixed << setprecision(3) << m << "\t" << am << "\t"
+       << (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
        << fixed << setprecision(1) << intensity << "\t" << pg.spec->getRT()
        << "\t" << pg.peaks.size() << "\t";
 
@@ -920,7 +932,7 @@ protected:
             fsp << "];\n";
             //cout<<3<<endl;
  */
-    fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
+    //fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
     //cout<<4<<endl;
 
 
@@ -997,8 +1009,9 @@ protected:
 
     for (int i = 0; i < param.chargeRange; i++)
     {
-      binOffsets[i] = (long) round((jitter? random[i] : 0) +
-                                   (mzBinMinValue - filter[i] - massBinMinValue) * param.binWidth);//rand() %10000 + 100 +
+      binOffsets[i] = (long) round((jitter ? random[i] : 0) +
+                                   (mzBinMinValue - filter[i] - massBinMinValue) *
+                                   param.binWidth);//rand() %10000 + 100 +
       //cout << i << binOffsets[i]<<endl;
     }
 
@@ -1019,11 +1032,14 @@ protected:
                                            hBinOffsets,
                                            unionMassBins,
                                            logIntensities, param,
-                                           minMass,maxMass);
+                                           minMass, maxMass);
 
     //cout<<1<<endl;
-    auto peakGroups = getPeakGroupsWithMassBins(unionMassBins, logMzPeaks, mzBinMinValue, //massBinMinValue,sumLogIntensities,
-                                                binOffsets, perMassChargeRanges,
+    auto peakGroups = getPeakGroupsWithMassBins(unionMassBins,
+                                                logMzPeaks,
+                                                mzBinMinValue, //massBinMinValue,sumLogIntensities,
+                                                binOffsets,
+                                                perMassChargeRanges,
                                                 param);
 
     //cout<<2<<endl;
@@ -1151,7 +1167,7 @@ protected:
       {
         long &binOffset = binOffsets[j];
         auto bi = massBinIndex - binOffset;
-        if (mzChargeRanges[bi]<chargeRange && mzChargeRanges[bi] != j)//
+        if (mzChargeRanges[bi] < chargeRange && mzChargeRanges[bi] != j)
         {
           continue;
         }
@@ -1173,7 +1189,7 @@ protected:
               maxIntensityPeakIndex = cpi;
             }
           }
-          else if (peakBinNumbers[cpi]  > bi)
+          else if (peakBinNumbers[cpi] > bi)
           {
             break;
           }
@@ -1182,9 +1198,9 @@ protected:
 
         if (maxIntensityPeakIndex >= 0)
         {
-          double mz = logMzPeaks[maxIntensityPeakIndex].orgPeak->getMZ();
+          const double mz = logMzPeaks[maxIntensityPeakIndex].orgPeak->getMZ();
           //double &logMz = logMzPeaks[maxIntensityPeakIndex].logMz;
-          double isof = Constants::C13C12_MASSDIFF_U / charge;
+          const double isof = Constants::C13C12_MASSDIFF_U / charge;
           double mzDelta = tol * mz;
           //cout<<mzDelta<<endl;
           int maxI = 0;
@@ -1195,9 +1211,9 @@ protected:
             for (int i = 0; i < maxIsotopeCount && (peakIndex >= 0 && peakIndex < logMzPeakSize); i++)
             {
               maxI = max(maxI, i);
-              double centerMz = mz + isof * i * d;
-              double centerMzMin = centerMz - mzDelta;
-              double centerMzMax = centerMz + mzDelta;
+              const double centerMz = mz + isof * i * d;
+              const double centerMzMin = centerMz - mzDelta;
+              const double centerMzMax = centerMz + mzDelta;
               bool isotopePeakPresent = false;
               if (lastPeakIndex >= 0)
               {
@@ -1205,7 +1221,7 @@ protected:
               }//maxIntensityPeakIndex + (d < 0 ? d : 0);
               for (; peakIndex >= 0 && peakIndex < logMzPeakSize; peakIndex += d)
               {
-                double observedMz = logMzPeaks[peakIndex].orgPeak->getMZ();
+                const double observedMz = logMzPeaks[peakIndex].orgPeak->getMZ();
                 if (observedMz < centerMzMin)
                 {
                   if (d < 0)
@@ -1232,9 +1248,9 @@ protected:
                 isotopePeakPresent = true;
                 if (peakIndex != lastPeakIndex)
                 {
-                 // auto &mzBin = ;
-                  auto bin = peakBinNumbers[peakIndex] + binOffset;
-                  if(bin < massBinSize) //
+                  // auto &mzBin = ;
+                  const auto bin = peakBinNumbers[peakIndex] + binOffset;
+                  if (bin < massBinSize) //
                   {
                     LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, i * d);
                     pg.peaks.push_back(p);
@@ -1520,7 +1536,7 @@ protected:
                             long **hBinOffsets,
                             boost::dynamic_bitset<> &unionMassBins,
                             float *logIntensities,
-                            const Parameter &param, double &minMass, double& maxMass)
+                            const Parameter &param, double &minMass, double &maxMass)
   {
     long binThresholdMinMass = (long) getBinNumber(log(minMass), massBinMinValue, param.binWidth);
     long binThresholdMaxMass = (long) min(massBins.size(), getBinNumber(log(maxMass), massBinMinValue, param.binWidth));
@@ -1617,7 +1633,8 @@ protected:
       {
         //int offset = (j + param.minCharge)
         long massBinIndex = mzBinIndex + binOffsets[j];
-        if(massBinIndex < 0){
+        if (massBinIndex < 0)
+        {
           continue;
         }
         if (massBinIndex >= binEnd)
@@ -1667,8 +1684,6 @@ protected:
         if (h)
         {
           continuousChargePeakPairCount[massBinIndex] = 0;//
-          //isQualified[massBinIndex] = false;
-          //if(continuousChargePeakPairCount[massBinIndex]>0) continuousChargePeakPairCount[massBinIndex]--;
           continue;
         }
         sumLogIntensities[massBinIndex] += logIntensity;
@@ -1734,7 +1749,7 @@ protected:
       // Byte *continuousChargePeakPairCount,
                                  long *binOffsets,
                                  const Parameter &param,
-                                 long& binStart,long& binEnd
+                                 long &binStart, long &binEnd
   )
   {
     int chargeRange = param.chargeRange;
@@ -1795,7 +1810,7 @@ protected:
 
       // if (maxIndex >= 0)
       //{
-      if (maxIndex > binStart && maxIndex < binEnd-1)
+      if (maxIndex > binStart && maxIndex < binEnd - 1)
       {
         //if (sumLogIntensities[maxIndex] >  sumLogIntensities[maxIndex-1] &&
         //    sumLogIntensities[maxIndex] >  sumLogIntensities[maxIndex+1])
@@ -1905,6 +1920,11 @@ protected:
       bool isIsotopeSpanGood = checkSpanDistribution(perChargeMinIsotope, perChargeMaxIsotope,
                                                      param.chargeRange, 3);
 
+      if (!isIsotopeSpanGood)
+      {
+        continue;
+      }
+
       bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
                                                              param.chargeRange,
                                                              3);
@@ -1914,10 +1934,6 @@ protected:
         continue;
       }
 
-      if (!isIsotopeSpanGood)
-      {
-        continue;
-      }
 
       bool isChargeSpanGood = checkSpanDistribution(perIsotopeMinCharge, perIsotopeMaxCharge,
                                                     param.maxIsotopeCount, 3);
@@ -1926,7 +1942,6 @@ protected:
       {
         continue;
       }
-
 
 
       pg.isotopeCosineScore = getIsotopeCosineAndDetermineExactMass(pg,
