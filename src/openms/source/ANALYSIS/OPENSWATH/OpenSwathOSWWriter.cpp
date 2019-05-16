@@ -244,14 +244,19 @@ namespace OpenMS
         }
       }
 
+      // these will be missing if RT scoring is disabled
+      double norm_rt = -1, delta_rt = -1;
+      if (feature_it.metaValueExists("norm_RT") ) norm_rt = feature_it.getMetaValue("norm_RT");
+      if (feature_it.metaValueExists("delta_rt") ) delta_rt = feature_it.getMetaValue("delta_rt");
+
       sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES ("
                   << feature_id << ", "
                   // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
                   <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", "
                   << id << ", "
                   << feature_it.getRT() << ", "
-                  << feature_it.getMetaValue("norm_RT") << ", "
-                  << feature_it.getMetaValue("delta_rt") << ", "
+                  << norm_rt << ", "
+                  << delta_rt << ", "
                   << feature_it.getMetaValue("leftWidth") << ", "
                   << feature_it.getMetaValue("rightWidth") << "); ";
 
