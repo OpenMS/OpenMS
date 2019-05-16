@@ -155,7 +155,23 @@ protected:
     {
       fillPepIDMap_(map_to_id, cmap[i].getPeptideIdentifications(), i);
     }
-    fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications(), -1);      
+    fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications(), -1);
+    //-------------------------------------------------------------
+    // Build the map to later find the correct identifier by MS run path.
+    //-------------------------------------------------------------
+    map<StringList, String> map_to_identifier;
+    for (ProteinIdentification& prot_id : cmap.getProteinIdentifications())
+    {
+      StringList files;
+      prot_id.getPrimaryMSRunPath(files);
+      const auto& it = map_to_identifier.find(files);
+      if (it != map_to_identifier.end())
+      {
+        OPENMS_LOG_ERROR << "Multiple protein identifications with the same identifier in ConsensusXML. Check input!\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      map_to_identifier[files] = prot_id.getIdentifier();
+    }
 
     // check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
@@ -246,33 +262,17 @@ protected:
       {
         vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap);
         // get and set identifier for just calculated IDs via MS run path
-        String identifier;
         StringList unique_run_path;
         fmap.getPrimaryMSRunPath(unique_run_path);
-        UInt32 matches{0};
-        for (const ProteinIdentification& prot_id : cmap.getProteinIdentifications()) //TODO do this with a map
-        {
-          StringList prot_run_path;
-          prot_id.getPrimaryMSRunPath(prot_run_path);
-          if (unique_run_path == prot_run_path)
-          {
-            identifier = prot_id.getIdentifier();
-            ++matches;
-          }
-        }
-        if (matches == 0)
+        const auto& ptr_to_map_entry = map_to_identifier.find(unique_run_path);
+        if (ptr_to_map_entry == map_to_identifier.end())
         {
           OPENMS_LOG_ERROR << "FeatureXML does not correspond to ConsensusXML. Check input!\n";
           return ILLEGAL_PARAMETERS;
         }
-        if (matches > 1)
-        {
-          OPENMS_LOG_ERROR << "FeatureXML matches more than one protein identification in ConsensusXML. Check input!\n";
-          return ILLEGAL_PARAMETERS;
-        }
         for (PeptideIdentification& pep_id : new_upep_ids)
         {
-          pep_id.setIdentifier(identifier);
+          pep_id.setIdentifier(ptr_to_map_entry -> second);
         }
         // save the just calculated IDs
         // this is needed like this, because appending the unassigned PepIDs directly to the ConsensusMap would destroy the mapping
