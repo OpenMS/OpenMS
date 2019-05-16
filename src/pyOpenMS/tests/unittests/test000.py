@@ -239,6 +239,7 @@ def testAASequence():
     assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
 
+    
 @report
 def testElement():
     """
