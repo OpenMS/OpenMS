@@ -45,12 +45,12 @@ namespace OpenMS
 {
 
   /**
-    @brief Class to write out an OpenSwath TSV output (mProphet input)
+    @brief Class to write out an OpenSwath TSV output (mProphet input).
 
     The output is organized as a set of rows where each row describes a single
     peak in a chromatogram with a start and end retention time. Per
     chromatogram multiple rows can be reported if more than one potential peak
-    was found.
+    was found. See also OpenSwathOSWWriter for another output format.
 
     The class can take a FeatureMap and create a set of string from it
     suitable for output to tsv using the prepareLine() function.
