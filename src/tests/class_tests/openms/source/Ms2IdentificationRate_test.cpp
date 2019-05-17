@@ -170,7 +170,7 @@ START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & 
   std::vector<Ms2IdentificationRate::IdentificationRateData> result;
   result = ms2ir.getResults();
 
-  for (auto idrd : result)
+  for (const auto& idrd : result)
   {
     TEST_EQUAL(idrd.num_peptide_identification, 2)
     TEST_EQUAL(idrd.num_ms2_spectra, 6)
@@ -188,7 +188,7 @@ START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & 
   std::vector<Ms2IdentificationRate::IdentificationRateData> result_empty_fmap;
   result_empty_fmap = ms2ir_empty_fmap.getResults();
 
-  for (auto idrd_empty_fmap : result_empty_fmap)
+  for (const auto& idrd_empty_fmap : result_empty_fmap)
   {
     TEST_EQUAL(idrd_empty_fmap.num_peptide_identification, 0)
     TEST_EQUAL(idrd_empty_fmap.num_ms2_spectra, 6)
@@ -203,7 +203,7 @@ START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & 
   std::vector<Ms2IdentificationRate::IdentificationRateData> result_force_fdr;
   result_force_fdr = ms2ir_force_fdr.getResults();
 
-  for (auto idrd_force_fdr : result_force_fdr)
+  for (const auto& idrd_force_fdr : result_force_fdr)
   {
     TEST_EQUAL(idrd_force_fdr.num_peptide_identification, 1)
     TEST_EQUAL(idrd_force_fdr.num_ms2_spectra, 6)
