@@ -162,8 +162,8 @@ namespace OpenMS
       // only add to string if not a fixed modification
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), nterm_mod_name) == fixed_modifications.end())
       {
-        double nominal_mass = Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass();
-        if (mass_delta) nominal_mass = mod.getDiffMonoMass();
+        double nominal_mass = mod.getDiffMonoMass();
+        if (!mass_delta) nominal_mass += Residue::getInternalToNTerm().getMonoWeight();
 
         String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
         if (integer_mass)
@@ -188,10 +188,18 @@ namespace OpenMS
         const String & mod_name = mod.getFullId();
         if (std::find(fixed_modifications.begin(), fixed_modifications.end(), mod_name) == fixed_modifications.end())
         {
-          double nominal_mass = r.getMonoWeight(Residue::Internal);
+          double nominal_mass;
           if (mass_delta) nominal_mass = mod.getDiffMonoMass();
+          else nominal_mass = r.getMonoWeight(Residue::Internal);
+
           String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
-          if (aa == "X") {nominal_mass = r.getMonoWeight(Residue::Internal); sign = "";} // cannot have delta mass for X
+          if (aa == "X")
+          {
+            // cannot have delta mass for X
+            nominal_mass = r.getMonoWeight(Residue::Internal);
+            sign = "";
+          }
+
           if (integer_mass)
           {
             bs += aa + String("[") + sign + static_cast<int>(std::round(nominal_mass)) + "]"; 
@@ -220,8 +228,8 @@ namespace OpenMS
       // only add to string if not a fixed modification
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), cterm_mod_name) == fixed_modifications.end())
       {
-        double nominal_mass = Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass();
-        if (mass_delta) nominal_mass = mod.getDiffMonoMass();
+        double nominal_mass = mod.getDiffMonoMass();
+        if (!mass_delta) nominal_mass += Residue::getInternalToCTerm().getMonoWeight();
 
         String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
         if (integer_mass)
