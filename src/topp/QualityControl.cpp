@@ -157,7 +157,7 @@ protected:
     }
     fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications(), -1);
     //-------------------------------------------------------------
-    // Build the map to later find the correct identifier by MS run path.
+    // Build a map to associate newly created PepIDs to the correct ProteinID in CMap
     //-------------------------------------------------------------
     map<StringList, String> map_to_identifier;
     for (ProteinIdentification& prot_id : cmap.getProteinIdentifications())
