@@ -155,7 +155,23 @@ protected:
     {
       fillPepIDMap_(map_to_id, cmap[i].getPeptideIdentifications(), i);
     }
-    fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications(), -1);      
+    fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications(), -1);
+    //-------------------------------------------------------------
+    // Build a map to associate newly created PepIDs to the correct ProteinID in CMap
+    //-------------------------------------------------------------
+    map<StringList, String> map_to_identifier;
+    for (ProteinIdentification& prot_id : cmap.getProteinIdentifications())
+    {
+      StringList files;
+      prot_id.getPrimaryMSRunPath(files);
+      const auto& it = map_to_identifier.find(files);
+      if (it != map_to_identifier.end())
+      {
+        OPENMS_LOG_ERROR << "Multiple protein identifications with the same identifier in ConsensusXML. Check input!\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      map_to_identifier[files] = prot_id.getIdentifier();
+    }
 
     // check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
@@ -246,7 +262,20 @@ protected:
 
       if (isRunnable_(&qc_top_n_over_rt, status))
       {
-        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap, spec_map);
+        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap);
+        // get and set identifier for just calculated IDs via MS run path
+        StringList unique_run_path;
+        fmap.getPrimaryMSRunPath(unique_run_path);
+        const auto& ptr_to_map_entry = map_to_identifier.find(unique_run_path);
+        if (ptr_to_map_entry == map_to_identifier.end())
+        {
+          OPENMS_LOG_ERROR << "FeatureXML (MS run '" << unique_run_path << "') does not correspond to ConsensusXML (run not found). Check input!\n";
+          return ILLEGAL_PARAMETERS;
+        }
+        for (PeptideIdentification& pep_id : new_upep_ids)
+        {
+          pep_id.setIdentifier(ptr_to_map_entry -> second);
+        }
         // save the just calculated IDs
         // this is needed like this, because appending the unassigned PepIDs directly to the ConsensusMap would destroy the mapping
         all_new_upep_ids.insert(all_new_upep_ids.end(),new_upep_ids.begin(),new_upep_ids.end());

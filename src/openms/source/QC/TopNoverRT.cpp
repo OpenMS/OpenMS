@@ -53,7 +53,10 @@ namespace OpenMS
 
     setScanEventNumber_(exp);
     // if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-    auto l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id,exp,map_to_spectrum); };
+    auto l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id)
+    {
+      setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum);
+    };
     iterateFeatureMap(features, l_f);
     for (auto& f : features)
     {
@@ -148,6 +151,7 @@ namespace OpenMS
       unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
       unidentified_MS2.setMetaValue("total_ion_count", tic);
       unidentified_MS2.setMetaValue("base_peak_intensity", bpi);
+      unidentified_MS2.setMetaValue("spectrum_reference", exp.getSpectra()[pos].getNativeID());
       annotatePepIDfromSpectrum_(exp.getSpectra()[pos], unidentified_MS2);
       result.push_back(unidentified_MS2);
     }
