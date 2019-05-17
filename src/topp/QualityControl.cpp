@@ -87,8 +87,8 @@ protected:
     registerInputFileList_("in_postFDR", "<file>", {}, "featureXML input", false);
     setValidFormats_("in_postFDR", {"featureXML"});
     registerTOPPSubsection_("FragmentMassError", "test");
-    registerStringOption_("FragmentMassError:unit", "<unit>", "ppm", "Unit for tolerance", false);
-    setValidStrings_("FragmentMassError:unit", {"ppm", "Da"});
+    registerStringOption_("FragmentMassError:unit", "<unit>", "auto", "Unit for tolerance. auto: information from FeatureXML", false);
+    setValidStrings_("FragmentMassError:unit", std::vector<String>(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT));
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "Search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Contaminant database input", false);
     setValidFormats_("in_contaminants", {"fasta"});
@@ -106,6 +106,8 @@ protected:
 
   }
 
+  // function tests if a metric has the required input files
+  // gives a warning with the name of the metric that can not be performed
   bool isRunnable_(const QCBase* m, const OpenMS::QCBase::Status& s) const
   {
     if (s.isSuperSetOf(m->requires())) return true;
@@ -157,8 +159,12 @@ protected:
 
     // check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
-    FragmentMassError::ToleranceUnit tolerance_unit = getStringOption_("FragmentMassError:unit") == "Da" ? FragmentMassError::ToleranceUnit::DA : FragmentMassError::ToleranceUnit::PPM;
     double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
+
+    auto it = std::find(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
+    auto idx = std::distance(FragmentMassError::names_of_toleranceUnit, it);
+    auto tolerance_unit = FragmentMassError::ToleranceUnit(idx);
+
 
     // Instantiate the QC metrics
     Contaminants qc_contaminants;
@@ -179,9 +185,11 @@ protected:
       //-------------------------------------------------------------
       MzMLFile mzml_file;
       PeakMap exp;
+      QCBase::SpectraMap spec_map;
       if (!in_raw.empty())
       {
         mzml_file.load(in_raw[i], exp);
+        spec_map.calculateMap(exp);
       }
 
       FeatureXMLFile fxml_file;
@@ -208,7 +216,7 @@ protected:
 
       if (isRunnable_(&qc_frag_mass_err, status))
       {
-        qc_frag_mass_err.compute(fmap, exp, tolerance_value, tolerance_unit);
+        qc_frag_mass_err.compute(fmap, exp, spec_map, tolerance_unit, tolerance_value);
       }
 
       if (isRunnable_(&qc_missed_cleavages, status))
@@ -220,9 +228,10 @@ protected:
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
       }
+
       if (isRunnable_(&qc_mz_calibration, status))
       {
-        qc_mz_calibration.compute(fmap, exp);
+        qc_mz_calibration.compute(fmap, exp, spec_map);
       }
 
       if (isRunnable_(&qc_rt_alignment, status))
@@ -237,7 +246,7 @@ protected:
 
       if (isRunnable_(&qc_top_n_over_rt, status))
       {
-        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap);
+        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap, spec_map);
         // save the just calculated IDs
         // this is needed like this, because appending the unassigned PepIDs directly to the ConsensusMap would destroy the mapping
         all_new_upep_ids.insert(all_new_upep_ids.end(),new_upep_ids.begin(),new_upep_ids.end());
