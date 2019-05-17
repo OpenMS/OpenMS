@@ -133,25 +133,23 @@ namespace OpenMS
     std::vector<PeptideIdentification> result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
-      if (!(*it).ms2_presence)
-      {
-        Size pos = distance(ms2_included_.begin(), it);
-        if (exp[pos].getMSLevel() == 2)
-        {
-          PeptideIdentification unidentified_MS2;
-          Peak1D::IntensityType bpi;
-          Peak1D::IntensityType tic;
-          getBPIandCIC_(exp.getSpectra()[pos], bpi, tic);
-          unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
-          unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
-          unidentified_MS2.setMetaValue("identified", 0);
-          unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
-          unidentified_MS2.setMetaValue("total_ion_count", tic);
-          unidentified_MS2.setMetaValue("base_peak_intensity", bpi);
-          annotatePepIDfromSpectrum_(exp.getSpectra()[pos], unidentified_MS2);
-          result.push_back(unidentified_MS2);
-        }
-      }
+      if (it->ms2_presence) continue;
+      
+      Size pos = distance(ms2_included_.begin(), it);
+      if (exp[pos].getMSLevel() != 2) continue;
+
+      PeptideIdentification unidentified_MS2;
+      Peak1D::IntensityType bpi;
+      Peak1D::IntensityType tic;
+      getBPIandCIC_(exp.getSpectra()[pos], bpi, tic);
+      unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
+      unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
+      unidentified_MS2.setMetaValue("identified", 0);
+      unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
+      unidentified_MS2.setMetaValue("total_ion_count", tic);
+      unidentified_MS2.setMetaValue("base_peak_intensity", bpi);
+      annotatePepIDfromSpectrum_(exp.getSpectra()[pos], unidentified_MS2);
+      result.push_back(unidentified_MS2);
     }
     return result;
   }
