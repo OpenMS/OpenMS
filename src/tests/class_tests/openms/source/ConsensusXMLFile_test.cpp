@@ -208,16 +208,16 @@ TEST_REAL_SIMILAR(map[0].getIntensity(), 23000.238)
 END_SECTION
 
 START_SECTION((void store(const String &filename, const ConsensusMap &consensus_map)))
-std::string tmp_filename;
-NEW_TMP_FILE(tmp_filename);
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
 
-ConsensusMap map, map2;
-ConsensusXMLFile f;
+  ConsensusMap map, map2;
+  ConsensusXMLFile f;
 
-f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
-f.store(tmp_filename, map);
-f.load(tmp_filename, map2);
-TEST_EQUAL(map == map2, true)
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+  f.store(tmp_filename, map);
+  WHITELIST("?xml-stylesheet")
+  TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), tmp_filename)
 END_SECTION
 
 START_SECTION([EXTRA](bool isValid(const String &filename)))
