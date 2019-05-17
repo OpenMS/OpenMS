@@ -269,7 +269,7 @@ protected:
         const auto& ptr_to_map_entry = map_to_identifier.find(unique_run_path);
         if (ptr_to_map_entry == map_to_identifier.end())
         {
-          OPENMS_LOG_ERROR << "FeatureXML does not correspond to ConsensusXML. Check input!\n";
+          OPENMS_LOG_ERROR << "FeatureXML (MS run '" << unique_run_path << "') does not correspond to ConsensusXML (run not found). Check input!\n";
           return ILLEGAL_PARAMETERS;
         }
         for (PeptideIdentification& pep_id : new_upep_ids)
