@@ -37,6 +37,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+
+#include <set>
 
 using namespace std;
 using namespace xercesc;
@@ -179,6 +182,22 @@ namespace OpenMS
     void XMLHandler::setLoadDetail(const LOADDETAIL /*d*/)
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids)
+    {
+      std::set<String> s;
+      for (const auto& p : prot_ids)
+      {
+        if (s.find(p.getIdentifier()) == s.end())
+        {
+          s.insert(p.getIdentifier());
+        }
+        else
+        {
+          fatalError(ActionMode::STORE, "ProteinIdentifications are not unique, which leads to loss of PeptideIdentification assignment. Duplicated ID is:" + p.getIdentifier());
+        }
+      }
     }
 
     void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const

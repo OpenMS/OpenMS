@@ -192,6 +192,9 @@ namespace OpenMS
       os << "<SearchParameters charges=\"+0, +0\" id=\"ID_1\" db_version=\"0\" mass_type=\"monoisotopic\" peak_mass_tolerance=\"0.0\" precursor_peak_tolerance=\"0.0\" db=\"Unknown\"/>\n";
     }
 
+    // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
+    checkUniqueIdentifiers_(protein_ids);
+
     UInt prot_count = 0;
     std::unordered_map<string, UInt> accession_to_id;
     size_t protein_count{0};

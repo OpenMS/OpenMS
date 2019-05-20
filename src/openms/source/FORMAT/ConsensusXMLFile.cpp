@@ -734,6 +734,9 @@ namespace OpenMS
     // write identification run
     UInt prot_count = 0;
 
+    // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
+    checkUniqueIdentifiers_(consensus_map.getProteinIdentifications());
+
     for (UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i)
     {
       setProgress(++progress_);

@@ -188,7 +188,7 @@ namespace OpenMS
     // user param
     writeUserParam_("UserParam", os, feature_map, 1);
 
-    //write data processing
+    // write data processing
     for (Size i = 0; i < feature_map.getDataProcessing().size(); ++i)
     {
       const DataProcessing& processing = feature_map.getDataProcessing()[i];
@@ -201,6 +201,9 @@ namespace OpenMS
       writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
     }
+
+    // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
+    checkUniqueIdentifiers_(feature_map.getProteinIdentifications());
 
     // write identification runs
     Size prot_count = 0;
