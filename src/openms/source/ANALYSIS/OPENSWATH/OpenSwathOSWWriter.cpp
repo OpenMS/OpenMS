@@ -154,7 +154,7 @@ namespace OpenMS
     std::stringstream sql_run;
     sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
             // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
-            <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", '"
+            <<  static_cast<int64_t >(run_id_ & ~(1ULL << 63)) << ", '"
             << input_filename_ << "'); ";
 
     // Execute SQL insert statement
@@ -212,7 +212,7 @@ namespace OpenMS
     for (const auto& feature_it : output)
     {
       UInt64 uint64_feature_id = feature_it.getUniqueId();
-      int64_t feature_id = static_cast<int64_t >(uint64_feature_id & ~(1UL << 63)); // clear sign bit
+      int64_t feature_id = static_cast<int64_t >(uint64_feature_id & ~(1ULL << 63)); // clear sign bit
 
       for (const auto& sub_it : feature_it.getSubordinates())
       {
@@ -252,7 +252,7 @@ namespace OpenMS
       sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES ("
                   << feature_id << ", "
                   // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
-                  <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", "
+                  <<  static_cast<int64_t >(run_id_ & ~(1ULL << 63)) << ", "
                   << id << ", "
                   << feature_it.getRT() << ", "
                   << norm_rt << ", "
