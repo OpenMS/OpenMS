@@ -2016,6 +2016,23 @@ public:
 
 };
 
+//-------------------------------------------------------------
+// Doxygen docu
+//-------------------------------------------------------------
+
+/**
+    @page UTILS_MetaProSIP MetaProSIP 
+
+    @brief Performs proteinSIP on peptide features for elemental flux analysis.
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_MetaProSIP.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_MetaProSIP.html
+ */
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 class TOPPMetaProSIP :
   public TOPPBase
 {
