@@ -226,11 +226,11 @@ START_SECTION((static Int toInt(const String &this_s)))
   TEST_EQUAL(StringUtils::toInt("1234 "), 1234)
   TEST_EQUAL(StringUtils::toInt("   1234  "), 1234)
   // with trailing chars (unexplained) --> error (because it means the input was not split correctly beforehand)!!!
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt("1234  moreText"))  // 'moreText' is not explained...
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt(" 1234 911.0"))     // '911.0' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toInt("1234  moreText"))  // 'moreText' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toInt(" 1234 911.0"))     // '911.0' is not explained...
   // incorrect type
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt(" abc "))
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt(" 123.45 "))
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toInt(" abc "))
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toInt(" 123.45 "))
 }
 END_SECTION
 
@@ -243,10 +243,10 @@ START_SECTION((static float toFloat(const String &this_s)))
   TEST_REAL_SIMILAR(StringUtils::toFloat("1234.45 "), 1234.45)
   TEST_REAL_SIMILAR(StringUtils::toFloat("   1234.45  "), 1234.45)
   // with trailing chars (unexplained) --> error (because it means the input was not split correctly beforehand)!!!
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat("1234.45  moreText"))  // 'moreText' is not explained...
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat(" 1234.45 911.0"))     // '911.0' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toFloat("1234.45  moreText"))  // 'moreText' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toFloat(" 1234.45 911.0"))     // '911.0' is not explained...
   // incorrect type
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat(" abc "))
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toFloat(" abc "))
 }
 END_SECTION
 
@@ -259,10 +259,10 @@ START_SECTION((static double toDouble(const String &this_s)))
   TEST_REAL_SIMILAR(StringUtils::toDouble("1234.45 "), 1234.45)
   TEST_REAL_SIMILAR(StringUtils::toDouble("   1234.45  "), 1234.45)
   // with trailing chars (unexplained) --> error (because it means the input was not split correctly beforehand)!!!
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble("1234.45  moreText"))  // 'moreText' is not explained...
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" 1234.45 911.0"))     // '911.0' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toDouble("1234.45  moreText"))  // 'moreText' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toDouble(" 1234.45 911.0"))     // '911.0' is not explained...
   // incorrect type
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" abc "))
+  TEST_EXCEPTION(Exception::ConversionError&, StringUtils::toDouble(" abc "))
 }
 END_SECTION
 

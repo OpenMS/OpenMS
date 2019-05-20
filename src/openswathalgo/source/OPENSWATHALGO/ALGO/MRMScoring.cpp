@@ -293,7 +293,7 @@ namespace OpenSwath
     return xcorr_coelution_score;
   }
 
-  std::string MRMScoring::calcSeparateXcorrContrastCoelutionScore()
+  std::vector<double> MRMScoring::calcSeparateXcorrContrastCoelutionScore()
   {
     OPENSWATH_PRECONDITION(xcorr_contrast_matrix_.size() > 0 && xcorr_contrast_matrix_[0].size() > 1, "Expect cross-correlation matrix of at least 1x2");
 
@@ -312,15 +312,7 @@ namespace OpenSwath
       deltas.push_back(deltas_id / xcorr_contrast_matrix_[0].size());
     }
 
-    std::stringstream ss;
-    for (size_t i = 0; i < deltas.size(); i++)
-    {
-      if (i != 0)
-        ss << ";";
-      ss << deltas[i];
-    }
-
-    return ss.str();
+    return deltas;
   }
 
   double MRMScoring::calcXcorrPrecursorCoelutionScore()
@@ -477,7 +469,7 @@ namespace OpenSwath
     return msc.mean();
   }
 
-  std::string MRMScoring::calcSeparateXcorrContrastShapeScore()
+  std::vector<double> MRMScoring::calcSeparateXcorrContrastShapeScore()
   {
     OPENSWATH_PRECONDITION(xcorr_contrast_matrix_.size() > 0 && xcorr_contrast_matrix_[0].size() > 1, "Expect cross-correlation matrix of at least 1x2");
 
@@ -493,15 +485,7 @@ namespace OpenSwath
       intensities.push_back(intensities_id / xcorr_contrast_matrix_[0].size());
     }
 
-    std::stringstream ss;
-    for (size_t i = 0; i <intensities.size(); i++)
-    {
-      if (i != 0)
-        ss << ";";
-      ss << intensities[i];
-    }
-
-    return ss.str();
+    return intensities;
   }
 
   double MRMScoring::calcXcorrPrecursorShapeScore()
@@ -638,38 +622,30 @@ namespace OpenSwath
     return sn_score / signal_noise_estimators.size();
   }
 
-  std::string MRMScoring::calcSeparateSNScore(OpenSwath::IMRMFeature* mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators)
+  std::vector<double> MRMScoring::calcSeparateSNScore(OpenSwath::IMRMFeature* mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators)
   {
     OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 0, "Input S/N estimators needs to be larger than 0");
 
-    std::vector<double> sn_score;
+    std::vector<double> sn_scores;
     if (signal_noise_estimators.size() == 0)
     {
-      return std::string();
+      return {};
     }
 
     for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)
     {
-      sn_score.push_back(signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT()));
-    }
-
-    std::stringstream ss;
-    for (size_t i = 0; i <sn_score.size(); i++)
-    {
-      if (i != 0)
-        ss << ";";
-
-      if (sn_score[i] < 1) // everything below S/N 1 can be set to zero (and the log safely applied)
+      if (signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT()) < 1)
+      // everything below S/N 1 can be set to zero (and the log safely applied)
       {
-        ss << 0;
+        sn_scores.push_back(0);
       }
       else
       {
-        ss << std::log(sn_score[i]);
+        sn_scores.push_back(std::log(signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT())));
       }
     }
 
-    return ss.str();
+    return sn_scores;
   }
 
   const std::vector< std::vector<double> >& MRMScoring::getMIMatrix() const
@@ -917,7 +893,7 @@ namespace OpenSwath
     return msc.mean();
   }
 
-  std::string MRMScoring::calcSeparateMIContrastScore()
+  std::vector<double> MRMScoring::calcSeparateMIContrastScore()
   {
     OPENSWATH_PRECONDITION(mi_contrast_matrix_.size() > 0 && mi_contrast_matrix_[0].size() > 1, "Expect mutual information matrix of at least 1x2");
 
@@ -932,15 +908,7 @@ namespace OpenSwath
       mi_scores.push_back(mi_scores_id / mi_contrast_matrix_[0].size());
     }
 
-    std::stringstream ss;
-    for (size_t i = 0; i <mi_scores.size(); i++)
-    {
-      if (i != 0)
-        ss << ";";
-      ss << mi_scores[i];
-    }
-
-    return ss.str();
+    return mi_scores;
   }
 
 }

@@ -52,14 +52,12 @@ namespace OpenSwath
     @return Returns true if a signal was found (and false if no signal was found)
 
   */
-//integrate Window
   OPENSWATHALGO_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
                                             double mz_end, double& mz, double& intensity, bool centroided = false);
 
-/**
-  @brief Integrate intensities in a spectrum from start to end
-*/
-//integrate Window
+  /**
+    @brief Integrate intensities in a spectrum from start to end
+  */
   OPENSWATHALGO_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr spectrum, //!< [in] Spectrum
                                              const std::vector<double>& windowsCenter, //!< [in] center location
                                              double width,

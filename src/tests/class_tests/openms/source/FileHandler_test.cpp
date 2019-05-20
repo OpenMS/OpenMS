@@ -126,7 +126,7 @@ TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.to
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FileHandler_MGFbyContent1.mgf")), FileTypes::MGF) // detect via 'FORMAT=Mascot generic\n'
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FileHandler_MGFbyContent2.mgf")), FileTypes::MGF) // detect via 'BEGIN IONS\n'
 
-TEST_EXCEPTION(Exception::FileNotFound, tmp.getTypeByContent("/bli/bla/bluff"))
+TEST_EXCEPTION(Exception::FileNotFound&, tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION
 
 START_SECTION((static FileTypes::Type getType(const String &filename)))
@@ -139,7 +139,7 @@ TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoX
 TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
 TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT)
 
-TEST_EXCEPTION(Exception::FileNotFound, tmp.getType("/bli/bla/bluff"))
+TEST_EXCEPTION(Exception::FileNotFound&, tmp.getType("/bli/bla/bluff"))
 END_SECTION
 
 START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
@@ -197,7 +197,7 @@ TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM)
 
-TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp, FileTypes::DTA2D))
+TEST_EXCEPTION(Exception::ParseError&, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp, FileTypes::DTA2D))
 END_SECTION
 
 START_SECTION((static String computeFileHash(const String& filename)))

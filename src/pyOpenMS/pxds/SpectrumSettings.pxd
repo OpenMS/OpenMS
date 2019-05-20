@@ -8,10 +8,13 @@ from Precursor cimport *
 from DataProcessing cimport *
 from Product cimport *
 from AcquisitionInfo cimport *
+from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
-    cdef cppclass SpectrumSettings:
+    cdef cppclass SpectrumSettings(MetaInfoInterface):
+        # wrap-inherits:
+        #   MetaInfoInterface
 
         SpectrumSettings()    nogil except +
         void unify(SpectrumSettings)    nogil except +

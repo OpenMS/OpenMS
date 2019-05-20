@@ -48,7 +48,7 @@ using namespace std;
 std::vector<FASTAFile::FASTAEntry> toFASTAVec(const QStringList& sl_prot, const QStringList& identifier = QStringList())
 {
   std::vector<FASTAFile::FASTAEntry> proteins;
-  for (auto i = 0; i < sl_prot.size(); ++i)
+  for (int i = 0; i < sl_prot.size(); ++i)
   {
     String id = i < identifier.size() ? identifier[i] : String(i); // use identifier if given; or create automatically
     proteins.push_back(FASTAFile::FASTAEntry(id, "", sl_prot[int(i)]));
@@ -60,7 +60,7 @@ std::vector<FASTAFile::FASTAEntry> toFASTAVec(const QStringList& sl_prot, const 
 std::vector<PeptideIdentification> toPepVec(const QStringList& sl_pep)
 {
   std::vector<PeptideIdentification> pep_vec;
-  for (auto i = 0; i < sl_pep.size(); ++i)
+  for (int i = 0; i < sl_pep.size(); ++i)
   {
     PeptideHit hit;
     hit.setSequence(AASequence::fromString(sl_pep[int(i)]));

@@ -67,7 +67,7 @@ data.push_back(make_pair(3.7, -2.4));
 
 START_SECTION((TransformationModelBSpline(const DataPoints&, const Param&)))
 {
-  TEST_EXCEPTION(Exception::IllegalArgument, TransformationModelBSpline tm(empty, Param())); // need data
+  TEST_EXCEPTION(Exception::IllegalArgument&, TransformationModelBSpline tm(empty, Param())); // need data
   ptr = new TransformationModelBSpline(data, Param());
   TEST_NOT_EQUAL(ptr, 0)
 }

@@ -83,7 +83,7 @@ END_SECTION
 START_SECTION((void setWeightMode(const WEIGHTMODE mode)))
 {
   WeightWrapper ww;
-  TEST_EXCEPTION(Exception::IllegalArgument, ww.setWeightMode(WeightWrapper::SIZE_OF_WEIGHTMODE))
+  TEST_EXCEPTION(Exception::IllegalArgument&, ww.setWeightMode(WeightWrapper::SIZE_OF_WEIGHTMODE))
   ww.setWeightMode(WeightWrapper::AVERAGE);
   TEST_EQUAL(ww.getWeightMode(), WeightWrapper::AVERAGE)
 }

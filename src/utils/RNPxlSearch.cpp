@@ -1105,8 +1105,8 @@ static void scoreShiftedFragments_(
                       vector<vector<AnnotatedHit> >& annotated_hits, 
                       Size top_hits, 
                       const RNPxlModificationMassesResult& mm, 
-                      const vector<ResidueModification>& fixed_modifications, 
-                      const vector<ResidueModification>& variable_modifications, 
+                      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
+                      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
                       Size max_variable_mods_per_peptide, 
                       double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, 
                       const RNPxlParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)
@@ -1129,7 +1129,7 @@ static void scoreShiftedFragments_(
     assert(exp.size() == annotated_hits.size());
 
     #ifdef DEBUG_RNPXLSEARCH
-      LOG_DEBUG << exp.size() << " : " << annotated_hits.size() << endl;
+      OPENMS_LOG_DEBUG << exp.size() << " : " << annotated_hits.size() << endl;
     #endif
 
     // remove all but top n scoring for localization (usually all but the first one)
@@ -1197,8 +1197,8 @@ static void scoreShiftedFragments_(
           const String& unmodified_sequence = ah.sequence.getString();
           AASequence aas = AASequence::fromString(unmodified_sequence);
           vector<AASequence> all_modified_peptides;
-          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
-          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
           AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
           double current_peptide_mass_without_NA = fixed_and_variable_modified_peptide.getMonoWeight();
 
@@ -1340,8 +1340,8 @@ static void scoreShiftedFragments_(
 
         // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
         vector<AASequence> all_modified_peptides;
-        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
-        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
+        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
         // sequence with modifications - note: reannotated version requires much more memory heavy AASequence object
         const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[a.peptide_mod_index];
@@ -1358,7 +1358,8 @@ static void scoreShiftedFragments_(
 
         // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
         // 1. get all possible NA fragment shifts in the MS2 (based on the precursor RNA/DNA)
-        LOG_DEBUG << "Precursor NA adduct: "  << precursor_rna_adduct << endl;
+        OPENMS_LOG_DEBUG << "Precursor NA adduct: "  << precursor_rna_adduct << endl;
+
         const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
         if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
@@ -1376,10 +1377,10 @@ static void scoreShiftedFragments_(
 
         // get marker ions (these are not specific to the cross-linked nucleotide but also depend on the whole oligo bound to the precursor)
         const vector<RNPxlFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_rna_adduct).marker_ions;
-        LOG_DEBUG << "Marker ions used for this Precursor NA adduct: "  << endl;
+        OPENMS_LOG_DEBUG << "Marker ions used for this Precursor NA adduct: "  << endl;
         for (auto & fa : marker_ions)
         {
-          LOG_DEBUG << fa.name << " " << fa.mass << endl;
+          OPENMS_LOG_DEBUG << fa.name << " " << fa.mass << endl;
         }
 
         // generate total loss spectrum for the fixed and variable modified peptide (without NAs) (using the settings for partial loss generation)
@@ -1447,7 +1448,7 @@ static void scoreShiftedFragments_(
 
         // first annotate total loss peaks (these give no information where the actual shift occured)
         #ifdef DEBUG_RNPXLSEARCH
-          LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
+          OPENMS_LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
         #endif
         vector<pair<Size, Size>> alignment;
 
@@ -1504,7 +1505,7 @@ static void scoreShiftedFragments_(
               unshifted_y_ions[ion_number].push_back(d);
               #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
-                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+                OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               peak_is_annotated.insert(aligned.second);
             }
@@ -1531,7 +1532,7 @@ static void scoreShiftedFragments_(
               Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+                OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_b_ions[ion_number].push_back(d);
@@ -1560,7 +1561,7 @@ static void scoreShiftedFragments_(
               auto ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+                OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_a_ions[ion_number].push_back(d);
@@ -1653,14 +1654,14 @@ static void scoreShiftedFragments_(
           const double & fragment_mz = fragment.getMZ();
           const int & fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
           #ifdef DEBUG_RNPXLSEARCH
-            LOG_DEBUG << "fragment_mz:" << fragment_mz << " fragment_charge:" << fragment_charge << endl; 
+            OPENMS_LOG_DEBUG << "fragment_mz:" << fragment_mz << " fragment_charge:" << fragment_charge << endl; 
           #endif
 
           String ion_name = partial_loss_annotations[pair_it->first];
           const int charge = partial_loss_charges[pair_it->first];
 
           #ifdef DEBUG_RNPXLSEARCH
-            LOG_DEBUG << "theo_name:" << ion_name  << " theo_charge:" << charge << endl; 
+            OPENMS_LOG_DEBUG << "theo_name:" << ion_name  << " theo_charge:" << charge << endl; 
           #endif
           vector<String> f;
 
@@ -1671,7 +1672,7 @@ static void scoreShiftedFragments_(
           String fragment_ion_name = f[0]; // e.g. y3
 
           #ifdef DEBUG_RNPXLSEARCH
-            LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
+            OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
           #endif
 
           // define which ion names are annotated
@@ -1707,7 +1708,7 @@ static void scoreShiftedFragments_(
           }
           else if (ion_name.hasPrefix(RNPxlFragmentIonGenerator::ANNOTATIONS_MARKER_ION_PREFIX))
           {
-            LOG_DEBUG << "Marker ion aligned: " << ion_name << " fragment_mz: " << fragment_mz << " fragment_charge: " << fragment_charge << endl;
+            OPENMS_LOG_DEBUG << "Marker ion aligned: " << ion_name << " fragment_mz: " << fragment_mz << " fragment_charge: " << fragment_charge << endl;
             if (fragment_charge == 1)
             {
               PeptideHit::PeakAnnotation fa;
@@ -1839,7 +1840,7 @@ static void scoreShiftedFragments_(
 #endif
 
         #ifdef DEBUG_RNPXLSEARCH
-          LOG_DEBUG << "Localisation based on immonium ions: ";
+          OPENMS_LOG_DEBUG << "Localisation based on immonium ions: ";
         #endif
         String aas_unmodified = aas.toUnmodifiedString();
         for (Size i = 0; i != aas_unmodified.size(); ++i)
@@ -1872,7 +1873,7 @@ static void scoreShiftedFragments_(
         for (Size i = 0; i != sites_sum_score.size(); ++i)
         {
           #ifdef DEBUG_RNPXLSEARCH
-            LOG_DEBUG << String::number(100.0 * sites_sum_score[i], 2);
+            OPENMS_LOG_DEBUG << String::number(100.0 * sites_sum_score[i], 2);
           #endif
 
           if (i != 0) localization_scores += ' ';
@@ -1891,7 +1892,7 @@ static void scoreShiftedFragments_(
           }
         }
         #ifdef DEBUG_RNPXLSEARCH
-          LOG_DEBUG << endl;
+          OPENMS_LOG_DEBUG << endl;
         #endif
 
         // create annotation strings for shifted fragment ions
@@ -1910,29 +1911,29 @@ static void scoreShiftedFragments_(
         a.fragment_annotations = fas;
 
         #ifdef DEBUG_RNPXLSEARCH
-          LOG_DEBUG << "Ion centric annotation: " << endl;
-          LOG_DEBUG << "unshifted b ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
-          LOG_DEBUG << "unshifted y ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions) << endl;
-          LOG_DEBUG << "unshifted a ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions) << endl;
-          LOG_DEBUG << "shifted b ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions) << endl;
-          LOG_DEBUG << "shifted y ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions) << endl;
-          LOG_DEBUG << "shifted a ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions) << endl;
-          LOG_DEBUG << "shifted immonium ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(shifted_immonium_ions) << endl;
-          LOG_DEBUG << "shifted marker ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_marker_ions) << endl;
-          LOG_DEBUG << "shifted precursor ions: " << endl;
-          LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_precursor_ions) << endl;
-          LOG_DEBUG << "Localization scores: ";
-          LOG_DEBUG << localization_scores << endl;
-          LOG_DEBUG << "Localisation based on ion series and immonium ions of all observed fragments: ";
-          LOG_DEBUG << best_localization << endl;
+          OPENMS_LOG_DEBUG << "Ion centric annotation: " << endl;
+          OPENMS_LOG_DEBUG << "unshifted b ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
+          OPENMS_LOG_DEBUG << "unshifted y ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions) << endl;
+          OPENMS_LOG_DEBUG << "unshifted a ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted b ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted y ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted a ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted immonium ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(shifted_immonium_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted marker ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_marker_ions) << endl;
+          OPENMS_LOG_DEBUG << "shifted precursor ions: " << endl;
+          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_precursor_ions) << endl;
+          OPENMS_LOG_DEBUG << "Localization scores: ";
+          OPENMS_LOG_DEBUG << localization_scores << endl;
+          OPENMS_LOG_DEBUG << "Localisation based on ion series and immonium ions of all observed fragments: ";
+          OPENMS_LOG_DEBUG << best_localization << endl;
         #endif
       }
     }
@@ -1945,8 +1946,8 @@ static void scoreShiftedFragments_(
     vector<PeptideIdentification>& peptide_ids, 
     Size top_hits, 
     const RNPxlModificationMassesResult& mm, 
-    const vector<ResidueModification>& fixed_modifications, 
-    const vector<ResidueModification>& variable_modifications, 
+    const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
+    const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
     const vector<PrecursorPurity::PurityScores>& purities)
   {
@@ -1999,8 +2000,8 @@ static void scoreShiftedFragments_(
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<AASequence> all_modified_peptides;
-          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
-          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
           AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index];           
@@ -2015,21 +2016,20 @@ static void scoreShiftedFragments_(
           { 
             const Residue& r = fixed_and_variable_modified_peptide[i];
             if (!r.isModified()) continue;
-            if (std::find(variable_modifications.begin(), variable_modifications.end(), *(r.getModification())) != variable_modifications.end()) 
+            if (variable_modifications.val.find(r.getModification()) != variable_modifications.val.end())
             {
               ++n_var_mods;
             }
+
             if (r.getModification()->getId() == "Phospho") { is_phospho = 1; }
           }
           auto n_term_mod = fixed_and_variable_modified_peptide.getNTerminalModification();
           auto c_term_mod = fixed_and_variable_modified_peptide.getCTerminalModification();
 
           if (n_term_mod != nullptr &&
-            std::find(variable_modifications.begin(), variable_modifications.end(), 
-            *n_term_mod) != variable_modifications.end()) ++n_var_mods;
+            variable_modifications.val.find(n_term_mod) != variable_modifications.val.end()) ++n_var_mods;
           if (c_term_mod != nullptr &&
-            std::find(variable_modifications.begin(), variable_modifications.end(), 
-            *c_term_mod) != variable_modifications.end()) ++n_var_mods;
+            variable_modifications.val.find(c_term_mod) != variable_modifications.val.end()) ++n_var_mods;
 
           ph.setMetaValue(String("variable_modifications"), n_var_mods);
 
@@ -2373,10 +2373,10 @@ static void scoreShiftedFragments_(
 
     if (isolation_windows_reannotated > 0)
     {
-      LOG_WARN << "Isolation windows format was incorrect. Reannotated " << isolation_windows_reannotated << " precursors windows. " << endl;
+      OPENMS_LOG_WARN << "Isolation windows format was incorrect. Reannotated " << isolation_windows_reannotated << " precursors windows. " << endl;
       if (isolation_windows_reannotation_error > 0)
       {
-        LOG_WARN << "Reannotation failed for " << isolation_windows_reannotation_error 
+        OPENMS_LOG_WARN << "Reannotation failed for " << isolation_windows_reannotation_error 
           << " precursors windows because the target m/z was outside of boundaries." << endl;
       }
     }
@@ -2468,7 +2468,7 @@ static void scoreShiftedFragments_(
 
     if (fixed_unique.size() != fixedModNames.size())
     {
-      LOG_WARN << "duplicate fixed modification provided." << endl;
+      OPENMS_LOG_WARN << "duplicate fixed modification provided." << endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -2476,12 +2476,12 @@ static void scoreShiftedFragments_(
     set<String> var_unique(varModNames.begin(), varModNames.end());
     if (var_unique.size() != varModNames.size())
     {
-      LOG_WARN << "duplicate variable modification provided." << endl;
+      OPENMS_LOG_WARN << "duplicate variable modification provided." << endl;
       return ILLEGAL_PARAMETERS;
     }
 
-    vector<ResidueModification> fixed_modifications = RNPxlParameterParsing::getModifications(fixedModNames);
-    vector<ResidueModification> variable_modifications = RNPxlParameterParsing::getModifications(varModNames);
+    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames);
+    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
 
     size_t report_top_hits = (size_t)getIntOption_("report:top_hits");
@@ -2497,7 +2497,7 @@ static void scoreShiftedFragments_(
     // read list of nucleotides that can directly cross-link
     // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
     String can_cross_link = getStringOption_("RNPxl:can_cross_link");
-    for (auto c : can_cross_link) { can_xl_.insert(c); }
+    for (const auto& c : can_cross_link) { can_xl_.insert(c); }
 
     StringList modifications = getStringList_("RNPxl:modifications");
 
@@ -2703,9 +2703,9 @@ static void scoreShiftedFragments_(
         ImmoniumIonsInPeptide iip(unmodified_sequence);
 
         AASequence aas = AASequence::fromString(unmodified_sequence);
-        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
         vector<AASequence> all_modified_peptides;
-        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
         
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
         {
@@ -2840,7 +2840,7 @@ static void scoreShiftedFragments_(
                   ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
 
 #ifdef DEBUG_RNPXLSEARCH
-                  LOG_DEBUG << "best score in pre-score: " << score << endl;
+                  OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
 #ifdef _OPENMP 
@@ -2896,7 +2896,6 @@ static void scoreShiftedFragments_(
                     marker_ions_sub_score_spectrum_z1,
                     marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0],
                     marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
-
 
                   // nucleotide is associated with certain NA-related fragment losses?
                   vector<double> partial_loss_template_z1_bions, partial_loss_template_z1_yions;
@@ -3033,7 +3032,7 @@ static void scoreShiftedFragments_(
                     ah.score = RNPxlSearch::calculateCombinedScore(ah, true);
 
 #ifdef DEBUG_RNPXLSEARCH
-                    LOG_DEBUG << "best score in pre-score: " << score << endl;
+                    OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
 #ifdef _OPENMP
@@ -3095,9 +3094,9 @@ static void scoreShiftedFragments_(
     }
     progresslogger.endProgress();
 
-    LOG_INFO << "Proteins: " << count_proteins << endl;
-    LOG_INFO << "Peptides: " << count_peptides << endl;
-    LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
+    OPENMS_LOG_INFO << "Proteins: " << count_proteins << endl;
+    OPENMS_LOG_INFO << "Peptides: " << count_peptides << endl;
+    OPENMS_LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
 
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
@@ -3263,11 +3262,11 @@ static void scoreShiftedFragments_(
       plss_modds = matchOddsScore_(pl_spec->size(), (int)plss_Morph);
     }
 #ifdef DEBUG_RNPXLSEARCH
-    LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
+    OPENMS_LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
-  // cap plss_err to something larger than the mean_mz * max_ppm_error
-  float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
-  if (plss_err > ft_da) plss_err = ft_da;
+    // cap plss_err to something larger than the mean_mz * max_ppm_error
+    float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
+    if (plss_err > ft_da) plss_err = ft_da;
   }
 };
 
@@ -3276,3 +3275,4 @@ int main(int argc, const char** argv)
   RNPxlSearch tool;
   return tool.main(argc, argv);
 }
+

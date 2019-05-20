@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -49,13 +50,16 @@ namespace OpenMS
   DateTime::DateTime(const DateTime& date) :
     QDateTime(date)
   {
+  }
 
+  DateTime::DateTime(DateTime&& date) noexcept :
+    QDateTime(std::move(date)) // use Qt implementation if available
+  {
   }
 
   DateTime::DateTime(const QDateTime& date) :
     QDateTime(date)
   {
-
   }
 
   DateTime& DateTime::operator=(const DateTime& source)
@@ -66,6 +70,18 @@ namespace OpenMS
     }
 
     QDateTime::operator=(source);
+
+    return *this;
+  }
+
+  DateTime& DateTime::operator=(DateTime&& source) & noexcept
+  {
+    if (&source == this)
+    {
+      return *this;
+    }
+
+    QDateTime::operator=(std::move(source)); // use Qt implementation if available
 
     return *this;
   }

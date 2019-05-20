@@ -45,28 +45,12 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <QStringList>
 
 using namespace OpenMS;
 
 START_TEST(OPXLHelper, "$Id$")
-
-
-START_SECTION(static std::vector<ResidueModification> getModificationsFromStringList(StringList modNames))
-  QStringList q_str_list1;
-  QStringList q_str_list2;
-  q_str_list1 << "Carbamidomethyl (C)" << "Carbamidomethyl (T)";
-  q_str_list2 << "Oxidation (M)" << "Oxidation (Y)";
-  StringList fixedModNames = StringListUtils::fromQStringList(q_str_list1);
-  StringList varModNames = StringListUtils::fromQStringList(q_str_list2);
-  std::vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames);
-  std::vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames);
-
-  TEST_EQUAL(fixed_modifications[0].getFullId(), "Carbamidomethyl (C)")
-  TEST_EQUAL(fixed_modifications[1].getFullId(), "Carbamidomethyl (T)")
-  TEST_EQUAL(variable_modifications[0].getFullId(), "Oxidation (M)")
-  TEST_EQUAL(variable_modifications[1].getFullId(), "Oxidation (Y)")
-END_SECTION
 
 // loading and building data structures required in several following tests
 std::vector<FASTAFile::FASTAEntry> fasta_db;
@@ -87,9 +71,8 @@ q_str_list1 << "Carbamidomethyl (C)" << "Carbamidomethyl (T)";
 q_str_list2 << "Oxidation (M)" << "Oxidation (Y)";
 StringList fixedModNames = StringListUtils::fromQStringList(q_str_list1);
 StringList varModNames = StringListUtils::fromQStringList(q_str_list2);
-std::vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames);
-std::vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames);
-
+const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames);
+const ModifiedPeptideGenerator::MapToResidueType& variable_modifications = ModifiedPeptideGenerator::getModifications(varModNames);
 
 QStringList q_str_list3;
 QStringList q_str_list4;
@@ -100,7 +83,7 @@ StringList cross_link_residue2 = StringListUtils::fromQStringList(q_str_list4);
 
 Size max_variable_mods_per_peptide = 5;
 
-START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide))
+START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<const ResidueModification*> fixed_modifications, std::vector<const ResidueModification*> variable_modifications, Size max_variable_mods_per_peptide))
 
   std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
 
@@ -205,6 +188,121 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
   {
     TEST_REAL_SIMILAR(spectrum_candidates[i].alpha->getMonoWeight() + spectrum_candidates[i].beta->getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass)
   }
+
+END_SECTION
+
+// prepare data for the next three tests
+std::vector< PeptideIdentification > peptide_ids;
+std::vector< ProteinIdentification > protein_ids;
+IdXMLFile id_file;
+id_file.load(OPENMS_GET_TEST_DATA_PATH("OPXLHelper_test.idXML"), protein_ids, peptide_ids);
+
+for (auto& id : peptide_ids)  //OMS_CODING_TEST_EXCLUDE
+{
+  for (auto& hit : id.getHits())  //OMS_CODING_TEST_EXCLUDE
+  {
+    hit.removeMetaValue("XL_Protein_position_alpha");
+    hit.removeMetaValue("XL_Protein_position_beta");
+    hit.removeMetaValue("xl_target_decoy");
+    hit.removeMetaValue("accessions_beta");
+  }
+}
+
+START_SECTION(static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids))
+
+  // test that the MetaValues were removed
+  for (const auto& id : peptide_ids)
+  {
+    for (const auto& hit : id.getHits())
+    {
+      TEST_EQUAL(hit.metaValueExists("XL_Protein_position_alpha"), false)
+      TEST_EQUAL(hit.metaValueExists("XL_Protein_position_beta"), false)
+      TEST_EQUAL(hit.metaValueExists("xl_target_decoy"), false)
+      TEST_EQUAL(hit.metaValueExists("accessions_beta"), false)
+    }
+  }
+
+  // add protein position MetaValues
+  OPXLHelper::addProteinPositionMetaValues(peptide_ids);
+
+  // check, that they were added to every PeptideHit
+  for (const auto& id : peptide_ids)
+  {
+    for (const auto& hit : id.getHits())
+    {
+      TEST_EQUAL(hit.metaValueExists("XL_Protein_position_alpha"), true)
+      TEST_EQUAL(hit.metaValueExists("XL_Protein_position_beta"), true)
+      TEST_EQUAL(hit.metaValueExists("xl_target_decoy"), false)
+      TEST_EQUAL(hit.metaValueExists("accessions_beta"), false)
+    }
+  }
+
+  // a few example values
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue("XL_Protein_position_alpha"), "1539")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue("XL_Protein_position_beta"), "182")
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("XL_Protein_position_alpha"), "1539")
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("XL_Protein_position_beta"), "182")
+
+
+END_SECTION
+
+START_SECTION(static void addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids))
+
+  // add xl_target_decoy MetaValue
+  OPXLHelper::addXLTargetDecoyMV(peptide_ids);
+  // check, that they were added to every PeptideHit
+  for (const auto& id : peptide_ids)
+  {
+    for (const auto& hit : id.getHits())
+    {
+      TEST_EQUAL(hit.metaValueExists("xl_target_decoy"), true)
+    }
+  }
+
+  // a few example values
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue("xl_target_decoy"), "target")
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("xl_target_decoy"), "target")
+
+END_SECTION
+
+START_SECTION(static void addBetaAccessions(std::vector< PeptideIdentification > & peptide_ids))
+
+  // add accessions_beta MV
+  OPXLHelper::addBetaAccessions(peptide_ids);
+  // check, that they were added to every PeptideHit
+  for (const auto& id : peptide_ids)
+  {
+    for (const auto& hit : id.getHits())
+    {
+      TEST_EQUAL(hit.metaValueExists("accessions_beta"), true)
+    }
+  }
+
+  // a few example values
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue("accessions_beta"), "-")
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("accessions_beta"), "Protein1")
+
+END_SECTION
+
+START_SECTION(static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits))
+
+  // all hits are to separate spectra, so everything should be rank 1
+  for (const auto& id : peptide_ids)
+  {
+    for (const auto& hit : id.getHits())
+    {
+      TEST_EQUAL(hit.getMetaValue("xl_rank"), 1)
+    }
+  }
+
+  // artificially assign one of the hits to the spectrum of another
+  peptide_ids[1].getHits()[0].setMetaValue("spectrum_index", peptide_ids[0].getHits()[0].getMetaValue("spectrum_index"));
+  peptide_ids[1].getHits()[1].setMetaValue("spectrum_index", peptide_ids[0].getHits()[0].getMetaValue("spectrum_index"));
+
+  peptide_ids = OPXLHelper::combineTopRanksFromPairs(peptide_ids, 5);
+
+  // there is one rank 2 now (in peptide_ids[2] now, because the order is not preserved)
+  TEST_EQUAL(peptide_ids[2].getHits()[0].getMetaValue("xl_rank"), 2)
 
 END_SECTION
 

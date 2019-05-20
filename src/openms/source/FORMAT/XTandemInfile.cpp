@@ -132,7 +132,7 @@ namespace OpenMS
       ResidueModification::TermSpecificity ts = it->getModification().getTermSpecificity();
       if ((ts != ResidueModification::ANYWHERE) && !orig.empty())
       {
-        LOG_WARN << "Warning: X! Tandem doesn't support modifications with both residue and terminal specificity. Using only terminal specificity for modification '" << it->getModificationName() << "'." << endl;
+        OPENMS_LOG_WARN << "Warning: X! Tandem doesn't support modifications with both residue and terminal specificity. Using only terminal specificity for modification '" << it->getModificationName() << "'." << endl;
       }
 
       if (ts == ResidueModification::C_TERM)
@@ -146,13 +146,13 @@ namespace OpenMS
       // check double usage
       if (origin_set.find(orig) != origin_set.end())
       {
-        LOG_WARN << "X! Tandem config file: Duplicate modification assignment to origin '" << orig << "'. "
+        OPENMS_LOG_WARN << "X! Tandem config file: Duplicate modification assignment to origin '" << orig << "'. "
                  << "X! Tandem will ignore the first modification '" << origin_set.find(orig)->second << "'!\n";
       }
       // check if already used before (i.e. we are currently looking at variable mods)
       if (affected_origins.find(orig) != affected_origins.end())
       {
-        LOG_INFO << "X! Tandem config file: Fixed modification and variable modification to origin '" << orig << "' detected. "
+        OPENMS_LOG_INFO << "X! Tandem config file: Fixed modification and variable modification to origin '" << orig << "' detected. "
                  << "Using corrected mass of " << mod_mass - affected_origins.find(orig)->second << " instead of " << mod_mass << ".\n";
         mod_mass -= affected_origins.find(orig)->second;
       }
@@ -347,7 +347,7 @@ namespace OpenMS
           (var_mods.find("Glu->pyro-Glu (N-term E)") != var_mods.end()))
       {
         writeNote_(os, "protein, quick pyrolidone", true);
-        LOG_INFO << "Modifications 'Gln->pyro-Glu (N-term Q)' and 'Glu->pyro-Glu (N-term E)' are handled implicitly by the X! Tandem option 'protein, quick pyrolidone'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of these modifications." << endl;
+        OPENMS_LOG_INFO << "Modifications 'Gln->pyro-Glu (N-term Q)' and 'Glu->pyro-Glu (N-term E)' are handled implicitly by the X! Tandem option 'protein, quick pyrolidone'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of these modifications." << endl;
       }
 
       // special case for "Acetyl (N-term)" modification:
@@ -355,7 +355,7 @@ namespace OpenMS
           (var_mods.find("Acetyl (N-term)") != var_mods.end()))
       {
         writeNote_(os, "protein, quick acetyl", true);
-        LOG_INFO << "Modification 'Acetyl (N-term)' is handled implicitly by the X! Tandem option 'protein, quick acetyl'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of this modification." << endl;
+        OPENMS_LOG_INFO << "Modification 'Acetyl (N-term)' is handled implicitly by the X! Tandem option 'protein, quick acetyl'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of this modification." << endl;
       }
 
       ////////////////////////////////////////////////////////////////////////////////

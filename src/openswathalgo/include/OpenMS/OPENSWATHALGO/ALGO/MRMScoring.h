@@ -138,7 +138,7 @@ public:
     double calcXcorrContrastCoelutionScore();
 
     /// calculate the separate cross-correlation contrast score
-    std::string calcSeparateXcorrContrastCoelutionScore();
+    std::vector<double> calcSeparateXcorrContrastCoelutionScore();
 
     /// calculate the precursor cross-correlation contrast score
     double calcXcorrPrecursorCoelutionScore();
@@ -159,7 +159,7 @@ public:
     double calcXcorrContrastShapeScore();
 
     /// calculate the separate cross-correlation contrast shape score
-    std::string calcSeparateXcorrContrastShapeScore();
+    std::vector<double> calcSeparateXcorrContrastShapeScore();
 
     /// calculate the precursor cross-correlation shape score
     double calcXcorrPrecursorShapeScore();
@@ -185,7 +185,7 @@ public:
     static double calcSNScore(OpenSwath::IMRMFeature* mrmfeature, 
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
 
-    static std::string calcSeparateSNScore(OpenSwath::IMRMFeature* mrmfeature, 
+    static std::vector<double> calcSeparateSNScore(OpenSwath::IMRMFeature* mrmfeature, 
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
 
     /// non-mutable access to the MI matrix
@@ -224,7 +224,7 @@ public:
     double calcMIPrecursorScore();
     double calcMIPrecursorContrastScore();
     double calcMIPrecursorCombinedScore();
-    std::string calcSeparateMIContrastScore();
+    std::vector<double> calcSeparateMIContrastScore();
 
     //@}
 

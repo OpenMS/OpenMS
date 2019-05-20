@@ -346,7 +346,7 @@ protected:
         String run_id = pep_it->getIdentifier();
         if (!pep_it->hasRT() || !pep_it->hasMZ())
         {
-          LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;
+          OPENMS_LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;
           return INCOMPATIBLE_INPUT_DATA;
         }
 

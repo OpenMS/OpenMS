@@ -145,7 +145,7 @@ START_SECTION((bool encloses(const PointType& point) const))
 	ConvexHull2D tmp;
 	// setting hull points alone does not allow to query encloses()
 	tmp.setHullPoints(vec2);
-	TEST_EXCEPTION(Exception::NotImplemented, tmp.encloses(DPosition<2>(1.0,1.0)))
+	TEST_EXCEPTION(Exception::NotImplemented&, tmp.encloses(DPosition<2>(1.0,1.0)))
 
 	tmp.addPoints(vec);
 	tmp.addPoints(vec2);

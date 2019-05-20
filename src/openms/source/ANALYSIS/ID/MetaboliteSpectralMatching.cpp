@@ -659,7 +659,7 @@ namespace OpenMS
 
       // set charge field
       Int ch_temp = current_id.getFoundPrecursorCharge();
-      MzTabDouble mcharge;
+      MzTabInteger mcharge;
       mcharge.set(ch_temp);
 
       mztab_row_record.charge = mcharge;

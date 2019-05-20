@@ -67,12 +67,12 @@ END_SECTION
 
 START_SECTION(CsvFile(const String& filename, char is = ',',bool ie = false, Int first_n = -1))
 //tested in getRow
-TEST_EXCEPTION(Exception::FileNotFound, CsvFile("CsvFile_1.csv"))
+TEST_EXCEPTION(Exception::FileNotFound&, CsvFile("CsvFile_1.csv"))
 END_SECTION
 
 START_SECTION(void load(const String& filename, char is = ',', bool ie = false, Int first_n = -1))
 //tested in getRow
-TEST_EXCEPTION(Exception::FileNotFound, f1.load("CsvFile_1.csv"))
+TEST_EXCEPTION(Exception::FileNotFound&, f1.load("CsvFile_1.csv"))
 
 
 END_SECTION

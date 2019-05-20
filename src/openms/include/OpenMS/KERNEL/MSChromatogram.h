@@ -432,7 +432,7 @@ protected:
   };
 
   /// Print the contents to a stream.
-  std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom);
 
 } // namespace OpenMS
 

@@ -177,7 +177,7 @@ namespace OpenMS
       value = tmp.toDouble();
       value_is_numerical = true;
     }
-    catch (Exception::ConversionError)
+    catch (Exception::ConversionError&)
     {
       value_is_numerical = false;
       if (!(tmp.hasPrefix("\"") && tmp.hasSuffix("\"")))

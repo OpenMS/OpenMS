@@ -638,7 +638,7 @@ protected:
 
     if (process_msfragger.waitForFinished(-1) == false || process_msfragger.exitCode() != 0)
     {
-      LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
       const QString msfragger_stdout(process_msfragger.readAllStandardOutput());
       const QString msfragger_stderr(process_msfragger.readAllStandardError());
       writeLog_(msfragger_stdout);
@@ -724,7 +724,7 @@ private:
 
   inline void _fatalError(const String & message)
   {
-    LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
+    OPENMS_LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
     throw 1;
   }
 
@@ -747,7 +747,7 @@ private:
   {
     if (right < left)
     {
-      LOG_ERROR << "FATAL: " << message << std::endl;
+      OPENMS_LOG_ERROR << "FATAL: " << message << std::endl;
       throw 1;
     }
   }

@@ -4,9 +4,13 @@ from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/ScanWindow.h>" namespace "OpenMS":
     
-    cdef cppclass ScanWindow "OpenMS::ScanWindow":
+    cdef cppclass ScanWindow(MetaInfoInterface) :
+        # wrap-inherits:
+        #  MetaInfoInterface
+
         ScanWindow() nogil except +
         ScanWindow(ScanWindow) nogil except +
+
         double begin
         double end
 

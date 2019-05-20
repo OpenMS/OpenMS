@@ -69,8 +69,8 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
 
     if (ambiguities.size() >= 2)
     {
-      LOG_DEBUG << ambiguities.size() << " nucleotide formulas are ambiguous on the level of empirical formula: " << endl;
-      for (auto const & pc_adduct : ambiguities) { LOG_DEBUG << pc_adduct << endl; }
+      OPENMS_LOG_DEBUG << ambiguities.size() << " nucleotide formulas are ambiguous on the level of empirical formula: " << endl;
+      for (auto const & pc_adduct : ambiguities) { OPENMS_LOG_DEBUG << pc_adduct << endl; }
     } 
 
     // for each ambiguous (at the level of empirical formula) precursor adduct (stored as nucleotide formula e.g.: "AU-H2O")
@@ -89,7 +89,7 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
   for (auto const & fa : all_pc_all_feasible_adducts)
   {
     const String & pc = fa.first;
-    LOG_DEBUG << "Precursor adduct: " << pc << "\t" << pc2ef[pc] << "\t" << pc2mass[pc] << "\n";
+    OPENMS_LOG_DEBUG << "Precursor adduct: " << pc << "\t" << pc2ef[pc] << "\t" << pc2mass[pc] << "\n";
 
     // collect set of masses to detect ambiguities
     set<double> mi_fragments;
@@ -106,20 +106,20 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
       // to do so, we map mass and set of fragment ions to precursor adduct and cross-linked nucleotide 
       mass_frags2pc_xlnuc[{pc2mass[pc], fragments}].push_back({pc, nucleotide});
 
-      LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
+      OPENMS_LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
       for (auto const & a : ffa.second)
       {
-        LOG_DEBUG << "    " << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
+        OPENMS_LOG_DEBUG << "    " << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
       }
     }
 
-    LOG_DEBUG << "  Marker ions." << endl;
+    OPENMS_LOG_DEBUG << "  Marker ions." << endl;
     for (auto const & ffa : fa.second.marker_ions)
     {
-      LOG_DEBUG << "    "  << ffa.name << "\t" << ffa.formula.toString() << "\t" << ffa.mass << "\n";
+      OPENMS_LOG_DEBUG << "    "  << ffa.name << "\t" << ffa.formula.toString() << "\t" << ffa.mass << "\n";
     }
   }
-  LOG_DEBUG << endl;
+  OPENMS_LOG_DEBUG << endl;
 
   // report precursor adducts/cross-linked nucleotide combinations with same mass that produce the exact same MS2 ions as indistinguishable
   // e.g., for nucleotides that only produce ribose fragments there might be a lot of overlap
@@ -127,13 +127,13 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
   {
     if (f.second.size() > 1)
     {
-      LOG_INFO << "Theoretical indistinguishable cross-link adducts detected: "  << endl;
+      OPENMS_LOG_INFO << "Theoretical indistinguishable cross-link adducts detected: "  << endl;
       for (auto const & m : f.second)
       {
-        LOG_INFO << "\tPrecursor: " << m.first << "\t and cross-linked nucleotide: " << m.second << endl;
+        OPENMS_LOG_INFO << "\tPrecursor: " << m.first << "\t and cross-linked nucleotide: " << m.second << endl;
         for (auto const & fragment_mass : f.first.second)
         {
-          LOG_INFO << "\tFragment mass: " << fragment_mass << endl;
+          OPENMS_LOG_INFO << "\tFragment mass: " << fragment_mass << endl;
         }
       }      
     }
@@ -157,7 +157,7 @@ RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_
     char target_nucleotide = t[0];
     if (t[1] != ':')
     {
-      LOG_WARN << "Missing ':'. Wrong format of fragment_adduct string: " << t << endl;
+      OPENMS_LOG_WARN << "Missing ':'. Wrong format of fragment_adduct string: " << t << endl;
       return NucleotideToFragmentAdductMap();
     }
 
@@ -179,7 +179,7 @@ RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_
     }
     else
     {
-      LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
+      OPENMS_LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
       return NucleotideToFragmentAdductMap();
     }
 
@@ -233,7 +233,7 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
                                                                const RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
                                                                const set<char> &can_xl)
 {
-  LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
+  OPENMS_LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
 
   MS2AdductsOfSinglePrecursorAdduct ret;
 
@@ -267,7 +267,7 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
   bool has_xl_nt(false);
   for (auto const & m : exp_pc_nucleotide_count) { if (can_xl.count(m.first)) { has_xl_nt = true; break; } }
 
-  LOG_DEBUG << "\t" << exp_pc_adduct << " has cross-linkable nucleotide (0 = false, 1 = true): " << has_xl_nt << endl;
+  OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " has cross-linkable nucleotide (0 = false, 1 = true): " << has_xl_nt << endl;
 
   // no cross-linkable nt contained in the precursor adduct? Return an empty fragment adduct definition set
   if (!has_xl_nt) { return ret; }
@@ -277,7 +277,7 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
   // extract loss string from precursor adduct (e.g.: "-H2O")
   // String exp_pc_loss_string(exp_pc_it, exp_pc_adduct.end());
 
-  LOG_DEBUG << "\t" << exp_pc_adduct << " is monomer (1 = true, >1 = false): " << nt_count << endl;
+  OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " is monomer (1 = true, >1 = false): " << nt_count << endl;
 
   // Handle the cases of monomer or oligo nucleotide bound to the precursor.
   // This distinction is made because potential losses on the precursor only allows us to reduce the set of chemical feasible fragment adducts if they are on a monomer.
@@ -293,8 +293,8 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
       // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
       {
-        LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
-        LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
 
         // store feasible adducts associated with a cross-link with character nucleotide
         vector<RNPxlFragmentAdductDefinition> faa;
@@ -323,8 +323,8 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
       // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
       {
-        LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
-        LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fas.size() << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fas.size() << endl;
 
         // check chemical feasibility by checking if subtraction of adduct would result in negative elemental composition
         for (auto it = fas.begin(); it != fas.end(); )
@@ -376,18 +376,18 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
   for (auto const & ffa : ret.feasible_adducts)
   {
     const char & nucleotide = ffa.first;
-    LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
+    OPENMS_LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
     for (auto const & a : ffa.second)
     {
-      LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
+      OPENMS_LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
     }
   }
 
   // print marker ions
-  LOG_DEBUG << "  Marker ions:" << endl;
+  OPENMS_LOG_DEBUG << "  Marker ions:" << endl;
   for (auto const & a : ret.marker_ions)
   {
-    LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
+    OPENMS_LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
   }
 
   return ret;

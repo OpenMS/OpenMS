@@ -251,7 +251,7 @@ protected:
         getStringOption_("out_cntm") == "" &&
         getStringOption_("out_id") == "")
     {
-      LOG_ERROR << "Error: At least one output file needs to specified!" << std::endl;
+      OPENMS_LOG_ERROR << "Error: At least one output file needs to specified!" << std::endl;
       return MISSING_PARAMETERS;
     }
 

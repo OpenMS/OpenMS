@@ -110,7 +110,7 @@ public:
           f.setCharge(parts[3].toInt());
           f.setIntensity(parts[4].toDouble());
         }
-        catch (Exception::BaseException /*&e*/)
+        catch ( Exception::BaseException& )
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed to convert value into a number (line '") + String((it - input.begin()) + 1) + ")");
         }

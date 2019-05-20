@@ -68,7 +68,7 @@ public:
       An exception will be thrown if the file cannot be found.
 
       @param script_file Name of the R script
-      @param verbose Print error message to LOG_ERROR upon FileNotFound
+      @param verbose Print error message to OPENMS_LOG_ERROR upon FileNotFound
       @return Full filename with absolute path
       @throw Exception::FileNotFound
     */

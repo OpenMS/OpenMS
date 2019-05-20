@@ -53,9 +53,9 @@ namespace OpenMS
   {
     Size first;
     Size second;
-    Size seq_1; // index of best permutation with site in phosphorylated state
-    Size seq_2; // index of permutation with site in unphosphorylated state
-    Size peak_depth; // filtering level that gave rise to maximum discriminatory score
+    Size seq_1; ///< index of best permutation with site in phosphorylated state
+    Size seq_2; ///< index of permutation with site in unphosphorylated state
+    Size peak_depth; ///< filtering level that gave rise to maximum discriminatory score
     Size AScore;
   };
   

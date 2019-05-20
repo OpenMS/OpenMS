@@ -88,7 +88,7 @@ namespace OpenMS
     }
     if (missing_sequence) 
     {
-      LOG_WARN << "Warning: Removed " << missing_sequence 
+      OPENMS_LOG_WARN << "Warning: Removed " << missing_sequence 
                << " peptide identifications without sequence." << endl;
     }
     id_data.swap(filtered_hits);
@@ -102,7 +102,7 @@ namespace OpenMS
     }
     if (no_rt_count)
     {
-      LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
+      OPENMS_LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
                << ") peptide identifications have no retention time value."
                << endl;
     }
