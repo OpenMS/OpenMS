@@ -960,7 +960,7 @@
          </umod:xref>
          <umod:xref>
             <umod:text>PALM</umod:text>
-            <umod:source>FindMod</umod:source>
+            <umod:source>FindMod</umod:source>b
             <umod:url/>
          </umod:xref>
          <umod:xref>
@@ -1387,39 +1387,67 @@
          </umod:delta>
          <umod:alt_name>amino_sulfate</umod:alt_name>
       </umod:mod>
-      <umod:mod title="Heme" full_name="heme" username_of_poster="unimod"
-                group_of_poster="admin"
-                date_time_posted="2005-10-11 18:27:20"
-                date_time_modified="2006-10-16 17:10:28"
-                approved="1"
-                record_id="390">
-         <umod:specificity hidden="1" site="H" position="Anywhere" classification="Post-translational"
-                           spec_group="2"/>
-         <umod:specificity hidden="1" site="C" position="Anywhere" classification="Post-translational"
+      <umod:mod title="Met-loss"
+                full_name="Removal of initiator methionine from protein N-terminus"
+                username_of_poster="chalkley"
+                group_of_poster=""
+                date_time_posted="2007-07-10 22:40:00"
+                date_time_modified="2007-07-15 20:01:35"
+                approved="0"
+                record_id="765">
+         <!--umod:specificity hidden="1" site="M" position="Protein N-term" classification="Co-translational"
+                           spec_group="1"/-->
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
                            spec_group="1"/>
-         <umod:delta mono_mass="616.177295" avge_mass="616.4873"
-                     composition="H(32) C(34) N(4) O(4) Fe">
-            <umod:element symbol="H" number="32"/>
-            <umod:element symbol="C" number="34"/>
-            <umod:element symbol="N" number="4"/>
-            <umod:element symbol="O" number="4"/>
-            <umod:element symbol="Fe" number="1"/>
+         <umod:delta mono_mass="-131.040485" avge_mass="-131.1961" composition="H(-9) C(-5) N(-1) O(-1) S(-1)">
+            <umod:element symbol="H" number="-9"/>
+            <umod:element symbol="C" number="-5"/>
+            <umod:element symbol="N" number="-1"/>
+            <umod:element symbol="O" number="-1"/>
+            <umod:element symbol="S" number="-1"/>
          </umod:delta>
          <umod:xref>
-            <umod:text>AA0329</umod:text>
-            <umod:source>RESID</umod:source>
+            <umod:text>Biochemistry (1987) 26 8242-8246</umod:text>
+            <umod:source>Journal</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:xref>
-            <umod:text>AA0135</umod:text>
-            <umod:source>RESID</umod:source>
+            <umod:text>3327521</umod:text>
+            <umod:source>PubMed PMID</umod:source>
+            <umod:url/>
+         </umod:xref>
+         <umod:misc_notes>N-terminal initiator methionine is removed by a methionine aminopeptidase from proteins where the residue following the methionine is Ala, Cys, Gly, Pro, Ser, Thr or Val.  This is generally the final N-terminal state for proteins where the following residue was a Cys, Pro or Val.</umod:misc_notes>
+      </umod:mod>
+      <umod:mod title="Met-loss+Acetyl"
+                full_name="Removal of initiator methionine from protein N-terminus, then acetylation of the new N-terminus"
+                username_of_poster="chalkley"
+                group_of_poster=""
+                date_time_posted="2007-07-10 22:57:12"
+                date_time_modified="2007-07-15 20:01:06"
+                approved="0"
+                record_id="766">
+         <!--umod:specificity hidden="1" site="M" position="Protein N-term" classification="Co-translational"
+                           spec_group="1"/-->
+         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="-89.029920" avge_mass="-89.1594"
+                     composition="H(-7) C(-3) N(-1) S(-1)">
+            <umod:element symbol="H" number="-7"/>
+            <umod:element symbol="C" number="-3"/>
+            <umod:element symbol="N" number="-1"/>
+            <umod:element symbol="S" number="-1"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>3327521</umod:text>
+            <umod:source>PubMed PMID</umod:source>
             <umod:url/>
          </umod:xref>
          <umod:xref>
-            <umod:text>AA0276</umod:text>
-            <umod:source>RESID</umod:source>
+            <umod:text>Biochemistry (1987) 26 8242-8246</umod:text>
+            <umod:source>Journal</umod:source>
             <umod:url/>
          </umod:xref>
+         <umod:misc_notes>The N-terminal initiator methionine is removed by a methionine aminopeptidase from proteins whose residue following the methionine is Ala, Cys, Gly, Pro, Ser, Thr or Val. Proteins whose following residue was Ala, Gly, Ser or Thr are then acetylated by an N(alpha)-acetyltransferase on the new N-terminus.</umod:misc_notes>
       </umod:mod>
    </umod:modifications>
    <umod:amino_acids>
