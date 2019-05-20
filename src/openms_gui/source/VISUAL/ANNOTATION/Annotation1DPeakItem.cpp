@@ -196,20 +196,78 @@ namespace OpenMS
       painter.setPen(Qt::DashLine);
       if (!found_intersection) // no intersection with bounding box of text -> normal drawing
       {
-        painter.drawLine(peak_position_widget, position_widget);
-        painter.drawLine(peak_position_widget, position_widget);
+        painter.drawLine(peak_position_widget, peak_position_widget + QPoint(0, vertical_shift));
+        painter.drawLine(peak_position_widget + QPoint(0, vertical_shift), position_widget);
       }
       else
       {
-        painter.drawLine(peak_position_widget, *closest_ip);
-        painter.drawLine(peak_position_widget, *closest_ip);
+        QPoint vertical_end = QPoint(peak_position_widget.x(), position_widget.y() + 20);
+
+        if (vertical_end.y() < peak_position_widget.y()) // label is above peak
+        {
+          painter.drawLine(peak_position_widget, vertical_end);
+          painter.drawLine(vertical_end, position_widget);   
+        }
+        else // label is below peak
+        {
+          painter.drawLine(peak_position_widget, *closest_ip);
+          painter.drawLine(peak_position_widget, *closest_ip);       
+        }        
       }
       painter.restore();
       delete(ip);
       delete(closest_ip);
     }
 
-    painter.drawText(bounding_box_, Qt::AlignCenter, text_);
+    // some pretty printing
+    QString text = text_;
+    if (!text.contains("<\\")) // don't process HTML strings again
+    {
+      // extract ion index
+      QRegExp reg_exp("[a|b|c|x|y|z](\\d+)");
+      int match_pos = reg_exp.indexIn(text);
+      if (match_pos == 0)
+      {
+        QString index_str = reg_exp.cap(1);
+
+        // put sub html tag around number
+        text = text[0]
+              + QString("<sub>") + index_str + QString("</sub>")
+              + text.right(text.size() - match_pos - index_str.size() - 1);
+      }
+
+      // charge
+      text.replace(QRegExp("3\\+$"), "<sup>3+</sup>");
+      text.replace(QRegExp("\\+\\+$"), "<sup>2+</sup>");
+      text.replace(QRegExp("\\+$"), "");
+      text.replace(QRegExp("3\\-$"), "<sup>3-</sup>");
+      text.replace(QRegExp("\\-\\-$"), "<sup>2-</sup>");
+      text.replace(QRegExp("\\-$"), "");
+
+      // common losses
+      text.replace("H2O","H<sub>2</sub>O");
+      text.replace("H2O1","H<sub>2</sub>O");
+      text.replace("NH3","NH<sub>3</sub>");
+      text.replace("H3N1","NH<sub>3</sub>");
+
+      // nucleotide XL realted losses
+      text.replace("H3PO4","H<sub>3</sub>PO<sub>4</sub>");
+      text.replace("HPO3","HPO<sub>3</sub>");
+      text.replace("C3O","C<sub>3</sub>O");
+    }
+
+    QTextDocument td;
+    td.setHtml(text);
+
+    //draw html text
+    painter.save();
+    double w = td.size().width();
+    double h = td.size().height();
+    painter.translate(position_widget.x() - w/2, position_widget.y() - h);
+    td.drawContents(&painter);
+    painter.restore();
+
+    //painter.drawText(bounding_box_, Qt::AlignCenter, text_);
     if (selected_) { drawBoundingBox_(painter); }
 
     painter.restore();
