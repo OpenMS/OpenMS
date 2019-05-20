@@ -413,7 +413,7 @@ public:
       {
         if(!evidence.hasValidLimits())
         {
-          LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << std::endl;
+          OPENMS_LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << std::endl;
           return true;
         }
 
@@ -427,11 +427,11 @@ public:
         {
           if (evidence.getProteinAccession().empty())
           {
-            LOG_WARN << "Peptide accession not available! Skipping Evidence." << std::endl;
+            OPENMS_LOG_WARN << "Peptide accession not available! Skipping Evidence." << std::endl;
           }
           else
           {
-            LOG_WARN << "Peptide accession '" << evidence.getProteinAccession()
+            OPENMS_LOG_WARN << "Peptide accession '" << evidence.getProteinAccession()
                      << "' not found in fasta file!" << std::endl;
           }
           return true;

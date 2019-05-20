@@ -992,8 +992,8 @@ START_SECTION([EXTRA]  template <typename PeakContainerConstIteratorT> double fi
 
 
   // corner cases: empty range
-  TEST_EXCEPTION(Exception::InvalidRange, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, false))
-  TEST_EXCEPTION(Exception::InvalidRange, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, true))
+  TEST_EXCEPTION(Exception::InvalidRange&, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, false))
+  TEST_EXCEPTION(Exception::InvalidRange&, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, true))
 }
 END_SECTION
 

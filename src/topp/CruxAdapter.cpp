@@ -305,7 +305,7 @@ protected:
       QStringList process_params;
       process_params << tool.toQString();
       params.split(' ', substrings);
-      for (auto s : substrings)
+      for (const auto& s : substrings)
       {
         process_params << s.toQString();
       }
@@ -355,7 +355,7 @@ protected:
       QStringList process_params;
       process_params << tool.toQString();
       params.split(' ', substrings);
-      for (auto s : substrings)
+      for (const auto& s : substrings)
       {
         process_params << s.toQString();
       }
@@ -401,7 +401,7 @@ protected:
       QStringList process_params;
       process_params << tool.toQString();
       params.split(' ', substrings);
-      for (auto s : substrings)
+      for (const auto& s : substrings)
       {
         process_params << s.toQString();
       }

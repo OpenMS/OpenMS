@@ -213,7 +213,7 @@ protected:
 
     // add modified ribos from database
     vector<String> all_mods;
-    for (auto r : *RibonucleotideDB::getInstance())
+    for (const auto& r : *RibonucleotideDB::getInstance())
     {
       if (r->isModified())
       {
@@ -274,6 +274,7 @@ protected:
     double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
     Int charge;
+    Size isotope;
     String adduct;
   };
 
@@ -349,7 +350,7 @@ protected:
     // determine charge of adduct (by number of '+' or '-')
     Int pos_charge = parts[1].size() - parts[1].remove('+').size();
     Int neg_charge = parts[1].size() - parts[1].remove('-').size();
-    LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
+    OPENMS_LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
     if (pos_charge > 0 && neg_charge > 0)
     {
       String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
@@ -600,12 +601,12 @@ protected:
           }
           if (inferred_charge == 0)
           {
-            LOG_ERROR << "Error: unable to determine charge state for spectrum '" << spec.getNativeID() << "' based on precursor m/z values " << mz1 << " and " << mz2 << endl;
+            OPENMS_LOG_ERROR << "Error: unable to determine charge state for spectrum '" << spec.getNativeID() << "' based on precursor m/z values " << mz1 << " and " << mz2 << endl;
           }
           else
           {
             ++n_inferred_charge;
-            LOG_DEBUG << "Inferred charge state " << inferred_charge << " for spectrum '" << spec.getNativeID() << "'" << endl;
+            OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge << " for spectrum '" << spec.getNativeID() << "'" << endl;
             // keep only precursor with highest charge, set inferred charge:
             Precursor prec = spec.getPrecursors()[precursors.begin()->second];
             prec.setCharge(abs(inferred_charge));
@@ -629,14 +630,14 @@ protected:
 
     if (n_zero_charge)
     {
-      LOG_WARN << "Warning: no charge state information available for " << n_zero_charge << " out of " << exp.size() << " spectra." << endl;
+      OPENMS_LOG_WARN << "Warning: no charge state information available for " << n_zero_charge << " out of " << exp.size() << " spectra." << endl;
       if (n_inferred_charge)
       {
-        LOG_INFO << "Inferred charge states for " << n_inferred_charge << " spectra." << endl;
+        OPENMS_LOG_INFO << "Inferred charge states for " << n_inferred_charge << " spectra." << endl;
       }
       if (n_zero_charge - n_inferred_charge > 0)
       {
-        LOG_INFO << "Spectra without charge information will be " << (include_unknown_charge ? "included in the processing" : "skipped") << " (see parameter 'precursor:include_unknown_charge')" << endl;
+        OPENMS_LOG_INFO << "Spectra without charge information will be " << (include_unknown_charge ? "included in the processing" : "skipped") << " (see parameter 'precursor:include_unknown_charge')" << endl;
       }
     }
   }
@@ -762,7 +763,7 @@ protected:
       {
         double score = pair.first;
         const AnnotatedHit& hit = pair.second;
-        LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
+        OPENMS_LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
 
         // transfer parent matches from unmodified oligo:
         IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
@@ -781,6 +782,7 @@ protected:
         // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
         match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
+        match.setMetaValue("isotope_offset", hit.isotope);
         if (!hit.adduct.empty()) match.setMetaValue("adduct", hit.adduct);
 #pragma omp critical (id_data_access)
         id_data.registerMoleculeQueryMatch(match);
@@ -843,7 +845,7 @@ protected:
     if (fdr_cutoff < 1.0)
     {
       IDFilter::filterQueryMatchesByScore(id_data, fdr_ref, fdr_cutoff);
-      LOG_INFO << "Search hits after FDR filtering: "
+      OPENMS_LOG_INFO << "Search hits after FDR filtering: "
                << id_data.getMoleculeQueryMatches().size() << endl;
     }
   }
@@ -913,14 +915,14 @@ protected:
     // @TODO: allow zero to mean "any charge state in the data"?
     if ((min_charge == 0) || (max_charge == 0))
     {
-      LOG_ERROR << "Error: invalid charge state 0" << endl;
+      OPENMS_LOG_ERROR << "Error: invalid charge state 0" << endl;
       return ILLEGAL_PARAMETERS;
     }
     // charges can be positive or negative, depending on data acquisition mode:
     if (((min_charge < 0) && (max_charge > 0)) ||
         ((min_charge > 0) && (max_charge < 0)))
     {
-      LOG_ERROR << "Error: mixing positive and negative charges is not allowed"
+      OPENMS_LOG_ERROR << "Error: mixing positive and negative charges is not allowed"
                 << endl;
       return ILLEGAL_PARAMETERS;
     }
@@ -973,7 +975,7 @@ protected:
         EmpiricalFormula ef = parseAdduct_(adduct);
         double mass = use_avg_mass ? ef.getAverageWeight() : ef.getMonoWeight();
         adduct_masses[mass] = adduct;
-        LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass << endl;
+        OPENMS_LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass << endl;
       }
     }
 
@@ -996,7 +998,7 @@ protected:
                        single_charge_spectra, negative_mode, min_charge,
                        max_charge, include_unknown_charge);
     progresslogger.endProgress();
-    LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
+    OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
 
     // build multimap of precursor mass to scan index (and other information):
     multimap<double, PrecursorInfo> precursor_mass_map;
@@ -1070,7 +1072,7 @@ protected:
     set<String> selected_ions(temp.begin(), temp.end());
     if (resolve_ambiguous_mods_ && !selected_ions.count("a-B"))
     {
-      LOG_WARN << "Warning: option 'modifications:resolve_ambiguities' requires a-B ions in parameter 'fragment:ions' - disabling the option." << endl;
+      OPENMS_LOG_WARN << "Warning: option 'modifications:resolve_ambiguities' requires a-B ions in parameter 'fragment:ions' - disabling the option." << endl;
       resolve_ambiguous_mods_ = false;
     }
     for (const auto& code : fragment_ion_codes_)
@@ -1116,7 +1118,7 @@ protected:
     registerIDMetaData_(id_data, in_mzml, primary_files, search_param);
     String decoy_pattern = getStringOption_("fdr:decoy_pattern");
 
-    LOG_INFO << "Performing in-silico digestion..." << endl;
+    OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;
     IdentificationDataConverter::importSequences(
       id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
     digestor.digest(id_data, min_oligo_length, max_oligo_length);
@@ -1183,7 +1185,7 @@ protected:
 
         // collect all relevant charge states for theoret. spectrum generation:
         set<Int> precursor_charges;
-        for (auto prec_it = low_it; prec_it != up_it; ++prec_it)
+        for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
         {
           precursor_charges.insert(prec_it->second.charge * base_charge);
         }
@@ -1191,7 +1193,7 @@ protected:
         for (const NASequence* seq_ptr : pair.second)
         {
           const NASequence& candidate = *seq_ptr;
-          LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
+          OPENMS_LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
                     << float(candidate_mass) << " Da)" << endl;
 
           // pre-generate spectra:
@@ -1200,9 +1202,9 @@ protected:
                                                 candidate, precursor_charges,
                                                 base_charge);
 
-          for (auto prec_it = low_it; prec_it != up_it; ++prec_it)
+          for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
           {
-            LOG_DEBUG << "Matching precursor mass: " << float(prec_it->first)
+            OPENMS_LOG_DEBUG << "Matching precursor mass: " << float(prec_it->first)
                       << endl;
 
             Size charge = prec_it->second.charge;
@@ -1235,7 +1237,7 @@ protected:
 #pragma omp atomic
             ++hit_counter;
 
-            LOG_DEBUG << "Score: " << score << endl;
+            OPENMS_LOG_DEBUG << "Score: " << score << endl;
 
 #pragma omp critical (annotated_hits_access)
             {
@@ -1271,6 +1273,7 @@ protected:
                   (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
                 ah.annotations = annotations;
                 ah.charge = charge;
+                ah.isotope = prec_it->second.isotope;
                 ah.adduct = prec_it->second.adduct;
               }
             }
@@ -1280,10 +1283,10 @@ protected:
     }
     progresslogger.endProgress();
 
-    LOG_INFO << "Undigested nucleic acids: " << fasta_db.size() << endl;
-    LOG_INFO << "Oligonucleotides: " << id_data.getIdentifiedOligos().size()
+    OPENMS_LOG_INFO << "Undigested nucleic acids: " << fasta_db.size() << endl;
+    OPENMS_LOG_INFO << "Oligonucleotides: " << id_data.getIdentifiedOligos().size()
              << endl;
-    LOG_INFO << "Search hits: " << hit_counter << endl;
+    OPENMS_LOG_INFO << "Search hits: " << hit_counter << endl;
 
     if (!exp_ms2_out.empty())
     {
@@ -1301,14 +1304,14 @@ protected:
     // FDR:
     if (!decoy_pattern.empty())
     {
-      LOG_INFO << "Performing FDR calculations..." << endl;
+      OPENMS_LOG_INFO << "Performing FDR calculations..." << endl;
       calculateAndFilterFDR_(id_data, report_top_hits == 1);
     }
     id_data.calculateCoverages();
 
     // store results
     MzTab results = IdentificationDataConverter::exportMzTab(id_data);
-    LOG_DEBUG << "Nucleic acid rows: "
+    OPENMS_LOG_DEBUG << "Nucleic acid rows: "
               << results.getNucleicAcidSectionRows().size()
               << "\nOligonucleotide rows: "
               << results.getOligonucleotideSectionRows().size()

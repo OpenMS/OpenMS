@@ -377,11 +377,11 @@ namespace OpenMS
   std::ostream & operator<<(std::ostream & os, LogConfigHandler const & lch)
   {
 
-    printStreamConfig_(os, "LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_INFO", lch.info_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_INFO", lch.info_streams_, lch.stream_type_map_);
     printStreamConfig_(os, "LOG_WARNING", lch.warn_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
 
     return os;
   }

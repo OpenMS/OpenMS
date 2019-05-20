@@ -36,6 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <svm.h>
 
 #include <vector>
@@ -71,14 +72,14 @@ public:
     void encodeCompositionVector(const String & sequence, std::vector<std::pair<Int, double> > & encoded_vector, const String & allowed_characters = "ACDEFGHIKLMNPQRSTVWY");
 
     /**
-              @brief stores composition vectors of the sequences given by 'sequence' in 'composition_vectors'
+      @brief stores composition vectors of the sequences given by 'sequence' in 'composition_vectors'
 
-              The allowed characters given by 'allowed_characters' are counted in the sequences 'sequences'
-              and the relative frequency of the letters are stored in the composition vectors.
-              The first entry of the first vector (<UInt, double>) corresponds to the first letter of
-              'allowed_characters' that has a non zero frequency in the first 'sequence' and its corresponding
-              relative frequency...
-          */
+      The allowed characters given by 'allowed_characters' are counted in the sequences 'sequences'
+      and the relative frequency of the letters are stored in the composition vectors.
+      The first entry of the first vector (<UInt, double>) corresponds to the first letter of
+      'allowed_characters' that has a non zero frequency in the first 'sequence' and its corresponding
+      relative frequency...
+    */
     void encodeCompositionVectors(const std::vector<String> & sequences, const String & allowed_characters, std::vector<std::vector<std::pair<Int, double> > > & composition_vectors);
     /// encodes the feature vector in LibSVM compliant format
     svm_node * encodeLibSVMVector(const std::vector<std::pair<Int, double> > & feature_vector);
@@ -95,13 +96,21 @@ public:
                                                             std::vector<double> & labels,
                                                             const String & allowed_characters);
 
-    /// creates composition vectors with additional length information for 'sequences' and stores them in LibSVM compliant format
+    /**
+      @brief creates composition vectors with additional length information for 'sequences' and stores them in LibSVM compliant format
+
+      @note The resulting svm_problem needs to be destroyed by calling LibSVMEncoder::destroyProblem
+    */
     svm_problem * encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector<String> & sequences,
                                                                      std::vector<double> & labels,
                                                                      const String & allowed_characters,
-                                                                     UInt                maximum_sequence_length);
+                                                                     UInt maximum_sequence_length);
 
-    /// creates composition vectors with additional length and average weight information for 'sequences' and stores them in LibSVM compliant format
+    /**
+      @brief creates composition vectors with additional length and average weight information for 'sequences' and stores them in LibSVM compliant format
+
+      @note The resulting svm_problem needs to be destroyed by calling LibSVMEncoder::destroyProblem
+    */
     svm_problem * encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const std::vector<String> & sequences,
                                                                            std::vector<double> & labels,
                                                                            const String & allowed_characters);
@@ -173,6 +182,26 @@ public:
               This function is used to free all the memory used by 'problem'
           */
     static void destroyProblem(svm_problem * problem);
+
+    static std::vector<double> predictPeptideRT(const std::vector<String> & sequences,
+                                                SVMWrapper& svm,
+                                                const String & allowed_characters = "ACDEFGHIKLMNPQRSTVWY",
+                                                UInt maximum_sequence_length = 50)
+    {
+      std::vector<double> predicted_retention_times;
+
+      LibSVMEncoder encoder;
+      std::vector<double> temp_rts;
+      temp_rts.resize(sequences.size(), 0);
+      svm_problem * prediction_data =
+          encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(sequences,
+                                                                     temp_rts,
+                                                                     allowed_characters,
+                                                                     maximum_sequence_length);
+      svm.predict(prediction_data, predicted_retention_times);
+      LibSVMEncoder::destroyProblem(prediction_data);
+      return predicted_retention_times;
+    }
 
 private:
     /// comparator for oligos encoded by encodeOligo

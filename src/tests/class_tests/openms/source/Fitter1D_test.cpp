@@ -138,7 +138,7 @@ START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &, Interpolatio
 	Fitter1D f1d;
   Fitter1D::RawDataArrayType rft;
   InterpolationModel *ipm = nullptr;
-	TEST_EXCEPTION(Exception::NotImplemented,f1d.fit1d(rft,ipm));
+	TEST_EXCEPTION(Exception::NotImplemented&,f1d.fit1d(rft,ipm));
 END_SECTION
 
 START_SECTION((void registerChildren()))

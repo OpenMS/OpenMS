@@ -101,7 +101,7 @@ namespace OpenMS
                           + "Rename the file to fix this.";
       }
 
-      LOG_FATAL_ERROR << error_message_ << std::endl;
+      OPENMS_LOG_FATAL_ERROR << error_message_ << std::endl;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message_);
     }
 
@@ -119,7 +119,7 @@ namespace OpenMS
       {
         error_message_ += String("( in line ") + line + " column " + column + ")";
       }
-      LOG_ERROR << error_message_ << std::endl;
+      OPENMS_LOG_ERROR << error_message_ << std::endl;
     }
 
     void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
@@ -139,9 +139,9 @@ namespace OpenMS
 
 // warn only in Debug mode but suppress warnings in release mode (more happy users)
 #ifdef OPENMS_ASSERTIONS
-      LOG_WARN << error_message_ << std::endl;
+      OPENMS_LOG_WARN << error_message_ << std::endl;
 #else
-      LOG_DEBUG << error_message_ << std::endl;
+      OPENMS_LOG_DEBUG << error_message_ << std::endl;
 #endif
 
     }

@@ -36,21 +36,6 @@
 
 namespace OpenMS
 {
-  AbsoluteQuantitationMethod::AbsoluteQuantitationMethod() :
-    component_name_(""),
-    feature_name_(""),
-    IS_name_(""),
-    llod_(0),
-    ulod_(0),
-    lloq_(0),
-    uloq_(0),
-    n_points_(0),
-    correlation_coefficient_(0),
-    concentration_units_(""),
-    transformation_model_("")
-  {
-  }
-
   void AbsoluteQuantitationMethod::setLLOD(const double llod)
   {
     llod_ = llod;

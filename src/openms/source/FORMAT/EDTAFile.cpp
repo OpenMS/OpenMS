@@ -132,7 +132,7 @@ namespace OpenMS
     {
       offset = 1;
       ++input_it;
-      LOG_INFO << "Detected a header line.\n";
+      OPENMS_LOG_INFO << "Detected a header line.\n";
     }
 
     if (headers.size() >= 5)
@@ -171,7 +171,7 @@ namespace OpenMS
       line_trimmed.trim();
       if (line_trimmed == "")
       {
-        if ((input_it - input.begin()) < input_size - 1) LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
+        if ((input_it - input.begin()) < input_size - 1) OPENMS_LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
         continue;
       }
 

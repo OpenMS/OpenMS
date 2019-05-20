@@ -370,7 +370,7 @@ END_SECTION
 START_SECTION((void updateWeightedMZsd()))
 {
   MassTrace empty_trace;
-  TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMZsd());
+  TEST_EXCEPTION(Exception::InvalidValue&, empty_trace.updateWeightedMZsd());
   std::vector<PeakType> peaks;
   PeakType p1, p2;
   p1.setMZ(123.123);
@@ -380,7 +380,7 @@ START_SECTION((void updateWeightedMZsd()))
   peaks.push_back(p1);
   peaks.push_back(p2);
   MassTrace zero_int_mt(peaks);
-  TEST_EXCEPTION(Exception::InvalidValue, zero_int_mt.updateWeightedMZsd());
+  TEST_EXCEPTION(Exception::InvalidValue&, zero_int_mt.updateWeightedMZsd());
 
   test_mt.updateWeightedMZsd();
   double test_mt_sd = test_mt.getCentroidSD();
@@ -427,7 +427,7 @@ smoothed_ints.push_back(300.0);
 
 START_SECTION((void setSmoothedIntensities(const std::vector<double>& db_vec)))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt.setSmoothedIntensities(smoothed_ints));
+  TEST_EXCEPTION(Exception::InvalidValue&, test_mt.setSmoothedIntensities(smoothed_ints));
   smoothed_ints.pop_back();
 
   test_mt.setSmoothedIntensities(smoothed_ints);
@@ -575,9 +575,9 @@ END_SECTION
 
 START_SECTION((Size findMaxByIntPeak(bool use_smoothed_ints = false) const ))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt2.findMaxByIntPeak(true));
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt3.findMaxByIntPeak(false));
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt3.findMaxByIntPeak(true));
+  TEST_EXCEPTION(Exception::InvalidValue&, test_mt2.findMaxByIntPeak(true));
+  TEST_EXCEPTION(Exception::InvalidValue&, test_mt3.findMaxByIntPeak(false));
+  TEST_EXCEPTION(Exception::InvalidValue&, test_mt3.findMaxByIntPeak(true));
 
   Size max_peak_idx1 = test_mt.findMaxByIntPeak(true);
   Size max_peak_idx2 = test_mt.findMaxByIntPeak(false);
@@ -591,8 +591,8 @@ END_SECTION
 
 START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt2.estimateFWHM(true));
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt3.estimateFWHM(false));
+  TEST_EXCEPTION(Exception::InvalidValue&, test_mt2.estimateFWHM(true));
+  TEST_EXCEPTION(Exception::InvalidValue&, test_mt3.estimateFWHM(false));
 
   double test_fwhm1 = test_mt.estimateFWHM(false);
   double test_fwhm2 = test_mt.estimateFWHM(true);
@@ -626,7 +626,7 @@ START_SECTION((void setQuantMethod(MT_QUANTMETHOD method)))
   TEST_REAL_SIMILAR(raw_mt.getIntensity(false), 542293.0);
   TEST_EQUAL(raw_mt.getQuantMethod(), MassTrace::MT_QUANT_MEDIAN);
 
-  TEST_EXCEPTION(Exception::InvalidValue, raw_mt.setQuantMethod(MassTrace::SIZE_OF_MT_QUANTMETHOD))
+  TEST_EXCEPTION(Exception::InvalidValue&, raw_mt.setQuantMethod(MassTrace::SIZE_OF_MT_QUANTMETHOD))
 
 }
 END_SECTION
@@ -743,7 +743,7 @@ MassTrace empty_trace;
 
 START_SECTION((void updateWeightedMeanRT()))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMeanRT());
+  TEST_EXCEPTION(Exception::InvalidValue&, empty_trace.updateWeightedMeanRT());
 
   test_mt.updateWeightedMeanRT();
   TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.319906426507);
@@ -754,7 +754,7 @@ END_SECTION
 
 START_SECTION((void updateMedianRT()))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateMedianRT());
+  TEST_EXCEPTION(Exception::InvalidValue&, empty_trace.updateMedianRT());
 
   test_mt.updateMedianRT();
   TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.24);
@@ -765,7 +765,7 @@ END_SECTION
 
 START_SECTION((void updateMedianMZ()))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateMedianMZ());
+  TEST_EXCEPTION(Exception::InvalidValue&, empty_trace.updateMedianMZ());
 
   test_mt.updateMedianMZ();
   TEST_REAL_SIMILAR(test_mt.getCentroidMZ(), 230.10198);
@@ -776,7 +776,7 @@ END_SECTION
 
 START_SECTION((void updateMeanMZ()))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateMeanMZ());
+  TEST_EXCEPTION(Exception::InvalidValue&, empty_trace.updateMeanMZ());
 
   test_mt.updateMeanMZ();
   TEST_REAL_SIMILAR(test_mt.getCentroidMZ(), 230.101918);
@@ -787,7 +787,7 @@ END_SECTION
 
 START_SECTION((void updateWeightedMeanMZ()))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMeanMZ());
+  TEST_EXCEPTION(Exception::InvalidValue&, empty_trace.updateWeightedMeanMZ());
 
   test_mt.updateWeightedMeanMZ();
   TEST_REAL_SIMILAR(test_mt.getCentroidMZ(), 230.101883054967);
@@ -799,7 +799,7 @@ END_SECTION
 START_SECTION((void updateSmoothedMaxRT()))
 {
   MassTrace raw_mt(peak_vec);
-  TEST_EXCEPTION(Exception::InvalidValue, raw_mt.updateSmoothedMaxRT());
+  TEST_EXCEPTION(Exception::InvalidValue&, raw_mt.updateSmoothedMaxRT());
 
   test_mt.updateSmoothedMaxRT();
   double smooth_max_rt = test_mt.getCentroidRT();
@@ -812,7 +812,7 @@ END_SECTION
 START_SECTION((void updateSmoothedWeightedMeanRT()))
 {
     MassTrace raw_mt(peak_vec);
-    TEST_EXCEPTION(Exception::InvalidValue, raw_mt.updateSmoothedWeightedMeanRT());
+    TEST_EXCEPTION(Exception::InvalidValue&, raw_mt.updateSmoothedWeightedMeanRT());
 
     test_mt.updateSmoothedWeightedMeanRT();
     double smooth_max_rt = test_mt.getCentroidRT();

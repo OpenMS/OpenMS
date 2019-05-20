@@ -55,7 +55,7 @@ namespace OpenMS
   {
     if (fm.empty())
     {
-      LOG_INFO << "ILPDC wrapper received empty feature list. Nothing to compute! Exiting..." << std::endl;
+      OPENMS_LOG_INFO << "ILPDC wrapper received empty feature list. Nothing to compute! Exiting..." << std::endl;
       return -1;
     }
 
@@ -131,11 +131,11 @@ namespace OpenMS
       }
       if (verbose_level > 1)
       {
-        LOG_INFO << "Components:\n";
-        LOG_INFO << "  Size 1 occurs ?x\n";
+        OPENMS_LOG_INFO << "Components:\n";
+        OPENMS_LOG_INFO << "  Size 1 occurs ?x\n";
         for (OpenMS::Map<Size, Size>::const_iterator it = hist_component_sum.begin(); it != hist_component_sum.end(); ++it)
         {
-          LOG_INFO << "  Size " << it->first << " occurs " << it->second << "x\n";
+          OPENMS_LOG_INFO << "  Size " << it->first << " occurs " << it->second << "x\n";
         }
       }
 
@@ -153,7 +153,7 @@ namespace OpenMS
           if (count > 0) // either bin is full or we have to close it due to big clique
           {
             if (verbose_level > 2)
-              LOG_INFO << "Overstepping border of " << pairs_per_bin << " by " << SignedSize(count - pairs_per_bin) << " elements!\n";
+              OPENMS_LOG_INFO << "Overstepping border of " << pairs_per_bin << " by " << SignedSize(count - pairs_per_bin) << " elements!\n";
             bins.push_back(std::make_pair(start, pairs_clique_ordered.size()));
             start = pairs_clique_ordered.size();
             count = 0;
@@ -165,7 +165,7 @@ namespace OpenMS
               pairs_clique_ordered.push_back(pairs[*i_p]);
             }
             if (verbose_level > 2)
-              LOG_INFO << "Extra bin for big clique (" << clique_size << ") prepended to schedule\n";
+              OPENMS_LOG_INFO << "Extra bin for big clique (" << clique_size << ") prepended to schedule\n";
             bins.insert(bins.begin(), std::make_pair(start, pairs_clique_ordered.size()));
             start = pairs_clique_ordered.size();
             continue; // next clique (this one is already processed)
@@ -203,7 +203,7 @@ namespace OpenMS
       score = computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
     }
     time1.stop();
-    LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
+    OPENMS_LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
              << " with objective value: " << score << "."
              << std::endl;
 
@@ -357,7 +357,7 @@ namespace OpenMS
       //std::cerr << "MIP: edge#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
     }
     if (verbose_level > 2)
-      LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
+      OPENMS_LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
 
     //------------------------------------adding constraints--------------------------------------------------
 
@@ -439,18 +439,18 @@ namespace OpenMS
     }
 
     if (verbose_level > 2)
-      LOG_INFO << "node count: " << fm.size() << "\n";
+      OPENMS_LOG_INFO << "node count: " << fm.size() << "\n";
     if (verbose_level > 2)
-      LOG_INFO << "edge count: " << pairs.size() << "\n";
+      OPENMS_LOG_INFO << "edge count: " << pairs.size() << "\n";
     if (verbose_level > 2)
-      LOG_INFO << "constraint count: " << (conflict_idx[0] + conflict_idx[1] + conflict_idx[2] + conflict_idx[3]) << " = " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl;
+      OPENMS_LOG_INFO << "constraint count: " << (conflict_idx[0] + conflict_idx[1] + conflict_idx[2] + conflict_idx[3]) << " = " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl;
 
     //---------------------------------------------------------------------------------------------------------
     //----------------------------------------Solving and querying result--------------------------------------
     //---------------------------------------------------------------------------------------------------------
 
     if (verbose_level > 0)
-      LOG_INFO << "Starting to solve..." << std::endl;
+      OPENMS_LOG_INFO << "Starting to solve..." << std::endl;
     LPWrapper::SolverParam param;
     param.enable_mir_cuts = true;
     param.enable_cov_cuts = true;
@@ -464,7 +464,7 @@ namespace OpenMS
     build.solve(param);
     time1.stop();
     if (verbose_level > 0)
-      LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
+      OPENMS_LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
                << " with objective value: " << build.getObjectiveValue() << "."
                << " Status: " << (!build.getStatus() ? " Finished" : " Not finished")
                << std::endl;
@@ -491,7 +491,7 @@ namespace OpenMS
       }
     }
     if (verbose_level > 2)
-      LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
+      OPENMS_LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
 
     for (Map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
     {

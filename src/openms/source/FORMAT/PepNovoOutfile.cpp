@@ -311,7 +311,7 @@ namespace OpenMS
     result_file.close();
     result_file.clear();
 
-    LOG_INFO << "Parsed " << id_count << " ids, retained " << peptide_identifications.size() << "." << std::endl;
+    OPENMS_LOG_INFO << "Parsed " << id_count << " ids, retained " << peptide_identifications.size() << "." << std::endl;
 
   }
 

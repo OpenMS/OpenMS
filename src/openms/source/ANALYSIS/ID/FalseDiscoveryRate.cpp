@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
 // #define FALSE_DISCOVERY_RATE_DEBUG
@@ -73,7 +74,7 @@ namespace OpenMS
 
     if (ids.empty())
     {
-      LOG_WARN << "No peptide identifications given to FalseDiscoveryRate! No calculation performed.\n";
+      OPENMS_LOG_WARN << "No peptide identifications given to FalseDiscoveryRate! No calculation performed.\n";
       return;
     }
 
@@ -151,7 +152,7 @@ namespace OpenMS
 
             if (!it->getHits()[i].metaValueExists("target_decoy"))
             {
-              LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' first (run-id='" << it->getIdentifier() << ", rank=" << i + 1 << " of " << it->getHits().size() << ")!" << endl;
+              OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' first (run-id='" << it->getIdentifier() << ", rank=" << i + 1 << " of " << it->getHits().size() << ")!" << endl;
               throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
             }
 
@@ -198,7 +199,7 @@ namespace OpenMS
             }
             error_string += ")";
           }
-          LOG_ERROR << error_string << std::endl;
+          OPENMS_LOG_ERROR << error_string << std::endl;
         }
 
         // check target scores
@@ -218,7 +219,7 @@ namespace OpenMS
             }
             error_string += ")";
           }
-          LOG_ERROR << error_string << std::endl;
+          OPENMS_LOG_ERROR << error_string << std::endl;
         }
 
         if (target_scores.empty() || decoy_scores.empty())
@@ -243,7 +244,7 @@ namespace OpenMS
 
               if (!hits[i].metaValueExists("target_decoy"))
               {
-                LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' (run-id='" << it->getIdentifier() << ", rank=" << i + 1 << " of " << hits.size() << ")!" << endl;
+                OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' (run-id='" << it->getIdentifier() << ", rank=" << i + 1 << " of " << hits.size() << ")!" << endl;
                 throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
               }
 
@@ -434,7 +435,7 @@ namespace OpenMS
 
     if (ids.empty())
     {
-      LOG_WARN << "No protein identifications given to FalseDiscoveryRate! No calculation performed.\n";
+      OPENMS_LOG_WARN << "No protein identifications given to FalseDiscoveryRate! No calculation performed.\n";
       return;
     }
 
@@ -445,7 +446,7 @@ namespace OpenMS
       {
         if (!pit->metaValueExists("target_decoy"))
         {
-          LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' (run-id='" << it->getIdentifier() << ", accession=" << pit->getAccession() << ")!" << endl;
+          OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' (run-id='" << it->getIdentifier() << ", accession=" << pit->getAccession() << ")!" << endl;
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
         }
 
@@ -485,17 +486,17 @@ namespace OpenMS
       it->setHigherScoreBetter(false);
       const vector<ProteinHit>& old_hits = it->getHits();
       vector<ProteinHit> new_hits;
-      for (auto hit : old_hits)
+      for (auto hit : old_hits) // NOTE: performs copy
       {
         // Add decoy proteins only if add_decoy_proteins is set
         if (add_decoy_proteins || hit.getMetaValue("target_decoy") != "decoy")
         {
           hit.setMetaValue(score_type, hit.getScore());
           hit.setScore(score_to_fdr[hit.getScore()]);
-          new_hits.push_back(hit);
+          new_hits.push_back(std::move(hit));
         }
       }
-      it->setHits(new_hits);
+      it->setHits(std::move(new_hits));
     }
 
     return;
@@ -625,7 +626,7 @@ namespace OpenMS
     {
       vector<IdentificationData::QueryMatchRef> best_matches =
         id_data.getBestMatchPerQuery(score_ref);
-      for (auto match_ref : best_matches)
+      for (auto match_ref : best_matches) // NOTE: performs copy, should not be necessary?
       {
         handleQueryMatch_(match_ref, score_ref, target_scores, decoy_scores,
                           molecule_to_decoy, match_to_score);

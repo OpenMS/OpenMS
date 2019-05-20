@@ -172,7 +172,7 @@ namespace OpenMS
     gradient_max_ = param_.getValue("scan_window:max");
     if (gradient_max_ > total_gradient_time_)
     {
-      LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
+      OPENMS_LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
     }
 
     rt_sampling_rate_    = param_.getValue("sampling_rate");
@@ -207,7 +207,7 @@ namespace OpenMS
    */
   void RTSimulation::predictRT(SimTypes::FeatureMapSim& features)
   {
-    LOG_INFO << "RT Simulation ... started" << std::endl;
+    OPENMS_LOG_INFO << "RT Simulation ... started" << std::endl;
 
     vector<double>  predicted_retention_times;
     bool is_relative = (param_.getValue("auto_scale") == "true");
@@ -304,7 +304,7 @@ namespace OpenMS
 
       if (variance <= 0 || (fabs(variance - egh_variance_location_) > 10 * egh_variance_scale_))
       {
-        LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Setting it to the user defined width value of " << egh_variance_location_ << "!" << std::endl;
+        OPENMS_LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Setting it to the user defined width value of " << egh_variance_location_ << "!" << std::endl;
         variance = egh_variance_location_;
       }
 
@@ -321,7 +321,7 @@ namespace OpenMS
 
       if (fabs(tau - egh_tau_location_) > 10 * egh_tau_scale_)
       {
-        LOG_ERROR << "Tau is to big for a reasonable feature. Tried to resample 10 times and then stopped. Setting it to the user defined skewness value of " << egh_tau_location_ << "!" << std::endl;
+        OPENMS_LOG_ERROR << "Tau is to big for a reasonable feature. Tried to resample 10 times and then stopped. Setting it to the user defined skewness value of " << egh_tau_location_ << "!" << std::endl;
         tau = egh_tau_location_;
       }
 
@@ -334,11 +334,11 @@ namespace OpenMS
     // print invalid features:
     if (deleted_features.size() > 0)
     {
-      LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
+      OPENMS_LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
       if (deleted_features.size() < 100)
-        LOG_WARN << "  " << ListUtils::concatenate(deleted_features, "\n  ") << std::endl;
+        OPENMS_LOG_WARN << "  " << ListUtils::concatenate(deleted_features, "\n  ") << std::endl;
       else
-        LOG_WARN << "  (List is too big to show)" << std::endl;
+        OPENMS_LOG_WARN << "  (List is too big to show)" << std::endl;
     }
     // only retain valid features:
     features.swap(fm_tmp);
@@ -496,7 +496,7 @@ namespace OpenMS
     // hard coding prediction bins; larger values only take more memory, result is not affected
     Size max_number_of_peptides(2000);
 
-    LOG_INFO << "Predicting RT ... ";
+    OPENMS_LOG_INFO << "Predicting RT ... ";
 
     svm.loadModel(rt_model_file_);
 
@@ -564,7 +564,7 @@ namespace OpenMS
     }
     LibSVMEncoder::destroyProblem(training_data);
 
-    LOG_INFO << "done" << endl;
+    OPENMS_LOG_INFO << "done" << endl;
   }
 
   void RTSimulation::predictContaminantsRT(SimTypes::FeatureMapSim& contaminants)
@@ -599,7 +599,7 @@ namespace OpenMS
 
     if (isRTColumnOn())
     {
-      LOG_INFO << "Creating experiment with #" << number_of_scans << " scans ... ";
+      OPENMS_LOG_INFO << "Creating experiment with #" << number_of_scans << " scans ... ";
 
       experiment.resize(number_of_scans);
 
@@ -627,14 +627,14 @@ namespace OpenMS
     }
     else
     {
-      LOG_INFO << "Creating experiment with a single scan ... ";
+      OPENMS_LOG_INFO << "Creating experiment with a single scan ... ";
 
       experiment.resize(1);
       experiment[0].setRT(-1);
       experiment[0].setNativeID("spectrum=1");
     }
     experiment.updateRanges();
-    LOG_INFO << "done\n";
+    OPENMS_LOG_INFO << "done\n";
   }
 
 //#define MSSIM_DEBUG_MOV_AVG_FILTER
@@ -650,7 +650,7 @@ namespace OpenMS
       double previous = (double) experiment[0].getMetaValue("distortion");
       boost::uniform_real<double> udist(1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01); // distortion gets worse round by round
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
-      LOG_WARN << "d <- c(" << previous << ", ";
+      OPENMS_LOG_WARN << "d <- c(" << previous << ", ";
       vector<double> tmp;
 #endif
       for (Size scan = 1; scan < experiment.size() - 1; ++scan)
@@ -663,21 +663,21 @@ namespace OpenMS
         previous = current;
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
-        LOG_WARN << current << ", ";
+        OPENMS_LOG_WARN << current << ", ";
         tmp.push_back(smoothed);
 #endif
         experiment[scan].setMetaValue("distortion", smoothed);
       }
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
-      LOG_WARN << next << ");" << endl;
-      LOG_WARN << "smoothed <- c(";
-      LOG_WARN << (double) experiment[0].getMetaValue("distortion") << ", ";
+      OPENMS_LOG_WARN << next << ");" << endl;
+      OPENMS_LOG_WARN << "smoothed <- c(";
+      OPENMS_LOG_WARN << (double) experiment[0].getMetaValue("distortion") << ", ";
       for (Size i = 0; i  < tmp.size(); ++i)
       {
-        LOG_WARN << tmp[i] << ", ";
+        OPENMS_LOG_WARN << tmp[i] << ", ";
       }
-      LOG_WARN << next << ");" << endl;
+      OPENMS_LOG_WARN << next << ");" << endl;
 #endif
     }
   }

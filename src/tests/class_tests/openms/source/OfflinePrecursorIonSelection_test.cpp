@@ -127,7 +127,7 @@ START_SECTION((template < typename InputPeakType > void getMassRanges(const Feat
   map2.push_back(map[1]);
   /// test for empty experiment
   PeakMap empty_map;
-  TEST_EXCEPTION(Exception::InvalidSize, ptr->getMassRanges(map,empty_map,indices));
+  TEST_EXCEPTION(Exception::InvalidSize&, ptr->getMassRanges(map,empty_map,indices));
   MSSpectrum spec;
   Peak1D p;
   p.setMZ(337.);

@@ -132,7 +132,7 @@ TEST_EQUAL(out[10].toString(), "PKATEEQLKTVMENFVAFDKCCAADDKEACFAVEGPKLVVSTQTALA"
 // ------------------------
 ed.setEnzyme("Trypsin/P");
 // .. log-model only for restrictive Trypsin (with P constraint)
-TEST_EXCEPTION(Exception::InvalidParameter, ed.digest(AASequence::fromString("ANGER"), out));
+TEST_EXCEPTION(Exception::InvalidParameter&, ed.digest(AASequence::fromString("ANGER"), out));
 
 END_SECTION
 

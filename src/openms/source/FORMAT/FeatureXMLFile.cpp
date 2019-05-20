@@ -154,7 +154,7 @@ namespace OpenMS
       // We can detect this here but it is too late to fix the problem;
       // there is no straightforward action to be taken in all cases.
       // Note also that we are given a const reference.
-      LOG_INFO << String("FeatureXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
+      OPENMS_LOG_INFO << String("FeatureXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
     }
 
     // This will throw if the unique ids are not unique,
@@ -165,7 +165,7 @@ namespace OpenMS
     }
     catch (Exception::Postcondition& e)
     {
-      LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
+      OPENMS_LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
       throw;
     }
 

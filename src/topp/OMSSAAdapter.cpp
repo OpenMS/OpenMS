@@ -440,7 +440,7 @@ protected:
     //-------------------------------------------------------------
     if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
     {
-      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
+      OPENMS_LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -458,7 +458,7 @@ protected:
       }
       catch (...)
       {
-        LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
+        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
       db_name = full_db_name;
@@ -470,10 +470,10 @@ protected:
     bool has_phr = File::readable(db_name + ".phr");
     if (!has_pin || !has_phr)
     {
-      LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
-      if (!has_pin) LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
-      if (!has_phr) LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
-      LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
+      OPENMS_LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
+      if (!has_pin) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
+      if (!has_phr) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      OPENMS_LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -1040,7 +1040,7 @@ protected:
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 
     // some stats
-    LOG_INFO << "Statistics:\n"
+    OPENMS_LOG_INFO << "Statistics:\n"
              << "  identified MS2 spectra: " << peptide_ids.size() << " / " << ms2_spec_count << " = " << int(peptide_ids.size() * 100.0 / ms2_spec_count) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
 
 

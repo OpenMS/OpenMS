@@ -26,6 +26,7 @@ addons:
          - cmake-data
          - g++-4.8
          - python-dev
+         - libhdf5-dev
          - libboost-chrono1.55-dev
          - libboost-date-time1.55-dev
          - libboost-filesystem1.55-dev

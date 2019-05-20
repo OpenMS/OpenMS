@@ -59,7 +59,7 @@ START_SECTION((~Bzip2Ifstream()))
 END_SECTION
 
 START_SECTION(Bzip2Ifstream(const char * filename))
-	TEST_EXCEPTION(Exception::FileNotFound, Bzip2Ifstream bzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
+	TEST_EXCEPTION(Exception::FileNotFound&, Bzip2Ifstream bzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	
 	Bzip2Ifstream bzip(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	
@@ -75,7 +75,7 @@ END_SECTION
 
 START_SECTION(void open(const char *filename))
 	Bzip2Ifstream bzip;
-	TEST_EXCEPTION(Exception::FileNotFound, bzip.open(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
+	TEST_EXCEPTION(Exception::FileNotFound&, bzip.open(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	
 	bzip.open(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	
@@ -95,7 +95,7 @@ START_SECTION(size_t read(char *s, size_t n))
 		char buffer[30];
 	buffer[29] = '\0';
 	size_t len = 29;
-	TEST_EXCEPTION(Exception::ParseError, bzip.read(buffer,10))
+	TEST_EXCEPTION(Exception::ParseError&, bzip.read(buffer,10))
 	
 	Bzip2Ifstream bzip2(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	bzip2.read(buffer, len);
@@ -104,15 +104,15 @@ START_SECTION(size_t read(char *s, size_t n))
 	TEST_EQUAL(bzip2.streamEnd(),true)
 	
 	bzip2.open(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1_corrupt.bz2"));
-	TEST_EXCEPTION(Exception::ParseError, bzip2.read(buffer,10))
+	TEST_EXCEPTION(Exception::ParseError&, bzip2.read(buffer,10))
 	bzip2.close();
 	TEST_EQUAL(bzip2.isOpen(), false)
 	TEST_EQUAL(bzip2.streamEnd(),true)
-	TEST_EXCEPTION(Exception::IllegalArgument, bzip2.read(buffer,10))
+	TEST_EXCEPTION(Exception::IllegalArgument&, bzip2.read(buffer,10))
 	bzip2.close();
 	TEST_EQUAL(bzip2.isOpen(), false)
 	TEST_EQUAL(bzip2.streamEnd(),true)
-	TEST_EXCEPTION(Exception::IllegalArgument, bzip2.read(buffer,10))
+	TEST_EXCEPTION(Exception::IllegalArgument&, bzip2.read(buffer,10))
 	bzip2.open(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	TEST_EQUAL(29, bzip2.read(buffer, len))
 	TEST_EQUAL(String(buffer), String("Was decompression successful?"))

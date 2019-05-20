@@ -97,6 +97,9 @@ elseif (MSVC)
 	## coinor windows.h include bug workaround
 	add_definitions(/DNOMINMAX)
 
+	## hdf5 linkage for windows (in case we want to build dynamically)
+	# add_definitions(-DH5_BUILT_AS_DYNAMIC_LIB)
+
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 

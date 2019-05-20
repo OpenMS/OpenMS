@@ -60,15 +60,13 @@ namespace OpenMS
     bool doWrite_;
     bool use_ms1_traces_;
     bool sonar_;
-    bool enable_uis_scoring_;
 
   public:
 
     OpenSwathTSVWriter(const String& output_filename, 
                        const String& input_filename = "inputfile",
                        bool ms1_scores = false, 
-                       bool sonar = false, 
-                       bool uis_scores = false);
+                       bool sonar = false);
 
     bool isActive() const;
 
