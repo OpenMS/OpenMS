@@ -2232,7 +2232,9 @@ static void scoreShiftedFragments_(
     const double & fragment_mass_tolerance,
     const bool & fragment_mass_tolerance_unit_ppm,
     vector<AnnotatedHit> & annotated_hits,
+#ifdef _OPENMP
     omp_lock_t & annotated_hits_lock,
+#endif
     const Size& report_top_hits)
   {  
     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
@@ -3080,7 +3082,9 @@ static void scoreShiftedFragments_(
                   fragment_mass_tolerance,
                   fragment_mass_tolerance_unit_ppm,
                   annotated_hits[scan_index],
+#ifdef _OPENMP
                   annotated_hits_lock[scan_index],
+#endif
                   report_top_hits
                 );
               }
