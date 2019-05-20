@@ -189,13 +189,11 @@ namespace OpenMS
       std::set<String> s;
       for (const auto& p : prot_ids)
       {
-        if (s.find(p.getIdentifier()) == s.end())
+        if (s.insert(p.getIdentifier()).second == false) // element already existed
         {
-          s.insert(p.getIdentifier());
-        }
-        else
-        {
-          fatalError(ActionMode::STORE, "ProteinIdentifications are not unique, which leads to loss of PeptideIdentification assignment. Duplicated ID is:" + p.getIdentifier());
+          fatalError(ActionMode::STORE, "ProteinIdentifications are not unique, which leads to loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:" +
+                                        p.getIdentifier() +
+                                        ".\nThe random chance of this error occuring is 1:2^64. Re-run the last tool and if the error occurs again, please report this as a bug");
         }
       }
     }
