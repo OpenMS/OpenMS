@@ -56,7 +56,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MSstatsConverter
+    @page UTILS_MSstatsConverter MSstatsConverter
 
     @brief Converter to input for MSstats
 

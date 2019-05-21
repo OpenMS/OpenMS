@@ -139,7 +139,6 @@ struct ImmoniumIonsInPeptide
   bool M = false;
 }; 
 
-
 /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
 /// floats need to be initialized to zero as default
 class AnnotatedHit
@@ -196,7 +195,23 @@ class AnnotatedHit
   }
 };
 
+//-------------------------------------------------------------
+// Doxygen docu
+//-------------------------------------------------------------
 
+/**
+    @page UTILS_RNPxlSearch RNPxlSearch 
+
+    @brief Annotate RNA to peptide crosslinks in MS/MS spectra.
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_RNPxlSearch.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_RNPxlSearch.html
+ */
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 class RNPxlSearch :
   public TOPPBase
 {

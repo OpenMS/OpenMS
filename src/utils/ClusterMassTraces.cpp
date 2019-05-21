@@ -45,13 +45,13 @@ using namespace OpenMS;
 /**
   @page TOPP_ClusterMassTraces ClusterMassTraces
 
-  @brief Cluster mass traces occuring in the same map together
+  @brief Cluster mass traces occurring in the same map together
 
   Cluster mass traces together found in a mass spectrometric map (MS1 or MS2).
   Input is a consensus map containing individual mass traces, the output may be
   spectra containing all clustered features.
 
-  Mass traces are clustered independend of precursor traces in another map
+  Mass traces are clustered independent of precursor traces in another map
   (this is the more simple approach)  and pseudo spectra are created without
   any precursors assigned. This is useful for 
 
@@ -62,6 +62,11 @@ using namespace OpenMS;
 
    - de novo searches 
    - calculate the most likely precursor(s) and DB-search
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_ClusterMassTraces.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_ClusterMassTraces.html
 
 */
 
