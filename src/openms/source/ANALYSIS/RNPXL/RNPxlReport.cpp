@@ -126,7 +126,7 @@ namespace OpenMS
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
       int scan_index = s_it - spectra.begin();
-     std::vector<Precursor> precursor = s_it->getPrecursors();
+      std::vector<Precursor> precursor = s_it->getPrecursors();
 
       // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
       if (s_it->getMSLevel() == 2 && precursor.size() == 1)
@@ -270,7 +270,7 @@ namespace OpenMS
             }
             else // place it anywhere
             {
-              for (auto a : aa)
+              for (auto a : aa) // NOTE: performs copy, this cannot possibly work!
               {
                 if (!a.isModified())
                 {

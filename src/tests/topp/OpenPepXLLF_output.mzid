@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_17716858074023296841"
-	creationDate="2019-02-11T12:52:04">
+	creationDate="2019-04-09T12:09:41">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.4.0-fix-OPXL-decoy-metavalue-2019-02-11" name="OpenPepXL" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.4.0-fix-xquest-parse-fdr-2019-04-08" name="OpenPepXL" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1001456" cvRef="PSI-MS" name="analysis software"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.4.0-fix-OPXL-decoy-metavalue-2019-02-11" name="TOPP software" id="SOF_16250062551099875712">
+	<AnalysisSoftware version="OpenMS TOPP v2.4.0-fix-xquest-parse-fdr-2019-04-08" name="TOPP software" id="SOF_16250062551099875712">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -29,7 +29,7 @@
 	</DBSequence>
 	<Peptide id="PEP_16907355690727166316" name="KNVPIEFPVIDR">
 		<PeptideSequence>KNVPIEFPVIDR</PeptideSequence>
-		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
+		<Modification location="1" residues="K" monoisotopicMassDelta="138.068079600000004">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2927519776102075938"/>
 		</Modification>
@@ -40,13 +40,13 @@
 			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="2927519776102075938"/>
 		</Modification>
 	</Peptide>
- 	<Peptide id="PEP_3023658190814908261" name="VEPSWLGPLFPDK[284.1736087656]TSNLR">
+ 	<Peptide id="PEP_3023658190814908261" name="VEPSWLGPLFPDK[284.173608765599965]TSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K">
 			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
- 	<Peptide id="PEP_6408859317243173796" name="IVEGLK[284.1736087656]FPNEFDELEIQGK">
+ 	<Peptide id="PEP_6408859317243173796" name="IVEGLK[284.173608765599965]FPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K">
 			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
@@ -58,7 +58,7 @@
 	<PeptideEvidence id="PEV_7898004582401008768" peptide_ref="PEP_3023658190814908261" dBSequence_ref="PROT_13440783915218733453" post="K" pre="K" start="812" end="829" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2019-02-11T12:52:01">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2019-04-09T12:09:39">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -78,12 +78,12 @@
 			<userParam name="decoy_string" unitName="xsd:string" value="decoy"/>
 			<userParam name="precursor:min_charge" unitName="xsd:integer" value="3"/>
 			<userParam name="precursor:max_charge" unitName="xsd:integer" value="7"/>
-			<userParam name="fragment:mass_tolerance_xlinks" unitName="xsd:double" value="20"/>
+			<userParam name="fragment:mass_tolerance_xlinks" unitName="xsd:double" value="20.0"/>
 			<userParam name="peptide:min_size" unitName="xsd:integer" value="5"/>
 			<userParam name="cross_link:residue1" unitName="xsd:string" value="[K, N-term]"/>
 			<userParam name="cross_link:residue2" unitName="xsd:string" value="[K, N-term]"/>
-			<userParam name="cross_link:mass" unitName="xsd:double" value="138.0680796"/>
-			<userParam name="cross_link:mass_monolink" unitName="xsd:string" value="[156.07864431, 155.094628715]"/>
+			<userParam name="cross_link:mass" unitName="xsd:double" value="138.068079600000004"/>
+			<userParam name="cross_link:mass_monolink" unitName="xsd:string" value="[156.078644309999987, 155.094628714999999]"/>
 			<userParam name="cross_link:name" unitName="xsd:string" value="DSS"/>
 			<userParam name="precursor:corrections" unitName="xsd:string" value="[2, 1, 0]"/>
 			<userParam name="modifications:variable_max_per_peptide" unitName="xsd:integer" value="2"/>
@@ -97,12 +97,12 @@
 			</Enzyme>
 		</Enzymes>
 		<FragmentTolerance>
-			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169" cvRef="PSI-MS" value="20"/>
-			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169" cvRef="PSI-MS" value="20"/>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169" cvRef="PSI-MS" value="20.0"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169" cvRef="PSI-MS" value="20.0"/>
 		</FragmentTolerance>
 		<ParentTolerance>
-			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169" cvRef="PSI-MS" value="10"/>
-			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169" cvRef="PSI-MS" value="10"/>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169" cvRef="PSI-MS" value="10.0"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="parts per million" unitAccession="UO:0000169" cvRef="PSI-MS" value="10.0"/>
 		</ParentTolerance>
 		<Threshold>
 			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
@@ -145,12 +145,12 @@
 <!-- userParam cross-link_ioncategory will contain a list of ion category corresponding to the indexed ion [xi|ci] -->
 			</FragmentationTable>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="controllerType=0 controllerNumber=1 scan=2395" id="SIR_15916652588957785155">
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_6408859317243173796" calculatedMassToCharge="833.768355463805" experimentalMassToCharge="787.740356445313" chargeState="3" id="SII_12999979801269632061">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_6408859317243173796" calculatedMassToCharge="833.768355463804596" experimentalMassToCharge="787.740356445312955" chargeState="3" id="SII_12999979801269632061">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_474525871221756682"/>
 					<Fragmentation>
 						<IonType charge="1" index="4">
-							<FragmentArray measure_ref="Measure_mz" values="446.284301757812"/>
-							<FragmentArray measure_ref="Measure_int" values="0.0124782957136631"/>
+							<FragmentArray measure_ref="Measure_mz" values="446.2843017578125"/>
+							<FragmentArray measure_ref="Measure_int" values="0.012478295713663"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -164,73 +164,73 @@
 						</IonType>
 						<IonType charge="3" index="12">
 							<FragmentArray measure_ref="Measure_mz" values="516.26025390625"/>
-							<FragmentArray measure_ref="Measure_int" values="0.0137936556711793"/>
+							<FragmentArray measure_ref="Measure_int" values="0.013793655671179"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="0.0904040958662256"/>
-					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.0324675324675325"/>
-					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.0163934426229508"/>
-					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="4.32135732932469"/>
+					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="0.090404095866226"/>
+					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.032467532467532"/>
+					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.016393442622951"/>
+					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="4.321357329324688"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.546950337477028"/>
-					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0353602356458046"/>
+					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.035360235645805"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-6.7436606221286"/>
-					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="10.0595419211745"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-6.743660622128596"/>
+					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="10.059541921174523"/>
 					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="0.546950337477028"/>
-					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="15.4679494490847"/>
-					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0353602356458046"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0"/>
-					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="6.73027534649497"/>
-					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="6.73027534649497"/>
-					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0.0"/>
+					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="15.467949449084699"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.035360235645805"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0"/>
+					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="6.730275346494971"/>
+					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="6.730275346494971"/>
+					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="2"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="2"/>
 					<userParam name="matched_linear_beta" unitName="xsd:integer" value="0"/>
-					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="5.51285207271576"/>
-					<userParam name="ppm_error_abs_sum_linear_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="5.66014349460602"/>
-					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="5.51285207271576"/>
-					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="5.66014349460602"/>
-					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="5.58649778366089"/>
-					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="5.58649778366089"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="0"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="0"/>
-					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="0"/>
+					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="5.512852072715759"/>
+					<userParam name="ppm_error_abs_sum_linear_beta" unitName="xsd:double" value="0.0"/>
+					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="5.660143494606018"/>
+					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="0.0"/>
+					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="5.512852072715759"/>
+					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="5.660143494606018"/>
+					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="5.586497783660889"/>
+					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="0.0"/>
+					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="5.586497783660889"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="0.0"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="0.0"/>
+					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="0.0"/>
 					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="-"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="2078"/>
-					<userParam name="accessions_beta" unitName="xsd:string" value="-"/>
 					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="-"/>
+					<userParam name="accessions_beta" unitName="xsd:string" value="-"/>
 					<userParam name="xl_target_decoy" unitName="xsd:string" value="target"/>
-					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2175.3003" unitAccession="UO:0000010" unitCvRef="UO"/>
+					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2175.300299999999879" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="controllerType=0 controllerNumber=1 scan=9435" id="SIR_17413765565443951891">
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_16907355690727166316" calculatedMassToCharge="738.165030731996" experimentalMassToCharge="738.165161132813" chargeState="4" id="SII_12524258085768770586">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_16907355690727166316" calculatedMassToCharge="738.165030731996126" experimentalMassToCharge="738.165161132812955" chargeState="4" id="SII_12524258085768770586">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_10306100746905639127"/>
 					<Fragmentation>
 						<IonType charge="1" index="5 7 7 8">
-							<FragmentArray measure_ref="Measure_mz" values="599.355163574219 876.466979980469 914.527282714844 989.551025390625"/>
-							<FragmentArray measure_ref="Measure_int" values="0.198931530117989 0.0660846382379532 0.0311792530119419 0.0213928688317537"/>
+							<FragmentArray measure_ref="Measure_mz" values="599.35516357421875 876.46697998046875 914.52728271484375 989.551025390625"/>
+							<FragmentArray measure_ref="Measure_int" values="0.198931530117989 0.066084638237953 0.031179253011942 0.021392868831754"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha beta alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 						<IonType charge="2" index="3">
-							<FragmentArray measure_ref="Measure_mz" values="226.120040893555"/>
-							<FragmentArray measure_ref="Measure_int" values="0.00402867747470737"/>
+							<FragmentArray measure_ref="Measure_mz" values="226.120040893554688"/>
+							<FragmentArray measure_ref="Measure_int" values="0.004028677474707"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
@@ -238,168 +238,168 @@
 					</Fragmentation>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="0.297929420845218"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="2927519776102075938"/>
-					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.0288808664259928"/>
+					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.028880866425993"/>
 					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.09375"/>
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="4.55479986024013"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.352051093708724"/>
-					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0391843457383738"/>
+					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.039184345738374"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="110"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.176896726659988"/>
-					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="11.7784732061387"/>
+					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="11.778473206138731"/>
 					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="0.291632137370909"/>
-					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0.0646824153174287"/>
-					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="9.09328830108279"/>
-					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0387154879568487"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0"/>
-					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="6.75112022244992"/>
-					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="7.58599186353767"/>
-					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="5.91624858136217"/>
+					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0.064682415317429"/>
+					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="9.093288301082794"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.038715487956849"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0"/>
+					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="6.751120222449919"/>
+					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="7.585991863537671"/>
+					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="5.916248581362169"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_beta" unitName="xsd:integer" value="2"/>
-					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="3.29043745994568"/>
+					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="3.290437459945679"/>
 					<userParam name="ppm_error_abs_sum_linear_beta" unitName="xsd:double" value="3.95820164680481"/>
-					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="2.84441685676575"/>
-					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="2.84441685676575"/>
-					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="3.55754313468933"/>
-					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="2.84441685676575"/>
-					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="3.1789323091507"/>
-					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="3.58694005012512"/>
-					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="3.35379276956831"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="0"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="0"/>
-					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="0"/>
+					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="2.844416856765747"/>
+					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="2.844416856765747"/>
+					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="3.557543134689331"/>
+					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="2.844416856765747"/>
+					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="3.178932309150696"/>
+					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="3.586940050125122"/>
+					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="3.353792769568307"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="0.0"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="0.0"/>
+					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="0.0"/>
 					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="LGCKALHVLFER"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="1539"/>
-					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="182"/>
+					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<userParam name="xl_target_decoy" unitName="xsd:string" value="target"/>
-					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4618.08310000002" unitAccession="UO:0000010" unitCvRef="UO"/>
+					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4618.08310000001984" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1755235105885170967" calculatedMassToCharge="738.165030731996" experimentalMassToCharge="738.165161132813" chargeState="4" id="SII_2684106197423007927">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1755235105885170967" calculatedMassToCharge="738.165030731996126" experimentalMassToCharge="738.165161132812955" chargeState="4" id="SII_2684106197423007927">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_14811341817612382122"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="0.297929420845218"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="2927519776102075938"/>
-					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.0288808664259928"/>
+					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.028880866425993"/>
 					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.09375"/>
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="4.55479986024013"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.352051093708724"/>
-					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0391843457383738"/>
+					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.039184345738374"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="110"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.176896726659988"/>
-					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="11.7784732061387"/>
-					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0387154879568487"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0"/>
-					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="6.75112022244992"/>
-					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="7.58599186353767"/>
-					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="5.91624858136217"/>
+					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="11.778473206138731"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.038715487956849"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0"/>
+					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="6.751120222449919"/>
+					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="7.585991863537671"/>
+					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="5.916248581362169"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_beta" unitName="xsd:integer" value="2"/>
-					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="3.29043745994568"/>
+					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="3.290437459945679"/>
 					<userParam name="ppm_error_abs_sum_linear_beta" unitName="xsd:double" value="3.95820164680481"/>
-					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="2.84441685676575"/>
-					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="2.84441685676575"/>
-					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="3.55754313468933"/>
-					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="2.84441685676575"/>
-					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="3.1789323091507"/>
-					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="3.58694005012512"/>
-					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="3.35379276956831"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="0"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="0"/>
-					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="0"/>
+					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="2.844416856765747"/>
+					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="2.844416856765747"/>
+					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="3.557543134689331"/>
+					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="2.844416856765747"/>
+					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="3.178932309150696"/>
+					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="3.586940050125122"/>
+					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="3.353792769568307"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="0.0"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="0.0"/>
+					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="0.0"/>
 					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="LGCKALHVLFER"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="1539"/>
-					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="182"/>
+					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<userParam name="xl_target_decoy" unitName="xsd:string" value="target"/>
-					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4618.08310000002" unitAccession="UO:0000010" unitCvRef="UO"/>
+					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4618.08310000001984" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="controllerType=0 controllerNumber=1 scan=9705" id="SIR_8119044117483804262">
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3023658190814908261" calculatedMassToCharge="784.082496680171" experimentalMassToCharge="738.72900390625" chargeState="3" id="SII_15050004366391181853">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3023658190814908261" calculatedMassToCharge="784.082496680171175" experimentalMassToCharge="738.72900390625" chargeState="3" id="SII_15050004366391181853">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_7898004582401008768"/>
 					<Fragmentation>
 						<IonType charge="1" index="6">
-							<FragmentArray measure_ref="Measure_mz" values="713.382446289062"/>
+							<FragmentArray measure_ref="Measure_mz" values="713.3824462890625"/>
 							<FragmentArray measure_ref="Measure_int" values="0.80065792798996"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="2" index="13">
-							<FragmentArray measure_ref="Measure_mz" values="813.430358886719"/>
+							<FragmentArray measure_ref="Measure_mz" values="813.43035888671875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.177123248577118"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="2" index="7">
-							<FragmentArray measure_ref="Measure_mz" values="496.262512207031"/>
-							<FragmentArray measure_ref="Measure_int" values="0.0220275055617094"/>
+							<FragmentArray measure_ref="Measure_mz" values="496.26251220703125"/>
+							<FragmentArray measure_ref="Measure_int" values="0.022027505561709"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="0.302434381264498"/>
-					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.0205479452054795"/>
-					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.0384615384615385"/>
-					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="4.81978331819993"/>
-					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="1.01582394354045"/>
+					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.020547945205479"/>
+					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.038461538461538"/>
+					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="4.819783318199935"/>
+					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="1.015823943540454"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.073266718540171"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="113"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="precursor_correction" unitName="xsd:integer" value="2"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.403713911646945"/>
-					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="12.46855604204"/>
-					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="1.01582394354045"/>
-					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="13.8647391855484"/>
+					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="12.468556042040005"/>
+					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="1.015823943540454"/>
+					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0.0"/>
+					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="13.864739185548388"/>
 					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.073266718540171"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0"/>
-					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="7.16859374904425"/>
-					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="7.16859374904425"/>
-					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0"/>
+					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="7.168593749044248"/>
+					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="7.168593749044248"/>
+					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="2"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="2"/>
 					<userParam name="matched_linear_beta" unitName="xsd:integer" value="0"/>
-					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="18.2511854171753"/>
-					<userParam name="ppm_error_abs_sum_linear_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="9.31819784641266"/>
-					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="18.2511854171753"/>
-					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="9.31819784641266"/>
-					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="13.784691631794"/>
-					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="13.784691631794"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="0"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="0"/>
-					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="0"/>
+					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="18.251185417175293"/>
+					<userParam name="ppm_error_abs_sum_linear_beta" unitName="xsd:double" value="0.0"/>
+					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="9.318197846412659"/>
+					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="0.0"/>
+					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="18.251185417175293"/>
+					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="9.318197846412659"/>
+					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="13.784691631793976"/>
+					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="0.0"/>
+					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="13.784691631793976"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="0.0"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="0.0"/>
+					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="0.0"/>
 					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="-"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="825"/>
-					<userParam name="accessions_beta" unitName="xsd:string" value="-"/>
 					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="-"/>
+					<userParam name="accessions_beta" unitName="xsd:string" value="-"/>
 					<userParam name="xl_target_decoy" unitName="xsd:string" value="target"/>
-					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4706.7912" unitAccession="UO:0000010" unitCvRef="UO"/>
+					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4706.791199999999662" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
 			</SpectrumIdentificationResult>

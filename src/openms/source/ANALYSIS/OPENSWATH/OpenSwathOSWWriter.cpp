@@ -174,22 +174,28 @@ namespace OpenMS
 
   std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, std::string score_name) const
   {
-    std::vector<String> tmp_separated_scores, separated_scores;
+    std::vector<String> separated_scores;
 
     if (!feature.getMetaValue(score_name).isEmpty())
     {
-      tmp_separated_scores = ListUtils::create<String>((String)feature.getMetaValue(score_name),';');
-    }
-
-    for (Size i = 0; i < tmp_separated_scores.size(); ++i)
-    {
-      if (tmp_separated_scores[i] == "")
+      if (feature.getMetaValue(score_name).valueType() == DataValue::STRING_LIST)
       {
-        separated_scores.push_back("NULL");
+        separated_scores = feature.getMetaValue(score_name).toStringList();
+      }
+      else if (feature.getMetaValue(score_name).valueType() == DataValue::INT_LIST)
+      {
+        std::vector<int> int_separated_scores = feature.getMetaValue(score_name).toIntList();
+        std::transform(int_separated_scores.begin(), int_separated_scores.end(), std::back_inserter(separated_scores), [](const int& num) { return String(num); });
+
+      }
+      else if (feature.getMetaValue(score_name).valueType() == DataValue::DOUBLE_LIST)
+      {
+        std::vector<double> double_separated_scores = feature.getMetaValue(score_name).toDoubleList();
+        std::transform(double_separated_scores.begin(), double_separated_scores.end(), std::back_inserter(separated_scores), [](const double& num) { return String(num); });
       }
       else
       {
-        separated_scores.push_back(tmp_separated_scores[i]);
+        separated_scores.push_back(feature.getMetaValue(score_name).toString());
       }
     }
 
@@ -341,9 +347,9 @@ namespace OpenMS
         auto id_target_ind_isotope_correlation = getSeparateScore(feature_it, "id_target_ind_isotope_correlation");
         auto id_target_ind_isotope_overlap = getSeparateScore(feature_it, "id_target_ind_isotope_overlap");
 
-        if ((String)feature_it.getMetaValue("id_target_num_transitions") != "")
+        if (feature_it.metaValueExists("id_target_num_transitions"))
         {
-          int id_target_num_transitions = feature_it.getMetaValue("id_target_num_transitions").toString().toInt();
+          int id_target_num_transitions = feature_it.getMetaValue("id_target_num_transitions");
 
           for (int i = 0; i < id_target_num_transitions; ++i)
           {
@@ -391,9 +397,9 @@ namespace OpenMS
         auto id_decoy_ind_isotope_correlation = getSeparateScore(feature_it, "id_decoy_ind_isotope_correlation");
         auto id_decoy_ind_isotope_overlap = getSeparateScore(feature_it, "id_decoy_ind_isotope_overlap");
 
-        if ((String)feature_it.getMetaValue("id_decoy_num_transitions") != "")
+        if (feature_it.metaValueExists("id_decoy_num_transitions"))
         {
-          int id_decoy_num_transitions = feature_it.getMetaValue("id_decoy_num_transitions").toString().toInt();
+          int id_decoy_num_transitions = feature_it.getMetaValue("id_decoy_num_transitions");
 
           for (int i = 0; i < id_decoy_num_transitions; ++i)
           {

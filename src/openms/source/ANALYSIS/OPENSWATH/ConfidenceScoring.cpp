@@ -157,7 +157,7 @@ namespace OpenMS
 
       double score = glm_(diff_rt, dist_int);
 
-      LOG_DEBUG << "\ndelta_RT:  " << fabs(diff_rt)
+      OPENMS_LOG_DEBUG << "\ndelta_RT:  " << fabs(diff_rt)
                 << "\ndist_int:  " << dist_int
                 << "\nGLM_score: " << score << endl;
 
@@ -185,7 +185,7 @@ namespace OpenMS
       extractIntensities_(intensity_map, n_transitions_, feature_intensities);
       if ((n_transitions_ > 0) && (feature_intensities.size() < n_transitions_))
       {
-        LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
+        OPENMS_LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
                  << "' contains only " << feature_intensities.size()
                  << " transitions." << endl;
       }
@@ -201,7 +201,7 @@ namespace OpenMS
 
       // compare to "true" assay:
       String true_id = feature.getMetaValue("PeptideRef");
-      LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
+      OPENMS_LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
       if (true_id.empty())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -226,7 +226,7 @@ namespace OpenMS
         {
           continue;
         }
-        LOG_DEBUG << "Decoy assay " << scores.size() << " (ID '" << decoy_assay.id
+        OPENMS_LOG_DEBUG << "Decoy assay " << scores.size() << " (ID '" << decoy_assay.id
                   << "')" << endl;
 
         scores.push_back(scoreAssay_(decoy_assay, feature_rt, feature_intensities));
@@ -237,7 +237,7 @@ namespace OpenMS
       Size n_scores = scores.size();
       if (n_scores - 1 < n_decoys_)
       {
-        LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
+        OPENMS_LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
                  << "': Couldn't find enough decoy assays with at least "
                  << feature_intensities.size() << " transitions. "
                  << "Scoring based on " << n_scores - 1 << " decoys." << endl;
@@ -245,7 +245,7 @@ namespace OpenMS
       // TODO: this warning may trigger for every feature and get annoying
       if ((n_decoys_ == 0) && (n_scores < library_.getPeptides().size()))
       {
-        LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
+        OPENMS_LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
                  << "': Skipped some decoy assays with fewer than " 
                  << feature_intensities.size() << " transitions. "
                  << "Scoring based on " << n_scores - 1 << " decoys." << endl;

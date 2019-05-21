@@ -46,7 +46,7 @@ namespace OpenMS
     DefaultParamHandler("MapAlignmentAlgorithmSpectrumAlignment"),
     ProgressLogger(), c1_(nullptr)
   {
-    defaults_.setValue("gapcost", 1.0, "This Parameter stands for the cost of opining a gap in the Alignment. A gap means that one spectrum can not be aligned directly to another spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagine it as a insert or delete of the spectrum in the map (similar to sequence alignment). The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and needs to carry a punishment, so a gap should only be opened if the benefits outweigh the downsides. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
+    defaults_.setValue("gapcost", 1.0, "This Parameter stands for the cost of opening a gap in the Alignment. A gap means that one spectrum can not be aligned directly to another spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagine it as a insert or delete of the spectrum in the map (similar to sequence alignment). The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and needs to carry a punishment, so a gap should only be opened if the benefits outweigh the downsides. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
     defaults_.setMinFloat("gapcost", 0.0);
     defaults_.setValue("affinegapcost", 0.5, "This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure of gaps interspersed with matches (gap match gap match etc.).  Therefor the punishment for the extension of a gap generally should be lower than the normal gapcost. If the result of the alignment shows high compression, it is a good idea to lower either the affine gapcost or gap opening cost.");
     defaults_.setMinFloat("affinegapcost", 0.0);
@@ -91,7 +91,7 @@ namespace OpenMS
       }
       endProgress();
     }
-    catch (Exception::OutOfRange& /*e*/)
+    catch (Exception::OutOfRange&)
     {
       throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }

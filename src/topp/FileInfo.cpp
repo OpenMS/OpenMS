@@ -813,7 +813,7 @@ protected:
 
       // write peak types (centroided / profile mode)
       os << "Peak type metadata (estimated)\n";
-      for (auto const l : levels)
+      for (const auto& l : levels)
       {
         os << "  level " << l << ": "
            << SpectrumSettings::NamesOfSpectrumType[level_annotated_picked[l]] << " ("
@@ -1590,7 +1590,7 @@ protected:
     else if (out.empty() && !out_tsv.empty())
     {
       ofstream os_tsv(out_tsv.c_str());
-      ret = outputTo_(LOG_INFO, os_tsv);
+      ret = outputTo_(OPENMS_LOG_INFO, os_tsv);
       os_tsv.close();
     }
     else
@@ -1598,7 +1598,7 @@ protected:
       // Output stream with null output
       boost::iostreams::filtering_ostream os_tsv;
       os_tsv.push(boost::iostreams::null_sink());
-      ret = outputTo_(LOG_INFO, os_tsv);
+      ret = outputTo_(OPENMS_LOG_INFO, os_tsv);
     }
     return ret;
   }

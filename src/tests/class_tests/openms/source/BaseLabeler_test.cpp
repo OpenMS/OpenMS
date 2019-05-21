@@ -114,43 +114,43 @@ SimTypes::MSSimExperiment empty_experiment;
 
 START_SECTION((virtual void setUpHook(SimTypes::FeatureMapSimVector &)))
 {
-  TEST_EXCEPTION(Exception::NotImplemented, labeler.setUpHook(empty_fmsv))
+  TEST_EXCEPTION(Exception::NotImplemented&, labeler.setUpHook(empty_fmsv))
 }
 END_SECTION
 
 START_SECTION((virtual void postDigestHook(SimTypes::FeatureMapSimVector &)))
 {
-  TEST_EXCEPTION(Exception::NotImplemented, labeler.postDigestHook(empty_fmsv))
+  TEST_EXCEPTION(Exception::NotImplemented&, labeler.postDigestHook(empty_fmsv))
 }
 END_SECTION
 
 START_SECTION((virtual void postRTHook(SimTypes::FeatureMapSimVector &)))
 {
-  TEST_EXCEPTION(Exception::NotImplemented, labeler.postRTHook(empty_fmsv))
+  TEST_EXCEPTION(Exception::NotImplemented&, labeler.postRTHook(empty_fmsv))
 }
 END_SECTION
 
 START_SECTION((virtual void postDetectabilityHook(SimTypes::FeatureMapSimVector &)))
 {
-  TEST_EXCEPTION(Exception::NotImplemented, labeler.postDetectabilityHook(empty_fmsv))
+  TEST_EXCEPTION(Exception::NotImplemented&, labeler.postDetectabilityHook(empty_fmsv))
 }
 END_SECTION
 
 START_SECTION((virtual void postIonizationHook(SimTypes::FeatureMapSimVector &)))
 {
-  TEST_EXCEPTION(Exception::NotImplemented, labeler.postIonizationHook(empty_fmsv))
+  TEST_EXCEPTION(Exception::NotImplemented&, labeler.postIonizationHook(empty_fmsv))
 }
 END_SECTION
 
 START_SECTION((virtual void postRawMSHook(SimTypes::FeatureMapSimVector &)))
 {
-  TEST_EXCEPTION(Exception::NotImplemented, labeler.postRawMSHook(empty_fmsv))
+  TEST_EXCEPTION(Exception::NotImplemented&, labeler.postRawMSHook(empty_fmsv))
 }
 END_SECTION
 
 START_SECTION((virtual void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimTypes::MSSimExperiment &)))
 {
-  TEST_EXCEPTION(Exception::NotImplemented, labeler.postRawTandemMSHook(empty_fmsv, empty_experiment))
+  TEST_EXCEPTION(Exception::NotImplemented&, labeler.postRawTandemMSHook(empty_fmsv, empty_experiment))
 }
 END_SECTION
 
@@ -170,7 +170,7 @@ END_SECTION
 START_SECTION((virtual void preCheck(Param &param) const =0))
 {
   Param p;
-  TEST_EXCEPTION(Exception::NotImplemented, labeler.preCheck(p))
+  TEST_EXCEPTION(Exception::NotImplemented&, labeler.preCheck(p))
 }
 END_SECTION
 

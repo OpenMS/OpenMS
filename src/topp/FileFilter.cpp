@@ -818,7 +818,7 @@ protected:
         exp.sortSpectra(true);
         if (getFlag_("peak_options:sort_peaks"))
         {
-          LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
+          OPENMS_LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
         }
       }
       else if (getFlag_("peak_options:sort_peaks"))
@@ -850,7 +850,7 @@ protected:
       String id_blacklist = getStringOption_("id:blacklist");
       if (!id_blacklist.empty())
       {
-        LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
         bool blacklist_imperfect = getFlag_("id:blacklist_imperfect");
 
         int ret = filterByBlackList(exp, id_blacklist, blacklist_imperfect, getDoubleOption_("id:rt"), getDoubleOption_("id:mz"));
@@ -861,7 +861,7 @@ protected:
       String consensus_blackorwhitelist = getStringOption_("consensus:blackorwhitelist:file");
       if (!consensus_blackorwhitelist.empty())
       {
-        LOG_INFO << "Filtering MS2 spectra from raw file using consensus features ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering MS2 spectra from raw file using consensus features ..." << std::endl;
         IntList il = getIntList_("consensus:blackorwhitelist:maps");
         set<UInt64> maps(il.begin(), il.end());
         double rt_tol = getDoubleOption_("consensus:blackorwhitelist:rt");
@@ -883,7 +883,7 @@ protected:
       String lib_file_name = getStringOption_("spectra:blackorwhitelist:file");
       if (!lib_file_name.empty())
       {
-        LOG_INFO << "Filtering MS2 spectra based on precursor rt, mz, and spectral similarity ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering MS2 spectra based on precursor rt, mz, and spectral similarity ..." << std::endl;
         double tol_rt = getDoubleOption_("spectra:blackorwhitelist:rt");
         double tol_mz = getDoubleOption_("spectra:blackorwhitelist:mz");
         double tol_sim = getDoubleOption_("spectra:blackorwhitelist:similarity_threshold");
@@ -1165,7 +1165,7 @@ protected:
     {
       if (!(peptide_ids[i].hasRT() && peptide_ids[i].hasMZ()))
       {
-        LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
+        OPENMS_LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
         return INCOMPATIBLE_INPUT_DATA;
       }
       Peak2D p;
@@ -1205,18 +1205,18 @@ protected:
       }
     }
 
-    LOG_INFO << "Removing " << blacklist_idx.size() << " MS2 spectra." << endl;
+    OPENMS_LOG_INFO << "Removing " << blacklist_idx.size() << " MS2 spectra." << endl;
     if (ids_covered.size() != ids.size())
     {
       if (!blacklist_imperfect)
       {
-        LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+        OPENMS_LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
                   << "If you are sure unmatched ids are ok, set the 'id:blacklist_imperfect' flag!" << std::endl;
         return UNEXPECTED_RESULT;
       }
       else
       {
-        LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+        OPENMS_LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
                  << "Remove the 'id:blacklist_imperfect' flag of you want this to be an error!" << std::endl;
       }
     }

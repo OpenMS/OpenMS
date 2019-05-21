@@ -52,7 +52,6 @@
 
 #include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
 
-
 namespace OpenMS
 {
 

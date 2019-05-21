@@ -191,7 +191,7 @@ std::vector<double> intensity4;
 pos4.push_back(407.5);
 intensity4.push_back(10.0);
 START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity))
-  TEST_EXCEPTION(Exception::IllegalArgument, new SplineInterpolatedPeaks(pos4,intensity4));
+  TEST_EXCEPTION(Exception::IllegalArgument&, new SplineInterpolatedPeaks(pos4,intensity4));
 END_SECTION
 
 END_TEST

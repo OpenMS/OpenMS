@@ -550,7 +550,7 @@ namespace OpenMS
               // @TODO: what if there are several scores?
               new_group.probability = group.scores.begin()->second;
             }
-            for (auto parent_ref : group.parent_molecule_refs)
+            for (const auto& parent_ref : group.parent_molecule_refs)
             {
               new_group.accessions.push_back(parent_ref->accession);
             }

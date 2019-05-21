@@ -142,7 +142,7 @@ std::vector<int> fructose_atomCounts;
 std::vector<std::vector<double> > fructose_isotopeMasses;
 std::vector<std::vector<double> > fructose_isotopeProbabilities;
 
-for (auto elem : ef_fructose)
+for (const auto& elem : ef_fructose)
 {
   fructose_atomCounts.push_back( elem.second );
 

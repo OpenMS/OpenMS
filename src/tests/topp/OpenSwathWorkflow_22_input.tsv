@@ -1,0 +1,19 @@
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	ProteinId	UniprotId	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition
+412.5	100.01	2	2	10	0.5	PEPTIDEA	PEPTIDEA	light					ProteinA	uniprot_nr_1	b	1	y5	1	0.2	PEPTIDEA	tr1	0	1	0	1
+412.5	101.01	2	2	5	0.5	PEPTIDEA	PEPTIDEA	light					ProteinA	uniprot_nr_1	b	2	y6	1	0.2	PEPTIDEA	tr2	0	1	0	1
+412.5	102.02	2	2	3	0.5	PEPTIDEA	PEPTIDEA	light					ProteinA	uniprot_nr_1	y	3	y4	1	0.2	PEPTIDEA	3	0	1	0	1
+417.5	200.01	2	2	10	0.6	PEPTIDEB	PEPTIDEB	light					ProteinA	uniprot_nr_1	b	1	y5	1	0.3	PEPTIDEB	4	0	1	0	1
+417.5	201.01	2	2	5	0.6	PEPTIDEB	PEPTIDEB	light					ProteinA	uniprot_nr_1	b	2	y6	1	0.3	PEPTIDEB	5	0	1	0	1
+417.5	202.02	2	2	3	0.6	PEPTIDEB	PEPTIDEB	light					ProteinA	uniprot_nr_1	y	3	y4	1	0.3	PEPTIDEB	6	0	1	0	1
+462.5	300.01	2	2	10	0.7	PEPTIDEC	PEPTIDEC	light					ProteinA	uniprot_nr_1	b	1	y5	1	-1	PEPTIDEC	7	0	1	0	1
+462.5	301.01	2	2	5	0.7	PEPTIDEC	PEPTIDEC	light					ProteinA	uniprot_nr_1	b	2	y6	1	-1	PEPTIDEC	8	0	1	0	1
+462.5	302.01	2	2	3	0.7	PEPTIDEC	PEPTIDEC	light					ProteinA	uniprot_nr_1	y	3	y4	1	-1	PEPTIDEC	9	0	1	0	1
+487.5	503.01	2	2	10	0.8	PEPTIDED	PEPTIDED	light					ProteinA	uniprot_nr_1	b	1	y5	1	-1	PEPTIDED	10	0	1	0	1
+487.5	503.15	2	2	5	0.8	PEPTIDED	PEPTIDED	light					ProteinA	uniprot_nr_1	b	2	y6	1	-1	PEPTIDED	11	0	1	0	1
+487.5	503.25	2	2	3	0.8	PEPTIDED	PEPTIDED	light					ProteinA	uniprot_nr_1	y	3	y4	1	-1	PEPTIDED	12	0	1	0	1
+510.05	504.01	2	2	10	0.8	PEPTIDEE	PEPTIDEE	light					ProteinA	uniprot_nr_1	b	1	y5	1	-1	PEPTIDEE	13	0	1	0	1
+510.05	504.15	2	2	5	0.8	PEPTIDEE	PEPTIDEE	light					ProteinA	uniprot_nr_1	b	2	y6	1	-1	PEPTIDEE	14	0	1	0	1
+510.05	504.25	2	2	3	0.8	PEPTIDEE	PEPTIDEE	light					ProteinA	uniprot_nr_1	y	3	y4	1	-1	PEPTIDEE	15	0	1	0	1
+500.01	504.01	2	2	10	0.8	PEPTIDEF	PEPTIDEF	light					ProteinA	uniprot_nr_1	b	1	y5	1	-1	PEPTIDEF	16	0	1	0	1
+500.01	504.15	2	2	5	0.8	PEPTIDEF	PEPTIDEF	light					ProteinA	uniprot_nr_1	b	2	y6	1	-1	PEPTIDEF	17	0	1	0	1
+500.01	504.25	2	2	3	0.8	PEPTIDEF	PEPTIDEF	light					ProteinA	uniprot_nr_1	y	3	y4	1	-1	PEPTIDEF	18	0	1	0	1

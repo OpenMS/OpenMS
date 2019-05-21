@@ -144,7 +144,7 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	pm.setParameters(p);
 
 	ConsensusMap output;
-	TEST_EXCEPTION(Exception::IllegalArgument,pm.run(vector<ConsensusMap>(),output));
+	TEST_EXCEPTION(Exception::IllegalArgument&,pm.run(vector<ConsensusMap>(),output));
 	vector<ConsensusMap> input(1);
 	MapConversion::convert(5,features,input[0]);
 	output.getColumnHeaders()[5].label = "light";

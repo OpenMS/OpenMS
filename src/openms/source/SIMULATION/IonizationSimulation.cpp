@@ -117,7 +117,7 @@ namespace OpenMS
 
   void IonizationSimulation::ionize(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus, SimTypes::MSSimExperiment& experiment)
   {
-    LOG_INFO << "Ionization Simulation ... started" << std::endl;
+    OPENMS_LOG_INFO << "Ionization Simulation ... started" << std::endl;
 
     // clear the consensus map
     charge_consensus = ConsensusMap();
@@ -281,7 +281,7 @@ public:
     // features discarded - out of mz detection range
     Size undetected_features_count = 0;
 
-    LOG_INFO << "Simulating " << features.size() << " features" << std::endl;
+    OPENMS_LOG_INFO << "Simulating " << features.size() << " features" << std::endl;
 
     this->startProgress(0, features.size(), "Ionization");
     Size progress(0);
@@ -323,7 +323,7 @@ public:
         }
         catch (...) // overflow (e.g. intensity = 1e6); underflow can currently not occur (see DigestSimulation:204) but would be covered as well
         {
-          LOG_WARN << "Protein abundance of " << features[index].getIntensity() << " is too high!"
+          OPENMS_LOG_WARN << "Protein abundance of " << features[index].getIntensity() << " is too high!"
                     << "Please use values in [0," << std::numeric_limits<AbundanceType>::max() << +"]! This will fail!";
           abundance = 1; // keep on going for now, but fail after parallel region;
           omp_exception = true;
@@ -508,8 +508,8 @@ public:
     // swap feature maps
     features.swap(copy_map);
 
-    LOG_INFO << "#Peptides not ionized: " << uncharged_feature_count << std::endl;
-    LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
+    OPENMS_LOG_INFO << "#Peptides not ionized: " << uncharged_feature_count << std::endl;
+    OPENMS_LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
 
     features.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     charge_consensus.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
@@ -608,11 +608,11 @@ public:
       // swap feature maps
       features.swap(copy_map);
 
-      LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
+      OPENMS_LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
     }
     catch (std::exception& e)
     {
-      LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
+      OPENMS_LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
       throw;
     }
 

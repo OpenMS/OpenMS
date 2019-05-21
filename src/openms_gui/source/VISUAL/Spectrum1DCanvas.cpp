@@ -773,7 +773,7 @@ namespace OpenMS
               if (!layer.peak_colors_1d.empty() && 
                layer.peak_colors_1d.size() < spectrum.size())
               {
-                LOG_ERROR << "Peak color array size (" 
+                OPENMS_LOG_ERROR << "Peak color array size (" 
                   << layer.peak_colors_1d.size() 
                   << ") doesn't match number of peaks ("
                   << spectrum.size()

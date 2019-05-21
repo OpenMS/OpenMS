@@ -140,7 +140,7 @@ namespace OpenMS
         // check if MS2 spectrum is empty
         if (spectrum.empty())
         {
-          LOG_WARN << "Empty MS/MS spectrum was provided. Please manually investigate at index: " << *index_it << std::endl;
+          OPENMS_LOG_WARN << "Empty MS/MS spectrum was provided. Please manually investigate at index: " << *index_it << std::endl;
           continue;
         }
 
@@ -366,6 +366,7 @@ namespace OpenMS
       feature_rt = csp.first.rt;
       description = csp.first.des;
       int charge = csp.first.charge;
+      double precursor_int = csp.first.pint_mono;
 
       // use annotated metadata
       sumformula = csp.second.getMetaValue("annotated_sumformula");
@@ -393,7 +394,7 @@ namespace OpenMS
           explanation_array = transition_spectrum.getStringDataArrays()[0];
           if (explanation_array.getName() != "explanation")
           {
-            LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
+            OPENMS_LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
           }
           else
           {
@@ -457,7 +458,7 @@ namespace OpenMS
       OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
 
       // check which entry is saved in the FloatDataArry (control for "use_exact_mass")
-      LOG_DEBUG << transition_spectrum.getFloatDataArrays()[0].getName() << " is not used to build the assay library."
+      OPENMS_LOG_DEBUG << transition_spectrum.getFloatDataArrays()[0].getName() << " is not used to build the assay library."
                 << std::endl;
 
       // here ms2 spectra information is used
@@ -471,8 +472,7 @@ namespace OpenMS
 
         float current_int = spec_it->getIntensity();
         double current_mz = spec_it->getMZ();
-        String
-        current_explanation = explanation_array[peak_index];
+        String current_explanation = explanation_array[peak_index];
 
         // write row for each transition
         // current int has to be higher than transition thresold and should not be smaller than threshold noise
@@ -497,7 +497,7 @@ namespace OpenMS
 
       transition_group_counter += 1;
       MetaboTargetedAssay mta;
-      mta.precursor_int = 0;
+      mta.precursor_int = precursor_int;
       mta.compound_name = description;
       mta.compound_adduct = adduct;
       mta.potential_cmp = cmp;

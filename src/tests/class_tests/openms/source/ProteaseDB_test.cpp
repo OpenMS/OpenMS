@@ -72,7 +72,7 @@ START_SECTION((const DigestionEnzymeProtein* getEnzyme(const String &name) const
     TEST_EQUAL(ptr->getEnzyme("Trypsin")->getName(), "Trypsin")
     // test the synonyms
     TEST_EQUAL(ptr->getEnzyme("Clostripain")->getName(), "Arg-C")
-    TEST_EXCEPTION(Exception::ElementNotFound, ptr->getEnzyme("DOESNOTEXIST"))
+    TEST_EXCEPTION(Exception::ElementNotFound&, ptr->getEnzyme("DOESNOTEXIST"))
 END_SECTION
 
 START_SECTION((bool hasRegEx(const String& cleavage_regex) const))

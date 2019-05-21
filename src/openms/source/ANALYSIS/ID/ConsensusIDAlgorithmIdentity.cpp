@@ -72,7 +72,7 @@ namespace OpenMS
     {
       String types;
       types.concatenate(score_types.begin(), score_types.end(), "'/'");
-      LOG_WARN << "Warning: Different score types for peptide hits found ('"
+      OPENMS_LOG_WARN << "Warning: Different score types for peptide hits found ('"
                << types << "'). If the scores are not comparable, "
                << "results will be meaningless." << endl;
     }

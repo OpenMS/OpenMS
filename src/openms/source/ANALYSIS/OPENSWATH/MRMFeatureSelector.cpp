@@ -369,7 +369,7 @@ namespace OpenMS
       const LambdaScore lambda_score = score_weight.second;
       if (!feature.metaValueExists(metavalue_name))
       {
-        LOG_WARN << "computeScore_(): Metavalue \"" << metavalue_name << "\" not found.\n";
+        OPENMS_LOG_WARN << "computeScore_(): Metavalue \"" << metavalue_name << "\" not found.\n";
         continue;
       }
       const double value = weightScore_(feature.getMetaValue(metavalue_name), lambda_score);

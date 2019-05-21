@@ -65,7 +65,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	MSSpectrum s;
 	DTAFile f1;
 	
-	TEST_EXCEPTION(Exception::FileNotFound, f1.load("data_Idontexist",s);)
+	TEST_EXCEPTION(Exception::FileNotFound&, f1.load("data_Idontexist",s);)
 
 	f1.load(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),s);
 	

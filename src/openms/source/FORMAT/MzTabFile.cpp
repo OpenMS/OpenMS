@@ -644,7 +644,7 @@ namespace OpenMS
         s.substitute("ms_run[","").substitute("]","");
         vector<String> ms_run;
         s.split(',', ms_run);
-        for (auto a : ms_run)
+        for (auto& a : ms_run)
         {
           a.trim();
           mz_tab_metadata.assay[n].ms_run_ref.push_back(a.toInt());
@@ -657,7 +657,7 @@ namespace OpenMS
         s.substitute("assay[","").substitute("]","");
         vector<String> assays;
         s.split(',', assays);
-        for (auto a : assays)
+        for (auto& a : assays)
         {
           a.trim();
           mz_tab_metadata.study_variable[n].assay_refs.push_back(a.toInt());
@@ -671,7 +671,7 @@ namespace OpenMS
 
         vector<String> assays;
         s.split(',', assays);
-        for (auto a : assays)
+        for (auto& a : assays)
         {
           a.trim();
           mz_tab_metadata.study_variable[n].sample_refs.push_back(a.toInt());
@@ -2888,7 +2888,7 @@ namespace OpenMS
       if (has_ms_run_level_scores) { search_ms_runs = ms_runs; }
     }
     Size n_search_engine_score = peptide_section[0].search_engine_score_ms_run.size();
-    Size n_best_search_engine_score = mz_tab.getMetaData().peptide_search_engine_score.size();
+    Size n_best_search_engine_score = peptide_section[0].best_search_engine_score.size();
 
     out.push_back(generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getPeptideOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getPeptideSectionRows(), mz_tab.getPeptideOptionalColumnNames(), out);

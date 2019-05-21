@@ -150,12 +150,18 @@ namespace OpenMS
         xsm.spectra_ref.setMSFile(file_map[*query.input_file_opt]);
       }
       xsm.spectra_ref.setSpecRef(query.data_id);
-      if (match.metaValueExists("adduct"))
+      // @TODO: find a way of passing in the names of relevant meta values
+      // (e.g. from NucleicAcidSearchEngine), instead of hard-coding them here
+      static const std::vector<String> meta_out({"adduct", "isotope_offset"});
+      for (const String& meta : meta_out)
       {
-        MzTabOptionalColumnEntry opt_adduct;
-        opt_adduct.first = "opt_adduct";
-        opt_adduct.second.set(match.getMetaValue("adduct"));
-        xsm.opt_.push_back(opt_adduct);
+        if (match.metaValueExists(meta))
+        {
+          MzTabOptionalColumnEntry opt_meta;
+          opt_meta.first = "opt_" + meta;
+          opt_meta.second.set(match.getMetaValue(meta));
+          xsm.opt_.push_back(opt_meta);
+        }
       }
       // don't repeat data from the peptide section (e.g. accessions)
       // why are "pre"/"post"/"start"/"end" not in the peptide section?!

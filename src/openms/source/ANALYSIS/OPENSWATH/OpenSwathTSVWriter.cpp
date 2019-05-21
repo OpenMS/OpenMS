@@ -41,14 +41,12 @@ namespace OpenMS
   OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename, 
                                          const String& input_filename,
                                          bool ms1_scores, 
-                                         bool sonar, 
-                                         bool uis_scores) :
+                                         bool sonar) :
     ofs(output_filename.c_str()),
     input_filename_(input_filename),
     doWrite_(!output_filename.empty()),
     use_ms1_traces_(ms1_scores),
-    sonar_(sonar),
-    enable_uis_scoring_(uis_scores)
+    sonar_(sonar)
     {
     }
 
@@ -101,27 +99,6 @@ namespace OpenMS
         ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Fragment_Annotation";
       }
       ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation";
-      if (enable_uis_scoring_)
-      {
-        ofs << "\t" << "uis_target_transition_names"
-            << "\t" << "uis_target_var_ind_log_intensity"
-            << "\t" << "uis_target_num_transitions"
-            << "\t" << "uis_target_var_ind_xcorr_coelution"
-            << "\t" << "uis_target_main_var_ind_xcorr_shape"
-            << "\t" << "uis_target_var_ind_log_sn_score"
-            << "\t" << "uis_target_var_ind_massdev_score"
-            << "\t" << "uis_target_var_ind_isotope_correlation"
-            << "\t" << "uis_target_var_ind_isotope_overlap"
-            << "\t" << "uis_decoy_transition_names"
-            << "\t" << "uis_decoy_var_ind_log_intensity"
-            << "\t" << "uis_decoy_num_transitions"
-            << "\t" << "uis_decoy_var_ind_xcorr_coelution"
-            << "\t" << "uis_decoy_main_var_ind_xcorr_shape"
-            << "\t" << "uis_decoy_var_ind_log_sn_score"
-            << "\t" << "uis_decoy_var_ind_massdev_score"
-            << "\t" << "uis_decoy_var_ind_isotope_correlation"
-            << "\t" << "uis_decoy_var_ind_isotope_overlap";
-      }
       ofs << "\n";
     }
 
@@ -287,27 +264,6 @@ namespace OpenMS
               line += "\t" + ListUtils::concatenate(aggr_prec_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_prec_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_prec_Fragment_Annotation, ";");
             }
             line += "\t" + ListUtils::concatenate(aggr_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_Fragment_Annotation, ";");
-            if (enable_uis_scoring_)
-            {
-              line += "\t" + (String)feature_it->getMetaValue("id_target_transition_names")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_intensity")
-              + "\t" + (String)feature_it->getMetaValue("id_target_num_transitions")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_coelution")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_shape")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_sn_score")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_massdev_score")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_correlation")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_overlap")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_transition_names")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_intensity")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_num_transitions")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_coelution")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_shape")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_sn_score")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_massdev_score")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_correlation")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_overlap");
-            }
             line += "\n";
             result += line;
         } // end of iteration
