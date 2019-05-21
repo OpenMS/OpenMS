@@ -96,9 +96,9 @@ namespace OpenMS
 
   void annotatePepIDfromSpectrum_(const MSSpectrum& spectrum, PeptideIdentification& peptide_ID)
   {
-    if (spectrum.metaValueExists("MS:1000927"))
+    if (!spectrum.getAcquisitionInfo().empty() && spectrum.getAcquisitionInfo()[0].metaValueExists("MS:1000927"))
     {
-      peptide_ID.setMetaValue("ion_injection_time", spectrum.getMetaValue("MS:1000927"));
+      peptide_ID.setMetaValue("ion_injection_time", spectrum.getAcquisitionInfo()[0].getMetaValue("MS:1000927"));
     }
     if (!spectrum.getPrecursors().empty() && !spectrum.getPrecursors()[0].getActivationMethods().empty())
     {
