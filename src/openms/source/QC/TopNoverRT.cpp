@@ -111,7 +111,7 @@ namespace OpenMS
   {
     if (!peptide_ID.metaValueExists("spectrum_reference"))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identifiction!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identification!");
     }
     
     UInt64 index = map_to_spectrum.at(peptide_ID.getMetaValue("spectrum_reference").toString());

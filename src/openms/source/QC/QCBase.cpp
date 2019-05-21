@@ -39,14 +39,10 @@ namespace OpenMS
 {
   const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML"};
 
-  QCBase::SpectraMap::SpectraMap() = default;
-
   QCBase::SpectraMap::SpectraMap(const MSExperiment& exp)
   {
     calculateMap(exp);
   }
-
-  QCBase::SpectraMap::~SpectraMap() = default;
 
   void QCBase::SpectraMap::calculateMap(const MSExperiment& exp)
   {
@@ -57,14 +53,14 @@ namespace OpenMS
     }
   }
 
-  const UInt64& QCBase::SpectraMap::at(const String& identifier) const
+  UInt64 QCBase::SpectraMap::at(const String& identifier) const
   {
     const auto& it = map_to_index_.find(identifier);
     if (it == map_to_index_.end())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No spectrum with identifier '") + identifier + "' in MSExperiment!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No spectrum with identifier '") + identifier + "' in MSExperiment!");
     }
-    return it -> second;
+    return it->second;
   }
 
   void QCBase::SpectraMap::clear()

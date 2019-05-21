@@ -70,32 +70,34 @@ namespace OpenMS
       static const std::string names_of_requires[];
 
     /**
-     * @brief Map to find a spectrum via its ID
+     * @brief Map to find a spectrum via its NativeID
     */
-    class SpectraMap
+    class OPENMS_DLLAPI SpectraMap
     {
     public:
-      // Constructor
-      SpectraMap();
+      /// Constructor
+      SpectraMap() = default;
 
+      /// CTor which allows immediate indexing of an MSExperiment
       SpectraMap(const MSExperiment& exp);
 
-      // Destructor
-      ~SpectraMap();
+      /// Destructor
+      ~SpectraMap() = default;
 
-      // calculate a new map, delete the old one
+      /// calculate a new map, delete the old one
       void calculateMap(const MSExperiment& exp);
 
-      // get index from identifier
-      const UInt64& at(const String& identifier) const;
+      /// get index from identifier
+      /// @throws Exception::ElementNotFound if @p identifier is unknown
+      UInt64 at(const String& identifier) const;
 
-      // clear the map
+      /// clear the map
       void clear();
       
-      // check if empty
+      /// check if empty
       bool empty() const;
       
-      // get size of map
+      /// get size of map
       Size size() const;
 
     private:

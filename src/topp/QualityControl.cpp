@@ -262,7 +262,7 @@ protected:
 
       if (isRunnable_(&qc_top_n_over_rt, status))
       {
-        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap);
+        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap, spec_map);
         // get and set identifier for just calculated IDs via MS run path
         StringList unique_run_path;
         fmap.getPrimaryMSRunPath(unique_run_path);
