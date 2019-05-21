@@ -831,7 +831,7 @@ namespace OpenMS
     }
 
     String tmp = (String)param_.getValue("debug");
-    debug_ = tmp == "true";
+    debug_ = (tmp == "true");
     threshold_ = 1 - cutoffScore_;
   }
 
