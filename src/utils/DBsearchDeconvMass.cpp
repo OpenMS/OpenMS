@@ -150,11 +150,11 @@ protected:
 
             vector<PTMnode*> ptm_linkedlist;
             generatePTM_linkedlist(ptm_list, max_num_ptm, ptm_linkedlist);
-            LOG_INFO << "ptm linked list # : " << ptm_linkedlist.size() << endl;
+            OPENMS_LOG_INFO << "ptm linked list # : " << ptm_linkedlist.size() << endl;
 
             sort(ptm_linkedlist.begin(), ptm_linkedlist.end(), compareNodeByMass);
 
-            LOG_INFO << "Building PTM lists for proteoforms" << endl;
+            OPENMS_LOG_INFO << "Building PTM lists for proteoforms" << endl;
 
             get_PTM_vectors(ptm_linkedlist, PTM_masses_vec, PTM_lists_vec);
             ptm_linkedlist.clear();
@@ -163,22 +163,22 @@ protected:
         //-------------------------------------------------------------
         // generate theoretical proteoform tree
         //-------------------------------------------------------------
-        LOG_INFO << "Building a proteoform tree..." << endl;
+        OPENMS_LOG_INFO << "Building a proteoform tree..." << endl;
         vector<Proteoform> tree;
         multimap<double, Size> multimap_proteoform;
         buildProteoformMap(fastaFilePath, PTM_masses_vec, tree, multimap_proteoform);
-        LOG_INFO << "\n# proteoforms in map : " << multimap_proteoform.size() << endl;
+        OPENMS_LOG_INFO << "\n# proteoforms in map : " << multimap_proteoform.size() << endl;
 
         //-------------------------------------------------------------
         // Search tree with deconv masses & write output
         //-------------------------------------------------------------
-        LOG_INFO << "Writing final results..." << endl;
+        OPENMS_LOG_INFO << "Writing final results..." << endl;
         fsout << dfile_vec[0] << "\tDeconvMass\tProteoformMass\tProteinAccession\tProteinMass\tTotalPTMmass\tPTMs" << endl;
 
 //        cout << multimap_proteoform.size() << "\t" << PTM_masses_vec.size() << "\t" << PTM_lists_vec.size() << "\t" << mass_vec.size() << endl;
         search_map(tree, multimap_proteoform, fsout, tolerance, PTM_masses_vec, PTM_lists_vec, mass_vec, dfile_vec);
         fsout.close();
-        LOG_INFO << "\n" << endl;
+        OPENMS_LOG_INFO << "\n" << endl;
         return EXECUTION_OK;
     }
 
@@ -216,7 +216,7 @@ protected:
         boost::trim_right(header);
         // header check
         if (header.find(col_name) == std::string::npos) {
-            LOG_ERROR << "ERROR : Cannot find the column name \"" << col_name << "\" in the header" << endl;
+            OPENMS_LOG_ERROR << "ERROR : Cannot find the column name \"" << col_name << "\" in the header" << endl;
             std::exit(EXIT_FAILURE);
         }
 
@@ -296,7 +296,7 @@ protected:
         FASTAFile ff;
         ff.load(DBfilepath, fentry);
 
-        LOG_INFO <<  "# DB seq : " <<fentry.size() << endl;
+        OPENMS_LOG_INFO <<  "# DB seq : " <<fentry.size() << endl;
 
         tree.reserve( fentry.size() * (ptm_masses.size()+1) );
         Size index = 0;
@@ -463,7 +463,7 @@ protected:
             }
             ++cnt;
         }
-        LOG_INFO << "# ptm types : " << cnt << endl;
+        OPENMS_LOG_INFO << "# ptm types : " << cnt << endl;
     }
 
     void generatePTM_linkedlist(vector<PTM>& ptm_list, int max_num_ptm, vector<PTMnode*>& result){
