@@ -108,7 +108,7 @@ using namespace std;
 // stores which residues (known to give rise to immonium ions) are in the sequence
 struct ImmoniumIonsInPeptide
 {
-  ImmoniumIonsInPeptide(const String& s)
+  explicit ImmoniumIonsInPeptide(const String& s)
   {
     for (const char & c : s)
     {
