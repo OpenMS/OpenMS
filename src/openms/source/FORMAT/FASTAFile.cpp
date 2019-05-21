@@ -79,7 +79,7 @@ namespace OpenMS
     // Skip the header of PEFF files (http://www.psidev.info/peff)
     std::string line;
     std::streampos firstline = 0;
-    while (std::getline(infile_, line))
+    while (TextFile::getLine(infile_, line))
     {
       if (!line.empty() && line[0] != '#')
       {
