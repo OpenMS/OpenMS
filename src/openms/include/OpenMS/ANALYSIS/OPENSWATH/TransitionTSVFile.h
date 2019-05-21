@@ -53,7 +53,7 @@ namespace OpenMS
 
       The transition lists can be either comma- or tab-separated plain
       text files (CSV or TSV format).  Modifications should be provided in
-      UniMod format<sup>1</sup>, but can also be provided in TPP format.
+      UniMod format<sup>1</sup>, but can also be provided in TPP format. See also TransitionPQPFile.
 
       The following columns are required:
 
