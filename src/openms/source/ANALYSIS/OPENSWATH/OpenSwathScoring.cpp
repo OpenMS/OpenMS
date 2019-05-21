@@ -524,11 +524,7 @@ namespace OpenMS
       }
       if (drift_upper > 0) 
       {
-        //@todo Why can't the following be done "in-place"?
-        std::vector<OpenSwath::SpectrumPtr> tmp;
-        tmp.reserve(all_spectra.size());
-        for (const auto& s: all_spectra) tmp.push_back( filterByDrift(s, drift_lower, drift_upper) );
-        all_spectra.swap(tmp);
+        for (auto& s: all_spectra) s = filterByDrift(s, drift_lower, drift_upper);
       }
       OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
       return spectrum_;
