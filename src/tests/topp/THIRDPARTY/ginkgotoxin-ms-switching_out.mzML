@@ -11,7 +11,7 @@
         <cvParam cvRef="MS" accession="MS:1000580" value="" name="MSn spectrum" />
       </fileContent>
       <sourceFileList count="1">
-        <sourceFile id="RAW1" name="ginkgotoxin-ms-switching" location="../src/tests/topp/THIRDPARTY/ginkgotoxin-ms-switching.raw">
+        <sourceFile id="RAW1" name="ginkgotoxin-ms-switching" location="/home/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/ginkgotoxin-ms-switching.raw">
           <cvParam cvRef="MS" accession="MS:1000768" value="" name="Thermo nativeID format" />
           <cvParam cvRef="MS" accession="MS:1000563" value="" name="Thermo RAW format" />
           <cvParam cvRef="MS" accession="MS:1000569" value="7ddf76e89ea33040c5acb50760a230cdfe55e969" name="SHA-1" />
@@ -25,7 +25,7 @@
       </referenceableParamGroup>
     </referenceableParamGroupList>
     <softwareList count="1">
-      <software id="ThermoRawFileParser" version="1.0.7">
+      <software id="ThermoRawFileParser" version="1.1.5">
         <cvParam cvRef="MS" accession="MS:1000799" value="ThermoRawFileParser" name="custom unreleased software tool" />
       </software>
     </softwareList>
@@ -70,7 +70,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.8581034" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="170.945" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -110,7 +109,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.8652786" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="56.072" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -150,7 +148,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.8736617" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="170.945" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -190,7 +187,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.8801138" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="56.072" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -230,7 +226,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.888468" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="170.945" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -270,7 +265,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.8949076" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="56.072" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -310,7 +304,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9032617" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="170.945" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -350,7 +343,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9096991" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="56.072" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -390,7 +382,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9180639" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="170.945" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -430,7 +421,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9245035" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="56.072" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -470,7 +460,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9331203" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="130.744" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -510,7 +499,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9399096" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="23.648" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -550,7 +538,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.947593" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="130.744" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -590,7 +577,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.953493" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="23.648" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -630,7 +616,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9611764" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="130.744" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -670,7 +655,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9670764" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="23.648" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -710,7 +694,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9747597" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="130.744" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -750,7 +733,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9806599" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="23.648" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -790,7 +772,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.988366" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="130.744" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -830,7 +811,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="2.9942659" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="23.648" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -870,7 +850,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0030118" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="140.86" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -910,7 +889,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0098036" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="28.017" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -950,7 +928,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0176827" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="140.86" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -990,7 +967,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0236743" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="28.017" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1030,7 +1006,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0315326" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="140.86" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1070,7 +1045,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0375035" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="28.017" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1110,7 +1084,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0453556" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="140.86" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1150,7 +1123,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0513285" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="28.017" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1190,7 +1162,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0591827" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="140.86" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1230,7 +1201,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0651555" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="28.017" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1270,7 +1240,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0739598" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS - p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="144.311" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1310,7 +1279,6 @@
               <cvParam cvRef="MS" accession="MS:1000016" value="3.0816764" name="scan start time" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO" />
               <cvParam cvRef="MS" accession="MS:1000512" value="FTMS + p ESI Full ms [100.0000-200.0000]" name="filter string" />
               <cvParam cvRef="MS" accession="MS:1000927" value="83.555" name="ion injection time" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-              <userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:float" value="0" />
               <scanWindowList count="1">
                 <scanWindow>
                   <cvParam cvRef="MS" accession="MS:1000501" value="100" name="scan window lower limit" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1358,43 +1326,43 @@
   </mzML>
   <indexList count="2">
     <index name="spectrum">
-      <offset idRef="controllerType=0 controllerNumber=1 scan=1">3534</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=2">11586</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=3">18971</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=4">27339</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=5">34757</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=6">43093</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=7">50687</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=8">59016</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=9">66330</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=10">74747</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=11">81838</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=12">89938</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=13">96042</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=14">104109</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=15">110216</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=16">118167</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=17">124226</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=18">132150</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=19">138146</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=20">146053</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=21">152041</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=22">160120</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=23">166328</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=24">174375</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=25">180826</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=26">188673</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=27">195320</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=28">203254</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=29">209941</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=30">217856</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=31">224819</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=32">232771</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=1">3553</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=2">11503</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=3">18786</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=4">27052</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=5">34368</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=6">42602</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=7">50094</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=8">58321</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=9">65533</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=10">73848</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=11">80837</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=12">88835</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=13">94837</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=14">102802</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=15">108807</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=16">116656</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=17">122613</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=18">130435</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=19">136329</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=20">144134</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=21">150020</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=22">157997</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=23">164103</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=24">172048</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=25">178397</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=26">186142</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=27">192687</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=28">200519</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=29">207104</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=30">214917</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=31">221778</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=32">229628</offset>
     </index>
     <index name="chromatogram">
-      <offset idRef="base_peak_0">241371</offset>
+      <offset idRef="base_peak_0">238126</offset>
     </index>
   </indexList>
-  <indexListOffset>243175</indexListOffset>
-  <fileChecksum>55452a0c3da3195b4354886c4754693cbcf2bd6e</fileChecksum>
+  <indexListOffset>239930</indexListOffset>
+  <fileChecksum>b9de788757082c34be054d218a874d8a7de7a79d</fileChecksum>
 </indexedmzML>
