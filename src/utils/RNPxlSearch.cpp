@@ -112,7 +112,7 @@ struct ImmoniumIonsInPeptide
   {
     for (const char & c : s)
     {
-      switch(c)
+      switch (c)
       {
         case 'Y': Y = true; break;
         case 'W': W = true; break;
@@ -488,8 +488,8 @@ protected:
           {
             const double intensity = exp_spectrum[index].getIntensity();
             b_mean_err += intensity * std::abs(theo_mz - exp_mz);
-            dot_product += intensity ;
-            b_ions[i] += intensity ;            
+            dot_product += intensity;
+            b_ions[i] += intensity;            
           }
         }
       }
@@ -723,8 +723,8 @@ protected:
             {
               const double intensity = exp_spectrum[index].getIntensity();
               b_mean_err += intensity * std::abs(theo_mz - exp_mz);
-              dot_product += intensity ;
-              b_ions[i] += intensity ;            
+              dot_product += intensity;
+              b_ions[i] += intensity;            
             }
           }
         } 
@@ -1235,7 +1235,7 @@ static void scoreShiftedFragments_(
           vector<RNPxlFragmentAdductDefinition> partial_loss_modification;
           for (auto const & nuc_2_adducts : feasible_MS2_adducts)
           {
-            if(nuc_2_adducts.first == ah.cross_linked_nucleotide)
+            if (nuc_2_adducts.first == ah.cross_linked_nucleotide)
             {
               partial_loss_modification = nuc_2_adducts.second;
             } 
@@ -2403,7 +2403,7 @@ static void scoreShiftedFragments_(
   {
     int max_l = 0;
     Iterator best_start(b);
-    for(auto i = b; i != e;) // iterate once over vector
+    for (auto i = b; i != e;) // iterate once over vector
     {
       for (; i != e && *i <= 0.0; ++i) {}; // skip zeros
       if (i == e) // end?

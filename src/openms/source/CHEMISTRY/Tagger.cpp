@@ -76,7 +76,7 @@ namespace OpenMS
     min_tag_length_ = min_tag_length;
     max_tag_length_ = max_tag_length;
     const std::set<const Residue*> aas = ResidueDB::getInstance()->getResidues();
-    for (auto r : aas)
+    for (const auto & r : aas)
     {
       const char letter = r->getOneLetterCode()[0]; 
       const float mass = r->getMonoWeight(Residue::Internal);
