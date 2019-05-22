@@ -27,7 +27,7 @@ class FLASHDeconv :
 {
 public:
   FLASHDeconv() :
-      TOPPBase("FLASHDeconv & FeatureFinderIntact",
+      TOPPBase("FLASHDeconv",
                "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
                false)
   {
