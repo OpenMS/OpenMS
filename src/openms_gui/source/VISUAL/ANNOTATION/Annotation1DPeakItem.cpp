@@ -227,15 +227,29 @@ namespace OpenMS
       QRegExp reg_exp("[abcxyz](\\d+)");
       int match_pos = reg_exp.indexIn(text);
 
-      if ( (match_pos == 0) || (match_pos == 9) || (match_pos == 10) ) // 9 and 10 are special cases for XLMS data
+      if (match_pos == 0)
       {
         QString index_str = reg_exp.cap(1);
 
         // put sub html tag around number
-        text = text.left(match_pos)
-                + text[match_pos]
+        text = text[match_pos]
                 + QString("<sub>") + index_str + QString("</sub>")
                 + text.right(text.size() - match_pos - index_str.size() - 1);
+      } else {
+        QRegExp reg_exp_xlms("(ci|xi)[$][abcxyz](\\d+)");
+        match_pos = reg_exp_xlms.indexIn(text);
+        if ( (match_pos == 6) || (match_pos == 7))
+        {
+          // set the match_pos to the position of the ion index
+          match_pos += 3;
+          QString index_str = reg_exp.cap(1);
+
+          // put sub html tag around number
+          text = text.left(match_pos)
+                  + text[match_pos]
+                  + QString("<sub>") + index_str + QString("</sub>")
+                  + text.right(text.size() - match_pos - index_str.size() - 1);
+        }
       }
 
       // charge
