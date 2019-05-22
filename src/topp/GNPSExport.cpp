@@ -36,8 +36,10 @@
 // Doxygen docu
 //----------------------------------------------------------
 /**
-  @page UTILS_GNPSExport GNPSExport
+  @page TOPP_GNPSExport GNPSExport
+
   @brief Export MS/MS data in .MGF format for GNPS (http://gnps.ucsd.edu).
+
 GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organisation and sharing of raw, processed or identified tandem mass (MS/MS) spectrometry data. The GNPS web-platform makes possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as MS/MS molecular networking, network annotation propagation (http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006089), and the Dereplicator-based annotation (https://www.nature.com/articles/nchembio.2219). The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597
 
 This tool was developed for the OpenMS-GNPS workflow. It can be accessed on GNPS (https://gnps.ucsd.edu/ProteoSAFe/static/gnps-experimental.jsp). The steps used by that workflow are as following:
@@ -53,9 +55,9 @@ This tool was developed for the OpenMS-GNPS workflow. It can be accessed on GNPS
 https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_SiriusAdapter.cli
+  @verbinclude TOPP_GNPSExport.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_SiriusAdapter.html
+  @htmlinclude TOPP_GNPSExport.html
  */
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

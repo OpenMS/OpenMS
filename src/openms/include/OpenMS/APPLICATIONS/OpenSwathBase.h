@@ -173,6 +173,7 @@ protected:
                       const bool force,
                       const bool sort_swath_maps,
                       const bool sonar,
+                      const bool prm,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     // (i) Load files
@@ -210,6 +211,8 @@ protected:
       double lower_map_end = sw_windows[i-1].second - min_upper_edge_dist;
       double upper_map_start = sw_windows[i].first;
       OPENMS_LOG_DEBUG << "Extraction will go up to " << lower_map_end << " and continue at " << upper_map_start << std::endl;
+
+      if (prm) {continue;} // skip next step as expect them to overlap and have gaps...
 
       if (upper_map_start - lower_map_end > 0.01)
       {
