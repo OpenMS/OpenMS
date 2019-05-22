@@ -213,8 +213,8 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   ion_names.insert("x6-H3N1");
 
   // precursors
-  ion_names.insert("[M+H]-H2O");
-  ion_names.insert("[M+H]-NH3");
+  ion_names.insert("[M+H-H2O]");
+  ion_names.insert("[M+H-NH3]");
   ion_names.insert("[M+H]");
 
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
@@ -223,7 +223,11 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   for (Size i = 0; i != spec.size(); ++i)
   {
     String name = string_array[i];
-    TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
+    if (ion_names.find(name) == ion_names.end())
+    {
+      std::cout << "Test Error: " << name << " not found." << std::endl;
+    }
+    TEST_EQUAL(ion_names.find(name) != ion_names.end(), true);
   }
 
   // test for charges stored in IntegerDataArray
@@ -280,9 +284,9 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   ion_names.insert("x6-H3N1");
 
   // precursors
-  ion_names.insert("[M+H]-H2O");
-  ion_names.insert("[M+H]-NH3");
-  ion_names.insert("[M+H]");
+  ion_names.insert("[M+3H-H2O]");
+  ion_names.insert("[M+3H-NH3]");
+  ion_names.insert("[M+3H]");
 
   string_array = spec.getStringDataArrays().at(0);
 
@@ -290,6 +294,10 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   for (Size i = 0; i != spec.size(); ++i)
   {
     String name = string_array[i];
+    if (ion_names.find(name) == ion_names.end())
+    {
+      std::cout << "Test Error: " << name << " not found." << std::endl;
+    }
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
   }
 

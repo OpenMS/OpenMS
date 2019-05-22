@@ -41,10 +41,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  const boost::regex SpectrumAnnotator::nt_regex_("[a,b,c][[:digit:]]+[+]+");
-  const boost::regex SpectrumAnnotator::ct_regex_("[x,y,z][[:digit:]]+[+]+");
-  const boost::regex SpectrumAnnotator::noloss_regex_("[a,b,c,x,y,z][[:digit:]]+[+]+");
-  const boost::regex SpectrumAnnotator::seriesposition_regex_("[a,b,c,x,y,z]([[:digit:]]+)[+,-]+[[:word:]]*[+]*");
+  const boost::regex SpectrumAnnotator::nt_regex_("[a,b,c][[:digit:]]+[+]*");
+  const boost::regex SpectrumAnnotator::ct_regex_("[x,y,z][[:digit:]]+[+]*");
+  const boost::regex SpectrumAnnotator::noloss_regex_("[a,b,c,x,y,z][[:digit:]]+[+]*");
+  const boost::regex SpectrumAnnotator::seriesposition_regex_("[a,b,c,x,y,z]([[:digit:]]+)[+,-]*[[:word:]]*[+]*");
 
   SpectrumAnnotator::SpectrumAnnotator() :
     DefaultParamHandler("SpectrumAnnotator")

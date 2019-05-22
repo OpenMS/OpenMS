@@ -94,7 +94,7 @@ pi.setHits(std::vector<PeptideHit>(1,hit));
 START_SECTION((void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const))
 
   annot.annotateMatches(spec, hit, tg, sa);
-  string annotlist[] = {"y1+", "y2+", "b2+", "y3+", "b3+", "y4+", "b4+", "y5+", "b5+", "b6+", "y6+"};
+  string annotlist[] = {"y1", "y2", "b2", "y3", "b3", "y4", "b4", "y5", "b5", "b6", "y6"};
 
   PeakSpectrum::StringDataArray types = spec.getStringDataArrays().front();
 
@@ -115,7 +115,7 @@ START_SECTION((void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentificati
     TEST_EQUAL(pi.getHits()[i].getMetaValue("sum_intensity"),12.1)
     TEST_EQUAL(pi.getHits()[i].getMetaValue("matched_ion_number"),11)
     TEST_EQUAL(pi.getHits()[i].getMetaValue("matched_intensity"),12.1)
-    TEST_STRING_EQUAL(pi.getHits()[i].getMetaValue("matched_ions"),"y1+,y2+,b2+,y3+,b3+,y4+,b4+,y5+,b5+,b6+,y6+")
+    TEST_STRING_EQUAL(pi.getHits()[i].getMetaValue("matched_ions"),"y1,y2,b2,y3,b3,y4,b4,y5,b5,b6,y6")
     TEST_STRING_EQUAL(pi.getHits()[i].getMetaValue("max_series_type"),"y")
     TEST_EQUAL(pi.getHits()[i].getMetaValue("max_series_size"),6)
     TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("sn_by_matched_intensity"),0)
