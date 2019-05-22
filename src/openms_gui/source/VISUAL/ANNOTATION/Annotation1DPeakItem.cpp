@@ -62,12 +62,12 @@ namespace OpenMS
   }
 
   QRectF Annotation1DPeakItem::calculateBoundingBox(
-    const PointType & peak_position, 
+    const PointType & peak_position,
     const PointType & position,
     const QString & text,
     Spectrum1DCanvas * const canvas,
     bool flipped,
-    QPoint & position_widget, 
+    QPoint & position_widget,
     QPoint & peak_position_widget,
     double & horizontal_shift,
     double & vertical_shift)
@@ -78,10 +78,10 @@ namespace OpenMS
 
     // compute bounding box of text_item on the specified painter
     QRectF bounding_box = QApplication::fontMetrics().boundingRect(
-      position_widget.x(), 
-      position_widget.y(), 
-      0, 0, 
-      Qt::AlignCenter, 
+      position_widget.x(),
+      position_widget.y(),
+      0, 0,
+      Qt::AlignCenter,
       text);
 
     vertical_shift = 0;
@@ -132,16 +132,16 @@ namespace OpenMS
     QPoint position_widget, peak_position_widget;
     double horizontal_shift(0), vertical_shift(0);
 
-    bounding_box_ = calculateBoundingBox(peak_position_, 
-      position_, 
-      text_, 
+    bounding_box_ = calculateBoundingBox(peak_position_,
+      position_,
+      text_,
       canvas,
-      flipped, 
-      position_widget, 
-      peak_position_widget, 
-      horizontal_shift, 
+      flipped,
+      position_widget,
+      peak_position_widget,
+      horizontal_shift,
       vertical_shift);
-  
+
     // draw connection line between anchor point and current position if pixel coordinates differ significantly
     if ((position_widget - peak_position_widget).manhattanLength() > 2)
     {
@@ -206,13 +206,13 @@ namespace OpenMS
         if (vertical_end.y() < peak_position_widget.y()) // label is above peak
         {
           painter.drawLine(peak_position_widget, vertical_end);
-          painter.drawLine(vertical_end, position_widget);   
+          painter.drawLine(vertical_end, position_widget);
         }
         else // label is below peak
         {
           painter.drawLine(peak_position_widget, *closest_ip);
-          painter.drawLine(peak_position_widget, *closest_ip);       
-        }        
+          painter.drawLine(peak_position_widget, *closest_ip);
+        }
       }
       painter.restore();
       delete(ip);
@@ -226,17 +226,23 @@ namespace OpenMS
       // extract ion index
       QRegExp reg_exp("[a|b|c|x|y|z](\\d+)");
       int match_pos = reg_exp.indexIn(text);
-      if (match_pos == 0)
-      {
-        QString index_str = reg_exp.cap(1);
 
-        // put sub html tag around number
-        text = text[0]
+      QString index_str = reg_exp.cap(1);
+
+      // put sub html tag around number
+      text = text.left(match_pos)
+              + text[match_pos]
               + QString("<sub>") + index_str + QString("</sub>")
               + text.right(text.size() - match_pos - index_str.size() - 1);
-      }
 
       // charge
+      text.replace(QRegExp("\\+9$"), "<sup>9+</sup>");
+      text.replace(QRegExp("\\+8$"), "<sup>8+</sup>");
+      text.replace(QRegExp("\\+7$"), "<sup>7+</sup>");
+      text.replace(QRegExp("\\+6$"), "<sup>6+</sup>");
+      text.replace(QRegExp("\\+5$"), "<sup>5+</sup>");
+      text.replace(QRegExp("\\+4$"), "<sup>4+</sup>");
+      text.replace(QRegExp("\\+3$"), "<sup>3+</sup>");
       text.replace(QRegExp("3\\+$"), "<sup>3+</sup>");
       text.replace(QRegExp("\\+\\+$"), "<sup>2+</sup>");
       text.replace(QRegExp("\\+$"), "");
