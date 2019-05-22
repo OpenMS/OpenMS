@@ -227,7 +227,7 @@ namespace OpenMS
       QRegExp reg_exp("[abcxyz](\\d+)");
       int match_pos = reg_exp.indexIn(text);
 
-      if ( (match_pos >= 0) && (match_pos < text.size()) )
+      if ( (match_pos == 0) || (match_pos == 9) || (match_pos == 10) ) // 9 and 10 are special cases for XLMS data
       {
         QString index_str = reg_exp.cap(1);
 
