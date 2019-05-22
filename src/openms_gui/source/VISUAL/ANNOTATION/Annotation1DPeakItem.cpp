@@ -224,7 +224,7 @@ namespace OpenMS
     if (!text.contains("<\\")) // don't process HTML strings again
     {
       // extract ion index
-      QRegExp reg_exp("[a|b|c|x|y|z](\\d+)");
+      QRegExp reg_exp("[abcxyz](\\d+)");
       int match_pos = reg_exp.indexIn(text);
 
       QString index_str = reg_exp.cap(1);
@@ -251,8 +251,8 @@ namespace OpenMS
       text.replace(QRegExp("\\-$"), "");
 
       // common losses
+      text.replace("H2O1","H<sub>2</sub>O"); // mind the order with H2O substitution
       text.replace("H2O","H<sub>2</sub>O");
-      text.replace("H2O1","H<sub>2</sub>O");
       text.replace("NH3","NH<sub>3</sub>");
       text.replace("H3N1","NH<sub>3</sub>");
 
