@@ -235,7 +235,9 @@ namespace OpenMS
         text = text[match_pos]
                 + QString("<sub>") + index_str + QString("</sub>")
                 + text.right(text.size() - match_pos - index_str.size() - 1);
-      } else {
+      } 
+      else // protein-protein XL specific ion names
+      {
         QRegExp reg_exp_xlms("(ci|xi)[$][abcxyz](\\d+)");
         match_pos = reg_exp_xlms.indexIn(text);
         if ( (match_pos == 6) || (match_pos == 7))
