@@ -227,13 +227,16 @@ namespace OpenMS
       QRegExp reg_exp("[abcxyz](\\d+)");
       int match_pos = reg_exp.indexIn(text);
 
-      QString index_str = reg_exp.cap(1);
+      if ( (match_pos >= 0) && (match_pos < text.size()) )
+      {
+        QString index_str = reg_exp.cap(1);
 
-      // put sub html tag around number
-      text = text.left(match_pos)
-              + text[match_pos]
-              + QString("<sub>") + index_str + QString("</sub>")
-              + text.right(text.size() - match_pos - index_str.size() - 1);
+        // put sub html tag around number
+        text = text.left(match_pos)
+                + text[match_pos]
+                + QString("<sub>") + index_str + QString("</sub>")
+                + text.right(text.size() - match_pos - index_str.size() - 1);
+      }
 
       // charge
       text.replace(QRegExp("\\+9$"), "<sup>9+</sup>");
