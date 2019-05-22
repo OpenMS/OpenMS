@@ -52,7 +52,7 @@ class DBsearchDeconvMass:
 
 public:
     DBsearchDeconvMass():
-    TOPPBase("DBsearchDeconvMass", "DB search on deconv masses", false)
+    TOPPBase("DBsearchDeconvMass", "Matching masses from protein DB on deconvoluted masses", false)
     {}
 
 protected:
@@ -61,6 +61,7 @@ protected:
         setValidFormats_("in", ListUtils::create<String>("tsv"));
 
         registerInputFile_("d", "<Protein DB file>", "", "Input protein DB file");
+        setValidFormats_("d", ListUtils::create<String>("fasta"));
 
         registerDoubleOption_("tol", "<tolerance>", 10, "proteoform mass tolerance (ppm)", false, false);
         registerIntOption_("maxptm", "<max number of PTMs>", 4, "maximum number of PTMs per proteoform", false, false);
