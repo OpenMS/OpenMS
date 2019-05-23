@@ -147,15 +147,25 @@ protected:
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
     ConsensusXMLFile().load(in_cm, cmap);
+
+    //-------------------------------------------------------------
+    // Build the map to later find the corresponding ProtID of a PepID.
+    //-------------------------------------------------------------
+    map<String,const ProteinIdentification*> identifier_to_protID;
+    for (const ProteinIdentification& prot_id : cmap.getProteinIdentifications())
+    {
+      identifier_to_protID[prot_id.getIdentifier()] = &prot_id;
+    }
+
     //-------------------------------------------------------------
     // Build the map to later find the original PepID in given ConsensusMap.
     //-------------------------------------------------------------
-    map<String, PeptideIdentification*> map_to_id;
+    map<String, PeptideIdentification*> customID_to_pepID;
     for (Size i = 0; i < cmap.size(); ++i)
     {
-      fillPepIDMap_(map_to_id, cmap[i].getPeptideIdentifications(), i);
+      fillPepIDMap_(customID_to_pepID, cmap[i].getPeptideIdentifications(), identifier_to_protID, i);
     }
-    fillPepIDMap_(map_to_id, cmap.getUnassignedPeptideIdentifications(), -1);      
+    fillPepIDMap_(customID_to_pepID, cmap.getUnassignedPeptideIdentifications(), identifier_to_protID, -1);
 
     // check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
@@ -262,14 +272,13 @@ protected:
       //-------------------------------------------------------------
 
       // copy MetaValues of unassigned PepIDs
-      copyPepIDMetaValues_(fmap.getUnassignedPeptideIdentifications(), map_to_id);
+      copyPepIDMetaValues_(fmap.getUnassignedPeptideIdentifications(), customID_to_pepID, identifier_to_protID);
 
       // copy MetaValues of assigned PepIDs
       for (Feature& feature : fmap)
       {
-        copyPepIDMetaValues_(feature.getPeptideIdentifications(), map_to_id);
+        copyPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_pepID, identifier_to_protID);
       }
-
     }
     // mztab writer requires single PIs per CF
     IDConflictResolverAlgorithm::resolve(cmap);
@@ -356,18 +365,38 @@ private:
     }
   }
 
-  void copyPepIDMetaValues_(const vector<PeptideIdentification>& pep_ids, const map<String, PeptideIdentification*>& map_to_id) const
+  void copyPepIDMetaValues_(const vector<PeptideIdentification>& pep_ids, const map<String, PeptideIdentification*>& customID_to_pepID, map<String, const ProteinIdentification*> identifier_to_protID) const
   {
     for (const PeptideIdentification& ref_pep_id : pep_ids)
     {
       // for empty PIs which were created by a metric
       if (ref_pep_id.getHits().empty()) continue;
 
-      if (!ref_pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
+      PeptideIdentification pep_id;
+      const ProteinIdentification& prot_id = *(identifier_to_protID.at(ref_pep_id.getIdentifier()));
+      StringList filenames;
+      prot_id.getPrimaryMSRunPath(filenames);
+      if (filenames.empty())
       {
-        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated at ProteinIdentification.");
       }
-      PeptideIdentification& pep_id = *(map_to_id.at(ref_pep_id.getMetaValue("UID"))); 
+      if (filenames.size() == 1)
+      {
+        String UID = filenames[0] + ref_pep_id.getMetaValue("spectrum_reference").toString();
+        pep_id = *customID_to_pepID.at(UID);
+      }
+      else
+      {
+        if (pep_id.metaValueExists("map_index"))
+        {
+          String UID = pep_id.getMetaValue("map_index").toString() + pep_id.getMetaValue("spectrum_reference").toString();
+          pep_id = *customID_to_pepID.at(UID);
+        }
+        else
+       {
+         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
+       }
+      }
 
       // copy all MetaValues that are at PepID level
       copyMetaValues_(ref_pep_id, pep_id);
@@ -377,16 +406,38 @@ private:
     }
   }
 
-  void fillPepIDMap_(map<String, PeptideIdentification*>& map_to_id, vector<PeptideIdentification>& pep_ids, const int group_id) const
+  void fillPepIDMap_(map<String, PeptideIdentification*>& customID_to_pepID, vector<PeptideIdentification>& pep_ids, map<String, const ProteinIdentification*> identifier_to_protID, const int group_id) const
   {
     for ( PeptideIdentification& pep_id : pep_ids)
     {
-      if (!pep_id.metaValueExists("UID")) // PepID doesn't has ID, needs to have MetaValue
+      if (!pep_id.metaValueExists("spectrum_reference"))
       {
-        throw(Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No unique ID at peptideidentifications found. Please run PeptideIndexer with '-addUID'.\n"));
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectrum reference missing at PeptideIdentification.");
       }
-      pep_id.setMetaValue("cf_id", group_id);
-      map_to_id[pep_id.getMetaValue("UID")] = &pep_id;
+      const ProteinIdentification& prot_id = *(identifier_to_protID.at(pep_id.getIdentifier()));
+      StringList filenames;
+      prot_id.getPrimaryMSRunPath(filenames);
+      if (filenames.empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated at ProteinIdentification.");
+      }
+      if (filenames.size() == 1)
+      {
+        pep_id.setMetaValue("cf_id", group_id);
+        String UID = filenames[0] + pep_id.getMetaValue("spectrum_reference").toString();
+        customID_to_pepID[UID] = &pep_id;
+        continue;
+      }
+      if (pep_id.metaValueExists("map_index"))
+      {
+        pep_id.setMetaValue("cf_id", group_id);
+        String UID = pep_id.getMetaValue("map_index").toString() + pep_id.getMetaValue("spectrum_reference").toString();
+        customID_to_pepID[UID] = &pep_id;
+      }
+      else
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
+      }
     }
   }
 };
