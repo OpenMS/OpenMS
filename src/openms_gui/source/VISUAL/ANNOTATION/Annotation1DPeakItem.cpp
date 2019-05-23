@@ -224,61 +224,75 @@ namespace OpenMS
     if (!text.contains("<\\")) // don't process HTML strings again
     {
       // extract ion index
-      QRegExp reg_exp("[abcxyz](\\d+)");
-      int match_pos = reg_exp.indexIn(text);
-
-      if (match_pos == 0)
       {
-        QString index_str = reg_exp.cap(1);
+        QRegExp reg_exp("[abcdwxyz](\\d+)");
+        int match_pos = reg_exp.indexIn(text);
 
-        // put sub html tag around number
-        text = text[match_pos]
-                + QString("<sub>") + index_str + QString("</sub>")
-                + text.right(text.size() - match_pos - index_str.size() - 1);
-      } 
-      else // protein-protein XL specific ion names
-      {
-        QRegExp reg_exp_xlms("(ci|xi)[$][abcxyz](\\d+)");
-        match_pos = reg_exp_xlms.indexIn(text);
-        if ( (match_pos == 6) || (match_pos == 7))
+        if (match_pos == 0)
         {
-          // set the match_pos to the position of the ion index
-          match_pos += 3;
           QString index_str = reg_exp.cap(1);
 
           // put sub html tag around number
-          text = text.left(match_pos)
+          text = text[match_pos]
+                + QString("<sub>") + index_str + QString("</sub>")
+                + text.right(text.size() - match_pos - index_str.size() - 1);
+        } 
+        else // protein-protein XL specific ion names
+        {
+          QRegExp reg_exp_xlms("(ci|xi)[$][abcxyz](\\d+)");
+          match_pos = reg_exp_xlms.indexIn(text);
+          if ( (match_pos == 6) || (match_pos == 7))
+          {
+            // set the match_pos to the position of the ion index
+            match_pos += 3;
+            QString index_str = reg_exp.cap(1);
+
+            // put sub html tag around number
+            text = text.left(match_pos)
                   + text[match_pos]
                   + QString("<sub>") + index_str + QString("</sub>")
                   + text.right(text.size() - match_pos - index_str.size() - 1);
+          }
         }
       }
-
-      // charge
-      text.replace(QRegExp("\\+9$"), "<sup>9+</sup>");
-      text.replace(QRegExp("\\+8$"), "<sup>8+</sup>");
-      text.replace(QRegExp("\\+7$"), "<sup>7+</sup>");
-      text.replace(QRegExp("\\+6$"), "<sup>6+</sup>");
-      text.replace(QRegExp("\\+5$"), "<sup>5+</sup>");
-      text.replace(QRegExp("\\+4$"), "<sup>4+</sup>");
-      text.replace(QRegExp("\\+3$"), "<sup>3+</sup>");
-      text.replace(QRegExp("3\\+$"), "<sup>3+</sup>");
-      text.replace(QRegExp("\\+\\+$"), "<sup>2+</sup>");
-      text.replace(QRegExp("\\+$"), "");
-      text.replace(QRegExp("3\\-$"), "<sup>3-</sup>");
-      text.replace(QRegExp("\\-\\-$"), "<sup>2-</sup>");
-      text.replace(QRegExp("\\-$"), "");
 
       // common losses
       text.replace("H2O1","H<sub>2</sub>O"); // mind the order with H2O substitution
       text.replace("H2O","H<sub>2</sub>O");
       text.replace("NH3","NH<sub>3</sub>");
       text.replace("H3N1","NH<sub>3</sub>");
+      text.replace("C1H4O1S1", "H<sub>4</sub>COS");  // methionine sulfoxide loss
 
       // nucleotide XL realted losses
       text.replace("H3PO4","H<sub>3</sub>PO<sub>4</sub>");
       text.replace("HPO3","HPO<sub>3</sub>");
       text.replace("C3O","C<sub>3</sub>O");
+
+      // charge format: +z
+      QRegExp charge_rx("[\\+|\\-](\\d+)$");
+      int match_pos = charge_rx.indexIn(text);
+      if (match_pos > 0)
+      {
+        text = text.left(match_pos)
+               + QString("<sup>") + text[match_pos] // + or - 
+               + charge_rx.cap(1) + QString("</sup>"); // charge
+      }
+
+      // charge format: z+
+      charge_rx = QRegExp("(\\d+)[\\+|\\-]$");
+      match_pos = charge_rx.indexIn(text);
+      if (match_pos > 0)
+      {
+        text = text.left(match_pos)
+               + QString("<sup>") + charge_rx.cap(1) // charge 
+               + text[match_pos + charge_rx.cap(1).size()] + QString("</sup>"); // + or -
+      }
+
+      text.replace(QRegExp("\\+\\+$"), "<sup>2+</sup>");
+      text.replace(QRegExp("\\+$"), "");
+      text.replace(QRegExp("\\-\\-$"), "<sup>2-</sup>");
+      text.replace(QRegExp("\\-$"), "");
+
     }
 
     QTextDocument td;
