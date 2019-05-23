@@ -3,7 +3,8 @@ sudo: false
 language: cpp
 os:
  - linux
-
+mono:
+  - latest
 cache:
   - apt
   - ccache
