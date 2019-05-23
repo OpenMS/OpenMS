@@ -58,6 +58,7 @@ addons:
          - libpcre3-dev
          - mono-complete
          - mono-devel
+         - mono-runtime
          
 before_script:
   ./tools/travis/cibuild.before.sh
