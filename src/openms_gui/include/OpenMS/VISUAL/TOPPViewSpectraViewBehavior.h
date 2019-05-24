@@ -95,6 +95,15 @@ public slots:
     /// Slot for behavior deactivation
     virtual void deactivateBehavior();
 private:
+    // add m/z annotation to "interesting" peaks (stored in temporary_annotations)
+    void addPeakMZToImportantPeaks_();
+
+    // clear temporary annotations
+    void removeTemporaryAnnotations_(Size spectrum_index);
+
     TOPPViewBase * tv_;
+    /// Used to check which annotation handles have been added automatically by the identification view. Ownership
+    /// of the AnnotationItems has the Annotation1DContainer
+    std::vector<Annotation1DItem*> temporary_annotations_;
   };
 }

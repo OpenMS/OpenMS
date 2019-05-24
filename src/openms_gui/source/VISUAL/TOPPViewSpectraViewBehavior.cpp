@@ -37,6 +37,15 @@
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+
+
+// preprocessing and filtering
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
@@ -97,6 +106,91 @@ namespace OpenMS
 
   String caption;
 
+  void TOPPViewSpectraViewBehavior::addPeakMZToImportantPeaks_()
+  {
+    SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
+    LayerData& current_layer = current_canvas->getCurrentLayer();
+    const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
+    Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
+
+    // find interesting peaks
+    MSSpectrum spec{current_spectrum};
+
+    // remove 0 intensities
+    ThresholdMower threshold_mower_filter;
+    threshold_mower_filter.filterPeakSpectrum(spec);
+
+    // deisotope so we don't consider higher isotopic peaks
+    Deisotoper::deisotopeAndSingleCharge(spec, 
+      50,     // tolerance
+      true,   // ppm 
+      1, 6,   // min / max charge 
+      false,  // keep only deisotoped
+      3, 10,  // min / max isopeaks 
+      false,  // don't convert fragment m/z to mono-charge
+      true);  // annotate charge in integer data array
+
+    // filter settings
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    filter_param.setValue("windowsize", 50.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 2, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "slide", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
+    window_mower_filter.filterPeakSpectrum(spec);
+
+    NLargest nlargest_filter(10);  // maximum number of annotated m/z's
+    nlargest_filter.filterPeakSpectrum(spec);
+    spec.sortByPosition(); // nlargest changes order
+
+#ifdef DEBUG_IDENTIFICATION_VIEW
+    cout << "Interesting peaks: " << current_peak_index << endl;
+#endif    
+    for (Size i = 0; i != spec.size(); ++i)
+    {
+      Size current_peak_index = current_spectrum.findNearest(spec[i].getMZ());
+
+      QString s = QString::number(current_spectrum[current_peak_index].getMZ());
+      if (!spec.getIntegerDataArrays().empty() 
+        && spec.getIntegerDataArrays()[0].size() == spec.size())
+      {
+        int charge = spec.getIntegerDataArrays()[0][i]; 
+        // TODO: handle negative mode
+
+        // here we explicitly also annotate singly charged ions to distinguish them from unknown charge (0)
+        if (charge != 0) 
+        {
+          s += charge == 1 ? "<sup>+</sup>" : "<sup>" + QString::number(charge) + "+</sup>";
+        }
+      }
+      
+      PeakIndex pi(current_spectrum_index, current_peak_index);
+      Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGray);
+      temporary_annotations_.push_back(item); // save label for later removal
+    }
+  }
+
+  void TOPPViewSpectraViewBehavior::removeTemporaryAnnotations_(Size spectrum_index)
+  {
+#ifdef DEBUG_IDENTIFICATION_VIEW
+    cout << "removePrecursorLabels1D_ " << spectrum_index << endl;
+#endif
+    // Delete annotations added by IdentificationView (but not user added annotations)
+    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    const vector<Annotation1DItem*>& cas = temporary_annotations_;
+    Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
+    for (vector<Annotation1DItem*>::const_iterator it = cas.begin(); it != cas.end(); ++it)
+    {
+      Annotations1DContainer::iterator i = find(las.begin(), las.end(), *it);
+      if (i != las.end())
+      {
+        delete(*i);
+        las.erase(i);
+      }
+    }
+    temporary_annotations_.clear();
+  }
+
   void TOPPViewSpectraViewBehavior::showSpectrumAs1D(int index)
   {
     // basic behavior 1
@@ -114,7 +208,7 @@ namespace OpenMS
 
       // fix legend and set layer name
       caption = layer.name + "[" + index + "]";
-      w->xAxis()->setLegend("Time [sec]");
+      w->xAxis()->setLegend("Time [s]");
 
       // add chromatogram data as peak spectrum
       if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
@@ -129,10 +223,12 @@ namespace OpenMS
       caption = layer.name;
 
       // add data
-      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
+      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) 
+        || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
       {
         return;
       }
+
       w->canvas()->activateSpectrum(index);
     }
     else
@@ -202,7 +298,7 @@ namespace OpenMS
     //open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
     // fix legend if its a chromatogram
-    w->xAxis()->setLegend("Time [sec]");
+    w->xAxis()->setLegend("Time [s]");
 
     for (const auto& index : indices)
     {
@@ -259,11 +355,25 @@ namespace OpenMS
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
-    if (widget_1d == nullptr) return;
-    if (widget_1d->canvas()->getLayerCount() == 0) return;
+    if (widget_1d == nullptr 
+      || widget_1d->canvas() == nullptr 
+      || widget_1d->canvas()->getLayerCount() == 0)
+    {
+      return;
+    }
 
+    // remove old annotations (if present)
+    SpectrumCanvas* current_canvas = widget_1d->canvas();
+    LayerData& current_layer = current_canvas->getCurrentLayer();
+    Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
+
+    removeTemporaryAnnotations_(current_spectrum_index);
+
+    // activate new spectrum
     widget_1d->canvas()->activateSpectrum(index);
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+
+    addPeakMZToImportantPeaks_();
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
@@ -376,9 +486,9 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewSpectraViewBehavior::deactivate1DSpectrum(int /* spectrum_index */)
+  void TOPPViewSpectraViewBehavior::deactivate1DSpectrum(int spectrum_index)
   {
-    // no special handling of spectrum deactivation needed
+    // no special handling of activation
   }
 
   void TOPPViewSpectraViewBehavior::activateBehavior()
