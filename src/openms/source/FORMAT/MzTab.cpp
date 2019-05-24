@@ -2410,18 +2410,7 @@ Not sure how to handle these:
       }
       set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
       addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), *it);
-      
-      // add the row and continue to next PepID, if the current one was an empty one
-      if (it->getHits().empty())
-      {
-        rows.push_back(row);
-        continue;
-      }
 
-      /////// Information that does require a peptide hit ///////
-      // sort by rank
-      it->assignRanks();
-      
       // link to spectrum in MS run
       String spectrum_nativeID = it->getMetaValue("spectrum_reference").toString();
       size_t run_index = idrun_2_run_index[it->getIdentifier()];
@@ -2441,7 +2430,7 @@ Not sure how to handle these:
         else
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Multiple files in a run, but no map_index in PeptideIdentification found.");
+                                              "Multiple files in a run, but no map_index in PeptideIdentification found.");
         }
       }
 
@@ -2455,6 +2444,17 @@ Not sure how to handle these:
       {
         row.spectra_ref.setSpecRef(spectrum_nativeID);
       }
+
+      // add the row and continue to next PepID, if the current one was an empty one
+      if (it->getHits().empty())
+      {
+        rows.push_back(row);
+        continue;
+      }
+
+      /////// Information that does require a peptide hit ///////
+      // sort by rank
+      it->assignRanks();
       
       // only consider best peptide hit for export
       const PeptideHit& best_ph = it->getHits()[0];

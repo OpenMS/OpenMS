@@ -241,9 +241,9 @@ namespace OpenMS
         OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
         return;
       }
-      for (auto ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
+      for (const auto& ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
       {
-        result.variance_ppm += pow((ppm - result.average_ppm),2);
+        result.variance_ppm += pow((ppm - result.average_ppm), 2);
       }
     };
 

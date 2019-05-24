@@ -53,7 +53,10 @@ namespace OpenMS
 
     setScanEventNumber_(exp);
     // if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-    auto l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id,exp,map_to_spectrum); };
+    auto l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id)
+    {
+      setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum);
+    };
     iterateFeatureMap(features, l_f);
     for (auto& f : features)
     {
@@ -93,9 +96,9 @@ namespace OpenMS
 
   void annotatePepIDfromSpectrum_(const MSSpectrum& spectrum, PeptideIdentification& peptide_ID)
   {
-    if (spectrum.metaValueExists("MS:1000927"))
+    if (!spectrum.getAcquisitionInfo().empty() && spectrum.getAcquisitionInfo()[0].metaValueExists("MS:1000927"))
     {
-      peptide_ID.setMetaValue("ion_injection_time", spectrum.getMetaValue("MS:1000927"));
+      peptide_ID.setMetaValue("ion_injection_time", spectrum.getAcquisitionInfo()[0].getMetaValue("MS:1000927"));
     }
     if (!spectrum.getPrecursors().empty() && !spectrum.getPrecursors()[0].getActivationMethods().empty())
     {
@@ -108,7 +111,7 @@ namespace OpenMS
   {
     if (!peptide_ID.metaValueExists("spectrum_reference"))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identifiction!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identification!");
     }
     
     UInt64 index = map_to_spectrum.at(peptide_ID.getMetaValue("spectrum_reference").toString());
@@ -133,25 +136,24 @@ namespace OpenMS
     std::vector<PeptideIdentification> result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
-      if (!(*it).ms2_presence)
-      {
-        Size pos = distance(ms2_included_.begin(), it);
-        if (exp[pos].getMSLevel() == 2)
-        {
-          PeptideIdentification unidentified_MS2;
-          Peak1D::IntensityType bpi;
-          Peak1D::IntensityType tic;
-          getBPIandCIC_(exp.getSpectra()[pos], bpi, tic);
-          unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
-          unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
-          unidentified_MS2.setMetaValue("identified", 0);
-          unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
-          unidentified_MS2.setMetaValue("total_ion_count", tic);
-          unidentified_MS2.setMetaValue("base_peak_intensity", bpi);
-          annotatePepIDfromSpectrum_(exp.getSpectra()[pos], unidentified_MS2);
-          result.push_back(unidentified_MS2);
-        }
-      }
+      if (it->ms2_presence) continue;
+      
+      Size pos = distance(ms2_included_.begin(), it);
+      if (exp[pos].getMSLevel() != 2) continue;
+
+      PeptideIdentification unidentified_MS2;
+      Peak1D::IntensityType bpi;
+      Peak1D::IntensityType tic;
+      getBPIandCIC_(exp.getSpectra()[pos], bpi, tic);
+      unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
+      unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
+      unidentified_MS2.setMetaValue("identified", 0);
+      unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
+      unidentified_MS2.setMetaValue("total_ion_count", tic);
+      unidentified_MS2.setMetaValue("base_peak_intensity", bpi);
+      unidentified_MS2.setMetaValue("spectrum_reference", exp.getSpectra()[pos].getNativeID());
+      annotatePepIDfromSpectrum_(exp.getSpectra()[pos], unidentified_MS2);
+      result.push_back(unidentified_MS2);
     }
     return result;
   }
