@@ -295,6 +295,7 @@ namespace OpenMS
 
     }
 
+    text = "<font color=\"" + color_.name() + "\">" + text + "</font>";
     QTextDocument td;
     td.setHtml(text);
 
