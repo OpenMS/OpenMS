@@ -376,7 +376,7 @@ protected:
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
-    bool no_peak_picking = getFlag_("noRawPeakPicking");
+    bool no_peak_picking = getFlag_("no_peak_picking");
 
     //input file type
     FileHandler fh;
