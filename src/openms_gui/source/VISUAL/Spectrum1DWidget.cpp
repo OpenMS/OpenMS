@@ -99,28 +99,32 @@ namespace OpenMS
     mz_axis->setAxisBounds(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
     switch (canvas()->getIntensityMode())
     {
-    case SpectrumCanvas::IM_NONE:
-      if (it_axis->isLogScale())
+      case SpectrumCanvas::IM_NONE:
+        if (it_axis->isLogScale())
+        {
+          it_axis->setLogScale(false);
+          flipped_y_axis_->setLogScale(false);
+        }
+
+        it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+        flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+        break;
+
+      case SpectrumCanvas::IM_PERCENTAGE:
       {
-        it_axis->setLogScale(false);
-        flipped_y_axis_->setLogScale(false);
+        if (it_axis->isLogScale())
+        {
+          it_axis->setLogScale(false);
+          flipped_y_axis_->setLogScale(false);
+        }
+
+        double min_y = canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY();
+        double max_y = canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * Spectrum1DCanvas::TOP_MARGIN;
+
+        it_axis->setAxisBounds(min_y * 100.0, max_y * 100.0);
+        flipped_y_axis_->setAxisBounds(min_y * 100.0, max_y * 100.0);
+        break;
       }
-
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      break;
-
-    case SpectrumCanvas::IM_PERCENTAGE:
-      if (it_axis->isLogScale())
-      {
-        it_axis->setLogScale(false);
-        flipped_y_axis_->setLogScale(false);
-      }
-
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
-      break;
-
     case SpectrumCanvas::IM_SNAP:
       if (it_axis->isLogScale())
       {

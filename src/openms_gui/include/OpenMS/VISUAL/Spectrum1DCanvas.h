@@ -79,6 +79,9 @@ public:
       LM_XPERCENT_YPERCENT
     };
 
+    /// extra empty margin added on top to ensure annotations and 100% y-axis label are properly drawn
+    constexpr static double TOP_MARGIN{1.09}; 
+
     /// Default constructor
     Spectrum1DCanvas(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor

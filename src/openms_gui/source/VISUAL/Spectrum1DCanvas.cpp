@@ -141,7 +141,7 @@ namespace OpenMS
   void Spectrum1DCanvas::dataToWidget(double x, double y, QPoint & point, bool flipped, bool percentage)
   {
     QPoint tmp;
-    if (percentage)
+    if (percentage) 
     {
       y *= getSnapFactor() * percentage_factor_;
     }
@@ -1345,9 +1345,13 @@ namespace OpenMS
       }
 
       // add some margin on top of local maximum to be sure we are able to draw labels inside the view
-      snap_factors_[0] = overall_data_range_.maxPosition()[1] / (local_max * 1.15);
+      snap_factors_[0] = overall_data_range_.maxPosition()[1] / (local_max * TOP_MARGIN);
     }
-    else
+    else if (intensity_mode_ == IM_PERCENTAGE)
+    {
+      snap_factors_[0] = 1.0 / TOP_MARGIN;
+    }
+    else 
     {
       snap_factors_[0] = 1.0;
     }
