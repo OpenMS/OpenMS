@@ -1467,16 +1467,17 @@ namespace OpenMS
   void MzTab::addMetaInfoToOptionalColumns(
     const set<String>& keys, 
     vector<MzTabOptionalColumnEntry>& opt, 
-    const String id, 
-    const MetaInfoInterface meta)
+    const String& id, 
+    const MetaInfoInterface& meta)
   {
     for (String const & key : keys)
     {
       MzTabOptionalColumnEntry opt_entry;
+      // column names must not contain spaces
       opt_entry.first = String("opt_") + id + String("_") + String(key).substitute(' ','_');
       if (meta.metaValueExists(key))
       {
-        opt_entry.second = MzTabString(meta.getMetaValue(key).toString().substitute(' ','_'));
+        opt_entry.second = MzTabString(meta.getMetaValue(key).toString());
       } // otherwise it is default ("null")
       opt.push_back(opt_entry);
     }
@@ -1624,9 +1625,9 @@ namespace OpenMS
       for (String & s : keys) 
       { 
         if (s.has(' '))
-         {
-           s.substitute(' ', '_');
-         }
+        {
+          s.substitute(' ', '_');
+        }
       }
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
@@ -1638,7 +1639,7 @@ namespace OpenMS
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          for (String & s : ph_keys) 
+          for (String& s : ph_keys) 
           { 
             if (s.has(' '))
             {
@@ -2372,7 +2373,7 @@ Not sure how to handle these:
     meta_data.software[std::max<size_t>(1u, meta_data.software.size())] = sw;
 
     MzTabPSMSectionRows rows;
-    Size psm_id(0);
+    int psm_id(0);
     for (auto it = pep_ids.begin(); it != pep_ids.end(); ++it, ++psm_id)
     {
       // skip empty peptide identification objects

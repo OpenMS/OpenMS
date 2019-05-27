@@ -248,6 +248,7 @@ namespace OpenMS
     layer->addSeparator();
     layer->addAction("Show/hide grid lines", this, SLOT(toggleGridLines()), Qt::CTRL + Qt::Key_R);
     layer->addAction("Show/hide axis legends", this, SLOT(toggleAxisLegends()), Qt::CTRL + Qt::Key_L);
+    layer->addAction("Show/hide automated m/z annotations", this, SLOT(toggleInterestingMZs()));
     layer->addSeparator();
     layer->addAction("Preferences", this, SLOT(showPreferences()));
 
@@ -527,8 +528,8 @@ namespace OpenMS
     connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int, int, int)), identificationview_behavior_, SLOT(activate1DSpectrum(int, int, int)));
     connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
-    views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
-    views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
+    views_tabwidget_->addTab(spectra_view_widget_, "Scans");
+    views_tabwidget_->addTab(spectra_identification_view_widget_, "Identifications");
     views_tabwidget_->setTabEnabled(0, false);
     views_tabwidget_->setTabEnabled(1, false);
 
@@ -1361,10 +1362,7 @@ namespace OpenMS
                       (data_type == LayerData::DT_IDENT));
 
     // only one peak spectrum? disable 2D as default
-    if (peak_map->size() == 1)
-    {
-      maps_as_2d = false;
-    }
+    if (peak_map->size() == 1) { maps_as_2d = false; }
 
     // set the window where (new layer) data could be opened in
     // get EnhancedTabBarWidget with given id
@@ -3574,11 +3572,11 @@ namespace OpenMS
     {
       return;
     }
-    w->xAxis()->setLegend(String("Ion Mobility [ms]"));
+    w->xAxis()->setLegend(SpectrumWidget::IM_MS_AXIS_TITLE);
 
     if (im_arr.getName().find("1002815") != std::string::npos)
     {
-      w->xAxis()->setLegend(String("Ion Mobility [1/K0]"));
+      w->xAxis()->setLegend(SpectrumWidget::IM_ONEKZERO_AXIS_TITLE);
       tmpe->setMetaValue("ion_mobility_unit", "1/K0");
     }
 
@@ -4025,6 +4023,13 @@ namespace OpenMS
   void TOPPViewBase::toggleAxisLegends()
   {
     getActiveSpectrumWidget()->showLegend(!getActiveSpectrumWidget()->isLegendShown());
+  }
+
+  void TOPPViewBase::toggleInterestingMZs()
+  {
+    auto w = getActive1DWidget();
+    if (w == nullptr) return;
+    w->canvas()->setDrawInterestingMZs(!w->canvas()->isDrawInterestingMZs());
   }
 
   void TOPPViewBase::showPreferences()

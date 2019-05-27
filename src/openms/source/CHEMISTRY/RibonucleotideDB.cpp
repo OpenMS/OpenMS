@@ -168,7 +168,7 @@ namespace OpenMS
       }
     }
     // Modomics' "new code" contains information on terminal specificity:
-    if (parts[2].back() == 'N') // terminal mod., exception: "GN"
+    if ((!parts[2].empty()) && parts[2].back() == 'N') // terminal mod., exception: "GN"
     {
       if (parts[2].hasSubstring("55") || (parts[2] == "N"))
       {

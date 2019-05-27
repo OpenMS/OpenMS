@@ -13,10 +13,10 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
     # do not wrap BaseFeature, due to overloaded base methods
     # -> see Precursor.pxd
 
-    cdef cppclass ConsensusFeature(UniqueIdInterface,Peak2D):
+    cdef cppclass ConsensusFeature(UniqueIdInterface, BaseFeature):
         # wrap-inherits:
         #    UniqueIdInterface
-        #    Peak2D
+        #    BaseFeature
         #
         # wrap-doc:
         #   A consensus feature spanning multiple LC-MS/MS experiments.
@@ -42,38 +42,12 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         void insert(UInt64 map_idx, BaseFeature) nogil except +
         void insert(UInt64 map_idx, ConsensusFeature) nogil except +
 
-        float getQuality()  nogil except +
-        void setQuality(float q) nogil except +
-
-        float getWidth() nogil except +
-        void setWidth(float q) nogil except +
-
-        Int getCharge() nogil except +
-        void setCharge(Int q) nogil except +
-
         libcpp_vector[FeatureHandle] getFeatureList() nogil except +
 
         Size size() nogil except +
 
-        # returns a mutable reference to the PeptideIdentification vector
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
-        # sets the PeptideIdentification vector
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except +
-
         bool operator==(ConsensusFeature) nogil except +
         bool operator!=(ConsensusFeature) nogil except +
-
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-        void clearMetaInfo() nogil except +
 
         void addRatio(Ratio r) nogil except +
         void setRatios(libcpp_vector[Ratio] rs) nogil except +

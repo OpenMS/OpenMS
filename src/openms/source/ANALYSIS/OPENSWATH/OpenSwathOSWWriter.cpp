@@ -154,7 +154,7 @@ namespace OpenMS
     std::stringstream sql_run;
     sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
             // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
-            <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", '"
+            <<  static_cast<int64_t >(run_id_ & ~(1ULL << 63)) << ", '"
             << input_filename_ << "'); ";
 
     // Execute SQL insert statement
@@ -178,7 +178,25 @@ namespace OpenMS
 
     if (!feature.getMetaValue(score_name).isEmpty())
     {
-      separated_scores = feature.getMetaValue(score_name).toStringList();
+      if (feature.getMetaValue(score_name).valueType() == DataValue::STRING_LIST)
+      {
+        separated_scores = feature.getMetaValue(score_name).toStringList();
+      }
+      else if (feature.getMetaValue(score_name).valueType() == DataValue::INT_LIST)
+      {
+        std::vector<int> int_separated_scores = feature.getMetaValue(score_name).toIntList();
+        std::transform(int_separated_scores.begin(), int_separated_scores.end(), std::back_inserter(separated_scores), [](const int& num) { return String(num); });
+
+      }
+      else if (feature.getMetaValue(score_name).valueType() == DataValue::DOUBLE_LIST)
+      {
+        std::vector<double> double_separated_scores = feature.getMetaValue(score_name).toDoubleList();
+        std::transform(double_separated_scores.begin(), double_separated_scores.end(), std::back_inserter(separated_scores), [](const double& num) { return String(num); });
+      }
+      else
+      {
+        separated_scores.push_back(feature.getMetaValue(score_name).toString());
+      }
     }
 
     return separated_scores;
@@ -194,7 +212,7 @@ namespace OpenMS
     for (const auto& feature_it : output)
     {
       UInt64 uint64_feature_id = feature_it.getUniqueId();
-      int64_t feature_id = static_cast<int64_t >(uint64_feature_id & ~(1UL << 63)); // clear sign bit
+      int64_t feature_id = static_cast<int64_t >(uint64_feature_id & ~(1ULL << 63)); // clear sign bit
 
       for (const auto& sub_it : feature_it.getSubordinates())
       {
@@ -226,14 +244,19 @@ namespace OpenMS
         }
       }
 
+      // these will be missing if RT scoring is disabled
+      double norm_rt = -1, delta_rt = -1;
+      if (feature_it.metaValueExists("norm_RT") ) norm_rt = feature_it.getMetaValue("norm_RT");
+      if (feature_it.metaValueExists("delta_rt") ) delta_rt = feature_it.getMetaValue("delta_rt");
+
       sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES ("
                   << feature_id << ", "
                   // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
-                  <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", "
+                  <<  static_cast<int64_t >(run_id_ & ~(1ULL << 63)) << ", "
                   << id << ", "
                   << feature_it.getRT() << ", "
-                  << feature_it.getMetaValue("norm_RT") << ", "
-                  << feature_it.getMetaValue("delta_rt") << ", "
+                  << norm_rt << ", "
+                  << delta_rt << ", "
                   << feature_it.getMetaValue("leftWidth") << ", "
                   << feature_it.getMetaValue("rightWidth") << "); ";
 
