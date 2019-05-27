@@ -221,6 +221,9 @@ protected:
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawDeltas_(QPainter & painter, const PeakIndex & start, const PeakIndex & end);
 
+    /// annotate interesting peaks in visible area with m/z
+    void drawMZAtInterestingPeaks_(Size layer_index, QPainter& painter);
+
     /**
         @brief Changes visible area interval
 
