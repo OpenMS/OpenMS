@@ -48,6 +48,7 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QtConcurrent/QtConcurrent>
+#include <QtWidgets/QMessageBox>
 
 #include <QCoreApplication>
 
@@ -191,7 +192,8 @@ namespace OpenMS
     files_total_ = 0;
     files_written_ = 0;
 
-    bool dry_run = qobject_cast<TOPPASScene*>(scene())->isDryRun();
+    const TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+    bool dry_run = ts->isDryRun();
 
     int param_index_src = e->getSourceOutParam();
     int param_index_me = e->getTargetInParam();
@@ -283,7 +285,10 @@ namespace OpenMS
           {
             if (!QFile::remove(file_to))
             {
-              std::cerr << "Could not delete old output file " << String(file_to) << " before overwriting with new one." << std::endl;
+              String msg = "Error: Could not remove old output file '" + String(file_to) + "' for node '" + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' in preparation to write the new one. Please make sure the file is not open in other applications and try again.";
+              OPENMS_LOG_ERROR << msg << std::endl;
+              if (ts->isGUIMode()) QMessageBox::warning(nullptr, tr("File removing failed"), tr(msg.c_str()), QMessageBox::Ok);
+              else throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
             }
           }
 
@@ -305,7 +310,10 @@ namespace OpenMS
           }
           else
           {
-            OPENMS_LOG_ERROR << "Could not copy tmp output file " << String(file_from) << " to " << String(file_to) << std::endl;
+            String msg = "Error: Could not copy temporary output file '" + String(file_to) + "' for node '" + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' to " + String(file_to) + "'. Probably the old file still exists (see earlier errors).";
+            OPENMS_LOG_ERROR << msg << std::endl;
+            if (ts->isGUIMode()) QMessageBox::warning(nullptr, tr("File copy failed"), tr(msg.c_str()), QMessageBox::Ok);
+            else throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
           }
         }
         update(boundingRect()); // repaint

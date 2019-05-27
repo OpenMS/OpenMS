@@ -1337,13 +1337,15 @@ namespace OpenMS
       for (Size i = 0; i < getLayerCount(); ++i)
       {
         const SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
-        SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
+        SpectrumConstIteratorType tmp = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
         if (tmp != spectrum.end() && tmp->getIntensity() > local_max)
         {
           local_max = tmp->getIntensity();
         }
       }
-      snap_factors_[0] = overall_data_range_.maxPosition()[1] / local_max;
+
+      // add some margin on top of local maximum to be sure we are able to draw labels inside the view
+      snap_factors_[0] = overall_data_range_.maxPosition()[1] / (local_max * 1.15);
     }
     else
     {
