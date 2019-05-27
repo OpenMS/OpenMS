@@ -48,11 +48,6 @@ fi
 # we will use this in the CMake script
 export BUILD_NAME=${_build_name}
 
-# we need an X-server for building the documentation and some tests
-# so we start xvfb
-export DISPLAY=:99.0
-sh -e /etc/init.d/xvfb start
-
 # add third-party binaries (e.g. search engines) to PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/MyriMatch:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/OMSSA:$PATH
