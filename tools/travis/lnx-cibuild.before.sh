@@ -19,7 +19,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
   # Note: ensure that cmake uses the same python!
   pyenv versions
   # select the desired Python version
-  pyenv global 2.7
+  pyenv global 3.7
   which pip
   which python
 
