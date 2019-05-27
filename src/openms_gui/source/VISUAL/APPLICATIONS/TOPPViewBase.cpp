@@ -3572,11 +3572,11 @@ namespace OpenMS
     {
       return;
     }
-    w->xAxis()->setLegend(String("Ion Mobility [ms]"));
+    w->xAxis()->setLegend(SpectrumWidget::IM_MS_AXIS_TITLE);
 
     if (im_arr.getName().find("1002815") != std::string::npos)
     {
-      w->xAxis()->setLegend(String("Ion Mobility [1/K0]"));
+      w->xAxis()->setLegend(SpectrumWidget::IM_ONEKZERO_AXIS_TITLE);
       tmpe->setMetaValue("ion_mobility_unit", "1/K0");
     }
 

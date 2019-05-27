@@ -67,7 +67,7 @@ namespace OpenMS
   {
     Q_OBJECT
 
-public:
+public:    
     /// Default constructor
     Spectrum1DWidget(const Param & preferences, QWidget * parent = nullptr);
     ///Destructor

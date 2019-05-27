@@ -57,13 +57,13 @@ namespace OpenMS
     //set the label mode for the axes  - side effect
     setCanvas_(new Spectrum1DCanvas(preferences, this));
 
-    x_axis_->setLegend("m/z");
+    x_axis_->setLegend(SpectrumWidget::MZ_AXIS_TITLE);
     x_axis_->setAllowShortNumbers(false);
-    y_axis_->setLegend("Intensity");
+    y_axis_->setLegend(SpectrumWidget::INTENSITY_AXIS_TITLE);
     y_axis_->setAllowShortNumbers(true);
     y_axis_->setMinimumWidth(50);
 
-    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, "Intensity", this);
+    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, SpectrumWidget::INTENSITY_AXIS_TITLE, this);
     flipped_y_axis_->setInverseOrientation(true);
     flipped_y_axis_->setAllowShortNumbers(true);
     flipped_y_axis_->setMinimumWidth(50);
