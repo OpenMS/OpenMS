@@ -841,7 +841,7 @@ namespace OpenMS
       }
 
       // annotate interesting m/z's
-      drawMZAtInterestingPeaks_(i, *painter);
+      if (draw_interesting_MZs_) { drawMZAtInterestingPeaks_(i, *painter); }
 
       // draw all annotation items
       drawAnnotations(i, *painter);
@@ -1067,7 +1067,7 @@ namespace OpenMS
 
     // deisotope so we don't consider higher isotopic peaks
     Deisotoper::deisotopeAndSingleCharge(spec, 
-      50,     // tolerance
+      100,     // tolerance
       true,   // ppm 
       1, 6,   // min / max charge 
       false,  // keep only deisotoped
@@ -1480,6 +1480,7 @@ namespace OpenMS
       settings_menu->addAction("Style: Stick <--> Area");
       settings_menu->addAction("Intensity: Absolute <--> Percent");
       settings_menu->addAction("Show/hide ion ladder in ID view");
+      settings_menu->addAction("Show/hide automated m/z annotations");
       settings_menu->addSeparator();
       settings_menu->addAction("Preferences");
 
@@ -1524,6 +1525,10 @@ namespace OpenMS
         else if (result->text() == "Show/hide axis legends")
         {
           emit changeLegendVisibility();
+        }
+        else if (result->text() == "Show/hide automated m/z annotations")
+        {
+          setDrawInterestingMZs(!draw_interesting_MZs_);
         }
         else if (result->text() == "Layer" || result->text() == "Visible layer data")
         {
@@ -2152,9 +2157,24 @@ namespace OpenMS
     }
   }
 
+  void Spectrum1DCanvas::setDrawInterestingMZs(bool enable)
+  {    
+    if (draw_interesting_MZs_ != enable)
+    {
+      draw_interesting_MZs_ = enable; 
+      update_(OPENMS_PRETTY_FUNCTION); 
+    }
+  }
+
   bool Spectrum1DCanvas::isIonLadderVisible() const
   {
     return ion_ladder_visible_;
   }
+
+  bool Spectrum1DCanvas::isDrawInterestingMZs() const
+  {
+    return draw_interesting_MZs_;
+  }
+
 
 } //Namespace

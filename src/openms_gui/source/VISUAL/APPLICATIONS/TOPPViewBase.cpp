@@ -248,6 +248,7 @@ namespace OpenMS
     layer->addSeparator();
     layer->addAction("Show/hide grid lines", this, SLOT(toggleGridLines()), Qt::CTRL + Qt::Key_R);
     layer->addAction("Show/hide axis legends", this, SLOT(toggleAxisLegends()), Qt::CTRL + Qt::Key_L);
+    layer->addAction("Show/hide automated m/z annotations", this, SLOT(toggleInterestingMZs()));
     layer->addSeparator();
     layer->addAction("Preferences", this, SLOT(showPreferences()));
 
@@ -4025,6 +4026,13 @@ namespace OpenMS
   void TOPPViewBase::toggleAxisLegends()
   {
     getActiveSpectrumWidget()->showLegend(!getActiveSpectrumWidget()->isLegendShown());
+  }
+
+  void TOPPViewBase::toggleInterestingMZs()
+  {
+    auto w = getActive1DWidget();
+    if (w == nullptr) return;
+    w->canvas()->setDrawInterestingMZs(!w->canvas()->isDrawInterestingMZs());
   }
 
   void TOPPViewBase::showPreferences()

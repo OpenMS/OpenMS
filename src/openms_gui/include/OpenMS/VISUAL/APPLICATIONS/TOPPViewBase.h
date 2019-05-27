@@ -336,6 +336,8 @@ public slots:
     void toggleGridLines();
     /// Toggles the axis legends
     void toggleAxisLegends();
+    /// Toggles drawing of interesting MZs
+    void toggleInterestingMZs();
     /// Shows current layer preferences
     void showPreferences();
     /// dialog for inspecting database meta data

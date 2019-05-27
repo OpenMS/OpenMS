@@ -170,6 +170,12 @@ public:
     /// Actual painting takes place here
     void paint(QPainter * paint_device, QPaintEvent * e);
 
+    /// interesting (e.g., high-intensity) get live annotated with m/s's
+    void setDrawInterestingMZs(bool enable);
+
+    /// Return true if interesting m/s are annotated
+    bool isDrawInterestingMZs() const;
+
     // Show/hide ion ladder on top right corner (Identification view)
     void setIonLadderVisible(bool show);
 
@@ -287,6 +293,8 @@ protected:
     bool is_swapped_;
     /// whether the ion ladder is displayed on the top right corner in ID view
     bool ion_ladder_visible_;
+    /// annotate interesting peaks with m/z's
+    bool draw_interesting_MZs_;
 
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);
