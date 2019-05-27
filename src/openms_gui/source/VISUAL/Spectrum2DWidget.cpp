@@ -59,8 +59,8 @@ namespace OpenMS
     setCanvas_(new Spectrum2DCanvas(preferences, this), 1, 2);
 
     // add axes
-    x_axis_->setLegend("m/z");
-    y_axis_->setLegend("retention time [s]");
+    x_axis_->setLegend(SpectrumWidget::MZ_AXIS_TITLE);
+    y_axis_->setLegend(SpectrumWidget::RT_AXIS_TITLE);
     y_axis_->setMinimumWidth(50);
 
     // add projections
