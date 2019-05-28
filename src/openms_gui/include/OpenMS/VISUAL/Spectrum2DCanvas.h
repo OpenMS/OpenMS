@@ -278,7 +278,7 @@ protected:
     */
     inline Int precalculatedColorIndex_(float val, const MultiGradient& gradient, double snap_factor)
     {
-      float gradientPos;
+      float gradientPos = val;
       switch (intensity_mode_)
       {
       case IM_NONE:
