@@ -471,15 +471,14 @@ private:
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated at ProteinIdentification.");
       }
+      pep_id.setMetaValue("cf_id", group_id);
       String UID;
       if (filenames.size() == 1)
       {
-        pep_id.setMetaValue("cf_id", group_id);
         UID = filenames[0] + pep_id.getMetaValue("spectrum_reference").toString();
       }
       else if (pep_id.metaValueExists("map_index"))
       {
-        pep_id.setMetaValue("cf_id", group_id);
         UID = pep_id.getMetaValue("map_index").toString() + pep_id.getMetaValue("spectrum_reference").toString();
       }
       else
