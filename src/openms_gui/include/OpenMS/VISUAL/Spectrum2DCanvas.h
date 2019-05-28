@@ -296,9 +296,6 @@ protected:
       case IM_LOG:
         gradientPos = std::log(val + 1);
         break;
-
-      default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       return gradient.precalculatedColorIndex(gradientPos);
     }

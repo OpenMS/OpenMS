@@ -528,8 +528,8 @@ namespace OpenMS
     connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int, int, int)), identificationview_behavior_, SLOT(activate1DSpectrum(int, int, int)));
     connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
-    views_tabwidget_->addTab(spectra_view_widget_, "Scans");
-    views_tabwidget_->addTab(spectra_identification_view_widget_, "Identifications");
+    views_tabwidget_->addTab(spectra_view_widget_, spectra_view_widget_->objectName());
+    views_tabwidget_->addTab(spectra_identification_view_widget_, spectra_identification_view_widget_->objectName());
     views_tabwidget_->setTabEnabled(0, false);
     views_tabwidget_->setTabEnabled(1, false);
 
@@ -2081,14 +2081,14 @@ namespace OpenMS
   void TOPPViewBase::viewChanged(int tab_index)
   {
     // set new behavior
-    if (views_tabwidget_->tabText(tab_index) == "Scan view")
+    if (views_tabwidget_->tabText(tab_index) == spectra_view_widget_->objectName())
     {
       identificationview_behavior_->deactivateBehavior(); // finalize old behavior
       layer_dock_widget_->show();
       filter_dock_widget_->show();
       spectraview_behavior_->activateBehavior(); // initialize new behavior
     }
-    else if (views_tabwidget_->tabText(tab_index) == "Identification view")
+    else if (views_tabwidget_->tabText(tab_index) == spectra_identification_view_widget_->objectName())
     {
       spectraview_behavior_->deactivateBehavior();
       layer_dock_widget_->show();
