@@ -58,7 +58,7 @@ addons:
          - coinor-libclp-dev
          - coinor-libosi-dev
          - coinor-libvol-dev
-         - libpcre3-dev         
+         - libpcre3-dev
          - mono-complete
          - mono-devel
          - mono-runtime
