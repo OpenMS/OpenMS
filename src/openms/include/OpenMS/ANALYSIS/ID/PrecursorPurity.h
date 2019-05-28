@@ -71,7 +71,7 @@ namespace OpenMS
       Size residual_peak_count = 0;
     };
 
-    /* @brief compute precursor purity metrics for each MS2 spectrum in a PeakMap
+    /** @brief compute precursor purity metrics for each MS2 spectrum in a PeakMap
        This is the main function of this class. See class description.
 
      * @param spectra A PeakMap containing MS1 and MS2 spectra in order of acquisition or measurement. The first spectrum must be an MS1.
@@ -80,7 +80,7 @@ namespace OpenMS
     */
     static std::vector<PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
 
-    /* @brief compute precursor purity metrics for one MS2 precursor
+    /** @brief compute precursor purity metrics for one MS2 precursor
 
        @note This function is implemented in a general way and can also be used for e.g. MS3 precursor isolation windows in MS2 spectra
 

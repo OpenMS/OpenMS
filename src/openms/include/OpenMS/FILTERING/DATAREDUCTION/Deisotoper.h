@@ -47,7 +47,7 @@ class OPENMS_DLLAPI Deisotoper
 {
   public:
 
-  /* @brief Detect isotopic clusters in a fragment spectrum.
+  /** @brief Detect isotopic clusters in a fragment spectrum.
 
     Deisotoping is done in-place and if @p annotate_charge is true,
     an additional IntegerDataArray "charge" will be appended.
