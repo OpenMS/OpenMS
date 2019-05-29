@@ -139,17 +139,12 @@ namespace OpenMS
     watcher_(nullptr),
     watcher_msgbox_(false)
   {
-
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
+    setMinimumSize(400, 400); // prevents errors caused by too small width, height values
+    setAcceptDrops(true); // enable drag-and-drop
 
-    //prevents errors caused by too small width, height values
-    setMinimumSize(400, 400);
-
-    //enable drag-and-drop
-    setAcceptDrops(true);
-
-    //by default, linked zooming is turned off
+    // by default, linked zooming is turned off
     zoom_together_ = false;
 
     // get geometry of first screen
@@ -480,8 +475,8 @@ namespace OpenMS
     connect(dm_ident_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     //################## Dock widgets #################
-    // This creates the three default dock widgets on the right (Layers, Views,
-    // Filters) and the Log dock widget on the bottom (by default hidden).
+    // This creates the dock widgets: 
+    // Layers, Views, Filters, and the Log dock widget on the bottom (by default hidden).
 
     // layer dock widget
     layer_dock_widget_ = new QDockWidget("Layers", this);
@@ -503,7 +498,7 @@ namespace OpenMS
     // Views dock widget
     views_dockwidget_ = new QDockWidget("Views", this);
     views_dockwidget_->setObjectName("views_dock_widget");
-    addDockWidget(Qt::RightDockWidgetArea, views_dockwidget_);
+    addDockWidget(Qt::BottomDockWidgetArea, views_dockwidget_);
     views_tabwidget_ = new QTabWidget(views_dockwidget_);
     views_dockwidget_->setWidget(views_tabwidget_);
 
@@ -543,7 +538,7 @@ namespace OpenMS
     // filter dock widget
     filter_dock_widget_ = new QDockWidget("Data filters", this);
     filter_dock_widget_->setObjectName("filter_dock_widget");
-    addDockWidget(Qt::RightDockWidgetArea, filter_dock_widget_);
+    addDockWidget(Qt::BottomDockWidgetArea, filter_dock_widget_);
     QWidget* tmp_widget = new QWidget(); // dummy widget as QDockWidget takes only one widget
     filter_dock_widget_->setWidget(tmp_widget);
 
@@ -560,7 +555,6 @@ namespace OpenMS
     filters_check_box_ = new QCheckBox("Enable all filters", tmp_widget);
     connect(filters_check_box_, SIGNAL(toggled(bool)), this, SLOT(layerFilterVisibilityChange(bool)));
     vbl->addWidget(filters_check_box_);
-
     windows->addAction(filter_dock_widget_->toggleViewAction());
 
     // log window
@@ -572,8 +566,11 @@ namespace OpenMS
     log_->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(log_, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(logContextMenu(const QPoint &)));
     log_bar->setWidget(log_);
-    log_bar->hide();
     windows->addAction(log_bar->toggleViewAction());
+
+    // tabify dock widgets so they don't fill up the whole space
+    QMainWindow::tabifyDockWidget(filter_dock_widget_, log_bar);
+    QMainWindow::tabifyDockWidget(log_bar, views_dockwidget_);
 
     //################## DEFAULTS #################
     initializeDefaultParameters_();
@@ -581,15 +578,16 @@ namespace OpenMS
     // store defaults in param_
     defaultsToParam_();
 
-    //load param file
+    // load param file
     loadPreferences();
 
-    //set current path
+    // set current path
     current_path_ = param_.getValue("preferences:default_path");
 
-    //update the menu
+    // update the menu
     updateMenu();
 
+    // restore window positions
     QSettings settings("OpenMS", "TOPPView");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
@@ -2735,10 +2733,7 @@ namespace OpenMS
     // compose default ini file path
     String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
 
-    if (filename == "")
-    {
-      filename = default_ini_file;
-    }
+    if (filename == "") { filename = default_ini_file; }
 
     // load preferences, if file exists
     if (File::exists(filename))
