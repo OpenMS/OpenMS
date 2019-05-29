@@ -112,7 +112,7 @@ namespace OpenSwath
       }
 
       // Note: this will pick up also non-peptide signals; filtering by averagine might yield better results
-      Deisotoper::deisotopeAndSingleCharge(tmp, this->decon_ms1_mz_tol_, false, 1, 10, true, 3, 10, false, true);
+      Deisotoper::deisotopeAndSingleCharge(tmp, this->decon_ms1_mz_tol_, false, "decreasing", 1, 10, true, 3, 10, false, true);
       if (tmp.getIntegerDataArrays().empty())
       {
         throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray must not be empty!");

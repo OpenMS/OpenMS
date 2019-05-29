@@ -444,6 +444,7 @@ protected:
       // deisotope
       Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+                                         "decreasing",
                                          1, 3, 
                                          false, 
                                          2, 10, 
