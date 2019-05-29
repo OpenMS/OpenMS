@@ -487,16 +487,16 @@ namespace OpenMS
     layer_dock_widget_ = new QDockWidget("Layers", this);
     layer_dock_widget_->setObjectName("layer_dock_widget");
     addDockWidget(Qt::RightDockWidgetArea, layer_dock_widget_);
-    layer_manager_ = new QListWidget(layer_dock_widget_);
-    layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the available layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.<BR>Dragging a layer to the tab bar copies the layer.<BR>Double-clicking a layer open its preferences.<BR>You can use the 'PageUp' and 'PageDown' buttons to change the selected layer.");
+    layers_view_ = new QListWidget(layer_dock_widget_);
+    layers_view_->setWhatsThis("Layer bar<BR><BR>Here the available layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.<BR>Dragging a layer to the tab bar copies the layer.<BR>Double-clicking a layer open its preferences.<BR>You can use the 'PageUp' and 'PageDown' buttons to change the selected layer.");
 
-    layer_dock_widget_->setWidget(layer_manager_);
-    layer_manager_->setContextMenuPolicy(Qt::CustomContextMenu);
-    layer_manager_->setDragEnabled(true);
-    connect(layer_manager_, SIGNAL(currentRowChanged(int)), this, SLOT(layerSelectionChange(int)));
-    connect(layer_manager_, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(layerContextMenu(const QPoint &)));
-    connect(layer_manager_, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(layerVisibilityChange(QListWidgetItem*)));
-    connect(layer_manager_, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(layerEdit(QListWidgetItem*)));
+    layer_dock_widget_->setWidget(layers_view_);
+    layers_view_->setContextMenuPolicy(Qt::CustomContextMenu);
+    layers_view_->setDragEnabled(true);
+    connect(layers_view_, SIGNAL(currentRowChanged(int)), this, SLOT(layerSelectionChange(int)));
+    connect(layers_view_, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(layerContextMenu(const QPoint &)));
+    connect(layers_view_, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(layerVisibilityChange(QListWidgetItem*)));
+    connect(layers_view_, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(layerEdit(QListWidgetItem*)));
 
     windows->addAction(layer_dock_widget_->toggleViewAction());
 
@@ -1980,22 +1980,20 @@ namespace OpenMS
   void TOPPViewBase::updateLayerBar()
   {
     // reset
-    layer_manager_->clear();
+    layers_view_->clear();
     SpectrumCanvas* cc = getActiveCanvas();
-    if (cc == nullptr)
-    {
-      return;
-    }
+    if (cc == nullptr) { return; }
 
     // determine if this is a 1D view (for text color)
     bool is_1d_view = (dynamic_cast<Spectrum1DCanvas*>(cc) != nullptr);
 
-    layer_manager_->blockSignals(true);
+    layers_view_->blockSignals(true);
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
       const LayerData& layer = cc->getLayer(i);
+
       // add item
-      QListWidgetItem* item = new QListWidgetItem(layer_manager_);
+      QListWidgetItem* item = new QListWidgetItem(layers_view_);
       QString name = layer.name.toQString();
       if (layer.flipped)
       {
@@ -2004,12 +2002,33 @@ namespace OpenMS
       item->setText(name);
       item->setToolTip(layer.filename.toQString());
 
-      if (is_1d_view && cc->getLayerCount() > 1)
-      {
-        QPixmap icon(7, 7);
-        icon.fill(QColor(layer.param.getValue("peak_color").toQString()));
-        item->setIcon(icon);
+      if (is_1d_view)
+      { 
+        if (cc->getLayerCount() > 1)
+        {
+          QPixmap icon(7, 7);
+          icon.fill(QColor(layer.param.getValue("peak_color").toQString()));
+          item->setIcon(icon);
+        }
       }
+      else
+      {  // 2D/3D map view
+        switch (layer.type)
+        {
+         case LayerData::DT_PEAK:
+           item->setIcon(QIcon(":/peaks.png"));
+  	 break;
+         case LayerData::DT_FEATURE:
+           item->setIcon(QIcon(":/convexhull.png"));
+         break;
+         case LayerData::DT_CONSENSUS:
+           item->setIcon(QIcon(":/elements.png"));
+         break;
+         default:
+         break;
+        }
+      }
+
       if (layer.visible)
       {
         item->setCheckState(Qt::Checked);
@@ -2025,16 +2044,16 @@ namespace OpenMS
       // highlight active item
       if (i == cc->activeLayerIndex())
       {
-        layer_manager_->setCurrentItem(item);
+        layers_view_->setCurrentItem(item);
       }
     }
-    layer_manager_->blockSignals(false);
+    layers_view_->blockSignals(false);
   }
 
   void TOPPViewBase::updateViewBar()
   {
     SpectrumCanvas* cc = getActiveCanvas();
-    int layer_row = layer_manager_->currentRow();
+    int layer_row = layers_view_->currentRow();
 
     if (layer_row == -1 || cc == nullptr)
     {
@@ -2108,7 +2127,7 @@ namespace OpenMS
     updateViewBar();
   }
 
-    void TOPPViewBase::viewTabwidgetDoubleClicked(int tab_index)
+  void TOPPViewBase::viewTabwidgetDoubleClicked(int tab_index)
   {
     if (!getActiveSpectrumWidget()) return;
 
@@ -2145,12 +2164,12 @@ namespace OpenMS
 
   void TOPPViewBase::layerContextMenu(const QPoint& pos)
   {
-    QListWidgetItem* item = layer_manager_->itemAt(pos);
+    QListWidgetItem* item = layers_view_->itemAt(pos);
     if (item)
     {
       QAction* new_action = nullptr;
-      int layer = layer_manager_->row(item);
-      QMenu* context_menu = new QMenu(layer_manager_);
+      int layer = layers_view_->row(item);
+      QMenu* context_menu = new QMenu(layers_view_);
       context_menu->addAction("Rename");
       context_menu->addAction("Delete");
 
@@ -2170,7 +2189,7 @@ namespace OpenMS
       context_menu->addSeparator();
       context_menu->addAction("Preferences");
 
-      QAction* selected = context_menu->exec(layer_manager_->mapToGlobal(pos));
+      QAction* selected = context_menu->exec(layers_view_->mapToGlobal(pos));
       //delete layer
       if (selected != nullptr && selected->text() == "Delete")
       {
@@ -2355,7 +2374,7 @@ namespace OpenMS
   {
     int layer;
     bool visible;
-    layer = layer_manager_->row(item);
+    layer = layers_view_->row(item);
     visible = getActiveCanvas()->getLayer(layer).visible;
 
     if (item->checkState() == Qt::Unchecked && visible)
@@ -4090,7 +4109,7 @@ namespace OpenMS
       if (id != -1)
         new_id = id;
 
-      if (source == layer_manager_)
+      if (source == layers_view_)
       {
         // only the selected row can be dragged => the source layer is the selected layer
         LayerData& layer = getActiveCanvas()->getCurrentLayer();
