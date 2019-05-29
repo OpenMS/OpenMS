@@ -441,7 +441,7 @@ namespace OpenMS
                                                             top_ions, bottom_ions);
                   widget_1D->canvas()->setTextBox(diagram.toQString());
                 }
-                catch (Exception::ParseError) // label doesn't contain have a valid seq.
+                catch (Exception::ParseError&) // label doesn't contain have a valid seq.
                 {
                 }
               }

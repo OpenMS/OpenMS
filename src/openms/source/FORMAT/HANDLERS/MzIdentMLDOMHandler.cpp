@@ -2572,18 +2572,22 @@ namespace OpenMS
                     {
                       // n-terminal
                       String residue_name = ".[+" + mod + "]";
+                      String residue_id = ".n[" + mod + "]";
 
                       // Check if it already exists, if not create new modification, transfer
                       // ownership to ModDB
-                      if (!mod_db->has(residue_name))
+                      if (!mod_db->has(residue_id))
                       {
                         ResidueModification * new_mod = new ResidueModification();
-                        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
+                        new_mod->setMonoMass(mass_delta + Residue::getInternalToNTerm().getMonoWeight());
                         new_mod->setTermSpecificity(ResidueModification::N_TERM);
                         mod_db->addModification(new_mod);
                       }
-                      aas.setNTerminalModification(residue_name);
+
+                      aas.setNTerminalModification(residue_id);
                       cvp = cvp->getNextElementSibling();
                       continue;
                     }
@@ -2591,18 +2595,21 @@ namespace OpenMS
                     {
                       // c-terminal
                       String residue_name = ".[" + mod + "]";
+                      String residue_id = ".c[" + mod + "]";
 
                       // Check if it already exists, if not create new modification, transfer
                       // ownership to ModDB
                       if (!mod_db->has(residue_name))
                       {
                         ResidueModification * new_mod = new ResidueModification();
-                        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
+                        new_mod->setMonoMass(mass_delta + Residue::getInternalToCTerm().getMonoWeight());
                         new_mod->setTermSpecificity(ResidueModification::C_TERM);
                         mod_db->addModification(new_mod);
                       }
-                      aas.setCTerminalModification(residue_name);
+                      aas.setCTerminalModification(residue_id);
                       cvp = cvp->getNextElementSibling();
                       continue;
                     }
@@ -2610,14 +2617,19 @@ namespace OpenMS
                     {
                       // internal modification
                       const Residue& residue = aas[index-1];
-                      // String residue_name = residue.getOneLetterCode() + "[" + mod + "]";
-                      String residue_name = "[" + mod + "]";
+                      String residue_name = residue.getOneLetterCode() + "[" + mod + "]"; // e.g. N[12345.6]
+                      String modification_name = "[" + mod + "]";
 
                       if (!mod_db->has(residue_name))
                       {
                         // create new modification
                         ResidueModification * new_mod = new ResidueModification();
                         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullName(modification_name); // display name
+
+                        // We will set origin to make sure the same modifcation will be used
+                        // for the same AA
+                        new_mod->setOrigin(residue.getOneLetterCode()[0]);
 
                         // We cannot set origin if we want to use the same modification name
                         // also at other AA (and since we have no information here, it is safer

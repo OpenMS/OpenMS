@@ -191,7 +191,7 @@ protected:
     setValidStrings_("in_silico_digestion:enzyme", all_enzymes);
     registerStringOption_("in_silico_digestion:specificity", "<specificity>", specificity[EnzymaticDigestion::SPEC_FULL], "Specificity of the filter", false);
     setValidStrings_("in_silico_digestion:specificity", specificity);
-    registerIntOption_("in_silico_digestion:missed_cleavages", "<integer>", -1, 
+    registerIntOption_("in_silico_digestion:missed_cleavages", "<integer>", -1,
                        "range of allowed missed cleavages in the peptide sequences\n"
                        "By default missed cleavages are ignored", false);
     setMinInt_("in_silico_digestion:missed_cleavages", -1);
@@ -266,9 +266,9 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt"))
+    if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt" || meta_info[1] == "ne"))
     {
-      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid second argument. Expected one of 'lt', 'eq', 'gt' or 'ne'. Got '" + meta_info[1] + "'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -632,7 +632,7 @@ protected:
     {
       auto checkMVs = [this, &meta_info](PeptideHit& ph)->bool
       {
-        if (!ph.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test 
+        if (!ph.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test
         DataValue v_data = ph.getMetaValue(meta_info[0]);
         DataValue v_user;
         switch (v_data.valueType())
@@ -653,7 +653,7 @@ protected:
         else if (meta_info[1] == "eq")
         {
           return !(v_data == v_user);
-        } 
+        }
         else if (meta_info[1] == "gt")
         {
           return !(v_data > v_user);
@@ -661,7 +661,7 @@ protected:
         else if (meta_info[1] == "ne")
         {
           return (v_data == v_user);
-        }         
+        }
         else
         {
           writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
