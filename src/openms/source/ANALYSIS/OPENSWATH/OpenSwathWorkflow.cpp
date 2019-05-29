@@ -469,6 +469,41 @@ namespace OpenMS
       writeOutFeaturesAndChroms_(chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
     }
 
+    std::vector<int> prm_map;
+    if (prm_)
+    {
+      // Here we deal with overlapping PRM / DIA windows: we only want to extract
+      // each peptide from a single window and we assume that PRM windows are
+      // centered around the target peptide. We therefore select for each peptide
+      // the best-matching PRM / DIA window:
+      prm_map.resize(transition_exp.transitions.size(), -1);
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      {
+        for (Size k = 0; k < transition_exp.transitions.size(); k++)
+        {
+          const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+
+          // If the transition falls inside the current PRM / DIA window, check
+          // if the window is potentially a better match for extraction than
+          // the one previously stored in the map:
+          if (swath_maps[i].lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < swath_maps[i].upper &&
+              std::fabs(swath_maps[i].upper - tr.getPrecursorMZ()) >= cp.min_upper_edge_dist)
+          {
+
+            if (prm_map[k] == -1) prm_map[k] = i;
+            if (
+                std::fabs(swath_maps[ prm_map[k] ].center - tr.getPrecursorMZ() ) > 
+                std::fabs(swath_maps[ i ].center - tr.getPrecursorMZ() ) )
+            {
+              // current PRM / DIA window "i" is a better match
+              prm_map[k] = i;
+            }
+
+          }
+        }
+      }
+    }
+
     // (iii) Perform extraction and scoring of fragment ion chromatograms (MS2)
     // We set dynamic scheduling such that the maps are worked on in the order
     // in which they were given to the program / acquired. This gives much
@@ -492,8 +527,47 @@ namespace OpenMS
 
         // Step 1: select which transitions to extract (proceed in batches)
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
-        OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
-            cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
+        if (!prm_)
+        {
+          // Step 1.1: select transitions matching the window
+          OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
+              cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
+        }
+        else
+        {
+          // Step 1.2: select transitions based on matching PRM window (best window)
+          std::set<std::string> matching_compounds;
+          for (Size k = 0; k < prm_map.size(); k++)
+          {
+            if (prm_map[k] == i)
+            {
+               const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+               transition_exp_used_all.transitions.push_back(tr);
+               matching_compounds.insert(tr.getPeptideRef());
+            }
+          }
+
+          std::set<std::string> matching_proteins;
+          for (Size i = 0; i < transition_exp.compounds.size(); i++)
+          {
+            if (matching_compounds.find(transition_exp.compounds[i].id) != matching_compounds.end())
+            {
+              transition_exp_used_all.compounds.push_back( transition_exp.compounds[i] );
+              for (Size j = 0; j < transition_exp.compounds[i].protein_refs.size(); j++)
+              {
+                matching_proteins.insert(transition_exp.compounds[i].protein_refs[j]);
+              }
+            }
+          }
+          for (Size i = 0; i < transition_exp.proteins.size(); i++)
+          {
+            if (matching_proteins.find(transition_exp.proteins[i].id) != matching_proteins.end())
+            {
+              transition_exp_used_all.proteins.push_back( transition_exp.proteins[i] );
+            }
+          }
+        }
+
         if (transition_exp_used_all.getTransitions().size() > 0) // skip if no transitions found
         {
 
@@ -742,6 +816,11 @@ namespace OpenMS
     // share a single filestream and call seek on it, chaos will ensue).
     if (use_ms1_traces_)
     {
+      if (ms1_map_ == nullptr) 
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Error, attempted to use MS1 traces, but no MS1 map was provided." );
+      }
       OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
       featureFinder.setMS1Map( threadsafe_ms1 );
     }

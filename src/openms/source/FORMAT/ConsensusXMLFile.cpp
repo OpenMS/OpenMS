@@ -342,22 +342,24 @@ namespace OpenMS
       prot_id_.setSearchEngine(attributeAsString_(attributes, "search_engine"));
       prot_id_.setSearchEngineVersion(attributeAsString_(attributes, "search_engine_version"));
       prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
-      //set identifier
-      String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date");
-      String id = attributeAsString_(attributes, "id");
+      // set identifier
+      // always generate a unique id to link a ProteinIdentification and the corresponding PeptideIdentifications
+      // , since any FeatureLinker might just carelessly concatenate PepIDs from different FeatureMaps.
+      // If these FeatureMaps have identical identifiers (SearchEngine time + type match exactly), then ALL PepIDs would be falsely attributed
+      // to a single ProtID...
 
-      if (!id_identifier_.has(id))
-      {
-        prot_id_.setIdentifier(identifier);
-        id_identifier_[id] = identifier;
-      }
-      else
-      {
-        warning(LOAD, "Non-unique identifier for IdentificationRun encountered '" + identifier + "'. Generating a unique one.");
-        UInt64 uid = UniqueIdGenerator::getUniqueId();
-        identifier = identifier + String(uid);
-        prot_id_.setIdentifier(identifier);
-        id_identifier_[id] = identifier;
+      String id = attributeAsString_(attributes, "id");
+      while (true)
+      { // loop until the identifier is unique (should be on the first iteration -- very(!) unlikely it will not be unique)
+        // Note: technically, it would be preferrable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
+        String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
+
+        if (!id_identifier_.has(id))
+        {
+          prot_id_.setIdentifier(identifier);
+          id_identifier_[id] = identifier;
+          break;
+        }
       }
     }
     else if (tag == "SearchParameters")
@@ -731,6 +733,9 @@ namespace OpenMS
 
     // write identification run
     UInt prot_count = 0;
+
+    // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
+    checkUniqueIdentifiers_(consensus_map.getProteinIdentifications());
 
     for (UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i)
     {

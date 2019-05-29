@@ -111,6 +111,7 @@ namespace OpenMS
       NOVOR,              ///< Novor custom parameter file
       XQUESTXML,          ///< xQuest XML file format for protein-protein cross-link identifications (.xquest.xml)
       JSON,               ///< JavaScript Object Notation file (.json)
+      RAW,                ///< Thermo Raw File (.raw)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

@@ -3738,13 +3738,24 @@ def testBase64():
     b = pyopenms.Base64()
     out = pyopenms.String()
     inp =  [1.0, 2.0, 3.0]
-    b.encode(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
+    b.encode64(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
     res = out.toString()
     assert len(res) != 0
     assert res != ""
 
     convBack = []
-    b.decode(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
+    b.decode64(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
+    assert convBack == inp, convBack
+
+    # For 32 bit
+    out = pyopenms.String()
+    b.encode32(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
+    res = out.toString()
+    assert len(res) != 0
+    assert res != ""
+
+    convBack = []
+    b.decode32(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
     assert convBack == inp, convBack
 
 @report

@@ -79,6 +79,9 @@ public:
       LM_XPERCENT_YPERCENT
     };
 
+    /// extra empty margin added on top to ensure annotations and 100% y-axis label are properly drawn
+    constexpr static double TOP_MARGIN{1.09}; 
+
     /// Default constructor
     Spectrum1DCanvas(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor
@@ -170,6 +173,12 @@ public:
     /// Actual painting takes place here
     void paint(QPainter * paint_device, QPaintEvent * e);
 
+    /// interesting (e.g., high-intensity) get live annotated with m/s's
+    void setDrawInterestingMZs(bool enable);
+
+    /// Return true if interesting m/s are annotated
+    bool isDrawInterestingMZs() const;
+
     // Show/hide ion ladder on top right corner (Identification view)
     void setIonLadderVisible(bool show);
 
@@ -220,6 +229,9 @@ protected:
     void drawCoordinates_(QPainter & painter, const PeakIndex & peak);
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawDeltas_(QPainter & painter, const PeakIndex & start, const PeakIndex & end);
+
+    /// annotate interesting peaks in visible area with m/z
+    void drawMZAtInterestingPeaks_(Size layer_index, QPainter& painter);
 
     /**
         @brief Changes visible area interval
@@ -284,6 +296,8 @@ protected:
     bool is_swapped_;
     /// whether the ion ladder is displayed on the top right corner in ID view
     bool ion_ladder_visible_;
+    /// annotate interesting peaks with m/z's
+    bool draw_interesting_MZs_;
 
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);

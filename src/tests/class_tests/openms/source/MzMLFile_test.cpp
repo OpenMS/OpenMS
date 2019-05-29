@@ -858,9 +858,9 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   }
   //Testing corrupted files
   PeakMap exp_cor;
-  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor))
+  TEST_EXCEPTION(Exception::ParseError&,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor))
   PeakMap exp_cor2;
-  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2))
+  TEST_EXCEPTION(Exception::ParseError&,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2))
 
   {
     //Testing automated sorting of files

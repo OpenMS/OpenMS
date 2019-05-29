@@ -47,11 +47,70 @@ namespace OpenMS
 {
 
   /**
-   * @brief Class to write out an OpenSwath OSW SQLite output (PyProphet input)
-   *
-   * The class can take a FeatureMap and create a set of string from it
-   * suitable for output to OSW using the prepareLine function.
-   *
+    @brief Class to write out an OpenSwath OSW SQLite output (PyProphet input).
+
+    The class can take a FeatureMap and create a set of string from it
+    suitable for output to OSW using the prepareLine function. The SQL data is
+    directly linked to the PQP file format described in the TransitionPQPFile class.
+    See also OpenSwathTSVWriter for another output format.
+
+    The file format has the following tables:
+
+      <table>
+        <tr> <th BGCOLOR="#EBEBEB" colspan=3>RUN</th> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">ID</td> <td>INT</td> <td> Primary Key (run id)</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">FILENAME</td> <td>TEXT</td> <td> Original filename associated with the run </td> </tr>
+      </table>
+
+      <table>
+        <tr> <th BGCOLOR="#EBEBEB" colspan=3>FEATURE</th> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">ID</td> <td>INT</td> <td> Primary Key (feature id)</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">RUN_ID</td> <td>INT</td> <td> Foreign Key (RUN.ID)</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">PRECURSOR_ID</td> <td>INT</td> <td> Foreign Key (TransitionPQPFile PRECURSOR.ID) </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">EXP_RT</td> <td>REAL</td> <td>Experimental RT (retention time) of the feature </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">NORM_RT</td> <td>REAL</td> <td>Normalized RT (retention time) of the feature. The position of the peak group in the normalized retention time space (e.g. fx(RT) where fx describes the transformation fx)</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">DELTA_RT</td> <td>REAL</td> <td>The difference in retention between expected retention time of the assay and the measured feature retention time (EXP_RT) </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">LEFT_WIDTH</td> <td>REAL</td> <td>Retention time start of the peak (left width) in seconds</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">RIGHT_WIDTH</td> <td>REAL</td> <td>Retention time end of the peak (right width) in seconds</td> </tr>
+      </table>
+
+      <table>
+        <tr> <th BGCOLOR="#EBEBEB" colspan=3>FEATURE_MS1</th> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">FEATURE_ID</td> <td>INT</td> <td>Foreign Key (FEATURE.ID)</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">AREA_INTENSITY</td> <td>REAL</td> <td>%Precursor intensity (area) </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">APEX_INTENSITY</td> <td>REAL</td> <td>%Precursor intensity (apex) </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">VAR_...</td> <td>REAL</td> <td>%Precursor score used in pyProphet </td> </tr>
+      </table>
+
+      <table>
+        <tr> <th BGCOLOR="#EBEBEB" colspan=3>FEATURE_MS2</th> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">FEATURE_ID</td> <td>INT</td> <td> Foreign Key (FEATURE.ID)</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">AREA_INTENSITY</td> <td>REAL</td> <td>Summed fragment ion intensity (area) </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">TOTAL_AREA_INTENSITY </td> <td>REAL</td> <td>Summed total XIC of the whole chromatogram </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">APEX_INTENSITY</td> <td>REAL</td> <td>Summed fragment ion intensity (apex) </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">TOTAL_MI</td> <td>REAL</td> <td>Total mutual information (MI)  </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">VAR_...</td> <td>REAL</td> <td>Fragment ion score used in pyProphet </td> </tr>
+      </table>
+
+      <table>
+        <tr> <th BGCOLOR="#EBEBEB" colspan=3>FEATURE_PRECURSOR</th> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">FEATURE_ID</td> <td>INT</td> <td> Foreign Key (FEATURE.ID)</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">ISOTOPE</td> <td>INT</td> <td>Isotope identifier </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">AREA_INTENSITY</td> <td>REAL</td> <td>%Precursor isotope ion intensity (area) </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">APEX_INTENSITY</td> <td>REAL</td> <td>%Precursor isotope ion intensity (apex) </td> </tr>
+      </table>
+
+      <table>
+        <tr> <th BGCOLOR="#EBEBEB" colspan=3>FEATURE_TRANSITION</th> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">FEATURE_ID</td> <td>INT</td> <td> Foreign Key (FEATURE.ID)</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">TRANSITION_ID</td> <td>INT</td> <td> Foreign Key (transition identifier)</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">AREA_INTENSITY</td> <td>REAL</td> <td>Fragment ion intensity (area) </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">TOTAL_AREA_INTENSITY </td> <td>REAL</td> <td>Total XIC of the whole chromatogram </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">APEX_INTENSITY</td> <td>REAL</td> <td>Fragment ion intensity (apex) </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">TOTAL_MI</td> <td>REAL</td> <td>Total mutual information (MI)  </td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">VAR_...</td> <td>REAL</td> <td>Fragment ion score used in pyProphet  </td> </tr>
+      </table>
+
    */
   class OPENMS_DLLAPI OpenSwathOSWWriter
   {

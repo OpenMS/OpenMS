@@ -120,11 +120,11 @@ START_SECTION((void queryByMZ(const double& observed_mz, const Int& observed_cha
   std::vector<AccurateMassSearchResult> hmdb_results_pos;
 
   // test 'ams' not initialized
-  TEST_EXCEPTION(Exception::IllegalArgument, ams.queryByMZ(1234, 1, "positive", hmdb_results_pos));
+  TEST_EXCEPTION(Exception::IllegalArgument&, ams.queryByMZ(1234, 1, "positive", hmdb_results_pos));
   ams.init();
 
   // test invalid scan polarity
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.queryByMZ(1234, 1, "this_is_an_invalid_ionmode", hmdb_results_pos));
+  TEST_EXCEPTION(Exception::InvalidParameter&, ams.queryByMZ(1234, 1, "this_is_an_invalid_ionmode", hmdb_results_pos));
 
   // test the actual query
   {
@@ -204,7 +204,7 @@ START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_i
   std::vector<AccurateMassSearchResult> results;
   
   // invalid scan_polarity
-  TEST_EXCEPTION(Exception::InvalidParameter, ams_feat_test.queryByFeature(test_feat, 0, "invalid_scan_polatority", results));
+  TEST_EXCEPTION(Exception::InvalidParameter&, ams_feat_test.queryByFeature(test_feat, 0, "invalid_scan_polatority", results));
   
   // actual test
   ams_feat_test.queryByFeature(test_feat, 0, "positive", results);
@@ -262,7 +262,7 @@ START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const
   
   std::vector<AccurateMassSearchResult> results;
 
-  TEST_EXCEPTION(Exception::InvalidParameter, ams_feat_test.queryByConsensusFeature(cons_feat, 0, 3, "blabla", results)); // invalid scan_polarity
+  TEST_EXCEPTION(Exception::InvalidParameter&, ams_feat_test.queryByConsensusFeature(cons_feat, 0, 3, "blabla", results)); // invalid scan_polarity
   ams_feat_test.queryByConsensusFeature(cons_feat, 0, 3, "positive", results);
 
   TEST_EQUAL(results.size(), 3)
@@ -380,9 +380,9 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   ams.setParameters(p);
   ams.init();
 
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' has no scan_polarity meta value
+  TEST_EXCEPTION(Exception::InvalidParameter&, ams.run(fm_p, mzt)); // 'fm_p' has no scan_polarity meta value
   fm_p[0].setMetaValue("scan_polarity", "something;somethingelse");
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' scan_polarity meta value wrong
+  TEST_EXCEPTION(Exception::InvalidParameter&, ams.run(fm_p, mzt)); // 'fm_p' scan_polarity meta value wrong
 
   fm_p[0].setMetaValue("scan_polarity", "positive"); // should run ok
   ams.run(fm_p, mzt);

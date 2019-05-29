@@ -1909,7 +1909,7 @@ namespace OpenMS
           break;
         }
       }
-      catch (UnregisteredParameter)
+      catch (UnregisteredParameter&)
       {
         writeLog_("Warning: Unknown parameter '" + location + it.getName() + "' in '" + filename + "'!");
       }
