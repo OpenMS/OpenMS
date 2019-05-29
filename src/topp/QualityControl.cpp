@@ -59,6 +59,8 @@
 #include <OpenMS/QC/TopNoverRT.h>
 #include <cstdio>
 
+#include <map>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -68,6 +70,42 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+/// two way mapping from ms-run-path to protID|pepID-identifier
+struct Mapping
+{
+  map<String, StringList> identifier_to_msrunpath;
+  map<StringList, String> runpath_to_identifier;
+
+  Mapping() = default;
+
+  Mapping(const std::vector<ProteinIdentification>& prot_ids)
+  {
+    create(prot_ids);
+  }
+  void create(const std::vector<ProteinIdentification>& prot_ids)
+  {
+    identifier_to_msrunpath.clear();
+    runpath_to_identifier.clear();
+    StringList filenames;
+    for (const ProteinIdentification& prot_id : prot_ids)
+    {
+      prot_id.getPrimaryMSRunPath(filenames);
+      if (filenames.empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated in ProteinIdentification.");
+      }
+      identifier_to_msrunpath[prot_id.getIdentifier()] = filenames;
+      const auto& it = runpath_to_identifier.find(filenames);
+      if (it != runpath_to_identifier.end())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Multiple protein identifications with the same ms-run-path in Consensus/FeatureXML. Check input!\n",
+          ListUtils::concatenate(filenames, ","));
+      }
+      runpath_to_identifier[filenames] = prot_id.getIdentifier();
+    }
+  }
+};
 
 class TOPPQualityControl : public TOPPBase
 {
@@ -149,46 +187,22 @@ protected:
     ConsensusXMLFile().load(in_cm, cmap);
 
     //-------------------------------------------------------------
-    // Build the map to later find the corresponding ProtID of a PepID.
+    // prot/pepID-identifier -->  ms-run-path
     //-------------------------------------------------------------
-    map<String,const ProteinIdentification*> identifier_to_protID;
-    for (const ProteinIdentification& prot_id : cmap.getProteinIdentifications())
-    {
-      StringList filenames;
-      prot_id.getPrimaryMSRunPath(filenames);
-      if (filenames.empty())
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated at ProteinIdentification.");
-      }
-      identifier_to_protID[prot_id.getIdentifier()] = &prot_id;
-    }
+    Mapping mp_c(cmap.getProteinIdentifications());
 
     //-------------------------------------------------------------
-    // Build the map to later find the original PepID in given ConsensusMap.
+    // Build a PepID Map to later find the corresponding PepID in the CMap
     //-------------------------------------------------------------
-    map<String, PeptideIdentification*> customID_to_pepID;
+    multimap<String, PeptideIdentification*> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
     for (Size i = 0; i < cmap.size(); ++i)
     {
-      fillPepIDMap_(customID_to_pepID, cmap[i].getPeptideIdentifications(), identifier_to_protID, i);
+      fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+      for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
     }
-    fillPepIDMap_(customID_to_pepID, cmap.getUnassignedPeptideIdentifications(), identifier_to_protID, -1);
+    fillConsensusPepIDMap_(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+    for (auto& pep_id : cmap.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
 
-    //-------------------------------------------------------------
-    // Build a map to associate newly created PepIDs to the correct ProteinID in CMap
-    //-------------------------------------------------------------
-    map<StringList, String> map_to_identifier;
-    for (ProteinIdentification& prot_id : cmap.getProteinIdentifications())
-    {
-      StringList files;
-      prot_id.getPrimaryMSRunPath(files);
-      const auto& it = map_to_identifier.find(files);
-      if (it != map_to_identifier.end())
-      {
-        OPENMS_LOG_ERROR << "Multiple protein identifications with the same identifier in ConsensusXML. Check input!\n";
-        return ILLEGAL_PARAMETERS;
-      }
-      map_to_identifier[files] = prot_id.getIdentifier();
-    }
 
     // check flags
     bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
@@ -225,11 +239,13 @@ protected:
         spec_map.calculateMap(exp);
       }
 
+      Mapping mp_f;
       FeatureXMLFile fxml_file;
       FeatureMap fmap;
       if (!in_postFDR.empty())
       {
         fxml_file.load(in_postFDR[i], fmap);
+        mp_f.create(fmap.getProteinIdentifications());
       }
 
       TransformationXMLFile trafo_file;
@@ -280,22 +296,20 @@ protected:
       if (isRunnable_(&qc_top_n_over_rt, status))
       {
         vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap, spec_map);
-        // get and set identifier for just calculated IDs via MS run path
-        StringList unique_run_path;
-        fmap.getPrimaryMSRunPath(unique_run_path);
-        const auto& ptr_to_map_entry = map_to_identifier.find(unique_run_path);
-        if (ptr_to_map_entry == map_to_identifier.end())
+        // use identifier of CMap for just calculated pepIDs (via common MS-run-path)
+        const auto& f_runpath = mp_f.runpath_to_identifier.begin()->first; // just get any runpath from fmap
+        const auto ptr_cmap = mp_c.runpath_to_identifier.find(f_runpath);
+        if (ptr_cmap == mp_c.runpath_to_identifier.end())
         {
-          OPENMS_LOG_ERROR << "FeatureXML (MS run '" << ListUtils::concatenate(unique_run_path, ", ") << "') does not correspond to ConsensusXML (run not found). Check input!\n";
+          OPENMS_LOG_ERROR << "FeatureXML (MS run '" << ListUtils::concatenate(f_runpath, ", ") << "') does not correspond to ConsensusXML (run not found). Check input!\n";
           return ILLEGAL_PARAMETERS;
         }
         for (PeptideIdentification& pep_id : new_upep_ids)
         {
-          pep_id.setIdentifier(ptr_to_map_entry -> second);
+          pep_id.setIdentifier(ptr_cmap->second);
         }
-        // save the just calculated IDs
-        // this is needed like this, because appending the unassigned PepIDs directly to the ConsensusMap would destroy the mapping
-        all_new_upep_ids.insert(all_new_upep_ids.end(),new_upep_ids.begin(),new_upep_ids.end());
+        // save the just calculated IDs for appending to Cmap later (not now, because the vector might resize and invalidate our PepID*).
+        all_new_upep_ids.insert(all_new_upep_ids.end(), new_upep_ids.begin(), new_upep_ids.end());
       }
 
       StringList out_feat = getStringList_("out_feat");
@@ -308,39 +322,32 @@ protected:
       //-------------------------------------------------------------
 
       // copy MetaValues of unassigned PepIDs
-      copyPepIDMetaValues_(fmap.getUnassignedPeptideIdentifications(), customID_to_pepID, identifier_to_protID);
+      copyPepIDMetaValues_(fmap.getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
 
       // copy MetaValues of assigned PepIDs
       for (Feature& feature : fmap)
       {
-        copyPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_pepID, identifier_to_protID);
+        copyPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
       }
     }
     // mztab writer requires single PIs per CF
     IDConflictResolverAlgorithm::resolve(cmap);
 
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
-    for (const PeptideIdentification& u_pep_id: cmap.getUnassignedPeptideIdentifications())
+    bool incomplete_features {false};
+    QCBase::iterateFeatureMap(cmap, [&incomplete_features](const PeptideIdentification& pep_id)
     {
-      if (!u_pep_id.metaValueExists("missed_cleavages"))
+      if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
       {
-        OPENMS_LOG_ERROR << "Unassigned PeptideIdentification in ConsensusXML with identifier " << u_pep_id.getIdentifier() << " does not appear in any of the given FeatureXMLs. Check input!\n";
-        return ILLEGAL_PARAMETERS;
+        OPENMS_LOG_ERROR << "PeptideIdentification in ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString() 
+                         << ", RT" << pep_id.getRT() << ", m/z " << pep_id.getMZ() << " and identifier '" << pep_id.getIdentifier() 
+                         << "' does not appear in any of the given FeatureXMLs. Check input!\n";
+        incomplete_features = true;
       }
-    }
-    for (const ConsensusFeature& cf: cmap)
-    {
-      for (const PeptideIdentification& pep_id: cf.getPeptideIdentifications())
-      {
-        if (!pep_id.metaValueExists("missed_cleavages"))
-        {
-          OPENMS_LOG_ERROR << "PeptideIdentification in ConsensusXML with identifier " << u_pep_id.getIdentifier() << " does not appear in any of the given FeatureXMLs. Check input!\n";
-          return ILLEGAL_PARAMETERS;
-        }
-      }
-    }
-
-    // add calculated new unassigned PeptideIdentifications
+    });
+    if (incomplete_features) return ILLEGAL_PARAMETERS;
+    
+    // add new PeptideIdentifications (for unidentified MS2 spectra)
     cmap.getUnassignedPeptideIdentifications().insert(cmap.getUnassignedPeptideIdentifications().end(), all_new_upep_ids.begin(), all_new_upep_ids.end());
 
     //-------------------------------------------------------------
@@ -393,7 +400,8 @@ protected:
   }
 
 private:
-  StringList updateFileStatus_(QCBase::Status& status, UInt64& number_exps, const String& port, const QCBase::Requires& req)
+
+  StringList updateFileStatus_(QCBase::Status& status, UInt64& number_exps, const String& port, const QCBase::Requires& req) const
   {
     // since files are optional, leave function if none are provided by the user
     StringList files = getStringList_(port);
@@ -408,6 +416,74 @@ private:
     }
     return files;
   }
+  
+  void fillConsensusPepIDMap_(vector<PeptideIdentification>& cpep_ids,
+                              const map<String, StringList>& identifier_to_msrunpath,
+                              multimap<String, PeptideIdentification*>& customID_to_cpepID) const
+  {
+    for (PeptideIdentification& cpep_id : cpep_ids)
+    {
+      if (!cpep_id.metaValueExists("spectrum_reference"))
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectrum reference missing at PeptideIdentification.");
+      }
+      const auto& ms_run_path = identifier_to_msrunpath.at(cpep_id.getIdentifier());
+
+      String UID; //< unique ID to identify the PepID
+      if (ms_run_path.size() == 1)
+      {
+        UID = ms_run_path[0] + cpep_id.getMetaValue("spectrum_reference").toString();
+      }
+      else if (cpep_id.metaValueExists("map_index"))
+      {
+        UID = cpep_id.getMetaValue("map_index").toString() + cpep_id.getMetaValue("spectrum_reference").toString();
+      }
+      else
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
+      }
+      customID_to_cpepID.insert(make_pair(UID, &cpep_id));
+    }
+  }
+
+
+  void copyPepIDMetaValues_(const vector<PeptideIdentification>& f_pep_ids,
+    const multimap<String, PeptideIdentification*>& customID_to_pepID,
+    const map<String, StringList>& fidentifier_to_msrunpath) const
+  {
+    for (const PeptideIdentification& f_pep_id : f_pep_ids)
+    {
+      // for empty PIs which were created by a metric
+      if (f_pep_id.getHits().empty()) continue;
+
+      String UID;
+      const auto& ms_run_path = fidentifier_to_msrunpath.at(f_pep_id.getIdentifier());
+      if (ms_run_path.size() == 1)
+      {
+        UID = ms_run_path[0] + f_pep_id.getMetaValue("spectrum_reference").toString();
+      }
+      else if (f_pep_id.metaValueExists("map_index"))
+      {
+        UID = f_pep_id.getMetaValue("map_index").toString() + f_pep_id.getMetaValue("spectrum_reference").toString();
+      }
+      else
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
+      }
+
+      const auto range = customID_to_pepID.equal_range(UID);
+
+      for (auto it_pep = range.first; it_pep != range.second; ++it_pep)
+      {
+        // copy all MetaValues that are at PepID level
+        copyMetaValues_(f_pep_id, *(it_pep->second));
+
+        // copy all MetaValues that are at Hit level
+        copyMetaValues_(f_pep_id.getHits()[0], (it_pep->second)->getHits()[0]);
+      }
+    }
+  }
+
 
   // templated function to copy all meta values from one object to another
   template <class FROM, class TO>
@@ -422,72 +498,6 @@ private:
     }
   }
 
-  void copyPepIDMetaValues_(const vector<PeptideIdentification>& pep_ids, const map<String, PeptideIdentification*>& customID_to_pepID, map<String, const ProteinIdentification*> identifier_to_protID) const
-  {
-    for (const PeptideIdentification& ref_pep_id : pep_ids)
-    {
-      // for empty PIs which were created by a metric
-      if (ref_pep_id.getHits().empty()) continue;
-
-      PeptideIdentification pep_id;
-      const ProteinIdentification& prot_id = *(identifier_to_protID.at(ref_pep_id.getIdentifier()));
-      StringList filenames;
-      prot_id.getPrimaryMSRunPath(filenames);
-      if (filenames.size() == 1)
-      {
-        String UID = filenames[0] + ref_pep_id.getMetaValue("spectrum_reference").toString();
-        pep_id = *customID_to_pepID.at(UID);
-      }
-      else if (pep_id.metaValueExists("map_index"))
-      {
-        String UID = pep_id.getMetaValue("map_index").toString() + pep_id.getMetaValue("spectrum_reference").toString();
-        pep_id = *customID_to_pepID.at(UID);
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
-      }
-
-      // copy all MetaValues that are at PepID level
-      copyMetaValues_(ref_pep_id, pep_id);
-
-      // copy all MetaValues that are at Hit level
-      copyMetaValues_(ref_pep_id.getHits()[0], pep_id.getHits()[0]);
-    }
-  }
-
-  void fillPepIDMap_(map<String, PeptideIdentification*>& customID_to_pepID, vector<PeptideIdentification>& pep_ids, map<String, const ProteinIdentification*> identifier_to_protID, const int group_id) const
-  {
-    for ( PeptideIdentification& pep_id : pep_ids)
-    {
-      if (!pep_id.metaValueExists("spectrum_reference"))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectrum reference missing at PeptideIdentification.");
-      }
-      const ProteinIdentification& prot_id = *(identifier_to_protID.at(pep_id.getIdentifier()));
-      StringList filenames;
-      prot_id.getPrimaryMSRunPath(filenames);
-      if (filenames.empty())
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated at ProteinIdentification.");
-      }
-      pep_id.setMetaValue("cf_id", group_id);
-      String UID;
-      if (filenames.size() == 1)
-      {
-        UID = filenames[0] + pep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else if (pep_id.metaValueExists("map_index"))
-      {
-        UID = pep_id.getMetaValue("map_index").toString() + pep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
-      }
-      customID_to_pepID[UID] = &pep_id;
-    }
-  }
 };
 
 // the actual main function needed to create an executable
