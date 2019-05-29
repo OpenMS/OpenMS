@@ -114,7 +114,7 @@ namespace OpenMS
 
       // fix legend and set layer name
       caption = layer.name + "[" + index + "]";
-      w->xAxis()->setLegend("Time [sec]");
+      w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
 
       // add chromatogram data as peak spectrum
       if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
@@ -202,7 +202,7 @@ namespace OpenMS
     //open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
     // fix legend if its a chromatogram
-    w->xAxis()->setLegend("Time [sec]");
+    w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
 
     for (const auto& index : indices)
     {
