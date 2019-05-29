@@ -1314,14 +1314,26 @@ namespace OpenMS
     // try to add the data
     if (caption == "")
     {
-      caption = File::basename(abs_filename);
+      caption = File::removeExtension(File::basename(abs_filename));
     }
     else
     {
       abs_filename = "";
     }
 
-    addData(feature_map_sptr, consensus_map_sptr, peptides, peak_map_sptr, on_disc_peaks, data_type, false, show_options, true, abs_filename, caption, window_id, spectrum_id);
+    addData(feature_map_sptr, 
+      consensus_map_sptr, 
+      peptides, 
+      peak_map_sptr, 
+      on_disc_peaks, 
+      data_type, 
+      false, 
+      show_options, 
+      true, 
+      abs_filename, 
+      caption, 
+      window_id, 
+      spectrum_id);
 
     // add to recent file
     if (add_to_recent)
@@ -1519,9 +1531,6 @@ namespace OpenMS
           open_1d_window->canvas()->activateSpectrum(spectrum_id);
         }
       }
-
-      //set caption
-      target_window->canvas()->setLayerName(target_window->canvas()->activeLayerIndex(), caption);
     }
     else //merge feature/ID data into feature layer
     {
