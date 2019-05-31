@@ -405,8 +405,8 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
     }
 
-    if (new_layer.getPeakData()->getChromatograms().size() != 0 
-        && new_layer.getPeakData()->size() == 0)
+    if (!new_layer.getPeakData()->getChromatograms().empty() 
+        && !new_layer.getPeakData()->empty())
     {
       new_layer.type = LayerData::DT_CHROMATOGRAM;
     }
@@ -427,7 +427,7 @@ namespace OpenMS
     }
 
     // insert at front
-    layers_.insert(layers_.begin(), new_layer);
+    layers_.insert(layers_.begin(), std::move(new_layer));
     return finishAdding_();
   }
 
@@ -446,12 +446,12 @@ namespace OpenMS
       if (it->type == LayerData::DT_PEAK 
         || it->type == LayerData::DT_FEATURE)
       {
-        layers_.insert(it.base(), new_layer);
+        layers_.insert(it.base(), std::move(new_layer));
         return finishAdding_();
       }
     }
     // insert at front
-    layers_.insert(layers_.begin(), new_layer);
+    layers_.insert(layers_.begin(), std::move(new_layer));
     return finishAdding_();
   }
 
@@ -471,12 +471,12 @@ namespace OpenMS
         || it->type == LayerData::DT_FEATURE 
         || it->type == LayerData::DT_CONSENSUS)
       {
-        layers_.insert(it.base(), new_layer);
+        layers_.insert(it.base(), std::move(new_layer));
         return finishAdding_();
       }
     }
     // insert at front
-    layers_.insert(layers_.begin(), new_layer);
+    layers_.insert(layers_.begin(), std::move(new_layer));
     return finishAdding_();
   }
 
@@ -498,12 +498,12 @@ namespace OpenMS
         || it->type == LayerData::DT_CONSENSUS
         || it->type == LayerData::DT_IDENT)
       {
-        layers_.insert(it.base(), new_layer);
+        layers_.insert(it.base(), std::move(new_layer));
         return finishAdding_();
       }
     }
     // insert at front
-    layers_.insert(layers_.begin(), new_layer);
+    layers_.insert(layers_.begin(), std::move(new_layer));
     return finishAdding_(); 
   }
 
