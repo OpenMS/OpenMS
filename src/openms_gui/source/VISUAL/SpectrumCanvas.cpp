@@ -421,7 +421,7 @@ namespace OpenMS
       if (it->type == LayerData::DT_PEAK 
         || it->type == LayerData::DT_CHROMATOGRAM)
       {
-        layers_.insert(it.base(), new_layer);
+        layers_.insert(it.base(), std::move(new_layer));
         return finishAdding_();
       }
     }
