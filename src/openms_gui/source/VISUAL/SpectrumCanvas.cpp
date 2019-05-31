@@ -398,15 +398,17 @@ namespace OpenMS
     new_layer.setPeakData(map);
     new_layer.setOnDiscPeakData(od_map);
 
-    if (new_layer.getPeakData()->getChromatograms().size() != 0 
-        && new_layer.getPeakData()->size() != 0)
+    // both empty
+    if (!new_layer.getPeakData()->getChromatograms().empty() 
+     && !new_layer.getPeakData()->empty())
     {
       // TODO : handle this case better
       OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
     }
 
-    if (new_layer.getPeakData()->getChromatograms().size() != 0 
-        && new_layer.getPeakData()->size() == 0)
+    // check which one is empty
+    if (!new_layer.getPeakData()->getChromatograms().empty() 
+      && new_layer.getPeakData()->empty())
     {
       new_layer.type = LayerData::DT_CHROMATOGRAM;
     }
@@ -415,19 +417,14 @@ namespace OpenMS
       new_layer.type = LayerData::DT_PEAK;
     }
 
-    // insert after last peak or chomatogram layer
-    for (auto it = layers_.rbegin(); it != layers_.rend(); ++it)
-    {
-      if (it->type == LayerData::DT_PEAK 
-        || it->type == LayerData::DT_CHROMATOGRAM)
-      {
-        layers_.insert(it.base(), new_layer);
-        return finishAdding_();
-      }
-    }
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [](const LayerData& l) 
+      { return l.type <= LayerData::DT_PEAK; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
 
-    // insert at front
-    layers_.insert(layers_.begin(), new_layer);
     return finishAdding_();
   }
 
@@ -440,18 +437,13 @@ namespace OpenMS
     new_layer.getFeatureMap() = map;
     new_layer.type = LayerData::DT_FEATURE;
 
-    // draw features after last feature map (or if not present, after last peak map)
-    for (auto it = layers_.rbegin(); it != layers_.rend(); ++it)
-    {
-      if (it->type == LayerData::DT_PEAK 
-        || it->type == LayerData::DT_FEATURE)
-      {
-        layers_.insert(it.base(), new_layer);
-        return finishAdding_();
-      }
-    }
-    // insert at front
-    layers_.insert(layers_.begin(), new_layer);
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [](const LayerData& l) 
+      { return l.type <= LayerData::DT_FEATURE; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_();
   }
 
@@ -464,19 +456,13 @@ namespace OpenMS
     new_layer.getConsensusMap() = map;
     new_layer.type = LayerData::DT_CONSENSUS;
 
-    // insert as last consensus layer (of after the other layer types if missing)
-    for (auto it = layers_.rbegin(); it != layers_.rend(); ++it)
-    {
-      if (it->type == LayerData::DT_PEAK 
-        || it->type == LayerData::DT_FEATURE 
-        || it->type == LayerData::DT_CONSENSUS)
-      {
-        layers_.insert(it.base(), new_layer);
-        return finishAdding_();
-      }
-    }
-    // insert at front
-    layers_.insert(layers_.begin(), new_layer);
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [](const LayerData& l) 
+      { return l.type <= LayerData::DT_CONSENSUS; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_();
   }
 
@@ -490,20 +476,13 @@ namespace OpenMS
     new_layer.peptides.swap(peptides);
     new_layer.type = LayerData::DT_IDENT;
 
-    // insert as last ID layer (of after the other layer types if missing)
-    for (auto it = layers_.rbegin(); it != layers_.rend(); ++it)
-    {
-      if (it->type == LayerData::DT_PEAK 
-        || it->type == LayerData::DT_FEATURE 
-        || it->type == LayerData::DT_CONSENSUS
-        || it->type == LayerData::DT_IDENT)
-      {
-        layers_.insert(it.base(), new_layer);
-        return finishAdding_();
-      }
-    }
-    // insert at front
-    layers_.insert(layers_.begin(), new_layer);
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [](const LayerData& l) 
+      { return l.type <= LayerData::DT_IDENT; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_(); 
   }
 
