@@ -442,7 +442,7 @@ protected:
     //@}
 
     /// Layer management widget
-    QListWidget* layer_manager_;
+    QListWidget* layers_view_;
 
     ///@name Filter widgets
     //@{
