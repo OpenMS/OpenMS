@@ -420,8 +420,8 @@ namespace OpenMS
     // insert after last layer of same type, 
     // if there is no such layer after last layer of previous types, 
     // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [](const LayerData& l) 
-      { return l.type <= LayerData::DT_PEAK; });
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
       
     layers_.insert(it.base(), std::move(new_layer));
 
@@ -440,8 +440,8 @@ namespace OpenMS
     // insert after last layer of same type, 
     // if there is no such layer after last layer of previous types, 
     // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [](const LayerData& l) 
-      { return l.type <= LayerData::DT_FEATURE; });
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
       
     layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_();
@@ -459,8 +459,8 @@ namespace OpenMS
     // insert after last layer of same type, 
     // if there is no such layer after last layer of previous types, 
     // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [](const LayerData& l) 
-      { return l.type <= LayerData::DT_CONSENSUS; });
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
       
     layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_();
@@ -479,8 +479,8 @@ namespace OpenMS
     // insert after last layer of same type, 
     // if there is no such layer after last layer of previous types, 
     // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [](const LayerData& l) 
-      { return l.type <= LayerData::DT_IDENT; });
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
       
     layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_(); 
