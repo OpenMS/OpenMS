@@ -457,7 +457,7 @@ protected:
           float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
           exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
-        else if (hit.metaValueExists("isotope_error")) // e.g. SimpleSearchEngine /RNPxlSearch
+        else if (hit.metaValueExists("isotope_error")) // e.g. SimpleSearchEngine /OpenNuXL
         {
           float isoErr = hit.getMetaValue("isotope_error").toString().toFloat();
           exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;

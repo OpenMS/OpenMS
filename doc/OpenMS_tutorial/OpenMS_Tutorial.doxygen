@@ -187,7 +187,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
     - Identification:
         - Database search:
             - Peptides (Tool %SimpleSearchEngine and its classes - started simple but is, by now, rather complete peptide identification engine)
-            - Protein-RNA cross-links (Tool %RNPxlSearch and its classes)
+            - Protein-NA cross-links (Tool %OpenNuXL and its classes)
             - Protein-Protein cross-links (Tool OpenPepXL)
         - Spectral library search:
             - Tool SpecLibSearcher and its classes

@@ -211,7 +211,7 @@ RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_
     }
   }
 
-#ifdef DEBUG_RNPXLSEARCH
+#ifdef DEBUG_OpenNuXL
   for (auto const & p2fas : precursor_to_fragment_adducts)
     {
       for (auto const & p2fa : p2fas.second)

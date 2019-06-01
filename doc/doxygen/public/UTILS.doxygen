@@ -86,7 +86,7 @@
   <b>Cross-linking</b>
   - @subpage UTILS_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
   - @subpage UTILS_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
-  - @subpage UTILS_RNPxlSearch - Annotates RNA-to-peptide cross-links in MS/MS spectra.
+  - @subpage UTILS_OpenNuXL - Annotates NA-to-peptide cross-links in MS/MS spectra.
   - @subpage UTILS_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
   - @subpage UTILS_XFDR - Calculates false discovery rate estimates on cross-link identifications.
 

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">
-<msms_run_summary base_name="IDFileConverter_20_output" raw_data_type="raw" raw_data=".mzML" search_engine="RNPxlSearch">
+<msms_run_summary base_name="IDFileConverter_20_output" raw_data_type="raw" raw_data=".mzML" search_engine="OpenNuXL">
 	<sample_enzyme name="unknown_enzyme">
 		<specificity cut="" sense="C"/>
 	</sample_enzyme>
-	<search_summary base_name="IDFileConverter_20_output" search_engine="RNPxlSearch" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
-		<search_database local_path="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/RNPxlSearch_1_input.fasta" type="AA"/>
+	<search_summary base_name="IDFileConverter_20_output" search_engine="OpenNuXL" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+		<search_database local_path="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenNuXL_1_input.fasta" type="AA"/>
 		<aminoacid_modification aminoacid="M" massdiff="15.994915" mass="147.0354000171" variable="Y" binary="N" description="Oxidation (M)"/>
 	</search_summary>
 	<spectrum_query spectrum="IDFileConverter_20_output.1.1.2" start_scan="1" end_scan="1" precursor_neutral_mass="1117.5251393925" assumed_charge="2" index="0" retention_time_sec="17.7875061035156" >

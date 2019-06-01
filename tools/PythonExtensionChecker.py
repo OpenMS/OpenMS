@@ -1145,7 +1145,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         elif comp_name.startswith("KDTree::"):
             # KD Tree namespace
             continue
-        elif not (comp_name.startswith("OpenMS") or comp_name.startswith("OpenSwath") or comp_name.startswith("RNPxl") ):
+        elif not (comp_name.startswith("OpenMS") or comp_name.startswith("OpenSwath") or comp_name.startswith("OpenNuXL") ):
             # Continue without checking or generating a testreport
             print ("Unknown namespace", comp_name)
             continue

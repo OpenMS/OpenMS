@@ -53,7 +53,7 @@ QCShrinker
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
-RNPxlSearch
+OpenNuXL
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator

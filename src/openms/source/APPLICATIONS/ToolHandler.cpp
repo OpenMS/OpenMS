@@ -237,7 +237,7 @@ namespace OpenMS
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
     util_map["RNADigestor"] = Internal::ToolDescription("RNADigestor", util_category);
     util_map["RNAMassCalculator"] = Internal::ToolDescription("RNAMassCalculator", util_category);
-    util_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", util_category);
+    util_map["OpenNuXL"] = Internal::ToolDescription("OpenNuXL", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
     util_map["RTEvaluation"] = Internal::ToolDescription("RTEvaluation", util_category);
     util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", util_category);

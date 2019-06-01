@@ -65,7 +65,7 @@ bool RNPxlModificationsGenerator::notInSeq(String res_seq, String query)
 }
 
 //static
-RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMassesRNA(StringList target_nucleotides,
+RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMassesNA(StringList target_nucleotides,
                                                                                      StringList nt_groups,
                                                                                      std::set<char> can_xl,
                                                                                      StringList mappings,

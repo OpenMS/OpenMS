@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>" namespa
         RNPxlModificationsGenerator() nogil except +
         RNPxlModificationsGenerator(RNPxlModificationsGenerator) nogil except + 
 
-        RNPxlModificationMassesResult initModificationMassesRNA(
+        RNPxlModificationMassesResult initModificationMassesNA(
             StringList target_nucleotides,
             StringList nt_groups,
             libcpp_set[char] can_xl,

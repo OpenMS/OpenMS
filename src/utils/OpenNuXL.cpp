@@ -99,7 +99,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-//#define DEBUG_RNPXLSEARCH 1
+//#define DEBUG_OpenNuXL 1
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -200,27 +200,27 @@ class AnnotatedHit
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_RNPxlSearch RNPxlSearch 
+    @page UTILS_OpenNuXL OpenNuXL 
 
-    @brief Annotate RNA to peptide crosslinks in MS/MS spectra.
+    @brief Annotate NA to peptide crosslinks in MS/MS spectra.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_RNPxlSearch.cli
+    @verbinclude UTILS_OpenNuXL.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_RNPxlSearch.html
+    @htmlinclude UTILS_OpenNuXL.html
  */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class RNPxlSearch :
+class OpenNuXL :
   public TOPPBase
 {
   bool fast_scoring_ = true; // fast or all fragment adduct scoring mode
   set<char> can_xl_; ///< nucleotides that can form cross-links
 
 public:
-  RNPxlSearch() :
-    TOPPBase("RNPxlSearch", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.", false)
+  OpenNuXL() :
+    TOPPBase("OpenNuXL", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.", false)
   {
   }
 
@@ -989,7 +989,7 @@ static void scoreShiftedFragments_(
                       plss_modds,
                       plss_pc_MIC,
                       plss_im_MIC);
-#ifdef DEBUG_RNPXLSEARCH
+#ifdef DEBUG_OpenNuXL
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
     // cap plss_err to something larger than the mean_mz * max_ppm_error
@@ -1052,7 +1052,7 @@ static void scoreShiftedFragments_(
         DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[0]; // charge array
         for (int & z : ia) { if (z == 0) { z = 1; } }
       } 
-    #ifdef DEBUG_RNPXLSEARCH
+    #ifdef DEBUG_OpenNuXL
       cout << "after deisotoping..." << endl;
       cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
       cout << "Fragment charges in spectrum: " << exp_index  << endl;
@@ -1065,7 +1065,7 @@ static void scoreShiftedFragments_(
       // remove noise
       window_mower_filter.filterPeakSpectrum(spec);
 
-    #ifdef DEBUG_RNPXLSEARCH
+    #ifdef DEBUG_OpenNuXL
       cout << "after mower..." << endl;
       cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
       for (Size i = 0; i != spec.size(); ++i) cout << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
@@ -1077,7 +1077,7 @@ static void scoreShiftedFragments_(
     
       nlargest_filter.filterPeakSpectrum(spec);
 
-    #ifdef DEBUG_RNPXLSEARCH
+    #ifdef DEBUG_OpenNuXL
       cout << "after nlargest..." << endl;
       cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
       for (Size i = 0; i != spec.size(); ++i) cout << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
@@ -1090,7 +1090,7 @@ static void scoreShiftedFragments_(
       // sort (nlargest changes order)
       spec.sortByPosition();
   
-    #ifdef DEBUG_RNPXLSEARCH
+    #ifdef DEBUG_OpenNuXL
       cout << "after sort..." << endl;
       cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
       for (Size i = 0; i != spec.size(); ++i) cout << spec[i].getMZ() << "\t" << spec.getIntensity() << endl;
@@ -1143,7 +1143,7 @@ static void scoreShiftedFragments_(
 
     assert(exp.size() == annotated_hits.size());
 
-    #ifdef DEBUG_RNPXLSEARCH
+    #ifdef DEBUG_OpenNuXL
       OPENMS_LOG_DEBUG << exp.size() << " : " << annotated_hits.size() << endl;
     #endif
 
@@ -1227,7 +1227,7 @@ static void scoreShiftedFragments_(
 
           if (precursor_rna_adduct == "none") 
           {
-            ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
+            ah.score = OpenNuXL::calculateCombinedScore(ah, false);
             continue;
           }
 
@@ -1327,7 +1327,7 @@ static void scoreShiftedFragments_(
           ah.marker_ions_score = marker_ions_sub_score;
           ah.partial_loss_score = partial_loss_sub_score;
           // combined score
-          ah.score = RNPxlSearch::calculateCombinedScore(ah, true);
+          ah.score = OpenNuXL::calculateCombinedScore(ah, true);
         } 
       } 
     }
@@ -1462,7 +1462,7 @@ static void scoreShiftedFragments_(
           annotated_immonium_ions;
 
         // first annotate total loss peaks (these give no information where the actual shift occured)
-        #ifdef DEBUG_RNPXLSEARCH
+        #ifdef DEBUG_OpenNuXL
           OPENMS_LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
         #endif
         vector<pair<Size, Size>> alignment;
@@ -1518,7 +1518,7 @@ static void scoreShiftedFragments_(
               Size ion_number = (Size)ion_nr_string.toInt();
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_y_ions[ion_number].push_back(d);
-              #ifdef DEBUG_RNPXLSEARCH
+              #ifdef DEBUG_OpenNuXL
                 const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
                 OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
@@ -1545,7 +1545,7 @@ static void scoreShiftedFragments_(
             {
               String ion_nr_string = ion_name.substr(1, charge_pos - 1);
               Size ion_number = (Size)ion_nr_string.toInt();
-              #ifdef DEBUG_RNPXLSEARCH
+              #ifdef DEBUG_OpenNuXL
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
@@ -1574,7 +1574,7 @@ static void scoreShiftedFragments_(
             {
               String ion_nr_string = ion_name.substr(1, charge_pos - 1);
               auto ion_number = (Size)ion_nr_string.toInt();
-              #ifdef DEBUG_RNPXLSEARCH
+              #ifdef DEBUG_OpenNuXL
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
@@ -1668,14 +1668,14 @@ static void scoreShiftedFragments_(
           const double & fragment_intensity = fragment.getIntensity(); // in percent (%)
           const double & fragment_mz = fragment.getMZ();
           const int & fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
-          #ifdef DEBUG_RNPXLSEARCH
+          #ifdef DEBUG_OpenNuXL
             OPENMS_LOG_DEBUG << "fragment_mz:" << fragment_mz << " fragment_charge:" << fragment_charge << endl; 
           #endif
 
           String ion_name = partial_loss_annotations[pair_it->first];
           const int charge = partial_loss_charges[pair_it->first];
 
-          #ifdef DEBUG_RNPXLSEARCH
+          #ifdef DEBUG_OpenNuXL
             OPENMS_LOG_DEBUG << "theo_name:" << ion_name  << " theo_charge:" << charge << endl; 
           #endif
           vector<String> f;
@@ -1686,7 +1686,7 @@ static void scoreShiftedFragments_(
 
           String fragment_ion_name = f[0]; // e.g. y3
 
-          #ifdef DEBUG_RNPXLSEARCH
+          #ifdef DEBUG_OpenNuXL
             OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
           #endif
 
@@ -1803,7 +1803,7 @@ static void scoreShiftedFragments_(
           for (auto& k : unshifted_y_ions[ion_index]) { c_noshifts[i] += k.intensity; }
         }
 
-#ifdef DEBUG_RNPXLSEARCH
+#ifdef DEBUG_OpenNuXL
         cout << "n:";
         for (auto& k : n_shifts) cout << k << " ";
         cout << endl;
@@ -1848,13 +1848,13 @@ static void scoreShiftedFragments_(
             for (int j = i; j >= 0; --j) { sites_sum_score[i] += c_shifts[j]; }
           }
         }
-#ifdef DEBUG_RNPXLSEARCH
+#ifdef DEBUG_OpenNuXL
         cout << "site sum score (shifted a/b/y-ions):";
         for (auto& k : sites_sum_score) cout << k << " ";
         cout << endl;
 #endif
 
-        #ifdef DEBUG_RNPXLSEARCH
+        #ifdef DEBUG_OpenNuXL
           OPENMS_LOG_DEBUG << "Localisation based on immonium ions: ";
         #endif
         String aas_unmodified = aas.toUnmodifiedString();
@@ -1871,7 +1871,7 @@ static void scoreShiftedFragments_(
             }
           }
         }
-#ifdef DEBUG_RNPXLSEARCH
+#ifdef DEBUG_OpenNuXL
         cout << "site sum score (shifted a/b/y-ions & immonium ions):";
         for (auto& k : sites_sum_score) cout << k << " ";
         cout << endl;
@@ -1887,7 +1887,7 @@ static void scoreShiftedFragments_(
 
         for (Size i = 0; i != sites_sum_score.size(); ++i)
         {
-          #ifdef DEBUG_RNPXLSEARCH
+          #ifdef DEBUG_OpenNuXL
             OPENMS_LOG_DEBUG << String::number(100.0 * sites_sum_score[i], 2);
           #endif
 
@@ -1906,7 +1906,7 @@ static void scoreShiftedFragments_(
             best_localization[i] = tolower(best_localization[i]);
           }
         }
-        #ifdef DEBUG_RNPXLSEARCH
+        #ifdef DEBUG_OpenNuXL
           OPENMS_LOG_DEBUG << endl;
         #endif
 
@@ -1925,7 +1925,7 @@ static void scoreShiftedFragments_(
         a.best_localization_score = best_localization_score;
         a.fragment_annotations = fas;
 
-        #ifdef DEBUG_RNPXLSEARCH
+        #ifdef DEBUG_OpenNuXL
           OPENMS_LOG_DEBUG << "Ion centric annotation: " << endl;
           OPENMS_LOG_DEBUG << "unshifted b ions: " << endl;
           OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
@@ -2073,9 +2073,9 @@ static void scoreShiftedFragments_(
           
           ph.setMetaValue(String("RNPxl:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
-          ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
+          ph.setMetaValue(String("RNPxl:NA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
           ph.setMetaValue(String("RNPxl:NT"), String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
-          ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // NA uncharged mass via empirical formula
+          ph.setMetaValue(String("RNPxl:NA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // NA uncharged mass via empirical formula
           ph.setMetaValue(String("RNPxl:isXL"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight() > 0); 
           ph.setMetaValue(String("RNPxl:isPhospho"), is_phospho); 
 
@@ -2117,7 +2117,7 @@ static void scoreShiftedFragments_(
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
-    protein_ids[0].setSearchEngine("RNPxlSearch");
+    protein_ids[0].setSearchEngine("OpenNuXL");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = getStringOption_("database");
@@ -2159,7 +2159,7 @@ static void scoreShiftedFragments_(
        << "RNPxl:pl_pc_MIC"
        << "RNPxl:pl_im_MIC"
        << "RNPxl:total_MIC"
-       << "RNPxl:RNA_MASS_z0"
+       << "RNPxl:NA_MASS_z0"
        << "RNPxl:ladder_score"
        << "RNPxl:sequence_score"
        << "precursor_intensity_log10";
@@ -2328,7 +2328,7 @@ static void scoreShiftedFragments_(
     // simple combined score in fast scoring:
     ah.score = total_loss_score + ah.total_MIC + mass_error_score / 3.0; 
 
-  #ifdef DEBUG_RNPXLSEARCH
+  #ifdef DEBUG_OpenNuXL
     LOG_DEBUG << "best score in pre-score: " << score << endl;
   #endif
 
@@ -2526,7 +2526,7 @@ static void scoreShiftedFragments_(
     RNPxlModificationMassesResult mm;
     if (max_nucleotide_length != 0)
     {
-      mm = RNPxlModificationsGenerator::initModificationMassesRNA(
+      mm = RNPxlModificationsGenerator::initModificationMassesNA(
             target_nucleotides,
             nt_groups, 
             can_xl_,
@@ -2852,9 +2852,9 @@ static void scoreShiftedFragments_(
                   }
 
                   // combined score
-                  ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
+                  ah.score = OpenNuXL::calculateCombinedScore(ah, false);
 
-#ifdef DEBUG_RNPXLSEARCH
+#ifdef DEBUG_OpenNuXL
                   OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
@@ -3044,9 +3044,9 @@ static void scoreShiftedFragments_(
                     }
 
                     // combined score
-                    ah.score = RNPxlSearch::calculateCombinedScore(ah, true);
+                    ah.score = OpenNuXL::calculateCombinedScore(ah, true);
 
-#ifdef DEBUG_RNPXLSEARCH
+#ifdef DEBUG_OpenNuXL
                     OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
@@ -3276,7 +3276,7 @@ static void scoreShiftedFragments_(
       plss_err = plss_Morph > 2 ? pl_sub_scores.err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
       plss_modds = matchOddsScore_(pl_spec->size(), (int)plss_Morph);
     }
-#ifdef DEBUG_RNPXLSEARCH
+#ifdef DEBUG_OpenNuXL
     OPENMS_LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
     // cap plss_err to something larger than the mean_mz * max_ppm_error
@@ -3287,7 +3287,7 @@ static void scoreShiftedFragments_(
 
 int main(int argc, const char** argv)
 {
-  RNPxlSearch tool;
+  OpenNuXL tool;
   return tool.main(argc, argv);
 }
 
