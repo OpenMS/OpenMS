@@ -1991,7 +1991,7 @@ static void scoreShiftedFragments_(
         PeptideIdentification pi;
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setMetaValue("spectrum_reference", spec.getNativeID());
-        pi.setScoreType("RNPxlScore");
+        pi.setScoreType("NuXLScore");
         pi.setHigherScoreBetter(true);
         pi.setRT(spec.getRT());
         pi.setMZ(spec.getPrecursors()[0].getMZ());
@@ -2021,7 +2021,7 @@ static void scoreShiftedFragments_(
           // reannotate much more memory heavy AASequence object
           AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index];           
           ph.setScore(ah.score);
-          ph.setMetaValue(String("RNPxl:score"), ah.score); // important for Percolator feature set because the PeptideHit score might be overwritten by a q-value
+          ph.setMetaValue(String("NuXL:score"), ah.score); // important for Percolator feature set because the PeptideHit score might be overwritten by a q-value
 
           // - # of variable mods 
           // - Phosphopeptide
@@ -2052,36 +2052,36 @@ static void scoreShiftedFragments_(
           // determine NA modification from index in map
           std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
           std::advance(mod_combinations_it, ah.rna_mod_index);
-          ph.setMetaValue(String("RNPxl:mass_error_p"), ah.mass_error_p);
-          ph.setMetaValue(String("RNPxl:total_loss_score"), ah.total_loss_score);
-          ph.setMetaValue(String("RNPxl:immonium_score"), ah.immonium_score);
-          ph.setMetaValue(String("RNPxl:precursor_score"), ah.precursor_score);
-          ph.setMetaValue(String("RNPxl:marker_ions_score"), ah.marker_ions_score);
-          ph.setMetaValue(String("RNPxl:partial_loss_score"), ah.partial_loss_score);
+          ph.setMetaValue(String("NuXL:mass_error_p"), ah.mass_error_p);
+          ph.setMetaValue(String("NuXL:total_loss_score"), ah.total_loss_score);
+          ph.setMetaValue(String("NuXL:immonium_score"), ah.immonium_score);
+          ph.setMetaValue(String("NuXL:precursor_score"), ah.precursor_score);
+          ph.setMetaValue(String("NuXL:marker_ions_score"), ah.marker_ions_score);
+          ph.setMetaValue(String("NuXL:partial_loss_score"), ah.partial_loss_score);
 
           // total loss and partial loss (pl) related subscores (matched ion current, avg. fragment error, morpheus score)
-          ph.setMetaValue(String("RNPxl:MIC"), ah.MIC);
-          ph.setMetaValue(String("RNPxl:err"), ah.err);
-          ph.setMetaValue(String("RNPxl:Morph"), ah.Morph);
-          ph.setMetaValue(String("RNPxl:modds"), ah.modds);
-          ph.setMetaValue(String("RNPxl:pl_MIC"), ah.pl_MIC);
-          ph.setMetaValue(String("RNPxl:pl_err"), ah.pl_err);
-          ph.setMetaValue(String("RNPxl:pl_Morph"), ah.pl_Morph);
-          ph.setMetaValue(String("RNPxl:pl_modds"), ah.pl_modds);
-          ph.setMetaValue(String("RNPxl:pl_pc_MIC"), ah.pl_pc_MIC);
-          ph.setMetaValue(String("RNPxl:pl_im_MIC"), ah.pl_im_MIC);
+          ph.setMetaValue(String("NuXL:MIC"), ah.MIC);
+          ph.setMetaValue(String("NuXL:err"), ah.err);
+          ph.setMetaValue(String("NuXL:Morph"), ah.Morph);
+          ph.setMetaValue(String("NuXL:modds"), ah.modds);
+          ph.setMetaValue(String("NuXL:pl_MIC"), ah.pl_MIC);
+          ph.setMetaValue(String("NuXL:pl_err"), ah.pl_err);
+          ph.setMetaValue(String("NuXL:pl_Morph"), ah.pl_Morph);
+          ph.setMetaValue(String("NuXL:pl_modds"), ah.pl_modds);
+          ph.setMetaValue(String("NuXL:pl_pc_MIC"), ah.pl_pc_MIC);
+          ph.setMetaValue(String("NuXL:pl_im_MIC"), ah.pl_im_MIC);
           
-          ph.setMetaValue(String("RNPxl:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
+          ph.setMetaValue(String("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
-          ph.setMetaValue(String("RNPxl:NA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
-          ph.setMetaValue(String("RNPxl:NT"), String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
-          ph.setMetaValue(String("RNPxl:NA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // NA uncharged mass via empirical formula
-          ph.setMetaValue(String("RNPxl:isXL"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight() > 0); 
-          ph.setMetaValue(String("RNPxl:isPhospho"), is_phospho); 
+          ph.setMetaValue(String("NuXL:NA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
+          ph.setMetaValue(String("NuXL:NT"), String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
+          ph.setMetaValue(String("NuXL:NA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // NA uncharged mass via empirical formula
+          ph.setMetaValue(String("NuXL:isXL"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight() > 0); 
+          ph.setMetaValue(String("NuXL:isPhospho"), is_phospho); 
 
-          ph.setMetaValue(String("RNPxl:best_localization_score"), ah.best_localization_score);
-          ph.setMetaValue(String("RNPxl:localization_scores"), ah.localization_scores);
-          ph.setMetaValue(String("RNPxl:best_localization"), ah.best_localization);
+          ph.setMetaValue(String("NuXL:best_localization_score"), ah.best_localization_score);
+          ph.setMetaValue(String("NuXL:localization_scores"), ah.localization_scores);
+          ph.setMetaValue(String("NuXL:best_localization"), ah.best_localization);
 
           // also annotate PI to hit so it is available to percolator
           ph.setMetaValue("precursor_intensity_log10", precursor_intensity_log10);
@@ -2093,8 +2093,8 @@ static void scoreShiftedFragments_(
 
           ph.setPeakAnnotations(ah.fragment_annotations);
           ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
-          ph.setMetaValue(String("RNPxl:ladder_score"), ah.ladder_score);
-          ph.setMetaValue(String("RNPxl:sequence_score"), ah.sequence_score);
+          ph.setMetaValue(String("NuXL:ladder_score"), ah.ladder_score);
+          ph.setMetaValue(String("NuXL:sequence_score"), ah.sequence_score);
           ph.setMetaValue("rank", rank);
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
@@ -2138,30 +2138,30 @@ static void scoreShiftedFragments_(
     StringList feature_set;
     feature_set
        << "isotope_error"
-       << "RNPxl:score"
+       << "NuXL:score"
        << "variable_modifications"
-       << "RNPxl:isXL" 
-       << "RNPxl:isPhospho" 
-       << "RNPxl:mass_error_p"
-       << "RNPxl:total_loss_score"
-       << "RNPxl:modds"
-       << "RNPxl:immonium_score"
-       << "RNPxl:precursor_score"
-       << "RNPxl:marker_ions_score"
-       << "RNPxl:partial_loss_score"
-       << "RNPxl:MIC"
-       << "RNPxl:err"
-       << "RNPxl:Morph"
-       << "RNPxl:pl_MIC"
-       << "RNPxl:pl_err"
-       << "RNPxl:pl_Morph"
-       << "RNPxl:pl_modds"
-       << "RNPxl:pl_pc_MIC"
-       << "RNPxl:pl_im_MIC"
-       << "RNPxl:total_MIC"
-       << "RNPxl:NA_MASS_z0"
-       << "RNPxl:ladder_score"
-       << "RNPxl:sequence_score"
+       << "NuXL:isXL" 
+       << "NuXL:isPhospho" 
+       << "NuXL:mass_error_p"
+       << "NuXL:total_loss_score"
+       << "NuXL:modds"
+       << "NuXL:immonium_score"
+       << "NuXL:precursor_score"
+       << "NuXL:marker_ions_score"
+       << "NuXL:partial_loss_score"
+       << "NuXL:MIC"
+       << "NuXL:err"
+       << "NuXL:Morph"
+       << "NuXL:pl_MIC"
+       << "NuXL:pl_err"
+       << "NuXL:pl_Morph"
+       << "NuXL:pl_modds"
+       << "NuXL:pl_pc_MIC"
+       << "NuXL:pl_im_MIC"
+       << "NuXL:total_MIC"
+       << "NuXL:NA_MASS_z0"
+       << "NuXL:ladder_score"
+       << "NuXL:sequence_score"
        << "precursor_intensity_log10";
 
     if (!purities.empty()) feature_set << "precursor_purity";

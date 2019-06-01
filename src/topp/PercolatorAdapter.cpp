@@ -146,9 +146,9 @@ protected:
       
         OPENMS_PRECONDITION(left_dot < right_dot, "Peptide sequence encoding must have dot notation (e.g., A.PEPTIDER.C).")
  
-        // retrieve pre and post AA, e.g., A and C in A.PEPTIDE.C
-        preAA = (row[4][left_dot - 1] == '-') ? '[' : row[4][left_dot - 1];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
-        postAA = (row[4][right_dot + 1] == '-') ? ']' : row[4][right_dot + 1]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
+        // retrieve pre and post AA, e.g., A and C in "A.PEPTIDE.C" or ".PEPTIDE."
+        preAA = (left_dot == 0 || row[4][left_dot - 1] == '-') ? '[' : row[4][left_dot - 1];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
+        postAA = (right_dot + 1 < row[4].size() || row[4][right_dot + 1] == '-') ? ']' : row[4][right_dot + 1]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
 
         // retrieve sequence between dots, e.g., PEPTIDE
         peptide = row[4].substr(left_dot + 1, (right_dot - 1) - (left_dot + 1) + 1);

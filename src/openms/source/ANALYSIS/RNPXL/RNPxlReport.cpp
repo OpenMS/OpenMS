@@ -173,8 +173,8 @@ namespace OpenMS
           const AASequence sequence = AASequence::fromString(sequence_string);
 
           double peptide_weight = sequence.getMonoWeight();
-          String rna_name = ph.getMetaValue("RNPxl:RNA");
-          double rna_weight = ph.getMetaValue("RNPxl:RNA_MASS_z0");
+          String rna_name = ph.getMetaValue("NuXL:NA");
+          double rna_weight = ph.getMetaValue("NuXL:NA_MASS_z0");
 
           // crosslink weight for different charge states
           double weight_z1 = (peptide_weight + rna_weight + 1.0 * Constants::PROTON_MASS_U);
@@ -213,8 +213,8 @@ namespace OpenMS
           row.xl_weight = peptide_weight + rna_weight;
           row.rank = rank;
 
-          ph.setMetaValue("RNPxl:peptide_mass_z0", DataValue(peptide_weight));
-          ph.setMetaValue("RNPxl:xl_mass_z0", xl_weight);
+          ph.setMetaValue("NuXL:peptide_mass_z0", DataValue(peptide_weight));
+          ph.setMetaValue("NuXL:xl_mass_z0", xl_weight);
 
           for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
           {
@@ -232,21 +232,21 @@ namespace OpenMS
           row.m_3H = weight_z3;
           row.m_4H = weight_z4;
 
-          if (ph.metaValueExists("RNPxl:best_localization_score") && 
-              ph.metaValueExists("RNPxl:localization_scores") && 
-              ph.metaValueExists("RNPxl:best_localization"))
+          if (ph.metaValueExists("NuXL:best_localization_score") && 
+              ph.metaValueExists("NuXL:localization_scores") && 
+              ph.metaValueExists("NuXL:best_localization"))
           {
-            row.best_localization_score = ph.getMetaValue("RNPxl:best_localization_score");
-            row.localization_scores = ph.getMetaValue("RNPxl:localization_scores");
-            row.best_localization = ph.getMetaValue("RNPxl:best_localization");;
+            row.best_localization_score = ph.getMetaValue("NuXL:best_localization_score");
+            row.localization_scores = ph.getMetaValue("NuXL:localization_scores");
+            row.best_localization = ph.getMetaValue("NuXL:best_localization");;
           }
 
-          ph.setMetaValue("RNPxl:Da difference", (double)absolute_difference);
+          ph.setMetaValue("NuXL:Da difference", (double)absolute_difference);
           ph.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, (double)ppm_difference);
-          ph.setMetaValue("RNPxl:z1 mass", (double)weight_z1);
-          ph.setMetaValue("RNPxl:z2 mass", (double)weight_z2);
-          ph.setMetaValue("RNPxl:z3 mass", (double)weight_z3);
-          ph.setMetaValue("RNPxl:z4 mass", (double)weight_z4);
+          ph.setMetaValue("NuXL:z1 mass", (double)weight_z1);
+          ph.setMetaValue("NuXL:z2 mass", (double)weight_z2);
+          ph.setMetaValue("NuXL:z3 mass", (double)weight_z3);
+          ph.setMetaValue("NuXL:z4 mass", (double)weight_z4);
           csv_rows.push_back(row);
 
           // In the last annotation step we add the oligo as delta mass modification

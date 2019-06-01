@@ -62,6 +62,7 @@ export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Comet:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Sirius:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/SpectraST:$PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/ThermoRawFileParser:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Percolator:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/MaRaCluster:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/crux:$PATH

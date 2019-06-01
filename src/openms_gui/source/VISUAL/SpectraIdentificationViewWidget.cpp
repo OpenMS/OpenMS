@@ -67,6 +67,8 @@ namespace OpenMS
     is_ms1_shown_(false),
     fragment_window_(nullptr)
   {
+    setObjectName("Identifications");
+
     // set common defaults
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 
