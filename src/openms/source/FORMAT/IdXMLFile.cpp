@@ -646,7 +646,7 @@ namespace OpenMS
         accession_string.trim();
         std::vector<String> accessions;
         accession_string.split(' ', accessions);
-        if (accession_string != "" && accessions.empty())
+        if (!accession_string.empty() && accessions.empty())
         {
           accessions.push_back(accession_string);
         }

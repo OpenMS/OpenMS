@@ -1729,9 +1729,9 @@ namespace OpenMS
       row.search_engine_score_ms_run[1][1] = MzTabDouble(best_ph.getScore());
 
       // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
-      for (Size i = 0; i != row.opt_.size(); ++i)
+      for (Size j = 0; j != row.opt_.size(); ++j)
       {
-        MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+        MzTabOptionalColumnEntry& opt_entry = row.opt_[j];
 
         if (opt_entry.first == String("opt_global_modified_sequence"))
         {
@@ -1948,11 +1948,11 @@ namespace OpenMS
           search_engine_to_runs[make_pair(search_engine_name, search_engine_version)].insert(run_index);
           run_to_search_engines[run_index].push_back(make_pair(search_engine_name, search_engine_version));
           vector<String> mvkeys;
-          const ProteinIdentification::SearchParameters& sp = prot_ids[hit_index].getSearchParameters();
-          sp.getKeys(mvkeys);
+          const ProteinIdentification::SearchParameters& sp2 = prot_ids[hit_index].getSearchParameters();
+          sp2.getKeys(mvkeys);
           if (prot_ids[hit_index].metaValueExists("percolator"))
           {
-            secondary_search_engines.emplace_back(make_pair("Percolator", sp.getMetaValue("percolator")));
+            secondary_search_engines.emplace_back(make_pair("Percolator", sp2.getMetaValue("percolator")));
           }
           for (const String & mvkey : mvkeys)
           {
@@ -1961,7 +1961,7 @@ namespace OpenMS
             // and that these settings were taken over into the ones for PercolatorAdapter
             if (mvkey.hasPrefix("SE:"))
             {
-              secondary_search_engines.emplace_back(make_pair(mvkey.substr(3), sp.getMetaValue(mvkey)));
+              secondary_search_engines.emplace_back(make_pair(mvkey.substr(3), sp2.getMetaValue(mvkey)));
             }
           }
           secondary_search_engines_settings.resize(secondary_search_engines.size());
@@ -1971,7 +1971,7 @@ namespace OpenMS
             {
               if (mvkey.hasPrefix(secondary_search_engines[s].first))
               {
-                secondary_search_engines_settings[s].emplace_back(make_pair(mvkey.substr(secondary_search_engines[s].first.size()+1), sp.getMetaValue(mvkey)));
+                secondary_search_engines_settings[s].emplace_back(make_pair(mvkey.substr(secondary_search_engines[s].first.size()+1), sp2.getMetaValue(mvkey)));
               }
             }
           }
@@ -2065,7 +2065,7 @@ namespace OpenMS
       for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it)
       {
         const std::vector<ProteinHit>& protein_hits = it->getHits(); 
-        const std::vector<ProteinIdentification::ProteinGroup>& indist_groups = it->getIndistinguishableProteins();
+        const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = it->getIndistinguishableProteins();
 
         // TODO: add processing information that this file has been exported from "filename"
 
@@ -2090,10 +2090,10 @@ namespace OpenMS
 
         // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
         // We skip the more extensive reporting of general groups with complex shared peptide relations. 
-        std::vector<ProteinIdentification::ProteinGroup> protein_groups;
+        std::vector<ProteinIdentification::ProteinGroup> protein_groups2;
         if (quant_study_variables == 0)
         {
-          protein_groups = it->getProteinGroups();
+          protein_groups2 = it->getProteinGroups();
         }
 
         /*
@@ -2158,9 +2158,9 @@ namespace OpenMS
 
         /////////////////////////////////////////////////////////////
         // reporting of general protein groups (not supported for quant data)
-        for (Size i = 0; i != protein_groups.size(); ++i)
+        for (Size i = 0; i != protein_groups2.size(); ++i)
         {
-          const ProteinIdentification::ProteinGroup& group = protein_groups[i];
+          const ProteinIdentification::ProteinGroup& group = protein_groups2[i];
           MzTabProteinSectionRow protein_row;
           protein_row.database = db; // Name of the protein database.
           protein_row.database_version = db_version; // String Version of the protein database.
@@ -2194,12 +2194,12 @@ namespace OpenMS
 
         /////////////////////////////////////////////////////////////
         // reporting of protein groups composed of indistinguishable proteins
-        for (Size i = 0; i != indist_groups.size(); ++i)
+        for (Size g = 0; g != indist_groups2.size(); ++g)
         {
-          const ProteinIdentification::ProteinGroup& group = indist_groups[i];
+          const ProteinIdentification::ProteinGroup& group = indist_groups2[g];
 
           // get references (indices) into proteins vector
-          const set<Size> & protein_hits_idx = ind2prot[i];
+          const set<Size> & protein_hits_idx = ind2prot[g];
 
           // determine group leader
           const ProteinHit& leader_protein = protein_hits[*protein_hits_idx.begin()];
@@ -2249,14 +2249,14 @@ namespace OpenMS
             && group.getFloatDataArrays()[0].getName() == "abundances")
           {
             const ProteinIdentification::ProteinGroup::FloatDataArray & fa = group.getFloatDataArrays()[0];
-            Size i(1);
+            Size s(1);
             for (float f : fa)
             {
-              protein_row.protein_abundance_assay[i] = MzTabDouble(f); // assay has same information as SV (without design)
-              protein_row.protein_abundance_study_variable[i] = MzTabDouble(f);
-              protein_row.protein_abundance_stdev_study_variable[i] = MzTabDouble();
-              protein_row.protein_abundance_std_error_study_variable[i] = MzTabDouble();
-              ++i;
+              protein_row.protein_abundance_assay[s] = MzTabDouble(f); // assay has same information as SV (without design)
+              protein_row.protein_abundance_study_variable[s] = MzTabDouble(f);
+              protein_row.protein_abundance_stdev_study_variable[s] = MzTabDouble();
+              protein_row.protein_abundance_std_error_study_variable[s] = MzTabDouble();
+              ++s;
             }
           }
 
@@ -2310,27 +2310,27 @@ namespace OpenMS
           if (leader_protein.metaValueExists("num_psms_ms_run"))
           {
             const IntList& il = leader_protein.getMetaValue("num_psms_ms_run");
-            for (Size i = 0; i != il.size(); ++i)
+            for (Size ili = 0; ili != il.size(); ++ili)
             {
-              protein_row.num_psms_ms_run[i+1] = MzTabInteger(il[i]);
+              protein_row.num_psms_ms_run[ili+1] = MzTabInteger(il[ili]);
             }
           }
 
           if (leader_protein.metaValueExists("num_peptides_distinct_ms_run"))
           {
             const IntList& il = leader_protein.getMetaValue("num_peptides_distinct_ms_run");
-            for (Size i = 0; i != il.size(); ++i)
+            for (Size ili = 0; ili != il.size(); ++ili)
             {
-              protein_row.num_peptides_distinct_ms_run[i+1] = MzTabInteger(il[i]);
+              protein_row.num_peptides_distinct_ms_run[ili+1] = MzTabInteger(il[ili]);
             }
           }
 
           if (leader_protein.metaValueExists("num_peptides_unique_ms_run"))
           {
             const IntList& il = leader_protein.getMetaValue("num_peptides_unique_ms_run");
-            for (Size i = 0; i != il.size(); ++i)
+            for (Size ili = 0; ili != il.size(); ++ili)
             {
-              protein_row.num_peptides_unique_ms_run[i+1] = MzTabInteger(il[i]);
+              protein_row.num_peptides_unique_ms_run[ili+1] = MzTabInteger(il[ili]);
             }
           }
 
@@ -2751,12 +2751,12 @@ Not sure how to handle these:
       }
 
       // look up run index by filename
-      auto it = find_if(meta_data.ms_run.begin(), meta_data.ms_run.end(), 
+      auto md_it = find_if(meta_data.ms_run.begin(), meta_data.ms_run.end(),
         [&c] (const pair<Size, MzTabMSRunMetaData>& m) { return m.second.location.toCellString().hasSuffix(c.second.filename); } );
-      Size run_index = it->first;
+      Size curr_run_index = md_it->first;
 
       meta_data.assay[assay_index].quantification_reagent = quantification_reagent;
-      meta_data.assay[assay_index].ms_run_ref.push_back(run_index);
+      meta_data.assay[assay_index].ms_run_ref.push_back(curr_run_index);
       
       // study variable meta data
       MzTabString sv_description;
@@ -2787,8 +2787,8 @@ Not sure how to handle these:
       
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
-      const vector<PeptideIdentification> & pep_ids = c.getPeptideIdentifications();
-      for (auto const & pep_id : pep_ids)
+      const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
+      for (auto const & pep_id : curr_pep_ids)
       {
         for (auto const & hit : pep_id.getHits())
         {
@@ -2900,10 +2900,10 @@ Not sure how to handle these:
         row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
       }
 
-      vector<PeptideIdentification> pep_ids = c.getPeptideIdentifications();
-      if (!pep_ids.empty())
+      vector<PeptideIdentification> curr_pep_ids = c.getPeptideIdentifications();
+      if (!curr_pep_ids.empty())
       {
-        if (pep_ids.size() != 1)
+        if (curr_pep_ids.size() != 1)
         {
           throw OpenMS::Exception::IllegalArgument(
               __FILE__
@@ -2912,8 +2912,8 @@ Not sure how to handle these:
             , "Consensus features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
         }
 
-        pep_ids[0].assignRanks();
-        const PeptideHit& best_ph = pep_ids[0].getHits()[0];
+        curr_pep_ids[0].assignRanks();
+        const PeptideHit& best_ph = curr_pep_ids[0].getHits()[0];
         const AASequence& aas = best_ph.getSequence();
         row.sequence = MzTabString(aas.toUnmodifiedString());
 

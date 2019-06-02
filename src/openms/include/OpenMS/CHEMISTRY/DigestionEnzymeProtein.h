@@ -153,6 +153,13 @@ namespace OpenMS
     /// inequality operator
     bool operator!=(const DigestionEnzymeProtein& enzyme) const;
 
+    // Note: comparison operator is not inherited. TODO rename and make virtual
+    /// equality operator for regex
+    bool operator==(const String& cleavage_regex) const;
+
+    /// equality operator for regex
+    bool operator!=(const String& cleavage_regex) const;
+
     /// order operator
     bool operator<(const DigestionEnzymeProtein& enzyme) const;
     //@}

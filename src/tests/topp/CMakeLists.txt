@@ -244,7 +244,7 @@ set_tests_properties("TOPP_MassTraceExtractor_2_out" PROPERTIES DEPENDS "TOPP_Ma
 
 #------------------------------------------------------------------------------
 # FeatureFinderMetabo test
-add_test("TOPP_FeatureFinderMetabo_1" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out FeatureFinderMetabo_1.tmp)
+add_test("TOPP_FeatureFinderMetabo_1" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out FeatureFinderMetabo_1.tmp -debug 1000)
 add_test("TOPP_FeatureFinderMetabo_1_out" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetabo_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_1_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_1")
 add_test("TOPP_FeatureFinderMetabo_2" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_input.mzML -out FeatureFinderMetabo_2.tmp)

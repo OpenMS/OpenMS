@@ -572,7 +572,7 @@ namespace OpenMS
       */
       std::sort(temp.begin(), temp.end(), Compare(false));
       //Int anchor=(Int)(size*anchorPoints_/100);
-      float anchor = temp.size() * anchorPoints_ / 100.0;
+      float anchor = temp.size() * anchorPoints_ / 100.0f;
       if (anchor <= 0 && !temp.empty())
       {
         anchor = 1;

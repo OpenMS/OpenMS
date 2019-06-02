@@ -175,6 +175,17 @@ namespace OpenMS
            omssa_id_ == enzyme.omssa_id_;
   }
 
+  // Note: comparison operators are not inherited. TODO rename it and make virtual
+  bool DigestionEnzymeProtein::operator==(const String& cleavage_regex) const
+  {
+    return cleavage_regex_ == cleavage_regex;
+  }
+
+  bool DigestionEnzymeProtein::operator!=(const String& cleavage_regex) const
+  {
+    return cleavage_regex_ != cleavage_regex;
+  }
+
   bool DigestionEnzymeProtein::operator!=(const DigestionEnzymeProtein& enzyme) const
   {
     return !(*this == enzyme);

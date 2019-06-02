@@ -52,9 +52,22 @@ namespace OpenMS
   }
 
   // values constructor
-  PeptideHit::PeptideHit(double score, UInt rank, Int charge, AASequence sequence) :
+  PeptideHit::PeptideHit(double score, UInt rank, Int charge, const AASequence& sequence) :
+      MetaInfoInterface(),
+      sequence_(sequence),
+      score_(score),
+      analysis_results_(nullptr),
+      rank_(rank),
+      charge_(charge),
+      peptide_evidences_(),
+      fragment_annotations_()
+  {
+  }
+
+  // values constructor
+  PeptideHit::PeptideHit(double score, UInt rank, Int charge, AASequence&& sequence) :
     MetaInfoInterface(),
-    sequence_(std::move(sequence)),
+    sequence_(sequence),
     score_(score),
     analysis_results_(nullptr),
     rank_(rank),
@@ -86,7 +99,7 @@ namespace OpenMS
     MetaInfoInterface(std::move(source)), // NOTE: rhs itself is an lvalue
     sequence_(std::move(source.sequence_)),
     score_(source.score_),
-    analysis_results_(source.analysis_results_),
+    analysis_results_(std::move(source.analysis_results_)),
     rank_(source.rank_),
     charge_(source.charge_),
     peptide_evidences_(std::move(source.peptide_evidences_)),

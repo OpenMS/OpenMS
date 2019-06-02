@@ -898,12 +898,14 @@ namespace OpenMS
 
       if (pass_isotope_filter == 0) // not passing filter
       {
+        std::cout << "removed trace iso"<< std::endl;
         continue;
       }
 
       // filter out single traces if option is set
       if (remove_single_traces_ && feat_hypos[hypo_idx].getCharge() == 0)
       {
+        std::cout << "removed trace"<< std::endl;
         continue;
       }
 
@@ -924,6 +926,9 @@ namespace OpenMS
         f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(use_smoothed_intensities_));
       }
 
+      // This can happen if the FWHM is zero (bc of skewed shape) and no peaks end up being summed up
+      if (f.getIntensity() == 0.0) {continue;}
+      
       f.setWidth(feat_hypos[hypo_idx].getFWHM());
       f.setCharge(feat_hypos[hypo_idx].getCharge());
       f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
