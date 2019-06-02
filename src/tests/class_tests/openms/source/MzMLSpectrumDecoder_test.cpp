@@ -163,7 +163,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  TEST_EXCEPTION(Exception::ParseError&,ptr->domParseSpectrum(testString, cptr))
 }
 END_SECTION
 
@@ -212,7 +212,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );  
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  TEST_EXCEPTION(Exception::ParseError&,ptr->domParseSpectrum(testString, cptr))
 }
 END_SECTION
 
@@ -263,7 +263,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
       </spectrum>
   );
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  TEST_EXCEPTION(Exception::ParseError&,ptr->domParseSpectrum(testString, cptr))
 }
 END_SECTION
 
@@ -316,7 +316,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  TEST_EXCEPTION(Exception::ParseError&,ptr->domParseSpectrum(testString, cptr))
 }
 END_SECTION
 
@@ -340,7 +340,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  TEST_EXCEPTION(Exception::ParseError&,ptr->domParseSpectrum(testString, cptr))
 }
 END_SECTION
 
@@ -366,7 +366,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  TEST_EXCEPTION(Exception::ParseError&,ptr->domParseSpectrum(testString, cptr))
 }
 END_SECTION
 
@@ -387,7 +387,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  TEST_EXCEPTION(Exception::ParseError&,ptr->domParseSpectrum(testString, cptr))
 }
 END_SECTION
 
@@ -411,7 +411,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  TEST_EXCEPTION(Exception::ConversionError, ptr->domParseSpectrum(testString, cptr) );
+  TEST_EXCEPTION(Exception::ConversionError&, ptr->domParseSpectrum(testString, cptr) );
 }
 END_SECTION
 
@@ -438,7 +438,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
       </spectrum>
   );
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+  TEST_EXCEPTION(Exception::ParseError&,ptr->domParseSpectrum(testString, cptr))
 }
 END_SECTION
 

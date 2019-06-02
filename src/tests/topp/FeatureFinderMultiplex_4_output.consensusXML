@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/git/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_1482803050776511530" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/OpenMS-develop/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="1">
 		<map id="0" name="FeatureFinderMultiplex_4_input.mzML" label="no_label" size="5">
 			<UserParam type="int" name="channel_id" value="0"/>
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_7218651875895060194" quality="1" charge="6">
-			<centroid rt="1852.38703065058" mz="620.421165174974" it="13588.4"/>
+		<consensusElement id="e_4835329514588776807" quality="1.0" charge="6">
+			<centroid rt="1852.387030650575753" mz="620.421165174974021" it="13974.510742"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1852.38703065058" mz="620.421165174974" it="13588.4" charge="6"/>
+				<element map="0" id="0" rt="1852.387030650575753" mz="620.421165174974021" it="13974.510742" charge="6"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_7352813712113920064" quality="1" charge="6">
-			<centroid rt="1854.7415167568" mz="614.931864941648" it="15841.7"/>
+		<consensusElement id="e_17749660155506638460" quality="1.0" charge="6">
+			<centroid rt="1854.741516756799001" mz="614.931864941647518" it="16768.589844"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1854.7415167568" mz="614.931864941648" it="15841.7" charge="6"/>
+				<element map="0" id="0" rt="1854.741516756799001" mz="614.931864941647518" it="16768.589844" charge="6"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_2504454798279357377" quality="1" charge="6">
-			<centroid rt="1855.15530488198" mz="616.768446577096" it="105434"/>
+		<consensusElement id="e_7804704400743266335" quality="1.0" charge="6">
+			<centroid rt="1855.155304881983056" mz="616.768446577095688" it="1.064581e05"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1855.15530488198" mz="616.768446577096" it="105434" charge="6"/>
+				<element map="0" id="0" rt="1855.155304881983056" mz="616.768446577095688" it="1.064581e05" charge="6"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_12843305313432816027" quality="1" charge="6">
-			<centroid rt="1855.2380935984" mz="620.928213169278" it="15871.4"/>
+		<consensusElement id="e_15004869347769368353" quality="1.0" charge="6">
+			<centroid rt="1855.238093598396745" mz="620.928213169278024" it="17319.693359"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1855.2380935984" mz="620.928213169278" it="15871.4" charge="6"/>
+				<element map="0" id="0" rt="1855.238093598396745" mz="620.928213169278024" it="17319.693359" charge="6"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_3760414620175943343" quality="1" charge="6">
-			<centroid rt="1855.79010542035" mz="610.765349095388" it="533858"/>
+		<consensusElement id="e_3332699010107892018" quality="1.0" charge="6">
+			<centroid rt="1855.790105420353484" mz="610.765349095387592" it="5.338581e05"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1855.79010542035" mz="610.765349095388" it="533858" charge="6"/>
+				<element map="0" id="0" rt="1855.790105420353484" mz="610.765349095387592" it="5.338581e05" charge="6"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>

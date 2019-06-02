@@ -227,7 +227,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        LOG_ERROR << "Error: " << e.what() << endl;
+        OPENMS_LOG_ERROR << "Error: " << e.what() << endl;
         return;
       }
 

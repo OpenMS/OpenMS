@@ -207,13 +207,14 @@ def testAASequence():
     assert seq.toString() == "PEPTIDESEKUEM(Oxidation)CER"
     assert seq.toUnmodifiedString() == "PEPTIDESEKUEMCER"
     assert seq.toBracketString() == "PEPTIDESEKUEM[147]CER"
-    assert seq.toBracketString(True, []) == "PEPTIDESEKUEM[147]CER"
-    print( seq.toBracketString(False, []) )
-    assert seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
-           seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.035400017100017]CER"
-    print( seq.toBracketString(False) )
+    assert seq.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
+
     assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
            seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
+
+    assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
+           seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
+
     assert seq.toUniModString() == "PEPTIDESEKUEM(UniMod:35)CER"
     assert seq.isModified()
     assert not seq.hasCTerminalModification()
@@ -227,6 +228,7 @@ def testAASequence():
     assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
 
+    
 @report
 def testElement():
     """
@@ -3738,13 +3740,24 @@ def testBase64():
     b = pyopenms.Base64()
     out = pyopenms.String()
     inp =  [1.0, 2.0, 3.0]
-    b.encode(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
+    b.encode64(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
     res = out.toString()
     assert len(res) != 0
     assert res != ""
 
     convBack = []
-    b.decode(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
+    b.decode64(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
+    assert convBack == inp, convBack
+
+    # For 32 bit
+    out = pyopenms.String()
+    b.encode32(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
+    res = out.toString()
+    assert len(res) != 0
+    assert res != ""
+
+    convBack = []
+    b.decode32(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
     assert convBack == inp, convBack
 
 @report

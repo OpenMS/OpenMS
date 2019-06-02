@@ -780,12 +780,12 @@ namespace OpenMS
     // *********************************************************** //
     if (isotope_filtering_model_ == "metabolites (2% RMS)")
     {
-      LOG_INFO << "Loading metabolite isotope model with 2% RMS error" << std::endl;
+      OPENMS_LOG_INFO << "Loading metabolite isotope model with 2% RMS error" << std::endl;
       loadIsotopeModel_("MetaboliteIsoModelNoised2");
     }
     else if (isotope_filtering_model_ == "metabolites (5% RMS)")
     {
-      LOG_INFO << "Loading metabolite isotope model with 5% RMS error" << std::endl;
+      OPENMS_LOG_INFO << "Loading metabolite isotope model with 5% RMS error" << std::endl;
       loadIsotopeModel_("MetaboliteIsoModelNoised5");
     }
 

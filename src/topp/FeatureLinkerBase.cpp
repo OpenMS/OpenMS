@@ -150,7 +150,7 @@ protected:
   
     if (file_type == FileTypes::FEATUREXML)
     {
-      LOG_INFO << "Linking " << ins.size() << " featureXMLs." << endl;
+      OPENMS_LOG_INFO << "Linking " << ins.size() << " featureXMLs." << endl;
   
       //-------------------------------------------------------------
       // Extract (optional) fraction identifiers and associate with featureXMLs
@@ -207,7 +207,7 @@ protected:
         // associate mzML file with map i in consensusXML
         if (ms_runs.size() > 1 || ms_runs.empty())
         {
-          LOG_WARN << "Exactly one MS runs should be associated with a FeatureMap. " 
+          OPENMS_LOG_WARN << "Exactly one MS runs should be associated with a FeatureMap. " 
             << ms_runs.size() 
             << " provided." << endl;
         }
@@ -337,14 +337,14 @@ protected:
       ++num_consfeat_of_size[cmit->size()];
     }
 
-    LOG_INFO << "Number of consensus features:" << endl;
+    OPENMS_LOG_INFO << "Number of consensus features:" << endl;
     for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin();
          i != num_consfeat_of_size.rend(); ++i)
     {
-      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) 
+      OPENMS_LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) 
                << i->second << endl;
     }
-    LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
+    OPENMS_LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
 
     return EXECUTION_OK;
   }

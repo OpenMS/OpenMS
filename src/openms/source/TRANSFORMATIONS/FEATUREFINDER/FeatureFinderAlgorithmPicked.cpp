@@ -705,8 +705,8 @@ namespace OpenMS
             alt_fitter->setParameters(alt_p);
             alt_fitter->fit(traces);
 
-            LOG_DEBUG << "EGH:   " << fitter->getCenter() << " " << fitter->getHeight() << std::endl;
-            LOG_DEBUG << "GAUSS: " << alt_fitter->getCenter() << " " << alt_fitter->getHeight() << std::endl;
+            OPENMS_LOG_DEBUG << "EGH:   " << fitter->getCenter() << " " << fitter->getHeight() << std::endl;
+            OPENMS_LOG_DEBUG << "GAUSS: " << alt_fitter->getCenter() << " " << alt_fitter->getHeight() << std::endl;
 #endif
             // what should come out
             // left "sigma"
@@ -974,7 +974,7 @@ namespace OpenMS
         }
       }
     }
-    LOG_INFO << "Removed " << removed << " overlapping features." << std::endl;
+    OPENMS_LOG_INFO << "Removed " << removed << " overlapping features." << std::endl;
     //finally remove features with intensity 0
     FeatureMap tmp;
     tmp.reserve(features_->size());
@@ -1724,13 +1724,13 @@ namespace OpenMS
     // choose fitter
     if (param_.getValue("feature:rt_shape") == "asymmetric")
     {
-      LOG_DEBUG << "use asymmetric rt peak shape" << std::endl;
+      OPENMS_LOG_DEBUG << "use asymmetric rt peak shape" << std::endl;
       tau = -1.0;
       return new EGHTraceFitter();
     }
     else // if (param_.getValue("feature:rt_shape") == "symmetric")
     {
-      LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
+      OPENMS_LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
       return new GaussTraceFitter();
     }
   }

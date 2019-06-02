@@ -143,7 +143,7 @@ START_SECTION(const CVTerm& getTerm(const String& id) const)
 	TEST_EQUAL(term->unparsed.size(),0)
 	TEST_EQUAL(term->synonyms.size(),0)
 
-	TEST_EXCEPTION(Exception::InvalidValue , cv.getTerm("OpenMS:7"))
+	TEST_EXCEPTION(Exception::InvalidValue&, cv.getTerm("OpenMS:7"))
 END_SECTION
 
 START_SECTION(bool isChildOf(const String& child, const String& parent) const)
@@ -156,7 +156,7 @@ START_SECTION(bool isChildOf(const String& child, const String& parent) const)
 	TEST_EQUAL(cv.isChildOf("OpenMS:4","OpenMS:6"),false)
 	TEST_EQUAL(cv.isChildOf("OpenMS:2","OpenMS:6"),false)
 	TEST_EQUAL(cv.isChildOf("OpenMS:2","OpenMS:3"),false)
-	TEST_EXCEPTION(Exception::InvalidValue, cv.isChildOf("OpenMS:7","OpenMS:3"))
+	TEST_EXCEPTION(Exception::InvalidValue&, cv.isChildOf("OpenMS:7","OpenMS:3"))
 END_SECTION
 
 START_SECTION((const Map<String, CVTerm>& getTerms() const))

@@ -93,7 +93,7 @@ namespace OpenMS
 
   void DigestSimulation::digest(SimTypes::FeatureMapSim& feature_map)
   {
-    LOG_INFO << "Digest Simulation ... started" << std::endl;
+    OPENMS_LOG_INFO << "Digest Simulation ... started" << std::endl;
 
     if ((String)param_.getValue("enzyme") == String("no cleavage"))
     {

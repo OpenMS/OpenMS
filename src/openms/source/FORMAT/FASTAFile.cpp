@@ -75,6 +75,19 @@ namespace OpenMS
     if (infile_.is_open()) infile_.close(); // precaution
 
     infile_.open(filename.c_str(), std::ios::binary | std::ios::in);
+
+    // Skip the header of PEFF files (http://www.psidev.info/peff)
+    std::string line;
+    std::streampos firstline = 0;
+    while (TextFile::getLine(infile_, line))
+    {
+      if (!line.empty() && line[0] != '#')
+      {
+        break;
+      }
+      firstline = infile_.tellg();
+    }
+    infile_.seekg(firstline);
   
     // automatically deletes old handles
     reader_ = std::unique_ptr<void, std::function<void(void*) > >(new FASTARecordReader(infile_),

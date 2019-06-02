@@ -93,7 +93,9 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
                           ${SQLite_LIBRARY}
+                          ${HDF5_CXX_LIBRARIES}
                           ${GLPK_LIBRARIES}
+                          ${CMAKE_DL_LIBS}
                           ${Qt5Core_LIBRARIES}
                           ${Qt5Network_LIBRARIES})
 
@@ -117,12 +119,13 @@ endif()
 
 set (OPENMS_CONTRIB_INCLUDE_DIRS "")
 if (OPENMS_CONTRIB_LIBS)
- set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
+  set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
 endif()
 
 foreach (includedir
          ${SEQAN_INCLUDE_DIRS}
          ${SQLite_INCLUDE_DIR}
+         ${HDF5_INCLUDE_DIRS}
          ${LIBSVM_INCLUDE_DIRS}
          ${EIGEN3_INCLUDE_DIR}
          ${WM5_INCLUDE_DIRS}

@@ -76,6 +76,10 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
 
         void addProteinPositionMetaValues(libcpp_vector[ PeptideIdentification ]& peptide_ids) nogil except +
 
+        void addXLTargetDecoyMV(libcpp_vector[ PeptideIdentification ]& peptide_ids) nogil except +
+
+        void addBetaAccessions(libcpp_vector[ PeptideIdentification ]& peptide_ids) nogil except +
+
         libcpp_vector[ ProteinProteinCrossLink ] collectPrecursorCandidates(IntList precursor_correction_steps,
                                                                             double precursor_mass,
                                                                             double precursor_mass_tolerance,

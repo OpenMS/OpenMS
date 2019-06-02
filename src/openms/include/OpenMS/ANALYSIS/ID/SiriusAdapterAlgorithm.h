@@ -101,7 +101,7 @@ namespace OpenMS
       /**
       @brief logs number of features and spectra used
 
-      Prints the number of features and spectra used (LOG_INFO)
+      Prints the number of features and spectra used (OPENMS_LOG_INFO)
 
       @param featureinfo: Path to featureXML
       @param feature_mapping: FeatureToMs2Indices with feature mapping

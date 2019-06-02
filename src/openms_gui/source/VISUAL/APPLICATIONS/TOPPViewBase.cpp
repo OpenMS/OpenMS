@@ -248,6 +248,7 @@ namespace OpenMS
     layer->addSeparator();
     layer->addAction("Show/hide grid lines", this, SLOT(toggleGridLines()), Qt::CTRL + Qt::Key_R);
     layer->addAction("Show/hide axis legends", this, SLOT(toggleAxisLegends()), Qt::CTRL + Qt::Key_L);
+    layer->addAction("Show/hide automated m/z annotations", this, SLOT(toggleInterestingMZs()));
     layer->addSeparator();
     layer->addAction("Preferences", this, SLOT(showPreferences()));
 
@@ -527,8 +528,8 @@ namespace OpenMS
     connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int, int, int)), identificationview_behavior_, SLOT(activate1DSpectrum(int, int, int)));
     connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
-    views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
-    views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
+    views_tabwidget_->addTab(spectra_view_widget_, spectra_view_widget_->objectName());
+    views_tabwidget_->addTab(spectra_identification_view_widget_, spectra_identification_view_widget_->objectName());
     views_tabwidget_->setTabEnabled(0, false);
     views_tabwidget_->setTabEnabled(1, false);
 
@@ -1247,10 +1248,10 @@ namespace OpenMS
           indexed_mzml_file_.openFile(filename);
           if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
           {
-            LOG_INFO << "INFO: will use cached MS2 spectra" << std::endl;
+            OPENMS_LOG_INFO << "INFO: will use cached MS2 spectra" << std::endl;
             if (cache_ms1_on_disc)
             {
-              LOG_INFO << "log INFO: will use cached MS1 spectra" << std::endl;
+              OPENMS_LOG_INFO << "log INFO: will use cached MS1 spectra" << std::endl;
             }
             parsing_success = true;
 
@@ -1288,7 +1289,7 @@ namespace OpenMS
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
         }
-        LOG_INFO << "INFO: done loading all " << std::endl;
+        OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in SpectrumCanvas::addLayer
@@ -1361,10 +1362,7 @@ namespace OpenMS
                       (data_type == LayerData::DT_IDENT));
 
     // only one peak spectrum? disable 2D as default
-    if (peak_map->size() == 1)
-    {
-      maps_as_2d = false;
-    }
+    if (peak_map->size() == 1) { maps_as_2d = false; }
 
     // set the window where (new layer) data could be opened in
     // get EnhancedTabBarWidget with given id
@@ -2083,14 +2081,14 @@ namespace OpenMS
   void TOPPViewBase::viewChanged(int tab_index)
   {
     // set new behavior
-    if (views_tabwidget_->tabText(tab_index) == "Scan view")
+    if (views_tabwidget_->tabText(tab_index) == spectra_view_widget_->objectName())
     {
       identificationview_behavior_->deactivateBehavior(); // finalize old behavior
       layer_dock_widget_->show();
       filter_dock_widget_->show();
       spectraview_behavior_->activateBehavior(); // initialize new behavior
     }
-    else if (views_tabwidget_->tabText(tab_index) == "Identification view")
+    else if (views_tabwidget_->tabText(tab_index) == spectra_identification_view_widget_->objectName())
     {
       spectraview_behavior_->deactivateBehavior();
       layer_dock_widget_->show();
@@ -3557,7 +3555,7 @@ namespace OpenMS
 
     // Add spectra into a MSExperiment, sort and prepare it for display
     ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
-    for (auto s : im_map)
+    for (const auto& s : im_map)
     {
       tmpe->addSpectrum( *(s.second) );
     }
@@ -3574,11 +3572,11 @@ namespace OpenMS
     {
       return;
     }
-    w->xAxis()->setLegend(String("Ion Mobility [ms]"));
+    w->xAxis()->setLegend(SpectrumWidget::IM_MS_AXIS_TITLE);
 
     if (im_arr.getName().find("1002815") != std::string::npos)
     {
-      w->xAxis()->setLegend(String("Ion Mobility [1/K0]"));
+      w->xAxis()->setLegend(SpectrumWidget::IM_ONEKZERO_AXIS_TITLE);
       tmpe->setMetaValue("ion_mobility_unit", "1/K0");
     }
 
@@ -4025,6 +4023,13 @@ namespace OpenMS
   void TOPPViewBase::toggleAxisLegends()
   {
     getActiveSpectrumWidget()->showLegend(!getActiveSpectrumWidget()->isLegendShown());
+  }
+
+  void TOPPViewBase::toggleInterestingMZs()
+  {
+    auto w = getActive1DWidget();
+    if (w == nullptr) return;
+    w->canvas()->setDrawInterestingMZs(!w->canvas()->isDrawInterestingMZs());
   }
 
   void TOPPViewBase::showPreferences()

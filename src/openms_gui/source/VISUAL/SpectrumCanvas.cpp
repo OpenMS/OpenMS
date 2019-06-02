@@ -401,7 +401,7 @@ namespace OpenMS
         && layers_.back().getPeakData()->size() != 0)
     {
       // TODO : handle this case better
-      LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
+      OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
     }
 
     if (layers_.back().getPeakData()->getChromatograms().size() != 0 

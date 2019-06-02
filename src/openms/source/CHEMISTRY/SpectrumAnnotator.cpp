@@ -234,7 +234,7 @@ namespace OpenMS
                   }
                   catch (std::out_of_range)
                   {
-                    LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
+                    OPENMS_LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
                              << " will be ignored for max_series " << ph->getSequence().toString() << endl;
                     continue;
                   }

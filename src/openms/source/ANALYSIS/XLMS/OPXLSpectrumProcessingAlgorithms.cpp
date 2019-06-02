@@ -109,7 +109,7 @@ namespace OpenMS
 
     // sort by rt
     exp.sortSpectra(false);
-    LOG_DEBUG << "Deisotoping and filtering spectra." << endl;
+    OPENMS_LOG_DEBUG << "Deisotoping and filtering spectra." << endl;
 
     // filter settings
     WindowMower window_mower_filter;

@@ -154,7 +154,7 @@ namespace OpenMS
       // We can detect this here but it is too late to fix the problem;
       // there is no straightforward action to be taken in all cases.
       // Note also that we are given a const reference.
-      LOG_INFO << String("FeatureXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
+      OPENMS_LOG_INFO << String("FeatureXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
     }
 
     // This will throw if the unique ids are not unique,
@@ -165,7 +165,7 @@ namespace OpenMS
     }
     catch (Exception::Postcondition& e)
     {
-      LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
+      OPENMS_LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
       throw;
     }
 
@@ -188,7 +188,7 @@ namespace OpenMS
     // user param
     writeUserParam_("UserParam", os, feature_map, 1);
 
-    //write data processing
+    // write data processing
     for (Size i = 0; i < feature_map.getDataProcessing().size(); ++i)
     {
       const DataProcessing& processing = feature_map.getDataProcessing()[i];
@@ -201,6 +201,9 @@ namespace OpenMS
       writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
     }
+
+    // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
+    checkUniqueIdentifiers_(feature_map.getProteinIdentifications());
 
     // write identification runs
     Size prot_count = 0;
@@ -523,22 +526,24 @@ namespace OpenMS
       prot_id_.setSearchEngine(attributeAsString_(attributes, "search_engine"));
       prot_id_.setSearchEngineVersion(attributeAsString_(attributes, "search_engine_version"));
       prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
-      //set identifier
-      String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date");
-      String id = attributeAsString_(attributes, "id");
+      // set identifier
+      // always generate a unique id to link a ProteinIdentification and the corresponding PeptideIdentifications
+      // , since any FeatureLinker might just carelessly concatenate PepIDs from different FeatureMaps.
+      // If these FeatureMaps have identical identifiers (SearchEngine time + type match exactly), then ALL PepIDs would be falsely attributed
+      // to a single ProtID...
 
-      if (!id_identifier_.has(id))
-      {
-        prot_id_.setIdentifier(identifier);
-        id_identifier_[id] = identifier;
-      }
-      else
-      {
-        warning(LOAD, "Non-unique identifier for IdentificationRun encountered '" + identifier + "'. Generating a unique one.");
-        UInt64 uid = UniqueIdGenerator::getUniqueId();
-        identifier = identifier + String(uid);
-        prot_id_.setIdentifier(identifier);
-        id_identifier_[id] = identifier;
+      String id = attributeAsString_(attributes, "id");
+      while (true)
+      { // loop until the identifier is unique (should be on the first iteration -- very(!) unlikely it will not be unique)
+        // Note: technically, it would be preferrable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
+        String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
+
+        if (!id_identifier_.has(id))
+        {
+          prot_id_.setIdentifier(identifier);
+          id_identifier_[id] = identifier;
+          break;
+        }
       }
     }
     else if (tag == "SearchParameters")

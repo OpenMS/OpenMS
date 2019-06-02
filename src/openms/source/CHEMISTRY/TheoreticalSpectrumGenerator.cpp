@@ -321,7 +321,7 @@ namespace OpenMS
       case Residue::YIon: return 'y';
       case Residue::ZIon: return 'z';
       default:
-       LOG_ERROR << "Unknown residue type encountered. Can't map to ion letter." << endl;
+       OPENMS_LOG_ERROR << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
     return ' ';
   }

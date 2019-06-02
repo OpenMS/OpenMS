@@ -347,7 +347,7 @@ START_SECTION(void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_s
   MSSpectrum unordered;
   unordered.emplace_back(Peak1D(10.0, 100.0));
   unordered.emplace_back(Peak1D(9.0, 100.0));
-  TEST_EXCEPTION(Exception::IllegalArgument, tse.pickSpectrum(unordered, picked_spectrum));
+  TEST_EXCEPTION(Exception::IllegalArgument&, tse.pickSpectrum(unordered, picked_spectrum));
 }
 END_SECTION
 

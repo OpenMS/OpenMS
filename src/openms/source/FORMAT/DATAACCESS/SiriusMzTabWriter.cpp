@@ -206,14 +206,14 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
             rt_list.set(v_rt);
             smsr.retention_time = rt_list;
             
-            MzTabOptionalColumnEntry adduct = make_pair("adduct", MzTabString(hit.adduct));
-            MzTabOptionalColumnEntry rank = make_pair("rank", MzTabString(hit.rank));
-            MzTabOptionalColumnEntry explainedPeaks = make_pair("explainedPeaks", MzTabString(hit.explainedpeaks));
-            MzTabOptionalColumnEntry explainedIntensity = make_pair("explainedIntensity", MzTabString(hit.explainedintensity));
-            MzTabOptionalColumnEntry compoundId = make_pair("compoundId", MzTabString(id.scan_index));
-            MzTabOptionalColumnEntry compoundScanNumber = make_pair("compoundScanNumber", MzTabString(id.scan_number));
-            MzTabOptionalColumnEntry featureId = make_pair("featureId", MzTabString(id.feature_id));
-            MzTabOptionalColumnEntry native_id = make_pair("native_id", MzTabString(id.native_id));
+            MzTabOptionalColumnEntry adduct = make_pair("opt_global_adduct", MzTabString(hit.adduct));
+            MzTabOptionalColumnEntry rank = make_pair("opt_global_rank", MzTabString(hit.rank));
+            MzTabOptionalColumnEntry explainedPeaks = make_pair("opt_global_explainedPeaks", MzTabString(hit.explainedpeaks));
+            MzTabOptionalColumnEntry explainedIntensity = make_pair("opt_global_explainedIntensity", MzTabString(hit.explainedintensity));
+            MzTabOptionalColumnEntry compoundId = make_pair("opt_global_compoundId", MzTabString(id.scan_index));
+            MzTabOptionalColumnEntry compoundScanNumber = make_pair("opt_global_compoundScanNumber", MzTabString(id.scan_number));
+            MzTabOptionalColumnEntry featureId = make_pair("opt_global_featureId", MzTabString(id.feature_id));
+            MzTabOptionalColumnEntry native_id = make_pair("opt_global_native_id", MzTabString(id.native_id));
 
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(rank);

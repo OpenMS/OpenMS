@@ -48,7 +48,7 @@ xercesc::XMLPlatformUtils::Initialize();
 Bzip2InputStream* ptr = nullptr;
 Bzip2InputStream* nullPointer = nullptr;
 START_SECTION(Bzip2InputStream(const   char* const     file_name))
-	TEST_EXCEPTION(Exception::FileNotFound, Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
+	TEST_EXCEPTION(Exception::FileNotFound&, Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	ptr = new Bzip2InputStream(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	TEST_EQUAL(ptr->getIsOpen(),true)
@@ -59,7 +59,7 @@ START_SECTION((~Bzip2InputStream()))
 END_SECTION
 
 START_SECTION(Bzip2InputStream(const String& file_name))
-	TEST_EXCEPTION(Exception::FileNotFound, Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
+	TEST_EXCEPTION(Exception::FileNotFound&, Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	String filename = OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2");
 	ptr = new Bzip2InputStream(filename);
 	TEST_NOT_EQUAL(ptr, nullPointer)
