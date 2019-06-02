@@ -2969,7 +2969,7 @@ Not sure how to handle these:
 
         if (pep_ids[0].metaValueExists("spectrum_reference"))
         {
-          size_t run_index = idrun_2_run_index[pep_ids[0].getIdentifier()];
+          size_t run_index = idrun_2_run_index[curr_pep_ids[0].getIdentifier()];
           StringList filenames;
           prot_ids[run_index].getPrimaryMSRunPath(filenames);
           size_t msfile_index(0);
@@ -2981,15 +2981,15 @@ Not sure how to handle these:
           {
             if (pep_ids[0].metaValueExists("map_index"))
             {
-              msfile_index = map_run_fileidx_2_msfileidx[{run_index, pep_ids[0].getMetaValue("map_index")}];
+              msfile_index = map_run_fileidx_2_msfileidx[{run_index, curr_pep_ids[0].getMetaValue("map_index")}];
             }
             else
             {
               throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                  "Multiple files in a run, but no map_index in PeptideIdentification found.");
+                                                   "Multiple files in a run, but no map_index in PeptideIdentification found.");
             }
           }
-          row.spectra_ref.setSpecRef(pep_ids[0].getMetaValue("spectrum_reference").toString());
+          row.spectra_ref.setSpecRef(curr_pep_ids[0].getMetaValue("spectrum_reference").toString());
           row.spectra_ref.setMSFile(msfile_index);
         }
         // fill opt_ columns
