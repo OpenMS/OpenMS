@@ -86,18 +86,18 @@ typedef vector<IsotopePattern> IsotopePatterns;
 
 struct RateScorePair
 {
-  double rate;
-  double score;
+  double rate = -1.;
+  double score = -1.;
 };
 
 /// datastructure for reporting an incorporation event
 struct SIPIncorporation
 {
-  double rate; ///< rate
+  double rate = -1.; ///< rate
 
-  double correlation; ///< correlation coefficient
+  double correlation = -1.; ///< correlation coefficient
 
-  double abundance; ///< abundance of isotopologue
+  double abundance = -1.; ///< abundance of isotopologue
 #ifdef DEBUG_METAPROSIP
   PeakSpectrum theoretical; ///< peak spectrum as generated from the theoretical isotopic distribution. Large memory consumption.
 #endif
@@ -110,25 +110,25 @@ struct SIPPeptide
 
   vector<String> accessions; ///< protein accessions of the peptide
 
-  bool unique; ///< if the peptide is unique and therefor identifies the protein umambigously
+  bool unique = true; ///< if the peptide is unique and therefor identifies the protein umambigously
 
-  double mz_theo; ///< theoretical mz
+  double mz_theo = -1.; ///< theoretical mz
 
-  double mass_theo; ///< uncharged theoretical mass
+  double mass_theo = -1.; ///< uncharged theoretical mass
 
-  double score; ///< search engine score or q-value if fdr filtering is applied
+  double score = -1.; ///< search engine score or q-value if fdr filtering is applied
 
-  double feature_rt; ///< measurement time of feature apex [s]
+  double feature_rt = -1.; ///< measurement time of feature apex [s]
 
-  double feature_mz; ///< mz of feature apex [s]
+  double feature_mz = -1.; ///< mz of feature apex [s]
 
   //Size feature_scan_number; ///< scan number
 
-  Int charge; ///< charge of the peptide feature
+  Int charge = 0; ///< charge of the peptide feature
 
-  double mass_diff; // 13C or 15N mass difference
+  double mass_diff = 0.; // 13C or 15N mass difference
 
-  double global_LR; ///< labeling ratio for the whole spectrum used to detect global drifts. 13C/(12C+13C) intensities. (15N analogous)
+  double global_LR = -1.; ///< labeling ratio for the whole spectrum used to detect global drifts. 13C/(12C+13C) intensities. (15N analogous)
 
   vector<RateScorePair> correlation_maxima;
 
@@ -136,13 +136,13 @@ struct SIPPeptide
 
   MapRateToScoreType correlation_map; // all rate to correlation scores for the peptide
 
-  double RR; ///< R squared of NNLS fit
+  double RR = -1.; ///< R squared of NNLS fit
 
-  double explained_TIC_fraction; ///< fraction of the MS2 TIC that is explained by the maximum correlating decomposition weights
+  double explained_TIC_fraction = -1.; ///< fraction of the MS2 TIC that is explained by the maximum correlating decomposition weights
 
   String feature_type; ///< used to distinguish features from FeatureFinder, or synthetised from ids or averagine ids in reporting
 
-  Size non_zero_decomposition_coefficients; ///< decomposition coefficients significantly larger than 0
+  Size non_zero_decomposition_coefficients = 0; ///< decomposition coefficients significantly larger than 0
 
   PeakSpectrum reconstruction; ///< signal reconstruction (debugging)
 
