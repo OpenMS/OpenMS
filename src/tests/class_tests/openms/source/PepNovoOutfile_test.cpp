@@ -117,7 +117,7 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
   rt_and_index[1] = std::make_pair(1530.11535644531, 549.856262207031);
 
   // check missing index-key ( rt_and_index[2] )
-  TEST_EXCEPTION(Exception::ParseError&, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, -2.000f, rt_and_index, key_to_mod));
+  TEST_EXCEPTION(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, -2.000f, rt_and_index, key_to_mod));
   rt_and_index[2] = std::make_pair(1533.16589355469, 358.174530029297);
   rt_and_index[3] = std::make_pair(1111, 2222);
 

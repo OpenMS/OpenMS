@@ -68,7 +68,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
   TextFile::ConstIterator f_it;
 	XMassFile f;
 
-	TEST_EXCEPTION(Exception::FileNotFound&, f.load("data_Idontexist", s);)
+	TEST_EXCEPTION(Exception::FileNotFound, f.load("data_Idontexist", s);)
 
 	f.load(OPENMS_GET_TEST_DATA_PATH("XMassFile_test/fid"),s);
 
@@ -95,7 +95,7 @@ END_SECTION
 
 START_SECTION(template<typename SpectrumType> void store(const String& filename, const MSSpectrum& spectrum) const)
   // not implemented
-	TEST_EXCEPTION(Exception::NotImplemented&, XMassFile().store(String(), MSSpectrum()))
+	TEST_EXCEPTION(Exception::NotImplemented, XMassFile().store(String(), MSSpectrum()))
 END_SECTION
 
 

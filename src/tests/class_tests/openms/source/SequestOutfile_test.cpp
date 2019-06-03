@@ -90,8 +90,8 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file 'a' could not be found")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile.out1"), peptide_identifications, protein_identification, 0.01, pvalues),  OPENMS_GET_TEST_DATA_PATH_MESSAGE("","SequestOutfile.out1", " in: Wrong number of columns in line 16! (11 present, should be 12)"))
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.load("", peptide_identifications, protein_identification, 2.0, pvalues))
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.load("", peptide_identifications, protein_identification,-1.0, pvalues))
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0, pvalues))
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification,-1.0, pvalues))
 
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());

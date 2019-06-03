@@ -94,7 +94,7 @@ START_SECTION((void scoreMap(FeatureMap & features)))
   scoring.initialize(library, 0, 0, rt_trafo);
   scoring.initializeGlm(0.0, -1.0, -1.0);
   FeatureMap features;
-  TEST_EXCEPTION(Exception::IllegalArgument&, scoring.scoreMap(features))
+  TEST_EXCEPTION(Exception::IllegalArgument, scoring.scoreMap(features))
 
   // The input to the program is 
   // - a transition library which contains peptides with corresponding assays

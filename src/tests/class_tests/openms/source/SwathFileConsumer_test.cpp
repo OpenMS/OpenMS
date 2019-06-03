@@ -388,16 +388,16 @@ START_SECTION(([EXTRA] void consumeSpectrum(MapType::SpectrumType & s)))
   regular_sfc_ptr->consumeSpectrum(s);
 
   s.setMSLevel(2);
-  TEST_EXCEPTION(Exception::InvalidParameter&, regular_sfc_ptr->consumeSpectrum(s))
+  TEST_EXCEPTION(Exception::InvalidParameter, regular_sfc_ptr->consumeSpectrum(s))
 
   std::vector<Precursor> prec(1);
   s.setPrecursors(prec);
-  TEST_EXCEPTION(Exception::InvalidParameter&, regular_sfc_ptr->consumeSpectrum(s))
+  TEST_EXCEPTION(Exception::InvalidParameter, regular_sfc_ptr->consumeSpectrum(s))
 
   prec[0].setIsolationWindowLowerOffset(12.5);
   prec[0].setIsolationWindowUpperOffset(12.5);
   s.setPrecursors(prec);
-  TEST_EXCEPTION(Exception::InvalidParameter&, regular_sfc_ptr->consumeSpectrum(s))
+  TEST_EXCEPTION(Exception::InvalidParameter, regular_sfc_ptr->consumeSpectrum(s))
 
   prec[0].setMZ(100);
   s.setPrecursors(prec);

@@ -125,8 +125,8 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
 	ProteinIdentification protein_identification;
 
 	// test exceptions
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.load("", peptide_identifications, protein_identification, 2.0))
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.load("", peptide_identifications, protein_identification, -1.0))
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0))
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, -1.0))
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.load("a", peptide_identifications, protein_identification, 0.01), "the file 'a' could not be found")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.load(OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), peptide_identifications, protein_identification, 0.01), OPENMS_GET_TEST_DATA_PATH_MESSAGE("the file '","Inspect_empty_file.txt","' is empty"))
 
@@ -202,7 +202,7 @@ START_SECTION(void generateTrieDB(const std::String& source_database_filename, c
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.generateTrieDB("a", "", ""), "the file 'a' could not be found")
 
 	// test unable to create file
-	TEST_EXCEPTION(Exception::UnableToCreateFile&, file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), ""))
+	TEST_EXCEPTION(Exception::UnableToCreateFile, file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), ""))
 
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
@@ -239,7 +239,7 @@ START_SECTION(void compressTrieDB(const String& database_filename, const String&
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), "b", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'b' could not be found")
 
 	// test for unable to create file
-	TEST_EXCEPTION(Exception::UnableToCreateFile&, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), "", true))
+	TEST_EXCEPTION(Exception::UnableToCreateFile, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), "", true))
 
 	// test for parse error
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true),OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "Inspect_empty_file.txt"," in: index file is too short!"))
@@ -408,8 +408,8 @@ END_SECTION
 START_SECTION(vector< Size > getWantedRecords(const String& result_filename, double p_value_threshold))
 
 	// test exceptions
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.getWantedRecords("", 2.0))
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.getWantedRecords("", -1.0))
+	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))
+	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", -1.0))
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.getWantedRecords("a", 0.01), "the file 'a' could not be found")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.getWantedRecords(OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), 0.01), OPENMS_GET_TEST_DATA_PATH_MESSAGE("the file '","Inspect_empty_file.txt","' is empty"))
 

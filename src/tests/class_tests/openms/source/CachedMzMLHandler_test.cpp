@@ -258,8 +258,8 @@ START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
 
   std::string unused_tmp_filename;
   NEW_TMP_FILE(unused_tmp_filename);
-  TEST_EXCEPTION(Exception::FileNotFound&, cache.readMemdump(exp_new, unused_tmp_filename) )
-  TEST_EXCEPTION(Exception::ParseError&, cache.readMemdump(exp_new, OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
+  TEST_EXCEPTION(Exception::FileNotFound, cache.readMemdump(exp_new, unused_tmp_filename) )
+  TEST_EXCEPTION(Exception::ParseError, cache.readMemdump(exp_new, OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
 }
 END_SECTION
 
@@ -285,8 +285,8 @@ START_SECTION(( void createMemdumpIndex(String filename) ))
   // Test error conditions
   std::string unused_tmp_filename;
   NEW_TMP_FILE(unused_tmp_filename);
-  TEST_EXCEPTION(Exception::FileNotFound&, cache.createMemdumpIndex(unused_tmp_filename) )
-  TEST_EXCEPTION(Exception::ParseError&, cache.createMemdumpIndex(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
+  TEST_EXCEPTION(Exception::FileNotFound, cache.createMemdumpIndex(unused_tmp_filename) )
+  TEST_EXCEPTION(Exception::ParseError, cache.createMemdumpIndex(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
 }
 END_SECTION
 

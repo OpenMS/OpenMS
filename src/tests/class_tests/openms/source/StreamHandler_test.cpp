@@ -103,7 +103,7 @@ START_SECTION((void unregisterStream(StreamType const type, const String &stream
   // now it should be gone
   handler.unregisterStream(StreamHandler::FILE, filename);
 
-  TEST_EXCEPTION(Exception::ElementNotFound&, handler.unregisterStream(StreamHandler::FILE, filename))
+  TEST_EXCEPTION(Exception::ElementNotFound, handler.unregisterStream(StreamHandler::FILE, filename))
 }
 END_SECTION
 

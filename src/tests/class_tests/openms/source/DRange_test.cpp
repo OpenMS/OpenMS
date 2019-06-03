@@ -429,7 +429,7 @@ p1[1]=-2.0f;
 p2[0]=3.0f;
 p2[1]=4.0f;
 */
-  TEST_EXCEPTION(Exception::InvalidParameter&, r.extend(-0.01))
+  TEST_EXCEPTION(Exception::InvalidParameter, r.extend(-0.01))
   r.extend(2.0);
 	TEST_REAL_SIMILAR(r.minPosition()[0],-3.0f);
 	TEST_REAL_SIMILAR(r.maxPosition()[0], 5.0f);

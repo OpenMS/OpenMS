@@ -81,7 +81,7 @@ END_SECTION
 START_SECTION((void load(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false) ))
   TextFile file;
 
-  TEST_EXCEPTION(Exception::FileNotFound&, file.load("FileDoesNotExist.txt"))
+  TEST_EXCEPTION(Exception::FileNotFound, file.load("FileDoesNotExist.txt"))
 
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
   TEST_EQUAL((file.end() - file.begin()), 11)
@@ -162,7 +162,7 @@ END_SECTION
 START_SECTION((void store(const String& filename) ))
   TextFile file;
 
-  TEST_EXCEPTION(Exception::UnableToCreateFile&, file.store("/does/not/exist/FileDoesNotExist.txt"))
+  TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/does/not/exist/FileDoesNotExist.txt"))
 
   file.addLine("line1");
   file.addLine("line2\n");

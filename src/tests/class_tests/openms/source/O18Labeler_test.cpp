@@ -152,7 +152,7 @@ START_SECTION((void preCheck(Param &param) const ))
 
   Param p_Exception;
   p_Exception.setValue("Digestion:enzyme","not-Trypsin","Test Param", ListUtils::create<String>(""));
-  TEST_EXCEPTION(Exception::InvalidParameter&, labeler.preCheck(p_Exception))
+  TEST_EXCEPTION(Exception::InvalidParameter, labeler.preCheck(p_Exception))
 }
 END_SECTION
 

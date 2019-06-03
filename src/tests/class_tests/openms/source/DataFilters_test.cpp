@@ -184,7 +184,7 @@ END_SECTION
 
 START_SECTION((const DataFilter& operator[](Size index) const ))
 	
-	TEST_EXCEPTION(Exception::IndexOverflow&, filters[3])
+	TEST_EXCEPTION(Exception::IndexOverflow, filters[3])
 	filters.add(filter_1);
 	TEST_EQUAL(filters[0] == filters[3], true)
 	filters.remove(3);
@@ -213,7 +213,7 @@ END_SECTION
 
 START_SECTION((void remove(Size index)))
 
-	TEST_EXCEPTION(Exception::IndexOverflow&, filters.remove(7))
+	TEST_EXCEPTION(Exception::IndexOverflow, filters.remove(7))
 	filters.remove(0);
 	TEST_EQUAL(filters[0] == filter_4, true)
 	filters.remove(0);
@@ -224,7 +224,7 @@ END_SECTION
 
 START_SECTION((void replace(Size index, const DataFilter &filter)))
 	
-	TEST_EXCEPTION(Exception::IndexOverflow&, filters.replace(10, filter_1))
+	TEST_EXCEPTION(Exception::IndexOverflow, filters.replace(10, filter_1))
 	//at the moment: filters[0] == filter_5, ..., filters[4] == filter_9
 	filters.replace(0, filter_1);
 	filters.replace(1, filter_2);
@@ -489,10 +489,10 @@ START_SECTION(([DataFilters::DataFilter] void fromString(const String &filter)))
 
   // test some wrong cases
   DataFilters::DataFilter exception_filter;
-  TEST_EXCEPTION(Exception::InvalidValue&, exception_filter.fromString("Intensity <> 24.5"))
-  TEST_EXCEPTION(Exception::InvalidValue&, exception_filter.fromString("Intensity < 24.5"))
-  TEST_EXCEPTION(Exception::InvalidValue&, exception_filter.fromString("Insenity = 2.0"))
-  TEST_EXCEPTION(Exception::InvalidValue&, exception_filter.fromString("Charge = text-value"))
+  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Intensity <> 24.5"))
+  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Intensity < 24.5"))
+  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Insenity = 2.0"))
+  TEST_EXCEPTION(Exception::InvalidValue, exception_filter.fromString("Charge = text-value"))
 }
 END_SECTION
 

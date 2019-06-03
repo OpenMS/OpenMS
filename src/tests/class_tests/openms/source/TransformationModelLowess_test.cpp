@@ -70,7 +70,7 @@ TransformationModelLowess::getDefaultParameters(params_default);
 
 START_SECTION((TransformationModelLowess(const DataPoints&, const Param&)))
 {
-  TEST_EXCEPTION(Exception::IllegalArgument&, TransformationModelLowess tm(empty, params_default)); // need data
+  TEST_EXCEPTION(Exception::IllegalArgument, TransformationModelLowess tm(empty, params_default)); // need data
   ptr = new TransformationModelLowess(data, params_default);
   TEST_NOT_EQUAL(ptr, 0)
 }
