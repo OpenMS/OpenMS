@@ -554,11 +554,11 @@ START_SECTION((Int toInt() const))
   s = "524 starts with an int";
   TEST_EXCEPTION(Exception::ConversionError, s.toInt())
   s = "not an int";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
   s = "contains an 13135 int";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
   s = "ends with an int 525";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
 END_SECTION
 
 START_SECTION((float toFloat() const))
@@ -578,7 +578,7 @@ START_SECTION((float toFloat() const))
   s = "NaN";
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "not a number";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toFloat(), String("Could not convert string '") + s + "' to a float value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toFloat(), String("Could not convert string '") + s + "' to a float value")
 END_SECTION
 
 START_SECTION((double toDouble() const))
@@ -598,7 +598,7 @@ START_SECTION((double toDouble() const))
   s = "NaN";
   TEST_EQUAL(boost::math::isnan(s.toDouble()),true);
   s = "not a number";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toDouble(), String("Could not convert string '") + s + "' to a double value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toDouble(), String("Could not convert string '") + s + "' to a double value")
 END_SECTION
 
 START_SECTION((static String random(UInt length)))

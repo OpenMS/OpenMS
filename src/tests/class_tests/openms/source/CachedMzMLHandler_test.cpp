@@ -349,12 +349,12 @@ START_SECTION(static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr 
 
     // should not read before the file starts
     ifs_.seekg( -1 );
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt),
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt),
       "filestream in: Read an invalid spectrum length, something is wrong here. Aborting.")
 
     // should not read after the file ends
     ifs_.seekg(spectra_index.back() * 20);
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt),
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt),
       "filestream in: Read an invalid spectrum length, something is wrong here. Aborting.")
   }
 
@@ -401,12 +401,12 @@ START_SECTION( static inline void readChromatogramFast(OpenSwath::BinaryDataArra
 
     // should not read before the file starts
     ifs_.seekg( -1 );
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, CachedMzMLHandler::readChromatogramFast(time_array, intensity_array, ifs_),
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedMzMLHandler::readChromatogramFast(time_array, intensity_array, ifs_),
       "filestream in: Read an invalid chromatogram length, something is wrong here. Aborting.")
 
     // should not read after the file ends
     ifs_.seekg(chrom_index.back() * 20);
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, CachedMzMLHandler::readChromatogramFast(time_array, intensity_array, ifs_),
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedMzMLHandler::readChromatogramFast(time_array, intensity_array, ifs_),
       "filestream in: Read an invalid chromatogram length, something is wrong here. Aborting.")
   }
 }

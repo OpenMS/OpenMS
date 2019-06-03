@@ -242,12 +242,12 @@ START_SECTION(([EXTRA] test exceptions))
   }
 
   scoring.initialize(library, 0, 0, rt_trafo);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument&, scoring.scoreMap(features), "Feature does not contain meta value 'PeptideRef' (reference to assay)")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, scoring.scoreMap(features), "Feature does not contain meta value 'PeptideRef' (reference to assay)")
 
   // After we add the meta value, we still should get an exception
   features[0].setMetaValue("PeptideRef", "pep_1");
   features[1].setMetaValue("PeptideRef", "pep_2");
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument&, scoring.scoreMap(features), "Feature intensities were empty - please provide feature subordinate with intensities")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, scoring.scoreMap(features), "Feature intensities were empty - please provide feature subordinate with intensities")
 
   // An exception should be thrown if the sub-features cannot be mapped to the
   // transitions (e.g. the metavalue "native_id" is missing)
@@ -269,7 +269,7 @@ START_SECTION(([EXTRA] test exceptions))
     subordinates.push_back(sub);
     features[1].setSubordinates(subordinates);
   }
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument&, scoring.scoreMap(features), "Did not find a feature for each assay provided - each feature needs to have n subordinates with the meta-value 'native_id' set to the corresponding transition.")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, scoring.scoreMap(features), "Did not find a feature for each assay provided - each feature needs to have n subordinates with the meta-value 'native_id' set to the corresponding transition.")
 
   {
     std::vector<Feature> subordinates;

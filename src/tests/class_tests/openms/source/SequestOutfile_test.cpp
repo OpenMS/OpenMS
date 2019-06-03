@@ -88,8 +88,8 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	vector< double > pvalues;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file 'a' could not be found")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile.out1"), peptide_identifications, protein_identification, 0.01, pvalues),  OPENMS_GET_TEST_DATA_PATH_MESSAGE("","SequestOutfile.out1", " in: Wrong number of columns in line 16! (11 present, should be 12)"))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file 'a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile.out1"), peptide_identifications, protein_identification, 0.01, pvalues),  OPENMS_GET_TEST_DATA_PATH_MESSAGE("","SequestOutfile.out1", " in: Wrong number of columns in line 16! (11 present, should be 12)"))
 	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0, pvalues))
 	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification,-1.0, pvalues))
 
@@ -311,7 +311,7 @@ START_SECTION(void getSequences(const String& database_filename, const map< Stri
 	vector< pair< String, Size > > found;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.getSequences("a", not_found, found_sequences, found, not_found), "the file 'a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", not_found, found_sequences, found, not_found), "the file 'a' could not be found")
 
 	// test the actual program
 	ac_position_map["P02666"] = 0;
@@ -440,9 +440,9 @@ START_SECTION(void readOutHeader(const String& result_filename, DateTime& dateti
 	 database_type;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.readOutHeader("a", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "the file 'a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.readOutHeader("a", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "the file 'a' could not be found")
 
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.readOutHeader(OPENMS_GET_TEST_DATA_PATH("SequestOutfile_headerfile.txt"), datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns),  OPENMS_GET_TEST_DATA_PATH_MESSAGE("","SequestOutfile_headerfile.txt", " in: No Sequest version found!"))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.readOutHeader(OPENMS_GET_TEST_DATA_PATH("SequestOutfile_headerfile.txt"), datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns),  OPENMS_GET_TEST_DATA_PATH_MESSAGE("","SequestOutfile_headerfile.txt", " in: No Sequest version found!"))
 
 
 	// test the actual program

@@ -1037,7 +1037,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  This macro checks if a given type of exception occurred while executing the
  given command and additionally tests for the message of the exception.
 
- Example:  #TEST_EXCEPTION_WITH_MESSAGE(Exception::IndexOverflow&, vector[-1], "a null pointer was specified")
+ Example:  #TEST_EXCEPTION_WITH_MESSAGE(Exception::IndexOverflow, vector[-1], "a null pointer was specified")
 
  If no, a wrong exception occurred or a wrong message is returned, false is
  returned, otherwise true.
