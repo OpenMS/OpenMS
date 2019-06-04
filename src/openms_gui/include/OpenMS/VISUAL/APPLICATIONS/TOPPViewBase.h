@@ -242,7 +242,6 @@ public:
     /// returns a pointer to the active SpectrumCanvas (0 if none is active)
     SpectrumCanvas* getActiveCanvas() const;
 
-
     /// returns a pointer to the SpectraIdentificationViewWidget
     SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
 
@@ -336,6 +335,8 @@ public slots:
     void toggleGridLines();
     /// Toggles the axis legends
     void toggleAxisLegends();
+    /// Toggles drawing of interesting MZs
+    void toggleInterestingMZs();
     /// Shows current layer preferences
     void showPreferences();
     /// dialog for inspecting database meta data
@@ -440,7 +441,7 @@ protected:
     //@}
 
     /// Layer management widget
-    QListWidget* layer_manager_;
+    QListWidget* layers_view_;
 
     ///@name Filter widgets
     //@{

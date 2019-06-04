@@ -260,7 +260,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       if (!annotated_hits[scan_index].empty())
       {
         // create empty PeptideIdentification object and fill meta data
-        PeptideIdentification pi;
+        PeptideIdentification pi{};
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);
@@ -296,6 +296,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 #pragma omp critical (peptide_ids_access)
 #endif
         {
+          //clang-tidy: seems to be a false-positive in combination with omp
           peptide_ids.push_back(std::move(pi));
         }
       }
@@ -318,8 +319,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.missed_cleavages = peptide_missed_cleavages;
     search_parameters.fragment_mass_tolerance = fragment_mass_tolerance;
     search_parameters.precursor_mass_tolerance = precursor_mass_tolerance;
-    search_parameters.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm == "ppm" ? true : false;
-    search_parameters.fragment_mass_tolerance_ppm = fragment_mass_tolerance_unit_ppm == "ppm" ? true : false;
+    search_parameters.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm == "ppm";
+    search_parameters.fragment_mass_tolerance_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
@@ -416,9 +417,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 #endif
 
     startProgress(0, 1, "Load database from FASTA file...");
-    FASTAFile fastaFile;
     vector<FASTAFile::FASTAEntry> fasta_db;
-    fastaFile.load(in_db, fasta_db);
+    FASTAFile::load(in_db, fasta_db);
     endProgress();
 
     ProteaseDigestion digestor;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/openmsqt5/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_7804704400743266335" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureLinkerUnlabeledQT" version="version_string" />
 		<processingAction name="Feature grouping" />
@@ -25,27 +25,27 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<mapList count="3">
-		<map id="0" name="FeatureLinkerUnlabeledQT_5_input1.featureXML" label="" size="3">
+		<map id="0" name="UNKNOWN" label="" size="3">
 		</map>
-		<map id="1" name="FeatureLinkerUnlabeledQT_5_input2.featureXML" label="" size="3">
+		<map id="1" name="UNKNOWN" label="" size="3">
 		</map>
-		<map id="2" name="FeatureLinkerUnlabeledQT_5_input3.featureXML" label="" size="3">
+		<map id="2" name="UNKNOWN" label="" size="3">
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_4835329514588776807" quality="0.974444">
-			<centroid rt="510" mz="500.012" it="600"/>
+		<consensusElement id="e_15004869347769368353" quality="0.974444">
+			<centroid rt="510.0" mz="500.012" it="600.0"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="500" mz="500.002" it="500"/>
-				<element map="1" id="0" rt="510" mz="500.012" it="600"/>
-				<element map="2" id="0" rt="520" mz="500.022" it="700"/>
+				<element map="0" id="0" rt="500.0" mz="500.00200000000001" it="500.0"/>
+				<element map="1" id="0" rt="510.0" mz="500.012" it="600.0"/>
+				<element map="2" id="0" rt="520.0" mz="500.021999999999991" it="700.0"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
@@ -56,19 +56,19 @@
 				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_17749660155506638460" quality="0.974444">
-			<centroid rt="310" mz="500.01" it="600"/>
+		<consensusElement id="e_3332699010107892018" quality="0.974444">
+			<centroid rt="310.0" mz="500.009999999999991" it="600.0"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="300" mz="500" it="500"/>
-				<element map="1" id="0" rt="310" mz="500.01" it="600"/>
-				<element map="2" id="0" rt="320" mz="500.02" it="700"/>
+				<element map="0" id="0" rt="300.0" mz="500.0" it="500.0"/>
+				<element map="1" id="0" rt="310.0" mz="500.009999999999991" it="600.0"/>
+				<element map="2" id="0" rt="320.0" mz="500.019999999999982" it="700.0"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
@@ -79,19 +79,19 @@
 				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_7804704400743266335" quality="0.974444">
-			<centroid rt="410" mz="500.011" it="600"/>
+		<consensusElement id="e_13440783915218733453" quality="0.974444">
+			<centroid rt="410.0" mz="500.010999999999967" it="600.0"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="400" mz="500.001" it="500"/>
-				<element map="1" id="0" rt="410" mz="500.011" it="600"/>
-				<element map="2" id="0" rt="420" mz="500.021" it="700"/>
+				<element map="0" id="0" rt="400.0" mz="500.000999999999976" it="500.0"/>
+				<element map="1" id="0" rt="410.0" mz="500.011000000000024" it="600.0"/>
+				<element map="2" id="0" rt="420.0" mz="500.021000000000015" it="700.0"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>

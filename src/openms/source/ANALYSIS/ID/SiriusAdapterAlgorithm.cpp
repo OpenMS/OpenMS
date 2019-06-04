@@ -193,11 +193,18 @@ namespace OpenMS
           FeatureMap feature_map;
           fxml.load(featureinfo, feature_map);
           
-          bool feature_only = (sirius_algo.feature_only_ == "true") ? true : false;
+          bool feature_only;
+          if (sirius_algo.feature_only_ == "true") feature_only = true;
+          else if (sirius_algo.feature_only_ == "false") feature_only = false;
+          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature only is either true or false");
+          
           unsigned int num_masstrace_filter = sirius_algo.filter_by_num_masstraces_;
           double precursor_mz_tol = sirius_algo.precursor_mz_tolerance_;
           double precursor_rt_tol = sirius_algo.precursor_rt_tolerance_;
-          bool ppm_prec = (sirius_algo.precursor_mz_tolerance_unit_ == "true") ? true : false; 
+          bool ppm_prec;
+          if (sirius_algo.precursor_mz_tolerance_unit_ == "ppm") ppm_prec = true;
+          else if (sirius_algo.precursor_mz_tolerance_unit_ == "Da") ppm_prec = false;
+          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor m/z tolerance unit is either ppm or Da"); 
           
           if (num_masstrace_filter != 1 && !feature_only)
           {

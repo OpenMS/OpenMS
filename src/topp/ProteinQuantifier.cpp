@@ -710,7 +710,7 @@ protected:
       IdXMLFile().load(in, proteins, peptides);
       for (Size i = 0; i < proteins.size(); ++i)
       {
-        files_[i].filename = proteins[i].getIdentifier();
+        files_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString(Qt::ISODate);
       }
       // protein inference results in the idXML?
       if (protein_groups.empty() && (proteins.size() == 1) && 

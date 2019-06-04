@@ -87,13 +87,14 @@ namespace OpenMS
 public:
     /** @name Type definitions */
     //@{
-    /// Dataset types
+    /// Dataset types.
+    /// Order in the enum determines the order in which layer types are drawn.
     enum DataType
     {
       DT_PEAK,            ///< Spectrum profile or centroided data
+      DT_CHROMATOGRAM,    ///< Chromatogram data
       DT_FEATURE,         ///< Feature data
       DT_CONSENSUS,       ///< Consensus feature data
-      DT_CHROMATOGRAM,    ///< Chromatogram data
       DT_IDENT,           ///< Peptide identification data
       DT_UNKNOWN          ///< Undefined data type indicating an error
     };

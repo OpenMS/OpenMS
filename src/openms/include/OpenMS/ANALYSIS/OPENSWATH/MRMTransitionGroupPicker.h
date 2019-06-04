@@ -759,16 +759,15 @@ protected:
       std::vector<std::vector<double> > all_ints;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
-        const SpectrumT chromatogram = selectChromHelper_(transition_group, picked_chroms[k].getNativeID());
+        const SpectrumT& chromatogram = selectChromHelper_(transition_group, picked_chroms[k].getNativeID());
         const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, 
             master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
 
         std::vector<double> int_here;
-        for (Size i = 0; i < used_chromatogram.size(); i++)
-        {
-          int_here.push_back(used_chromatogram[i].getIntensity());
-        }
-        all_ints.push_back(int_here);
+        for (const auto& peak : used_chromatogram) int_here.push_back(peak.getIntensity());
+        // Remove chromatograms without a single peak
+        double tic = std::accumulate(int_here.begin(), int_here.end(), 0.0);
+        if (tic > 0.0) all_ints.push_back(int_here);
       }
 
       // Compute the cross-correlation for the collected intensities

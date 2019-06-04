@@ -21,6 +21,12 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         #   Iterations yields access to underlying peak objects but is slower
         #   Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
         #   See help(ChromatogramSettings) for information about meta-information
+        #   -----
+        #   Usage:
+        #     precursor = chromatogram.getPrecursor()
+        #     product = chromatogram.getProduct()
+        #     rt, intensities = chromatogram.get_peaks()
+        #   -----
 
         MSChromatogram() nogil except +
         MSChromatogram(MSChromatogram &) nogil except +

@@ -38,8 +38,6 @@
   'TOPP - The %OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC-MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
 
-  <BR>
-
  	The TOPP tools are divided into several subgroups:
 
   <b>Graphical Tools</b>
@@ -57,8 +55,9 @@
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
   - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
+  - @subpage UTILS_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
-  - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file
+  - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file.
 
   <b>Signal Processing and Preprocessing</b>
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
@@ -82,7 +81,7 @@
   - @subpage TOPP_SpectraFilterSqrtMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterThresholdMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterWindowMower - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks
+  - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks.
   - @subpage TOPP_TOFCalibration - Applies time of flight mass calibration.
 
   <b>Quantitation</b>
@@ -108,12 +107,13 @@
   - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
   - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
   - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
-  - @subpage TOPP_FeatureLinkerUnlabeledKD - Groups corresponding features from multiple maps using a KD tree
+  - @subpage TOPP_FeatureLinkerUnlabeledKD - Groups corresponding features from multiple maps using a KD tree.
 
   <b>Protein/Peptide Identification</b>
   - @subpage TOPP_CometAdapter - Identifies MS/MS spectra using Comet (external).
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
   - @subpage TOPP_CompNovoCID - Performs a peptide/protein identification with the CompNovo engine in CID mode.
+  - @subpage TOPP_CruxAdapter - Identifies peptides in MS/MS spectra via Crux and tide-search (external).
   - @subpage TOPP_InspectAdapter - Identifies MS/MS spectra using Inspect (external).
   - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
@@ -121,9 +121,9 @@
   - @subpage TOPP_MyriMatchAdapter - Identifies MS/MS spectra using MyriMatch (external).
   - @subpage TOPP_OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
-  - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
-  - @subpage TOPP_CruxAdapter - Identifies peptides in MS/MS spectra via Crux and tide-search.
+  - @subpage TOPP_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
+  - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 
   <b>Protein/Peptide Processing</b>
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
@@ -140,17 +140,20 @@
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
   - @subpage TOPP_PercolatorAdapter - Applies the percolator algorithm to protein/peptide identifications.
 
-  <b>Targeted Experiments</b>
+  <b>Targeted Experiments and OpenSWATH</b>
+  - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
+  - @subpage UTILS_AssayGeneratorMetabo - Generates an assay library using DDA data (Metabolomics).
   - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
+  - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML).
+  - @subpage UTILS_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
   - @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
-  - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML)
-  - @subpage TOPP_OpenSwathDecoyGenerator - Generates decoys according to different models for a specific TraML
+  - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
   - @subpage TOPP_OpenSwathAssayGenerator - Generates filtered and optimized assays using TraML files.
   - @subpage TOPP_OpenSwathChromatogramExtractor - Extract chromatograms (XIC) from a MS2 map file.
-  - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
-  - @subpage TOPP_OpenSwathRTNormalizer - This tool will align an SRM / SWATH run to a normalized retention time space.
-  - @subpage TOPP_OpenSwathFeatureXMLToTSV - Converts a featureXML to a tsv.
   - @subpage TOPP_OpenSwathConfidenceScoring - Computes confidence scores for OpenSwath results.
+  - @subpage TOPP_OpenSwathDecoyGenerator - Generates decoys according to different models for a specific TraML.
+  - @subpage TOPP_OpenSwathFeatureXMLToTSV - Converts a featureXML to a tsv.
+  - @subpage TOPP_OpenSwathRTNormalizer - This tool will align an SRM / SWATH run to a normalized retention time space.
 
   <b>Peptide Property Prediction</b>
   - @subpage TOPP_PTModel - Trains a model for the prediction of proteotypic peptides from a training set.
@@ -161,4 +164,7 @@
   <b>Misc</b>
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
   - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
+  - @subpage TOPP_GNPSExport - Export MS/MS data in .MGF format for GNPS.
+  - @subpage TOPP_MaRaClusterAdapter - Run the spectral clustering implemented in MaRaCluster.
+
 */

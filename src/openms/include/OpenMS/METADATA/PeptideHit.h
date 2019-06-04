@@ -229,11 +229,16 @@ public:
     //@{
     /// Default constructor
     PeptideHit();
-    /// Values constructor
+    /// Values constructor that copies sequence
     PeptideHit(double score,
                UInt rank,
                Int charge,
                const AASequence& sequence);
+    /// Values constructor that moves sequence R-value
+    PeptideHit(double score,
+               UInt rank,
+               Int charge,
+               AASequence&& sequence);
     /// Copy constructor
     PeptideHit(const PeptideHit& source);
     /// Move constructor

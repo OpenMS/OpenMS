@@ -21,6 +21,7 @@
  <mimetype name="MSP" binary="false" description="NIST spectra library file format" ext="msp"/>
  <mimetype name="OMSSAXML" binary="false" description="OMSSA XML file format for peptide identifications" ext="xml"/>
  <mimetype name="MASCOTXML" binary="false" description="Mascot XML file format for peptide identifications" ext="xml"/>
+ <mimetype name="RAW" binary="true" description="Thermo RAW file." ext="raw"/>
  <mimetype name="PNG" binary="false" description="Portable Network Graphics" ext="png"/>
  <mimetype name="XMASS" binary="false" description="XMass Analysis file (fid)" ext="fid"/>
  <mimetype name="TSV" binary="false" description="tab-separated file" ext="tsv"/>

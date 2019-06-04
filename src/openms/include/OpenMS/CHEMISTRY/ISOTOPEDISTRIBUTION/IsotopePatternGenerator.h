@@ -31,10 +31,8 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Nikos Patikos $
 // --------------------------------------------------------------------------
-//
 
-#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
-#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -72,4 +70,3 @@ namespace OpenMS
   };
 }
 
-#endif

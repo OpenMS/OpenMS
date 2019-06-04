@@ -186,7 +186,7 @@ protected:
         }
       }
     }
-    catch (Exception::MissingInformation)
+    catch (Exception::MissingInformation&)
     {
       OPENMS_LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information (see above).\n";
       return INCOMPATIBLE_INPUT_DATA;

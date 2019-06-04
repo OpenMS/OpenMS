@@ -255,7 +255,7 @@ public:
       const std::map<String, std::vector<Feature>>& feature_name_map,
       std::vector<String>& result,
       const SelectorParameters& parameters
-    ) const;
+    ) const override;
   };
 
   /**
@@ -279,7 +279,7 @@ public:
       const std::map<String, std::vector<Feature>>& feature_name_map,
       std::vector<String>& result,
       const SelectorParameters& parameters
-    ) const;
+    ) const override;
   };
 
   class MRMFeatureSelector_test : public MRMFeatureSelectorQMIP

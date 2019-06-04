@@ -430,7 +430,7 @@ public:
 
     void setMSFile(Size index);
 
-    void setSpecRef(String spec_ref);
+    void setSpecRef(const String& spec_ref);
 
     String getSpecRef() const;
 
@@ -929,7 +929,8 @@ public:
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getOligonucleotideOptionalColumnNames() const;
 
-    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String id, const MetaInfoInterface meta);
+    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String& id, const MetaInfoInterface& meta);
+
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getOSMOptionalColumnNames() const;
 
@@ -985,7 +986,8 @@ public:
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
       const bool export_subfeatures,
-      String title = "ConsensusMap export from OpenMS");
+      const String& title = "ConsensusMap export from OpenMS");
+
 
   protected:
     /// Helper function for "get...OptionalColumnNames" functions
