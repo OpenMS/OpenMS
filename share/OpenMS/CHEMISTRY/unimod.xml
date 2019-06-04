@@ -43741,6 +43741,356 @@ antiserum and mass spectrometric analysis</umod:text>
             <umod:url>http://www.ncbi.nlm.nih.gov/pubmed?term=Characterization%20of%20the%20cell%20surface%20receptor%20for%20a%20multi-lineage%20colony-stimulating%20factor%20%28CSF-2%20%29</umod:url>
          </umod:xref>
       </umod:mod>
+       <umod:mod title="CUSTOM0"
+                 full_name="custom modification 0"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99900">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
+       <umod:mod title="CUSTOM1"
+                 full_name="custom modification 1"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99901">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
+       <umod:mod title="CUSTOM2"
+                 full_name="custom modification 2"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99902">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
+       <umod:mod title="CUSTOM3"
+                 full_name="custom modification 3"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99903">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
+       <umod:mod title="CUSTOM4"
+                 full_name="custom modification 4"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99904">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
+       <umod:mod title="CUSTOM5"
+                 full_name="custom modification 5"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99905">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
+       <umod:mod title="CUSTOM6"
+                 full_name="custom modification 6"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99906">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
+       <umod:mod title="CUSTOM7"
+                 full_name="custom modification 7"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99907">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
+       <umod:mod title="CUSTOM8"
+                 full_name="custom modification 8"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99908">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
+       <umod:mod title="CUSTOM9"
+                 full_name="custom modification 9"
+                 username_of_poster="OpenMS developer team"
+                 group_of_poster=""
+                 date_time_posted="2017-01-06 12:00:00"
+                 date_time_modified="2017-01-06 12:00:00"
+                 approved="0"
+                 record_id="99909">
+           <umod:specificity hidden="1" site="A" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+           <umod:specificity hidden="1" site="C" position="Anywhere" classification="Chemical derivative" spec_group="2"/>
+           <umod:specificity hidden="1" site="D" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+           <umod:specificity hidden="1" site="E" position="Anywhere" classification="Chemical derivative" spec_group="4"/>
+           <umod:specificity hidden="1" site="F" position="Anywhere" classification="Chemical derivative" spec_group="5"/>
+           <umod:specificity hidden="1" site="G" position="Anywhere" classification="Chemical derivative" spec_group="6"/>
+           <umod:specificity hidden="1" site="H" position="Anywhere" classification="Chemical derivative" spec_group="7"/>
+           <umod:specificity hidden="1" site="I" position="Anywhere" classification="Chemical derivative" spec_group="8"/>
+           <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="9"/>
+           <umod:specificity hidden="1" site="L" position="Anywhere" classification="Chemical derivative" spec_group="10"/>
+           <umod:specificity hidden="1" site="M" position="Anywhere" classification="Chemical derivative" spec_group="11"/>
+           <umod:specificity hidden="1" site="N" position="Anywhere" classification="Chemical derivative" spec_group="12"/>
+           <umod:specificity hidden="1" site="P" position="Anywhere" classification="Chemical derivative" spec_group="13"/>
+           <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Chemical derivative" spec_group="14"/>
+           <umod:specificity hidden="1" site="R" position="Anywhere" classification="Chemical derivative" spec_group="15"/>
+           <umod:specificity hidden="1" site="S" position="Anywhere" classification="Chemical derivative" spec_group="16"/>
+           <umod:specificity hidden="1" site="T" position="Anywhere" classification="Chemical derivative" spec_group="17"/>
+           <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
+           <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
+           <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
+           <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+           <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
+           <umod:delta mono_mass="1.00784" avge_mass="1.00811"
+                       composition="H(1)">
+               <umod:element symbol="H" number="1"/>
+           </umod:delta>
+       </umod:mod>
    </umod:modifications>
    <umod:amino_acids>
       <umod:aa title="-" three_letter="" full_name="" mono_mass="0.0" avge_mass="0.0"/>
