@@ -151,37 +151,37 @@ DerivedTraceFitter trace_fitter;
 START_SECTION((virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)=0))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTraces m;
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.fit(m))
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.fit(m))
 }
 END_SECTION
 
 START_SECTION((virtual double getLowerRTBound() const ))
 {
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.getLowerRTBound())
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getLowerRTBound())
 }
 END_SECTION
 
 START_SECTION((virtual double getUpperRTBound() const ))
 {
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.getUpperRTBound())
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getUpperRTBound())
 }
 END_SECTION
 
 START_SECTION((virtual double getHeight() const ))
 {
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.getHeight())
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getHeight())
 }
 END_SECTION
 
 START_SECTION((virtual double getCenter() const ))
 {
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.getCenter())
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getCenter())
 }
 END_SECTION
 
 START_SECTION((virtual double getValue(double rt) const ))
 {
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.getValue(0.0))
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getValue(0.0))
 }
 END_SECTION
 
@@ -190,7 +190,7 @@ START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelpe
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt;
   Peak1D p;
   mt.peaks.push_back(make_pair(1.0, &p));
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.computeTheoretical(mt, 0))
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.computeTheoretical(mt, 0))
 }
 END_SECTION
 
@@ -198,20 +198,20 @@ START_SECTION((virtual bool checkMinimalRTSpan(const std::pair<double, double>& 
 {
   std::pair<double, double> p;
   double x = 0.0;
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.checkMinimalRTSpan(p,x))
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.checkMinimalRTSpan(p,x))
 }
 END_SECTION
 
 START_SECTION((virtual bool checkMaximalRTSpan(const double max_rt_span)=0))
 {
   double x = 0.0;
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.checkMaximalRTSpan(x))
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.checkMaximalRTSpan(x))
 }
 END_SECTION
 
 START_SECTION((virtual double getArea()))
 {
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.getArea())
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getArea())
 }
 END_SECTION
 
@@ -221,13 +221,13 @@ START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPick
   double shift = 0.0;
   double baseline = 0.0;
   char f = 'f';
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.getGnuplotFormula(mt, f, baseline, shift))
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getGnuplotFormula(mt, f, baseline, shift))
 }
 END_SECTION
 
 START_SECTION((virtual double getFWHM() const))
 {
-  TEST_EXCEPTION(Exception::NotImplemented&, trace_fitter.getFWHM())
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getFWHM())
 }
 END_SECTION
 

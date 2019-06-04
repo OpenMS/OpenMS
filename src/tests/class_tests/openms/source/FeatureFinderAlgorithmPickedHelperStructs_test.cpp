@@ -232,7 +232,7 @@ END_SECTION
 
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] Size getTheoreticalmaxPosition() const ))
 {
-  TEST_EXCEPTION(Exception::Precondition&, empty_traces.getTheoreticalmaxPosition())
+  TEST_EXCEPTION(Exception::Precondition, empty_traces.getTheoreticalmaxPosition())
 
   TEST_EQUAL(mt.getTheoreticalmaxPosition(), 0)
 }
@@ -250,7 +250,7 @@ END_SECTION
 
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] std::pair<double,double> getRTBounds() const ))
 {
-  TEST_EXCEPTION(Exception::Precondition&, empty_traces.getRTBounds())
+  TEST_EXCEPTION(Exception::Precondition, empty_traces.getRTBounds())
 
   std::pair<double, double> bounds = mt.getRTBounds();
   TEST_EQUAL(bounds.first, 677.1)

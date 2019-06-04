@@ -364,39 +364,39 @@ END_SECTION
 START_SECTION((String prefix(Int length) const))
   TEST_EQUAL(s.prefix((Int)4), "ACDE");
   TEST_EQUAL(s.prefix((Int)0), "");
-  TEST_EXCEPTION(Exception::IndexOverflow&, s.prefix(s.size()+1));
-  TEST_EXCEPTION(Exception::IndexUnderflow&, s.prefix(-1));
+  TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
+  TEST_EXCEPTION(Exception::IndexUnderflow, s.prefix(-1));
 END_SECTION
 
 START_SECTION((String suffix(Int length) const))
   TEST_EQUAL(s.suffix((Int)4), "TVWY");
   TEST_EQUAL(s.suffix((Int)0), "");
-  TEST_EXCEPTION(Exception::IndexOverflow&, s.suffix(s.size()+1));
-  TEST_EXCEPTION(Exception::IndexUnderflow&, s.suffix(-1));
+  TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
+  TEST_EXCEPTION(Exception::IndexUnderflow, s.suffix(-1));
 END_SECTION
 
 START_SECTION((String prefix(SizeType length) const))
   TEST_EQUAL(s.prefix((String::SizeType)4), "ACDE");
   TEST_EQUAL(s.prefix((String::SizeType)0), "");
-  TEST_EXCEPTION(Exception::IndexOverflow&, s.prefix(s.size()+1));
+  TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 END_SECTION
 
 START_SECTION((String suffix(SizeType length) const))
   TEST_EQUAL(s.suffix((String::SizeType)4), "TVWY");
   TEST_EQUAL(s.suffix((String::SizeType)0), "");
-  TEST_EXCEPTION(Exception::IndexOverflow&, s.suffix(s.size()+1));
+  TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 END_SECTION
 
 START_SECTION((String prefix(char delim) const))
   TEST_EQUAL(s.prefix('F'), "ACDE");
   TEST_EQUAL(s.prefix('A'), "");
-  TEST_EXCEPTION(Exception::ElementNotFound&, s.prefix('Z'));
+  TEST_EXCEPTION(Exception::ElementNotFound, s.prefix('Z'));
 END_SECTION
 
 START_SECTION((String suffix(char delim) const))
   TEST_EQUAL(s.suffix('S'), "TVWY");
   TEST_EQUAL(s.suffix('Y'), "");
-  TEST_EXCEPTION(Exception::ElementNotFound&, s.suffix('Z'));
+  TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
 END_SECTION
 
 START_SECTION((String substr(size_t pos=0, size_t n=npos) const))
@@ -480,7 +480,7 @@ END_SECTION
 
 START_SECTION((String& unquote(char q = '"', QuotingMethod method = ESCAPE)))
   String s;
-  TEST_EXCEPTION(Exception::ConversionError&, s.unquote());
+  TEST_EXCEPTION(Exception::ConversionError, s.unquote());
   s = "''";
   s.unquote('\'', String::NONE);
   TEST_EQUAL(s, "");
@@ -552,13 +552,13 @@ START_SECTION((Int toInt() const))
   TEST_EQUAL(s.toInt(),-123);
   // expect errors:
   s = "524 starts with an int";
-  TEST_EXCEPTION(Exception::ConversionError&, s.toInt())
+  TEST_EXCEPTION(Exception::ConversionError, s.toInt())
   s = "not an int";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
   s = "contains an 13135 int";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
   s = "ends with an int 525";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
 END_SECTION
 
 START_SECTION((float toFloat() const))
@@ -578,7 +578,7 @@ START_SECTION((float toFloat() const))
   s = "NaN";
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "not a number";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toFloat(), String("Could not convert string '") + s + "' to a float value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toFloat(), String("Could not convert string '") + s + "' to a float value")
 END_SECTION
 
 START_SECTION((double toDouble() const))
@@ -598,7 +598,7 @@ START_SECTION((double toDouble() const))
   s = "NaN";
   TEST_EQUAL(boost::math::isnan(s.toDouble()),true);
   s = "not a number";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError&, s.toDouble(), String("Could not convert string '") + s + "' to a double value")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toDouble(), String("Could not convert string '") + s + "' to a double value")
 END_SECTION
 
 START_SECTION((static String random(UInt length)))
@@ -693,7 +693,7 @@ START_SECTION((bool split(const char splitter, std::vector<String>& substrings, 
 
   // testing invalid quoting...
   s = " \"first\", \"seconds\"<thisshouldnotbehere>, third";
-  TEST_EXCEPTION(Exception::ConversionError&, s.split(',', split, true));
+  TEST_EXCEPTION(Exception::ConversionError, s.split(',', split, true));
 END_SECTION
 
 START_SECTION((bool split(const String& splitter, std::vector<String>& substrings) const))
@@ -766,7 +766,7 @@ TEST_EQUAL(substrings[1], "\"d,\\\",f\"");
 TEST_EQUAL(substrings[2], "\"\"");
 
 s = "\"a,\"b\"";
-TEST_EXCEPTION(Exception::ConversionError&, s.split_quoted(",", substrings, '"',
+TEST_EXCEPTION(Exception::ConversionError, s.split_quoted(",", substrings, '"',
                                                           String::ESCAPE));
 s = "\"ab\"___\"cd\"\"ef\"";
 result = s.split_quoted("___", substrings, '"', String::DOUBLE);

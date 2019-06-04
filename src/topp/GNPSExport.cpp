@@ -90,7 +90,7 @@ private:
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_cm", "<file>", "", "input file containing consensus elements with \'peptide\' annotations");
     setValidFormats_("in_cm", ListUtils::create<String>("consensusXML"));
@@ -112,7 +112,7 @@ protected:
   }
 
   // the main function is called after all parameters are read
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     ProgressLogger progress_logger;
     progress_logger.setLogType(log_type_);
@@ -234,7 +234,7 @@ protected:
               pair<double,PeptideIdentification> first_pair = pair<double,PeptideIdentification>(similarity_index, peptide_identification);
               pair<int,int> second_pair = pair<int,int>(map_index, spectrum_index);
 
-              peptides.push_back(pair<pair<double,PeptideIdentification>,pair<int,int>>(first_pair,second_pair));
+              peptides.emplace_back(first_pair,second_pair);
             }
           }
           else
@@ -269,7 +269,7 @@ protected:
             feature_stream << "FEATURE_ID=" << to_string(feature_count) << endl;
 
             string filename = mzml_file_paths[peptide.second.first];
-            Size parse_index = filename.rfind("/") + 1;
+            Size parse_index = filename.rfind('/') + 1;
             filename = filename.substr(parse_index);
             feature_stream << "CONSENSUSID=e_" << feature.getUniqueId() << endl;
 

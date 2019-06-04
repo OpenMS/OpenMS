@@ -374,6 +374,8 @@ public:
     const String getInferenceEngineVersion() const;
     /// Sets the search parameters
     void setSearchParameters(const SearchParameters& search_parameters);
+    /// Sets the search parameters (move)
+    void setSearchParameters(SearchParameters&& search_parameters);
     /// Returns the search parameters
     const SearchParameters& getSearchParameters() const;
     /// Returns the search parameters (mutable)

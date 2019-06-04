@@ -199,7 +199,7 @@ namespace OpenMS
 
     if (mirror_mode_)
     {
-      if (y > height() / 2)
+      if (y > height() / 2.0)
       {
         if (!show_alignment_)
         {
@@ -925,7 +925,11 @@ namespace OpenMS
       //draw text
       painter->setPen(Qt::black);
       painter->translate(width() - w - 2, 3);
-      painter->fillRect(width() - w - 2, 3, w, h, QColor(255, 255, 255, 200));
+      painter->fillRect(static_cast<int>(width() - w - 2),
+                        3,
+                        static_cast<int>(w),
+                        static_cast<int>(h),
+                        QColor(255, 255, 255, 200));
       text_box_content_.drawContents(painter);
       painter->restore();
     }
@@ -1146,7 +1150,7 @@ namespace OpenMS
     getCurrentLayer_().updateRanges();
 
     // Abort if no data points are contained (note that all data could be on disk)
-    if (getCurrentLayer().getCurrentSpectrum().size() == 0)
+    if (getCurrentLayer().getCurrentSpectrum().empty())
     {
       layers_.resize(getLayerCount() - 1);
       if (current_layer_ != 0)
@@ -1664,7 +1668,7 @@ namespace OpenMS
 
     //determine proposed filename
     String proposed_name = param_.getValue("default_path");
-    if (visible == false && layer.filename != "")
+    if (!visible && !layer.filename.empty())
     {
       proposed_name = layer.filename;
     }
@@ -1778,7 +1782,6 @@ namespace OpenMS
         changeVisibleArea_(*zoom_pos_);
       }
     }
-    return;
   }
 
   /// Go forward in zoom history
@@ -2005,7 +2008,7 @@ namespace OpenMS
     {
       double line_begin_mz = spectrum_1[aligned_peaks_indices_[i].first].getMZ();
       double line_end_mz = spectrum_2[aligned_peaks_indices_[i].second].getMZ();
-      aligned_peaks_mz_delta_.push_back(std::make_pair(line_begin_mz, line_end_mz));
+      aligned_peaks_mz_delta_.emplace_back(line_begin_mz, line_end_mz);
     }
 
     show_alignment_ = true;
