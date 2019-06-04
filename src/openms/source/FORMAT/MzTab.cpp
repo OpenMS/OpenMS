@@ -587,6 +587,29 @@ namespace OpenMS
     mz_tab_version.fromCellString(String("1.0.0"));
   }
 
+	// static method remapping the target/decoy column from an opt_ to a standardized column
+	static void remapTargetDecoy_(std::vector<MzTabOptionalColumnEntry>& opt_entries)
+  {
+		const String old_header("opt_global_target_decoy");
+    const String new_header("opt_global_cv_MS:1002217_decoy_peptide");
+    for (auto &opt_entry : opt_entries)
+    {
+			if (opt_entry.first == old_header || opt_entry.first == new_header)
+      {
+				opt_entry.first = new_header;
+        const String &current_value = opt_entry.second.get();
+        if (current_value == "target" || current_value == "target+decoy")
+        {
+					opt_entry.second = MzTabString("0");
+        }
+        else if (current_value == "decoy")
+        {
+					opt_entry.second = MzTabString("1");
+        }
+      }
+    }
+	}
+
   MzTab::MzTab()
   {
 
@@ -1474,7 +1497,7 @@ namespace OpenMS
     {
       MzTabOptionalColumnEntry opt_entry;
       // column names must not contain spaces
-      opt_entry.first = String("opt_") + id + String("_") + String(key).substitute(' ','_');
+      opt_entry.first = "opt_" + id + "_" + String(key).substitute(' ','_');
       if (meta.metaValueExists(key))
       {
         opt_entry.second = MzTabString(meta.getMetaValue(key).toString());
@@ -1568,12 +1591,12 @@ namespace OpenMS
     MzTab mztab;
     MzTabMetaData meta_data;
 
-    vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();        
+    const vector<ProteinIdentification> &prot_ids = feature_map.getProteinIdentifications();
     vector<String> var_mods, fixed_mods;
     MzTabString db, db_version;
     if (!prot_ids.empty())
     {
-      ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
+      const ProteinIdentification::SearchParameters &sp = prot_ids[0].getSearchParameters();
       var_mods = sp.variable_modifications;
       fixed_mods = sp.fixed_modifications;
       db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
@@ -1639,7 +1662,7 @@ namespace OpenMS
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          for (String& s : ph_keys) 
+          for (String& s : ph_keys)
           { 
             if (s.has(' '))
             {
@@ -1745,6 +1768,12 @@ namespace OpenMS
 
       rows.push_back(row);
     }
+    // remap the target/decoy column
+    for (auto &row : rows)
+    {
+			remapTargetDecoy_(row.opt_);
+    }
+
     mztab.setPeptideSectionRows(rows);
     return mztab;
   }
@@ -2344,7 +2373,13 @@ Not sure how to handle these:
           // Add protein(group) row to MzTab 
           protein_rows.push_back(protein_row);
         }
+
       }
+      for (auto &row : protein_rows)
+      {
+				remapTargetDecoy_(row.opt_);
+      }
+
       mztab.setProteinSectionRows(protein_rows);
     }
     // end protein groups
@@ -2494,6 +2529,11 @@ Not sure how to handle these:
 
       // pass common row entries and create rows for all peptide evidences
       addPepEvidenceToRows(peptide_evidences, row, rows);
+    }
+    // remap target/decoy column
+    for (auto &row : rows)
+    {
+        remapTargetDecoy_(row.opt_);
     }
 
     mztab.setMetaData(meta_data);
@@ -2836,26 +2876,34 @@ Not sure how to handle these:
       opt_global_modified_sequence.first = String("opt_global_modified_sequence");
       row.opt_.push_back(opt_global_modified_sequence);
 
-      // create opt_ columns for consensus feature (peptide) user values
-      for (String const & key : consensus_feature_user_value_keys)
+	  // Defines how to consume user value keys for the upcoming keys
+      const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
       {
-        MzTabOptionalColumnEntry opt_entry;
-        opt_entry.first = String("opt_global_") + key;
-        if (c.metaValueExists(key))
-        {
-          opt_entry.second = MzTabString(c.getMetaValue(key).toString());
-        } // otherwise it is default ("null")
-        row.opt_.push_back(opt_entry);
-      }
+	    return [f,&row](const String &user_value_key)
+		{
+		  MzTabOptionalColumnEntry opt_entry;
+          opt_entry.first = "opt_global_" + user_value_key;
+          f(user_value_key, opt_entry);
+
+          // Use default column_header for target decoy
+          row.opt_.push_back(opt_entry);
+        };
+      };
+
+			// create opt_ columns for consensus map user values
+      for_each(consensus_feature_user_value_keys.begin(), consensus_feature_user_value_keys.end(),
+						addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
+						  {
+							if (c.metaValueExists(key))
+							{
+							  opt_entry.second = MzTabString(c.getMetaValue(key).toString());
+							}
+						  })
+	  );
 
       // create opt_ columns for psm (PeptideHit) user values
-      for (String const & key : peptide_hit_user_value_keys)
-      {
-        MzTabOptionalColumnEntry opt_entry;
-        opt_entry.first = String("opt_global_") + key;
-        // leave value empty as we have to fill it with the value from the best peptide hit
-        row.opt_.push_back(opt_entry);
-      }
+      for_each(peptide_hit_user_value_keys.begin(), peptide_hit_user_value_keys.end(),
+					addUserValueToRowBy([](const String&, MzTabOptionalColumnEntry&){}));
 
       row.mass_to_charge = MzTabDouble(c.getMZ());
       MzTabDoubleList rt_list;
@@ -2953,7 +3001,7 @@ Not sure how to handle these:
         row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
 
         const set<String>& accessions = best_ph.extractProteinAccessionsSet();
-        const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
+        const vector<PeptideEvidence> &peptide_evidences = best_ph.getPeptideEvidences();
 
         row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
         // select accession of first peptide_evidence as representative ("leading") accession
@@ -3041,9 +3089,14 @@ Not sure how to handle these:
       } 
       rows.push_back(row);
     }
+    for (auto &row : rows)
+    {
+			remapTargetDecoy_(row.opt_);
+    }
 
     mztab.setPeptideSectionRows(rows);
     return mztab;
   }
+
 }
 
