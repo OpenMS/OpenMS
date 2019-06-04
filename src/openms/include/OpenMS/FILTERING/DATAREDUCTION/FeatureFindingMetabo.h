@@ -192,10 +192,6 @@ private:
     */
     double computeCosineSim_(const std::vector<double>&, const std::vector<double>&) const;
 
-    /// unused function ???
-    /// TODO: remove
-    double computeOLSCoeff_(const std::vector<double>&, const std::vector<double>&) const;
-
     /** @brief Compare intensities of feature hypothesis with model 
      *
      * Use a pre-trained SVM model to evaluate the intensity distribution of a
@@ -264,7 +260,7 @@ e conditions are fulfilled. Mainly the
      *
      * The resulting possible groupings are appended to output_hypotheses.
     */
-    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, const double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
+    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
     /// SVM parameters
     svm_model* isotope_filt_svm_;

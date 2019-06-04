@@ -63,6 +63,12 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 
+// preprocessing and filtering for automated m/z annotations
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+
 #include <iostream>
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -135,7 +141,7 @@ namespace OpenMS
   void Spectrum1DCanvas::dataToWidget(double x, double y, QPoint & point, bool flipped, bool percentage)
   {
     QPoint tmp;
-    if (percentage)
+    if (percentage) 
     {
       y *= getSnapFactor() * percentage_factor_;
     }
@@ -193,7 +199,7 @@ namespace OpenMS
 
     if (mirror_mode_)
     {
-      if (y > height() / 2)
+      if (y > height() / 2.0)
       {
         if (!show_alignment_)
         {
@@ -712,150 +718,150 @@ namespace OpenMS
     {
       const LayerData & layer = getLayer(i);
 
-      // skip non peak data layer
-      if (layer.type != LayerData::DT_PEAK) { continue; }
+      // skip non peak data layer or invisible
+      if (layer.type != LayerData::DT_PEAK || !layer.visible) { continue; }
 
-      if (layer.visible)
+      const ExperimentType::SpectrumType & spectrum = layer.getCurrentSpectrum();
+
+      // get default icon and peak color
+      QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
+      QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
+      pen.setStyle(peak_penstyle_[i]);
+
+      // TODO option for variable pen width
+      // pen.setWidthF(1.5);
+      painter->setPen(pen);
+      updatePercentageFactor_(i);
+      vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
+      vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
+
+      // draw dashed elongations for pairs of peaks annotated with a distance
+      for (auto it = layer.getCurrentAnnotations().begin();
+            it != layer.getCurrentAnnotations().end(); ++it)
       {
-        const ExperimentType::SpectrumType & spectrum = layer.getCurrentSpectrum();
-
-        // get default icon and peak color
-        QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
-        QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
-        pen.setStyle(peak_penstyle_[i]);
-
-        // TODO option for variable pen width
-        // pen.setWidthF(1.5);
-        painter->setPen(pen);
-        updatePercentageFactor_(i);
-        vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
-        vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
-
-        // draw dashed elongations for pairs of peaks annotated with a distance
-        for (auto it = layer.getCurrentAnnotations().begin();
-             it != layer.getCurrentAnnotations().end(); ++it)
+        Annotation1DDistanceItem * distance_item = dynamic_cast<Annotation1DDistanceItem *>(*it);
+        if (distance_item)
         {
-          Annotation1DDistanceItem * distance_item = dynamic_cast<Annotation1DDistanceItem *>(*it);
-          if (distance_item)
-          {
-            QPoint from, to;
-            dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer.flipped);
+          QPoint from, to;
+          dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer.flipped);
 
-            dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
-            drawDashedLine_(from, to, *painter);
+          dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
+          drawDashedLine_(from, to, *painter);
 
-            dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer.flipped);
+          dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer.flipped);
 
-            dataToWidget(distance_item->getEndPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
-            drawDashedLine_(from, to, *painter);
-          }
+          dataToWidget(distance_item->getEndPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
+          drawDashedLine_(from, to, *painter);
         }
-        switch (draw_modes_[i])
+      }
+      switch (draw_modes_[i])
+      {
+      case DM_PEAKS:
+        //-----------------------------------------DRAWING PEAKS-------------------------------------------
+
+        for (SpectrumConstIteratorType it = vbegin; it != vend; ++it)
         {
-        case DM_PEAKS:
-          //-----------------------------------------DRAWING PEAKS-------------------------------------------
-
-          for (SpectrumConstIteratorType it = vbegin; it != vend; ++it)
+          if (layer.filters.passes(spectrum, it - spectrum.begin()))
           {
-            if (layer.filters.passes(spectrum, it - spectrum.begin()))
+            // use peak colors stored in the layer, if available
+            if (layer.peak_colors_1d.size() == spectrum.size())
             {
-              // use peak colors stored in the layer, if available
-              if (layer.peak_colors_1d.size() == spectrum.size())
-              {
-                // find correct peak index
-                Size peak_index = std::distance(spectrum.begin(), it);
-                pen.setColor(layer.peak_colors_1d[peak_index]);
-                painter->setPen(pen);
-              }
-              
-              // Warn if non-empty peak color array present but size doesn't match number of peaks
-              // This indicates a bug but we gracefuly just issue a warning
-              if (!layer.peak_colors_1d.empty() && 
-               layer.peak_colors_1d.size() < spectrum.size())
-              {
-                OPENMS_LOG_ERROR << "Peak color array size (" 
-                  << layer.peak_colors_1d.size() 
-                  << ") doesn't match number of peaks ("
-                  << spectrum.size()
-                  << ") in spectrum." 
-                  << endl;
-              }
-
-              dataToWidget(*it, end, layer.flipped);
-              dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
-
-              // draw peak
-              painter->drawLine(begin, end);
+              // find correct peak index
+              Size peak_index = std::distance(spectrum.begin(), it);
+              pen.setColor(layer.peak_colors_1d[peak_index]);
+              painter->setPen(pen);
             }
-          }
-          break;
-
-        case DM_CONNECTEDLINES:
-        {
-          //-------------------------------------DRAWING CONNECTED LINES-----------------------------------------
-          QPainterPath path;
-
-          // connect peaks in visible area; (no clipping needed)
-          bool first_point = true;
-          for (SpectrumConstIteratorType it = vbegin; it != vend; it++)
-          {
-            dataToWidget(*it, begin, layer.flipped);
-
-            // connect lines
-            if (first_point)
+            
+            // Warn if non-empty peak color array present but size doesn't match number of peaks
+            // This indicates a bug but we gracefuly just issue a warning
+            if (!layer.peak_colors_1d.empty() && 
+              layer.peak_colors_1d.size() < spectrum.size())
             {
-              path.moveTo(begin);
-              first_point = false;
+              OPENMS_LOG_ERROR << "Peak color array size (" 
+                << layer.peak_colors_1d.size() 
+                << ") doesn't match number of peaks ("
+                << spectrum.size()
+                << ") in spectrum." 
+                << endl;
             }
-            else
-            {
-              path.lineTo(begin);
-            }
-          }
-          painter->drawPath(path);
 
-          // clipping on left side
-          if (vbegin != spectrum.begin() && vbegin != spectrum.end())
-          {
-            dataToWidget(*(vbegin - 1), begin, layer.flipped);
-            dataToWidget(*(vbegin), end, layer.flipped);
-            painter->drawLine(begin, end);
-          }
+            dataToWidget(*it, end, layer.flipped);
+            dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
 
-          // clipping on right side
-          if (vend != spectrum.end() && vend != spectrum.begin())
-          {
-            dataToWidget(*(vend - 1), begin, layer.flipped);
-            dataToWidget(*(vend), end, layer.flipped);
+            // draw peak
             painter->drawLine(begin, end);
           }
         }
         break;
 
-        default:
-          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        }
+      case DM_CONNECTEDLINES:
+      {
+        //-------------------------------------DRAWING CONNECTED LINES-----------------------------------------
+        QPainterPath path;
 
-        // draw all annotation items
-        drawAnnotations(i, *painter);
-
-        // draw a legend
-        if (param_.getValue("show_legend").toBool())
+        // connect peaks in visible area; (no clipping needed)
+        bool first_point = true;
+        for (SpectrumConstIteratorType it = vbegin; it != vend; it++)
         {
-          const SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
-          double xpos = getVisibleArea().maxX() - (getVisibleArea().maxX() - getVisibleArea().minX()) * 0.1;
-          SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(xpos), PeakType::IntensityLess());
-          if (tmp != spectrum.end())
+          dataToWidget(*it, begin, layer.flipped);
+
+          // connect lines
+          if (first_point)
           {
-            PointType position(xpos, std::max<double>(tmp->getIntensity() - 100, tmp->getIntensity() * 0.8));
-            Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.name.toQString(), QColor(layer.param.getValue("peak_color").toQString()));
-            item.draw(this, *painter);
+            path.moveTo(begin);
+            first_point = false;
+          }
+          else
+          {
+            path.lineTo(begin);
           }
         }
+        painter->drawPath(path);
 
+        // clipping on left side
+        if (vbegin != spectrum.begin() && vbegin != spectrum.end())
+        {
+          dataToWidget(*(vbegin - 1), begin, layer.flipped);
+          dataToWidget(*(vbegin), end, layer.flipped);
+          painter->drawLine(begin, end);
+        }
 
+        // clipping on right side
+        if (vend != spectrum.end() && vend != spectrum.begin())
+        {
+          dataToWidget(*(vend - 1), begin, layer.flipped);
+          dataToWidget(*(vend), end, layer.flipped);
+          painter->drawLine(begin, end);
+        }
       }
-    }
+      break;
+
+      default:
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+
+      // annotate interesting m/z's
+      if (draw_interesting_MZs_) { drawMZAtInterestingPeaks_(i, *painter); }
+
+      // draw all annotation items
+      drawAnnotations(i, *painter);
+      
+      // draw a legend
+      if (param_.getValue("show_legend").toBool())
+      {
+        const SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
+        double xpos = getVisibleArea().maxX() - (getVisibleArea().maxX() - getVisibleArea().minX()) * 0.1;
+        SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(xpos), PeakType::IntensityLess());
+        if (tmp != spectrum.end())
+        {
+          PointType position(xpos, std::max<double>(tmp->getIntensity() - 100, tmp->getIntensity() * 0.8));
+          Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.name.toQString(), QColor(layer.param.getValue("peak_color").toQString()));
+          item.draw(this, *painter);
+        }
+      }
+
+
+    }    
 
     if (mirror_mode_)
     {
@@ -919,7 +925,11 @@ namespace OpenMS
       //draw text
       painter->setPen(Qt::black);
       painter->translate(width() - w - 2, 3);
-      painter->fillRect(width() - w - 2, 3, w, h, QColor(255, 255, 255, 200));
+      painter->fillRect(static_cast<int>(width() - w - 2),
+                        3,
+                        static_cast<int>(w),
+                        static_cast<int>(h),
+                        QColor(255, 255, 255, 200));
       text_box_content_.drawContents(painter);
       painter->restore();
     }
@@ -1031,8 +1041,88 @@ namespace OpenMS
     }
   }
 
+  void Spectrum1DCanvas::drawMZAtInterestingPeaks_(Size layer_index, QPainter & painter)
+  {
+    LayerData & layer = getLayer_(layer_index);
+    const MSSpectrum& current_spectrum = layer.getCurrentSpectrum();
+
+    bool flipped = layer.flipped;
+    updatePercentageFactor_(layer_index);
+
+    // get visible peaks
+    auto vbegin = current_spectrum.MZBegin(visible_area_.minX());
+    auto vend = current_spectrum.MZEnd(visible_area_.maxX());    
+
+    if (vbegin == vend) { return; }
+
+    // find interesting peaks
+
+    // copy visible peaks into spec
+    MSSpectrum spec;
+    for (auto it(vbegin); it != vend; ++it) { spec.push_back(*it); }
+
+    // calculate distance between first and last peak
+    --vend;
+    double visible_range = vend->getMZ() - vbegin->getMZ(); 
+
+    // remove 0 intensities
+    ThresholdMower threshold_mower_filter;
+    threshold_mower_filter.filterPeakSpectrum(spec);
+
+    // deisotope so we don't consider higher isotopic peaks
+    Deisotoper::deisotopeAndSingleCharge(spec, 
+      100,     // tolerance
+      true,   // ppm 
+      1, 6,   // min / max charge 
+      false,  // keep only deisotoped
+      3, 10,  // min / max isopeaks 
+      false,  // don't convert fragment m/z to mono-charge
+      true);  // annotate charge in integer data array
+
+    // filter for local high-intensity peaks
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    double window_size = visible_range / 10.0;
+    filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 2, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "slide", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
+    window_mower_filter.filterPeakSpectrum(spec);
+
+    NLargest nlargest_filter(10);  // maximum number of annotated m/z's in visible area
+    nlargest_filter.filterPeakSpectrum(spec);
+    spec.sortByPosition(); // nlargest changes order
+ 
+    for (Size i = 0; i != spec.size(); ++i)
+    {
+      Size current_peak_index = current_spectrum.findNearest(spec[i].getMZ());
+      double mz(current_spectrum[current_peak_index].getMZ());
+      double intensity(current_spectrum[current_peak_index].getIntensity());
+
+      QString label = String::number(mz, 4).toQString();
+
+      if (!spec.getIntegerDataArrays().empty() 
+        && spec.getIntegerDataArrays()[0].size() == spec.size())
+      {
+        int charge = spec.getIntegerDataArrays()[0][i]; 
+        // TODO: handle negative mode
+
+        // here we explicitly also annotate singly charged ions to distinguish them from unknown charge (0)
+        if (charge != 0) 
+        {
+          label += charge == 1 ? "<sup>+</sup>" : "<sup>" + QString::number(charge) + "+</sup>";
+        }
+      }
+
+      Annotation1DPeakItem item({mz, intensity}, label, Qt::darkGray);
+      item.setSelected(false);
+      item.draw(this, painter, flipped);
+    }
+  }
+
   void Spectrum1DCanvas::changeVisibleArea_(const AreaType & new_area, bool repaint, bool add_to_stack)
   {
+    // set new visible area (if changed)
     if (new_area != visible_area_)
     {
       visible_area_ = new_area;
@@ -1041,16 +1131,11 @@ namespace OpenMS
       emit visibleAreaChanged(new_area);
     }
 
-    //store old zoom state
-    if (add_to_stack)
-    {
-      zoomAdd_(new_area);
-    }
+    // store old zoom state
+    if (add_to_stack) { zoomAdd_(new_area); }
 
-    if (repaint)
-    {
-      update_(OPENMS_PRETTY_FUNCTION);
-    }
+    // repaint
+    if (repaint) { update_(OPENMS_PRETTY_FUNCTION); }
   }
 
   bool Spectrum1DCanvas::finishAdding_()
@@ -1065,7 +1150,7 @@ namespace OpenMS
     getCurrentLayer_().updateRanges();
 
     // Abort if no data points are contained (note that all data could be on disk)
-    if (getCurrentLayer().getCurrentSpectrum().size() == 0)
+    if (getCurrentLayer().getCurrentSpectrum().empty())
     {
       layers_.resize(getLayerCount() - 1);
       if (current_layer_ != 0)
@@ -1256,15 +1341,21 @@ namespace OpenMS
       for (Size i = 0; i < getLayerCount(); ++i)
       {
         const SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
-        SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
+        SpectrumConstIteratorType tmp = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
         if (tmp != spectrum.end() && tmp->getIntensity() > local_max)
         {
           local_max = tmp->getIntensity();
         }
       }
-      snap_factors_[0] = overall_data_range_.maxPosition()[1] / local_max;
+
+      // add some margin on top of local maximum to be sure we are able to draw labels inside the view
+      snap_factors_[0] = overall_data_range_.maxPosition()[1] / (local_max * TOP_MARGIN);
     }
-    else
+    else if (intensity_mode_ == IM_PERCENTAGE)
+    {
+      snap_factors_[0] = 1.0 / TOP_MARGIN;
+    }
+    else 
     {
       snap_factors_[0] = 1.0;
     }
@@ -1397,6 +1488,7 @@ namespace OpenMS
       settings_menu->addAction("Style: Stick <--> Area");
       settings_menu->addAction("Intensity: Absolute <--> Percent");
       settings_menu->addAction("Show/hide ion ladder in ID view");
+      settings_menu->addAction("Show/hide automated m/z annotations");
       settings_menu->addSeparator();
       settings_menu->addAction("Preferences");
 
@@ -1441,6 +1533,10 @@ namespace OpenMS
         else if (result->text() == "Show/hide axis legends")
         {
           emit changeLegendVisibility();
+        }
+        else if (result->text() == "Show/hide automated m/z annotations")
+        {
+          setDrawInterestingMZs(!draw_interesting_MZs_);
         }
         else if (result->text() == "Layer" || result->text() == "Visible layer data")
         {
@@ -1572,7 +1668,7 @@ namespace OpenMS
 
     //determine proposed filename
     String proposed_name = param_.getValue("default_path");
-    if (visible == false && layer.filename != "")
+    if (!visible && !layer.filename.empty())
     {
       proposed_name = layer.filename;
     }
@@ -1686,7 +1782,6 @@ namespace OpenMS
         changeVisibleArea_(*zoom_pos_);
       }
     }
-    return;
   }
 
   /// Go forward in zoom history
@@ -1913,7 +2008,7 @@ namespace OpenMS
     {
       double line_begin_mz = spectrum_1[aligned_peaks_indices_[i].first].getMZ();
       double line_end_mz = spectrum_2[aligned_peaks_indices_[i].second].getMZ();
-      aligned_peaks_mz_delta_.push_back(std::make_pair(line_begin_mz, line_end_mz));
+      aligned_peaks_mz_delta_.emplace_back(line_begin_mz, line_end_mz);
     }
 
     show_alignment_ = true;
@@ -2069,9 +2164,24 @@ namespace OpenMS
     }
   }
 
+  void Spectrum1DCanvas::setDrawInterestingMZs(bool enable)
+  {    
+    if (draw_interesting_MZs_ != enable)
+    {
+      draw_interesting_MZs_ = enable; 
+      update_(OPENMS_PRETTY_FUNCTION); 
+    }
+  }
+
   bool Spectrum1DCanvas::isIonLadderVisible() const
   {
     return ion_ladder_visible_;
   }
+
+  bool Spectrum1DCanvas::isDrawInterestingMZs() const
+  {
+    return draw_interesting_MZs_;
+  }
+
 
 } //Namespace

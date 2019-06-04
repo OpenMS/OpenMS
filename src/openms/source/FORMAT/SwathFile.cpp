@@ -106,7 +106,7 @@ namespace OpenMS
       OpenSwath::SwathMap swath_map;
 
       bool ms1 = false;
-      double upper = -1, lower = -1;
+      double upper = -1, lower = -1, center = -1;
       if (exp->size() == 0)
       {
         std::cerr << "WARNING: File " << file_list[i] << "\n does not have any scans - I will skip it" << std::endl;
@@ -120,12 +120,13 @@ namespace OpenMS
       else
       {
         // Checks that this is really a SWATH map and extracts upper/lower window
-        OpenSwathHelper::checkSwathMap(*exp.get(), lower, upper);
+        OpenSwathHelper::checkSwathMap(*exp.get(), lower, upper, center);
       }
 
       swath_map.sptr = spectra_ptr;
       swath_map.lower = lower;
       swath_map.upper = upper;
+      swath_map.center = center;
       swath_map.ms1 = ms1;
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_SwathFile_loadSplit)

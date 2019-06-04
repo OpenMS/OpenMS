@@ -33,6 +33,7 @@
 # --------------------------------------------------------------------------
 set(CPACK_GENERATOR "RPM")
 
+
 set(CPACK_RPM_PACKAGE_VENDOR "OpenMS developers <open-ms-general@lists.sourceforge.net>")
 if (OPENMS_64BIT_ARCHITECTURE)
   set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-RedHat-Linux-x86_64")

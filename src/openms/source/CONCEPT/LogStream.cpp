@@ -124,7 +124,7 @@ namespace OpenMS
       }
 
       // set the new level
-      rdbuf()->level_ = level;
+      rdbuf()->level_ = std::move(level);
     }
 
     std::string LogStream::getLevel()
@@ -327,9 +327,9 @@ namespace OpenMS
     {
       string::size_type   index = 0;
       Size copied_index = 0;
-      string result("");
+      string result;
 
-      while ((index = prefix.find("%", index)) != String::npos)
+      while ((index = prefix.find('%', index)) != String::npos)
       {
         // append any constant parts of the string to the result
         if (copied_index < index)

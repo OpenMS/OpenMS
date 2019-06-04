@@ -175,7 +175,7 @@ public:
           p.setPosition(split[0].toDouble());
           p.setIntensity(split[1].toFloat());
         }
-        catch (Exception::ConversionError /*&e*/)
+        catch ( Exception::ConversionError& )
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ConversionError: line (" + String(line_number) + ") '" + line  + "' does not contain two numbers!", "");
         }
