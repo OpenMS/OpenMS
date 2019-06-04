@@ -1273,6 +1273,19 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_test_5" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_output.TraML -out ConvertTraMLToTSV_output.tmp.tsv -out_type tsv)
   add_test("TOPP_TargetedFileConverter_test_5_out1" ${DIFF} -in1 ConvertTraMLToTSV_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/ConvertTraMLToTSV_output.tsv)
   set_tests_properties("TOPP_TargetedFileConverter_test_5_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_5")
+
+  # protein group conversion test PQP
+  add_test("TOPP_TargetedFileConverter_test_12_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.TraML -out TargetedFileConverter_12_output.pqp.tmp -out_type pqp)
+  add_test("TOPP_TargetedFileConverter_test_12" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in TargetedFileConverter_12_output.pqp.tmp -in_type pqp -out TargetedFileConverter_12_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_12_out1" ${DIFF} -whitelist "id=" -in1 TargetedFileConverter_12_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.TraML)
+  set_tests_properties("TOPP_TargetedFileConverter_test_12_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_12")
+  set_tests_properties("TOPP_TargetedFileConverter_test_12" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_12_prepare")
+
+  # protein group conversion test TraML
+  add_test("TOPP_TargetedFileConverter_test_13" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.tsv -out TargetedFileConverter_13_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_13_out1" ${DIFF} -in1 TargetedFileConverter_13_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_13_output.TraML)
+  set_tests_properties("TOPP_TargetedFileConverter_test_13_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_13")
+
   # Metabolomics
   add_test("TOPP_TargetedFileConverter_test_6" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_5_output.TraML -out ConvertTraMLToTSV_output_2.tmp.tsv -out_type tsv)
   add_test("TOPP_TargetedFileConverter_test_6_out1" ${DIFF} -in1 ConvertTraMLToTSV_output_2.tmp.tsv -in2 ${DATA_DIR_TOPP}/ConvertTraMLToTSV_output_2.tsv)
