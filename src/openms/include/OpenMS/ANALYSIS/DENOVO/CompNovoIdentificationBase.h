@@ -102,8 +102,8 @@ protected:
     /// produces mass decompositions using the given mass
     void getDecompositions_(std::vector<MassDecomposition> & decomps, double mass, bool no_caching = false);
 
-    /// permuts the String s adds the prefix and stores the results in permutations
-    void permute_(String prefix, String s, std::set<String> & permutations);
+    /// permutes the String s adds the prefix and stores the results in permutations
+    static void permute_(const String& prefix, String s, std::set<String> & permutations);
 
     Size countMissedCleavagesTryptic_(const String & peptide) const;
 
@@ -145,7 +145,7 @@ protected:
 
     MassDecompositionAlgorithm mass_decomp_algorithm_;
 
-    double min_aa_weight_;
+    double min_aa_weight_{};
 
     ZhangSimilarityScore zhang_;
 
