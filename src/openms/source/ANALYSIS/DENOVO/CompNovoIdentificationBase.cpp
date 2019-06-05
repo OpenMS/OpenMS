@@ -220,7 +220,7 @@ namespace OpenMS
             spec.push_back(p);
           }
         }
-        
+
         if (y_pos > min_mz_ && y_pos < max_mz_)
         {
           // y-ions
@@ -755,6 +755,93 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         min_aa_weight_ = it->second;
       }
     }
+  }
+
+  void CompNovoIdentificationBase::getETDSpectrum_(PeakSpectrum & spec, const String & sequence, Size /* charge */, double prefix, double suffix)
+  {
+    if (isotope_distributions_.empty())
+    {
+      initIsotopeDistributions_();
+    }
+
+    Peak1D p;
+    p.setIntensity(1.0f);
+
+    double c_pos(17.0 + prefix);     // TODO high mass accuracy!!
+    double z_pos(3.0 + suffix);
+    //double b_pos(0.0 + prefix);
+    //double y_pos(18.0 + suffix);
+    // sometimes also b and y ions are in this spectrum
+
+    #ifdef ETD_SPECTRUM_DEBUG
+    cerr << "ETDSpectrum for " << sequence << " " << prefix << " " << suffix << endl;
+    #endif
+
+    for (Size i = 0; i != sequence.size() - 1; ++i)
+    {
+      char aa(sequence[i]);
+      char aa_cterm(sequence[i + 1]);
+      #ifdef ETD_SPECTRUM_DEBUG
+      cerr << aa << " " << aa_cterm << endl;
+      #endif
+
+      c_pos += aa_to_weight_[aa];
+      //b_pos += aa_to_weight_[aa];
+
+      char aa2(sequence[sequence.size() - i - 1]);
+      z_pos += aa_to_weight_[aa2];
+      //y_pos += aa_to_weight_[aa2];
+
+      #ifdef ETD_SPECTRUM_DEBUG
+      cerr << b_pos << " " << c_pos << " " << y_pos << " " << z_pos << endl;
+      #endif
+
+      if (aa_cterm != 'P')
+      {
+        // c-ions
+        if (c_pos + 1 >= min_mz_ && c_pos + 1 <= max_mz_)
+        {
+          //p.setIntensity(0.3);
+          //p.setPosition(c_pos);
+          //spec.push_back(p);
+          for (Size j = 0; j != max_isotope_; ++j)
+          {
+            p.setIntensity(isotope_distributions_[(int)c_pos][j]);
+            p.setPosition(c_pos + 1 + j);
+            spec.push_back(p);
+          }
+        }
+      }
+
+      if (aa2 != 'P')
+      {
+        // z-ions
+        if (z_pos >= min_mz_ && z_pos <= max_mz_)
+        {
+          p.setIntensity(0.3f);
+          p.setPosition(z_pos);
+          spec.push_back(p);
+
+          for (Size j = 0; j != max_isotope_; ++j)
+          {
+            p.setIntensity(isotope_distributions_[(int)z_pos][j]);
+            p.setPosition(z_pos + 1 + j);
+            spec.push_back(p);
+          }
+        }
+      }
+    }
+
+    spec.sortByPosition();
+
+    #ifdef ETD_SPECTRUM_DEBUG
+    for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+    {
+      cerr << it->getPosition()[0] << " " << it->getIntensity() << endl;
+    }
+    #endif
+
+    return;
   }
 
 }
