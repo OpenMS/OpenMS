@@ -95,9 +95,6 @@ protected:
     /// reduces the given number of permuts by scoring the permutations to the CID and ETD spec
     void reducePermuts_(std::set<String> & permuts, const PeakSpectrum & CID_orig_spec, const PeakSpectrum & ETD_orig_spec, double prefix, double suffix);
 
-    /// fills the spectrum with c and z type ions
-    void getETDSpectrum_(PeakSpectrum & spec, const String &sequence, Size /* charge */, double prefix = 0.0, double suffix = 0.0);
-
     /// estimates an exact precursor weight of the ETD spectrum, because in most of the cases the precursor is found in the MS/MS spec
     double estimatePrecursorWeight_(const PeakSpectrum & ETD_spec, Size & charge);
 
