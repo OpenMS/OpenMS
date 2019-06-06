@@ -44092,6 +44092,55 @@ antiserum and mass spectrometric analysis</umod:text>
            </umod:delta>
        </umod:mod>
    </umod:modifications>
+   <umod:mod title="Methyl:2H(2)13C"
+     full_name="Mono-methylation 2H(2)13C"
+     username_of_poster="Lars"
+     group_of_poster="admin"
+     date_time_posted="2015-07-10 12:00:00"
+     date_time_modified="2015-07-10 12:00:00"
+     approved="0"
+     record_id="99987">
+     <umod:specificity hidden="1" site="T" position="Anywhere" classification="Post-translational" spec_group="14"/>
+     <umod:specificity hidden="1" site="S" position="Anywhere" classification="Post-translational" spec_group="13"/>
+     <umod:specificity hidden="1" site="N-term" position="Protein N-term" classification="Chemical
+     derivative" spec_group="10"/>
+     <umod:specificity hidden="0" site="E" position="Anywhere" classification="Post-translational" spec_group="12"/>
+     <umod:specificity hidden="0" site="D" position="Anywhere" classification="Post-translational" spec_group="15"/>
+     <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Multiple" spec_group="11"/>
+     <umod:specificity hidden="1" site="L" position="Anywhere" classification="Post-translational" spec_group="9"/>
+     <umod:specificity hidden="1" site="I" position="Anywhere" classification="Post-translational" spec_group="8"/>
+     <umod:specificity hidden="1" site="R" position="Anywhere" classification="Post-translational" spec_group="7"/>
+     <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical
+     derivative" spec_group="5"/>
+     <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Post-translational" spec_group="6"/>
+     <umod:specificity hidden="1" site="N" position="Anywhere" classification="Post-translational" spec_group="4"/>
+     <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+     <umod:specificity hidden="1" site="H" position="Anywhere" classification="Post-translational" spec_group="2"/>
+     <umod:specificity hidden="1" site="C" position="Anywhere" classification="Post-translational" spec_group="1"/>
+     <umod:delta mono_mass="17.031558" avge_mass="17.0344805" composition="2H(2) 13C">
+       <umod:element symbol="2H" number="2"/>
+       <umod:element symbol="13C" number="1"/>
+     </umod:delta>
+   </umod:mod>
+   <umod:mod title="Dimethyl:2H(2)13C"
+     full_name="Dimethyl-Mono-Medium" username_of_poster="Lars"
+     group_of_poster="Lars"
+     date_time_posted="2015-07-06 12:00:00"
+     date_time_modified="2015-07-06 12:00:00"
+     approved="0"
+     record_id="99990">
+     <umod:specificity hidden="1" site="N" position="Anywhere" classification="Post-translational" spec_group="4"/>
+     <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="3"/>
+     <umod:specificity hidden="1" site="R" position="Anywhere" classification="Post-translational" spec_group="2"/>
+     <umod:specificity hidden="1" site="K" position="Anywhere" classification="Post-translational" spec_group="1"/>
+     <umod:specificity hidden="1" site="P" position="Protein N-term" classification="Post-translational" spec_group="5"/>
+     <umod:delta mono_mass="31.047208" avge_mass="31.05814" composition="H(2) 2H(2) C(1) 13C(1)">
+       <umod:element symbol="H" number="2"/>
+       <umod:element symbol="2H" number="2"/>
+       <umod:element symbol="C" number="1"/>
+       <umod:element symbol="13C" number="1"/>
+     </umod:delta>
+   </umod:mod>
    <umod:amino_acids>
       <umod:aa title="-" three_letter="" full_name="" mono_mass="0.0" avge_mass="0.0"/>
       <umod:aa title="A" three_letter="Ala" full_name="Alanine" mono_mass="71.037114"
