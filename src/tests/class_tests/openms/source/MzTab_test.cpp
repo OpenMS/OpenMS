@@ -148,6 +148,27 @@ START_SECTION(std::vector<String> getPSMOptionalColumnNames() const)
 }
 END_SECTION
 
+START_SECTION(static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String& id, const MetaInfoInterface& meta))
+{
+  // keys will have spaces replaced with underscore
+  std::set<String> keys{ "FWHM", "with space", "ppm_errors" };
+  // values should remain as they are
+  MetaInfoInterface meta;
+  meta.setMetaValue("FWHM", 34.5);
+  DataValue dv(DoubleList{ 0.5, 1.4, -2.0, 0.1 });
+  meta.setMetaValue("ppm_errors", dv);
+  std::vector<MzTabOptionalColumnEntry> opt;
+  MzTab::addMetaInfoToOptionalColumns(keys, opt, "global", meta);
+  TEST_EQUAL(opt.size(), 3)
+  TEST_EQUAL(opt[0].first, "opt_global_FWHM");
+  TEST_EQUAL(opt[1].first, "opt_global_ppm_errors");
+  TEST_EQUAL(opt[2].first, "opt_global_with_space");
+  TEST_EQUAL(opt[0].second.toCellString(), "34.5");
+  TEST_EQUAL(opt[1].second.toCellString(), "[0.5, 1.4, -2.0, 0.1]");
+  TEST_EQUAL(opt[2].second.toCellString(), "null");
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

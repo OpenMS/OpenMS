@@ -134,7 +134,7 @@ START_SECTION((const element_type& getElement(size_type index) const ))
   TEST_EQUAL(alphabet.getElement(1), oxygen)
   TEST_EQUAL(alphabet.getElement(2), nitrogen)
 
-  TEST_EXCEPTION(Exception::InvalidValue, alphabet.getElement("nitrogen2"))
+  TEST_EXCEPTION(Exception::InvalidValue&, alphabet.getElement("nitrogen2"))
 }
 END_SECTION
 
@@ -171,7 +171,7 @@ START_SECTION((mass_type getMass(const name_type &name) const ))
   TEST_EQUAL(alphabet.getMass("oxygen"), oxygen.getMass())
   TEST_EQUAL(alphabet.getMass("nitrogen"), nitrogen.getMass())
 
-  TEST_EXCEPTION(Exception::InvalidValue, alphabet.getMass("nitrogen2"))
+  TEST_EXCEPTION(Exception::InvalidValue&, alphabet.getMass("nitrogen2"))
 }
 END_SECTION
 
@@ -286,7 +286,7 @@ START_SECTION((virtual void load(const std::string &fname, IMSAlphabetParser<> *
   IMSAlphabet load_copy(alphabet);
   TEST_EQUAL(load_copy.size(), 3)
 
-  TEST_EXCEPTION(Exception::IOException, load_copy.load(""))
+  TEST_EXCEPTION(Exception::IOException&, load_copy.load(""))
 
   // this should not clear the alphabet
   TEST_EQUAL(load_copy.size(), 3)

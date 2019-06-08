@@ -105,6 +105,12 @@ Geometric Tools (Wildmagic)
  https://www.geometrictools.com/
  - License:
  http://www.boost.org/LICENSE_1_0.txt
+ 
+HDF5
+ - URL:
+ https://www.hdfgroup.org/solutions/hdf5/
+ - License:
+ https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/COPYING
 
 SQLite:
  - URL:

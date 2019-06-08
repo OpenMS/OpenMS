@@ -81,12 +81,12 @@ START_SECTION(cell_iterator insert(const value_type &v))
 
   {
     const TestGrid::ClusterCenter key(0, (double)std::numeric_limits<Int64>::min() - 1e5);
-    TEST_EXCEPTION(Exception::OutOfRange, t.insert(std::make_pair(key, TestGrid::mapped_type())));
+    TEST_EXCEPTION(Exception::OutOfRange&, t.insert(std::make_pair(key, TestGrid::mapped_type())));
   }
 
   {
     const TestGrid::ClusterCenter key(0, (double)std::numeric_limits<Int64>::max() + 1e5);
-    TEST_EXCEPTION(Exception::OutOfRange, t.insert(std::make_pair(key, TestGrid::mapped_type())));
+    TEST_EXCEPTION(Exception::OutOfRange&, t.insert(std::make_pair(key, TestGrid::mapped_type())));
   }
 }
 END_SECTION
@@ -239,7 +239,7 @@ START_SECTION(const Grid::mapped_type& grid_at(const CellIndex &x) const)
 {
   const TestGrid t(cell_dimension);
   const TestGrid::CellIndex i(0, 0);
-  TEST_EXCEPTION(std::out_of_range, t.grid_at(i));
+  TEST_EXCEPTION(std::out_of_range&, t.grid_at(i));
 }
 END_SECTION
 
@@ -247,7 +247,7 @@ START_SECTION(Grid::mapped_type& grid_at(const CellIndex &x))
 {
   TestGrid t(cell_dimension);
   const TestGrid::CellIndex i(0, 0);
-  TEST_EXCEPTION(std::out_of_range, t.grid_at(i));
+  TEST_EXCEPTION(std::out_of_range&, t.grid_at(i));
 }
 END_SECTION
 

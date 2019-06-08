@@ -106,7 +106,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        LOG_ERROR << "Error: Failed to parse input line " << line_count
+        OPENMS_LOG_ERROR << "Error: Failed to parse input line " << line_count
                   << ". Reason:\n" << e.getName()
                   << " - " << e.getMessage() << "\nSkipping this line." << endl;
       }

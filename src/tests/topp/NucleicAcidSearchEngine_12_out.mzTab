@@ -8,11 +8,11 @@ MTD	software[1]	[, , NucleicAcidSearchEngine, test]
 MTD	ms_run[1]-location	./NucleicAcidSearchEngine_1.mzML
 
 NUH	accession	description	taxid	species	database	database_version	search_engine	ambiguity_members	modifications	sequence_coverage	opt_sequence
-NUC	dme-let-7-5p	MIMAT0000396 Drosophila melanogaster let-7-5p	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1	UGAGGUAGUAGGUUGUAUAGU
+NUC	dme-let-7-5p	MIMAT0000396 Drosophila melanogaster let-7-5p	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGAGGUAGUAGGUUGUAUAGU
 
 OLH	sequence	accession	unique	search_engine	modifications	retention_time	retention_time_window	pre	post	start	end
 OLI	UGAGGUAGUAGGUUGUAUAGU	dme-let-7-5p	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	21
 
-OSH	sequence	search_engine	search_engine_score[1]	search_engine_score[2]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref
-OSM	UGAGGUAGUAGGUUGUAUAGU	[, , NucleicAcidSearchEngine, test]	50.5292856590368	0	null	14.10438	-3	2263.62036132812	2262.9551005066	ms_run[1]:controllerType=0 controllerNumber=1 scan=88
+OSH	sequence	search_engine	search_engine_score[1]	search_engine_score[2]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	opt_isotope_offset
+OSM	UGAGGUAGUAGGUUGUAUAGU	[, , NucleicAcidSearchEngine, test]	50.529285659036816	0.0	null	14.104380000000001	-3	2263.620361328119998	2262.955100506600047	ms_run[1]:controllerType=0 controllerNumber=1 scan=88	2
 

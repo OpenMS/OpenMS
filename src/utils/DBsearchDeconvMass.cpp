@@ -52,20 +52,22 @@ class DBsearchDeconvMass:
 
 public:
     DBsearchDeconvMass():
-    TOPPBase("DBsearchDeconvMass", "DB search on deconv masses", false)
+    TOPPBase("DBsearchDeconvMass", "Matching masses from protein DB on deconvoluted masses", false)
     {}
 
 protected:
     void registerOptionsAndFlags_() override{
-        registerInputFile_("in", "<FeatureFinderIntact feature result file>", "", "Input FeatureFinderIntact result file");
+        registerInputFile_("in", "<tsv file of deconvoluted masses>", "", "Input tsv file containing deconvoluted masses");
         setValidFormats_("in", ListUtils::create<String>("tsv"));
 
         registerInputFile_("d", "<Protein DB file>", "", "Input protein DB file");
         setValidFormats_("d", ListUtils::create<String>("fasta"));
 
-        registerDoubleOption_("tol", "<tolerance>", 0, "proteoform mass tolerance (Da)", false, false);
+        registerDoubleOption_("tol", "<tolerance>", 10, "proteoform mass tolerance (ppm)", false, false);
         registerIntOption_("maxptm", "<max number of PTMs>", 4, "maximum number of PTMs per proteoform", false, false);
 
+        registerStringOption_("col", "<column name for masses>", "ExactMass", "Column title for deconvoluted masses", false, false);
+        registerFlag_("avg", "input massses are average mass instead of monoisotopic mass", false);
     }
 
     struct PTM{ // struct for PTM
@@ -97,13 +99,15 @@ protected:
 
     struct Proteoform{ // struct for proteoforms
         string accessions;
-        int mass; // nominal mass of proteoform
+        double mass; // total proteoform mass
         double protein_mass;
         Size PTM_index;
 
-        Proteoform(string protein_name, int theo_mass, double prot_mass, Size ptm_index):
+        Proteoform(string protein_name, double theo_mass, double prot_mass, Size ptm_index):
                 accessions(protein_name), mass(theo_mass), protein_mass(prot_mass), PTM_index(ptm_index){}
     };
+
+    bool isAvgMass = false;
 
     ExitCodes main_(int, const char **) override {
         //-------------------------------------------------------------
@@ -113,17 +117,21 @@ protected:
 
         string deconvfilePath = getStringOption_("in");
         String fastaFilePath = getStringOption_("d");
-//        String fastaFilePath = "/Users/jeek/Documents/A4B/FLASHDeconv_dy/CYS_BOVIN.fasta";
-//        String deconvfilePath = "/Users/jeek/Documents/A4B/FLASHDeconv_dy/190215_Cyto_untreated_30V_ISCID.tsv";
         int max_num_ptm = getIntOption_("maxptm");
-        double tolerance = getDoubleOption_("tol");
+        double tolerance = getDoubleOption_("tol") * 1e-6;
 
+        if (this->getFlag_("avg")){ // average mass!
+            isAvgMass = true;
+        }
+
+        string mass_col_name = getStringOption_("col");
+
+        // output file
         string outfilePath = deconvfilePath.substr(0, deconvfilePath.find_last_of(".")) + "_dbmass.tsv" ; // based on deconvfilePath
-        cout << outfilePath << endl;
+        cout << "output file : " << outfilePath << endl;
 
         fstream fsout;
         fsout.open(outfilePath, fstream::out);
-
 
         //-------------------------------------------------------------
         // db search on deconvoluted masses
@@ -131,44 +139,47 @@ protected:
         //--- read FeatureFinderIntact results---
         vector<double> mass_vec;
         vector<string> dfile_vec; // rows of deconvfilePath
-        read_FeatureFinderIntact_result_file(deconvfilePath, mass_vec, dfile_vec, "ExactMass");
-        double min_prot_mass = *min_element(mass_vec.begin(), mass_vec.end()) - 1000.0;
-        double max_prot_mass = *max_element(mass_vec.begin(), mass_vec.end()) + 1000.0;
-
-        vector<PTM> ptm_list;
-        getMassesFromUNIMOD(modfilePath, ptm_list, max_num_ptm);
-
-        vector<PTMnode*> ptm_linkedlist;
-        generatePTM_linkedlist(ptm_list, max_num_ptm, ptm_linkedlist);
-        LOG_INFO << "ptm linked list # : " << ptm_linkedlist.size() << endl;
-
-        sort(ptm_linkedlist.begin(), ptm_linkedlist.end(), compareNodeByMass);
-
-        LOG_INFO << "Building PTM lists for proteoforms" << endl;
+        read_FeatureFinderIntact_result_file(deconvfilePath, mass_vec, dfile_vec, mass_col_name);
+//        double min_prot_mass = *min_element(mass_vec.begin(), mass_vec.end()) - 2000.0;
+//        double max_prot_mass = *max_element(mass_vec.begin(), mass_vec.end()) + 2000.0;
         vector<double> PTM_masses_vec;
         vector<string> PTM_lists_vec;
-        get_PTM_vectors(ptm_linkedlist, PTM_masses_vec, PTM_lists_vec);
-        ptm_linkedlist.clear();
+
+        if (max_num_ptm > 0){ // modified
+            vector<PTM> ptm_list;
+            getMassesFromUNIMOD(modfilePath, ptm_list, max_num_ptm);
+
+            vector<PTMnode*> ptm_linkedlist;
+            generatePTM_linkedlist(ptm_list, max_num_ptm, ptm_linkedlist);
+            OPENMS_LOG_INFO << "ptm linked list # : " << ptm_linkedlist.size() << endl;
+
+            sort(ptm_linkedlist.begin(), ptm_linkedlist.end(), compareNodeByMass);
+
+            OPENMS_LOG_INFO << "Building PTM lists for proteoforms" << endl;
+
+            get_PTM_vectors(ptm_linkedlist, PTM_masses_vec, PTM_lists_vec);
+            ptm_linkedlist.clear();
+        }
 
         //-------------------------------------------------------------
         // generate theoretical proteoform tree
         //-------------------------------------------------------------
-        LOG_INFO << "Building a proteoform tree..." << endl;
+        OPENMS_LOG_INFO << "Building a proteoform tree..." << endl;
         vector<Proteoform> tree;
-        multimap<int, Size> multimap_proteoform;
-        buildProteoformMap(fastaFilePath, PTM_masses_vec, tree, multimap_proteoform, min_prot_mass, max_prot_mass);
-        LOG_INFO << "\n# proteoforms in map : " << multimap_proteoform.size() << endl;
+        multimap<double, Size> multimap_proteoform;
+        buildProteoformMap(fastaFilePath, PTM_masses_vec, tree, multimap_proteoform);
+        OPENMS_LOG_INFO << "\n# proteoforms in map : " << multimap_proteoform.size() << endl;
 
         //-------------------------------------------------------------
         // Search tree with deconv masses & write output
         //-------------------------------------------------------------
-        LOG_INFO << "Writing final results..." << endl;
+        OPENMS_LOG_INFO << "Writing final results..." << endl;
         fsout << dfile_vec[0] << "\tDeconvMass\tProteoformMass\tProteinAccession\tProteinMass\tTotalPTMmass\tPTMs" << endl;
 
 //        cout << multimap_proteoform.size() << "\t" << PTM_masses_vec.size() << "\t" << PTM_lists_vec.size() << "\t" << mass_vec.size() << endl;
         search_map(tree, multimap_proteoform, fsout, tolerance, PTM_masses_vec, PTM_lists_vec, mass_vec, dfile_vec);
         fsout.close();
-        LOG_INFO << "\n" << endl;
+        OPENMS_LOG_INFO << "\n" << endl;
         return EXECUTION_OK;
     }
 
@@ -203,11 +214,18 @@ protected:
         std::ifstream infile(deconvfilePath);
         string header;
         std::getline(infile, header);
+        boost::trim_right(header);
+        // header check
+        if (header.find(col_name) == std::string::npos) {
+            OPENMS_LOG_ERROR << "ERROR : Cannot find the column name \"" << col_name << "\" in the header" << endl;
+            std::exit(EXIT_FAILURE);
+        }
+
         file_lines.push_back(header);
         int index_of_col = get_index_of_tsv_header(header, col_name);
-
         string line;
         while (std::getline(infile, line)) {
+            boost::trim_right(line);
             vector<string> results;
             boost::split(results, line, boost::is_any_of("\t"));
             mass_vec.push_back(String(results[index_of_col]).toDouble());
@@ -230,22 +248,41 @@ protected:
             }
         }
         lineStream.clear();
+        header_vec.clear();
         return index;
     }
 
     String write_proteoform_result(Proteoform& proteoform_node, double deconv_mass, vector<double>& ptm_mass, vector<string>& ptm_str){
         String out;
+//        boost::split(acc_vec, proteoform_node.accessions, boost::is_any_of("\t "));
+
+        // header: DeconvMass	ProteoformMass	ProteinAccession	ProteinMass	TotalPTMmass	PTMs
         if( proteoform_node.PTM_index == Size(-1)){ // unmodified proteoform
             out = to_string(deconv_mass) + "\t" + to_string(proteoform_node.mass) + "\t"
                   + proteoform_node.accessions + "\t" + to_string(proteoform_node.protein_mass) + "\t"
                   + "0\t";
             return out;
         }
-
-        // header : DeconvMass	ProteoformMass	ProteinMass	TotalPTMmass	PTMs
         out = to_string(deconv_mass) + "\t" + to_string(proteoform_node.mass) + "\t"
                 + proteoform_node.accessions + "\t" + to_string(proteoform_node.protein_mass) + "\t"
                 + to_string(ptm_mass[proteoform_node.PTM_index]) + "\t" + ptm_str[proteoform_node.PTM_index];
+        return out;
+    }
+
+    String write_proteoform_result_perFeature(Proteoform& proteoform_node, vector<double>& ptm_mass, vector<string>& ptm_str){
+        String out;
+//        boost::split(acc_vec, proteoform_node.accessions, boost::is_any_of("\t "));
+
+        // header: DeconvMass	ProteoformMass	ProteinAccession	ProteinMass	TotalPTMmass	PTMs
+        if( proteoform_node.PTM_index == Size(-1)){ // unmodified proteoform
+            out = "[" + to_string(proteoform_node.mass) + ";"
+                  + proteoform_node.accessions + ";" + to_string(proteoform_node.protein_mass) + ";"
+                  + "0;]";
+            return out;
+        }
+        out = "[" + to_string(proteoform_node.mass) + ";"
+              + proteoform_node.accessions + ";" + to_string(proteoform_node.protein_mass) + ";"
+              + to_string(ptm_mass[proteoform_node.PTM_index]) + ";" + ptm_str[proteoform_node.PTM_index] + "]";
         return out;
     }
 
@@ -253,14 +290,14 @@ protected:
         return lrint(mass * 0.999497);
     }
 
-    void buildProteoformMap(string DBfilepath, vector<double>& ptm_masses, vector<Proteoform>& tree, multimap<int, Size>& multimap_proteoform, double minM, double maxM){
+    void buildProteoformMap(string DBfilepath, vector<double>& ptm_masses, vector<Proteoform>& tree, multimap<double, Size>& multimap_proteoform){
         tree.clear();
 
-        // get proteoform
         vector<FASTAFile::FASTAEntry> fentry;
         FASTAFile ff;
         ff.load(DBfilepath, fentry);
-        LOG_INFO <<  "# DB seq : " <<fentry.size() << endl;
+
+        OPENMS_LOG_INFO <<  "# DB seq : " <<fentry.size() << endl;
 
         tree.reserve( fentry.size() * (ptm_masses.size()+1) );
         Size index = 0;
@@ -268,9 +305,17 @@ protected:
         // build tree
         for(auto entry = fentry.begin(); entry != fentry.end(); ++entry) {
             if ( AASequence::fromString(entry->sequence).toString().find('X') != std::string::npos ) continue; // protein contains AA 'X' are ignored
+//            vector<string> entry_vec;
+//            boost::split(entry_vec, *entry, boost::is_any_of("\t "));
+//            double seq_weight = stod(entry_vec[0]) * 1000;
 
-            double seq_weight = AASequence::fromString(entry->sequence).getMonoWeight();
-            if(seq_weight < minM || seq_weight > maxM) continue;
+            double seq_weight = 0.0;
+            if (isAvgMass){
+                seq_weight = AASequence::fromString(entry->sequence).getAverageWeight();
+            }else{
+                seq_weight = AASequence::fromString(entry->sequence).getMonoWeight();
+            }
+
 
             float progress = (float) (entry - fentry.begin()) / fentry.size();
             if (progress > prevProgress + .01)
@@ -282,16 +327,16 @@ protected:
             tree.push_back(*tmp); // unmodified proteoform
             delete tmp;
 
-            multimap_proteoform.insert(make_pair(calNomialMass(seq_weight), index++));
+            multimap_proteoform.insert(make_pair(seq_weight, index++));
 
             for (Size i=0; i<ptm_masses.size(); i++) {
                 double total_weight = ptm_masses[i] + seq_weight;
-                int nominal_mass = calNomialMass(total_weight) ; // nominal mass
+//                int nominal_mass = calNomialMass(total_weight) ; // nominal mass
 
-                tmp = new Proteoform(entry->identifier, nominal_mass, seq_weight, i);
+                tmp = new Proteoform(entry->identifier, total_weight, seq_weight, i);
                 tree.push_back(*tmp);
                 delete tmp;
-                multimap_proteoform.insert(make_pair(nominal_mass, index++));
+                multimap_proteoform.insert(make_pair(total_weight, index++));
             }
 
         }
@@ -322,34 +367,53 @@ protected:
         cout.flush();
     }
 
-    void search_map(vector<Proteoform> &tree, multimap<int, Size> &multimap_proteoform, fstream &fs, double tolerance,
+    void search_map(vector<Proteoform> &tree, multimap<double, Size> &multimap_proteoform, fstream &fs, double tolerance,
                            vector<double> &ptm_mass, vector<string> &ptm_str, vector<double> &mass_vec, const vector<string> &dfile_vec) {
         SignedSize count = 0; // keep track of the row number of deconv. result file
-
+        double iso_mass = 1.0033548;
         float prevProgress = .0;
+
         for(auto mass = mass_vec.begin(); mass!=mass_vec.end(); ++mass) {
-            int mass_nm = calNomialMass(*mass);
-
-            multimap<int, Size>::const_iterator low_it;
-            multimap<int, Size>::const_iterator up_it;
-
-            low_it = multimap_proteoform.lower_bound(mass_nm - tolerance);
-            up_it = multimap_proteoform.upper_bound(mass_nm - tolerance);
-
+//            int mass_nm = calNomialMass(*mass);
+            set<Size> candi_indexes;
             count++;
-            // no matching in data
-            if (low_it == up_it) { continue; }
+
+            for (auto iso_n = -1; iso_n <2; iso_n++){
+                multimap<double, Size>::const_iterator low_it;
+                multimap<double, Size>::const_iterator up_it;
+
+                low_it = multimap_proteoform.lower_bound( (*mass + iso_n * iso_mass)/(1+tolerance) );
+                up_it = multimap_proteoform.upper_bound( (*mass + iso_n * iso_mass)/(1-tolerance) );
+
+                // no matching in data
+                if (low_it == up_it) { continue; }
+
+                for (; low_it != up_it; ++low_it) {
+                    candi_indexes.insert(low_it->second);
+                }
+            }
+
+            // for all matching results
+            for (auto candi_index: candi_indexes ) {
+                fs << dfile_vec[count] << "\t" << write_proteoform_result(tree[candi_index], *mass, ptm_mass, ptm_str) << endl;
+            }
+            // diff result format
+//            string ptm_info = "";
+//            for (auto candi_index: candi_indexes ) {
+//                ptm_info = ptm_info + write_proteoform_result_perFeature(tree[candi_index], *mass, ptm_mass, ptm_str) + ",";
+//            }
+//            fs << dfile_vec[count] << "\t" << ptm_info.substr(0, ptm_info.length()-1) << endl;
+
+
+            if (count == (mass-mass_vec.begin())){
+                cout << "something's wrong?\t" << count << "\t" << (mass-mass_vec.begin()) << endl;
+            }
 
             float progress = (float) (mass - mass_vec.begin()) / mass_vec.size();
             if (progress > prevProgress + .01)
             {
                 printProgress(progress); //
                 prevProgress = progress;
-            }
-
-            // for all matching results
-            for (; low_it != up_it; ++low_it) {
-                fs << dfile_vec[count] << "\t" << write_proteoform_result(tree[low_it->second], mass_nm, ptm_mass, ptm_str) << endl;
             }
         }
         fs.flush();
@@ -370,11 +434,14 @@ protected:
         unordered_set<double> ptmMhash;
         int cnt = 0;
         for(auto& mod : modifications) {
-            if (ptmMhash.count(mod->getDiffMonoMass()) > 0) continue;
-//            if (cnt>10) break; // tmp purpose
+            double mass = 0.0;
+            if(isAvgMass){
+                mass = mod->getDiffAverageMass();
+            }else{
+                mass = mod->getDiffMonoMass();
+            }
 
-            double mass = mod->getDiffMonoMass();
-            string name = mod->getId();
+            if (ptmMhash.count(mass) > 0) continue; // to avoid multiple modification with same masses
 
             /*
              * mod->getId() : Acetyl
@@ -384,19 +451,20 @@ protected:
              * mod->getMonoMass() : 0
              * mod->getDiffMonoMass() : 42.010565
              * */
+            string name = mod->getId();
             PTM tmp = {name, mass, 1};
             ptm_list.push_back(tmp);
             ptmMhash.insert(mass);
 
             // multipmod masses (multimod_limit per one ptm)
             double multi_mass = mass;
-            for (int i = 2; i < multimod_limit; ++i) {
+            for (int i = 2; i < multimod_limit; i++) { // include multimod limit#
                 multi_mass += mass;
                 ptm_list.push_back({name, multi_mass , i});
             }
             ++cnt;
         }
-        LOG_INFO << "# ptm types : " << cnt << endl;
+        OPENMS_LOG_INFO << "# ptm types : " << cnt << endl;
     }
 
     void generatePTM_linkedlist(vector<PTM>& ptm_list, int max_num_ptm, vector<PTMnode*>& result){
@@ -410,7 +478,7 @@ protected:
             for (auto& res: result){
                 if (res->ptm.name == ptm.name) // avoid linking same modification
                     continue;
-                if (res->level+ptm.numOfmod >= max_num_ptm){ // avoid the number of ptm exceeding 10
+                if (res->level+ptm.numOfmod > max_num_ptm){
                     continue;
                 }
 

@@ -154,16 +154,16 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
 
   if (!checkUnorderedContent_(spectra_paths, design_filenames))
   {
-    LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
-    LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
+    OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
+    OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
     for (auto const & s : spectra_paths)
     {
-      LOG_FATAL_ERROR << s << endl;
+      OPENMS_LOG_FATAL_ERROR << s << endl;
     }
-    LOG_FATAL_ERROR << "Spectra files (design): \n";
+    OPENMS_LOG_FATAL_ERROR << "Spectra files (design): \n";
     for (auto const & s : design_filenames)
     {
-      LOG_FATAL_ERROR << s << endl;
+      OPENMS_LOG_FATAL_ERROR << s << endl;
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   };
@@ -265,7 +265,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
             frag_ions.insert(sm.begin(), sm.end());
             if (frag_ions.size() == 1)
             {
-              for (auto frag_ions_elem : frag_ions)
+              for (const auto& frag_ions_elem : frag_ions)
               {
                 fragment_ion = frag_ions_elem;
               }
@@ -349,7 +349,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
         {
           if (retention_times.find(p.second) != retention_times.end())
           {
-            LOG_WARN <<  "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
+            OPENMS_LOG_WARN <<  "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
           }
           else
           {
@@ -479,16 +479,16 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
 
   if (!checkUnorderedContent_(spectra_paths, design_filenames))
   {
-    LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
-    LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
+    OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
+    OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
     for (auto const & s : spectra_paths)
     {
-      LOG_FATAL_ERROR << s << endl;
+      OPENMS_LOG_FATAL_ERROR << s << endl;
     }
-    LOG_FATAL_ERROR << "Spectra files (design): \n";
+    OPENMS_LOG_FATAL_ERROR << "Spectra files (design): \n";
     for (auto const & s : design_filenames)
     {
-      LOG_FATAL_ERROR << s << endl;
+      OPENMS_LOG_FATAL_ERROR << s << endl;
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   }
@@ -575,7 +575,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
 
               const Intensity intensity(consensus_feature_intensites[i][j]);
               const Coordinate retention_time(consensus_feature_retention_times[i][j]);
-              const unsigned channel(consensus_feature_labels[i][j]);
+              const unsigned channel(consensus_feature_labels[i][j] + 1);
 
               const String & accession = pep_ev.getProteinAccession();
               peptideseq_to_accessions[sequence].insert(accession);
@@ -639,7 +639,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
         {
           if (retention_times.find(p.second) != retention_times.end())
           {
-            LOG_WARN <<  "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
+            OPENMS_LOG_WARN <<  "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
           }
           else
           {

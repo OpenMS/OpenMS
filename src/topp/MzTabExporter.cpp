@@ -120,7 +120,9 @@ protected:
       registerFlag_("first_run_inference_only", "(idXML/mzid only): Does the first IdentificationRun in the file "
                                                 "only represent inference results? Read peptide information only "
                                                 "from second to last runs.");
-          }
+      registerStringList_("opt_columns", "<mods>", {"subfeatures"}, "Add optional columns which are not part of the mzTab standard.", false);
+      setValidStrings_("opt_columns", {"subfeatures"});
+    }
 
     ExitCodes main_(int, const char**) override
     {
@@ -129,6 +131,9 @@ protected:
       FileTypes::Type in_type = FileHandler().getType(in);
 
       String out = getStringOption_("out");
+      
+      StringList optional_columns = getStringList_("opt_columns");
+      bool export_subfeatures = ListUtils::contains(optional_columns, "subfeatures");
 
       MzTab mztab;
 
@@ -148,7 +153,7 @@ protected:
 
         for (Size i = 0; i < feature_map.size(); ++i) // collect all (assigned and unassigned to a feature) peptide ids
         {
-          vector<PeptideIdentification> pep_ids_bf = feature_map[i].getPeptideIdentifications();
+          const vector<PeptideIdentification>& pep_ids_bf = feature_map[i].getPeptideIdentifications();
           pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
         }
 
@@ -163,7 +168,7 @@ protected:
         }
         catch (Exception::MissingInformation& e)
         {
-          LOG_WARN << "Non-critical exception: " << e.what() << "\n";
+          OPENMS_LOG_WARN << "Non-critical exception: " << e.what() << "\n";
         }
         feature_map.setProteinIdentifications(prot_ids);
 
@@ -177,7 +182,9 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in, getFlag_("first_run_inference_only"));
+        std::map<std::pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
+        std::map<String, size_t> idrun_2_run_index;
+        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in, getFlag_("first_run_inference_only"), map_run_fileidx_2_msfileidx, idrun_2_run_index);
       }
 
       // export identification data from mzIdentML
@@ -187,7 +194,9 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         MzIdentMLFile().load(in, prot_ids, pep_ids);
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in, getFlag_("first_run_inference_only"));
+        std::map<std::pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
+        std::map<String, size_t> idrun_2_run_index;
+        mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, in, getFlag_("first_run_inference_only"), map_run_fileidx_2_msfileidx, idrun_2_run_index);
       }
 
       // export quantification data
@@ -196,7 +205,7 @@ protected:
         ConsensusMap consensus_map;
         ConsensusXMLFile c;
         c.load(in, consensus_map);
-        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, true, true);
+        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, true, true, export_subfeatures);
       }
 
       MzTabFile().store(out, mztab);

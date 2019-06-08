@@ -84,7 +84,7 @@ namespace OpenMS
           continue;
         }
 
-        LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
+        OPENMS_LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
           ". Will try to infer modification id by mass next." << std::endl;
 
         // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp

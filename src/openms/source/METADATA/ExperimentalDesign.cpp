@@ -119,7 +119,7 @@ namespace OpenMS
         }
         else
         { // no fractions and fraction group information annotated, deduce from data
-          LOG_INFO << "No fractions annotated in consensusXML. Assuming unfractionated." << endl;
+          OPENMS_LOG_INFO << "No fractions annotated in consensusXML. Assuming unfractionated." << endl;
           r.fraction = 1;
 
           // no fractions -> one fraction group for each MS file
@@ -136,7 +136,7 @@ namespace OpenMS
         {
           if (experiment_type != "label-free")
           {
-            LOG_WARN << "No channel id annotated in consensusXML. Assuming one channel." << endl;
+            OPENMS_LOG_WARN << "No channel id annotated in consensusXML. Assuming one channel." << endl;
           }
           r.label = 1;
         }
@@ -154,7 +154,7 @@ namespace OpenMS
       }
 
       experimental_design.setMSFileSection(msfile_section);
-      LOG_DEBUG << "Experimental design (ConsensusMap derived):\n"
+      OPENMS_LOG_DEBUG << "Experimental design (ConsensusMap derived):\n"
                << "  Files: " << experimental_design.getNumberOfMSFiles()
                << "  Fractions: " << experimental_design.getNumberOfFractions()
                << "  Labels: " << experimental_design.getNumberOfLabels()
@@ -189,7 +189,7 @@ namespace OpenMS
 
       ExperimentalDesign::MSFileSection rows(1, r);
       experimental_design.setMSFileSection(rows);
-      LOG_INFO << "Experimental design (FeatureMap derived):\n"
+      OPENMS_LOG_INFO << "Experimental design (FeatureMap derived):\n"
                << "  files: " << experimental_design.getNumberOfMSFiles()
                << "  fractions: " << experimental_design.getNumberOfFractions()
                << "  labels: " << experimental_design.getNumberOfLabels()
@@ -236,7 +236,7 @@ namespace OpenMS
         ++sample;
       }
       experimental_design.setMSFileSection(rows);
-      LOG_INFO << "Experimental design (Identification derived):\n"
+      OPENMS_LOG_INFO << "Experimental design (Identification derived):\n"
                << "  files: " << experimental_design.getNumberOfMSFiles()
                << "  fractions: " << experimental_design.getNumberOfFractions()
                << "  labels: " << experimental_design.getNumberOfLabels()
@@ -454,7 +454,7 @@ namespace OpenMS
         if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1)
         { 
 
-         LOG_INFO << "Please correct your experimental design if this is a label free experiment." << std::endl;
+         OPENMS_LOG_INFO << "Please correct your experimental design if this is a label free experiment." << std::endl;
          // throw Exception::MissingInformation(
          //   __FILE__,
          //   __LINE__,

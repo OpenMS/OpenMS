@@ -199,16 +199,16 @@ START_SECTION(void addSpectrumToLibrary(
   spec.setName(""); // empty name
   spec.setMetaValue("is_valid", 1);
 
-  TEST_EXCEPTION(Exception::MissingInformation, msp_f.addSpectrumToLibrary(spec, lib))
+  TEST_EXCEPTION(Exception::MissingInformation&, msp_f.addSpectrumToLibrary(spec, lib))
   TEST_EQUAL(lib.size(), 0)
 
   spec.setName("foo"); // Num Peaks still absent!
-  TEST_EXCEPTION(Exception::MissingInformation, msp_f.addSpectrumToLibrary(spec, lib))
+  TEST_EXCEPTION(Exception::MissingInformation&, msp_f.addSpectrumToLibrary(spec, lib))
   TEST_EQUAL(lib.size(), 0)
 
   spec.setMetaValue("Num Peaks", "2");
   // Num Peaks is set but raw data poins have not been added
-  TEST_EXCEPTION(Exception::ParseError, msp_f.addSpectrumToLibrary(spec, lib))
+  TEST_EXCEPTION(Exception::ParseError&, msp_f.addSpectrumToLibrary(spec, lib))
   TEST_EQUAL(lib.size(), 0)
 
   spec.push_back(Peak1D(1.0, 2.0));

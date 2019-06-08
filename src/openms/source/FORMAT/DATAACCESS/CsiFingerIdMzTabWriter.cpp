@@ -54,7 +54,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
 
-  for (auto it : sirius_output_paths)
+  for (const auto& it : sirius_output_paths)
   {
    
     // extract mz, rt and nativeID of the corresponding precursor spectrum in the spectrum.ms file
@@ -214,11 +214,11 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             rt_list.set(v_rt);
             smsr.retention_time = rt_list;
             
-            MzTabOptionalColumnEntry rank = make_pair("rank", MzTabString(hit.rank));
-            MzTabOptionalColumnEntry compoundId = make_pair("compoundId", MzTabString(id.scan_index));
-            MzTabOptionalColumnEntry compoundScanNumber = make_pair("compoundScanNumber", MzTabString(id.scan_number));
-            MzTabOptionalColumnEntry featureId = make_pair("featureId", MzTabString(id.feature_id));
-            MzTabOptionalColumnEntry native_id = make_pair("native_id", MzTabString(id.native_id));
+            MzTabOptionalColumnEntry rank = make_pair("opt_global_rank", MzTabString(hit.rank));
+            MzTabOptionalColumnEntry compoundId = make_pair("opt_global_compoundId", MzTabString(id.scan_index));
+            MzTabOptionalColumnEntry compoundScanNumber = make_pair("opt_global_compoundScanNumber", MzTabString(id.scan_number));
+            MzTabOptionalColumnEntry featureId = make_pair("opt_global_featureId", MzTabString(id.feature_id));
+            MzTabOptionalColumnEntry native_id = make_pair("opt_global_native_id", MzTabString(id.native_id));
 
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);

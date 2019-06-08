@@ -616,16 +616,16 @@ protected:
   /// Write processing statistics.
   void writeStatistics_(const Statistics& stats)
   {
-    LOG_INFO << "\nProcessing summary - number of...";
+    OPENMS_LOG_INFO << "\nProcessing summary - number of...";
     if (spectral_counting_)
     {
-      LOG_INFO << "\n...spectra: " << stats.total_features << " identified"
+      OPENMS_LOG_INFO << "\n...spectra: " << stats.total_features << " identified"
                << "\n...peptides: " << stats.quant_peptides
                << " identified and quantified (considering best hits only)";
     }
     else
     {
-      LOG_INFO << "\n...features: " << stats.quant_features
+      OPENMS_LOG_INFO << "\n...features: " << stats.quant_features
                << " used for quantification, " << stats.total_features
                << " total (" << stats.blank_features << " no annotation, "
                << stats.ambig_features << " ambiguous annotation)"
@@ -637,19 +637,19 @@ protected:
     {
       bool include_all = algo_params_.getValue("include_all") == "true";
       Size top = algo_params_.getValue("top");
-      LOG_INFO << "\n...proteins/protein groups: " << stats.quant_proteins
+      OPENMS_LOG_INFO << "\n...proteins/protein groups: " << stats.quant_proteins
                << " quantified";
       if (top > 1)
       {
-        if (include_all) LOG_INFO << " (incl. ";
-        else LOG_INFO << ", ";
-        LOG_INFO << stats.too_few_peptides << " with fewer than " << top
+        if (include_all) OPENMS_LOG_INFO << " (incl. ";
+        else OPENMS_LOG_INFO << ", ";
+        OPENMS_LOG_INFO << stats.too_few_peptides << " with fewer than " << top
                  << " peptides";
-        if (stats.n_samples > 1) LOG_INFO << " in every sample";
-        if (include_all) LOG_INFO << ")";
+        if (stats.n_samples > 1) OPENMS_LOG_INFO << " in every sample";
+        if (include_all) OPENMS_LOG_INFO << ")";
       }
     }
-    LOG_INFO << endl;
+    OPENMS_LOG_INFO << endl;
   }
 
 

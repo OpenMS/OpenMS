@@ -687,7 +687,7 @@ public:
       {
         if (it->getIsolationWindowLowerOffset() == 0 || it->getIsolationWindowUpperOffset() == 0)
         {
-          LOG_WARN << "IsInIsolationWindow(): Lower/Upper Offset for Precursor Isolation Window is Zero! " << 
+          OPENMS_LOG_WARN << "IsInIsolationWindow(): Lower/Upper Offset for Precursor Isolation Window is Zero! " << 
             "Filtering will probably be too strict (unless you hit the exact precursor m/z)!" << std::endl;
         }
         const double lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();

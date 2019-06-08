@@ -348,14 +348,14 @@ namespace OpenMS
           return ef + Residue::getInternalToZIon();
 
         default:
-          LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
+          OPENMS_LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
       }
 
       return ef;
     }
     else
     {
-      LOG_ERROR << "AASequence::getFormula: Formula for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+      OPENMS_LOG_ERROR << "AASequence::getFormula: Formula for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
       return EmpiricalFormula("");
     }
   }
@@ -447,14 +447,14 @@ namespace OpenMS
           return mono_weight + Residue::getInternalToZIon().getMonoWeight();
 
         default:
-          LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
+          OPENMS_LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
       }
 
       return mono_weight;
     }
     else
     {
-      LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+      OPENMS_LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
       return 0.0;
     }
 }
@@ -1018,7 +1018,7 @@ namespace OpenMS
           aas.n_term_mod_ = mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM);
           return mod_end;
         }
-        LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+        OPENMS_LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
       else // N-terminal mod specified by absolute mass [123.4]
       {
@@ -1030,7 +1030,7 @@ namespace OpenMS
           aas.n_term_mod_ = mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM);
           return mod_end;
         }
-        LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+        OPENMS_LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
     }
     else if (specificity == ResidueModification::ANYWHERE) // internal (not exclusively terminal) modification
@@ -1113,7 +1113,7 @@ namespace OpenMS
           }
         }
       }
-      LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
+      OPENMS_LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
         residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
     }
     else if (specificity == ResidueModification::C_TERM)
@@ -1129,7 +1129,7 @@ namespace OpenMS
           aas.c_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
           return mod_end;
         }
-        LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+        OPENMS_LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
       else // C-terminal mod specified by absolute mass [123.4]
       {
@@ -1142,7 +1142,7 @@ namespace OpenMS
           aas.c_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
           return mod_end;
         }
-        LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+        OPENMS_LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
     }
 

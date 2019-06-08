@@ -224,7 +224,7 @@ namespace OpenMS
 
     vector<double> ribo_masses(oligo.size());
     Size index = 0;
-    for (auto ribo : oligo)
+    for (const auto& ribo : oligo)
     {
       ribo_masses[index] = ribo.getMonoMass();
       ++index;
