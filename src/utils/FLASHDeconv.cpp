@@ -333,7 +333,7 @@ protected:
 
     registerDoubleOption_("minCC",
                           "<...>",
-                          .7,
+                          .5,
                           "cosine threshold between charge intensity and fitted gaussian distribution",
                           false,
                           true);
@@ -343,7 +343,7 @@ protected:
     registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
     //
     registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
-    registerDoubleOption_("RTwindow", "<seconds>", 0.0,
+    registerDoubleOption_("RTwindow", "<seconds>", 30.0,
                           "RT window for feature extraction (if 0, 3% total gradient time)", false, true);
     registerDoubleOption_("minRT", "<seconds>", 1.0,
                           "Min feature RT span for feature extraction", false, true);
@@ -2276,44 +2276,55 @@ protected:
                                       int range,
                              double threshold)
   {
-    double maxPerChargeIntensity = .0;
+  //  double maxPerChargeIntensity = .0;
     vector<double> xs;
     vector<double> ys;
 
     xs.reserve(range + 2);
     ys.reserve(range + 2);
 
-    for (int i = 0; i < range; i++)
-    {
-        maxPerChargeIntensity = max(maxPerChargeIntensity, perChargeIntensity[i]);
-    }
-    double minInt = maxPerChargeIntensity/100;
-
     int first = -1, last = 0;
     for (int i = 0; i < range; i++)
     {
-      if (perChargeIntensity[i]<=minInt)
+      if (perChargeIntensity[i]<=0)
       {
         continue;
       }
       if (first < 0)
       {
         first = i;
+       // xs.push_back(first-1000);
+        //ys.push_back(minInt/10);
       }
 
       last = i;
       //cout<<log(perChargeIntensity[i])<<endl;
-      xs.push_back(i);
-      ys.push_back((perChargeIntensity[i]));
-
+    //  xs.push_back(i);
+     // ys.push_back((1+perChargeIntensity[i]));
     }
 
+    //xs.push_back(first-2);
+    //ys.push_back(1);
+    xs.push_back(first-1);
+    ys.push_back(1);
 
-    xs.push_back(first-10);
-    ys.push_back(minInt/10);
+    for (int i = first; i <= last; i++)
+    {
+      if (perChargeIntensity[i]<=0)
+      {
+        continue;
+      }
+      xs.push_back(i);
+      ys.push_back((1+perChargeIntensity[i]));
+    }
+    xs.push_back(last+1);
+    ys.push_back(1);
+    //xs.push_back(last+2);
+    //ys.push_back(1);
 
-    xs.push_back(last + 10);
-    ys.push_back((minInt/10));
+
+    // xs.push_back(last + 1000);
+   // ys.push_back((minInt/10));
 
     Eigen::Matrix3d m;
     Eigen::Vector3d v;
@@ -2354,7 +2365,11 @@ protected:
     double omega = -1/abc(2)/2;
     //double a = (abc(0)-abc(1)*abc(1))/4/abc(2);
 
-    if(omega<=0) return false;
+    if(omega<=0){
+      //omega = -omega;
+      //mu = -mu;
+      return false;
+    }
     //cout<<"**"<<endl;
     //cout<<mu <<" * " << omega<<endl;
     vector<double> tys;
@@ -2363,9 +2378,9 @@ protected:
     for(Size i=0;i<ys.size();i++){
       double ty = exp(-(xs[i]-mu)*(xs[i]-mu)/2/omega);
       tys.push_back(ty);
-    //  cout<< ys[i] << " " << ty<<endl;
+    //  cout<< xs[i]<<" "<<ys[i] << " " << ty <<endl;
     }
-    //cout<<endl;
+   // cout<<endl;
     //cout<<"cos " << getCosine(ys, tys) <<endl;
     return getCosine(ys, tys)>=threshold;
 
@@ -2446,7 +2461,7 @@ protected:
   }
 
   static double
-  getCosine(double *a, int &aStart, int &aEnd, IsotopeDistribution &b, int &bSize, double &bNorm, int offset = 0)
+  getCosine(double *a, int &aStart, int &aEnd, IsotopeDistribution &b, int &bSize, double &bNorm, int offset = 1)
   {
     double n = .0, d1 = .0;
 
@@ -2470,12 +2485,12 @@ protected:
   }
 
   static double
-  getCosine(vector<double> &a, vector<double>&b)
+  getCosine(vector<double> &a, vector<double>&b, int off=0)
   {
     double n = .0, d1 = .0, d2 = .0;
     Size size = a.size();
     //int overlapCntr = 0;
-    for (Size j = 0; j < size; j++)
+    for (Size j = off; j < size-off; j++)
     {
       d1 += a[j] * a[j];
       d2 += b[j] * b[j];
