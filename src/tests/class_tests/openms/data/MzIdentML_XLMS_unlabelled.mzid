@@ -75,7 +75,7 @@
  	<Peptide id="PEP_572389597653180018"> 
 		<PeptideSequence>THAVLVALKR</PeptideSequence> 
 		<Modification location="9" residues="K"> 
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification> 
 	</Peptide> 
  	<Peptide id="PEP_5289862969058935696"> 

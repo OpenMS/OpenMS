@@ -3547,7 +3547,7 @@
 			<UserParam type="string" name="OpenXQuest:fdr_type" value="q-value"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="534.278680422422" RT="3767.5791" spectrum_reference="649" >
-			<PeptideHit score="394.264546422156" sequence="HSNSLGPIFDHEDLLK(Xlink:DSS)R" charge="4" protein_refs="PH_2" >
+			<PeptideHit score="394.264546422156" sequence="HSNSLGPIFDHEDLLK(Xlink:DSS[156])R" charge="4" protein_refs="PH_2" >
 				<UserParam type="int" name="spectrum_reference" value="649"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="spectrum_index" value="649"/>
@@ -20742,7 +20742,7 @@
 			<UserParam type="string" name="OpenXQuest:fdr_type" value="q-value"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="651.848332682401" RT="4623.35976" spectrum_reference="3250" >
-			<PeptideHit score="412.979680732523" sequence="SLTHLDLHSNK(Xlink:DSS)FTSFPSYLLK" charge="4" protein_refs="PH_2" >
+			<PeptideHit score="412.979680732523" sequence="SLTHLDLHSNK(Xlink:DSS[156])FTSFPSYLLK" charge="4" protein_refs="PH_2" >
 				<UserParam type="int" name="spectrum_reference" value="3250"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="spectrum_index" value="3250"/>

@@ -3722,7 +3722,7 @@
  	<Peptide id="PEP_5156616009297772229" name="SLTHLDLHSNK[284.1736087656]FTSFPSYLLK">
 		<PeptideSequence>SLTHLDLHSNKFTSFPSYLLK</PeptideSequence>
 		<Modification location="11" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5156711929824391485" name="MKENQK">
@@ -4589,7 +4589,7 @@
  	<Peptide id="PEP_7459857709672936328" name="HSNSLGPIFDHEDLLK[284.1736087656]R">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7462895012077645793" name="KNNIK">

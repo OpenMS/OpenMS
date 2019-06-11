@@ -74,7 +74,7 @@
  	<Peptide id="PEP_4422462497028513271"> 
 		<PeptideSequence>TLADVEVNHLKCDQFLVAHYR</PeptideSequence> 
 		<Modification location="11" residues="K"> 
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification> 
 		<Modification location="12" residues="C"> 
 			<cvParam accession="UNIMOD:4" name="Carbamidomethyl" cvRef="UNIMOD"/>

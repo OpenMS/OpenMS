@@ -36,7 +36,7 @@
 			<UserParam type="string" name="SpectrumIdentificationProtocol" value="MS:1002494"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="467.945617675781" RT="2129.23608398438" spectrum_reference="spectrum=123,spectrum=77" >
-			<PeptideHit score="-0.0911593712620598" sequence="GGVHVK(Xlink:DSS)LAHLSK" charge="3" aa_before="R" aa_after="H" start="292" end="303" protein_refs="PH_2" >
+			<PeptideHit score="-0.0911593712620598" sequence="GGVHVK(Xlink:DSS[156])LAHLSK" charge="3" aa_before="R" aa_after="H" start="292" end="303" protein_refs="PH_2" >
 				<UserParam type="string" name="fragment_annotation" value="147.129928588867,0.0283773355185986,1,&quot;[alpha|ci$y1]&quot;|234.181854248047,0.0698019564151764,1,&quot;[alpha|ci$y2]&quot;|396.987884521484,0.384458035230637,3,&quot;[alpha|xi$y9]&quot;|449.323913574219,0.387931138277054,3,&quot;[alpha|xi$y11]&quot;|450.284820556641,0.393777251243591,1,&quot;[alpha|ci$b5]&quot;|484.207611083984,0.215591758489609,1,&quot;[alpha|ci$y4]&quot;|555.274353027344,0.297201305627823,1,&quot;[alpha|ci$y5]&quot;|595.053527832031,1,2,&quot;[alpha|xi$y9]&quot;|668.345275878906,0.243629142642021,1,&quot;[alpha|ci$y6]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=123"/>
 				<UserParam type="int" name="spectrum_index" value="101"/>
@@ -552,7 +552,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="656.050903320313" RT="2228.50292963107" spectrum_reference="spectrum=238,spectrum=219" >
-			<PeptideHit score="-0.136797738202118" sequence="EVIELPLK(Xlink:DSS)NPELFLR" charge="3" aa_before="R" aa_after="V" start="145" end="159" protein_refs="PH_0" >
+			<PeptideHit score="-0.136797738202118" sequence="EVIELPLK(Xlink:DSS[156])NPELFLR" charge="3" aa_before="R" aa_after="V" start="145" end="159" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="288.286773681641,0.0196497105062008,1,&quot;[alpha|ci$y2]&quot;|324.192321777344,0.0310666300356388,1,&quot;[alpha|ci$b3-H2O1]&quot;|387.815673828125,0.215708956122398,2,&quot;[alpha|ci$y6]&quot;|435.218322753906,0.0836383178830147,1,&quot;[alpha|ci$y3]&quot;|444.946411132812,0.119465403258801,2,&quot;[alpha|ci$y7]&quot;|453.1796875,0.0969286933541298,1,&quot;[alpha|ci$b4-H2O1]&quot;|471.207763671875,0.061412189155817,1,&quot;[alpha|ci$b4]&quot;|530.846374511719,0.0691120624542236,2,&quot;[alpha|xi$b8-H2O1]&quot;|539.707092285156,0.122676633298397,2,&quot;[alpha|xi$b8]&quot;|584.244018554688,0.203754380345345,1,&quot;[alpha|ci$b5]&quot;|692.068786621094,1,2,&quot;[alpha|xi$y10]&quot;|748.578674316406,0.292433172464371,2,&quot;[alpha|xi$y11]&quot;|774.424987792969,0.361789405345917,1,&quot;[alpha|ci$y6]&quot;|812.867004394531,0.152033895254135,2,&quot;[alpha|xi$y12]&quot;|839.981567382812,0.125570505857468,2,&quot;[alpha|xi$b13]&quot;|888.39013671875,0.356793075799942,1,&quot;[alpha|ci$y7]&quot;|896.316162109375,0.0581442341208458,2,&quot;[alpha|xi$b14]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=238"/>
 				<UserParam type="int" name="spectrum_index" value="195"/>
