@@ -564,7 +564,7 @@ namespace OpenMS
           if (mods.size() > 0)
           {
             bool mod_set = false;
-            for (String mod : mods)
+            for (const String& mod : mods)
             {
               if (mod.hasSubstring(this->cross_linker_name_))
               {
@@ -1201,7 +1201,7 @@ namespace OpenMS
         std::vector<String> keys;
         pep_hits[0].getKeys(keys);
 
-        for (String key : keys)
+        for (const String& key : keys)
         {
           os << "\" " << key << "=\"" << pep_hits[0].getMetaValue(key).toString();
         }

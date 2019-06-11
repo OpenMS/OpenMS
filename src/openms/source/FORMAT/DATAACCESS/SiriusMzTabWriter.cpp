@@ -111,7 +111,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
         
         // fill identification structure containing all candidate hits for a single spectrum
-        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
+        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id{};
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);

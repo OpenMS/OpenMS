@@ -128,7 +128,7 @@ protected:
     {
       // parameter handling
       String in = getStringOption_("in");
-      FileTypes::Type in_type = FileHandler().getType(in);
+      FileTypes::Type in_type = FileHandler::getType(in);
 
       String out = getStringOption_("out");
       

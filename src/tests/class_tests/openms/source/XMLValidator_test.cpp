@@ -75,7 +75,7 @@ START_SECTION((bool isValid(const String &filename, const String &schema,  std::
 	TEST_EQUAL(v.isValid(OPENMS_GET_TEST_DATA_PATH("XMLValidator_valid.xml"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")), true);
 	
 	//test exception
-	TEST_EXCEPTION(Exception::FileNotFound&, v.isValid(OPENMS_GET_TEST_DATA_PATH("this_file_does_not_exist.for_sure"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")));
+	TEST_EXCEPTION(Exception::FileNotFound, v.isValid(OPENMS_GET_TEST_DATA_PATH("this_file_does_not_exist.for_sure"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")));
 END_SECTION
 
 /////////////////////////////////////////////////////////////

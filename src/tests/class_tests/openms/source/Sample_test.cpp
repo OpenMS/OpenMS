@@ -194,7 +194,7 @@ END_SECTION
 
 START_SECTION((const SampleTreatment& getTreatment(UInt position) const))
 	Sample s;
-	TEST_EXCEPTION(Exception::IndexOverflow&, s.getTreatment(0))
+	TEST_EXCEPTION(Exception::IndexOverflow, s.getTreatment(0))
 END_SECTION
 
 START_SECTION((void addTreatment(const SampleTreatment& treatment, Int before_position=-1)))
@@ -273,9 +273,9 @@ START_SECTION((void removeTreatment(UInt position)))
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
 
 	//exceptions: index overflow
-	TEST_EXCEPTION(Exception::IndexOverflow&,s.removeTreatment(2))
-	TEST_EXCEPTION(Exception::IndexOverflow&,s.getTreatment(2))
-	TEST_EXCEPTION(Exception::IndexOverflow&,s.addTreatment(m,3))
+	TEST_EXCEPTION(Exception::IndexOverflow,s.removeTreatment(2))
+	TEST_EXCEPTION(Exception::IndexOverflow,s.getTreatment(2))
+	TEST_EXCEPTION(Exception::IndexOverflow,s.addTreatment(m,3))
 END_SECTION
 
 //copy ctr

@@ -54,7 +54,7 @@ namespace OpenMS
   }
 
   Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer & rhs) :
-    std::list<Annotation1DItem *>()
+    std::list<Annotation1DItem *>() //@todo all: why can't we use the copy constructor of the base container?
   {
     //copy annotations
     Annotation1DItem * new_item = nullptr;

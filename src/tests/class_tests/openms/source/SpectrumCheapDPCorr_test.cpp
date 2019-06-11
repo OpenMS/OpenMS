@@ -137,7 +137,7 @@ END_SECTION
 START_SECTION(void setFactor(double f))
 	e_ptr->setFactor(0.3);
 
-	TEST_EXCEPTION(Exception::OutOfRange&, e_ptr->setFactor(1.1))
+	TEST_EXCEPTION(Exception::OutOfRange, e_ptr->setFactor(1.1))
 END_SECTION
 
 delete e_ptr;

@@ -78,13 +78,17 @@ START_SECTION((double getSVRProbability()))
 	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	Int count = 100;
+	Int count2 = 6;
+	temp_vector.reserve(count);
+	vectors.reserve(count2);
 	vector<double> labels;
+	labels.reserve(count);
 	svm_problem* problem;
 
 	for (Int j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Int i = 0; i < 6; i++)
+		for (Int i = 0; i < count2; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
@@ -106,9 +110,9 @@ START_SECTION((Int getIntParameter(SVM_parameter_type type)))
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, LINEAR);
 	svm.setParameter(SVMWrapper::DEGREE, 2);
 
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true)
 END_SECTION
 
 START_SECTION((Int train(struct svm_problem *problem)))
@@ -135,7 +139,9 @@ START_SECTION((Int train(SVMData &problem)))
 	SVMData problem;
 	UInt count = 4;
 	vector<double> labels;
+	labels.reserve(count);
 	vector< vector<pair<Int, double> > > sequences;
+	sequences.reserve(count);
 	vector<pair<Int, double> > sequence;
 	
 	svm2.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
@@ -166,7 +172,9 @@ START_SECTION((static void getLabels(svm_problem *problem, std::vector< double >
 	svm_node** nodes = new svm_node*[count];
 	double* labels = new double[count];
 	std::vector<double> label_vector1;
+	label_vector1.reserve(count);
 	std::vector<double> label_vector2;
+	label_vector2.reserve(count);
 
 	for (Size i = 0; i < count; i++)
 	{
@@ -215,7 +223,9 @@ START_SECTION((static void createRandomPartitions(const SVMData &problem, Size n
 	SVMData problem;
 	UInt count = 4;
 	vector<double> labels;
+	labels.reserve(count);
 	vector< vector<pair<Int, double> > > sequences;
+	sequences.reserve(count);
 	vector<pair<Int, double> > sequence;
 	std::vector< SVMData > partitions;
 	
@@ -866,10 +876,10 @@ START_SECTION((void setParameter(SVM_parameter_type type, Int value)))
 	svm.setParameter(SVMWrapper::C, 23);
 	svm.setParameter(SVMWrapper::PROBABILITY, 1);
 
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true);
-	TEST_EQUAL((int) svm.getDoubleParameter(SVMWrapper::C), 23);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true)
+	TEST_EQUAL((int) svm.getDoubleParameter(SVMWrapper::C), 23)
 	TEST_EQUAL(svm.getIntParameter(SVMWrapper::PROBABILITY), 1)
 END_SECTION
 
@@ -1027,7 +1037,7 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 
 	labels.clear();
-	labels.resize(count / 2, 1);
+	labels.resize(static_cast<UInt>(count / 2), 1);
 	labels.resize(count, -1);
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -1037,12 +1047,14 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
 	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
+    // At probability 0.5, LibSVM will assign the first encountered label in the training data
+    // in this case "1"
 		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] < 0.5)
-							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
+							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.4999), true)
 	}
 	labels.clear();
 	// Start with -1 as "first" label
-	labels.resize(count / 2, -1);
+	labels.resize(static_cast<UInt>(count / 2), -1);
 	labels.resize(count, 1);
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -1054,7 +1066,7 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	{
 		// At probability 0.5, LibSVM will assign the first encountered label in the training data
 		// in this case "-1"
-		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5)
+		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5001)
 							|| (predicted_labels[i] > 0 && probabilities[i] > 0.5), true)
 	}
 

@@ -88,7 +88,7 @@ protected:
 
     // this function will be used to register the tool parameters
     // it gets automatically called on tool execution
-    void registerOptionsAndFlags_() final override
+    void registerOptionsAndFlags_() override
     {
       // Input consensusXML
       registerInputFile_(param_in, "<in>", "", "Input consensusXML with peptide intensities",

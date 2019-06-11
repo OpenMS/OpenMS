@@ -95,25 +95,25 @@ namespace OpenMS
     */
     //@{
     /// sets the N-terminal gain
-    void setNTermGain(EmpiricalFormula value);
+    void setNTermGain(const EmpiricalFormula& value);
 
     /// returns N-terminal gain
     EmpiricalFormula getNTermGain() const;
 
     /// sets the C-terminal gain
-    void setCTermGain(EmpiricalFormula value);
+    void setCTermGain(const EmpiricalFormula& value);
 
     /// returns C-terminal gain
     EmpiricalFormula getCTermGain() const;
 
     /// sets the PSI ID
-    void setPSIID(String value);
+    void setPSIID(const String& value);
 
     /// returns the PSI ID
     String getPSIID() const;
 
     /// sets the X! Tandem enzyme ID
-    void setXTandemID(String value);
+    void setXTandemID(const String& value);
 
     /// returns the X! Tandem enzyme ID
     String getXTandemID() const;
@@ -153,11 +153,12 @@ namespace OpenMS
     /// inequality operator
     bool operator!=(const DigestionEnzymeProtein& enzyme) const;
 
+    // Note: comparison operator is not inherited. TODO rename and make virtual
     /// equality operator for regex
-    bool operator==(String cleavage_regex) const;
+    bool operator==(const String& cleavage_regex) const;
 
     /// equality operator for regex
-    bool operator!=(String cleavage_regex) const;
+    bool operator!=(const String& cleavage_regex) const;
 
     /// order operator
     bool operator<(const DigestionEnzymeProtein& enzyme) const;

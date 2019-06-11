@@ -141,7 +141,7 @@ START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms, con
     p.setValue("product_tolerance", 1.0);
     m.setParameters(p);
 
-    TEST_EXCEPTION(Exception::IllegalArgument&, m.mapExperiment(exp, targ, out) )
+    TEST_EXCEPTION(Exception::IllegalArgument, m.mapExperiment(exp, targ, out) )
   }
 
   // with a smaller mapping tolerance, we should only see a 1:1 mapping
@@ -176,7 +176,7 @@ START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms, con
     // not this
     p.setValue("error_on_unmapped", "true");
     m.setParameters(p);
-    TEST_EXCEPTION(Exception::IllegalArgument&, m.mapExperiment(exp, targ, out2) )
+    TEST_EXCEPTION(Exception::IllegalArgument, m.mapExperiment(exp, targ, out2) )
   }
 
 }

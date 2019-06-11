@@ -224,7 +224,7 @@ namespace OpenMS
 
     bool n_term_linker = false;
     bool c_term_linker = false;
-    for (String res : cross_link_residue1)
+    for (const String& res : cross_link_residue1)
     {
       if (res == "N-term")
       {
@@ -235,7 +235,7 @@ namespace OpenMS
         c_term_linker = true;
       }
     }
-    for (String res : cross_link_residue2)
+    for (const String& res : cross_link_residue2)
     {
       if (res == "N-term")
       {
@@ -281,14 +281,14 @@ namespace OpenMS
         }
         else
         {
-          for (String res : cross_link_residue1)
+          for (const String& res : cross_link_residue1)
           {
             if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
             {
               skip = false;
             }
           }
-          for (String res : cross_link_residue2)
+          for (const String& res : cross_link_residue2)
           {
             if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
             {
@@ -346,7 +346,7 @@ namespace OpenMS
   {
     bool n_term_linker = false;
     bool c_term_linker = false;
-    for (String res : cross_link_residue1)
+    for (const String& res : cross_link_residue1)
     {
       if (res == "N-term")
       {
@@ -357,7 +357,7 @@ namespace OpenMS
         c_term_linker = true;
       }
     }
-    for (String res : cross_link_residue2)
+    for (const String& res : cross_link_residue2)
     {
       if (res == "N-term")
       {

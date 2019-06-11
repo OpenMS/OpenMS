@@ -420,6 +420,7 @@ protected:
       Int scan_number = getScanNumber_(scan_identifier);
       
       double exp_mass = it->getMZ();
+      double retention_time = it->getRT();
       for (vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
       {
         if (jt->getPeptideEvidences().empty())
@@ -464,6 +465,12 @@ protected:
         }
                 
         hit.setMetaValue("ExpMass", exp_mass);
+        
+        // needed in case "description of correct" option is used
+        double delta_mass = exp_mass - calc_mass;
+        hit.setMetaValue("deltamass", delta_mass);
+        hit.setMetaValue("retentiontime", retention_time);
+        
         hit.setMetaValue("mass", exp_mass);
         
         double score = hit.getScore();
@@ -488,7 +495,6 @@ protected:
         int enzInt = countEnzymatic_(unmodified_sequence, enz);
         hit.setMetaValue("enzInt", enzInt);
         
-        double delta_mass = exp_mass - calc_mass;
         hit.setMetaValue("dm", delta_mass);
         
         double abs_delta_mass = abs(delta_mass);
@@ -785,6 +791,8 @@ protected:
     
     bool peptide_level_fdrs = getFlag_("peptide-level-fdrs");
     bool protein_level_fdrs = getFlag_("protein-level-fdrs");  
+    
+    Int description_of_correct = getIntOption_("doc");
 
     double ipf_max_peakgroup_pep = getDoubleOption_("ipf_max_peakgroup_pep");
     double ipf_max_transition_isotope_overlap = getDoubleOption_("ipf_max_transition_isotope_overlap");
@@ -885,6 +893,11 @@ protected:
       feature_set.push_back("SpecId");
       feature_set.push_back("Label");
       feature_set.push_back("ScanNr");
+      if (description_of_correct != 0)
+      {
+        feature_set.push_back("retentiontime");
+        feature_set.push_back("deltamass");
+      }
       feature_set.push_back("ExpMass");
       feature_set.push_back("CalcMass");
       feature_set.push_back("mass");
@@ -999,7 +1012,6 @@ protected:
       if (seed != 1) arguments << "-S" << String(seed).toQString();
       if (getFlag_("klammer")) arguments << "-K";
       
-      Int description_of_correct = getIntOption_("doc");
       if (description_of_correct != 0) arguments << "-D" << String(description_of_correct).toQString();
 
       arguments << pin_file.toQString();

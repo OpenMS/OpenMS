@@ -113,7 +113,7 @@ public:
 
       @return The unique name or identifier of the quantitation method.
     */
-    virtual const String& getName() const = 0;
+    virtual const String& getMethodName() const = 0;
 
     /**
       @brief Returns information on the different channels used by the quantitation method.

@@ -734,7 +734,7 @@ namespace OpenMS
     {
       ConsensusMap::ColumnHeader channel_as_map;
       // label is the channel + description provided in the Params
-      channel_as_map.label = quant_method_->getName() + "_" + cl_it->name;
+      channel_as_map.label = quant_method_->getMethodName() + "_" + cl_it->name;
 
       // TODO(aiche): number of features need to be set later
       channel_as_map.size = consensus_map.size();
