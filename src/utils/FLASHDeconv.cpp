@@ -743,7 +743,7 @@ protected:
         continue;
       }*/
       auto mass = mt.getCentroidMZ();
-      fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
+      fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"<<mt.getSize()<<"\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
           //<< getNominalMass(mass) << "\t"
           << mt.begin()->getRT() << "\t"
@@ -784,7 +784,7 @@ protected:
     {
       return;
     }
-    fsf << "ID\tFileName\tMonoisotopicMass\tStartRetentionTime"
+    fsf << "ID\tFileName\tMonoisotopicMass\tMassCount\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
            "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tPerChargeInfo_z_Mz_Int\n";
 
@@ -824,7 +824,7 @@ protected:
         auto &hc = param.hCharges[k];
         float n = (float) (hc / 2);
         auto harmonicFilter = log(1.0 / (i + n / hc + param.minCharge));
-        hBinOffsets[i][k] = (long) round((filter[i] - harmonicFilter) * param.binWidth);
+        hBinOffsets[i][k] = (long) floor((filter[i] - harmonicFilter) * param.binWidth);
       }
     }
 
@@ -1708,7 +1708,7 @@ protected:
         for (int k = 0; k < hChargeSize; k++)
         {
           long hbi = mzBinIndex - hbOffsets[k];// + rand() % 10000 - 5000 ;
-          for (int i = -1; i <= 1; i++)
+          for (int i = -1; i <= 0; i++)
           {
             auto bin = hbi + i;
             if (bin < 0 || bin >= mzBinSize)
@@ -1992,7 +1992,7 @@ protected:
 
       bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
                                                              param.chargeRange,
-                                                             3);
+                                                             2);
 
       if (!isChargeWellDistributed)
       {
@@ -2298,17 +2298,23 @@ protected:
   static double checkChargeFit(double *perChargeIntensity,
                                       int range)
   {
-  //  double maxPerChargeIntensity = .0;
+    double maxPerChargeIntensity = .0;
     vector<double> xs;
     vector<double> ys;
 
     xs.reserve(range + 2);
     ys.reserve(range + 2);
 
+    for (int i = 0; i < range; i++)
+    {
+      maxPerChargeIntensity = max(maxPerChargeIntensity, perChargeIntensity[i]);
+    }
+
+    double th = maxPerChargeIntensity *.02;//2%
     int first = -1, last = 0;
     for (int i = 0; i < range; i++)
     {
-      if (perChargeIntensity[i]<=0)
+      if (perChargeIntensity[i]<=th)
       {
         continue;
       }
@@ -2455,7 +2461,7 @@ protected:
     }
 
 
-    for (int i = 2; i < min(12, range); i++)
+    for (int i = 2; i < min(7, range); i++)
     {
       for (int l = 0; l < i; l++)
       {
