@@ -345,7 +345,7 @@ protected:
     //
     registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 0.0,
-                          "RT window for feature extraction (if 0, 2.5% total gradient time)", false, true);
+                          "RT window for feature extraction (if 0, 2% total gradient time)", false, true);
     registerDoubleOption_("minRT", "<seconds>", 1.0,
                           "Min feature RT span for feature extraction", false, true);
     registerIntOption_("writeSpecDeconv",
@@ -475,7 +475,7 @@ protected:
       double rtDelta = rtDuration / ms1Cntr;
       if (param.RTwindow <= 0)
       {
-        param.RTwindow = rtDuration * .025;
+        param.RTwindow = rtDuration * .02;
       }
 
       param.numOverlappedScans = max(param.minNumOverLappedScans, (int) (.5 + param.RTwindow / rtDelta));
