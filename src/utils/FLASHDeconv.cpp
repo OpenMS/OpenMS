@@ -313,7 +313,7 @@ protected:
                         "if dir, [dir]/[inputfile].tsv, [dir]/[inputfile]feature.tsv, and [dir]/[inputfile].m are generated per [inputfile])");
     registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
     registerIntOption_("minC", "<min charge>", 2, "minimum charge state", false, false);
-    registerIntOption_("maxC", "<max charge>", 120, "maximum charge state", false, false);
+    registerIntOption_("maxC", "<max charge>", 100, "maximum charge state", false, false);
     registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
 
@@ -321,7 +321,7 @@ protected:
                        "minimum number of peaks of continuous charges per mass", false, true);
     registerDoubleOption_("minIC",
                           "<...>",
-                          .5,
+                          .6,
                           "cosine threshold between avg. isotope and observed intensities",
                           false,
                           true);
@@ -368,7 +368,7 @@ protected:
     param.intensityThreshold = getDoubleOption_("minInt");
     param.minContinuousChargePeakCount = getIntOption_("minP");
     param.minIsotopeCosine = getDoubleOption_("minIC");
-  //  param.maxIsotopeCosine = getDoubleOption_("minIC1");
+    //  param.maxIsotopeCosine = getDoubleOption_("minIC1");
     //param.maxIsotopeCount = getIntOption_("maxIC");
     param.maxMassCount = getIntOption_("maxMC");
     param.minChargeCosine = getDoubleOption_("minCC");
@@ -479,7 +479,7 @@ protected:
       }
 
       param.numOverlappedScans = max(param.minNumOverLappedScans, (int) (.5 + param.RTwindow / rtDelta));
-      cout << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT "  << param.RTwindow << " sec)" << endl;
+      cout << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT " << param.RTwindow << " sec)" << endl;
       if (isOutPathDir)
       {
         std::string outfileName(param.fileName);
@@ -648,7 +648,7 @@ protected:
 
     for (auto &pg : peakGroups)
     {
-//      auto &spec = pg.spec;
+      //      auto &spec = pg.spec;
 
       auto &pgMap = peakGroupMap[pg.specIndex];
 
@@ -672,10 +672,10 @@ protected:
 
     //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
     //                   "Allowed mass deviation (in da).");
-    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6, "");
+    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 2, "");
     mtd_param.setValue("trace_termination_criterion", "outlier", "");
 
-    mtd_param.setValue("reestimate_mt_sd", "false", "");
+    mtd_param.setValue("reestimate_mt_sd", "true", "");
     mtd_param.setValue("quant_method", "area", "");
     mtd_param.setValue("noise_threshold_int", .0, "");
 
@@ -688,9 +688,9 @@ protected:
 
     vector<MassTrace> m_traces;
     mtdet.run(map, m_traces);  // m_traces : output of this function
-    double* perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
-    double* perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
-    double* perChargeMz = new double[param.chargeRange + param.minCharge + 1];
+    double *perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
+    double *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
+    double *perChargeMz = new double[param.chargeRange + param.minCharge + 1];
 
     for (auto &mt : m_traces)
     {
@@ -708,8 +708,8 @@ protected:
 
       //mt.getIntensity()
       double sum_intensity = .0;
-      //auto mass = mt.getCentroidMZ();
-      //double max_intensity = .0;
+      auto mass = mt.getCentroidMZ();
+      double max_intensity = .0;
 
       for (auto &p2 : mt)
       {
@@ -718,13 +718,19 @@ protected:
         auto &pg = pgMap[(float) p2.getMZ()];
         minCharge = min(minCharge, pg.minCharge);
         maxCharge = max(maxCharge, pg.maxCharge);
-        sum_intensity += p2.getIntensity();
+        sum_intensity += pg.intensity;
+        if (pg.intensity > max_intensity)
+        {
+          max_intensity = pg.intensity;
+          mass = pg.monoisotopicMass;
+        }
 
         for (auto &p : pg.peaks)
         {
           charges[p.charge] = true;
           perChargeIntensity[p.charge] += p.orgPeak->getIntensity();
-          if (perChargeMaxIntensity[p.charge] > p.orgPeak->getIntensity()){
+          if (perChargeMaxIntensity[p.charge] > p.orgPeak->getIntensity())
+          {
             continue;
           }
           perChargeMaxIntensity[p.charge] = p.orgPeak->getIntensity();
@@ -738,12 +744,14 @@ protected:
         mass = pg.monoisotopicMass;*/
       }
 
-      /*if(!checkChargeFit(perChargeIntensity, param.minCharge + param.chargeRange + 1, param.minChargeCosine))
-      {
-        continue;
-      }*/
-      auto mass = mt.getCentroidMZ();
-      fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"<<mt.getSize()<<"\t"
+      //if(getChargeFitScore(perChargeIntensity, param.minCharge + param.chargeRange + 1) < .9) //
+      //{
+      //  continue;
+      //}
+
+
+      //auto mass = mt.getCentroidMZ();
+      fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t" << mt.getSize() << "\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
           //<< getNominalMass(mass) << "\t"
           << mt.begin()->getRT() << "\t"
@@ -755,16 +763,17 @@ protected:
           << minCharge << "\t"
           << maxCharge << "\t"
           << charges.count() << "\t";
-      for(int charge = param.minCharge ; charge < param.chargeRange + param.minCharge; charge++){
-        if (perChargeIntensity[charge]<=0)
+      for (int charge = param.minCharge; charge < param.chargeRange + param.minCharge; charge++)
+      {
+        if (perChargeIntensity[charge] <= 0)
         {
           continue;
         }
-        fsf <<charge<<","<<perChargeMz[charge]  <<","<<  perChargeIntensity[charge]<<";";
+        fsf << charge << "," << perChargeMz[charge] << "," << perChargeIntensity[charge] << ";";
       }
-      fsf<<param.chargeRange + param.minCharge<<","<<
-                                                   perChargeMz[param.chargeRange + param.minCharge] <<","<<
-      perChargeIntensity[param.chargeRange + param.minCharge]<<"\n";
+      fsf << param.chargeRange + param.minCharge << "," <<
+          perChargeMz[param.chargeRange + param.minCharge] << "," <<
+          perChargeIntensity[param.chargeRange + param.minCharge] << "\n";
 
     }
     delete[] perChargeMaxIntensity;
@@ -855,6 +864,10 @@ protected:
         continue;
       }
 
+    //  if (it->getRT() < 3290 || it->getRT() > 3330)
+     // {
+      //  continue;
+     // }
       /*double is = 0;
       for(auto&p : *it){
         is+=p.getIntensity();
@@ -1086,7 +1099,7 @@ protected:
     //cout<<1<<endl;
     auto peakGroups = getPeakGroupsWithMassBins(unionMassBins,
                                                 logMzPeaks,
-                                                mzBinMinValue, //massBinMinValue,sumLogIntensities,
+                                                mzBinMinValue, massBinMinValue,sumLogIntensities,
                                                 binOffsets,
                                                 perMassChargeRanges,
                                                 param);
@@ -1171,8 +1184,8 @@ protected:
       //boost::dynamic_bitset<> &massBins,
                                                      vector<LogMzPeak> &logMzPeaks,
                                                      double &mzBinMinValue,
-      //    double &massBinMinValue,
-      //   float *sumLogIntensities,
+                                                      double &massBinMinValue,
+                                                      float *sumLogIntensities,
                                                      long *binOffsets,
                                                      Byte **chargeRanges,
                                                      const Parameter &param)
@@ -1194,8 +1207,8 @@ protected:
     auto &maxChargeRanges = chargeRanges[1];
     auto &mzChargeRanges = chargeRanges[2];
 
-    vector<Size> toRemove;
-    toRemove.reserve(1000);
+    //vector<Size> toRemove;
+    //toRemove.reserve(1000);
     //boost::dynamic_bitset<> tmp(logMzPeaks.size());
 
     auto massBinIndex = unionedMassBins.find_first();
@@ -1208,6 +1221,27 @@ protected:
 
     while (massBinIndex != unionedMassBins.npos)
     {
+      double logM = getBinValue(massBinIndex, massBinMinValue, binWidth);
+      double diff = Constants::C13C12_MASSDIFF_U / exp(logM);
+      double isoLogM1 = logM - diff;
+      double isoLogM2 = logM + diff;
+
+      auto b1 = getBinNumber(isoLogM1, massBinMinValue, binWidth);
+      if(b1>0 && unionedMassBins[b1]){
+        if (sumLogIntensities[massBinIndex] < sumLogIntensities[b1]){
+          massBinIndex = unionedMassBins.find_next(massBinIndex);
+          continue;
+        }
+      }
+
+      auto b2 = getBinNumber(isoLogM2, massBinMinValue, binWidth);
+      if(b2<unionedMassBins.size() && unionedMassBins[b2]){
+        if (sumLogIntensities[massBinIndex] < sumLogIntensities[b2]){
+          massBinIndex = unionedMassBins.find_next(massBinIndex);
+          continue;
+        }
+      }
+
       int isoOff = 0;
       PeakGroup pg;
       pg.reserve(chargeRange * 100);
@@ -1306,13 +1340,13 @@ protected:
                     //isoOff = min(isoOff, p.isotopeIndex);
                     lastPeakIndex = peakIndex;
                     //}
-                    if (massBinIndex != bin && unionedMassBins[bin])
-                    {
-                      //unionedMassBins[bin] = false;
-                      //if (bin>0) unionedMassBins[bin-1] = false;
-                      //if (bin < massBinSize -1)unionedMassBins[bin+1] = false;
-                      toRemove.push_back(bin);
-                    }
+                    // if (massBinIndex != bin && unionedMassBins[bin])
+                    //{
+                    //unionedMassBins[bin] = false;
+                    //if (bin>0) unionedMassBins[bin-1] = false;
+                    //if (bin < massBinSize -1)unionedMassBins[bin+1] = false;
+                    // toRemove.push_back(bin);
+                    //   }
                   }
                 }
               }
@@ -1377,14 +1411,14 @@ protected:
         //lastSetMassBinIndex = massBinIndex;
       }
 
-      if (massBinIndex < unionedMassBins.size() - 1 && !unionedMassBins[massBinIndex + 1])
-      {
-        for (auto &b : toRemove)
-        {
-          unionedMassBins[b] = false;
-        }
-        toRemove.clear();
-      }
+      //if (massBinIndex < unionedMassBins.size() - 1 && !unionedMassBins[massBinIndex + 1])
+      //{
+      // for (auto &b : toRemove)
+      // {
+      //unionedMassBins[b] = false;
+      //}
+      //toRemove.clear();
+      //}
 
       massBinIndex = unionedMassBins.find_next(massBinIndex);
     }
@@ -1605,6 +1639,7 @@ protected:
     //auto toSkip = (isQualified | isQualified).flip();
     auto perMassChargeRanges = getFinalMassBins(massBins, mzBins, isQualified, unionMassBins,
                                                 sumLogIntensities,
+                                           //     massBinMinValue,
         // continuousChargePeakPairCount,
                                                 binOffsets,
                                                 param,
@@ -1795,13 +1830,14 @@ protected:
                                  boost::dynamic_bitset<> &isQualified,
                                  boost::dynamic_bitset<> &unionMassBins,
                                  float *sumLogIntensities,
-      // Byte *continuousChargePeakPairCount,
+                                // double &massBinMinValue,
                                  long *binOffsets,
                                  const Parameter &param,
                                  long &binStart, long &binEnd
   )
   {
     int chargeRange = param.chargeRange;
+   // auto binWidth = param.binWidth;
     Byte *maxChargeRanges = new Byte[massBins.size()];
     fill_n(maxChargeRanges, massBins.size(), 0);
 
@@ -1877,6 +1913,7 @@ protected:
           //massBins[maxIndex] = isQualified[maxIndex];
           unionMassBins[maxIndex] = true;
         }
+
         // }
       }
       //}
@@ -1962,13 +1999,14 @@ protected:
         continue;
       }
       updatePerChargeIsotopeIntensity(//perIsotopeMinCharge, perIsotopeMaxCharge,
-                                      //perChargeMinIsotope, perChargeMaxIsotope,
-                                      perIsotopeIntensity, perChargeIntensity,
-                                      pg, param);
+          //perChargeMinIsotope, perChargeMaxIsotope,
+          perIsotopeIntensity, perChargeIntensity,
+          pg, param);
 
-      pg.chargeCosineScore = checkChargeFit(perChargeIntensity, param.chargeRange);
+      pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.chargeRange);
 
-      if(pg.peaks.empty() || (pg.chargeCosineScore < param.minChargeCosine)){
+      if (pg.peaks.empty() || (pg.chargeCosineScore < param.minChargeCosine))
+      {
         continue;
       }
 
@@ -1992,7 +2030,7 @@ protected:
 
       bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
                                                              param.chargeRange,
-                                                             2);
+                                                             3);
 
       if (!isChargeWellDistributed)
       {
@@ -2005,16 +2043,17 @@ protected:
                                                                     averagines);
 
       double isotopeCosineThreshold = param.minIsotopeCosine;// getIsotopeCosineThreshold(pg.peaks[0].getMass(),
-                                                             //   param.minIsotopeCosine, param.maxIsotopeCosine,
-                                                              //  0, 100000);
+      //   param.minIsotopeCosine, param.maxIsotopeCosine,
+      //  0, 100000);
 
-      if(pg.peaks.empty() || (pg.isotopeCosineScore < isotopeCosineThreshold)){
+      if (pg.peaks.empty() || (pg.isotopeCosineScore < isotopeCosineThreshold))
+      {
         continue;
       }
 
 
       pg.updateMassesAndIntensity(averagines);
-     // cout<<"mass "<< pg.monoisotopicMass <<endl;
+      //cout<<"mass "<< pg.monoisotopicMass <<endl;
 
 
       /*updatePerChargeIsotopeIntensity(perIsotopeMinCharge, perIsotopeMaxCharge,
@@ -2064,6 +2103,7 @@ protected:
       bool select = true;
       auto &pg = pgs[i];
       double massTol = pg.monoisotopicMass * tol * 2;
+
       for (Size j = i + 1; j < pgs.size(); j++)
       {
         auto &pgo = pgs[j];
@@ -2072,8 +2112,8 @@ protected:
           break;
         }
         select &= pg.intensity > pgo.intensity;
-
       }
+
       if (!select)
       {
         continue;
@@ -2101,11 +2141,11 @@ protected:
   }
 
   static void updatePerChargeIsotopeIntensity(//int *perIsotopeMinCharge, int *perIsotopeMaxCharge,
-                                              //int *perChargeMinIsotope, int *perChargeMaxIsotope,
-                                              double *perIsotopeIntensity,
-                                              double *perChargeIntensity,
-                                              PeakGroup &pg,
-                                              const Parameter &param)
+      //int *perChargeMinIsotope, int *perChargeMaxIsotope,
+      double *perIsotopeIntensity,
+      double *perChargeIntensity,
+      PeakGroup &pg,
+      const Parameter &param)
   {
 
 
@@ -2295,8 +2335,8 @@ protected:
     return true;
   }
 
-  static double checkChargeFit(double *perChargeIntensity,
-                                      int range)
+  static double getChargeFitScore(double *perChargeIntensity,
+                                  int range)
   {
     double maxPerChargeIntensity = .0;
     vector<double> xs;
@@ -2310,27 +2350,30 @@ protected:
       maxPerChargeIntensity = max(maxPerChargeIntensity, perChargeIntensity[i]);
     }
 
-    double th = maxPerChargeIntensity *.02;//2%
+    double th = maxPerChargeIntensity * .02;//2%
     int first = -1, last = 0;
     for (int i = 0; i < range; i++)
     {
-      if (perChargeIntensity[i]<=th)
+      if (perChargeIntensity[i] <= th)
       {
         continue;
       }
       if (first < 0)
       {
         first = i;
-       // xs.push_back(first-1000);
+        // xs.push_back(first-1000);
         //ys.push_back(minInt/10);
       }
 
       last = i;
       //cout<<log(perChargeIntensity[i])<<endl;
-    //  xs.push_back(i);
-     // ys.push_back((1+perChargeIntensity[i]));
+      //  xs.push_back(i);
+      // ys.push_back((1+perChargeIntensity[i]));
     }
-
+    if (last - first < 2)
+    {
+      return 0;
+    }
     //xs.push_back(first-2);
     //ys.push_back(1);
     //xs.push_back(first-1);
@@ -2338,12 +2381,12 @@ protected:
 
     for (int i = first; i <= last; i++)
     {
-     // if (perChargeIntensity[i]<=0)
+      //if (perChargeIntensity[i]<=0)
       //{
       //  continue;
       //}
       xs.push_back(i);
-      ys.push_back((1+perChargeIntensity[i]));
+      ys.push_back((1 + perChargeIntensity[i]));
     }
     //xs.push_back(last+1);
     //ys.push_back(1);
@@ -2352,15 +2395,16 @@ protected:
 
 
     // xs.push_back(last + 1000);
-   // ys.push_back((minInt/10));
+    // ys.push_back((minInt/10));
 
     Eigen::Matrix3d m;
     Eigen::Vector3d v;
 
-    double s0=0,s1=0, s2=0, s3=0, s4=0;
-    double t0=0, t1=0, t2=0;
+    double s0 = 0, s1 = 0, s2 = 0, s3 = 0, s4 = 0;
+    double t0 = 0, t1 = 0, t2 = 0;
 
-    for(Size i=0;i<xs.size();i++){
+    for (Size i = 0; i < xs.size(); i++)
+    {
       auto &x = xs[i];
       auto y = log(ys[i]);
       s0++;
@@ -2372,28 +2416,29 @@ protected:
       t1 += y * x;
       t2 += y * x * x;
     }
-    m(0,0) = s0;
-    m(1,0)=m(0,1)=s1;
-    m(2,0)=m(1,1)=m(0,2)=s2;
-    m(2,1)=m(1,2)=s3;
-    m(2,2)=s4;
+    m(0, 0) = s0;
+    m(1, 0) = m(0, 1) = s1;
+    m(2, 0) = m(1, 1) = m(0, 2) = s2;
+    m(2, 1) = m(1, 2) = s3;
+    m(2, 2) = s4;
 
     //cout<<m<<endl;
     //cout<<v<<endl;
     auto im = m.inverse();
     //cout<<im<<endl;
-   // cout<<m<<endl;
+    // cout<<m<<endl;
     v(0) = t0;
     v(1) = t1;
     v(2) = t2;
     //cout<<v<<endl;
     auto abc = im * v;
     //cout<<abc<<endl;
-    double mu = -abc(1)/abc(2)/2;
-    double omega = -1/abc(2)/2;
+    double mu = -abc(1) / abc(2) / 2;
+    double omega = -1 / abc(2) / 2;
     //double a = (abc(0)-abc(1)*abc(1))/4/abc(2);
 
-    if(omega<=0){
+    if (omega <= 0)
+    {
       //omega = -omega;
       //mu = -mu;
       return 0;
@@ -2403,17 +2448,17 @@ protected:
     vector<double> tys;
 
     //cout<<endl;
-    for(Size i=0;i<ys.size();i++){
-      double ty = exp(-(xs[i]-mu)*(xs[i]-mu)/2/omega);
+    for (Size i = 0; i < ys.size(); i++)
+    {
+      double ty = exp(-(xs[i] - mu) * (xs[i] - mu) / 2 / omega);
       tys.push_back(ty);
-    //  cout<< xs[i]<<" "<<ys[i] << " " << ty <<endl;
+      //  cout<< xs[i]<<" "<<ys[i] << " " << ty <<endl;
     }
-   // cout<<endl;
-    //cout<<"cos " << getCosine(ys, tys) <<endl;
+    // cout<<endl;
+    // cout<<"cos " << getCosine(ys, tys) <<endl;
     return getCosine(ys, tys);
 
   }
-
 
 
   static bool checkChargeDistribution(double *perChargeIntensity,
@@ -2514,12 +2559,12 @@ protected:
   }
 
   static double
-  getCosine(vector<double> &a, vector<double>&b, int off=0)
+  getCosine(vector<double> &a, vector<double> &b, int off = 0)
   {
     double n = .0, d1 = .0, d2 = .0;
     Size size = a.size();
     //int overlapCntr = 0;
-    for (Size j = off; j < size-off; j++)
+    for (Size j = off; j < size - off; j++)
     {
       d1 += a[j] * a[j];
       d2 += b[j] * b[j];
