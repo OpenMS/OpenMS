@@ -289,10 +289,10 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
     // suppress status output from OpenSWATH, unless in debug mode:
-    if (debug_level_ < 1) Log_info.remove(cout);
+    if (debug_level_ < 1) OpenMS_Log_info.remove(cout);
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    if (debug_level_ < 1) Log_info.insert(cout); // revert logging change
+    if (debug_level_ < 1) OpenMS_Log_info.insert(cout); // revert logging change
     OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
              << endl;
     ms_data_.reset(); // not needed anymore, free up the memory

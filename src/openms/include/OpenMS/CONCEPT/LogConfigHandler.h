@@ -127,7 +127,7 @@ public:
 protected:
 
     /**
-      @brief Returns the named global instance of the LogStream. (OpenMS::Log_debug, OpenMS::Log_info, OpenMS::OpenMS_Log_warn, OpenMS::OpenMS_Log_error, OpenMS::OpenMS_Log_fatal)
+      @brief Returns the named global instance of the LogStream. (OpenMS::Log_debug, OpenMS::OpenMS_Log_info, OpenMS::OpenMS_Log_warn, OpenMS::OpenMS_Log_error, OpenMS::OpenMS_Log_fatal)
 
       @param stream_name Name of the stream. Should be DEBUG,INFO,WARNING,ERROR,FATAL_ERROR.
 
@@ -158,7 +158,7 @@ protected:
     StreamHandler::StreamType getStreamTypeByName_(const String & stream_type);
 
     std::set<String> debug_streams_; ///< List of all streams that were appended to OpenMS::Log_debug
-    std::set<String> info_streams_; ///< List of all streams that were appended to OpenMS::Log_info
+    std::set<String> info_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_info
     std::set<String> warn_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_warn
     std::set<String> error_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_error
     std::set<String> fatal_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_fatal

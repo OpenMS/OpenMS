@@ -84,8 +84,8 @@ START_SECTION(([EXTRA] OpenMP - test))
   ostringstream stream_by_logger;
   Log_debug.insert(stream_by_logger);
   Log_debug.remove(cout);
-  Log_info.insert(stream_by_logger);
-  Log_info.remove(cout);
+  OpenMS_Log_info.insert(stream_by_logger);
+  OpenMS_Log_info.remove(cout);
 
 
   {
@@ -104,7 +104,7 @@ START_SECTION(([EXTRA] OpenMP - test))
 
   // remove logger after testing
   Log_debug.remove(stream_by_logger);
-  Log_info.remove(stream_by_logger);
+  OpenMS_Log_info.remove(stream_by_logger);
 
   NOT_TESTABLE;
 }
@@ -457,17 +457,17 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_INFO))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
-  Log_info.remove(cout);
+  OpenMS_Log_info.remove(cout);
 
   // clear cache to avoid pollution of the test output
   // by previous tests
-  Log_info.rdbuf()->clearCache();
+  OpenMS_Log_info.rdbuf()->clearCache();
 
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
-    Log_info.insert(s);
+    OpenMS_Log_info.insert(s);
 
     OPENMS_LOG_INFO << "1\n";
     OPENMS_LOG_INFO << "2" << endl;

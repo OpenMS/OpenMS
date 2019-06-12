@@ -97,7 +97,7 @@ const char* tool_name = "TOPPAS";
 // description of the usage of this TOPP tool
 //-------------------------------------------------------------
 
-void print_usage(Logger::LogStream& stream = Log_info)
+void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 {
   stream << "\n"
          << tool_name << " -- An assistant for GUI-driven TOPP workflow design." << "\n"

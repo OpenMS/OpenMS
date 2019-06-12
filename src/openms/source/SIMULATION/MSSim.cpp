@@ -168,7 +168,7 @@ namespace OpenMS
     OpenMS_Log_fatal.setPrefix("%S: ");
     OpenMS_Log_error.setPrefix("%S: ");
     OpenMS_Log_warn.setPrefix("%S: ");
-    Log_info.setPrefix("%S: ");
+    OpenMS_Log_info.setPrefix("%S: ");
     Log_debug.setPrefix("%S: ");
 
     /*
