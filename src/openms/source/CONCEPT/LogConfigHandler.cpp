@@ -267,7 +267,7 @@ namespace OpenMS
     }
     else if (stream_name == "WARNING")
     {
-      log = &Log_warn;
+      log = &OpenMS_Log_warn;
     }
     else if (stream_name == "ERROR")
     {

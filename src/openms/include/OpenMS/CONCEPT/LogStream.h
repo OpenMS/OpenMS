@@ -450,7 +450,7 @@ private:
 
   /// Macro if a warning, a piece of information which should be read by the user, should be logged
 #define OPENMS_LOG_WARN \
-  Log_warn
+  OpenMS_Log_warn
 
   /// Macro if a information, e.g. a status should be reported
 #define OPENMS_LOG_INFO \
@@ -462,7 +462,7 @@ private:
 
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
-  OPENMS_DLLAPI extern Logger::LogStream Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
   OPENMS_DLLAPI extern Logger::LogStream Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
   OPENMS_DLLAPI extern Logger::LogStream Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
 
