@@ -442,7 +442,7 @@ private:
 
   /// Macro to be used if fatal error are reported (processing stops)
 #define OPENMS_LOG_FATAL_ERROR \
-  Log_fatal << __FILE__ << "(" << __LINE__ << "): "
+  OpenMS_Log_fatal << __FILE__ << "(" << __LINE__ << "): "
 
   /// Macro to be used if non-fatal error are reported (processing continues)
 #define OPENMS_LOG_ERROR \
@@ -460,7 +460,7 @@ private:
 #define OPENMS_LOG_DEBUG \
   Log_debug << __FILE__ << "(" << __LINE__ << "): "
 
-  OPENMS_DLLAPI extern Logger::LogStream Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
   OPENMS_DLLAPI extern Logger::LogStream Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
   OPENMS_DLLAPI extern Logger::LogStream Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
   OPENMS_DLLAPI extern Logger::LogStream Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.

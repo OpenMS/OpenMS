@@ -275,7 +275,7 @@ namespace OpenMS
     }
     else if (stream_name == "FATAL_ERROR")
     {
-      log = &Log_fatal;
+      log = &OpenMS_Log_fatal;
     }
     else
     {

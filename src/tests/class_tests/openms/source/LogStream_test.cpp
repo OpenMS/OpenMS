@@ -397,10 +397,10 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_FATAL_ERROR))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
-  Log_fatal.remove(cerr);
+  OpenMS_Log_fatal.remove(cerr);
   ostringstream stream_by_logger;
   {
-    Log_fatal.insert(stream_by_logger);
+    OpenMS_Log_fatal.insert(stream_by_logger);
 
     OPENMS_LOG_FATAL_ERROR << "1\n";
     OPENMS_LOG_FATAL_ERROR << "2" << endl;
