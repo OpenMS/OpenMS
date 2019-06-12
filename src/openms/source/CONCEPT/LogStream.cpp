@@ -566,7 +566,7 @@ namespace OpenMS
 
   // global default logstream
   OPENMS_DLLAPI Logger::LogStream OpenMS_Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
   OPENMS_DLLAPI Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
   OPENMS_DLLAPI Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
   // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)

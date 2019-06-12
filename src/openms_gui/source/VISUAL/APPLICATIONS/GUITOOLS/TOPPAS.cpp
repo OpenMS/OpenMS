@@ -149,7 +149,7 @@ int main(int argc, const char** argv)
     if (!(param.getValue("unknown").toString().hasSubstring("-psn") && !param.getValue("unknown").toString().hasSubstring(", ")))
     {
       OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
-      print_usage(Log_error);
+      print_usage(OpenMS_Log_error);
       return 1;
     }
   }

@@ -421,12 +421,12 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_ERROR))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
-  Log_error.remove(cerr);
+  OpenMS_Log_error.remove(cerr);
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
-    Log_error.insert(s);
+    OpenMS_Log_error.insert(s);
 
     OPENMS_LOG_ERROR << "1\n";
     OPENMS_LOG_ERROR << "2" << endl;

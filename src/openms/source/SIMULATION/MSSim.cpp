@@ -166,7 +166,7 @@ namespace OpenMS
   {
     /*todo: move to a global config file or into INI file */
     OpenMS_Log_fatal.setPrefix("%S: ");
-    Log_error.setPrefix("%S: ");
+    OpenMS_Log_error.setPrefix("%S: ");
     Log_warn.setPrefix("%S: ");
     Log_info.setPrefix("%S: ");
     Log_debug.setPrefix("%S: ");
