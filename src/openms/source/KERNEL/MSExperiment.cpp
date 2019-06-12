@@ -495,7 +495,7 @@ namespace OpenMS
 
       if (path.empty() || filename.empty())
       {
-        LOG_WARN << "Path or file name of primary MS run is empty. "
+        OPENMS_LOG_WARN << "Path or file name of primary MS run is empty. "
           << "This might be the result of incomplete conversion. "
           << "Not that tracing back e.g. identification results to the original file might more difficult." << std::endl;
       }
@@ -706,7 +706,6 @@ namespace OpenMS
     return spectrum;
   }
 
-
   /// Print the contents to a stream.
   std::ostream& operator<<(std::ostream & os, const MSExperiment & exp)
   {
@@ -732,3 +731,4 @@ namespace OpenMS
     return os;
   }
 } //namespace OpenMS
+

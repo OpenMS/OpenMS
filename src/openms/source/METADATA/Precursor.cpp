@@ -58,6 +58,22 @@ namespace OpenMS
   {
   }
 
+  Precursor::Precursor(Precursor&& rhs) noexcept :
+    CVTermList(std::move(rhs)),
+    Peak1D(std::move(rhs)),
+    activation_methods_(std::move(rhs.activation_methods_)),
+    activation_energy_(rhs.activation_energy_),
+    window_low_(rhs.window_low_),
+    window_up_(rhs.window_up_),
+    drift_time_(rhs.drift_time_),
+    drift_window_low_(rhs.drift_window_low_),
+    drift_window_up_(rhs.drift_window_up_),
+    drift_time_unit_(rhs.drift_time_unit_),
+    charge_(rhs.charge_),
+    possible_charge_states_(std::move(rhs.possible_charge_states_))
+  {
+  }
+
   Precursor::~Precursor()
   {
   }
@@ -180,7 +196,6 @@ namespace OpenMS
   void Precursor::setCharge(Int charge)
   {
     charge_ = charge;
-    return;
   }
 
   std::vector<Int> & Precursor::getPossibleChargeStates()

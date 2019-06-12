@@ -195,7 +195,7 @@ protected:
            const Residue& mod = aaseq.getResidue(j);
            for (Size k = 0; k < fixed_modifications.size(); ++k)
            {
-             if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
+             if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k])->getOrigin() && fixed_modifications[k] != mod.getModificationName())
              {
                fixed_modifications_ok = false;
                break;
@@ -215,7 +215,7 @@ protected:
            const Residue& mod = aaseq.getResidue(j);
            for (Size k = 0; k < variable_modifications.size(); ++k)
            {
-             if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
+             if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k])->getOrigin() && variable_modifications[k] != mod.getModificationName())
              {
                variable_modifications_ok = false;
                break;
@@ -352,7 +352,7 @@ protected:
     MapLibraryPrecursorToLibrarySpectrum mslib = annotateIdentificationsToSpectra_(ids, library, variable_modifications, fixed_modifications, remove_peaks_below_threshold);
 
     time_t end_build_time = time(nullptr);
-    LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
+    OPENMS_LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
     //compare function
     PeakSpectrumCompareFunctor* comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
@@ -582,10 +582,10 @@ protected:
       IdXMLFile id_xml_file;
       id_xml_file.store(*out_file, protein_ids, peptide_ids);
       time_t end_time = time(nullptr);
-      LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
+      OPENMS_LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
     }
     time_t end_time = time(nullptr);
-    LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
+    OPENMS_LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
     return EXECUTION_OK;
   }
 

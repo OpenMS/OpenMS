@@ -689,7 +689,7 @@ START_SECTION((const char* toChar() const))
   TEST_EXCEPTION(Exception::ConversionError, a.toChar() )
 END_SECTION
 
-START_SECTION((String toString() const))
+START_SECTION((String toString(bool full_precision) const))
   DataValue a;
   TEST_EQUAL(a.toString(), "")
   a = DataValue("hello");
@@ -697,15 +697,17 @@ START_SECTION((String toString() const))
   a = DataValue(5);
   TEST_EQUAL(a.toString(), "5")
   a = DataValue(47.11);
-  TEST_EQUAL(a.toString(), "47.11")
+  TEST_EQUAL(a.toString(), "47.109999999999999")
+  TEST_EQUAL(a.toString(false), "47.11")
   a = DataValue(-23456.78);
-  TEST_EQUAL(a.toString(), "-23456.78")
+  TEST_EQUAL(a.toString(), "-23456.779999999998836")
   a = DataValue(ListUtils::create<String>("test string,string2,last string"));
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
   a = DataValue(ListUtils::create<Int>("1,2,3,4,5"));
   TEST_EQUAL(a.toString(),"[1, 2, 3, 4, 5]")
-  a= DataValue(ListUtils::create<double>("1.2,23.3333"));
-  TEST_EQUAL(a.toString(),"[1.2, 23.3333]")
+  a = DataValue(ListUtils::create<double>("1.2,47.11"));
+  TEST_EQUAL(a.toString(),"[1.2, 47.109999999999999]")
+  TEST_EQUAL(a.toString(false), "[1.2, 47.11]")
 END_SECTION
 
 START_SECTION((bool toBool() const))
@@ -742,7 +744,7 @@ START_SECTION((QString toQString() const))
   a =DataValue(ListUtils::create<Int>("1,2,3"));
   TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
   a = DataValue(ListUtils::create<double>("1.22,43.23232"));
-  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.23232]")
+  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.232320000000001]")
 END_SECTION
 
 START_SECTION(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))

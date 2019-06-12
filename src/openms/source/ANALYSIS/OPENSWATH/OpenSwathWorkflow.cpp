@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 
+// #define ENABLE_OPENMS_NESTED_PARALLELISM
+
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
 {
@@ -52,7 +54,7 @@ namespace OpenMS
     bool sonar,
     bool load_into_memory)
   {
-    LOG_DEBUG << "performRTNormalization method starting" << std::endl;
+    OPENMS_LOG_DEBUG << "performRTNormalization method starting" << std::endl;
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
     TransformationDescription trafo; // dummy
     this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, sonar, load_into_memory);
@@ -72,14 +74,14 @@ namespace OpenMS
       }
       catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
       {
-        LOG_DEBUG << "Error creating file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
+        OPENMS_LOG_DEBUG << "Error creating file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
       }
       catch (OpenMS::Exception::BaseException& /*e*/)
       {
-        LOG_DEBUG << "Error writing to file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
+        OPENMS_LOG_DEBUG << "Error writing to file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
       }
     }
-    LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
+    OPENMS_LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
 
     // perform RT and m/z correction on the data
     TransformationDescription tr = doDataNormalization_(irt_transitions,
@@ -100,18 +102,18 @@ namespace OpenMS
     double mz_extraction_window,
     bool ppm)
   {
-    LOG_DEBUG << "Start of doDataNormalization_ method" << std::endl;
+    OPENMS_LOG_DEBUG << "Start of doDataNormalization_ method" << std::endl;
     this->startProgress(0, 1, "Retention time normalization");
 
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
     if (estimateBestPeptides)
     {
-      LOG_DEBUG << "Activated the 'estimateBestPeptides' option." << std::endl;
+      OPENMS_LOG_DEBUG << "Activated the 'estimateBestPeptides' option." << std::endl;
     }
 
     // 1. Estimate the retention time range of the iRT peptides over all assays
     std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
-    LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << std::endl;
+    OPENMS_LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << std::endl;
 
     // 2. Store the peptide retention times in an intermediate map
     std::map<OpenMS::String, double> PeptideRTMap;
@@ -165,7 +167,7 @@ namespace OpenMS
     std::vector<std::pair<double, double> > pairs; // store the RT pairs to write the output trafoXML
     std::map<std::string, double> best_features = OpenSwathHelper::simpleFindBestFeature(transition_group_map,
       estimateBestPeptides, irt_detection_param.getValue("OverallQualityCutoff"));
-    LOG_DEBUG << "Extracted best features: " << best_features.size() << std::endl;
+    OPENMS_LOG_DEBUG << "Extracted best features: " << best_features.size() << std::endl;
 
     // Create pairs vector and store peaks
     std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
@@ -208,7 +210,7 @@ namespace OpenMS
         String("Illegal argument '") + outlier_method +
         "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
-    LOG_DEBUG << "Performed outlier detection, left with features: " << pairs_corrected.size() << std::endl;
+    OPENMS_LOG_DEBUG << "Performed outlier detection, left with features: " << pairs_corrected.size() << std::endl;
 
     // 6. Check whether the found peptides fulfill the binned coverage criteria
     // set by the user.
@@ -267,12 +269,12 @@ namespace OpenMS
     String model_type = irt_detection_param.getValue("alignmentMethod");
     trafo_out.fitModel(model_type, model_params);
 
-    LOG_DEBUG << "Final RT mapping:" << std::endl;
+    OPENMS_LOG_DEBUG << "Final RT mapping:" << std::endl;
     for (Size i = 0; i < pairs_corrected.size(); i++)
     {
-      LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
+      OPENMS_LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
     }
-    LOG_DEBUG << "End of doDataNormalization_ method" << std::endl;
+    OPENMS_LOG_DEBUG << "End of doDataNormalization_ method" << std::endl;
 
     this->endProgress();
     return trafo_out;
@@ -327,7 +329,7 @@ namespace OpenMS
 #pragma omp critical (osw_write_chroms)
 #endif
           {
-            LOG_DEBUG << "[simple] Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
+            OPENMS_LOG_DEBUG << "[simple] Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
               map_idx << " with m/z " << swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
             for (Size chrom_idx = 0; chrom_idx < tmp_chromatograms.size(); chrom_idx++)
             {
@@ -336,7 +338,7 @@ namespace OpenMS
               // window).
               double tic = std::accumulate(tmp_out[chrom_idx]->getIntensityArray()->data.begin(),
                                            tmp_out[chrom_idx]->getIntensityArray()->data.end(),0.0);
-              LOG_DEBUG << "Chromatogram "  << coordinates[chrom_idx].id << " with size "
+              OPENMS_LOG_DEBUG << "Chromatogram "  << coordinates[chrom_idx].id << " with size "
                 << tmp_out[chrom_idx]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
               if (tic > 0.0)
               {
@@ -353,7 +355,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_DEBUG << "Extracted no transitions from SWATH map " << map_idx << " with m/z " <<
+          OPENMS_LOG_DEBUG << "Extracted no transitions from SWATH map " << map_idx << " with m/z " <<
               swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << std::endl;
         }
       }
@@ -362,7 +364,7 @@ namespace OpenMS
     if (sonar)
     {
 
-      LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms before SONAR addition " << std::endl;
+      OPENMS_LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms before SONAR addition " << std::endl;
 
       // for SONAR: group chromatograms together and then add them up (we will have one chromatogram for every single map)
       std::vector< OpenMS::MSChromatogram > chromatograms_new;
@@ -383,7 +385,7 @@ namespace OpenMS
       }
       chromatograms = chromatograms_new; // switch
 
-      LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms after SONAR addition " << std::endl;
+      OPENMS_LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms after SONAR addition " << std::endl;
     }
 
     this->endProgress();
@@ -467,11 +469,47 @@ namespace OpenMS
       writeOutFeaturesAndChroms_(chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
     }
 
+    std::vector<int> prm_map;
+    if (prm_)
+    {
+      // Here we deal with overlapping PRM / DIA windows: we only want to extract
+      // each peptide from a single window and we assume that PRM windows are
+      // centered around the target peptide. We therefore select for each peptide
+      // the best-matching PRM / DIA window:
+      prm_map.resize(transition_exp.transitions.size(), -1);
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      {
+        for (Size k = 0; k < transition_exp.transitions.size(); k++)
+        {
+          const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+
+          // If the transition falls inside the current PRM / DIA window, check
+          // if the window is potentially a better match for extraction than
+          // the one previously stored in the map:
+          if (swath_maps[i].lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < swath_maps[i].upper &&
+              std::fabs(swath_maps[i].upper - tr.getPrecursorMZ()) >= cp.min_upper_edge_dist)
+          {
+
+            if (prm_map[k] == -1) prm_map[k] = i;
+            if (
+                std::fabs(swath_maps[ prm_map[k] ].center - tr.getPrecursorMZ() ) > 
+                std::fabs(swath_maps[ i ].center - tr.getPrecursorMZ() ) )
+            {
+              // current PRM / DIA window "i" is a better match
+              prm_map[k] = i;
+            }
+
+          }
+        }
+      }
+    }
+
     // (iii) Perform extraction and scoring of fragment ion chromatograms (MS2)
     // We set dynamic scheduling such that the maps are worked on in the order
     // in which they were given to the program / acquired. This gives much
     // better load balancing than static allocation.
 #ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
     int total_nr_threads = omp_get_max_threads(); // store total number of threads we are allowed to use
     if (threads_outer_loop_ > -1)
     {
@@ -479,6 +517,7 @@ namespace OpenMS
       omp_set_dynamic(0);
       omp_set_num_threads(std::min(threads_outer_loop_, omp_get_max_threads()) ); // use at most threads_outer_loop_ threads here
     }
+#endif
 #pragma omp parallel for schedule(dynamic,1)
 #endif
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
@@ -488,8 +527,47 @@ namespace OpenMS
 
         // Step 1: select which transitions to extract (proceed in batches)
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
-        OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
-            cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
+        if (!prm_)
+        {
+          // Step 1.1: select transitions matching the window
+          OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
+              cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
+        }
+        else
+        {
+          // Step 1.2: select transitions based on matching PRM window (best window)
+          std::set<std::string> matching_compounds;
+          for (Size k = 0; k < prm_map.size(); k++)
+          {
+            if (prm_map[k] == i)
+            {
+               const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+               transition_exp_used_all.transitions.push_back(tr);
+               matching_compounds.insert(tr.getPeptideRef());
+            }
+          }
+
+          std::set<std::string> matching_proteins;
+          for (Size i = 0; i < transition_exp.compounds.size(); i++)
+          {
+            if (matching_compounds.find(transition_exp.compounds[i].id) != matching_compounds.end())
+            {
+              transition_exp_used_all.compounds.push_back( transition_exp.compounds[i] );
+              for (Size j = 0; j < transition_exp.compounds[i].protein_refs.size(); j++)
+              {
+                matching_proteins.insert(transition_exp.compounds[i].protein_refs[j]);
+              }
+            }
+          }
+          for (Size i = 0; i < transition_exp.proteins.size(); i++)
+          {
+            if (matching_proteins.find(transition_exp.proteins[i].id) != matching_proteins.end())
+            {
+              transition_exp_used_all.proteins.push_back( transition_exp.proteins[i] );
+            }
+          }
+        }
+
         if (transition_exp_used_all.getTransitions().size() > 0) // skip if no transitions found
         {
 
@@ -512,6 +590,8 @@ namespace OpenMS
 
           SignedSize nr_batches = (transition_exp_used_all.getCompounds().size() / batch_size);
 
+#ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
           // If we have a multiple of threads_outer_loop_ here, then use nested
           // parallelization here. E.g. if we use 8 threads for the outer loop,
           // but we have a total of 24 cores available, each of the 8 threads
@@ -520,16 +600,17 @@ namespace OpenMS
           //
           // We should avoid oversubscribing the CPUs, therefore we use integer division.
           // -- see https://docs.oracle.com/cd/E19059-01/stud.10/819-0501/2_nested.html
-#ifdef _OPENMP
           int outer_thread_nr = omp_get_thread_num();
           omp_set_num_threads(std::max(1, total_nr_threads / threads_outer_loop_) );
-#endif
 #pragma omp parallel for schedule(dynamic, 1)
+#endif
+#endif
           for (SignedSize pep_idx = 0; pep_idx <= nr_batches; pep_idx++)
           {
             OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
 
 #ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
             // To ensure multi-threading safe access to the individual spectra, we
             // need to use a light clone of the spectrum access (if multiple threads
             // share a single filestream and call seek on it, chaos will ensue).
@@ -537,13 +618,17 @@ namespace OpenMS
             {
               current_swath_map_inner = current_swath_map->lightClone();
             }
-
+#endif
 #pragma omp critical (osw_write_stdout)
 #endif
             {
               std::cout << "Thread " <<
 #ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
               outer_thread_nr << "_" << omp_get_thread_num() << " " <<
+#else
+              omp_get_thread_num() << "_0 " <<
+#endif
 #else
               "0" << 
 #endif
@@ -599,10 +684,12 @@ namespace OpenMS
     this->endProgress();
     
 #ifdef _OPENMP
+#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
     if (threads_outer_loop_ > -1)
     {
       omp_set_num_threads(total_nr_threads); // set number of available threads back to initial value
     }
+#endif    
 #endif    
   }
 
@@ -729,6 +816,11 @@ namespace OpenMS
     // share a single filestream and call seek on it, chaos will ensue).
     if (use_ms1_traces_)
     {
+      if (ms1_map_ == nullptr) 
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Error, attempted to use MS1 traces, but no MS1 map was provided." );
+      }
       OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
       featureFinder.setMS1Map( threadsafe_ms1 );
     }
@@ -1023,7 +1115,7 @@ namespace OpenMS
       {
         double currwin_start = sonar_start + sonar_idx * sonar_winsize;
         double currwin_end = currwin_start + sonar_winsize;
-        LOG_DEBUG << "   ====  sonar window " << sonar_idx << " from " << currwin_start << " to " << currwin_end << std::endl;
+        OPENMS_LOG_DEBUG << "   ====  sonar window " << sonar_idx << " from " << currwin_start << " to " << currwin_end << std::endl;
 
         // Step 1: select which transitions to extract with the current windows (proceed in batches)
         OpenSwath::LightTargetedExperiment transition_exp_used_all;

@@ -1,6 +1,7 @@
 from MSExperiment  cimport *
 from FeatureMap cimport *
 from Feature cimport *
+from String cimport *
 from libcpp.string cimport string as libcpp_string
 from FileTypes cimport *
 from Types cimport *
@@ -12,9 +13,9 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         FileHandler() nogil except +
         FileHandler(FileHandler) nogil except +
 
-        bool loadExperiment(libcpp_string, MSExperiment &) nogil except+
-        void storeExperiment(libcpp_string, MSExperiment) nogil except+
-        bool loadFeatures(libcpp_string, FeatureMap &) nogil except +
+        bool loadExperiment(String, MSExperiment &) nogil except+
+        void storeExperiment(String, MSExperiment) nogil except+
+        bool loadFeatures(String, FeatureMap &) nogil except +
 
         PeakFileOptions  getOptions() nogil except +
         void setOptions(PeakFileOptions) nogil except +

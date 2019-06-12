@@ -65,10 +65,10 @@ START_SECTION(~ItraqEightPlexQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((const String& getName() const ))
+START_SECTION((const String& getMethodName() const ))
 {
   ItraqEightPlexQuantitationMethod quant_meth;
-  TEST_EQUAL(quant_meth.getName(), "itraq8plex")
+  TEST_EQUAL(quant_meth.getMethodName(), "itraq8plex")
 }
 END_SECTION
 

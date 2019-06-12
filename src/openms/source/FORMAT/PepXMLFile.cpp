@@ -219,15 +219,15 @@ namespace OpenMS
     for (set<String>::const_iterator it = aa_mods.begin();
          it != aa_mods.end(); ++it)
     {
-      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::ANYWHERE);
+      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::ANYWHERE);
 
       // compute mass of modified residue
-      EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod.getOrigin())->getFormula(Residue::Internal);
-      ef += mod.getDiffFormula();
+      EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod->getOrigin())->getFormula(Residue::Internal);
+      ef += mod->getDiffFormula();
 
       f << "\t\t"
-        << "<aminoacid_modification aminoacid=\"" << mod.getOrigin()
-        << "\" massdiff=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\""
+        << "<aminoacid_modification aminoacid=\"" << mod->getOrigin()
+        << "\" massdiff=\"" << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\""
         << precisionWrapper(ef.getMonoWeight())
         << "\" variable=\"Y\" binary=\"N\" description=\"" << *it << "\"/>"
         << "\n";
@@ -235,20 +235,20 @@ namespace OpenMS
 
     for (set<String>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
     {
-      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::N_TERM);
+      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::N_TERM);
       f << "\t\t"
         << "<terminal_modification terminus=\"n\" massdiff=\""
-        << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
+        << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
         << "\" variable=\"Y\" description=\"" << *it
         << "\" protein_terminus=\"\"/>" << "\n";
     }
 
     for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
     {
-      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::C_TERM);
+      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::C_TERM);
       f << "\t\t"
         << "<terminal_modification terminus=\"c\" massdiff=\""
-        << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
+        << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
         << "\" variable=\"Y\" description=\"" << *it
         << "\" protein_terminus=\"\"/>" << "\n";
     }
@@ -403,15 +403,15 @@ namespace OpenMS
 
           if (seq.hasNTerminalModification())
           {
-            const ResidueModification& mod = *(seq.getNTerminalModification());
-            const double mod_nterm_mass = Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass();
+            const ResidueModification* mod = seq.getNTerminalModification();
+            const double mod_nterm_mass = Residue::getInternalToNTerm().getMonoWeight() + mod->getDiffMonoMass();
             f << " mod_nterm_mass=\"" << precisionWrapper(mod_nterm_mass) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
-            const ResidueModification& mod = *(seq.getCTerminalModification());
-            const double mod_cterm_mass = Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass();
+            const ResidueModification* mod = seq.getCTerminalModification();
+            const double mod_cterm_mass = Residue::getInternalToCTerm().getMonoWeight() + mod->getDiffMonoMass();
             f << " mod_cterm_mass=\"" << precisionWrapper(mod_cterm_mass) << "\"";
           }
 
@@ -421,11 +421,11 @@ namespace OpenMS
           {
             if (seq[i].isModified())
             {
-              const ResidueModification& mod = *(seq[i].getModification());
+              const ResidueModification* mod = seq[i].getModification();
               // the modification position is 1-based
               f << "\t\t\t\t<mod_aminoacid_mass position=\"" << (i + 1)
                 << "\" mass=\"" <<
-                precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
+                precisionWrapper(mod->getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
             }
           }
 
@@ -1202,24 +1202,41 @@ namespace OpenMS
 
         optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
         aa_mod.terminus = String(attributeAsString_(attributes, "terminus")).toLower();
+        // "y" if protein terminus, "n" if peptide terminus
+        aa_mod.protein_terminus = String(attributeAsString_(attributes, "protein_terminus")).toLower() == "y";
         if (aa_mod.terminus == "n")
         {
-          term_spec = ResidueModification::N_TERM;
+          if (aa_mod.protein_terminus)
+          {
+            term_spec = ResidueModification::PROTEIN_N_TERM;
+          }
+          else
+          {
+            term_spec = ResidueModification::N_TERM;
+          }
         }
         else if (aa_mod.terminus == "c")
         {
-          term_spec = ResidueModification::C_TERM;
+          if (aa_mod.protein_terminus)
+          {
+            term_spec = ResidueModification::PROTEIN_C_TERM;
+          }
+          else
+          {
+            term_spec = ResidueModification::C_TERM;
+          }
         }
       }
       String desc = "";
       // check if the modification is uniquely defined:
       if (!aa_mod.description.empty())
       {
-        try
+	try
         {
-          desc = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec).getFullId();
+          const ResidueModification* r = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec);
+          desc = r->getFullId();
         }
-        catch (Exception::BaseException)
+        catch ( Exception::BaseException& )
         {
           error(LOAD, "Modification '" + aa_mod.description + "' of residue '" + aa_mod.aminoacid + "' could not be matched. Trying by modification mass.");
         }
@@ -1468,12 +1485,12 @@ namespace OpenMS
       // fixed modifications
       for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
       {
-        const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
+        bool mass_only = it->aminoacid == "" ? true : false;
 
-        if (residue == nullptr)
+        if (mass_only)
         {
           double new_mass = it->massdiff.toDouble();
-          if (it->aminoacid == "" && it->terminus =="n")
+          if (it->terminus == "n")
           {
             vector<String> mods;
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::N_TERM);
@@ -1495,7 +1512,7 @@ namespace OpenMS
                     it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
             }
           }
-          else if (it->aminoacid == "" && it->terminus =="c")
+          else if (it->terminus == "c")
           {
             vector<String> mods;
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::C_TERM);
@@ -1525,6 +1542,8 @@ namespace OpenMS
         }
         else
         {
+          const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
+
           double new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
           vector<String> mods;
           ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, it->aminoacid, ResidueModification::ANYWHERE);
@@ -1570,4 +1589,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

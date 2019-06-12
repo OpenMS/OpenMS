@@ -121,7 +121,7 @@ public:
       Size number_of_decoy;
       Size number_of_target;
       Size number_of_target_plus_decoy;
-      float intensity;     // intensity of the MSD Group. Defined as the median of the peptide intensities.
+      float intensity;     ///< intensity of the MSD Group. Defined as the median of the peptide intensities.
     };
 
     struct ISDGroup

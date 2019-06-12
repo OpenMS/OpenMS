@@ -405,7 +405,7 @@ namespace OpenMS
           spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
         }
 
-        if (chromatogram.size() > 2)
+        if (chromatogram.size() > 1)
         {
           double rt_start = chromatogram.begin()->getPos();
           double rt_end = chromatogram.back().getPos();
@@ -413,7 +413,10 @@ namespace OpenMS
           PeakIntegrator::PeakArea pa = pi.integratePeak(chromatogram, rt_start, rt_end);          
           intensity_sum += pa.area;
         }
-
+        else if (chromatogram.size() == 1)
+        {
+          intensity_sum += chromatogram.begin()->getIntensity();
+        }
       }
       
       rt /= intensity_sum_simple;
@@ -514,7 +517,7 @@ namespace OpenMS
           spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
         }
         
-        if (chromatogram.size() > 2)
+        if (chromatogram.size() > 1)
         {
           // Positions are already sorted in makePeakPositionUnique(), i.e. sortByPosition() not necessary.
           double rt_start = chromatogram.begin()->getPos();
@@ -523,6 +526,11 @@ namespace OpenMS
           PeakIntegrator::PeakArea pa = pi.integratePeak(chromatogram, rt_start, rt_end);          
           intensity_sum += pa.area;
         }
+        else if (chromatogram.size() == 1)
+        {
+          intensity_sum += chromatogram.begin()->getIntensity();
+        }
+        
       }
       
       rt /= intensity_sum_simple;
@@ -1048,6 +1056,7 @@ namespace OpenMS
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type"));
       filtering.setLogType(getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+      exp_blacklist_ = filtering.getBlacklist();
       
       /**
        * cluster filter results
@@ -1144,11 +1153,16 @@ namespace OpenMS
   
   FeatureMap& FeatureFinderMultiplexAlgorithm::getFeatureMap()
   {
-    return(feature_map_);
+    return feature_map_;
   }
   
   ConsensusMap& FeatureFinderMultiplexAlgorithm::getConsensusMap()
   {
-    return(consensus_map_);
+    return consensus_map_;
+  }
+  
+  MSExperiment& FeatureFinderMultiplexAlgorithm::getBlacklist()
+  {
+    return exp_blacklist_;
   }
 }

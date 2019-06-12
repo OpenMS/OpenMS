@@ -106,7 +106,7 @@ START_SECTION((Size findByNativeID(const String&) const))
 {
   TEST_EQUAL(lookup.findByNativeID("spectrum=1"), 1);
 
-  TEST_EXCEPTION(Exception::ElementNotFound, 
+  TEST_EXCEPTION(Exception::ElementNotFound,
                  lookup.findByNativeID("spectrum=3"));
 }
 END_SECTION

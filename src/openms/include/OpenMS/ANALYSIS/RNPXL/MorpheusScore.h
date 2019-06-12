@@ -51,12 +51,12 @@ struct OPENMS_DLLAPI MorpheusScore
   /// score and subscores
   struct OPENMS_DLLAPI Result
   {
-    Size matches = 0; // matched theoretical peaks
-    Size n_peaks = 0; // number of theoretical peaks
-    float score = 0; // Morpheus score (matched peaks + matched ion current / TIC)
-    float MIC = 0; // ion current of matches (experimental peaks)
-    float TIC = 0; // total ion current (experimental peak) 
-    float err = 0; // average absolute mass error of matched fragments (in Da)
+    Size matches = 0; //< matched theoretical peaks
+    Size n_peaks = 0; //< number of theoretical peaks
+    float score = 0; //< Morpheus score (matched peaks + matched ion current / TIC)
+    float MIC = 0; //< ion current of matches (experimental peaks)
+    float TIC = 0; //< total ion current (experimental peak) 
+    float err = 0; //< average absolute mass error of matched fragments (in Da)
   };
 
   /// returns Morpheus Score, #matched ions, #total ions, #matched intensities, #total fragment intensities (TIC)

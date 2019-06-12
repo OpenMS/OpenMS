@@ -358,24 +358,27 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 
 			File  "${THIRDPARTYDIR}\${VS_PWIZ_REDISTRIBUTABLE_EXE}"
 			ClearErrors
-			ExecWait '$TEMP\${VS_PWIZ_REDISTRIBUTABLE_EXE} /q' $0
+			ExecWait '$TEMP\${VS_PWIZ_REDISTRIBUTABLE_EXE} /passive /norestart' $0
 			StrCmp $0 0 vs_pwiz_install_success
+			StrCmp $0 1638 vs_pwiz_install_success
 			MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_PWIZ_REDISTRIBUTABLE_EXE}' failed! Proteowizard will not work unless this package is installed! The package is located at '$TEMP\${VS_PWIZ_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
 			
 			vs_pwiz_install_success:
 			
       File  "${THIRDPARTYDIR}\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}"
 			ClearErrors
-			ExecWait '$TEMP\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE} /q' $0
+			ExecWait '$TEMP\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE} /passive /norestart' $0
 			StrCmp $0 0 vs_pwiz_add1_install_success
+			StrCmp $0 1638 vs_pwiz_add1_install_success
 			MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}' failed! Proteowizard will not work unless this package is installed! The package is located at '$TEMP\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
 
 			vs_pwiz_add1_install_success:
 
       File  "${THIRDPARTYDIR}\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}"
 			ClearErrors
-			ExecWait '$TEMP\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE} /q' $0
+			ExecWait '$TEMP\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE} /install /passive /norestart' $0
 			StrCmp $0 0 vs_pwiz_add2_install_success
+			StrCmp $0 1638 vs_pwiz_add2_install_success
 			MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}' failed! Proteowizard will not work unless this package is installed! The package is located at '$TEMP\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
 
       ## reasons why the install might fail:
@@ -512,8 +515,9 @@ Section "-hidden VSRuntime"
 
     File "${VS_REDISTRIBUTABLE_PATH}\${VS_REDISTRIBUTABLE_EXE}"
     ClearErrors
-    ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /q' $0
+    ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /install /passive /norestart' $0
     StrCmp $0 0 vs_install_success
+    StrCmp $0 1638 vs_install_success
     MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Visual Studio redistributable package '${VS_REDISTRIBUTABLE_EXE}' failed! OpenMS will not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
 		
     ## reasons why the install might fail:

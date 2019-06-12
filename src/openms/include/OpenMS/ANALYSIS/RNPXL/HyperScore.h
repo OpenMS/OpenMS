@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -50,7 +50,7 @@ struct OPENMS_DLLAPI HyperScore
 {
   typedef std::pair<Size, double> IndexScorePair; 
 
-  /* @brief compute the (ln transformed) X!Tandem HyperScore 
+  /** @brief compute the (ln transformed) X!Tandem HyperScore 
    *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
    *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions
    * @note Peak intensities of the theoretical spectrum are typically 1 or TIC normalized, but can also be e.g. ion probabilities
@@ -64,8 +64,8 @@ struct OPENMS_DLLAPI HyperScore
   static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const PeakSpectrum& theo_spectrum);
 
   private:
-    // helper to compute the log factorial
-    static double logfactorial_(UInt x);
+    /// helper to compute the log factorial
+    static double logfactorial_(const int x, int base = 2);
 };
 
 }

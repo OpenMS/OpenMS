@@ -37,6 +37,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+
+#include <set>
 
 using namespace std;
 using namespace xercesc;
@@ -101,7 +104,7 @@ namespace OpenMS
                           + "Rename the file to fix this.";
       }
 
-      LOG_FATAL_ERROR << error_message_ << std::endl;
+      OPENMS_LOG_FATAL_ERROR << error_message_ << std::endl;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message_);
     }
 
@@ -119,7 +122,7 @@ namespace OpenMS
       {
         error_message_ += String("( in line ") + line + " column " + column + ")";
       }
-      LOG_ERROR << error_message_ << std::endl;
+      OPENMS_LOG_ERROR << error_message_ << std::endl;
     }
 
     void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
@@ -139,9 +142,9 @@ namespace OpenMS
 
 // warn only in Debug mode but suppress warnings in release mode (more happy users)
 #ifdef OPENMS_ASSERTIONS
-      LOG_WARN << error_message_ << std::endl;
+      OPENMS_LOG_WARN << error_message_ << std::endl;
 #else
-      LOG_DEBUG << error_message_ << std::endl;
+      OPENMS_LOG_DEBUG << error_message_ << std::endl;
 #endif
 
     }
@@ -181,22 +184,37 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    void XMLHandler::writeUserParam_(const String & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const
+    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids)
+    {
+      std::set<String> s;
+      for (const auto& p : prot_ids)
+      {
+        if (s.insert(p.getIdentifier()).second == false) // element already existed
+        {
+          fatalError(ActionMode::STORE, "ProteinIdentifications are not unique, which leads to loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:" +
+                                        p.getIdentifier() +
+                                        ".\nThe random chance of this error occuring is 1:2^64. Re-run the last tool and if the error occurs again, please report this as a bug");
+        }
+      }
+    }
+
+    void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
     {
       std::vector<String> keys;
       meta.getKeys(keys);
 
+      String val;
+      String p_prefix = String(indent, '\t') + "<" + writeXMLEscape(tag_name) + " type=\"";
       for (Size i = 0; i != keys.size(); ++i)
       {
-        os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"";
+        os << p_prefix;
 
-        DataValue d = meta.getMetaValue(keys[i]);
-        String val;
+        const DataValue& d = meta.getMetaValue(keys[i]);
         // determine type
         if (d.valueType() == DataValue::STRING_VALUE || d.valueType() == DataValue::EMPTY_VALUE)
         {
           os << "string";
-          val = d;
+          val = writeXMLEscape(d);
         }
         else if (d.valueType() == DataValue::INT_VALUE)
         {
@@ -221,16 +239,15 @@ namespace OpenMS
         else if (d.valueType() == DataValue::STRING_LIST)
         {
           os << "stringList";
-          StringList sld = d;
           // concatenate manually, as operator<< inserts spaces, which are bad
           // for reconstructing the list
-          val = "[" + ListUtils::concatenate(sld, ",") + "]";
+          val = "[" + writeXMLEscape(ListUtils::concatenate(d.toStringList(), ",")) + "]";
         }
         else
         {
           throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
-        os << "\" name=\"" << keys[i] << "\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+        os << "\" name=\"" << keys[i] << "\" value=\"" << val << "\"/>\n";
       }
     }
 

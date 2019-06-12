@@ -89,7 +89,7 @@ namespace OpenMS
     c.intensity_u = getCastValue_(headers, line, "intensity_u", 1e12);
     c.overall_quality_l = getCastValue_(headers, line, "overall_quality_l", 0.0);
     c.overall_quality_u = getCastValue_(headers, line, "overall_quality_u", 1e12);
-    for (const std::pair<String, Size>& h : headers) // parse the parameters
+    for (const std::pair<const String, Size>& h : headers) // parse the parameters
     {
       const String& header = h.first;
       const Size& i = h.second;
@@ -134,7 +134,7 @@ namespace OpenMS
     cg.ion_ratio_l = getCastValue_(headers, line, "ion_ratio_l", 0.0);
     cg.ion_ratio_u = getCastValue_(headers, line, "ion_ratio_u", 1e12);
     cg.ion_ratio_feature_name = getCastValue_(headers, line, "ion_ratio_feature_name", "");
-    for (const std::pair<String, Size>& h : headers) // parse the parameters
+    for (const std::pair<const String, Size>& h : headers) // parse the parameters
     {
       const String& header = h.first;
       const Size& i = h.second;

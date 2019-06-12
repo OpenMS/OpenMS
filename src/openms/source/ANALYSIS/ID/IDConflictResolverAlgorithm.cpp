@@ -100,7 +100,7 @@ namespace OpenMS
      
     // copy conflicting ones right of best one
     vector<PeptideIdentification>::iterator pos1p = pos + 1;
-    for (auto it = pos1p; it != peptides.end(); ++it)
+    for (auto it = pos1p; it != peptides.end(); ++it) // OMS_CODING_TEST_EXCLUDE
     {
       removed.push_back(*it);
     }

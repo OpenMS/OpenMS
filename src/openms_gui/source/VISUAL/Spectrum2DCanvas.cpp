@@ -941,8 +941,12 @@ namespace OpenMS
         else
         {
           sequence = pep_begin->getHits()[0].getSequence().toString();
-          if (pep_begin->getHits().size() > 1) sequence += "...";
         }
+        if (sequence.empty() && !pep_begin->getHits().empty())
+        {
+          sequence = pep_begin->getHits()[0].getMetaValue("label");
+        }
+        if (pep_begin->getHits().size() > 1) sequence += "...";
         painter.drawText(pos.x() + 10.0, pos.y() + 10.0, sequence.toQString());
       }
     }
@@ -1068,11 +1072,13 @@ namespace OpenMS
     {
       gradient_str = linear_gradient_.toString();
     }
+    if (layers_.empty()) return;
+    layers_[layers_.size()-1].param.setValue("dot:gradient", gradient_str);
     for (Size i = 0; i < layers_.size(); ++i)
     {
-      layers_[i].param.setValue("dot:gradient", gradient_str);
       recalculateDotGradient_(i);
     }
+
     SpectrumCanvas::intensityModeChange_();
   }
 
@@ -1096,7 +1102,7 @@ namespace OpenMS
 
   void Spectrum2DCanvas::updateProjections()
   {
-    //find the last (visible) peak layers
+    // find the last (visible) peak layers
     Size layer_count = 0;
     Size last_layer = 0;
     Size visible_layer_count = 0;
@@ -1120,7 +1126,7 @@ namespace OpenMS
       }
     }
 
-    //try to find the right layer to project
+    // try to find the right layer to project
     const LayerData * layer = nullptr;
     //first choice: current layer
     if (layer_count != 0 && getCurrentLayer().type == LayerData::DT_PEAK)
@@ -1158,14 +1164,14 @@ namespace OpenMS
     float range = visible_area_.maxPosition()[0] - visible_area_.minPosition()[0];
     float mult = 100.0f / (range <= 0 ? 1 : range);
 
-    for (ExperimentType::ConstAreaIterator i = layer->getPeakData()->areaBeginConst(visible_area_.minPosition()[1], visible_area_.maxPosition()[1], visible_area_.minPosition()[0], visible_area_.maxPosition()[0]);
+    for (auto i = layer->getPeakData()->areaBeginConst(visible_area_.minPosition()[1], visible_area_.maxPosition()[1], visible_area_.minPosition()[0], visible_area_.maxPosition()[0]);
          i != layer->getPeakData()->areaEndConst();
          ++i)
     {
       PeakIndex pi = i.getPeakIndex();
       if (layer->filters.passes((*layer->getPeakData())[pi.spectrum], pi.peak))
       {
-        //sum
+        // sum
         ++peak_count;
         intensity_sum += i->getIntensity();
         mzint[int(i->getMZ() * mult)] += i->getIntensity();
@@ -1173,7 +1179,7 @@ namespace OpenMS
         mzsum[int(i->getMZ() * mult)] += i->getMZ();
 
         rt[i.getRT()] += i->getIntensity();
-        //max
+        // max
         intensity_max = max(intensity_max, (double)(i->getIntensity()));
       }
     }

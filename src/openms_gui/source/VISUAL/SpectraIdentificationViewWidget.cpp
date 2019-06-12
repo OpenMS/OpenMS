@@ -67,6 +67,8 @@ namespace OpenMS
     is_ms1_shown_(false),
     fragment_window_(nullptr)
   {
+    setObjectName("Identifications");
+
     // set common defaults
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 
@@ -292,6 +294,7 @@ namespace OpenMS
       }
 
       fragment_window_->resizeColumnsToContents();
+      fragment_window_->resizeRowsToContents();
       fragment_window_->show();
       fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
       QApplication::setActiveWindow(fragment_window_);

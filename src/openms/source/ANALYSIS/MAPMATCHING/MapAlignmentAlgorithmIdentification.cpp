@@ -78,7 +78,7 @@ namespace OpenMS
         String(min_run_occur_) + ") is higher than the number of runs incl. "
         "reference (here: " + String(runs) + "). Using " + String(runs) +
         " instead.";
-      LOG_WARN << msg << endl;
+      OPENMS_LOG_WARN << msg << endl;
       min_run_occur_ = runs;
     }
   }
@@ -139,7 +139,7 @@ namespace OpenMS
     // TODO
 
     // compute RT medians:
-    LOG_DEBUG << "Computing RT medians..." << endl;
+    OPENMS_LOG_DEBUG << "Computing RT medians..." << endl;
     vector<SeqToValue> medians_per_run(size);
     for (Int i = 0; i < size; ++i)
     {
@@ -162,7 +162,7 @@ namespace OpenMS
     if (reference_given)
     {
       // remove peptides that don't occur in enough runs:
-      LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
+      OPENMS_LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
       SeqToValue temp;
       for (SeqToValue::iterator ref_it = reference_.begin();
            ref_it != reference_.end(); ++ref_it)
@@ -174,16 +174,16 @@ namespace OpenMS
           temp.insert(temp.end(), *ref_it); // new items should go at the end
         }
       }
-      LOG_DEBUG << "Removed " << reference_.size() - temp.size() << " of "
+      OPENMS_LOG_DEBUG << "Removed " << reference_.size() - temp.size() << " of "
                 << reference_.size() << " peptides." << endl;
       temp.swap(reference_);
     }
     else // compute overall RT median per sequence (median of medians per run)
     {
-      LOG_DEBUG << "Computing overall RT medians per sequence..." << endl;
+      OPENMS_LOG_DEBUG << "Computing overall RT medians per sequence..." << endl;
 
       // remove peptides that don't occur in enough runs (at least two):
-      LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
+      OPENMS_LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
       SeqToList temp;
       for (SeqToList::iterator med_it = medians_per_seq.begin();
            med_it != medians_per_seq.end(); ++med_it)
@@ -193,7 +193,7 @@ namespace OpenMS
           temp.insert(temp.end(), *med_it);
         }
       }
-      LOG_DEBUG << "Removed " << medians_per_seq.size() - temp.size() << " of "
+      OPENMS_LOG_DEBUG << "Removed " << medians_per_seq.size() - temp.size() << " of "
                 << medians_per_seq.size() << " peptides." << endl;
       temp.swap(medians_per_seq);
       computeMedians_(medians_per_seq, reference_);
@@ -223,11 +223,11 @@ namespace OpenMS
     {
       max_rt_shift = numeric_limits<double>::max();
     }
-    LOG_DEBUG << "Max. allowed RT shift (in seconds): " << max_rt_shift << endl;
+    OPENMS_LOG_DEBUG << "Max. allowed RT shift (in seconds): " << max_rt_shift << endl;
 
     // generate RT transformations:
-    LOG_DEBUG << "Generating RT transformations..." << endl;
-    LOG_INFO << "\nAlignment based on:" << endl; // diagnostic output
+    OPENMS_LOG_DEBUG << "Generating RT transformations..." << endl;
+    OPENMS_LOG_INFO << "\nAlignment based on:" << endl; // diagnostic output
     Size offset = 0; // offset in case of internal reference
     for (Int i = 0; i < size + 1; ++i)
     {
@@ -238,7 +238,7 @@ namespace OpenMS
         TransformationDescription trafo;
         trafo.fitModel("identity");
         transforms.push_back(trafo);
-        LOG_INFO << "- " << reference_.size() << " data points for sample "
+        OPENMS_LOG_INFO << "- " << reference_.size() << " data points for sample "
                  << i + 1 << " (reference)\n";
         offset = 1;
       }
@@ -268,12 +268,12 @@ namespace OpenMS
         }
       }
       transforms.push_back(TransformationDescription(data));
-      LOG_INFO << "- " << data.size() << " data points for sample "
+      OPENMS_LOG_INFO << "- " << data.size() << " data points for sample "
                << i + offset + 1;
-      if (n_outliers) LOG_INFO << " (" << n_outliers << " outliers removed)";
-      LOG_INFO << "\n";
+      if (n_outliers) OPENMS_LOG_INFO << " (" << n_outliers << " outliers removed)";
+      OPENMS_LOG_INFO << "\n";
     }
-    LOG_INFO << endl;
+    OPENMS_LOG_INFO << endl;
 
     // delete temporary reference
     if (!reference_given) reference_.clear();

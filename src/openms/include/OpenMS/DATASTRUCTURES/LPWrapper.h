@@ -95,7 +95,7 @@ public:
       Int output_freq;
       Int output_delay;
       bool enable_presolve;
-      bool enable_binarization; // only with presolve
+      bool enable_binarization; ///< only with presolve
     };
 
     enum Type

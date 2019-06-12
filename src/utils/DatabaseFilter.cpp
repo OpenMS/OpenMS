@@ -107,7 +107,7 @@ protected:
       }
     }
 
-    LOG_INFO << "Protein accessions: " << id_accessions.size() << endl;
+    OPENMS_LOG_INFO << "Protein accessions: " << id_accessions.size() << endl;
 
     for (Size i = 0; i != db.size() ; ++i)
     {
@@ -169,7 +169,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      LOG_INFO << "Identifications: " << ids.size() << endl;
+      OPENMS_LOG_INFO << "Identifications: " << ids.size() << endl;
 
       // run filter
       filterByProteinAccessions_(db, peptide_identifications, whitelist, db_new);
@@ -179,7 +179,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    LOG_INFO << "Database entries (before / after): " << db.size() << " / " << db_new.size() << endl;
+    OPENMS_LOG_INFO << "Database entries (before / after): " << db.size() << " / " << db_new.size() << endl;
     FASTAFile().store(out, db_new);
 
     return EXECUTION_OK;

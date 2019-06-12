@@ -238,7 +238,7 @@ namespace OpenMS
             mass.insert(0, "-");
           }
           // if it is a mass
-          if (String(mass.toFloat()) == mass)
+          if (!String(mass.toFloat()).empty()) // just check if conversion does not throw, i.e. consumes the whole string
             mass_or_composition_or_name = 0;
         }
         catch (Exception::ConversionError& /*c_e*/)

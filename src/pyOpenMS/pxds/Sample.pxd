@@ -67,9 +67,6 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
         # returns the number of sample treatments
         Int countTreatments() nogil except +
 
-        # since this class can be derived again, we will not declare the
-        # MetaInfoInterface methods here
-
 cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS::Sample":
 
     cdef enum SampleState:

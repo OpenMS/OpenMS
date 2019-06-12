@@ -53,7 +53,7 @@ namespace OpenMS
 
       The transition lists can be either comma- or tab-separated plain
       text files (CSV or TSV format).  Modifications should be provided in
-      UniMod format<sup>1</sup>, but can also be provided in TPP format.
+      UniMod format<sup>1</sup>, but can also be provided in TPP format. See also TransitionPQPFile.
 
       The following columns are required:
 
@@ -66,6 +66,7 @@ namespace OpenMS
 
   For targeted proteomics files, the following additional columns should be provided:
         <table>
+          <tr> <td BGCOLOR="#EBEBEB">GeneName**</td> <td>free text; </td><td> Gene name (unique gene identifier)</td></tr>
           <tr> <td BGCOLOR="#EBEBEB">ProteinId**</td> <td>free text; synonyms: ProteinName</td><td> Protein identifier</td></tr>
           <tr> <td BGCOLOR="#EBEBEB">PeptideSequence**</td> <td>free text</td> <td> sequence only (no modifications); synonyms: Sequence, StrippedSequence</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">ModifiedPeptideSequence**</td> <td>free text</td> <td> should contain modifications<sup>1</sup>; synonyms: FullUniModPeptideName, FullPeptideName, ModifiedSequence</td>  </tr>
@@ -163,11 +164,13 @@ protected:
       bool decoy = false; ///< Whether the transition is a decoy transition
       String PeptideSequence; ///< Peptide sequence (only AA sequence)
       String ProteinName; ///< Protein identifier
+      String GeneName; ///< Gene identifier
       String Annotation; ///< Fragment ion annotation
       String FullPeptideName; ///< Full peptide sequence with UniMod modifications
       String CompoundName; ///< Compound name (for metabolomics)
       String SMILES; ///< SMILES identifier (for metabolomics)
       String SumFormula; ///< Molecular formula (for metabolomics)
+      String Adducts; ///< Adducts (for metabolomics)
       String precursor_charge; ///< Precursor charge state
       String peptide_group_label; ///< Peptide group identifier (grouping isotopically labelled peptides)
       String label_type; ///< Type of label that was used (e.g. "heavy" or "light")

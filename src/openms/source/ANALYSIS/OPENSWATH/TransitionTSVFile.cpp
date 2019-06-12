@@ -149,8 +149,10 @@ namespace OpenMS
     "CompoundName",
     "SumFormula",
     "SMILES",
+    "Adducts",
     "ProteinId",
     "UniprotId",
+    "GeneName",
     "FragmentType",
     "FragmentSeriesNumber",
     "Annotation",
@@ -299,6 +301,7 @@ namespace OpenMS
 
       // LibraryIntensity
       if (!extractName<double>(mytransition.library_intensity, "LibraryIntensity", tmp_line, header_dict) &&
+          !extractName<double>(mytransition.library_intensity, "RelativeIntensity", tmp_line, header_dict) && // Spectronaut
           !extractName<double>(mytransition.library_intensity, "RelativeFragmentIntensity", tmp_line, header_dict)) // Spectronaut
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -343,6 +346,8 @@ namespace OpenMS
       extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
       //// Proteomics
+      extractName(mytransition.GeneName, "GeneName", tmp_line, header_dict);
+
       !extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
       !extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
 
@@ -373,13 +378,14 @@ namespace OpenMS
       peptidoforms.split('|', mytransition.peptidoforms);
 
       //// Targeted Metabolomics
-      !extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict) &&
-      !extractName(mytransition.CompoundName, "CompoundId", tmp_line, header_dict);
+      extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict);
       extractName(mytransition.SumFormula, "SumFormula", tmp_line, header_dict);
       extractName(mytransition.SMILES, "SMILES", tmp_line, header_dict);
+      extractName(mytransition.Adducts, "Adducts", tmp_line, header_dict);
 
       //// Meta
       extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict);
+      
       // UniprotId
       !extractName(mytransition.uniprot_id, "UniprotId", tmp_line, header_dict) &&
       !extractName(mytransition.uniprot_id, "UniprotID", tmp_line, header_dict);
@@ -743,13 +749,13 @@ namespace OpenMS
           if (override_group_label_check_)
           {
             // We wont fix it but give out a warning
-            LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it.first << 
+            OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it.first << 
               ". Since 'override_group_label_check' is on, nothing will be changed." << std::endl;
           }
           else
           {
             // Lets fix it and inform the user
-            LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it.first << 
+            OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it.first << 
               ". This is most likely an error and to fix this, a new peptide label group will be inferred - " << 
               "to override this decision, please use the override_group_label_check parameter." << std::endl;
             tr_it->peptide_group_label = tr_it->group_id;
@@ -1016,6 +1022,10 @@ namespace OpenMS
     {
       peptide.setMetaValue("LabelType", tr_it->label_type);
     }
+    if (!tr_it->GeneName.empty())
+    {
+      peptide.setMetaValue("GeneName", tr_it->GeneName);
+    }
 
     // per peptide CV terms
     peptide.setPeptideGroupLabel(tr_it->peptide_group_label);
@@ -1051,12 +1061,12 @@ namespace OpenMS
     {
       if (force_invalid_mods_)
       {
-        LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << std::endl;
+        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << std::endl;
         aa_sequence = AASequence::fromString(tr_it->PeptideSequence);
       }
       else
       {
-        LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << std::endl;
+        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << std::endl;
         std::cerr << "Error while reading file (use 'force_invalid_mods' parameter to override): " << e.what() << std::endl;
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Invalid input, cannot parse: " + tr_it->FullPeptideName);
@@ -1075,9 +1085,9 @@ namespace OpenMS
         // something is wrong, return and do not try and add any modifications
         return;
       }
-      LOG_WARN << "Warning: The peptide sequence " << peptide.sequence << " and the full peptide name " << aa_sequence << 
+      OPENMS_LOG_WARN << "Warning: The peptide sequence " << peptide.sequence << " and the full peptide name " << aa_sequence << 
         " are not equal. Please check your input." << std::endl;
-      LOG_WARN << "(use force_invalid_mods to override)" << std::endl;
+      OPENMS_LOG_WARN << "(use force_invalid_mods to override)" << std::endl;
     }
 
     // Unfortunately, we cannot store an AASequence here but have to work with
@@ -1124,6 +1134,7 @@ namespace OpenMS
   {
     // the following attributes will be stored as meta values (userParam):
     //  - CompoundName (name of the compound)
+    //  - Adducts (adduct associated to the compound)
     // the following attributes will be stored as CV values (CV):
     // - label type
     // the following attributes will be stored as attributes:
@@ -1137,6 +1148,7 @@ namespace OpenMS
     compound.molecular_formula = tr_it->SumFormula;
     compound.smiles_string = tr_it->SMILES;
     compound.setMetaValue("CompoundName", tr_it->CompoundName);
+    if (!tr_it->Adducts.empty()) compound.setMetaValue("Adducts", tr_it->Adducts);
 
     // does this apply to compounds as well?
     if (!tr_it->label_type.empty())
@@ -1189,7 +1201,7 @@ namespace OpenMS
       mytransition.group_id = it->getPeptideRef();
 
 #ifdef TRANSITIONTSVREADER_TESTING
-      LOG_DEBUG << "Peptide rts empty " <<
+      OPENMS_LOG_DEBUG << "Peptide rts empty " <<
       pep.rts.empty()  << " or no cv term " << pep.getRetentionTime() << std::endl;
 #endif
 
@@ -1200,6 +1212,7 @@ namespace OpenMS
 
       mytransition.PeptideSequence = pep.sequence;
       mytransition.ProteinName = "NA";
+      mytransition.GeneName = "NA";
       mytransition.uniprot_id = "NA";
       if (!pep.protein_refs.empty())
       {
@@ -1232,6 +1245,10 @@ namespace OpenMS
       {
         mytransition.label_type = pep.getMetaValue("LabelType").toString();
       }
+      if (pep.metaValueExists("GeneName"))
+      {
+        mytransition.GeneName = pep.getMetaValue("GeneName").toString();
+      }
     }
     else if (!it->getCompoundRef().empty())
     {
@@ -1260,6 +1277,10 @@ namespace OpenMS
       if (compound.metaValueExists("CompoundName"))
       {
         mytransition.CompoundName = compound.getMetaValue("CompoundName");
+      }
+      if (compound.metaValueExists("Adducts"))
+      {
+        mytransition.Adducts = compound.getMetaValue("Adducts");
       }
     }
     else
@@ -1366,7 +1387,7 @@ namespace OpenMS
     mytransition.identifying_transition = it->isIdentifyingTransition();
     mytransition.quantifying_transition = it->isQuantifyingTransition();
 
-    return(mytransition);
+    return mytransition;
   }
 
   void TransitionTSVFile::writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
@@ -1412,8 +1433,10 @@ namespace OpenMS
         + (String)it.CompoundName             + "\t"
         + (String)it.SumFormula               + "\t"
         + (String)it.SMILES                   + "\t"
+        + (String)it.Adducts                  + "\t"
         + (String)it.ProteinName              + "\t"
         + (String)it.uniprot_id               + "\t"
+        + (String)it.GeneName                 + "\t"
         + (String)it.fragment_type            + "\t"
         + (String)it.fragment_nr              + "\t"
         + (String)it.Annotation               + "\t"
