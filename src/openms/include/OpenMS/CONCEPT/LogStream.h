@@ -458,13 +458,13 @@ private:
 
   /// Macro for general debugging information
 #define OPENMS_LOG_DEBUG \
-  Log_debug << __FILE__ << "(" << __LINE__ << "): "
+  OpenMS_Log_debug << __FILE__ << "(" << __LINE__ << "): "
 
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
 
 } // namespace OpenMS
 

@@ -82,8 +82,8 @@ START_SECTION(([EXTRA] OpenMP - test))
 {
   // just see if this crashes with OpenMP
   ostringstream stream_by_logger;
-  Log_debug.insert(stream_by_logger);
-  Log_debug.remove(cout);
+  OpenMS_Log_debug.insert(stream_by_logger);
+  OpenMS_Log_debug.remove(cout);
   OpenMS_Log_info.insert(stream_by_logger);
   OpenMS_Log_info.remove(cout);
 
@@ -103,7 +103,7 @@ START_SECTION(([EXTRA] OpenMP - test))
   }
 
   // remove logger after testing
-  Log_debug.remove(stream_by_logger);
+  OpenMS_Log_debug.remove(stream_by_logger);
   OpenMS_Log_info.remove(stream_by_logger);
 
   NOT_TESTABLE;
@@ -480,15 +480,15 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
-  Log_debug.remove(cout);
+  OpenMS_Log_debug.remove(cout);
 
   // clear cache to avoid pollution of the test output
   // by previous tests
-  Log_debug.rdbuf()->clearCache();
+  OpenMS_Log_debug.rdbuf()->clearCache();
 
   ostringstream stream_by_logger;
   {
-    Log_debug.insert(stream_by_logger);
+    OpenMS_Log_debug.insert(stream_by_logger);
 
     OPENMS_LOG_DEBUG << "1\n";
     OPENMS_LOG_DEBUG << "2" << endl;

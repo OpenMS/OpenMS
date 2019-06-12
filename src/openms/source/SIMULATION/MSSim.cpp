@@ -169,7 +169,7 @@ namespace OpenMS
     OpenMS_Log_error.setPrefix("%S: ");
     OpenMS_Log_warn.setPrefix("%S: ");
     OpenMS_Log_info.setPrefix("%S: ");
-    Log_debug.setPrefix("%S: ");
+    OpenMS_Log_debug.setPrefix("%S: ");
 
     /*
       General progress should be

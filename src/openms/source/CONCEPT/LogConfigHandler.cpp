@@ -255,11 +255,11 @@ namespace OpenMS
 
   Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
-    Logger::LogStream * log = &Log_debug; // default
+    Logger::LogStream * log = &OpenMS_Log_debug; // default
 
     if (stream_name == "DEBUG")
     {
-      log = &Log_debug;
+      log = &OpenMS_Log_debug;
     }
     else if (stream_name == "INFO")
     {
