@@ -321,7 +321,7 @@ protected:
                        "minimum number of peaks of continuous charges per mass", false, true);
     registerDoubleOption_("minIC",
                           "<...>",
-                          .6,
+                          .5,
                           "cosine threshold between avg. isotope and observed intensities",
                           false,
                           true);
@@ -1240,6 +1240,11 @@ protected:
           massBinIndex = unionedMassBins.find_next(massBinIndex);
           continue;
         }
+      }
+
+      if(sumLogIntensities[b1]<=0 && sumLogIntensities[b2]<=0){
+        massBinIndex = unionedMassBins.find_next(massBinIndex);
+        continue;
       }
 
       int isoOff = 0;
