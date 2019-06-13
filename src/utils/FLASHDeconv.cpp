@@ -425,11 +425,11 @@ protected:
     {
       if (param.writeSpecTsv > 0)
       {
-        fs.open(outfilePath + ".tsv", fstream::out);
+        fs.open(outfilePath + "PerSpecMasses.tsv", fstream::out);
       }
       // if (param.RTwindow > 0)
       // {
-      fsf.open(outfilePath + "feature.tsv", fstream::out);
+      fsf.open(outfilePath + ".tsv", fstream::out);
       //  }
 
       writeHeader(fs, fsf, true);
@@ -488,9 +488,9 @@ protected:
 
         if (param.writeSpecTsv > 0)
         {
-          fs.open(outfilePath + outfileName + ".tsv", fstream::out);
+          fs.open(outfilePath + outfileName + "PerSpecMasses.tsv", fstream::out);
         }
-        fsf.open(outfilePath + "m" + outfileName + "feature.tsv", fstream::out);
+        fsf.open(outfilePath + outfileName + ".tsv", fstream::out);
 
         writeHeader(fs, fsf, true);
 
@@ -762,8 +762,8 @@ protected:
           // << mt.computePeakArea() << "\t"
           << minCharge << "\t"
           << maxCharge << "\t"
-          << charges.count() << "\t";
-      for (int charge = param.minCharge; charge < param.chargeRange + param.minCharge; charge++)
+          << charges.count() << "\n";
+      /*for (int charge = param.minCharge; charge < param.chargeRange + param.minCharge; charge++)
       {
         if (perChargeIntensity[charge] <= 0)
         {
@@ -774,7 +774,7 @@ protected:
       fsf << param.chargeRange + param.minCharge << "," <<
           perChargeMz[param.chargeRange + param.minCharge] << "," <<
           perChargeIntensity[param.chargeRange + param.minCharge] << "\n";
-
+*/
     }
     delete[] perChargeMaxIntensity;
     delete[] perChargeIntensity;
@@ -795,7 +795,7 @@ protected:
     }
     fsf << "ID\tFileName\tMonoisotopicMass\tMassCount\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tPerChargeInfo_z_Mz_Int\n";
+           "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\n";
 
     return;
   }
@@ -1249,7 +1249,7 @@ protected:
 
       int isoOff = 0;
       PeakGroup pg;
-      pg.reserve(chargeRange * 100);
+      pg.reserve(chargeRange * 30);
 
       for (auto j = minChargeRanges[massBinIndex]; j <= maxChargeRanges[massBinIndex]; j++)
       {
