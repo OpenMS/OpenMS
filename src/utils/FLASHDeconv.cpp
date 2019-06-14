@@ -916,7 +916,6 @@ protected:
 
     for (int i = 0; i < param.chargeRange; i++)
     {
-      random[i] = rand() % 400 - 200;
       //auto r = ((float) rand()) / (float) RAND_MAX - .5;
       filter[i] = log(
           1.0 / (i + param.minCharge)); //.124 * (1 + i%2) + should be descending, and negative!  - 0.2 * (1+(i%3)/2.0))
@@ -984,8 +983,7 @@ protected:
       auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, hBinOffsets,
                                                   prevMassBinVector, prevMinBinLogMassVector,
                                                   averagines,
-                                                  param, specCntr,
-                                                  random);
+                                                  param, specCntr);
 
 
       if (peakGroups.empty())
@@ -1144,7 +1142,7 @@ protected:
                             vector<vector<Size>> &prevMassBinVector,
                             vector<double> &prevMinBinLogMassVector,
                             PrecalcularedAveragine &averagines,
-                            const Parameter &param, int &specCntr, int *random)
+                            const Parameter &param, int &specCntr)
   {
     int sn = 1;
     double massDelta = (param.maxMass - param.minMass) / sn;
@@ -1166,10 +1164,23 @@ protected:
 
     for (int i = 0; i < param.chargeRange; i++)
     {
-      binOffsets[i] = (long) round((param.jitter >0 ? random[i] : 0) +
-                                   (mzBinMinValue - filter[i] - massBinMinValue) *
-                                   param.binWidth);//rand() %10000 + 100 +
-      //cout << i << binOffsets[i]<<endl;
+      binOffsets[i] = (long) round((mzBinMinValue - filter[i] - massBinMinValue) *
+                                   param.binWidth);//rand() %10000 + 100;
+    }
+
+    if (param.jitter > 0){
+
+      for (int i = 0; i < param.chargeRange - 1; i++)
+      {
+        int diff = binOffsets[i+1] - binOffsets[i];
+
+        binOffsets[i] += rand() % diff;
+      }
+
+      binOffsets[param.chargeRange - 1] += rand() % 50;
+      //random[i] = rand() % 400 - 200;
+      //
+      //param.jitter >0 ? random[i] : 0)
     }
 
     Size mzBinNumber = getBinNumber(mzBinMaxValue, mzBinMinValue, param.binWidth) + 1;
