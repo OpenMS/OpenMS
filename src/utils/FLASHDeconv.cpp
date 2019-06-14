@@ -249,9 +249,26 @@ public:
              && this->intensity == a.intensity;
     }
 
-    void updateMassesAndIntensity(PrecalcularedAveragine &averagines)
+    void updateMassesAndIntensity(PrecalcularedAveragine &averagines, int offset = 0, int maxIsoIndex = 0)
     {
       double maxIntensityForMonoIsotopeMass = -1;
+
+      if(offset !=0)
+      {
+          vector<LogMzPeak> tmpPeaks;
+          tmpPeaks.swap(peaks);
+          peaks.reserve(tmpPeaks.size());
+
+          for (auto &p : tmpPeaks)
+          {
+            p.isotopeIndex -= offset;
+            if (p.isotopeIndex < 0 || p.isotopeIndex >= maxIsoIndex)
+            {
+              continue;
+            }
+            peaks.push_back(p);
+          }
+      }
 
       intensity = .0;
       for (auto &p : peaks)
@@ -512,7 +529,7 @@ protected:
 
       if (!peakGroups.empty() && specCntr > 0 && map.size() > 1)
       {
-        findFeatures(peakGroups, map, featureCntr, fsf, param);
+        findFeatures(peakGroups, map, featureCntr, fsf, averagines, param);
       }
 
       if (param.writeSpecTsv)
@@ -621,7 +638,7 @@ protected:
   }
 
   void
-  findFeatures(vector<PeakGroup> &peakGroups, MSExperiment &map, int &featureCntr, fstream &fsf, Parameter &param)
+  findFeatures(vector<PeakGroup> &peakGroups, MSExperiment &map, int &featureCntr, fstream &fsf, PrecalcularedAveragine &averagines, Parameter &param)
   {
 
     boost::unordered_map<float, PeakGroup> *peakGroupMap;
@@ -692,6 +709,8 @@ protected:
     double *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMz = new double[param.chargeRange + param.minCharge + 1];
 
+    double *perIsotopeIntensity = new double[param.maxIsotopeCount];
+
     for (auto &mt : m_traces)
     {
       if (mt.getSize() < 3)
@@ -705,10 +724,11 @@ protected:
       fill_n(perChargeIntensity, param.chargeRange + param.minCharge + 1, 0);
       fill_n(perChargeMaxIntensity, param.chargeRange + param.minCharge + 1, 0);
       fill_n(perChargeMz, param.chargeRange + param.minCharge + 1, 0);
-
+      fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
       //mt.getIntensity()
-      double sum_intensity = .0;
-      auto mass = mt.getCentroidMZ();
+      //double sum_intensity = .0;
+      auto mass = 0;//mt.getCentroidMZ();
+      double avgMass = 0;
       double max_intensity = .0;
 
       for (auto &p2 : mt)
@@ -718,17 +738,19 @@ protected:
         auto &pg = pgMap[(float) p2.getMZ()];
         minCharge = min(minCharge, pg.minCharge);
         maxCharge = max(maxCharge, pg.maxCharge);
-        sum_intensity += pg.intensity;
+        //sum_intensity += pg.intensity;
         if (pg.intensity > max_intensity)
         {
           max_intensity = pg.intensity;
           mass = pg.monoisotopicMass;
+          avgMass = pg.avgMass;
         }
 
         for (auto &p : pg.peaks)
         {
           charges[p.charge] = true;
           perChargeIntensity[p.charge] += p.orgPeak->getIntensity();
+          perIsotopeIntensity[p.isotopeIndex] += p.orgPeak->getIntensity();
           if (perChargeMaxIntensity[p.charge] > p.orgPeak->getIntensity())
           {
             continue;
@@ -744,14 +766,36 @@ protected:
         mass = pg.monoisotopicMass;*/
       }
 
-      //if(getChargeFitScore(perChargeIntensity, param.minCharge + param.chargeRange + 1) < .9) //
-      //{
-      //  continue;
-      //}
+      if (mass <=0){
+        continue;
+      }
 
+      double chargeScore = getChargeFitScore(perChargeIntensity, param.minCharge + param.chargeRange + 1);
+      if(chargeScore < param.minChargeCosine) //
+      {
+        continue;
+      }
+
+      int offset = 0;
+      double isoScore = getIsotopeCosineAndDetermineIsotopeIndex(mass,
+                                               perIsotopeIntensity,
+                                               param.maxIsotopeCount,
+                                               averagines, offset);
+
+      if(isoScore < param.minIsotopeCosine){
+        continue;
+      }
+
+      if(offset != 0){
+        mass += offset * Constants::C13C12_MASSDIFF_U;
+        avgMass += offset * Constants::C13C12_MASSDIFF_U;
+        //p.isotopeIndex -= offset;
+      }
 
       //auto mass = mt.getCentroidMZ();
-      fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t" << mt.getSize() << "\t"
+      fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
+          << to_string(avgMass) << "\t"
+          << mt.getSize() << "\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
           //<< getNominalMass(mass) << "\t"
           << mt.begin()->getRT() << "\t"
@@ -762,7 +806,9 @@ protected:
           // << mt.computePeakArea() << "\t"
           << minCharge << "\t"
           << maxCharge << "\t"
-          << charges.count() << "\n";
+          << charges.count() << "\t"
+          <<isoScore << "\t"
+          <<chargeScore << "\n";
       /*for (int charge = param.minCharge; charge < param.chargeRange + param.minCharge; charge++)
       {
         if (perChargeIntensity[charge] <= 0)
@@ -778,6 +824,7 @@ protected:
     }
     delete[] perChargeMaxIntensity;
     delete[] perChargeIntensity;
+    delete[] perIsotopeIntensity;
     delete[] perChargeMz;
     delete[] peakGroupMap;
   }
@@ -793,9 +840,9 @@ protected:
     {
       return;
     }
-    fsf << "ID\tFileName\tMonoisotopicMass\tMassCount\tStartRetentionTime"
+    fsf << "ID\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\n";
+           "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
 
     return;
   }
@@ -1939,6 +1986,7 @@ protected:
     return chargeRanges;
   }
 
+  /*
   static double
   getIsotopeCosineThreshold(double mass, double minCosine, double maxCosine, double minMass, double maxMass)
   {
@@ -1958,7 +2006,7 @@ protected:
     //cout<<mass<<" "<<minCosine<< " " << maxCosine<< " " <<  isotopeCosineThreshold<<endl;
     return isotopeCosineThreshold;
   }
-
+*/
   static vector<PeakGroup> scoreAndFilterPeakGroups(vector<PeakGroup> &peakGroups,
                                                     PrecalcularedAveragine &averagines,
                                                     const Parameter &param)
@@ -2042,10 +2090,11 @@ protected:
         continue;
       }
 
-      pg.isotopeCosineScore = getIsotopeCosineAndDetermineExactMass(pg,
-                                                                    perIsotopeIntensity,
-                                                                    param.maxIsotopeCount,
-                                                                    averagines);
+      int offset = 0;
+      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getMass(),
+                                                                       perIsotopeIntensity,
+                                                                       param.maxIsotopeCount,
+                                                                       averagines, offset);
 
       double isotopeCosineThreshold = param.minIsotopeCosine;// getIsotopeCosineThreshold(pg.peaks[0].getMass(),
       //   param.minIsotopeCosine, param.maxIsotopeCosine,
@@ -2057,7 +2106,7 @@ protected:
       }
 
 
-      pg.updateMassesAndIntensity(averagines);
+      pg.updateMassesAndIntensity(averagines, offset, param.maxIsotopeCount);
       //cout<<"mass "<< pg.monoisotopicMass <<endl;
 
 
@@ -2193,19 +2242,20 @@ protected:
   }
 
 
-  static double getIsotopeCosineAndDetermineExactMass(PeakGroup &pg,
-                                                      double *perIsotopeIntensities,
-                                                      int perIsotopeIntensitiesSize,
-                                                      PrecalcularedAveragine &averagines)
+  static double getIsotopeCosineAndDetermineIsotopeIndex(double mass,
+                                                         double *perIsotopeIntensities,
+                                                         int perIsotopeIntensitiesSize,
+                                                         PrecalcularedAveragine &averagines,
+                                                         int& offset)
   {
-    auto iso = averagines.get(pg.peaks[0].getMass());
-    auto isoNorm = averagines.getNorm(pg.peaks[0].getMass());
+    auto iso = averagines.get(mass);
+    auto isoNorm = averagines.getNorm(mass);
 
     int isoSize = (int) iso.size();
 
     //double isoDiff = Constants::C13C12_MASSDIFF_U;// OpenMS::Math::mean(diffs.begin(), diffs.end());
 
-    int offset = 0;
+    offset = 0;
     double maxCosine = -1;
     int maxIsotopeIndex = 0, minIsotopeIndex = -1;
 
@@ -2231,20 +2281,6 @@ protected:
         maxCosine = cos;
         offset = f;
       }
-    }
-
-    vector<LogMzPeak> tmpPeaks;
-    tmpPeaks.swap(pg.peaks);
-    pg.reserve(tmpPeaks.size());
-
-    for (auto &p : tmpPeaks)
-    {
-      p.isotopeIndex -= offset;
-      if (p.isotopeIndex < 0 || p.isotopeIndex >= isoSize)
-      {
-        continue;
-      }
-      pg.push_back(p);
     }
 
     return maxCosine;
