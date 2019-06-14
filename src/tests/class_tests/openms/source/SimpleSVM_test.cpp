@@ -107,13 +107,13 @@ START_SECTION((void setup(PredictorMap& predictors,
   ABORT_IF(labels.empty());
 
   SimpleSVM::PredictorMap empty_pred;
-  TEST_EXCEPTION(Exception::IllegalArgument&, svm.setup(empty_pred, labels));
+  TEST_EXCEPTION(Exception::IllegalArgument, svm.setup(empty_pred, labels));
   map<Size, Int> bad_labels;
   bad_labels[0] = 1;
-  TEST_EXCEPTION(Exception::MissingInformation&,
+  TEST_EXCEPTION(Exception::MissingInformation,
                  svm.setup(predictors, bad_labels));
   bad_labels[100] = 0;
-  TEST_EXCEPTION(Exception::InvalidValue&, svm.setup(predictors, bad_labels));
+  TEST_EXCEPTION(Exception::InvalidValue, svm.setup(predictors, bad_labels));
 
   svm.setup(predictors, labels);
 
@@ -134,7 +134,7 @@ START_SECTION((void predict(vector<Prediction>& predictions,
                             vector<Size> indexes) const))
 {
   vector<SimpleSVM::Prediction> predictions;
-  TEST_EXCEPTION(Exception::Precondition&, untrained_svm.predict(predictions));
+  TEST_EXCEPTION(Exception::Precondition, untrained_svm.predict(predictions));
 
   svm.predict(predictions);
 
@@ -162,7 +162,7 @@ START_SECTION((void predict(vector<Prediction>& predictions,
   TEST_EQUAL(predictions.size(), 1);
 
   indexes.push_back(100);
-  TEST_EXCEPTION(Exception::InvalidValue&, svm.predict(predictions, indexes));
+  TEST_EXCEPTION(Exception::InvalidValue, svm.predict(predictions, indexes));
 }
 END_SECTION
 
@@ -170,7 +170,7 @@ START_SECTION((void getFeatureWeights(map<String, double> feature_weights)
                const))
 {
   map<String, double> feat_weights;
-  TEST_EXCEPTION(Exception::Precondition&,
+  TEST_EXCEPTION(Exception::Precondition,
                  untrained_svm.getFeatureWeights(feat_weights));
 
   svm.getFeatureWeights(feat_weights);

@@ -645,6 +645,11 @@ namespace OpenMS
     search_parameters_ = search_parameters;
   }
 
+  void ProteinIdentification::setSearchParameters(SearchParameters&& search_parameters)
+  {
+    search_parameters_ = std::move(search_parameters);
+  }
+
   const ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters() const
   {
     return search_parameters_;

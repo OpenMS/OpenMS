@@ -246,6 +246,7 @@ protected:
       std::vector<MassTrace> splitted_mtraces;
       epd_param.remove("enabled"); // artificially added above
       epd_param.insert("", common_param);
+      epd_param.remove("noise_threshold_int");
       ElutionPeakDetection epdet;
       epdet.setParameters(epd_param);
       // fill mass traces with smoothed data as well .. bad design..
@@ -300,7 +301,7 @@ protected:
 
     if (trace_count != m_traces_final.size())
     {
-      if (ffm_param.getValue("remove_single_traces").toBool() == false)
+      if (!ffm_param.getValue("remove_single_traces").toBool())
       { 
         OPENMS_LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
         return UNEXPECTED_RESULT;
@@ -342,7 +343,7 @@ protected:
     }
 
     // store ionization mode of spectra (useful for post-processing by AccurateMassSearch tool)
-    if (feat_map.size() > 0)
+    if (!feat_map.empty())
     {
       set<IonSource::Polarity> pols;
       for (Size i = 0; i < ms_peakmap.size(); ++i)

@@ -56,6 +56,8 @@
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h> 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 
+#include <QDir>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -179,6 +181,7 @@ protected:
 
     // sirius 
     registerFullParam_(SiriusAdapterAlgorithm().getDefaults());
+    registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);  
   }
 
   static bool extractAndCompareScanIndexLess_(const String& i, const String& j)
@@ -238,6 +241,9 @@ protected:
     combined.insert("", preprocessing);
     combined.insert("", sirius);
     sirius_algo.setParameters(combined);
+    
+    // SIRIUS workspace (currently needed for fragmentation trees)
+    String sirius_workspace_directory = getStringOption_("out_workspace_directory");
 
     //-------------------------------------------------------------
     // input and check
@@ -416,7 +422,27 @@ protected:
                                                                            use_exact_mass);
           annotated_spectra.push_back(std::move(annotated_spectrum));
         }
-        
+
+
+        // should the sirius workspace be retained
+        if (!sirius_workspace_directory.empty())
+        {
+          // convert path to absolute path
+          QDir sw_dir(sirius_workspace_directory.toQString());
+          sirius_workspace_directory = String(sw_dir.absolutePath());
+
+          // move tmp folder to new location
+          bool copy_status = File::copyDirRecursively(tmp_dir.toQString(), sirius_workspace_directory.toQString());
+          if (copy_status)
+          {
+            OPENMS_LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
+          }
+          else
+          {
+            OPENMS_LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run AssayGeneratorMetabo with debug >= 2." << std::endl;
+          }
+        }
+       
         // clean tmp directory if debug level < 2 
         if (debug_level_ >= 2)
         {

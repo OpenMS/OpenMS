@@ -46,7 +46,7 @@ namespace OpenMS
  {   
    vector<const ResidueModification*> modifications;
   
-   for (String modification : modNames)
+   for (const String& modification : modNames)
    {
      const ResidueModification* rm = ModificationsDB::getInstance()->getModification(modification);
      modifications.push_back(rm);

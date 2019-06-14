@@ -92,6 +92,25 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
+
+//-------------------------------------------------------------
+// Doxygen docu
+//-------------------------------------------------------------
+
+/**
+    @page UTILS_RNPxlSearch RNPxlSearch 
+
+    @brief Annotate RNA to peptide crosslinks in MS/MS spectra.
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_RNPxlSearch.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_RNPxlSearch.html
+ */
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
 class RNPxlSearch :
   public TOPPBase
 {
@@ -246,17 +265,19 @@ protected:
   {
     EmpiricalFormula formula; // formula
     String name;  // name used in annotation
-    double mass = 0;
+    double mass = 0.;
 
     FragmentAdductDefinition_() = default;
 
     FragmentAdductDefinition_(const FragmentAdductDefinition_&) = default;
 
-    FragmentAdductDefinition_(FragmentAdductDefinition_&&) = default;
+    // gcc 4 bug, add noexcept when 5 is required
+    FragmentAdductDefinition_(FragmentAdductDefinition_&&) /*noexcept*/ = default;
 
     FragmentAdductDefinition_& operator=(const FragmentAdductDefinition_&) = default;
 
-    FragmentAdductDefinition_& operator=(FragmentAdductDefinition_&&) = default;
+    // gcc 4 bug, add noexcept when 5 is required
+    FragmentAdductDefinition_& operator=(FragmentAdductDefinition_&&) /*noexcept*/ = default;
 
     bool operator<(const FragmentAdductDefinition_& other) const
     {

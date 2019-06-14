@@ -86,9 +86,6 @@ namespace OpenMS
     private:
      
         const String na_string = "NA";
-        
-        /// The meta value of the peptide identification which is going to be used for the experimental design link
-        const String meta_value_exp_design_key = "spectra_data";
 
         /*
         *  @brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition in Experimental Design
@@ -98,7 +95,7 @@ namespace OpenMS
         /*
          *  @brief: Internal function to check if MSstats_BioReplicate, MSstats_Condition and MSstats_Mixture in Experimental Design
          */
-        static void checkConditionISO_(const ExperimentalDesign::SampleSection sampleSection, const String& bioreplicate, const String& condition, const String& mixture);
+        static void checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition, const String& mixture);
 
         /*
          *  @brief MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)

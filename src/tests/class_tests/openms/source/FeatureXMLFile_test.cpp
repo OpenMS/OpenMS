@@ -80,7 +80,7 @@ START_SECTION((Size loadSize(const String &filename)))
   FeatureMap e;
   FeatureXMLFile dfmap_file;
   //test exception
-  TEST_EXCEPTION(Exception::FileNotFound&, dfmap_file.loadSize("dummy/dummy.MzData"))
+  TEST_EXCEPTION(Exception::FileNotFound, dfmap_file.loadSize("dummy/dummy.MzData"))
   // real test
   Size r = dfmap_file.loadSize(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"));
   TEST_EQUAL(r, 2);
@@ -98,7 +98,7 @@ START_SECTION((void load(const String &filename, FeatureMap&feature_map)))
   FeatureXMLFile dfmap_file;
 
   //test exception
-  TEST_EXCEPTION(Exception::FileNotFound&, dfmap_file.load("dummy/dummy.MzData", e))
+  TEST_EXCEPTION(Exception::FileNotFound, dfmap_file.load("dummy/dummy.MzData", e))
 
   // real test
   dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
@@ -164,7 +164,10 @@ START_SECTION((void load(const String &filename, FeatureMap&feature_map)))
   //test if loading a second file works (initialization)
   FeatureMap e2;
   dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e2);
-  TEST_EQUAL(e == e2, true)
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  dfmap_file.store(tmp_filename, e2);
+  TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), tmp_filename)
 
   //test of old file with mzData description (version 1.2)
   //here only the downward-compatibility of the new parser is tested
@@ -229,16 +232,15 @@ END_SECTION
 
 START_SECTION((void store(const String &filename, const FeatureMap&feature_map)))
 {
-  std::string tmp_filename;
-  NEW_TMP_FILE(tmp_filename);
-
-  FeatureMap map, map2;
+  FeatureMap map;
   FeatureXMLFile f;
 
   f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), map);
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
   f.store(tmp_filename, map);
-  f.load(tmp_filename, map2);
-  TEST_EQUAL(map == map2, true)
+  WHITELIST("?xml-stylesheet")
+  TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), tmp_filename)
 }
 END_SECTION
 

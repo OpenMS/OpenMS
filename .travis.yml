@@ -3,7 +3,6 @@ sudo: false
 language: cpp
 os:
  - linux
-
 cache:
   - apt
   - ccache
@@ -57,6 +56,9 @@ addons:
          - coinor-libosi-dev
          - coinor-libvol-dev
          - libpcre3-dev
+         - mono-complete
+         - mono-devel
+         - mono-runtime
          
 before_script:
   ./tools/travis/cibuild.before.sh

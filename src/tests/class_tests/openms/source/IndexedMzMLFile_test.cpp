@@ -102,7 +102,7 @@ START_SECTION(( bool getParsingSuccess() const))
   {
     IndexedMzMLHandler file;
     TEST_EQUAL(file.getParsingSuccess(), false)
-    TEST_EXCEPTION(Exception::FileNotFound&, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
     TEST_EQUAL(file.getParsingSuccess(), false)
     file.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML") );
     TEST_EQUAL(file.getParsingSuccess(), true)
@@ -123,7 +123,7 @@ END_SECTION
 START_SECTION(( void openFile(String filename) ))
 {
   IndexedMzMLHandler file;
-  TEST_EXCEPTION(Exception::FileNotFound&, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")))
+  TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")))
   TEST_EQUAL(file.getParsingSuccess(), false)
   file.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(file.getParsingSuccess(), false)
@@ -160,14 +160,14 @@ START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
   TEST_EQUAL(spec->getIntensityArray()->data.size(), exp.getSpectra()[0].size() )
 
   // Test Exceptions
-  TEST_EXCEPTION(Exception::IllegalArgument&,file.getSpectrumById(-1));
-  TEST_EXCEPTION(Exception::IllegalArgument&,file.getSpectrumById( file.getNrSpectra()+1));
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getSpectrumById(-1));
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getSpectrumById( file.getNrSpectra()+1));
 
   {
     IndexedMzMLHandler file;
-    TEST_EXCEPTION(Exception::FileNotFound&, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
     TEST_EQUAL(file.getParsingSuccess(), false)
-    TEST_EXCEPTION(Exception::ParseError&,file.getSpectrumById( 0 ));
+    TEST_EXCEPTION(Exception::ParseError,file.getSpectrumById( 0 ));
   }
 }
 END_SECTION
@@ -197,7 +197,7 @@ START_SECTION(([EXTRA] load broken file))
   // 2^64 bit long...
   if ( sizeof(long long)*8 <= 64 )
   {
-    TEST_EXCEPTION(Exception::ConversionError&, new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_2_broken.mzML")))
+    TEST_EXCEPTION(Exception::ConversionError, new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_2_broken.mzML")))
   }
   else
   {
@@ -231,7 +231,7 @@ START_SECTION(([EXTRA] load broken file))
     // Manually, one can cast the indexoffset variable to int to trigger this
     // behavior in IndexedMzMLDecoder.cpp
     // 
-    TEST_EXCEPTION_WITH_MESSAGE (Exception::ConversionError&, 
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError,
       new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_3_broken.mzML")), 
       "Could not convert string '9223372036854775807' to an integer on your system." )
   }

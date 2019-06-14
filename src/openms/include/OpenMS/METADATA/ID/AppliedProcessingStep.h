@@ -69,7 +69,7 @@ namespace OpenMS
                 (scores == other.scores));
       }
 
-      /* @brief Return scores in order of priority (primary first).
+      /** @brief Return scores in order of priority (primary first).
 
         The order is defined in the @p DataProcessingSoftware referenced by the processing step (if available).
         Scores not listed there are included at the end of the output.
