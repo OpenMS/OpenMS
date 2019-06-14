@@ -34,7 +34,7 @@ public:
   {
   }
 
-  static const bool jitter = false;
+  //static const bool jitter = false;
 
   struct Parameter
   {
@@ -64,6 +64,7 @@ public:
     int numOverlappedScans = minNumOverLappedScans;
     int threads = 1;
     int writeSpecTsv = 0;
+    int jitter = 0;
   };
 
   struct PrecalcularedAveragine
@@ -381,6 +382,15 @@ protected:
                        "to write per spectrum deconvoluted masses or not",
                        false,
                        true);
+
+    registerIntOption_("jitter",
+                       "<1:true 0:false>",
+                       0,
+                       "jitter universal pattern to generate decoy features (output file will end with *Decoy.tsv)",
+                       false,
+                       true);
+
+
   }
 
   Parameter setParameter()
@@ -408,6 +418,7 @@ protected:
     param.minRTSpan = getDoubleOption_("minRTspan");
     param.threads = getIntOption_("threads");
     param.writeSpecTsv = getIntOption_("writeSpecDeconv");
+    param.jitter = getIntOption_("jitter");
     return param;
   }
 
@@ -460,7 +471,13 @@ protected:
       }
       // if (param.RTwindow > 0)
       // {
-      fsf.open(outfilePath + ".tsv", fstream::out);
+
+      if(param.jitter == 0)
+      {
+        fsf.open(outfilePath + ".tsv", fstream::out);
+      }else{
+        fsf.open(outfilePath + "Decoy.tsv", fstream::out);
+      }
       //  }
 
       writeHeader(fs, fsf, true);
@@ -521,7 +538,12 @@ protected:
         {
           fs.open(outfilePath + outfileName + "PerSpecMasses.tsv", fstream::out);
         }
-        fsf.open(outfilePath + outfileName + ".tsv", fstream::out);
+        if(param.jitter == 0)
+        {
+          fsf.open(outfilePath + outfileName + ".tsv", fstream::out);
+        }else{
+          fsf.open(outfilePath + outfileName + "Decoy.tsv", fstream::out);
+        }
 
         writeHeader(fs, fsf, true);
 
@@ -910,7 +932,7 @@ protected:
       }
     }
 
-    if (jitter)
+    if (param.jitter != 0)
     {
       double *tfilter = new double[param.chargeRange];
       auto m = filter[0];
@@ -1144,7 +1166,7 @@ protected:
 
     for (int i = 0; i < param.chargeRange; i++)
     {
-      binOffsets[i] = (long) round((jitter ? random[i] : 0) +
+      binOffsets[i] = (long) round((param.jitter >0 ? random[i] : 0) +
                                    (mzBinMinValue - filter[i] - massBinMinValue) *
                                    param.binWidth);//rand() %10000 + 100 +
       //cout << i << binOffsets[i]<<endl;
