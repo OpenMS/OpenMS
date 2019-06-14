@@ -138,7 +138,7 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Met->Hse (C-term M)");
 
     TEST_EQUAL(
-        AASequence::fromString(".(UniMod:1)PEPC(UniMod:4)PEPM(UniMod:35)PEPR.(UniMod:2)"), 
+        AASequence::fromString(".(UniMod:1)PEPC(UniMod:4)PEPM(UniMod:35)PEPR.(UniMod:2)"),
         AASequence::fromString(".(unimod:1)PEPC(unimod:4)PEPM(unimod:35)PEPR.(unimod:2)") )
   }
 
@@ -279,7 +279,7 @@ START_SECTION(const Residue& getResidue(Size index) const)
 END_SECTION
 
 START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge=0) const))
-  AASequence seq = AASequence::fromString("ACDEF"); 
+  AASequence seq = AASequence::fromString("ACDEF");
   TEST_EQUAL(seq.getFormula(), EmpiricalFormula("O10SH33N5C24"))
   TEST_EQUAL(seq.getFormula(Residue::Full, 1), EmpiricalFormula("O10SH33N5C24+"))
   TEST_EQUAL(seq.getFormula(Residue::BIon, 0), EmpiricalFormula("O9SH31N5C24"))
@@ -561,7 +561,7 @@ START_SECTION(void setModification(Size index, const String &modification))
   TEST_STRING_EQUAL(seq1[5].getModificationName(), "Deamidated");
   // remove modification
   seq1.setModification(5, "");
-  TEST_STRING_EQUAL(seq1.toString(), "ACDEFNK") 
+  TEST_STRING_EQUAL(seq1.toString(), "ACDEFNK")
 END_SECTION
 
 START_SECTION(void setNTerminalModification(const String &modification))
@@ -1231,7 +1231,7 @@ START_SECTION([EXTRA] Peptide equivalence)
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+15.99]GER."))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.035405]GER."))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM(Oxidation)GER."))
-  
+
   // Test Phosphorylation
   TEST_EQUAL(AASequence::fromString("PEPT(UniMod:21)TIDEK"), AASequence::fromString("PEPT(Phospho)TIDEK"))
   TEST_EQUAL(AASequence::fromString("PEPT(UniMod:21)TIDEK"), AASequence::fromString("PEPT[181]TIDEK"))
@@ -1368,7 +1368,7 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:1009)DFPIANGER.")) // not just any N-term is allowed
   TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString(".DC(UniMod:1009)CFPIANGER.")) // not just any C is allowed
   TEST_EQUAL(AASequence::fromString("(UniMod:1009).CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
-  TEST_EQUAL(AASequence::fromString("(UniMod:1009)CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER.")) 
+  TEST_EQUAL(AASequence::fromString("(UniMod:1009)CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
 
   // This case is non-ambiguous since we have absolute mass (13) and relative mass (+12)
   TEST_EQUAL(AASequence::fromString("n[13].CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
@@ -1415,11 +1415,23 @@ START_SECTION([EXTRA] testing uniqueness of modifications)
 
       AASequence tmp3 = AASequence::fromString("PEPTN[+1318.2412190638]IDE");
       AASequence tmp4 = AASequence::fromString("PEPTN[+1186.1877258086]IDE");
-      // TEST_REAL_SIMILAR(tmp3.getMonoWeight(), tmp4.getMonoWeight() ) // this *needs* to fail!!! 
-      TEST_REAL_SIMILAR( fabs(tmp3.getMonoWeight() - tmp4.getMonoWeight()), 132.0534932552 ) // this *needs* to be different! 
-      TEST_REAL_SIMILAR( fabs(tmp3.getMonoWeight() - tmp1.getMonoWeight()), 132.0534932552 ) // this *needs* to be different! 
+      // TEST_REAL_SIMILAR(tmp3.getMonoWeight(), tmp4.getMonoWeight() ) // this *needs* to fail!!!
+      TEST_REAL_SIMILAR( fabs(tmp3.getMonoWeight() - tmp4.getMonoWeight()), 132.0534932552 ) // this *needs* to be different!
+      TEST_REAL_SIMILAR( fabs(tmp3.getMonoWeight() - tmp1.getMonoWeight()), 132.0534932552 ) // this *needs* to be different!
     }
 
+}
+END_SECTION
+
+START_SECTION([EXTRA] testing new type of modification with brackets in their name)
+{
+  AASequence tmp1 = AASequence::fromString("PEPTK(Xlink:DSS[156])IDE");
+  AASequence tmp2 = AASequence::fromString("PEPTK(Xlink:DSS[155])IDE");
+
+  TEST_EQUAL(tmp1[4].getModification()->getDiffMonoMass(), 156.078644)
+  TEST_EQUAL(tmp1.toString(), "PEPTK(Xlink:DSS[156])IDE")
+  TEST_EQUAL(tmp2[4].getModification()->getDiffMonoMass(), 155.094629)
+  TEST_EQUAL(tmp2.toString(), "PEPTK(Xlink:DSS[155])IDE")
 }
 END_SECTION
 
