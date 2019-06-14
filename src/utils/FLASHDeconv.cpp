@@ -46,8 +46,11 @@ public:
 
     double intensityThreshold;// advanced parameters
     double minIsotopeCosine;
-    double maxIsotopeCosine;
     double minChargeCosine;
+
+    double minIsotopeCosineSpec;
+    double minChargeCosineSpec;
+
     int minContinuousChargePeakCount;
     int maxIsotopeCount;
     int maxMassCount;
@@ -334,37 +337,44 @@ protected:
     registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
 
-    registerIntOption_("minP", "<min continuous charge peak count>", 3,
-                       "minimum number of peaks of continuous charges per mass", false, true);
     registerDoubleOption_("minIC",
-                          "<...>",
-                          .5,
-                          "cosine threshold between avg. isotope and observed intensities",
+                          "<cosine threshold 0 - 1>",
+                          .7,
+                          "cosine threshold between avg. and observed isotope pattern",
                           false,
-                          true);
-    /*registerDoubleOption_("minIC2",
-                          "<...>",
-                          .8,
-                          "cosine threshold between avg. isotope and observed intensities for mass=100kDa",
-                          false,
-                          true);*/
-
+                          false);
     registerDoubleOption_("minCC",
-                          "<...>",
+                          "<cosine threshold 0 - 1>",
+                          .7,
+                          "cosine threshold between per-charge-intensity and fitted gaussian distribution",
+                          false,
+                          false);
+
+
+    registerDoubleOption_("minICS",
+                          "<cosine threshold 0 - 1>",
                           .5,
-                          "cosine threshold between charge intensity and fitted gaussian distribution",
+                          "cosine threshold between avg. and observed isotope pattern (spectrum level)",
+                          false,
+                          true);
+    registerDoubleOption_("minCCS",
+                          "<cosine threshold 0 - 1>",
+                          .5,
+                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level)",
                           false,
                           true);
 
-    //registerIntOption_("maxIC", "<max isotope count>", 300, "maximum isotope count", false, true);
+    registerIntOption_("minCP", "<min continuous charge peak count>", 3,
+                       "minimum number of peaks of continuous charges per mass", false, true);
+
 
     registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
     //
-    registerDoubleOption_("minInt", "<min intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
+    registerDoubleOption_("minIT", "<min intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 0.0,
-                          "RT window for feature extraction (if 0, 2% total gradient time)", false, true);
-    registerDoubleOption_("minRT", "<seconds>", 1.0,
-                          "Min feature RT span for feature extraction", false, true);
+                          "RT window (if 0, 2% total gradient time)", false, true);
+    registerDoubleOption_("minRTspan", "<seconds>", 1.0,
+                          "Min feature RT span", false, true);
     registerIntOption_("writeSpecDeconv",
                        "<1:true 0:false>",
                        0,
@@ -382,16 +392,20 @@ protected:
     param.minMass = getDoubleOption_("minM");
     param.tolerance = getDoubleOption_("tol") * 1e-6;
     param.binWidth = .5 / param.tolerance;
-    param.intensityThreshold = getDoubleOption_("minInt");
-    param.minContinuousChargePeakCount = getIntOption_("minP");
+    param.intensityThreshold = getDoubleOption_("minIT");
+    param.minContinuousChargePeakCount = getIntOption_("minCP");
     param.minIsotopeCosine = getDoubleOption_("minIC");
+    param.minChargeCosine = getDoubleOption_("minCC");
+
+    param.minIsotopeCosineSpec = getDoubleOption_("minICS");
+    param.minChargeCosineSpec = getDoubleOption_("minCCS");
+
     //  param.maxIsotopeCosine = getDoubleOption_("minIC1");
     //param.maxIsotopeCount = getIntOption_("maxIC");
     param.maxMassCount = getIntOption_("maxMC");
-    param.minChargeCosine = getDoubleOption_("minCC");
     //param.chargeDistributionScoreThreshold = getDoubleOption_("minCDScore");
     param.RTwindow = getDoubleOption_("RTwindow");
-    param.minRTSpan = getDoubleOption_("minRT");
+    param.minRTSpan = getDoubleOption_("minRTspan");
     param.threads = getIntOption_("threads");
     param.writeSpecTsv = getIntOption_("writeSpecDeconv");
     return param;
@@ -732,7 +746,7 @@ protected:
       fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
       //mt.getIntensity()
       //double sum_intensity = .0;
-      auto mass = 0;//mt.getCentroidMZ();
+      double mass = 0;//mt.getCentroidMZ();
       double avgMass = 0;
       double max_intensity = .0;
 
@@ -2075,7 +2089,7 @@ protected:
 
       pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.chargeRange);
 
-      if (pg.peaks.empty() || (pg.chargeCosineScore < param.minChargeCosine))
+      if (pg.peaks.empty() || (pg.chargeCosineScore < param.minChargeCosineSpec))
       {
         continue;
       }
@@ -2113,11 +2127,11 @@ protected:
                                                                        param.maxIsotopeCount,
                                                                        averagines, offset);
 
-      double isotopeCosineThreshold = param.minIsotopeCosine;// getIsotopeCosineThreshold(pg.peaks[0].getMass(),
+      //double isotopeCosineThreshold = param.minIsotopeCosineSpec;// getIsotopeCosineThreshold(pg.peaks[0].getMass(),
       //   param.minIsotopeCosine, param.maxIsotopeCosine,
       //  0, 100000);
 
-      if (pg.peaks.empty() || (pg.isotopeCosineScore < isotopeCosineThreshold))
+      if (pg.peaks.empty() || (pg.isotopeCosineScore < param.minIsotopeCosineSpec))
       {
         continue;
       }
