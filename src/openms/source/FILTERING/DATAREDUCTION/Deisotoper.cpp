@@ -46,6 +46,7 @@ namespace OpenMS
 void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
                       double fragment_tolerance,
                       bool fragment_unit_ppm,
+                      std::string model,
                       int min_charge,
                       int max_charge,
                       bool keep_only_deisotoped,
@@ -55,6 +56,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
                       bool annotate_charge)
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
+  OPENMS_PRECONDITION(model == "decreasing" || model == "none", "Model must be one of: none, decreasing.");
 
   if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
   {
@@ -83,6 +85,9 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
   int feature_number = 0;
 
   std::vector<size_t> extensions;
+
+  // Decreasing model: assume intensity in the isotopic envelope decreases (this is often not a good assumption).
+  bool model_decreasing = (model == "decreasing");
 
   for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
   {
@@ -113,7 +118,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
           {
             // Possible improvement: include proper averagine model filtering. for now start at the second peak to test hypothesis
             // Note: this is a common approach used in several other search engines
-            if (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity())
+            if (model_decreasing && old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity())
             {
               has_min_isopeaks = (i >= min_isopeaks);
               break;

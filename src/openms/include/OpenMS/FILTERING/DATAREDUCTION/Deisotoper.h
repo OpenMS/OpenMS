@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <string.h>
+
 namespace OpenMS
 {
 
@@ -47,28 +49,50 @@ class OPENMS_DLLAPI Deisotoper
 {
   public:
 
-  /** @brief Detect isotopic clusters in a fragment spectrum.
+  /** @brief Detect isotopic clusters in a mass spectrum.
+
+    Deisotoping is based on C13 abundance and will try to identify a simple
+    model based on the C12-C13 distance and charge state. This is often a good
+    approximation for peptide fragment ion spectra but may not work well for
+    other spectra. The algorithm will consider each peak (starting from the
+    right of a spectrum) and, for each peak, attempt to add isotopic peaks to
+    its envelope until either no peak is found, the maximum number of isotopic
+    peaks is reached or the intensity of the peak is higher than the previous
+    peak ("decreasing" model only).
 
     Deisotoping is done in-place and if @p annotate_charge is true,
     an additional IntegerDataArray "charge" will be appended.
     Existing DataArrays are kept and shrunken to the peaks which
     remain in the spectrum.
 
-   * @param [spectra] Input spectra (sorted by m/z)
-   * @param [fragment_tolerance] The tolerance used to match isotopic peaks
-   * @param [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
-   * @param [min_charge] The minimum charge considered
-   * @param [max_charge] The maximum charge considered
-   * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
-   * @param [min_isopeaks] The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
-   * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
-   * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
-   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
-   *        Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
+    @param [spectrum] Input spectra (sorted by m/z)
+    @param [fragment_tolerance] The tolerance used to match isotopic peaks
+    @param [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
+    @param [model] Isotopic model to use (see below)
+    @param [min_charge] The minimum charge considered
+    @param [max_charge] The maximum charge considered
+    @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
+    @param [min_isopeaks] The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
+    @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
+    @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
+    @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
+   
+    @note If @p make_single_charged is selected, the original charge (>=1) gets annotated.
+   
+    @note The algorithm expects a centroided spectrum, make sure you have run a peak picker on the data first.
+
+    @note The algorithm only considers C12 and C13 isotopes for the isotopic envelope.
+
+    Available isotopic models:
+
+    - "none": no isotopic model is used and peaks are added to an isotopic envelope even if they are higher in intensity
+    - "decreasing": the algorithm assumes that the monoisotopic peak is the most abundant peak and all other peaks are lower in intensity (this is a very simplistic model and will only work for low mass ions). This will work for fragment ion spectra of small molecules and peptides, but may not work for other applications.
+   
    */
   static void deisotopeAndSingleCharge(MSSpectrum& spectrum,
             double fragment_tolerance,
             bool fragment_unit_ppm,
+            std::string model = "decreasing",
             int min_charge = 1,
             int max_charge = 3,
             bool keep_only_deisotoped = false,

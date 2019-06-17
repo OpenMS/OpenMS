@@ -9,9 +9,11 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "Open
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "OpenMS::Deisotoper":
+
         void deisotopeAndSingleCharge(MSSpectrum & spectra, 
                 double fragment_tolerance, 
                 bool fragment_unit_ppm, 
+                String model,
                 int min_charge, 
                 int max_charge, 
                 bool keep_only_deisotoped, 
@@ -19,4 +21,8 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "Open
                 unsigned int max_isopeaks, 
                 bool make_single_charged, 
                 bool annotate_charge) nogil except + # wrap-attach:Deisotoper
+
+        void deisotopeAndSingleCharge(MSSpectrum & spectra,
+                double fragment_tolerance, 
+                bool fragment_unit_ppm) nogil except +  # wrap-attach:Deisotoper wrap-as:deisotopeAndSingleChargeDefault
 

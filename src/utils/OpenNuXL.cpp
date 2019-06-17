@@ -1039,6 +1039,7 @@ static void scoreShiftedFragments_(
       // deisotope
       Deisotoper::deisotopeAndSingleCharge(spec, 
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+                                         "decreasing",
                                          1, 3, 
                                          false, 
                                          2, 10, 

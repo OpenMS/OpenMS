@@ -204,6 +204,7 @@ namespace OpenMS
       // deisotope
       Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
         fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+        "decreasing", // model
         1, 3,   // min / max charge 
         false,  // keep only deisotoped
         3, 10,  // min / max isopeaks 

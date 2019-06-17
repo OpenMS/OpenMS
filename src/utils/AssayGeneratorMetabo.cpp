@@ -494,6 +494,7 @@ protected:
               Deisotoper::deisotopeAndSingleCharge(spectrum,
                                                   fragment_tolerance,
                                                   fragment_unit_ppm,
+                                                  "decreasing",
                                                   min_charge,
                                                   max_charge,
                                                   keep_only_deisotoped,
