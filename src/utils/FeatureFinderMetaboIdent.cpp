@@ -964,10 +964,10 @@ protected:
               << " chromatogram(s)." << endl;
 
     OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    Log_info.remove(cout); // suppress status output from OpenSWATH
+    OpenMS_Log_info.remove(cout); // suppress status output from OpenSWATH
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    Log_info.insert(cout);
+    OpenMS_Log_info.insert(cout);
     OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
              << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
