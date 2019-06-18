@@ -96,7 +96,7 @@ START_SECTION(eval(double mz))
 END_SECTION
 
 START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity))
-  TEST_EXCEPTION(Exception::IllegalArgument&, SplinePackage(mz1, intensity1));
+  TEST_EXCEPTION(Exception::IllegalArgument, SplinePackage(mz1, intensity1));
 END_SECTION
 
 START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity))

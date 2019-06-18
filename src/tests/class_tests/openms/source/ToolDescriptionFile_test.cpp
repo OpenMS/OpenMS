@@ -88,7 +88,7 @@ START_SECTION((void store(const String &filename, const std::vector< Internal::T
 {
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;
-  TEST_EXCEPTION( Exception::NotImplemented&, f.store("bla", tds))
+  TEST_EXCEPTION( Exception::NotImplemented, f.store("bla", tds))
 }
 END_SECTION
 

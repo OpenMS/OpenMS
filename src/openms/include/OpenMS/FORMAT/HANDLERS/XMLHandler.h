@@ -53,6 +53,9 @@
 
 namespace OpenMS
 {
+  class ProteinIdentification;
+
+
   namespace Internal
   {
 
@@ -242,6 +245,10 @@ public:
 
         return _copy;
       }
+
+      /// throws a ParseError if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
+      /// Should be called before writing any ProtIDs to file
+      void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids);
 
 protected:
       /// Error message of the last error

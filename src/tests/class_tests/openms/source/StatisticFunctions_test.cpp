@@ -76,7 +76,7 @@ START_SECTION([EXTRA](template <typename IteratorType> static double mean(Iterat
 {
 	int x[] = {-1, 0, 1, 2, 3};
 	TEST_EQUAL(Math::mean(x, x + 5), 1);
-	TEST_EXCEPTION(Exception::InvalidRange&, Math::mean(x, x));
+	TEST_EXCEPTION(Exception::InvalidRange, Math::mean(x, x));
 
 	DoubleList y = ListUtils::create<double>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
 	TEST_REAL_SIMILAR(Math::mean(y.begin(), y.end()), 0.5);
@@ -89,7 +89,7 @@ START_SECTION([EXTRA](template <typename IteratorType> static double median(Iter
 	TEST_REAL_SIMILAR(Math::median(x, x + 5, true), 1.0);
   int x2[] = {-1, 0, 1, 2, 3, 4}; // (1+2)/2
   TEST_REAL_SIMILAR(Math::median(x2, x2 + 6, true), 1.5);
-	TEST_EXCEPTION(Exception::InvalidRange&, Math::median(x, x));
+	TEST_EXCEPTION(Exception::InvalidRange, Math::median(x, x));
 
   // unsorted
 	DoubleList y = ListUtils::create<double>("1.0,-0.5,2.0,0.5,-1.0,1.5,0.0");

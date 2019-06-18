@@ -76,7 +76,7 @@ START_SECTION((template <class PeakType, class FeatureType> void run(const Strin
 	map.resize(2);
 	map[0].resize(1);
 	map[1].resize(1);
-	TEST_EXCEPTION(Exception::IllegalArgument&, ff.run("none", map, features, Param(), FeatureMap()))
+	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param(), FeatureMap()))
 
 	//updateRanges -> it works again
 	map.updateRanges();
@@ -86,7 +86,7 @@ START_SECTION((template <class PeakType, class FeatureType> void run(const Strin
 	map[0].setMSLevel(1);
 	map[0].setMSLevel(2);
 	map.updateRanges();
-	TEST_EXCEPTION(Exception::IllegalArgument&, ff.run("none", map, features, Param(), FeatureMap()))
+	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param(), FeatureMap()))
 END_SECTION
 
 START_SECTION((const Flag& getPeakFlag(const IndexPair& index) const))

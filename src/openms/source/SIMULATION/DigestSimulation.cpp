@@ -221,7 +221,7 @@ namespace OpenMS
         digestion.digest(AASequence::fromString(protein_hit->getSequence()), digestion_products);
       }
 
-      for (std::vector<AASequence>::const_iterator dp_it = digestion_products.begin();
+      for (std::vector<AASequence>::iterator dp_it = digestion_products.begin();
            dp_it != digestion_products.end();
            ++dp_it)
       {
@@ -233,7 +233,7 @@ namespace OpenMS
         // If we see this Peptide the first time -> generate corresponding feature
         if (generated_features.count(*dp_it) == 0)
         {
-          PeptideHit pep_hit(1.0, 1, 0, *dp_it);
+          PeptideHit pep_hit(1.0, 1, 0, std::move(*dp_it));
 
           PeptideIdentification pep_id;
           pep_id.insertHit(pep_hit);

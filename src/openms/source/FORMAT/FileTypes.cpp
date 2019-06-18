@@ -141,6 +141,7 @@ namespace OpenMS
     targetMap[FileTypes::PARAMXML] = "paramXML";
     targetMap[FileTypes::XQUESTXML] = "xquest.xml";
     targetMap[FileTypes::JSON] = "json";
+    targetMap[FileTypes::RAW] = "raw";
 
     return targetMap;
   }

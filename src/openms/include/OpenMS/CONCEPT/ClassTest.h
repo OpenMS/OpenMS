@@ -931,7 +931,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
 /**	@brief Exception test macro.
 
  This macro checks if a given type of exception occurred while executing the
- given command.  Example: #TEST_EXCEPTION(Exception::IndexOverflow&,
+ given command.  Example: #TEST_EXCEPTION(Exception::IndexOverflow,
  vector[-1]).  If no or a wrong exception occurred, false is returned,
  otherwise true.
 
@@ -949,11 +949,11 @@ namespace TEST = OpenMS::Internal::ClassTest;
     {                                                                                     \
       command;                                                                            \
     }                                                                                     \
-    catch (exception_type)                                                                \
+    catch (exception_type&)                                                                \
     {                                                                                     \
       TEST::exception = 1;                                                                \
     }                                                                                     \
-    catch (::OpenMS::Exception::BaseException e)                                          \
+    catch (::OpenMS::Exception::BaseException& e)                                          \
     {                                                                                     \
       TEST::exception = 2;                                                                \
       TEST::exception_name = e.getName();                                                 \
@@ -1000,7 +1000,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
 /** @brief Precondition test macro
 
   This macro checks if a precondition violation is detected while executing the command,
-  similar to <code>TEST_EXCEPTION(Exception::Precondition&,command)</code>.
+  similar to <code>TEST_EXCEPTION(Exception::Precondition,command)</code>.
   However the test is executed only when the #OPENMS_PRECONDITION macros are active,
   i.e., when compiling in Debug mode.  (See Macros.h)
 
@@ -1009,7 +1009,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
   @hideinitializer
  */
 #ifdef OPENMS_ASSERTIONS
-#define TEST_PRECONDITION_VIOLATED(command) TEST_EXCEPTION(Exception::Precondition&, command);
+#define TEST_PRECONDITION_VIOLATED(command) TEST_EXCEPTION(Exception::Precondition, command);
 #else
 #define TEST_PRECONDITION_VIOLATED(command) STATUS("TEST_PRECONDITION_VIOLATED(" # command ")  -  skipped");
 #endif
@@ -1037,7 +1037,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  This macro checks if a given type of exception occurred while executing the
  given command and additionally tests for the message of the exception.
 
- Example:  #TEST_EXCEPTION_WITH_MESSAGE(Exception::IndexOverflow&, vector[-1], "a null pointer was specified")
+ Example:  #TEST_EXCEPTION_WITH_MESSAGE(Exception::IndexOverflow, vector[-1], "a null pointer was specified")
 
  If no, a wrong exception occurred or a wrong message is returned, false is
  returned, otherwise true.
@@ -1057,7 +1057,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
     {                                                                                     \
       command;                                                                            \
     }                                                                                     \
-    catch (exception_type et)                                                             \
+    catch (exception_type& et)                                                             \
     {                                                                                     \
       if (std::string(et.getMessage()) != std::string(message))                           \
       {                                                                                   \
@@ -1066,7 +1066,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
       }                                                                                   \
       else TEST::exception = 1;                                                           \
     }                                                                                     \
-    catch (::OpenMS::Exception::BaseException e)                                          \
+    catch (::OpenMS::Exception::BaseException& e)                                          \
     {                                                                                     \
       TEST::exception = 2;                                                                \
       TEST::exception_name = e.getName();                                                 \

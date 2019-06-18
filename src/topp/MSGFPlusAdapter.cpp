@@ -699,7 +699,7 @@ protected:
             double score = elements[12].toDouble();
             UInt rank = 0; // set to 0 at the moment
             Int charge = elements[7].toInt();
-            PeptideHit hit(score, rank, charge, seq);
+            PeptideHit hit(score, rank, charge, std::move(seq));
             hit.addPeptideEvidence(evidence);
             pep_ident.insertHit(hit);
           }
