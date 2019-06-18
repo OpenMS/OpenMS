@@ -157,9 +157,9 @@ public:
   struct LogMzPeak
   {
     Peak1D *orgPeak;
-    double logMz;
+    double logMz = 0;
     double mass = .0;
-    int charge;
+    int charge = 0 ;
     int isotopeIndex = -1;
     //double score;
 
@@ -581,6 +581,7 @@ protected:
         cout << "done" << endl;
 
       }
+     // cout<<4.5<<endl;
       if (isOutPathDir)
       {
         cout << "In this run, FLASHDeconv found " << massCntr << " masses in " << qspecCntr
@@ -621,8 +622,10 @@ protected:
         total_qspecCntr = qspecCntr;
         total_massCntr = massCntr;
         total_featureCntr = featureCntr;
+
       }
 
+      //cout<<5<<endl;
       auto t_end = chrono::high_resolution_clock::now();
       auto end = clock();
 
@@ -746,10 +749,12 @@ protected:
 
     vector<MassTrace> m_traces;
     mtdet.run(map, m_traces);  // m_traces : output of this function
+
+
+   // cout<<1<<endl;
     double *perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMz = new double[param.chargeRange + param.minCharge + 1];
-
     double *perIsotopeIntensity = new double[param.maxIsotopeCount];
 
     for (auto &mt : m_traces)
@@ -789,7 +794,7 @@ protected:
 
         for (auto &p : pg.peaks)
         {
-          if (p.isotopeIndex < 0 || p.isotopeIndex > param.maxIsotopeCount)
+          if (p.isotopeIndex < 0 || p.isotopeIndex >= param.maxIsotopeCount || p.charge <0 || p.charge >= param.chargeRange + param.minCharge + 1)
           {
             continue;
           }
@@ -810,7 +815,7 @@ protected:
         max_intensity = pg.intensity;
         mass = pg.monoisotopicMass;*/
       }
-
+     // cout<<2<<endl;
       if (mass <= 0)
       {
         continue;
@@ -857,6 +862,9 @@ protected:
           << charges.count() << "\t"
           << isoScore << "\t"
           << chargeScore << "\n";
+
+     // cout<<3<<endl;
+
       /*for (int charge = param.minCharge; charge < param.chargeRange + param.minCharge; charge++)
       {
         if (perChargeIntensity[charge] <= 0)
@@ -870,11 +878,14 @@ protected:
           perChargeIntensity[param.chargeRange + param.minCharge] << "\n";
 */
     }
-    delete[] perChargeMaxIntensity;
-    delete[] perChargeIntensity;
+   // cout<<4<<endl;
     delete[] perIsotopeIntensity;
     delete[] perChargeMz;
+    delete[] perChargeMaxIntensity;
+    delete[] perChargeIntensity;
+
     delete[] peakGroupMap;
+   // cout<<4.1<<endl;
   }
 
   static void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false)
@@ -1738,7 +1749,7 @@ protected:
                             const Parameter &param, double &minMass, double &maxMass)
   {
     long binThresholdMinMass = (long) getBinNumber(log(minMass), massBinMinValue, param.binWidth);
-    long binThresholdMaxMass = (long) min(massBins.size(), getBinNumber(log(maxMass), massBinMinValue, param.binWidth));
+    long binThresholdMaxMass = (long) min(massBins.size(), 1 + getBinNumber(log(maxMass), massBinMinValue, param.binWidth));
     boost::dynamic_bitset<> isQualified(massBins.size());
 
     //cout<<minMass << " " << maxMass<<endl;
@@ -1750,7 +1761,7 @@ protected:
                        hBinOffsets, binOffsets,
                        logIntensities,
                        param);
-    // cout<<1<<endl;
+     //cout<<1<<endl;
     //printMasses(isQualified, massBinMinValue, continuousChargePeakPairCount, param);
     //auto toSkip = (isQualified | isQualified).flip();
     auto perMassChargeRanges = getFinalMassBins(massBins, mzBins, isQualified, unionMassBins,
@@ -2011,7 +2022,7 @@ protected:
 
       // if (maxIndex >= 0)
       //{
-      if (maxIndex > binStart && maxIndex < binEnd - 1)
+      if (maxIndex > binStart && maxIndex < binEnd)
       {
         //if (sumLogIntensities[maxIndex] >  sumLogIntensities[maxIndex-1] &&
         //    sumLogIntensities[maxIndex] >  sumLogIntensities[maxIndex+1])
