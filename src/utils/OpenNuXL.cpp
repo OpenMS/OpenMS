@@ -124,6 +124,8 @@ struct ImmoniumIonsInPeptide
         case 'L': L = true; break;
         case 'K': K = true; break;
         case 'M': M = true; break;
+        case 'Q': Q = true; break;
+        case 'E': E = true; break;
         default: break;
       }   
     } 
@@ -137,6 +139,8 @@ struct ImmoniumIonsInPeptide
   bool L = false;
   bool K = false;
   bool M = false;
+  bool Q = false;
+  bool E = false;
 }; 
 
 /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
@@ -153,35 +157,95 @@ class AnnotatedHit
 
   static constexpr const char UNKNOWN_NUCLEOTIDE = '?';
   char cross_linked_nucleotide = UNKNOWN_NUCLEOTIDE;
-  // main score
+
+  /**
+       The main score (score) is a linear combination of (weighted) subscores
+  */
   float score = 0;
 
+  //
+  // Scores exclusively calculated from peaks without nucleotide shifts:
+  //
+  
+  /**
+      The total loss score is the X!Tandem HyperScore calculated from b-,y-ions 
+      without any nucleotide shift.
+  */
   float total_loss_score = 0;
-  // total loss morpheus related subscores
+
+  /**
+      The matched ion current in immonium (immonium_score) and precursor ions (precursor_score) 
+      without any nucleotide shift.
+  */
+  float immonium_score = 0;
+  float precursor_score = 0;
+
+  /**
+      The matched ion current (MIC), average fragment error (err), and morpheus score (Morph) are calculated 
+      for b-,y-,a-ions without nucleotide shift. Morph is just the number of matched peaks + the fraction of MIC
+  */
   float MIC = 0;
   float err = 0;
   float Morph = 0;
 
-  float modds = 0; // match odds
+  /**
+      The match odds score (modds), uses a cumulativ binomial distribution to calculate the odds
+      of observing that many matched peaks by chance.
+  */
+  float modds = 0;
 
-  // partial loss morpheus related subscores
+  //
+  // Scores exclusively calculated from nucleotide shifted peaks:
+  //
+ 
+  /**
+      The partial loss score is the X!Tandem HyperScore calculated from b-,y-ions 
+      with nucleotide shifts.
+  */
+  float partial_loss_score = 0;
+
+  /**
+      The matched ion current (pl_MIC), average fragment error (pl_err), and morpheus score (pl_Morph) are calculated 
+      from b-,y-,a-ions with nucleotide shift.
+      Morph: number of matched peaks + the fraction of MIC
+  */
   float pl_MIC = 0;
   float pl_err = 0;
   float pl_Morph = 0;
-  float pl_modds = 0; // match odds
+  float pl_modds = 0;
   float pl_pc_MIC = 0;
   float pl_im_MIC = 0;
 
-  // complete TIC fraction of explained peaks
+  //
+  // Scores calculated from peaks with AND without nucleotide shifts:
+  //
+  
+  /**
+       The complete TIC fraction of explained peaks (total_MIC) (excludes marker ions)
+       For peptides: total_MIC = MIC + im_MIC + pc_MIC (b-,a-,y-ions, immonium ions, precursor ions)
+       For XLs:      total_MIC = MIC + im_MIC + pc_MIC + pl_MIC + pl_pc_MIC + pl_im_MIC (same as above + shifted versions)
+  */
   float total_MIC = 0;
 
-  // subscores
-  float partial_loss_score = 0;
-  float immonium_score = 0;
-  float precursor_score = 0;
+  /**
+       The matched ion current in marker ions (marker_ions_score) is not considered in scoring.
+  */  
   float marker_ions_score = 0;
 
+  /**
+       Coverage of peptide by prefix or suffix ions (fraction)
+       For example: PEPTIDER
+                    01000100 (two of eight ions observed -> 2/8)       
+       Shifted and non-shifted are combined to determine coverage.
+  */
   float ladder_score = 0;
+  /**
+       Longest sequence covered in peptide by prefix or suffix ions (fraction).
+       Coverage of peptide by prefix or suffix ions (fraction)
+       For example: PEPTIDER
+                    01110001 (three ions form the longest sequence -> 3/8)
+       Shifted and non-shifted are combined to determine coverage.
+  */
   float sequence_score = 0;
 
   float best_localization_score = 0;
@@ -366,6 +430,8 @@ protected:
     const Size matched_size)
   {    
     if (matched_size < 1 || N < 1) { return 0; }
+
+    // TODO: try p = Nd/w (number of peaks in spectrum * fragment mass tolerance in Da / MS/MS mass range in Da - see phoshoRS)
 
     const double p = 20.0 / 100.0; // level 20.0 / mz 100.0 (see ThresholdMower)
     const double pscore = boost::math::ibeta(matched_size + 1, N - matched_size, p);
@@ -603,23 +669,20 @@ protected:
         } 
       };
 
-    // TODO: complete with others from  DOI: 10.1021/pr3007045
-    // A Systematic Investigation into the Nature of Tryptic HCD Spectra
-
+    // see DOI: 10.1021/pr3007045 A Systematic Investigation into the Nature of Tryptic HCD Spectra
     static const double imY = EmpiricalFormula("C8H10NO").getMonoWeight(); // 85%
     static const double imW = EmpiricalFormula("C10H11N2").getMonoWeight(); // 84%
     static const double imF = EmpiricalFormula("C8H10N").getMonoWeight(); // 84%
     static const double imL = EmpiricalFormula("C5H12N").getMonoWeight(); // I/L 76%
     static const double imH = EmpiricalFormula("C5H8N3").getMonoWeight(); // 70%
     static const double imC = EmpiricalFormula("C2H6NS").getMonoWeight(); // CaC 61%
-//    static const double imQ = EmpiricalFormula("?").getMonoWeight(); // 52%
-//    static const double imE = EmpiricalFormula("?").getMonoWeight(); // 37%
-//    static const double imN = EmpiricalFormula("?").getMonoWeight(); // 11%
-//    static const double imD = EmpiricalFormula("?").getMonoWeight(); // 4%
-//    static const double imM = EmpiricalFormula("?").getMonoWeight(); // 3%
     static const double imK1 = EmpiricalFormula("C5H13N2").getMonoWeight(); // 2%
-
     static const double imP = EmpiricalFormula("C4H8N").getMonoWeight(); //?
+    static const double imQ = 101.0715; // 52%
+    static const double imE = 102.0555; // 37%
+    static const double imM = 104.0534; // 3%
+//  static const double imN = 87.05584; // 11%
+//  static const double imD = 88.03986; // 4%
 
     if (iip.Y) 
     {
@@ -655,7 +718,15 @@ protected:
     }
     if (iip.M) 
     {
-      match_one_peak_z1(104.05285, im_MIC);
+      match_one_peak_z1(imM, im_MIC);
+    }
+    if (iip.Q) 
+    {
+      match_one_peak_z1(imQ, im_MIC);
+    }
+    if (iip.E) 
+    {
+      match_one_peak_z1(imE, im_MIC);
     }
     im_MIC /= TIC;
 
@@ -854,6 +925,9 @@ protected:
     static const double imK1 = EmpiricalFormula("C5H13N2").getMonoWeight();
     static const double imK2 = EmpiricalFormula("C5H10N1").getMonoWeight();
     static const double imK3 = EmpiricalFormula("C6H13N2O").getMonoWeight();
+    static const double imQ = 101.0715;
+    static const double imE = 102.0555;
+    static const double imM = 104.0534;
 
     for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
     {
@@ -895,7 +969,15 @@ protected:
       }
       if (iip.M) 
       {
-        match_one_peak_z1(104.05285 + fa.mass, plss_im_MIC);
+        match_one_peak_z1(imM + fa.mass, plss_im_MIC);
+      }
+      if (iip.Q) 
+      {
+        match_one_peak_z1(imQ + fa.mass, plss_im_MIC);
+      }
+      if (iip.E) 
+      {
+        match_one_peak_z1(imE + fa.mass, plss_im_MIC);
       }
     }
     plss_im_MIC /= TIC;
@@ -1039,7 +1121,7 @@ static void scoreShiftedFragments_(
       // deisotope
       Deisotoper::deisotopeAndSingleCharge(spec, 
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
-                                         "decreasing",
+                                         "none",
                                          1, 3, 
                                          false, 
                                          2, 10, 
@@ -2074,7 +2156,20 @@ static void scoreShiftedFragments_(
           
           ph.setMetaValue(String("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
-          ph.setMetaValue(String("NuXL:NA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
+          String NA = *mod_combinations_it->second.begin();
+          ph.setMetaValue(String("NuXL:NA"), NA); // return first nucleotide formula matching the index of the empirical formula
+  
+          // length of oligo
+          size_t NA_length = NA.find_first_of("+-");
+          if (NA_length == std::string::npos)
+          {
+            ph.setMetaValue(String("NuXL:NA_length"), NA.size());
+          }
+          else
+          {
+            ph.setMetaValue(String("NuXL:NA_length"), NA_length);
+          }
+
           ph.setMetaValue(String("NuXL:NT"), String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
           ph.setMetaValue(String("NuXL:NA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // NA uncharged mass via empirical formula
           ph.setMetaValue(String("NuXL:isXL"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight() > 0); 

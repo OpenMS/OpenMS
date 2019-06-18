@@ -163,12 +163,6 @@ namespace OpenMS
           // this ensures that sequences with additional reported partial loss match the total weight
           // Note that the partial loss is only relevent on the MS2 and would otherwise be added to the totalweight
           String sequence_string = ph.getSequence().toString();
-          sequence_string.substitute("(RNA:U_prime-H2O)", "");
-          sequence_string.substitute("(RNA:U_prime)", "");
-          sequence_string.substitute("(RNA:U-H3PO4)", "");
-          sequence_string.substitute("(RNA:U-H2O)", "");
-          sequence_string.substitute("(RNA:U)", "");
-          sequence_string.substitute("(RNA:C3O)", "");
 
           const AASequence sequence = AASequence::fromString(sequence_string);
 
@@ -255,29 +249,32 @@ namespace OpenMS
           // If already modified search for an unmodified amino acid and add it there
           if (rna_weight > 0)
           {
-            const AASequence& aa = ph.getSequence();
+            AASequence aa = ph.getSequence();
             const String seq = ph.getSequence().toString();
 
             if (!aa.hasCTerminalModification()) 
             {
-              AASequence new_aa = AASequence::fromString(seq + ".[" + String(rna_weight) + "]");
-              ph.setSequence(new_aa);
+              aa = AASequence::fromString(seq + ".[" + String(rna_weight) + "]");
+              ph.setSequence(aa);
             }
             else if (!aa.hasNTerminalModification()) 
             {
-              AASequence new_aa = AASequence::fromString("[" + String(rna_weight) + "]." + seq);
-              ph.setSequence(new_aa);
+              aa = AASequence::fromString("[" + String(rna_weight) + "]." + seq);
+              ph.setSequence(aa);
             }
             else // place it anywhere
             {
-              for (auto a : aa) // NOTE: performs copy, this cannot possibly work!
+              Size index(0);
+              for (auto & a : aa)
               {
                 if (!a.isModified())
                 {
-                  a.setModification("[" + String(rna_weight) + "]");
+                  aa.setModification(index, "[" + String(rna_weight) + "]");
                   break;
                 }
-              }             
+                ++index;
+              } 
+              ph.setSequence(aa);            
             }
           }          
       }

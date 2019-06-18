@@ -1071,8 +1071,9 @@ namespace OpenMS
 
     // deisotope so we don't consider higher isotopic peaks
     Deisotoper::deisotopeAndSingleCharge(spec, 
-      100,     // tolerance
+      100,    // tolerance
       true,   // ppm 
+      "none", // no isotope model
       1, 6,   // min / max charge 
       false,  // keep only deisotoped
       3, 10,  // min / max isopeaks 
