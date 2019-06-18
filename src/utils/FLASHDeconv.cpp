@@ -330,8 +330,8 @@ protected:
     registerOutputFile_("out",
                         "<output file prefix/output dir>",
                         "",
-                        "Output file prefix or output dir (if prefix, [file prefix].tsv , [file prefix]feature.tsv, and [file prefix].m will be generated. "
-                        "if dir, [dir]/[inputfile].tsv, [dir]/[inputfile]feature.tsv, and [dir]/[inputfile].m are generated per [inputfile])");
+                        "Output file prefix or output dir (if prefix, [file prefix].tsv will be generated. "
+                        "if dir, [dir]/[inputfile].tsv is generated per [inputfile])");
     registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
     registerIntOption_("minC", "<min charge>", 2, "minimum charge state", false, false);
     registerIntOption_("maxC", "<max charge>", 100, "maximum charge state", false, false);
@@ -379,7 +379,7 @@ protected:
     registerIntOption_("writeSpecDeconv",
                        "<1:true 0:false>",
                        0,
-                       "to write per spectrum deconvoluted masses or not",
+                       "to write per spectrum deconvoluted masses or not. If set, [prefix]PerSpecMasses.tsv is generated",
                        false,
                        true);
 
