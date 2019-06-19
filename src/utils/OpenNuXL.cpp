@@ -148,20 +148,49 @@ struct ImmoniumIonsInPeptide
 class AnnotatedHit
 {
   public:
+  /*
+     Slim indices/views to lookup the actual sequence
+   */
   StringView sequence;
   SignedSize peptide_mod_index = 0; // enumeration index of the non-NA peptide modification
   Size rna_mod_index = 0; // index of the NA modification
-  int isotope_error = 0; // wheter the hit has been matched with isotopic misassignment
 
-  float mass_error_p = 0;
+  int isotope_error = 0; // wheter the hit has been matched with isotopic misassignment
 
   static constexpr const char UNKNOWN_NUCLEOTIDE = '?';
   char cross_linked_nucleotide = UNKNOWN_NUCLEOTIDE;
 
   /**
        The main score (score) is a linear combination of (weighted) subscores
+
+       For the fast score (ignoring all shifted peaks) we calculate: 
+         score = 1.0 * total_loss_score 
+               + 1.0 * total_MIC 
+               + 0.333 * mass_error_p;
+ 
+       For the all-ion score we calculate:
+         peptides:
+	      score = -6.486416409280039 
+               + 4.059968526608637   * ah.total_MIC         
+               + 0.5842539236790404  * ah.modds
+               + 0.21721652155697285 * ah.total_loss_score
+               + 1.9988345415208777  * ah.mass_error_p;
+         XLs:
+	       score = -6.648631037190969
+               + 0.4688059636415974  * ah.Morph
+               + 4.0386886051238     * ah.MIC         
+               + 0.5446999629799386  * ah.modds
+               + 0.25318342707227187 * ah.total_loss_score
+               + 0.12472562244230834 * ah.partial_loss_score
+               + 1.2107674392113372  * ah.mass_error_p
+               + 2.3319284783288805  * ah.pl_MIC;
   */
   float score = 0;
+
+  /**
+       Normalized precursor mass error score.
+  */
+  float mass_error_p = 0;
 
   //
   // Scores exclusively calculated from peaks without nucleotide shifts:
@@ -425,15 +454,22 @@ protected:
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   }
 
+  /*
+     @param N number of theoretical peaks
+     @param peak_in_spectrum number of experimental peaks
+     @param matched_size number of matched theoretical peaks
+  */ 
   static double matchOddsScore_(
-    const Size& N, 
+    const Size& N,
+    const float fragment_mass_tolerance_Da,
+    const Size peaks_in_spectrum,
+    const float mass_range_Da,
     const Size matched_size)
   {    
     if (matched_size < 1 || N < 1) { return 0; }
 
-    // TODO: try p = Nd/w (number of peaks in spectrum * fragment mass tolerance in Da / MS/MS mass range in Da - see phoshoRS)
-
-    const double p = 20.0 / 100.0; // level 20.0 / mz 100.0 (see ThresholdMower)
+    // Nd/w (number of peaks in spectrum * fragment mass tolerance in Da / MS/MS mass range in Da - see phoshoRS)
+    const double p = peaks_in_spectrum * fragment_mass_tolerance_Da / mass_range_Da;
     const double pscore = boost::math::ibeta(matched_size + 1, N - matched_size, p);
     if (pscore <= std::numeric_limits<double>::min()) return -log10(std::numeric_limits<double>::min());
     const double minusLog10p1pscore = -log10(pscore);
@@ -732,8 +768,14 @@ protected:
 
     // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
     err = Morph > 2 ? err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
-    modds = matchOddsScore_(total_loss_template_z1_b_ions.size() 
-      + total_loss_template_z1_y_ions.size(), (int)Morph);
+
+    const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000;
+
+    modds = matchOddsScore_(total_loss_template_z1_b_ions.size() + total_loss_template_z1_y_ions.size(),
+     fragment_mass_tolerance_Da,
+     exp_spectrum.size(),
+     exp_spectrum.back().getMZ(),
+     (int)Morph);
   }
 
   static void scoreShiftedLadderIons_(
@@ -984,30 +1026,35 @@ protected:
 
     // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
     plss_err = plss_Morph > 2 ? plss_err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
-    plss_modds = matchOddsScore_(partial_loss_template_z1_b_ions.size() 
-      + partial_loss_template_z1_y_ions.size(), (int)plss_Morph);
+
+    const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000;
+
+    plss_modds = matchOddsScore_(
+     partial_loss_template_z1_b_ions.size() + partial_loss_template_z1_y_ions.size(), 
+     fragment_mass_tolerance_Da,
+     exp_spectrum.size(),
+     exp_spectrum.back().getMZ(),
+     (int)plss_Morph);
   } 
 
+/*
+*  Combine subscores of all-ion scoring.
+*/
   static float calculateCombinedScore(const AnnotatedHit& ah, const bool isXL)
   {
     if (!isXL)
     {
-	    return - 6.486416409280039 
-               + 4.059968526608637   * ah.total_MIC         
-               + 0.5842539236790404  * ah.modds
-               + 0.21721652155697285 * ah.total_loss_score
-               + 1.9988345415208777  * ah.mass_error_p;
+	    return  
+               + 1.0 * ah.total_loss_score
+               + 1.0 * ah.total_MIC         
+               + 1.0 * ah.mass_error_p;
     }
     else
     {
-	    return - 6.648631037190969
-               + 0.4688059636415974  * ah.Morph
-               + 4.0386886051238     * ah.MIC         
-               + 0.5446999629799386  * ah.modds
-               + 0.25318342707227187 * ah.total_loss_score
-               + 0.12472562244230834 * ah.partial_loss_score
-               + 1.2107674392113372  * ah.mass_error_p
-               + 2.3319284783288805  * ah.pl_MIC;
+	    return 
+               + 1.0 * ah.total_loss_score
+               + 1.0 * ah.total_MIC         
+               + 1.0 * ah.mass_error_p;
     }
   }
 
@@ -3370,7 +3417,13 @@ static void scoreShiftedFragments_(
 
       // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
       plss_err = plss_Morph > 2 ? pl_sub_scores.err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
-      plss_modds = matchOddsScore_(pl_spec->size(), (int)plss_Morph);
+
+      const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
+      plss_modds = matchOddsScore_(pl_spec->size(), 
+        fragment_mass_tolerance_Da,
+        exp_spectrum.size(),
+        exp_spectrum.back().getMZ(),
+        (int)plss_Morph);
     }
 #ifdef DEBUG_OpenNuXL
     OPENMS_LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
