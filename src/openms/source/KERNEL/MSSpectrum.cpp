@@ -54,6 +54,7 @@ namespace OpenMS
 
     for (Size i = 0; i < float_data_arrays_.size(); ++i)
     {
+      if (float_data_arrays_[i].empty()) continue;
       if (float_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" +
@@ -71,6 +72,7 @@ namespace OpenMS
 
     for (Size i = 0; i < string_data_arrays_.size(); ++i)
     {
+      if (string_data_arrays_[i].empty()) continue;
       if (string_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
@@ -87,6 +89,7 @@ namespace OpenMS
 
     for (Size i = 0; i < integer_data_arrays_.size(); ++i)
     {
+      if (integer_data_arrays_[i].empty()) continue;
       if (integer_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
