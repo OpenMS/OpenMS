@@ -88,17 +88,9 @@ public:
     }
 
     /// Copy Constructor
-    MRMTransitionGroup(const MRMTransitionGroup & rhs) :
-      tr_gr_id_(rhs.tr_gr_id_),
-      transitions_(rhs.transitions_),
-      chromatograms_(rhs.chromatograms_),
-      precursor_chromatograms_(rhs.precursor_chromatograms_),
-      mrm_features_(rhs.mrm_features_),
-      chromatogram_map_(rhs.chromatogram_map_),
-      precursor_chromatogram_map_(rhs.precursor_chromatogram_map_),
-      transition_map_(rhs.transition_map_)
-    {
-    }
+    MRMTransitionGroup(const MRMTransitionGroup & rhs) = default;
+
+    MRMTransitionGroup(MRMTransitionGroup && rhs) noexcept = default;
 
     /// Destructor
     virtual ~MRMTransitionGroup()
@@ -106,21 +98,9 @@ public:
     }
     //@}
 
-    MRMTransitionGroup & operator=(const MRMTransitionGroup & rhs)
-    {
-      if (&rhs != this)
-      {
-        tr_gr_id_ = rhs.tr_gr_id_;
-        transitions_ = rhs.transitions_;
-        chromatograms_ = rhs.chromatograms_;
-        precursor_chromatograms_ = rhs.precursor_chromatograms_;
-        mrm_features_ = rhs.mrm_features_;
-        transition_map_ = rhs.transition_map_;
-        chromatogram_map_ = rhs.chromatogram_map_;
-        precursor_chromatogram_map_ = rhs.precursor_chromatogram_map_;
-      }
-      return *this;
-    }
+    MRMTransitionGroup & operator=(const MRMTransitionGroup & rhs) = default;
+
+    MRMTransitionGroup & operator=(MRMTransitionGroup && rhs) = default;
 
     inline Size size() const
     {
