@@ -563,6 +563,28 @@ namespace OpenMS
     spectra_ = spectra;
   }
 
+#if 0
+  void MSExperiment::setSpectra(const std::vector<MSSpectrum> && spectra)
+  {
+    spectra_ = std::move(spectra);
+  }
+  
+  void MSExperiment::addSpectrum(const MSSpectrum && spectrum)
+  {
+    spectra_.push_back(std::move(spectrum));
+  }
+
+  void MSExperiment::setChromatograms(const std::vector<MSChromatogram > && chromatograms)
+  {
+    chromatograms_ = std::move(chromatograms);
+  }
+
+  /// adds a chromatogram to the list
+  void MSExperiment::addChromatogram(const MSChromatogram && chromatogram)
+  {
+    chromatograms_.push_back(std::move(chromatogram));
+  }
+#endif 
   /// adds a spectrum to the list
   void MSExperiment::addSpectrum(const MSSpectrum & spectrum)
   {
