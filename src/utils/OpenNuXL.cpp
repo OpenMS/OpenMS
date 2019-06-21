@@ -189,6 +189,12 @@ class AnnotatedHit
 
   /**
        Normalized precursor mass error score.
+       Mass error is assumed normally distributed with:
+         - mean = 0
+         - sd = sqrt(precursor_mass_tolerance) => variance = precursor tolerance
+       Background error (false hits) is assumed uniform in precursor tolerance window.
+           mass_error_prior_negatives = 1.0 / (2.0 * precursor_mass_tolerance);        
+       mass_error_p = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
   */
   float mass_error_p = 0;
 
@@ -452,6 +458,16 @@ protected:
 
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
+  }
+
+
+  // bad score or less then two peaks matching and less than 1% explained signal
+  static bool badTotalLossScore(float hyperScore, float tlss_Morph, float tlss_modds, float tlss_total_MIC)
+  {
+    return (hyperScore < MIN_HYPERSCORE 
+      || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
+      || tlss_modds < 1e-10
+      || tlss_total_MIC < 0.01); 
   }
 
   /*
@@ -1047,14 +1063,14 @@ protected:
 	    return  
                + 1.0 * ah.total_loss_score
                + 1.0 * ah.total_MIC         
-               + 1.0 * ah.mass_error_p;
+               + 0.333 * ah.mass_error_p;
     }
     else
     {
 	    return 
                + 1.0 * ah.total_loss_score
-               + 1.0 * ah.total_MIC         
-               + 1.0 * ah.mass_error_p;
+               + 1.0 * (ah.MIC + ah.immonium_score + ah.precursor_score)         
+               + 0.333 * ah.mass_error_p;
     }
   }
 
@@ -2427,16 +2443,10 @@ static void scoreShiftedFragments_(
       im_MIC   
     );
 
-    const double total_MIC = tlss_MIC + im_MIC + pc_MIC;
+    const double tlss_total_MIC = tlss_MIC + im_MIC + pc_MIC;
 
-    // super bad score
-    if (total_loss_score < MIN_HYPERSCORE 
-      || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-      || tlss_modds < 1e-10
-      || total_MIC < 0.01) 
-    { 
-      return; 
-    }
+    // early-out if super bad score
+    if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { return; }
 
     const double mass_error_ppm = (current_peptide_mass - exp_pc_mass) / exp_pc_mass * 1e6;
     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
@@ -2455,7 +2465,7 @@ static void scoreShiftedFragments_(
     ah.immonium_score = im_MIC;
     ah.precursor_score = pc_MIC;
 
-    ah.total_MIC = total_MIC;
+    ah.total_MIC = tlss_total_MIC;
 
     ah.rna_mod_index = rna_mod_idx;
     ah.isotope_error = isotope_error;
@@ -2469,7 +2479,7 @@ static void scoreShiftedFragments_(
     }
 
     // simple combined score in fast scoring:
-    ah.score = total_loss_score + ah.total_MIC + mass_error_score / 3.0; 
+    ah.score = total_loss_score + tlss_total_MIC + mass_error_score / 3.0; 
 
   #ifdef DEBUG_OpenNuXL
     LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -2957,13 +2967,8 @@ static void scoreShiftedFragments_(
                     im_MIC   
                   );                  
 
-                  // bad score or less then two peaks matching
-                  if (hyperScore < MIN_HYPERSCORE 
-                    || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-                    || tlss_MIC < 0.01) 
-                  { 
-                    continue; 
-                  }
+                  const double tlss_total_MIC = tlss_MIC + im_MIC + pc_MIC;
+                  if (badTotalLossScore(hyperScore, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
                   const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                   const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) 
@@ -2981,7 +2986,7 @@ static void scoreShiftedFragments_(
                   ah.total_loss_score = hyperScore;
                   ah.immonium_score = im_MIC;
                   ah.precursor_score = pc_MIC;
-                  ah.total_MIC = tlss_MIC + im_MIC + pc_MIC;
+                  ah.total_MIC = tlss_total_MIC;
 
                   ah.rna_mod_index = rna_mod_index;
                   ah.isotope_error = isotope_error;
@@ -3101,13 +3106,8 @@ static void scoreShiftedFragments_(
                       im_MIC   
                     );
 
-                    // bad score or less then two peaks matching
-                    if (hyperScore < MIN_HYPERSCORE 
-                      || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-                      || tlss_MIC < 0.01) 
-                    { 
-                      continue; 
-                    }
+                    const double tlss_total_MIC = tlss_MIC + im_MIC + pc_MIC;
+                    if (badTotalLossScore(hyperScore, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
                     float plss_MIC(0), 
                       plss_err(1.0), 
