@@ -497,7 +497,8 @@ protected:
 
         sequence += aa_before;
         sequence += "."; 
-        sequence += hit.getSequence().toString();
+        // Percolator uses square brackets to indicate PTMs
+        sequence += hit.getSequence().toBracketString(false, true);
         sequence += "."; 
         sequence += aa_after;
         
@@ -1061,7 +1062,7 @@ protected:
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          String peptide_sequence = hit->getSequence().toString();
+          String peptide_sequence = hit->getSequence().toBracketString(false, true);
           String psm_identifier = scan_identifier + peptide_sequence;
           
           writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);        
@@ -1090,8 +1091,15 @@ protected:
           }
           else
           {
-            OPENMS_LOG_WARN << "Identifier " << psm_identifier << " not found in peptide map." << endl;
-            hit->setMetaValue("MS:1001492", 0.0);  // svm score
+            // If the input contains multiple PSMs per spectrum, Percolator only reports the top scoring PSM.
+            // The remaining PSMs should be reported as not identified
+            writeDebug_("PSM identifier " + psm_identifier + " not found in peptide map", 10);
+
+            // Percolator's svm score is scaled such that 0.0 is the score at the chosen FDR threshold,
+            // with positive scores representing PSMs under the FDR threshold (i.e. identified)
+            // and negative scores PSMs above the FDR threshold (i.e. not identified);
+            // -100.0 is typically more than low enough to represent a confidently non-identified PSM.
+            hit->setMetaValue("MS:1001492", -100.0);  // svm score
             hit->setMetaValue("MS:1001491", 1.0);  // percolator q value
             hit->setMetaValue("MS:1001493", 1.0);  // percolator pep
 
@@ -1101,7 +1109,7 @@ protected:
             }
             else if (scoreType == "svm")
             {
-              hit->setScore(0.0); // set SVM score to 0.0 if hit not found in results
+              hit->setScore(-100.0); // set SVM score to -100.0 if hit not found in results
             }
           }
         }
