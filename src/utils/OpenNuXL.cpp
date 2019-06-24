@@ -105,6 +105,19 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
+/*
+ 
+
+
+
+
+
+
+
+
+*/
+
+
 // stores which residues (known to give rise to immonium ions) are in the sequence
 struct ImmoniumIonsInPeptide
 {
@@ -211,6 +224,19 @@ class AnnotatedHit
   /**
       The matched ion current in immonium (immonium_score) and precursor ions (precursor_score) 
       without any nucleotide shift.
+
+      see DOI: 10.1021/pr3007045 A Systematic Investigation into the Nature of Tryptic HCD Spectra
+      imY = EmpiricalFormula("C8H10NO").getMonoWeight(); // 85%
+      imW = EmpiricalFormula("C10H11N2").getMonoWeight(); // 84%
+      imF = EmpiricalFormula("C8H10N").getMonoWeight(); // 84%
+      imL = EmpiricalFormula("C5H12N").getMonoWeight(); // I/L 76%
+      imH = EmpiricalFormula("C5H8N3").getMonoWeight(); // 70%
+      imC = EmpiricalFormula("C2H6NS").getMonoWeight(); // CaC 61%
+      imK1 = EmpiricalFormula("C5H13N2").getMonoWeight(); // 2%
+      imP = EmpiricalFormula("C4H8N").getMonoWeight(); //?
+      imQ = 101.0715; // 52%
+      imE = 102.0555; // 37%
+      imM = 104.0534; // 3%
   */
   float immonium_score = 0;
   float precursor_score = 0;
@@ -224,8 +250,7 @@ class AnnotatedHit
   float Morph = 0;
 
   /**
-      The match odds score (modds), uses a cumulativ binomial distribution to calculate the odds
-      of observing that many matched peaks by chance.
+     The match odds (-log10) of observing this number of b-,a-, and y-ions assuming a uniform distribution of noise peaks.      
   */
   float modds = 0;
 
@@ -234,21 +259,56 @@ class AnnotatedHit
   //
  
   /**
-      The partial loss score is the X!Tandem HyperScore calculated from b-,y-ions 
-      with nucleotide shifts.
+      The partial loss score is the X!Tandem HyperScore calculated from b-,a-, and y-ions 
+      with nucleotide shifts. Matches from b- and a-ions are combined, i.e. a matching a_n-ion is counted as b_n-ion.
+      For a precursor with charge N, all fragment ion charges up to N-1 are considered.
+
+      Calculation of HyperScore:
+      yFact = logfactorial_(y_ion_count);
+      bFact = logfactorial_(b_ion_count);
+      hyperScore = log1p(dot_product) + yFact + bFact;
   */
   float partial_loss_score = 0;
 
   /**
-      The matched ion current (pl_MIC), average fragment error (pl_err), and morpheus score (pl_Morph) are calculated 
+      The matched ion current (pl_MIC) of ladder ions, average fragment error (pl_err), and morpheus score (pl_Morph) are calculated 
       from b-,y-,a-ions with nucleotide shift.
       Morph: number of matched peaks + the fraction of MIC
   */
   float pl_MIC = 0;
   float pl_err = 0;
   float pl_Morph = 0;
+
+  /*
+     The match odds (-log10) of observing this number of b-,a-, and y-ions with nucleotide shifts assuming a uniform distribution of noise peaks.      
+  */
   float pl_modds = 0;
+
+  /*
+     The MIC of precursor with all nucleotide shifts.
+     Three variants: No additional loss, loss of water, and loss ammonia.
+     Charge states considered: 1..N (precursor charge)
+  */
   float pl_pc_MIC = 0;
+
+  /**
+      The matched ion current calculated from immonium ions with nucleotide shifts.
+      Only singly charged immonium ions are considered.
+
+      imY = EmpiricalFormula("C8H10NO").getMonoWeight();
+      imW = EmpiricalFormula("C10H11N2").getMonoWeight();
+      imF = EmpiricalFormula("C8H10N").getMonoWeight();
+      imH = EmpiricalFormula("C5H8N3").getMonoWeight();
+      imC = EmpiricalFormula("C2H6NS").getMonoWeight();
+      imP = EmpiricalFormula("C4H8N").getMonoWeight();
+      imL = EmpiricalFormula("C5H12N").getMonoWeight();
+      imK1 = EmpiricalFormula("C5H13N2").getMonoWeight();
+      imK2 = EmpiricalFormula("C5H10N1").getMonoWeight();
+      imK3 = EmpiricalFormula("C6H13N2O").getMonoWeight();
+      imQ = 101.0715;
+      imE = 102.0555;
+      imM = 104.0534;
+   */
   float pl_im_MIC = 0;
 
   //
