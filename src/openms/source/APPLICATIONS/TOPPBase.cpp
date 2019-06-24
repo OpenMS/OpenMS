@@ -1652,7 +1652,7 @@ namespace OpenMS
       return EXTERNAL_PROGRAM_ERROR;
     } 
 
-    bool any_failure = success == false || qp.exitStatus() != 0 || qp.exitCode() != 0;
+    bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
     if (debug_level_ >= 10 || any_failure)
     {
       if (any_failure)
