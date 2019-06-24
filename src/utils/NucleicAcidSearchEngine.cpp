@@ -259,7 +259,8 @@ protected:
     Size isotope;
     String adduct;
 
-    PrecursorInfo(Size scan_index, Int charge, Size isotope, const String& adduct):
+    PrecursorInfo(Size scan_index, Int charge, Size isotope,
+                  const String& adduct):
       scan_index(scan_index), charge(charge), isotope(isotope), adduct(adduct)
     {
     }
@@ -273,9 +274,7 @@ protected:
     NASequence sequence;
     double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
-    Int charge;
-    Size isotope;
-    String adduct;
+    const PrecursorInfo* precursor_ref; // precursor information
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
@@ -643,7 +642,8 @@ protected:
   }
 
 
-  void insertSpectrumPrecursorMass_(multimap<double, PrecursorInfo>& precursor_mass_map, Size scan_index, double mz, Int charge, Size isotope, double adduct_mass, const String& adduct, bool negative_mode)
+  double calculatePrecursorMass_(double mz, Int charge, Size isotope,
+                                 double adduct_mass, bool negative_mode)
   {
     // we want to calculate the unadducted (!) precursor mass at neutral charge:
     double mass = mz * charge - adduct_mass;
@@ -662,8 +662,7 @@ protected:
       mass -= isotope * Constants::C13C12_MASSDIFF_U;
     }
 
-    PrecursorInfo info(scan_index, charge, isotope, adduct);
-    precursor_mass_map.insert(make_pair(mass, info));
+    return mass;
   }
 
 
@@ -749,6 +748,8 @@ protected:
                                           spectrum.getRT(),
                                           spectrum.getPrecursors()[0].getMZ());
       query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
+      query.setMetaValue("precursor_intensity",
+                         spectrum.getPrecursors()[0].getIntensity());
       IdentificationData::DataQueryRef query_ref;
 #pragma omp critical (id_data_access)
       query_ref = id_data.registerDataQuery(query);
@@ -772,7 +773,7 @@ protected:
 #pragma omp critical (id_data_access)
         oligo_ref = id_data.registerIdentifiedOligo(oligo);
 
-        Int charge = hit.charge;
+        Int charge = hit.precursor_ref->charge;
         if ((charge > 0) && negative_mode) charge = -charge;
         IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
                                                      charge);
@@ -782,8 +783,11 @@ protected:
         // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
         match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
-        match.setMetaValue("isotope_offset", hit.isotope);
-        if (!hit.adduct.empty()) match.setMetaValue("adduct", hit.adduct);
+        match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
+        if (!hit.precursor_ref->adduct.empty())
+        {
+          match.setMetaValue("adduct", hit.precursor_ref->adduct);
+        }
 #pragma omp critical (id_data_access)
         id_data.registerMoleculeQueryMatch(match);
       }
@@ -853,14 +857,18 @@ protected:
 
   void generateLFQInput_(IdentificationData& id_data, const String& out_file)
   {
-    // mapping: (oligo, adduct) -> charge -> RTs
-    map<pair<NASequence, String>, map<Int, vector<double>>> rt_info;
+    // mapping: (oligo, adduct) -> charge -> (precursor intensity, RT)
+    map<pair<NASequence, String>,
+        map<Int, vector<pair<double, double>>>> rt_info;
     for (const IdentificationData::MoleculeQueryMatch& match :
            id_data.getMoleculeQueryMatches())
     {
       auto key = make_pair(match.getIdentifiedOligoRef()->sequence,
                            match.getMetaValue("adduct"));
-      rt_info[key][match.charge].push_back(match.data_query_ref->rt);
+      double rt = match.data_query_ref->rt;
+      double prec_int =
+        match.data_query_ref->getMetaValue("precursor_intensity");
+      rt_info[key][match.charge].push_back(make_pair(prec_int, rt));
     }
 
     SVOutStream tsv(out_file);
@@ -876,13 +884,18 @@ protected:
         name += "+[" + entry.first.second + "]";
         ef += parseAdduct_(entry.first.second);
       }
+      // strategy for selecting RT (should be near the top of the elution peak):
+      // get highest-intensity precursor per charge, use median RT of those
       // @TODO: use charge-specific RTs?
       vector<Int> charges;
       vector<double> rts;
-      for (const auto& pair : entry.second)
+      for (const auto& charge_pair : entry.second)
       {
-        charges.push_back(pair.first);
-        rts.insert(rts.end(), pair.second.begin(), pair.second.end());
+        charges.push_back(charge_pair.first);
+        // get RT of precursor with max. intensity per charge:
+        auto best_it = max_element(charge_pair.second.begin(),
+                                   charge_pair.second.end());
+        rts.push_back(best_it->second);
       }
       tsv << name << ef << 0 << ListUtils::concatenate(charges, ",");
       // @TODO: do something more sophisticated for the RT?
@@ -980,7 +993,7 @@ protected:
     }
 
     // load MS2 map
-    PeakMap spectra;
+    MSExperiment spectra;
     MzMLFile f;
     f.setLogType(log_type_);
 
@@ -1051,15 +1064,18 @@ protected:
         precursor_charge = abs(precursor_charge); // adjust for neg. mode
 
         // calculate precursor mass (optionally corrected for adducts and peak
-        // misassignment) and map it to MS scan index:
+        // misassignment) and map it to MS scan index etc.:
         for (const auto& adduct_pair : adduct_masses)
         {
           for (Int isotope_number : precursor_isotopes)
           {
-            insertSpectrumPrecursorMass_(precursor_mass_map, scan_index,
-                                         precursor_mz, precursor_charge,
-                                         isotope_number, adduct_pair.first,
-                                         adduct_pair.second, negative_mode);
+            double precursor_mass =
+              calculatePrecursorMass_(precursor_mz, precursor_charge,
+                                      isotope_number, adduct_pair.first,
+                                      negative_mode);
+            PrecursorInfo info(scan_index, precursor_charge, isotope_number,
+                               adduct_pair.second);
+            precursor_mass_map.insert(make_pair(precursor_mass, info));
           }
         }
       }
@@ -1272,9 +1288,7 @@ protected:
                 ah.precursor_error_ppm =
                   (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
                 ah.annotations = annotations;
-                ah.charge = charge;
-                ah.isotope = prec_it->second.isotope;
-                ah.adduct = prec_it->second.adduct;
+                ah.precursor_ref = &(prec_it->second);
               }
             }
           }
