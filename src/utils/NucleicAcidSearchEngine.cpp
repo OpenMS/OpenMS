@@ -850,7 +850,9 @@ protected:
     {
       IDFilter::filterQueryMatchesByScore(id_data, fdr_ref, fdr_cutoff);
       OPENMS_LOG_INFO << "Search hits after FDR filtering: "
-               << id_data.getMoleculeQueryMatches().size() << endl;
+                      << id_data.getMoleculeQueryMatches().size()
+                      << "\nIdentified spectra after FDR filtering: "
+                      << id_data.getDataQueries().size() << endl;
     }
   }
 
@@ -1297,10 +1299,11 @@ protected:
     }
     progresslogger.endProgress();
 
-    OPENMS_LOG_INFO << "Undigested nucleic acids: " << fasta_db.size() << endl;
-    OPENMS_LOG_INFO << "Oligonucleotides: " << id_data.getIdentifiedOligos().size()
-             << endl;
-    OPENMS_LOG_INFO << "Search hits: " << hit_counter << endl;
+    OPENMS_LOG_INFO << "Undigested nucleic acids: " << fasta_db.size()
+                    << "\nOligonucleotides: "
+                    << id_data.getIdentifiedOligos().size()
+                    << "\nSearch hits (spectrum matches): " << hit_counter
+                    << endl;
 
     if (!exp_ms2_out.empty())
     {
@@ -1314,6 +1317,8 @@ protected:
     progresslogger.startProgress(0, 1, "post-processing search hits...");
     postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
     progresslogger.endProgress();
+    OPENMS_LOG_INFO << "Identified spectra: " << id_data.getDataQueries().size()
+                    << endl;
 
     // FDR:
     if (!decoy_pattern.empty())
