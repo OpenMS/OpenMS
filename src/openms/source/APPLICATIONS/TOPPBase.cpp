@@ -1652,16 +1652,27 @@ namespace OpenMS
       return EXTERNAL_PROGRAM_ERROR;
     } 
 
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
+    if (debug_level_ >= 10 || any_failure)
     {
-      writeLog_("FATAL: External invocation of " + String(executable) + " failed. Standard output and error were:");
+      if (any_failure)
+      {
+        writeLog_("FATAL ERROR: External invocation of " + String(executable) + " failed. Standard output and error were:");
+      }
+      else
+      {
+        writeLog_("DEBUG: External invocation of " + String(executable) + " returned the following standard output/error and exit code:");
+      }
       const QString external_sout(qp.readAllStandardOutput());
       const QString external_serr(qp.readAllStandardError());
-      writeLog_(external_sout);
-      writeLog_(external_serr);
-      writeLog_(String(qp.exitCode()));
-      qp.close();
-      return EXTERNAL_PROGRAM_ERROR;
+      writeLog_("Standard output: " + external_sout);
+      writeLog_("Standard error: " + external_serr);
+      writeLog_("Exit code: " + String(qp.exitCode()));
+      if (any_failure)
+      {
+        qp.close();
+        return EXTERNAL_PROGRAM_ERROR;
+      }
     }
 
     qp.close();
