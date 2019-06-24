@@ -243,6 +243,8 @@ namespace OpenMS
           ph.setMetaValue("NuXL:z4 mass", (double)weight_z4);
           csv_rows.push_back(row);
 
+
+/*
           // In the last annotation step we add the oligo as delta mass modification
           // to get the proper theoretical mass annotated in the PeptideHit
           // Try to add it to the C- then N-terminus. 
@@ -254,12 +256,12 @@ namespace OpenMS
 
             if (!aa.hasCTerminalModification()) 
             {
-              aa = AASequence::fromString(seq + ".[" + String(rna_weight) + "]");
+              aa = AASequence::fromString(seq + ".[" + String(rna_weight + Residue::getInternalToCTerm().getMonoWeight()) + "]");
               ph.setSequence(aa);
             }
             else if (!aa.hasNTerminalModification()) 
             {
-              aa = AASequence::fromString("[" + String(rna_weight) + "]." + seq);
+              aa = AASequence::fromString("[" + String(rna_weight + Residue::getInternalToNTerm().getMonoWeight()) + "]." + seq);
               ph.setSequence(aa);
             }
             else // place it anywhere
@@ -269,14 +271,15 @@ namespace OpenMS
               {
                 if (!a.isModified())
                 {
-                  aa.setModification(index, "[" + String(rna_weight) + "]");
+                  aa.setModification(index, "[+" + String(rna_weight) + "]");
                   break;
                 }
                 ++index;
               } 
               ph.setSequence(aa);            
             }
-          }          
+          }
+*/          
       }
     }
   }

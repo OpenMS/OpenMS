@@ -466,7 +466,7 @@ protected:
   {
     return (hyperScore < MIN_HYPERSCORE 
       || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-      || tlss_modds < 1e-10
+//      || tlss_modds < 1e-10
       || tlss_total_MIC < 0.01); 
   }
 
@@ -485,7 +485,9 @@ protected:
     if (matched_size < 1 || N < 1) { return 0; }
 
     // Nd/w (number of peaks in spectrum * fragment mass tolerance in Da / MS/MS mass range in Da - see phoshoRS)
-    const double p = peaks_in_spectrum * fragment_mass_tolerance_Da / mass_range_Da;
+    //const double p = peaks_in_spectrum * fragment_mass_tolerance_Da / mass_range_Da;
+
+    const double p = 20.0 / 100.0; // level 20.0 / mz 100.0 (see ThresholdMower)
     const double pscore = boost::math::ibeta(matched_size + 1, N - matched_size, p);
     if (pscore <= std::numeric_limits<double>::min()) return -log10(std::numeric_limits<double>::min());
     const double minusLog10p1pscore = -log10(pscore);
@@ -1062,15 +1064,15 @@ protected:
     {
 	    return  
                + 1.0 * ah.total_loss_score
-               + 1.0 * ah.total_MIC         
-               + 0.333 * ah.mass_error_p;
+/*               + 1.0 * ah.total_MIC         
+               + 0.333 * ah.mass_error_p*/;
     }
     else
     {
 	    return 
-               + 1.0 * ah.total_loss_score
+               + 1.0 * ah.total_loss_score /*
                + 1.0 * (ah.MIC + ah.immonium_score + ah.precursor_score)         
-               + 0.333 * ah.mass_error_p;
+               + 0.333 * ah.mass_error_p*/;
     }
   }
 
@@ -2222,11 +2224,19 @@ static void scoreShiftedFragments_(
           String NA = *mod_combinations_it->second.begin();
           ph.setMetaValue(String("NuXL:NA"), NA); // return first nucleotide formula matching the index of the empirical formula
   
+          double na_mass_z0 = EmpiricalFormula(mod_combinations_it->first).getMonoWeight(); // NA uncharged mass via empirical formula
           // length of oligo
           size_t NA_length = NA.find_first_of("+-");
           if (NA_length == std::string::npos)
           {
-            ph.setMetaValue(String("NuXL:NA_length"), NA.size());
+            if (na_mass_z0 > 0)
+            {
+              ph.setMetaValue(String("NuXL:NA_length"), NA.size());
+            }
+            else
+            {
+              ph.setMetaValue(String("NuXL:NA_length"), 0);
+            }
           }
           else
           {
@@ -2234,8 +2244,8 @@ static void scoreShiftedFragments_(
           }
 
           ph.setMetaValue(String("NuXL:NT"), String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
-          ph.setMetaValue(String("NuXL:NA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // NA uncharged mass via empirical formula
-          ph.setMetaValue(String("NuXL:isXL"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight() > 0); 
+          ph.setMetaValue(String("NuXL:NA_MASS_z0"), na_mass_z0); // NA uncharged mass via empirical formula
+          ph.setMetaValue(String("NuXL:isXL"), na_mass_z0 > 0); 
           ph.setMetaValue(String("NuXL:isPhospho"), is_phospho); 
 
           ph.setMetaValue(String("NuXL:best_localization_score"), ah.best_localization_score);
@@ -2254,6 +2264,7 @@ static void scoreShiftedFragments_(
           ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
           ph.setMetaValue(String("NuXL:ladder_score"), ah.ladder_score);
           ph.setMetaValue(String("NuXL:sequence_score"), ah.sequence_score);
+          ph.setMetaValue(String("CalcMass"), + (fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) + na_mass_z0)/charge); // overwrites CalcMass in PercolatorAdapter
           ph.setMetaValue("rank", rank);
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
@@ -2319,6 +2330,7 @@ static void scoreShiftedFragments_(
        << "NuXL:pl_im_MIC"
        << "NuXL:total_MIC"
        << "NuXL:NA_MASS_z0"
+       << "NuXL:NA_length"   
        << "NuXL:ladder_score"
        << "NuXL:sequence_score"
        << "precursor_intensity_log10";

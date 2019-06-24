@@ -449,9 +449,17 @@ protected:
         
         int charge = hit.getCharge();
         String unmodified_sequence = hit.getSequence().toUnmodifiedString();
-        
-        double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
-        hit.setMetaValue("CalcMass", calc_mass);
+       
+        double calc_mass; 
+        if (!hit.metaValueExists("CalcMass"))
+        {
+          calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
+          hit.setMetaValue("CalcMass", calc_mass);
+        }
+        else
+        {
+          calc_mass = hit.getMetaValue("CalcMass");
+        }
 
         if (hit.metaValueExists("IsotopeError"))  // MSGFPlus
         {
