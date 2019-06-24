@@ -2252,6 +2252,20 @@ static void scoreShiftedFragments_(
           ph.setMetaValue(String("NuXL:localization_scores"), ah.localization_scores);
           ph.setMetaValue(String("NuXL:best_localization"), ah.best_localization);
 
+          // one-hot encoding of cross-linked nucleotide
+          const String can_cross_link = getStringOption_("RNPxl:can_cross_link");
+          for (const auto& c : can_cross_link) 
+          {
+            if (c == ah.cross_linked_nucleotide)
+            { 
+              ph.setMetaValue(String("NuXL:XL_" + String(c)), 1);
+            }
+            else
+            {
+              ph.setMetaValue(String("NuXL:XL_" + String(c)), 0);
+            }
+          }
+
           // also annotate PI to hit so it is available to percolator
           ph.setMetaValue("precursor_intensity_log10", precursor_intensity_log10);
 
@@ -2337,6 +2351,12 @@ static void scoreShiftedFragments_(
 
     if (!purities.empty()) feature_set << "precursor_purity";
 
+    // one-hot encoding of cross-linked nucleotide
+    const String can_cross_link = getStringOption_("RNPxl:can_cross_link");
+    for (const auto& c : can_cross_link) 
+    {
+      feature_set << String("NuXL:XL_" + String(c));
+    }
     search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
