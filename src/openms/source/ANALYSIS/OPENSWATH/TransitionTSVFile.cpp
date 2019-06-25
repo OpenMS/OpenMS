@@ -642,7 +642,7 @@ namespace OpenMS
       }
 
       // check whether we need new proteins
-      for (int i = 0; i < tr_it->ProteinName.size(); ++i)
+      for (size_t i = 0; i < tr_it->ProteinName.size(); ++i)
       {
         if (tr_it->isPeptide() && protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
         {
