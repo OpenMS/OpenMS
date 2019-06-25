@@ -272,15 +272,15 @@ private:
      * @value a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
     OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
-                                          OpenSwathScoring& scorer,
-                                          const size_t feature_idx,
-                                          const std::vector<std::string> & native_ids_detection,
-                                          const double sn_win_len_,
-                                          const unsigned int sn_bin_count_,
-                                          const double det_intensity_ratio_score,
-                                          const double det_mi_ratio_score,
-                                          bool write_log_messages,
-                                          const std::vector<OpenSwath::SwathMap>& swath_maps);
+                                              OpenSwathScoring& scorer,
+                                              const size_t feature_idx,
+                                              const std::vector<std::string> & native_ids_detection,
+                                              const double sn_win_len_,
+                                              const unsigned int sn_bin_count_,
+                                              const double det_intensity_ratio_score,
+                                              const double det_mi_ratio_score,
+                                              bool write_log_messages,
+                                              const std::vector<OpenSwath::SwathMap>& swath_maps);
 
     /// Synchronize members with param class
     void updateMembers_() override;
