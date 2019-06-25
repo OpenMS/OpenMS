@@ -329,6 +329,7 @@ namespace OpenMS
 #pragma omp critical (osw_write_chroms)
 #endif
           {
+            int nr_empty_chromatograms = 0;
             OPENMS_LOG_DEBUG << "[simple] Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
               map_idx << " with m/z " << swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
             for (Size chrom_idx = 0; chrom_idx < tmp_chromatograms.size(); chrom_idx++)
@@ -347,9 +348,15 @@ namespace OpenMS
               }
               else
               {
-                std::cerr << " - Warning: Empty chromatogram " << coordinates[chrom_idx].id <<
+                OPENMS_LOG_DEBUG << " - Warning: Empty chromatogram " << coordinates[chrom_idx].id <<
                   " detected. Will skip it!" << std::endl;
+                nr_empty_chromatograms++;
               }
+            }
+
+            if (nr_empty_chromatograms > 0)
+            {
+              std::cerr << " - Warning: Detected " << nr_empty_chromatograms << " empty chromatograms. Will skip them!" << std::endl;
             }
           }
         }

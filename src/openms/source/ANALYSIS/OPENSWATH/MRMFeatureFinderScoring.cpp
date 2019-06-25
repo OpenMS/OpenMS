@@ -1079,7 +1079,7 @@ namespace OpenMS
       const TransitionType* transition = &transition_exp.getTransitions()[i];
       if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
       {
-        std::cerr << "Error: Transition " + transition->getNativeID() + " from group " +
+        OPENMS_LOG_DEBUG << "Error: Transition " + transition->getNativeID() + " from group " +
           transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
         if (strict_)
         {
