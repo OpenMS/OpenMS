@@ -425,7 +425,7 @@ protected:
     */
     String toString() const;
 
-    /// returns the peptide as string without any modifications
+    /// returns the peptide as string without any modifications or (e.g., "PEPTIDER")
     String toUnmodifiedString() const;
 
     /**
