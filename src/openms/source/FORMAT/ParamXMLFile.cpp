@@ -122,7 +122,7 @@ namespace OpenMS
         // that will be represented differently in the xml
         std::set<String> tag_list = it->tags;
         DataValue::DataType value_type = it->value.valueType();
-        bool stringParamIsBoolean = false;
+        bool stringParamIsFlag = false;
 
         //write opening tag
         switch (value_type)
@@ -147,10 +147,10 @@ namespace OpenMS
             tag_list.erase("output file");
           }
           else if (it->valid_strings.size() == 2 &&
-            std::find(it->valid_strings.begin(),it->valid_strings.end(),"true") != it->valid_strings.end() &&
-            std::find(it->valid_strings.begin(),it->valid_strings.end(),"false") != it->valid_strings.end())
+          it->valid_strings[0] == "true" && it->valid_strings[1] == "false" &&
+          it->value == "false")
           {
-            stringParamIsBoolean = true;
+            stringParamIsFlag = true;
             os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << "\" type=\"bool\"";
           }
           else
@@ -232,8 +232,8 @@ namespace OpenMS
         }
 
         //restrictions
-        // for booleans they are implicitly given in the CTD standard
-        if (!stringParamIsBoolean)
+        // for boolean Flags they are implicitly given
+        if (!stringParamIsFlag)
         {
           String restrictions = "";
           switch (value_type)

@@ -33,4 +33,6 @@
   </ITEMLIST>
   <ITEM name="file_parameter" value="" type="input-file" description="This is a file parameter." required="false" advanced="false" supported_formats="*.mzML,*.mzXML" />
   <ITEM name="advanced_parameter" value="" type="string" description="This is an advanced parameter." required="false" advanced="true" />
+  <ITEM name="flag" value="false" type="bool" description="This is a flag i.e. in a command line input it does not need a value." required="false" advanced="false" />
+  <ITEM name="noflagJustTrueFalse" value="true" type="string" description="This is not a flag but has a boolean meaning." required="false" advanced="false" restrictions="true,false" />
 </PARAMETERS>
