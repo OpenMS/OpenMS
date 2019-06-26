@@ -600,12 +600,17 @@ protected:
           }
           if (inferred_charge == 0)
           {
-            OPENMS_LOG_ERROR << "Error: unable to determine charge state for spectrum '" << spec.getNativeID() << "' based on precursor m/z values " << mz1 << " and " << mz2 << endl;
+            OPENMS_LOG_ERROR
+              << "Error: unable to determine charge state for spectrum '"
+              << spec.getNativeID() << "' based on precursor m/z values "
+              << mz1 << " and " << mz2 << endl;
           }
           else
           {
             ++n_inferred_charge;
-            OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge << " for spectrum '" << spec.getNativeID() << "'" << endl;
+            OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge
+                             << " for spectrum '" << spec.getNativeID() << "'"
+                             << endl;
             // keep only precursor with highest charge, set inferred charge:
             Precursor prec = spec.getPrecursors()[precursors.begin()->second];
             prec.setCharge(abs(inferred_charge));
@@ -629,14 +634,20 @@ protected:
 
     if (n_zero_charge)
     {
-      OPENMS_LOG_WARN << "Warning: no charge state information available for " << n_zero_charge << " out of " << exp.size() << " spectra." << endl;
+      OPENMS_LOG_WARN << "Warning: no charge state information available for "
+                      << n_zero_charge << " out of " << exp.size()
+                      << " spectra." << endl;
       if (n_inferred_charge)
       {
-        OPENMS_LOG_INFO << "Inferred charge states for " << n_inferred_charge << " spectra." << endl;
+        OPENMS_LOG_INFO << "Inferred charge states for " << n_inferred_charge
+                        << " spectra." << endl;
       }
       if (n_zero_charge - n_inferred_charge > 0)
       {
-        OPENMS_LOG_INFO << "Spectra without charge information will be " << (include_unknown_charge ? "included in the processing" : "skipped") << " (see parameter 'precursor:include_unknown_charge')" << endl;
+        OPENMS_LOG_INFO
+          << "Spectra without charge information will be "
+          << (include_unknown_charge ? "included in the processing" : "skipped")
+          << " (see parameter 'precursor:include_unknown_charge')" << endl;
       }
     }
   }
@@ -990,7 +1001,8 @@ protected:
         EmpiricalFormula ef = parseAdduct_(adduct);
         double mass = use_avg_mass ? ef.getAverageWeight() : ef.getMonoWeight();
         adduct_masses[mass] = adduct;
-        OPENMS_LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass << endl;
+        OPENMS_LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass
+                         << endl;
       }
     }
 
@@ -1013,7 +1025,8 @@ protected:
                        single_charge_spectra, negative_mode, min_charge,
                        max_charge, include_unknown_charge);
     progresslogger.endProgress();
-    OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
+    OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra()
+                     << endl;
 
     // build multimap of precursor mass to scan index (and other information):
     multimap<double, PrecursorInfo> precursor_mass_map;
@@ -1212,7 +1225,7 @@ protected:
         {
           const NASequence& candidate = *seq_ptr;
           OPENMS_LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
-                    << float(candidate_mass) << " Da)" << endl;
+                           << float(candidate_mass) << " Da)" << endl;
 
           // pre-generate spectra:
           map<Int, MSSpectrum> theo_spectra_by_charge;
@@ -1222,8 +1235,8 @@ protected:
 
           for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
           {
-            OPENMS_LOG_DEBUG << "Matching precursor mass: " << float(prec_it->first)
-                      << endl;
+            OPENMS_LOG_DEBUG << "Matching precursor mass: "
+                             << float(prec_it->first) << endl;
 
             Size charge = prec_it->second.charge;
             // look up theoretical spectrum for this charge:
@@ -1331,11 +1344,11 @@ protected:
     // store results
     MzTab results = IdentificationDataConverter::exportMzTab(id_data);
     OPENMS_LOG_DEBUG << "Nucleic acid rows: "
-              << results.getNucleicAcidSectionRows().size()
-              << "\nOligonucleotide rows: "
-              << results.getOligonucleotideSectionRows().size()
-              << "\nOligo-spectrum match rows: "
-              << results.getOSMSectionRows().size() << endl;
+                     << results.getNucleicAcidSectionRows().size()
+                     << "\nOligonucleotide rows: "
+                     << results.getOligonucleotideSectionRows().size()
+                     << "\nOligo-spectrum match rows: "
+                     << results.getOSMSectionRows().size() << endl;
 
     MzTabFile().store(out, results);
 
