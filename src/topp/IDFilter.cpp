@@ -232,7 +232,7 @@ protected:
 
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (as defined in the 'SearchParameters' section of the input file).", false);
 
-    registerFlag_("unique", "If a peptide hit occurs more than once per peptide ID, only one instance is kept.");
+    registerFlag_("unique_per_spectrum", "If a peptide-spectrum match occurs more than once for a spectrum, only one instance is kept.", true);
     registerFlag_("unique_per_protein", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the IDs.");
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
@@ -291,7 +291,7 @@ protected:
 
     // Filtering peptide hits according to set criteria
 
-    if (getFlag_("unique"))
+    if (getFlag_("unique_per_spectrum"))
     {
       OPENMS_LOG_INFO << "Removing duplicate peptide hits..." << endl;
       IDFilter::removeDuplicatePeptideHits(peptides);
