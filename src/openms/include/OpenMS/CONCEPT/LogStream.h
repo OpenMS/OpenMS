@@ -449,12 +449,12 @@ private:
   /// Macro to be used if fatal error are reported (processing stops)
 #define OPENMS_LOG_FATAL_ERROR \
   OPENMS_THREAD_CRITICAL(oms_log) \
-  Log_fatal << __FILE__ << "(" << __LINE__ << "): "
+  OpenMS_Log_fatal << __FILE__ << "(" << __LINE__ << "): "
 
   /// Macro to be used if non-fatal error are reported (processing continues)
 #define OPENMS_LOG_ERROR \
   OPENMS_THREAD_CRITICAL(oms_log) \
-  Log_error
+  OpenMS_Log_error
 
   /// Macro if a warning, a piece of information which should be read by the user, should be logged
 #define OPENMS_LOG_WARN \
