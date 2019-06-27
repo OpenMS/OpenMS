@@ -767,7 +767,9 @@ namespace OpenMS
     bool advanced = entry.tags.count("advanced");
     // special case for flags:
     if ((entry.value.valueType() == DataValue::STRING_VALUE) &&
-        (entry.value == "false") && (entry.valid_strings.size() == 2) &&
+        /*entry.tags.count("flag") && */ // This would avoid autoconversion from true/false String Params when they default to false
+        (entry.value == "false") && // This is the current default
+        (entry.valid_strings.size() == 2) &&
         (entry.valid_strings[0] == "true") && (entry.valid_strings[1] == "false"))
     {
       return ParameterInformation(name, ParameterInformation::FLAG, "", "", entry.description, false, advanced);
@@ -2076,6 +2078,7 @@ namespace OpenMS
         tags.push_back("input file");
       if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
         tags.push_back("output file");
+
       switch (it->type)
       {
       case ParameterInformation::STRING:
