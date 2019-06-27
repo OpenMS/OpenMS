@@ -148,7 +148,7 @@ protected:
 
     if (ms_peakmap.empty())
     {
-      LOG_WARN << "The input file does not contain any spectra.";
+      OPENMS_LOG_WARN << "The input file does not contain any spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -171,7 +171,7 @@ protected:
 
     if (spec_db.empty())
     {
-      LOG_WARN << "The spectral library does not contain any spectra.";
+      OPENMS_LOG_WARN << "The spectral library does not contain any spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 

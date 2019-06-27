@@ -188,7 +188,12 @@ START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>& pep
 END_SECTION
 
 
-START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, const String& filename, bool stop_on_error, bool override_spectra_data, vector<ProteinIdentification> proteins)))
+START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, 
+  const String& filename, 
+  bool stop_on_error, 
+  bool override_spectra_data, 
+  bool override_spectra_references, 
+  vector<ProteinIdentification> proteins)))
 {
   vector<PeptideIdentification> peptides(1);
   peptides[0].setRT(5.1);
@@ -196,7 +201,8 @@ START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& 
   String filename = "this_file_does_not_exist.mzML";
   SpectrumMetaDataLookup lookup;
   // missing file -> exception, no non-effective executions
-  TEST_EXCEPTION(Exception::FileNotFound, SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false));
+  TEST_EXCEPTION(Exception::FileNotFound, SpectrumMetaDataLookup::addMissingSpectrumReferences(
+    peptides, filename, false, false));
   // no lookup, no spectrum_references
   TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=666");
 
@@ -204,7 +210,12 @@ START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& 
   peptides[1].setRT(5.3);
   filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
 
-  SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false);
+  SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false, false, false);
+
+  TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=666"); // no overwrite
+  TEST_EQUAL(peptides[1].getMetaValue("spectrum_reference"), "index=2");
+
+  SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false, true, true);
 
   TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=0"); // gets updated
   TEST_EQUAL(peptides[1].getMetaValue("spectrum_reference"), "index=2");

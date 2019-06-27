@@ -147,7 +147,7 @@ namespace OpenMS
       }
       else if (component_1.metaValueExists("native_id"))
       {
-        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+        OPENMS_LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
         const double feature_1 = component_1.getIntensity();
         ratio = feature_1;
       }
@@ -163,13 +163,13 @@ namespace OpenMS
       }
       else if (component_1.metaValueExists(feature_name))
       {
-        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+        OPENMS_LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
         const double feature_1 = component_1.getMetaValue(feature_name);
         ratio = feature_1;
       }
       else
       {
-        LOG_DEBUG << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
+        OPENMS_LOG_DEBUG << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
       }
     }
 
@@ -309,7 +309,7 @@ namespace OpenMS
 
     // initialize all other variables
     Feature empty_feature;
-    size_t IS_component_it, IS_component_group_it;
+    size_t IS_component_it(0), IS_component_group_it(0);
 
     // // iterate through the unknowns
     // for (size_t i = 0; i < unknowns.size(); i++)
@@ -384,8 +384,8 @@ namespace OpenMS
             }
             else
             {
-              LOG_INFO << "Component " << component_name << " IS " << quant_IS_component_name << " was not found.";
-              LOG_INFO << "No concentration will be calculated.\n";
+              OPENMS_LOG_INFO << "Component " << component_name << " IS " << quant_IS_component_name << " was not found.";
+              OPENMS_LOG_INFO << "No concentration will be calculated.\n";
             }
           }
           else
@@ -406,8 +406,8 @@ namespace OpenMS
         }
         else
         {
-          LOG_INFO << "Component " << component_name << " does not have a quantitation method.";
-          LOG_INFO << "No concentration will be calculated.\n";
+          OPENMS_LOG_INFO << "Component " << component_name << " does not have a quantitation method.";
+          OPENMS_LOG_INFO << "No concentration will be calculated.\n";
           unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("calculated_concentration","");
           unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("concentration_units","");
         }
@@ -454,7 +454,7 @@ namespace OpenMS
       // check if the min number of calibration points has been broken
       if (component_concentrations_sorted_indices.size() < min_points_)
       {
-        LOG_INFO << "No optimal calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
+        OPENMS_LOG_INFO << "No optimal calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
         return false;  //no optimal calibration found
       }
 
@@ -486,7 +486,7 @@ namespace OpenMS
       }
       if (bias_check && correlation_coefficient > min_correlation_coefficient_)
       {
-        LOG_INFO << "Valid calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
+        OPENMS_LOG_INFO << "Valid calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
 
         // copy over the final optimized points before exiting
         component_concentrations = component_concentrations_sub;
@@ -689,7 +689,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_DEBUG << "Warning: Standards not found for component " << component_name << ".";
+        OPENMS_LOG_DEBUG << "Warning: Standards not found for component " << component_name << ".";
       }
     }
   }

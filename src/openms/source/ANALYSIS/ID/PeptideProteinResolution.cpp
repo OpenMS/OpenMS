@@ -133,7 +133,7 @@ namespace OpenMS
     {
       if (statistics_ && (old_size - indist_prot_grp_to_pep_.size() > 1))
       {
-        LOG_INFO << "resolved group of size "
+        OPENMS_LOG_INFO << "resolved group of size "
         << old_size - indist_prot_grp_to_pep_.size() << " in last step "
         << endl;
         old_size = indist_prot_grp_to_pep_.size();
@@ -171,9 +171,9 @@ namespace OpenMS
         
         if (curr_component.prot_grp_indices.size() > 1)
         {
-          LOG_INFO << "found group: " << endl;
-          LOG_INFO << curr_component;
-          LOG_INFO << endl << "Processing ..." << endl;
+          OPENMS_LOG_INFO << "found group: " << endl;
+          OPENMS_LOG_INFO << curr_component;
+          OPENMS_LOG_INFO << endl << "Processing ..." << endl;
         }
       }
       
@@ -196,12 +196,12 @@ namespace OpenMS
     //TODO maybe extend statistics of connected components!
     if (statistics_)
     {
-      LOG_INFO << endl << "Most protein groups in component:" << endl;
-      LOG_INFO << most_grps;
-      LOG_INFO << endl << "Most peptides in component:"<< endl;
-      LOG_INFO << most_peps;
-      LOG_INFO << endl << "Biggest component:" << endl;
-      LOG_INFO << most_both;
+      OPENMS_LOG_INFO << endl << "Most protein groups in component:" << endl;
+      OPENMS_LOG_INFO << most_grps;
+      OPENMS_LOG_INFO << endl << "Most peptides in component:"<< endl;
+      OPENMS_LOG_INFO << most_peps;
+      OPENMS_LOG_INFO << endl << "Biggest component:" << endl;
+      OPENMS_LOG_INFO << most_both;
     }
   }
 

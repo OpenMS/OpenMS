@@ -1498,7 +1498,7 @@ namespace OpenMS
       // check all proteins that were already detected (only there we need to update a constraint)
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {
-        if (find(accs.begin(), accs.end(), protein_accs[pa]) == accs.end())
+        if (accs.find(protein_accs[pa]) == accs.end())
           continue;
 
         Int row = model_->getRowIndex((String("PROT_COV_") + protein_accs[pa]).c_str());

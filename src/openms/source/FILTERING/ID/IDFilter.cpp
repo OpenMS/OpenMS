@@ -499,7 +499,7 @@ namespace OpenMS
 
     if (n_metavalue < n_initial)
     {
-      LOG_WARN << "Filtering peptides by RTPredict p-value removed "
+      OPENMS_LOG_WARN << "Filtering peptides by RTPredict p-value removed "
                << (n_initial - n_metavalue) << " of " << n_initial
                << " hits (total) that were missing the required meta value ('"
                << metavalue_key << "', added by RTPredict)." << endl;
@@ -583,7 +583,7 @@ namespace OpenMS
 
     if (n_metavalue < n_initial)
     {
-      LOG_WARN << "Filtering peptides by unique match to a protein removed "
+      OPENMS_LOG_WARN << "Filtering peptides by unique match to a protein removed "
                << (n_initial - n_metavalue) << " of " << n_initial
                << " hits (total) that were missing the required meta value "
                << "('protein_references', added by PeptideIndexer)." << endl;

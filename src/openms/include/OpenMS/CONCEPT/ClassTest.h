@@ -949,11 +949,11 @@ namespace TEST = OpenMS::Internal::ClassTest;
     {                                                                                     \
       command;                                                                            \
     }                                                                                     \
-    catch (exception_type)                                                                \
+    catch (exception_type&)                                                                \
     {                                                                                     \
       TEST::exception = 1;                                                                \
     }                                                                                     \
-    catch (::OpenMS::Exception::BaseException e)                                          \
+    catch (::OpenMS::Exception::BaseException& e)                                          \
     {                                                                                     \
       TEST::exception = 2;                                                                \
       TEST::exception_name = e.getName();                                                 \
@@ -1057,7 +1057,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
     {                                                                                     \
       command;                                                                            \
     }                                                                                     \
-    catch (exception_type et)                                                             \
+    catch (exception_type& et)                                                             \
     {                                                                                     \
       if (std::string(et.getMessage()) != std::string(message))                           \
       {                                                                                   \
@@ -1066,7 +1066,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
       }                                                                                   \
       else TEST::exception = 1;                                                           \
     }                                                                                     \
-    catch (::OpenMS::Exception::BaseException e)                                          \
+    catch (::OpenMS::Exception::BaseException& e)                                          \
     {                                                                                     \
       TEST::exception = 2;                                                                \
       TEST::exception_name = e.getName();                                                 \

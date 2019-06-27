@@ -1587,12 +1587,12 @@ END_SECTION
 
 // warnings for unknown parameters
 // keep outside the scope of a single test to avoid destruction, leaving
-// Log_warn in an undefined state
+// OpenMS_Log_warn in an undefined state
 ostringstream os;
-// checkDefaults sends its warnings to LOG_WARN so we register our own
+// checkDefaults sends its warnings to OPENMS_LOG_WARN so we register our own
 // listener here to check the output
-Log_warn.remove(cout);
-Log_warn.insert(os);
+OpenMS_Log_warn.remove(cout);
+OpenMS_Log_warn.insert(os);
 
 START_SECTION((void checkDefaults(const String &name, const Param &defaults, const String& prefix="") const))
     Param p,d;

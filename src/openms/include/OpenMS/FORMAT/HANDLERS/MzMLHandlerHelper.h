@@ -141,8 +141,8 @@ namespace OpenMS
       */
       static void writeFooter_(std::ostream& os,
                                const PeakFileOptions& options,
-                               const std::vector< std::pair<std::string, long> > & spectra_offsets,
-                               const std::vector< std::pair<std::string, long> > & chromatograms_offsets);
+                               const std::vector< std::pair<std::string, Int64> > & spectra_offsets,
+                               const std::vector< std::pair<std::string, Int64> > & chromatograms_offsets);
 
       /**
         @brief Decode Base64 arrays and write into data_ array

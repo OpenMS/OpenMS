@@ -32,41 +32,33 @@
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H
-#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H
+#pragma once
 
-
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <utility>
-#include <functional>
-
 #include <vector>
-#include <set>
-#include <map>
-
 
 namespace OpenMS
 {
   /**
-        @ingroup Chemistry
+    @ingroup Chemistry
 
-        @brief Isotope distribution class
+    @brief Isotope distribution class
 
-        A container that holds an isotope distribution. It consists from mass values and its 
-        correspondent probabilities. The container mass values does not relate to the 
-        atomic number of the of the molecule. It is a floating precision number and 
-        it maps a specific atomic mass to an abundance of an isotope.
+    A container that holds an isotope distribution. It consists of mass values
+    and their correspondent probabilities (stored in the intensity slot). 
 
-        To bypass this behavior the CoarseIsotopePatternGenerator can be used. It employs
-        an Coarse Isotopic model so the calculations happen with atomic numbers instead of
-        atomic masses.
-        The CoarseIsotopePatternGenerator solver quantizes the atomic masses to integer 
-        numbers that correspond to the atomic number. Then the calculation of the 
-        IsotopeDistribution can produce nominal isotopes with accurate or rounded masses
+    Isotope distributions can be calculated using either the
+    CoarseIsotopePatternGenerator for quantized atomic masses which group
+    isotopes with the same atomic number. Alternatively, the
+    FineIsotopePatternGenerator can be used that calculates hyperfine isotopic
+    distributions. 
 
-    */
+    @note: This class only describes the container that holds the isotopic
+    distribution, calculations are done using classes derived from
+    IsotopePatternGenerator.
+
+  */
   class Element; 
 
   class OPENMS_DLLAPI IsotopeDistribution
@@ -113,15 +105,16 @@ public:
     /// overwrites the container which holds the distribution using @p distribution
     void set(const ContainerType & distribution);
 
+    /// overwrites the container which holds the distribution using @p distribution
     void set(ContainerType && distribution);
 
     /// returns the container which holds the distribution
     const ContainerType & getContainer() const;
 
-    /// returns the maximal weight isotope which is stored in the distribution
+    /// returns the isotope with the largest m/z
     Peak1D::CoordinateType getMax() const;
 
-    /// returns the minimal weight isotope which is stored in the distribution
+    /// returns the isotope with the smallest m/z
     Peak1D::CoordinateType getMin() const;
 
     /// returns the most abundant isotope which is stored in the distribution
@@ -152,7 +145,7 @@ public:
     */
     void renormalize();
 
-     /** @brief Merges distributions arbitrary data points with constant defined resolution.
+     /** @brief Merges distributions of arbitrary data points with constant defined resolution.
         
         It creates a new IsotopeDistribution Container and assigns each isotope to the nearest bin.
         This function should be used to downsample the existing distribution.
@@ -181,7 +174,7 @@ public:
     */
     void trimLeft(double cutoff);
 
-    /// Compute average mass of isotope distribution
+    /// Compute average mass of isotope distribution (weighted average of all isotopes)
     double averageMass() const;
     //@}
 
@@ -228,14 +221,13 @@ public:
     //@{
     /// operator which access a cell of the distribution and wraps it in SpectrumFragment struct
     Peak1D& operator[](const Size& index){ return distribution_[index];}
-
     //@}
-
 
 protected:   
 
     /// sort wrapper of the distribution
     void sort_(std::function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter);
+
     /// takes a function as a parameter to transform the distribution
     void transform_(std::function<void(MassAbundance&)> lambda);
 
@@ -246,4 +238,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H

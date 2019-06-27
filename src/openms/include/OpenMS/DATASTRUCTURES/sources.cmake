@@ -32,6 +32,7 @@ ListUtilsIO.h
 LPWrapper.h
 Map.h
 MassExplainer.h
+MatchedIterator.h
 Matrix.h
 Param.h
 QTCluster.h

@@ -182,8 +182,8 @@ protected:
     const string out_xquest_specxml = getStringOption_("out_xquest_specxml");
     const string out_mzIdentML = getStringOption_("out_mzIdentML");
 
-    LOG_INFO << "Analyzing file: " << endl;
-    LOG_INFO << in_mzml << endl;
+    OPENMS_LOG_INFO << "Analyzing file: " << endl;
+    OPENMS_LOG_INFO << in_mzml << endl;
 
     // load MS2 map
     PeakMap unprocessed_spectra;
@@ -230,7 +230,7 @@ protected:
     OpenPepXLAlgorithm search_algorithm;
     Param this_param = getParam_().copy("", true);
     Param algo_param = search_algorithm.getParameters();
-    algo_param.update(this_param, false, Log_debug); // suppress param. update message
+    algo_param.update(this_param, false, OpenMS_Log_debug); // suppress param. update message
     search_algorithm.setParameters(algo_param);
     search_algorithm.setLogType(this->log_type_);
 

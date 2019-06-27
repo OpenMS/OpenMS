@@ -41,8 +41,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Parameters specific to a database search step.
+    /** @brief Parameters specific to a database search step.
     */
     struct DBSearchParam: public MetaInfoInterface
     {

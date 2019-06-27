@@ -901,7 +901,7 @@ namespace OpenMS
       ++work_steps;
     //reset actual values:
     actual_values = start_values;
-    LOG_INFO << "SVM-CrossValidation -- number of grid cells:" << work_steps << "\n";
+    OPENMS_LOG_INFO << "SVM-CrossValidation -- number of grid cells:" << work_steps << "\n";
 
     work_steps *= number_of_runs * number_of_partitions;
     startProgress(0, work_steps, "SVM-CrossValidation");

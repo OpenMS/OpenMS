@@ -135,7 +135,8 @@ void TMTTenPlexQuantitationMethod::updateMembers_()
     reference_channel_ = t_it - TMTTenPlexQuantitationMethod::channel_names_.begin();
 }
 
-TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other)
+TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other):
+IsobaricQuantitationMethod(other)
 {
     channels_.clear();
     channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
@@ -156,7 +157,7 @@ TMTTenPlexQuantitationMethod& TMTTenPlexQuantitationMethod::operator=(const TMTT
     return *this;
 }
 
-const String& TMTTenPlexQuantitationMethod::getName() const
+const String& TMTTenPlexQuantitationMethod::getMethodName() const
 {
     return TMTTenPlexQuantitationMethod::name_;
 }

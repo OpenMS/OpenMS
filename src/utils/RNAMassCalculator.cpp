@@ -220,7 +220,7 @@ protected:
       }
       catch (Exception::ParseError& /*e*/)
       {
-        LOG_WARN << "Warning: '" << item << "' is not a valid RNA sequence - skipping\n";
+        OPENMS_LOG_WARN << "Warning: '" << item << "' is not a valid RNA sequence - skipping\n";
         continue;
       }
 
@@ -240,11 +240,11 @@ protected:
       }
       if (conversion_failed_count)
       {
-        LOG_WARN << "Warning: Invalid charge state specified in line:" << line_count << ".\n";
+        OPENMS_LOG_WARN << "Warning: Invalid charge state specified in line:" << line_count << ".\n";
       }
       if (local_charges.empty())
       {
-        LOG_WARN << "Warning: No charge state specified - skipping (line:" << line_count << ")\n";
+        OPENMS_LOG_WARN << "Warning: No charge state specified - skipping (line:" << line_count << ")\n";
         continue;
       }
       writeLine_(seq, local_charges);
@@ -288,7 +288,7 @@ protected:
 
     if ((in.size() > 0) && (in_seq.size() > 0))
     {
-      LOG_ERROR << "Specifying an input file and input sequences at the same time is not allowed!";
+      OPENMS_LOG_ERROR << "Specifying an input file and input sequences at the same time is not allowed!";
       return ILLEGAL_PARAMETERS;
     }
 
@@ -300,7 +300,7 @@ protected:
     {
       if (charges.empty())
       {
-        LOG_ERROR << "Error: No charge state specified";
+        OPENMS_LOG_ERROR << "Error: No charge state specified";
         return ILLEGAL_PARAMETERS;
       }
       for (StringList::iterator it = in_seq.begin(); it != in_seq.end(); ++it)
@@ -312,7 +312,7 @@ protected:
         }
         catch (Exception::ParseError& /*e*/)
         {
-          LOG_WARN << "Warning: '" << *it << "' is not a valid RNA sequence - skipping\n";
+          OPENMS_LOG_WARN << "Warning: '" << *it << "' is not a valid RNA sequence - skipping\n";
           continue;
         }
 

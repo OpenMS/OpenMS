@@ -177,7 +177,7 @@ protected:
 
     if (in.size() == 1)
     {
-      LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. "
+      OPENMS_LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. "
                << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
     }
 
@@ -210,7 +210,7 @@ protected:
       {
         if (identifiers.find(entry.identifier) != identifiers.end())
         {
-          LOG_WARN << "DecoyDatabase: Warning, identifier '" << entry.identifier << "' occurs more than once!" << endl;
+          OPENMS_LOG_WARN << "DecoyDatabase: Warning, identifier '" << entry.identifier << "' occurs more than once!" << endl;
         }
         identifiers.insert(entry.identifier);
 

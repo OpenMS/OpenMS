@@ -176,7 +176,7 @@ protected:
      String index_file = File::removeExtension(library_file).append(".spidx");
      if (! File::exists(index_file))
      {
-         LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << endl;
+         OPENMS_LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << endl;
          return INPUT_FILE_NOT_FOUND;
      }
      arguments << library_file.toQString().prepend("-sL");
@@ -190,7 +190,7 @@ protected:
          // Check empty or invalid sequence database type
          if (sequence_database_type.empty())
          {
-            LOG_ERROR << "ERROR: Sequence database type invalid or not provided" << endl;
+            OPENMS_LOG_ERROR << "ERROR: Sequence database type invalid or not provided" << endl;
             return MISSING_PARAMETERS;
          }
          arguments << sequence_database_type.toQString().prepend("-sT");
@@ -224,12 +224,12 @@ protected:
      StringList output_files = getStringList_(TOPPSpectraSTSearchAdapter::param_output_files);
      if (spectra_files.size() != output_files.size())
      {
-        LOG_ERROR << "ERROR: Number of output files does not match number of input files." << endl;
+        OPENMS_LOG_ERROR << "ERROR: Number of output files does not match number of input files." << endl;
         return ILLEGAL_PARAMETERS;
      }
      if (spectra_files.size() < 1)
      {
-         LOG_ERROR << "ERROR: At least one file containing spectra to be searched must be provided." << endl;
+         OPENMS_LOG_ERROR << "ERROR: At least one file containing spectra to be searched must be provided." << endl;
          return ILLEGAL_PARAMETERS;
      }
      String first_output_file = output_files[0];
@@ -246,7 +246,7 @@ protected:
      }
      if (outputFormat.empty())
      {
-         LOG_ERROR << "ERROR: Unrecognized output format from file: " << first_output_file << endl;
+         OPENMS_LOG_ERROR << "ERROR: Unrecognized output format from file: " << first_output_file << endl;
          return ILLEGAL_PARAMETERS;
      }
      // Output files must agree on format
@@ -255,7 +255,7 @@ protected:
          String output_file = *it;
          if (! output_file.hasSuffix(outputFormat))
          {
-             LOG_ERROR << "ERROR: Output filename does not agree in format: "
+             OPENMS_LOG_ERROR << "ERROR: Output filename does not agree in format: "
                        << output_file << " is not " << outputFormat << endl;
              return ILLEGAL_PARAMETERS;
          }
@@ -283,7 +283,7 @@ protected:
      // Exit if the input file format is invalid
      if (inputFormat.empty())
      {
-         LOG_ERROR << "ERROR: Unrecognized input format from file: " << first_input_file << endl;
+         OPENMS_LOG_ERROR << "ERROR: Unrecognized input format from file: " << first_input_file << endl;
          return ILLEGAL_PARAMETERS;
      }
 
@@ -292,7 +292,7 @@ protected:
       String input_file = *it;
       if (! input_file.hasSuffix(inputFormat))
       {
-        LOG_ERROR << "ERROR: Input filename does not agree in format: "
+        OPENMS_LOG_ERROR << "ERROR: Input filename does not agree in format: "
                        << input_file << " is not " << inputFormat << endl;
         return ILLEGAL_PARAMETERS;
       }
@@ -306,7 +306,7 @@ protected:
      {
          ss << " " << it->toStdString();
      }
-     LOG_DEBUG << ss.str() << endl;
+     OPENMS_LOG_DEBUG << ss.str() << endl;
 
      // Run SpectraST
      QProcess spectrast_process;
@@ -314,7 +314,7 @@ protected:
 
      if (! spectrast_process.waitForFinished(-1))
      {
-         LOG_ERROR << "Fatal error running SpectraST\nDoes the spectrast executable exist?" << endl;
+         OPENMS_LOG_ERROR << "Fatal error running SpectraST\nDoes the spectrast executable exist?" << endl;
          return EXTERNAL_PROGRAM_ERROR;
      }
 

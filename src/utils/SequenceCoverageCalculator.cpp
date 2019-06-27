@@ -164,7 +164,7 @@ protected:
         {
           if (identifications[i].getHits().size() > 1)
           {
-            LOG_ERROR << "Spectrum with more than one identification found, which is not allowed.\n"
+            OPENMS_LOG_ERROR << "Spectrum with more than one identification found, which is not allowed.\n"
                       << "Use the IDFilter with the -best_hits option to filter for best hits." << endl;
             return ILLEGAL_PARAMETERS;
           }
@@ -269,7 +269,7 @@ protected:
     else
     {
       // directly use Log_info (no need for protecting output stream in non-parallel section)
-      ret = outputTo_(Log_info);
+      ret = outputTo_(OpenMS_Log_info);
     }
 
     return ret;

@@ -131,7 +131,7 @@ namespace OpenMS
         if (native_id != containers[curr_id].getNativeID())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Native id for spectrum / chromatogram doesnt match");
+              String("Native id for spectrum / chromatogram doesnt match: ") + native_id + " != " +  containers[curr_id].getNativeID() );
         }
 
         int compression = sqlite3_column_int( stmt, 2 );
@@ -307,7 +307,7 @@ namespace OpenMS
           {
             const unsigned char * native_id = sqlite3_column_text(stmt, 1);
             const unsigned char * filename = sqlite3_column_text(stmt, 2);
-            LOG_WARN << "Warning: no full meta data found for run " << native_id << " from file "<< filename << std::endl;
+            OPENMS_LOG_WARN << "Warning: no full meta data found for run " << native_id << " from file "<< filename << std::endl;
           }
           sqlite3_step( stmt );
         }
@@ -317,7 +317,7 @@ namespace OpenMS
 
         if (nr_results == 0)
         {
-          LOG_WARN << "Warning: no meta data found, fall back to inference from SQL data structures." << std::endl;
+          OPENMS_LOG_WARN << "Warning: no meta data found, fall back to inference from SQL data structures." << std::endl;
         }
       }
 
@@ -578,8 +578,7 @@ namespace OpenMS
                     "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
                     "FROM CHROMATOGRAM " \
                     "INNER JOIN PRECURSOR ON CHROMATOGRAM.ID = PRECURSOR.CHROMATOGRAM_ID " \
-                    "INNER JOIN PRODUCT ON CHROMATOGRAM.ID = PRODUCT.CHROMATOGRAM_ID " \
-                    ";";
+                    "INNER JOIN PRODUCT ON CHROMATOGRAM.ID = PRODUCT.CHROMATOGRAM_ID ";
 
       if (!indices.empty())
       {

@@ -153,17 +153,17 @@ namespace OpenMS
 
     if (pos >= (int)sequence.size())
     {
-      LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      OPENMS_LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
     if (pos + length > (int)sequence.size())
     {
-      LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      OPENMS_LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
     if (length == 0 || sequence.empty())
     {
-      LOG_WARN << "Error: fragment and sequence must not be empty!" << endl;
+      OPENMS_LOG_WARN << "Error: fragment and sequence must not be empty!" << endl;
       return false;
     }
 
@@ -272,19 +272,19 @@ namespace OpenMS
     {
       for (Size j = 1; j < count - i; ++j)
       {
-        Size l = fragment_positions[j + i] - fragment_positions[j - 1];
-        if (l >= min_length && l <= max_length)
+        Size m = fragment_positions[j + i] - fragment_positions[j - 1];
+        if (m >= min_length && m <= max_length)
         {
-          output.push_back(sequence.substr(fragment_positions[j - 1], l));
+          output.push_back(sequence.substr(fragment_positions[j - 1], m));
         }
         else ++wrong_size;
       }
 
       // add last cleavage product (need to add because end is not a cleavage site)
-      Size l = sequence.size() - fragment_positions[count - i - 1];
-      if (l >= min_length && l <= max_length)
+      Size n = sequence.size() - fragment_positions[count - i - 1];
+      if (n >= min_length && n <= max_length)
       {
-        output.push_back(sequence.substr(fragment_positions[count - i - 1], l));
+        output.push_back(sequence.substr(fragment_positions[count - i - 1], n));
       }
       else ++wrong_size;
     }

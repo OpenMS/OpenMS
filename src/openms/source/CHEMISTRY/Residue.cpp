@@ -506,8 +506,8 @@ namespace OpenMS
   void Residue::setModification(const String& name)
   {
     ModificationsDB* mod_db = ModificationsDB::getInstance();
-    const ResidueModification& mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
-    setModification_(mod);
+    const ResidueModification* mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
+    setModification_(*mod);
   }
 
   const String& Residue::getModificationName() const

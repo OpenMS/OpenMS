@@ -1015,10 +1015,10 @@ namespace OpenMS
       //unknown parameter
       if (!defaults.exists(it.getName()))
       {
-        LOG_WARN << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
+        OPENMS_LOG_WARN << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
         if (!prefix2.empty())
-          LOG_WARN << " in '" << prefix2 << "'";
-        LOG_WARN << "!" << std::endl;
+          OPENMS_LOG_WARN << " in '" << prefix2 << "'";
+        OPENMS_LOG_WARN << "!" << std::endl;
       }
 
       //different types
@@ -1099,7 +1099,7 @@ namespace OpenMS
 
   bool Param::update(const Param& p_outdated, const bool add_unknown)
   {
-    return update(p_outdated, add_unknown, Log_warn);
+    return update(p_outdated, add_unknown, OpenMS_Log_warn);
   }
 
   bool Param::update(const Param& p_outdated, const bool add_unknown, Logger::LogStream& stream)
@@ -1278,7 +1278,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
       if (!this->exists(it.getName()))
       {
         Param::ParamEntry entry = *it;
-        LOG_DEBUG << "[Param::merge] merging " << it.getName() << std::endl;
+        OPENMS_LOG_DEBUG << "[Param::merge] merging " << it.getName() << std::endl;
         this->root_.insert(entry, prefix);
       }
 
@@ -1288,12 +1288,12 @@ OPENMS_THREAD_CRITICAL(oms_log)
       {
         if (traceIt->opened)
         {
-          LOG_DEBUG << "[Param::merge] extending param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
+          OPENMS_LOG_DEBUG << "[Param::merge] extending param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
           pathname += traceIt->name + ":";
         }
         else
         {
-          LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
+          OPENMS_LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
           if (pathname.hasSuffix(traceIt->name + ":"))
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
         }

@@ -290,14 +290,14 @@ protected:
       appropriate stream:
 
       Macros:
-        - LOG_FATAL_ERROR
-        - LOG_ERROR (non-fatal error are reported (processing continues))
-        - LOG_WARN  (warning, a piece of information which should be read by the user, should be logged)
-        - LOG_INFO (information, e.g. a status should be reported)
-        - LOG_DEBUG (general debugging information -  output be written to cout if debug_level > 0)
+        - OPENMS_LOG_FATAL_ERROR
+        - OPENMS_LOG_ERROR (non-fatal error are reported (processing continues))
+        - OPENMS_LOG_WARN  (warning, a piece of information which should be read by the user, should be logged)
+        - OPENMS_LOG_INFO (information, e.g. a status should be reported)
+        - OPENMS_LOG_DEBUG (general debugging information -  output be written to cout if debug_level > 0)
 
       To use a specific logger of a log level simply use it as cerr or cout: <br>
-      <code> LOG_ERROR << " A bad error occurred ..."  </code>
+      <code> OPENMS_LOG_ERROR << " A bad error occurred ..."  </code>
       <br>
       Which produces an error message in the log.
 
@@ -447,35 +447,35 @@ private:
   } // namespace Logger
 
   /// Macro to be used if fatal error are reported (processing stops)
-#define LOG_FATAL_ERROR \
+#define OPENMS_LOG_FATAL_ERROR \
   OPENMS_THREAD_CRITICAL(oms_log) \
   Log_fatal << __FILE__ << "(" << __LINE__ << "): "
 
   /// Macro to be used if non-fatal error are reported (processing continues)
-#define LOG_ERROR \
+#define OPENMS_LOG_ERROR \
   OPENMS_THREAD_CRITICAL(oms_log) \
   Log_error
 
   /// Macro if a warning, a piece of information which should be read by the user, should be logged
-#define LOG_WARN \
+#define OPENMS_LOG_WARN \
   OPENMS_THREAD_CRITICAL(oms_log) \
-  Log_warn
+  OpenMS_Log_warn
 
   /// Macro if a information, e.g. a status should be reported
-#define LOG_INFO \
+#define OPENMS_LOG_INFO \
   OPENMS_THREAD_CRITICAL(oms_log) \
-  Log_info
+  OpenMS_Log_info
 
   /// Macro for general debugging information
-#define LOG_DEBUG \
+#define OPENMS_LOG_DEBUG \
   OPENMS_THREAD_CRITICAL(oms_log) \
-  Log_debug << __FILE__ << "(" << __LINE__ << "): "
+  OpenMS_Log_debug << __FILE__ << "(" << __LINE__ << "): "
 
-  OPENMS_DLLAPI extern Logger::LogStream Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
-  OPENMS_DLLAPI extern Logger::LogStream Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
-  OPENMS_DLLAPI extern Logger::LogStream Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
 
 } // namespace OpenMS
 

@@ -92,7 +92,7 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
+    OPENMS_LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
 
     // do we have enough features passing the filters to compute the median for every map?
     bool enough_features_left = true;
@@ -110,7 +110,7 @@ namespace OpenMS
 
     if (!enough_features_left)
     {
-      LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
+      OPENMS_LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
       return 0;
     }
     else
@@ -130,7 +130,7 @@ namespace OpenMS
   {
     if (method == NM_SHIFT)
     {
-      LOG_WARN << endl << "WARNING: normalization using median shifting is not recommended for regular log-normal MS data. Use this only if you know exactly what you're doing!" << endl << endl;
+      OPENMS_LOG_WARN << endl << "WARNING: normalization using median shifting is not recommended for regular log-normal MS data. Use this only if you know exactly what you're doing!" << endl << endl;
     }
 
     ConsensusMap::Iterator cf_it;

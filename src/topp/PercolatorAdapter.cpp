@@ -144,9 +144,9 @@ protected:
       
         OPENMS_PRECONDITION(left_dot < right_dot, "Peptide sequence encoding must have dot notation (e.g., A.PEPTIDER.C).")
  
-        // retrieve pre and post AA, e.g., A and C in A.PEPTIDE.C
-        preAA = (row[4][left_dot - 1] == '-') ? '[' : row[4][left_dot - 1];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
-        postAA = (row[4][right_dot + 1] == '-') ? ']' : row[4][right_dot + 1]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
+        // retrieve pre and post AA, e.g., A and C in "A.PEPTIDE.C" or ".PEPTIDE."
+        preAA = (left_dot == 0 || row[4][left_dot - 1] == '-') ? '[' : row[4][left_dot - 1];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
+        postAA = (right_dot + 1 < row[4].size() || row[4][right_dot + 1] == '-') ? ']' : row[4][right_dot + 1]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
 
         // retrieve sequence between dots, e.g., PEPTIDE
         peptide = row[4].substr(left_dot + 1, (right_dot - 1) - (left_dot + 1) + 1);
@@ -294,7 +294,7 @@ protected:
       else
       {
         scan_identifier = "index=" + String(it - start + 1);
-        LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
+        OPENMS_LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
       }
     }
     return scan_identifier.removeWhitespaces();
@@ -409,11 +409,12 @@ protected:
       Int scan_number = getScanNumber_(scan_identifier);
       
       double exp_mass = it->getMZ();
+      double retention_time = it->getRT();
       for (vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
       {
         if (jt->getPeptideEvidences().empty())
         {
-          LOG_WARN << "PSM (PeptideHit) without protein reference found. " 
+          OPENMS_LOG_WARN << "PSM (PeptideHit) without protein reference found. " 
                    << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong enzyme settings)." 
                    << "Will skip this PSM." << endl;
           continue;
@@ -453,6 +454,12 @@ protected:
         }
                 
         hit.setMetaValue("ExpMass", exp_mass);
+        
+        // needed in case "description of correct" option is used
+        double delta_mass = exp_mass - calc_mass;
+        hit.setMetaValue("deltamass", delta_mass);
+        hit.setMetaValue("retentiontime", retention_time);
+        
         hit.setMetaValue("mass", exp_mass);
         
         double score = hit.getScore();
@@ -477,7 +484,6 @@ protected:
         int enzInt = countEnzymatic_(unmodified_sequence, enz);
         hit.setMetaValue("enzInt", enzInt);
         
-        double delta_mass = exp_mass - calc_mass;
         hit.setMetaValue("dm", delta_mass);
         
         double abs_delta_mass = abs(delta_mass);
@@ -491,7 +497,8 @@ protected:
 
         sequence += aa_before;
         sequence += "."; 
-        sequence += hit.getSequence().toString();
+        // Percolator uses square brackets to indicate PTMs
+        sequence += hit.getSequence().toBracketString(false, true);
         sequence += "."; 
         sequence += aa_after;
         
@@ -571,14 +578,14 @@ protected:
       String in = *fit;
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(in);
-      LOG_INFO << "Loading input file: " << in << endl;
+      OPENMS_LOG_INFO << "Loading input file: " << in << endl;
       if (in_type == FileTypes::IDXML)
       {
         IdXMLFile().load(in, protein_ids, peptide_ids);
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
-        LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
+        OPENMS_LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
         MzIdentMLFile().load(in, protein_ids, peptide_ids);
       }
       //else catched by TOPPBase:registerInput being mandatory mzid or idxml
@@ -659,36 +666,36 @@ protected:
         
         if (protein_ids.front().getScoreType() != all_protein_ids.front().getScoreType())
         {
-          LOG_WARN << "Warning: differing ScoreType between input files" << endl;
+          OPENMS_LOG_WARN << "Warning: differing ScoreType between input files" << endl;
         }
         if (search_parameters.digestion_enzyme != all_search_parameters.digestion_enzyme)
         {
-          LOG_WARN << "Warning: differing DigestionEnzyme between input files" << endl;
+          OPENMS_LOG_WARN << "Warning: differing DigestionEnzyme between input files" << endl;
         }
         if (search_parameters.variable_modifications != all_search_parameters.variable_modifications)
         {
-          LOG_WARN << "Warning: differing VarMods between input files" << endl;
+          OPENMS_LOG_WARN << "Warning: differing VarMods between input files" << endl;
         }
         if (search_parameters.fixed_modifications != all_search_parameters.fixed_modifications)
         {
-          LOG_WARN << "Warning: differing FixMods between input files" << endl;
+          OPENMS_LOG_WARN << "Warning: differing FixMods between input files" << endl;
         }
         if (search_parameters.charges != all_search_parameters.charges)
         {
-          LOG_WARN << "Warning: differing SearchCharges between input files" << endl;
+          OPENMS_LOG_WARN << "Warning: differing SearchCharges between input files" << endl;
         }
         if (search_parameters.fragment_mass_tolerance != all_search_parameters.fragment_mass_tolerance)
         {
-          LOG_WARN << "Warning: differing FragTol between input files" << endl;
+          OPENMS_LOG_WARN << "Warning: differing FragTol between input files" << endl;
         }
         if (search_parameters.precursor_mass_tolerance != all_search_parameters.precursor_mass_tolerance)
         {
-          LOG_WARN << "Warning: differing PrecTol between input files" << endl;
+          OPENMS_LOG_WARN << "Warning: differing PrecTol between input files" << endl;
         }
       }
-      LOG_INFO << "Merging peptide ids." << endl;
+      OPENMS_LOG_INFO << "Merging peptide ids." << endl;
       all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
-      LOG_INFO << "Merging protein ids." << endl;
+      OPENMS_LOG_INFO << "Merging protein ids." << endl;
       PercolatorFeatureSetHelper::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
     }
     return EXECUTION_OK;
@@ -707,7 +714,7 @@ protected:
     //-------------------------------------------------------------
     const StringList in_list = getStringList_("in");
     const StringList in_decoy = getStringList_("in_decoy");
-    LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << ListUtils::concatenate(in_decoy, ",") << " (decoy)" << endl;
+    OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << ListUtils::concatenate(in_decoy, ",") << " (decoy)" << endl;
     const String in_osw = getStringOption_("in_osw");
     const String osw_level = getStringOption_("osw_level");
 
@@ -774,6 +781,8 @@ protected:
     
     bool peptide_level_fdrs = getFlag_("peptide-level-fdrs");
     bool protein_level_fdrs = getFlag_("protein-level-fdrs");  
+    
+    Int description_of_correct = getIntOption_("doc");
 
     double ipf_max_peakgroup_pep = getDoubleOption_("ipf_max_peakgroup_pep");
     double ipf_max_transition_isotope_overlap = getDoubleOption_("ipf_max_transition_isotope_overlap");
@@ -843,7 +852,7 @@ protected:
           return read_exit;
         }
       }
-      LOG_DEBUG << "Using min/max charges of " << min_charge << "/" << max_charge << endl;
+      OPENMS_LOG_DEBUG << "Using min/max charges of " << min_charge << "/" << max_charge << endl;
       
       if (!found_decoys)
       {
@@ -874,6 +883,11 @@ protected:
       feature_set.push_back("SpecId");
       feature_set.push_back("Label");
       feature_set.push_back("ScanNr");
+      if (description_of_correct != 0)
+      {
+        feature_set.push_back("retentiontime");
+        feature_set.push_back("deltamass");
+      }
       feature_set.push_back("ExpMass");
       feature_set.push_back("CalcMass");
       feature_set.push_back("mass");
@@ -908,7 +922,7 @@ protected:
       feature_set.push_back("Peptide");
       feature_set.push_back("Proteins");
       
-      LOG_DEBUG << "Writing percolator input file." << endl;
+      OPENMS_LOG_DEBUG << "Writing percolator input file." << endl;
       TextFile txt;  
       txt.addLine(ListUtils::concatenate(feature_set, '\t'));
       preparePin_(all_peptide_ids, feature_set, enz_str, txt, min_charge, max_charge);
@@ -917,7 +931,7 @@ protected:
     // OSW input
     else
     {
-      LOG_DEBUG << "Writing percolator input file." << endl;
+      OPENMS_LOG_DEBUG << "Writing percolator input file." << endl;
       TextFile txt;  
       std::stringstream pin_output;
       OSWFile().read(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
@@ -988,7 +1002,6 @@ protected:
       if (seed != 1) arguments << "-S" << String(seed).toQString();
       if (getFlag_("klammer")) arguments << "-K";
       
-      Int description_of_correct = getIntOption_("doc");
       if (description_of_correct != 0) arguments << "-D" << String(description_of_correct).toQString();
 
       arguments << pin_file.toQString();
@@ -1049,7 +1062,7 @@ protected:
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          String peptide_sequence = hit->getSequence().toString();
+          String peptide_sequence = hit->getSequence().toBracketString(false, true);
           String psm_identifier = scan_identifier + peptide_sequence;
           
           writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);        
@@ -1078,8 +1091,15 @@ protected:
           }
           else
           {
-            LOG_WARN << "Identifier " << psm_identifier << " not found in peptide map." << endl;
-            hit->setMetaValue("MS:1001492", 0.0);  // svm score
+            // If the input contains multiple PSMs per spectrum, Percolator only reports the top scoring PSM.
+            // The remaining PSMs should be reported as not identified
+            writeDebug_("PSM identifier " + psm_identifier + " not found in peptide map", 10);
+
+            // Percolator's svm score is scaled such that 0.0 is the score at the chosen FDR threshold,
+            // with positive scores representing PSMs under the FDR threshold (i.e. identified)
+            // and negative scores PSMs above the FDR threshold (i.e. not identified);
+            // -100.0 is typically more than low enough to represent a confidently non-identified PSM.
+            hit->setMetaValue("MS:1001492", -100.0);  // svm score
             hit->setMetaValue("MS:1001491", 1.0);  // percolator q value
             hit->setMetaValue("MS:1001493", 1.0);  // percolator pep
 
@@ -1089,13 +1109,13 @@ protected:
             }
             else if (scoreType == "svm")
             {
-              hit->setScore(0.0); // set SVM score to 0.0 if hit not found in results
+              hit->setScore(-100.0); // set SVM score to -100.0 if hit not found in results
             }
           }
         }
       }
-      //LOG_INFO << "No suitable PeptideIdentification for " << c_debug << " out of " << all_peptide_ids.size() << endl;
-      LOG_INFO << "Suitable PeptideHits for " << cnt << " found." << endl;
+      //OPENMS_LOG_INFO << "No suitable PeptideIdentification for " << c_debug << " out of " << all_peptide_ids.size() << endl;
+      OPENMS_LOG_INFO << "Suitable PeptideHits for " << cnt << " found." << endl;
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
       for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)

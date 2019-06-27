@@ -57,10 +57,45 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
 
-  for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
+  for (const auto& it : sirius_output_paths)
   {
+    // extract mz, rt and nativeID of the corresponding precursor spectrum in the spectrum.ms file
+    String ext_nid;
+    double ext_mz = 0.0;
+    double ext_rt = 0.0;
+    const String sirius_spectrum_ms = it + "/spectrum.ms";
+    ifstream spectrum_ms_file(sirius_spectrum_ms);
+    if (spectrum_ms_file)
+    {
+      const String nid_prefix = "##nid";
+      const String rt_prefix = "#rt";
+      const String pmass_prefix = ">parentmass";
+      const String ms1peaks = ">ms1peaks";
+      String line;
+      while (getline(spectrum_ms_file, line))
+      {
+        if (line.hasPrefix(pmass_prefix))
+        {
+           ext_mz = String(line.erase(line.find(pmass_prefix), pmass_prefix.size())).toDouble();
+        }
+        else if (line.hasPrefix(rt_prefix))
+        {
+           ext_rt = String(line.erase(line.find(rt_prefix), rt_prefix.size())).toDouble();
+        }
+        else if (line.hasPrefix(nid_prefix))
+        {
+           ext_nid = line.erase(line.find(nid_prefix), nid_prefix.size());
+        }
+        else if (line.hasPrefix(ms1peaks))
+        {
+           break; // only run till >ms1peaks
+        }
+      }
+      spectrum_ms_file.close();
+    }
+
     // extract data from summary_sirius.csv
-    const std::string pathtosiriuscsv = *it + "/summary_sirius.csv";
+    const std::string pathtosiriuscsv = it + "/summary_sirius.csv";
 
     ifstream file(pathtosiriuscsv);
     if (file) 
@@ -76,7 +111,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
         
         // fill identification structure containing all candidate hits for a single spectrum
-        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
+        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id{};
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
@@ -90,6 +125,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         boost::smatch match;
         String feature_id;
         boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+
         bool found = boost::regex_search(str, match, regexp_feature);
         if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
         String unassigned = "null";
@@ -114,6 +150,9 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
           sirius_id.hits.push_back(sirius_hit);
         }
 
+        sirius_id.mz = ext_mz;
+        sirius_id.rt = ext_rt;
+        sirius_id.native_id = ext_nid;
         sirius_id.scan_index = scan_index;
         sirius_id.scan_number = scan_number;
         // check if results were assigned to a feature
@@ -159,34 +198,22 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
             smsr.best_search_engine_score = engine_score;
 
             smsr.chemical_formula = MzTabString(hit.formula);
-
-            MzTabOptionalColumnEntry adduct;
-            adduct.first = "adduct";
-            adduct.second = MzTabString(hit.adduct);
-
-            MzTabOptionalColumnEntry rank;
-            rank.first = "rank";
-            rank.second = MzTabString(hit.rank);
-
-            MzTabOptionalColumnEntry explainedPeaks;
-            explainedPeaks.first = "explainedPeaks";
-            explainedPeaks.second = MzTabString(hit.explainedpeaks);
-
-            MzTabOptionalColumnEntry explainedIntensity;
-            explainedIntensity.first = "explainedIntensity";
-            explainedIntensity.second = MzTabString(hit.explainedintensity);
-
-            MzTabOptionalColumnEntry compoundId;
-            compoundId.first = "compoundId";
-            compoundId.second = MzTabString(id.scan_index);
-  
-            MzTabOptionalColumnEntry compoundScanNumber;
-            compoundScanNumber.first = "compoundScanNumber";
-            compoundScanNumber.second = MzTabString(id.scan_number);
-
-            MzTabOptionalColumnEntry featureId;
-            featureId.first = "featureId";
-            featureId.second = MzTabString(id.feature_id);
+            smsr.exp_mass_to_charge = MzTabDouble(id.mz);
+           
+            vector<MzTabDouble> v_rt;
+            MzTabDoubleList rt_list;
+            v_rt.emplace_back(id.rt); 
+            rt_list.set(v_rt);
+            smsr.retention_time = rt_list;
+            
+            MzTabOptionalColumnEntry adduct = make_pair("opt_global_adduct", MzTabString(hit.adduct));
+            MzTabOptionalColumnEntry rank = make_pair("opt_global_rank", MzTabString(hit.rank));
+            MzTabOptionalColumnEntry explainedPeaks = make_pair("opt_global_explainedPeaks", MzTabString(hit.explainedpeaks));
+            MzTabOptionalColumnEntry explainedIntensity = make_pair("opt_global_explainedIntensity", MzTabString(hit.explainedintensity));
+            MzTabOptionalColumnEntry compoundId = make_pair("opt_global_compoundId", MzTabString(id.scan_index));
+            MzTabOptionalColumnEntry compoundScanNumber = make_pair("opt_global_compoundScanNumber", MzTabString(id.scan_number));
+            MzTabOptionalColumnEntry featureId = make_pair("opt_global_featureId", MzTabString(id.feature_id));
+            MzTabOptionalColumnEntry native_id = make_pair("opt_global_native_id", MzTabString(id.native_id));
 
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(rank);
@@ -195,6 +222,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
             smsr.opt_.push_back(featureId);
+            smsr.opt_.push_back(native_id);
             smsd.push_back(smsr);
           }
         }  
