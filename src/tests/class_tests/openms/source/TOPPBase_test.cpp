@@ -547,7 +547,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setMaxFloat(doublelist2,5.4);
 	TEST_EQUAL(p1,p2)
 	WHITELIST("version")
-	TEST_FILE_EQUAL(filename, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_out.ini"))
+	TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_out.ini"))
 
   String filename2;
   NEW_TMP_FILE(filename2);
@@ -556,7 +556,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
   const char* write_ini2[3]={b, a21, f_name2};
   TOPPBaseCmdParseSubsectionsTest tmp10{};
 	tmp10.run(3, write_ini2);
-  TEST_FILE_EQUAL(filename2, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_subsec_out.ini"))
+  TEST_FILE_SIMILAR(filename2, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_subsec_out.ini"))
 END_SECTION
 
 START_SECTION(([EXTRA]String getIntOption_(const String& name) const))
