@@ -210,7 +210,6 @@ protected:
 
 
     void read_FeatureFinderIntact_result_file(string deconvfilePath, vector<double>& mass_vec, vector<string>& file_lines, string col_name){
-
         std::ifstream infile(deconvfilePath);
         string header;
         std::getline(infile, header);
@@ -223,6 +222,9 @@ protected:
 
         file_lines.push_back(header);
         int index_of_col = get_index_of_tsv_header(header, col_name);
+        if(index_of_col<0){
+            OPENMS_LOG_ERROR << "ERROR : Cannot find column index" << endl;
+        }
         string line;
         while (std::getline(infile, line)) {
             boost::trim_right(line);
@@ -242,6 +244,7 @@ protected:
         while (std::getline(lineStream, tmp, '\t'))
         {
             header_vec.push_back(tmp);
+
             if(tmp==col_name){
                 index = header_vec.size()-1;
                 break;
