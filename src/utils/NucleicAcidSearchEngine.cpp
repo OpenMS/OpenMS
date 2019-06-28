@@ -653,7 +653,7 @@ protected:
   }
 
 
-  double calculatePrecursorMass_(double mz, Int charge, Size isotope,
+  double calculatePrecursorMass_(double mz, Int charge, Int isotope,
                                  double adduct_mass, bool negative_mode)
   {
     // we want to calculate the unadducted (!) precursor mass at neutral charge:
@@ -668,10 +668,7 @@ protected:
       mass -= Constants::PROTON_MASS_U * charge;
     }
     // correct for precursor not being the monoisotopic peak:
-    if (isotope > 0)
-    {
-      mass -= isotope * Constants::C13C12_MASSDIFF_U;
-    }
+    mass -= isotope * Constants::C13C12_MASSDIFF_U;
 
     return mass;
   }
