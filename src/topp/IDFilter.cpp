@@ -91,7 +91,7 @@ using namespace std;
  Most filtering options should be straight-forward - see the documentation of the different parameters.
  For some filters that warrent further discussion, see below.
 
- <b>Score filters</b> (@p score:pep, @p score:prot, @p thresh:pep, @p thresh:prot):
+ <b>Score filters</b> (@p score:pep, @p score:prot):
 
  Peptide or protein hits with scores at least as good as the given cut-off are retained by the filter; hits with worse scores are removed.
  Whether scores should be higher or lower than the cut-off depends on the type/orientation of the score.
@@ -99,9 +99,6 @@ using namespace std;
  The score that was most recently set by a processing step is considered for filtering.
  For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
  @ref UTILS_IDScoreSwitcher is useful to switch to a particular score before filtering.
-
- An example to illustrate the significance threshold filters (@p thresh:pep, @p thresh:prot):
- Assume a peptide hit has a score of 30, the significance threshold is 40, and higher scores are better. Then the hit will be kept if the cut-off value is set to 0.75 or lower, and removed for higher cut-offs.
 
  <b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
 
@@ -158,9 +155,6 @@ protected:
     registerTOPPSubsection_("score", "Filtering by peptide/protein score.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept.", false);
     registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
-    registerTOPPSubsection_("thresh", "Filtering by significance threshold");
-    registerDoubleOption_("thresh:pep", "<fraction>", 0.0, "Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.", false, true);
-    registerDoubleOption_("thresh:prot", "<fraction>", 0.0, "Keep a protein hit only if its score is above this fraction of the protein significance threshold. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false, true);
 
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
@@ -232,8 +226,8 @@ protected:
 
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (as defined in the 'SearchParameters' section of the input file).", false);
 
-    registerFlag_("unique_per_spectrum", "If a peptide-spectrum match occurs more than once for a spectrum, only one instance is kept.", true);
-    registerFlag_("unique_per_protein", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
+    registerFlag_("remove_ambiguous_peptides", "If a peptide-spectrum match occurs more than once for a spectrum, only the first instance is kept.", true);
+    registerFlag_("remove_shared_peptides", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the IDs.");
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs. Usually used in combination with 'score:prot' or 'thresh:prot'.");
@@ -291,23 +285,16 @@ protected:
 
     // Filtering peptide hits according to set criteria
 
-    if (getFlag_("unique_per_spectrum"))
+    if (getFlag_("remove_ambiguous_peptides"))
     {
-      OPENMS_LOG_INFO << "Removing duplicate peptide hits..." << endl;
+      OPENMS_LOG_INFO << "Removing ambiguous peptides..." << endl;
       IDFilter::removeDuplicatePeptideHits(peptides);
     }
 
-    if (getFlag_("unique_per_protein"))
+    if (getFlag_("remove_shared_peptides"))
     {
       OPENMS_LOG_INFO << "Filtering peptides by unique match to a protein..." << endl;
       IDFilter::keepUniquePeptidesPerProtein(peptides);
-    }
-
-    double peptide_significance = getDoubleOption_("thresh:pep");
-    if (peptide_significance > 0)
-    {
-      OPENMS_LOG_INFO << "Filtering by peptide significance threshold..." << endl;
-      IDFilter::filterHitsBySignificance(peptides, peptide_significance);
     }
 
     double pred_rt_pv = getDoubleOption_("rt:p_value");
@@ -595,14 +582,6 @@ protected:
 
 
     // Filtering protein identifications according to set criteria
-
-    double protein_significance = getDoubleOption_("thresh:prot");
-    if (protein_significance > 0)
-    {
-      OPENMS_LOG_INFO << "Filtering by protein significance threshold..." << endl;
-      IDFilter::filterHitsBySignificance(proteins, protein_significance);
-    }
-
     double prot_score = getDoubleOption_("score:prot");
     // @TODO: what if 0 is a reasonable cut-off for some score?
     if (prot_score != 0)
