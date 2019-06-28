@@ -42,6 +42,35 @@
 #include <cstring>
 
 /**
+    @brief General helper macros
+
+    @{
+*/
+
+#define STRINGIFY(a) #a
+
+#ifdef _OPENMP
+
+// Pragma string literals are compiler-specific: 
+// gcc and clang use _Pragma while MSVS uses __pragma
+#ifdef OPENMS_COMPILER_MSVC
+#define OPENMS_THREAD_CRITICAL(name) \
+    __pragma( STRINGIFY( omp critical (name) ) )
+#else
+#define OPENMS_THREAD_CRITICAL(name) \
+    _Pragma( STRINGIFY( omp critical (name) ) )
+#endif
+
+#else
+
+#define OPENMS_THREAD_CRITICAL(name) 
+
+#endif
+
+/** @} */ // end of helpers
+
+
+/**
     @defgroup Conditions Condition macros
 
     @brief Macros used for to enforce preconditions and postconditions.

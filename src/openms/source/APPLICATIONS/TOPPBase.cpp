@@ -352,7 +352,7 @@ namespace OpenMS
       // note the copy(getIniLocation_(),..) as we want the param tree without instance
       // information
       param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
-      if (!param_.update(finalParam, false, false, true, true, OPENMS_LOG_WARN))
+      if (!param_.update(finalParam, false, false, true, true, OpenMS_Log_warn))
       {
         OPENMS_LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
         return ILLEGAL_PARAMETERS;

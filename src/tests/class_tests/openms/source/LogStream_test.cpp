@@ -72,7 +72,6 @@ class TestTarget
   bool notified;
 };
 
-
 START_TEST(LogStream, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -87,15 +86,20 @@ START_SECTION(([EXTRA] OpenMP - test))
   OpenMS_Log_info.insert(stream_by_logger);
   OpenMS_Log_info.remove(cout);
 
-
   {
+    // create a long string that is of similar length as the buffer length to
+    // ensure buffering and flushing works correctly LogStream.cpp even in a
+    // multi-threaded environment.
+    std::string long_str;
+    for (int k = 0; k < 32768/2; k++) if (char(k) != 0) long_str += char(k);
+
     #ifdef _OPENMP
-	omp_set_num_threads(8);
+    omp_set_num_threads(8);
     #pragma omp parallel for
     #endif
     for (int i=0;i<10000;++i)
     {
-      OPENMS_LOG_DEBUG << "1\n";
+      OPENMS_LOG_DEBUG << long_str << "1\n";
       OPENMS_LOG_DEBUG << "2" << endl;
       OPENMS_LOG_INFO << "1\n";
       OPENMS_LOG_INFO << "2" << endl;
