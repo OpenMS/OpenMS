@@ -1890,7 +1890,7 @@ protected:
     boost::dynamic_bitset<> isQualified(massBins.size());
 
     //cout<<minMass << " " << maxMass<<endl;
-    fill_n(sumLogIntensities, massBins.size(), 0);
+    //fill_n(sumLogIntensities, massBins.size(), 0);
     //cout<<0<<endl;
     getInitialMassBins(massBins, mzBins, isQualified,
                        sumLogIntensities,
@@ -2069,21 +2069,11 @@ protected:
       float maxNoise = .0;
       for (auto k = 0; k < hChargeSize + 1; k++)
       {
-        //auto snr = (s) / (noise[k][mindex]);
-        //if (snr < th)
-        //{
-        //isQualified[mindex] = false;
-        //break;
-        //}
         maxNoise = max(maxNoise, noise[k][mindex]);
         // msnr = min(snr, msnr);
       }
       //s -= maxNoise;
       s -= maxNoise;
-      // if (s < 1){
-      //  isQualified[mindex] = false;
-      // }
-
       mindex = isQualified.find_next(mindex);
     }
 
