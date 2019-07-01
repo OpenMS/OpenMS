@@ -1107,20 +1107,42 @@ protected:
 */
   static float calculateCombinedScore(const AnnotatedHit& ah, const bool isXL)
   {
+     return -7.9010278  + 0.7545435 * ah.total_loss_score + 3.1219378 * ah.sequence_score
+            + 0.33 * ah.mass_error_p;
+/*
+          (Intercept) NuXL.total_loss_score   NuXL.sequence_score 
+           -7.9010278             0.7545435             3.1219378 
+*/
+/*
+           (Intercept) NuXL.total_loss_score            NuXL.modds 
+          -10.2740314             0.7115905             0.6139411 
+            NuXL.isXL         NuXL.pl_modds     NuXL.ladder_score 
+            1.6851418             0.6187959             2.7555106
+
+    return  
+               + 0.7115905 * ah.total_loss_score
+               + 0.6139411 * ah.modds
+               + 1.6851418 * ah.isXL
+               + 0.6187959 * ah.pl_modds
+               + 2.7555106 * ah.ladder_score;
+  //               + 1.0 * ah.total_MIC         
+  //             + 0.333 * ah.mass_error_p;
+
     if (!isXL)
     {
 	    return  
                + 1.0 * ah.total_loss_score
-/*               + 1.0 * ah.total_MIC         
-               + 0.333 * ah.mass_error_p*/;
+  //               + 1.0 * ah.total_MIC         
+  //             + 0.333 * ah.mass_error_p;
     }
     else
     {
 	    return 
-               + 1.0 * ah.total_loss_score /*
-               + 1.0 * (ah.MIC + ah.immonium_score + ah.precursor_score)         
-               + 0.333 * ah.mass_error_p*/;
+               + 1.0 * ah.total_loss_score 
+  //             + 1.0 * (ah.MIC + ah.immonium_score + ah.precursor_score)         
+  //             + 0.333 * ah.mass_error_p;
     }
+*/
   }
 
   static float calculateFastScore(const AnnotatedHit& ah)
@@ -2103,7 +2125,7 @@ static void scoreShiftedFragments_(
             OPENMS_LOG_DEBUG << String::number(100.0 * sites_sum_score[i], 2);
           #endif
 
-          if (i != 0) localization_scores += ' ';
+          if (i != 0) localization_scores += ',';
           if (sites_sum_score[i] > 0 )
           {
             localization_scores += String::number(100.0 * sites_sum_score[i], 2);
@@ -2321,7 +2343,14 @@ static void scoreShiftedFragments_(
       ph.setMetaValue(String("NuXL:isPhospho"), is_phospho); 
 
       ph.setMetaValue(String("NuXL:best_localization_score"), ah.best_localization_score);
-      ph.setMetaValue(String("NuXL:localization_scores"), ah.localization_scores);
+      if (!ah.localization_scores.empty())
+      {
+        ph.setMetaValue(String("NuXL:localization_scores"), ah.localization_scores);
+      }
+      else
+      {
+        ph.setMetaValue(String("NuXL:localization_scores"), "NA");
+      }
       ph.setMetaValue(String("NuXL:best_localization"), ah.best_localization);
 
       // one-hot encoding of cross-linked nucleotide
