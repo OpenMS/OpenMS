@@ -73,6 +73,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
@@ -600,6 +601,7 @@ protected:
       return z;
     }
 
+  // score ions without nucleotide shift
   static void scorePeptideIons_(
       const PeakSpectrum& exp_spectrum, 
       const DataArrays::IntegerDataArray& exp_charges,
@@ -630,6 +632,8 @@ protected:
     const Size N = intensity_sum.size();
     std::vector<float> b_ions(N, 0.0), y_ions(N, 0.0);
 
+    vector<bool> peak_matched(exp_spectrum.size(), false);
+
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
 
@@ -653,10 +657,14 @@ protected:
           // found peak match
           if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
           {
-            const double intensity = exp_spectrum[index].getIntensity();
-            b_mean_err += intensity * std::abs(theo_mz - exp_mz);
-            dot_product += intensity;
-            b_ions[i] += intensity;            
+            if (!peak_matched[index])
+            {
+              const double intensity = exp_spectrum[index].getIntensity();
+              dot_product += intensity;
+              b_mean_err += intensity * std::abs(theo_mz - exp_mz);
+              b_ions[i] += intensity;
+              peak_matched[index] = true;
+            }
           }
         }
       }
@@ -683,6 +691,15 @@ protected:
           y_mean_err += intensity * std::abs(theo_mz - exp_mz);
           dot_product += intensity;                  
           y_ions[N-1 - i] += intensity;      
+
+          if (!peak_matched[index])
+          {
+            const double intensity = exp_spectrum[index].getIntensity();
+            y_mean_err += intensity * std::abs(theo_mz - exp_mz);
+            dot_product += intensity;                  
+            y_ions[N-1 - i] += intensity;      
+            peak_matched[index] = true;
+          }
         }
       }
     }
@@ -749,8 +766,12 @@ protected:
         // found peak match
         if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
         {
-          const double intensity = exp_spectrum[index].getIntensity();
-          pc_MIC += intensity;
+          if (!peak_matched[index])
+          {
+            const double intensity = exp_spectrum[index].getIntensity();
+            pc_MIC += intensity;
+            peak_matched[index] = true;
+          }
         }
       }      
     }
@@ -766,7 +787,11 @@ protected:
         if (exp_charges[index] == 1 && 
           std::abs(theo_mz - exp_spectrum[index].getMZ()) < max_dist_dalton) // found peak match
         {
-          score += exp_spectrum[index].getIntensity();      
+          if (!peak_matched[index])
+          {
+            score += exp_spectrum[index].getIntensity();      
+            peak_matched[index] = true;
+          }
         } 
       };
 
@@ -877,6 +902,8 @@ protected:
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
 
+    vector<bool> peak_matched(exp_spectrum.size(), false);
+
     // match b- and a-ions (we record a-ions as b-ions)
     for (double diff2b : {0.0, -27.994915} ) // b-ion and a-ion ('CO' mass diff from b- to a-ion)
     { 
@@ -899,10 +926,14 @@ protected:
             // found peak match
             if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
             {
-              const double intensity = exp_spectrum[index].getIntensity();
-              b_mean_err += intensity * std::abs(theo_mz - exp_mz);
-              dot_product += intensity;
-              b_ions[i] += intensity;            
+              if (!peak_matched[index])
+              {
+                const double intensity = exp_spectrum[index].getIntensity();
+                b_mean_err += intensity * std::abs(theo_mz - exp_mz);
+                dot_product += intensity;
+                b_ions[i] += intensity;            
+                peak_matched[index] = true;
+              }
             }
           }
         } 
@@ -929,10 +960,14 @@ protected:
           // found peak match
           if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
           {
-            const double intensity = exp_spectrum[index].getIntensity();
-            y_mean_err += intensity * std::abs(theo_mz - exp_mz);
-            dot_product += intensity;                  
-            y_ions[N-1 - i] += intensity;      
+            if (!peak_matched[index])
+            {
+              const double intensity = exp_spectrum[index].getIntensity();
+              y_mean_err += intensity * std::abs(theo_mz - exp_mz);
+              dot_product += intensity;                  
+              y_ions[N-1 - i] += intensity;      
+              peak_matched[index] = true;
+            }
           }
         }
       }  
@@ -999,8 +1034,12 @@ protected:
           // found peak match
           if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
           {
-            const double intensity = exp_spectrum[index].getIntensity();
-            plss_pc_MIC += intensity;
+            if (!peak_matched[index])
+            {
+              const double intensity = exp_spectrum[index].getIntensity();
+              plss_pc_MIC += intensity;
+              peak_matched[index] = true;
+            }
           }
         }      
       }
@@ -1018,7 +1057,11 @@ protected:
         if (exp_charges[index] == 1 && 
           std::abs(theo_mz - exp_spectrum[index].getMZ()) < max_dist_dalton) // found peak match
         {
-          score += exp_spectrum[index].getIntensity();      
+          if (!peak_matched[index])
+          {
+            score += exp_spectrum[index].getIntensity();      
+            peak_matched[index] = true;
+          }
         } 
       };
 
@@ -1229,6 +1272,9 @@ static void scoreShiftedFragments_(
     bool single_charge_spectra, 
     bool annotate_charge = false)
   {
+    SqrtMower sqrt_mower_filter;
+    sqrt_mower_filter.filterPeakMap(exp);
+
     // filter MS2 map
     // remove 0 intensities
     ThresholdMower threshold_mower_filter;
@@ -2312,6 +2358,8 @@ static void scoreShiftedFragments_(
       ph.setMetaValue(String("NuXL:pl_modds"), ah.pl_modds);
       ph.setMetaValue(String("NuXL:pl_pc_MIC"), ah.pl_pc_MIC);
       ph.setMetaValue(String("NuXL:pl_im_MIC"), ah.pl_im_MIC);
+      ph.setMetaValue(String("NuXL:total_Morph"), ah.Morph + ah.pl_Morph);
+      ph.setMetaValue(String("NuXL:total_HS"), ah.total_loss_score + ah.partial_loss_score);
       
       ph.setMetaValue(String("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
@@ -2502,6 +2550,8 @@ static void scoreShiftedFragments_(
        << "NuXL:NA_length"   
        << "NuXL:ladder_score"
        << "NuXL:sequence_score"
+       << "NuXL:total_Morph"
+       << "NuXL:total_HS"
        << "precursor_intensity_log10";
 
     if (!purities.empty()) feature_set << "precursor_purity";

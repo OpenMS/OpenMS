@@ -1746,6 +1746,16 @@ ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_inp
 add_test("TOPP_OpenNuXL_5_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 OpenNuXL_5_output.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_5_output.idXML )
 set_tests_properties("TOPP_OpenNuXL_5_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_5")
+
+# reporting of multiple hits and tsv output and decoy generation with huge mass window so that all candidates are scored
+add_test("TOPP_OpenNuXL_6" ${TOPP_BIN_PATH}/OpenNuXL -test -in
+${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -RNPxl:decoys -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_6_output.tmp -report:top_hits 2 -out_tsv OpenNuXL_6_output2.tmp -precursor:mass_tolerance 1e9 -RNPxl:scoring slow)
+add_test("TOPP_OpenNuXL_6_out1" ${DIFF} -whitelist "IdentificationRun date"
+"db=" -in1 OpenNuXL_6_output.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output.idXML )
+add_test("TOPP_OpenNuXL_6_out2" ${DIFF} -in1 OpenNuXL_6_output2.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output2.tsv )
+set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+
 #------------------------------------------------------------------------------
 # RTModel tests
 add_test("TOPP_RTModel_1" ${TOPP_BIN_PATH}/RTModel -test -in ${DATA_DIR_TOPP}/RTModel_1_input.idXML -out RTModel_1_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_1_parameters.ini)
