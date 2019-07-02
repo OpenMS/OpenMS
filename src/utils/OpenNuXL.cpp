@@ -1263,6 +1263,52 @@ static void scoreShiftedFragments_(
     if (plss_err > ft_da) plss_err = ft_da;
   }
 
+  void calculateNucleotideTags_(PeakMap& exp, 
+    const double fragment_mass_tolerance, 
+    const bool fragment_mass_tolerance_unit_ppm,
+    const RNPxlParameterParsing::NucleotideToFragmentAdductMap &  nucleotide_to_fragment_adducts)
+  {
+    // set of all possibly observable fragment adduct masses
+    set<double> adduct_mass;
+    for (const auto & p : nucleotide_to_fragment_adducts)
+    {
+      for (const auto & fa : p.second)
+      {
+        adduct_mass.insert(fa.mass);
+      }
+    }
+    for (auto & spec : exp)
+    {
+      if (spec.getMSLevel() != 2) continue;
+      // maximum charge considered
+      const unsigned int max_z = std::min(2U, static_cast<unsigned int>(spec.getPrecursors()[0].getCharge() - 1));
+
+      vector<double> mzs;
+      for (auto const& p : spec) { mzs.push_back(p.getMZ()); } // faster
+ 
+      Size match(0);
+      for (Size i = 0; i != mzs.size(); ++i)
+      {
+        for (Size j = i+1; j < mzs.size(); ++j)
+        {
+          double m =  mzs[j];
+          double dm = m - mzs[i];
+          for (Size z = 1; z <= max_z; ++z)
+          {
+            const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
+            auto left = adduct_mass.lower_bound((dm*z) - tolerance);
+            if (left == adduct_mass.end()) continue;
+            if (fabs(*left - (dm*z)) < tolerance) ++match;
+          }
+        } 
+      } 
+
+      spec.getIntegerDataArrays().resize(2);
+      spec.getIntegerDataArrays()[1].push_back(match);
+      spec.getIntegerDataArrays()[1].setName("nucleotide_mass_tags");
+    }
+  }
+
   /* @brief Filter spectra to remove noise.
      Parameter are passed to spectra filter.
    */
@@ -2423,6 +2469,8 @@ static void scoreShiftedFragments_(
         ph.setMetaValue("precursor_purity", purities[scan_index].signal_proportion);
       }
 
+      ph.setMetaValue("nucleotide_mass_tags_log10", log10(1.0 + (double)spec.getIntegerDataArrays()[1][0]));
+
       ph.setPeakAnnotations(ah.fragment_annotations);
       ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
       ph.setMetaValue(String("NuXL:ladder_score"), ah.ladder_score);
@@ -2552,8 +2600,8 @@ static void scoreShiftedFragments_(
        << "NuXL:sequence_score"
        << "NuXL:total_Morph"
        << "NuXL:total_HS"
-       << "precursor_intensity_log10";
-
+       << "precursor_intensity_log10"
+       << "nucleotide_mass_tags_log10";
     if (!purities.empty()) feature_set << "precursor_purity";
 
     // one-hot encoding of cross-linked nucleotide
@@ -2986,6 +3034,8 @@ static void scoreShiftedFragments_(
                        convert_to_single_charge, // no single charge (false), annotate charge (true)
                        annotate_charge);
     progresslogger.endProgress();
+
+    calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
 
     // build multimap of precursor mass to scan index (and perform some mass and length based filtering)
     using MassToScanMultiMap = multimap<double, pair<Size, int>>;
@@ -3533,6 +3583,7 @@ static void scoreShiftedFragments_(
                        false, // no single charge (false), annotate charge (true)
                        true); 
 
+    calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
     progresslogger.startProgress(0, 1, "localization...");
 
 
