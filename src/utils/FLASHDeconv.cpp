@@ -374,7 +374,7 @@ protected:
     //
     registerDoubleOption_("minIT", "<min intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 0.0,
-                          "RT window (if 0, 2% total gradient time)", false, true);
+                          "RT window (if 0, 1% total gradient time)", false, true);
     registerDoubleOption_("minRTspan", "<seconds>", 10.0,
                           "Min feature RT span", false, true);
     registerIntOption_("writeSpecDeconv",
