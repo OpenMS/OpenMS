@@ -767,7 +767,9 @@ namespace OpenMS
     bool advanced = entry.tags.count("advanced");
     // special case for flags:
     if ((entry.value.valueType() == DataValue::STRING_VALUE) &&
-        (entry.value == "false") && (entry.valid_strings.size() == 2) &&
+        /*entry.tags.count("flag") && */ // This would avoid autoconversion from true/false String Params when they default to false
+        (entry.value == "false") && // This is the current default
+        (entry.valid_strings.size() == 2) &&
         (entry.valid_strings[0] == "true") && (entry.valid_strings[1] == "false"))
     {
       return ParameterInformation(name, ParameterInformation::FLAG, "", "", entry.description, false, advanced);
@@ -1652,16 +1654,27 @@ namespace OpenMS
       return EXTERNAL_PROGRAM_ERROR;
     } 
 
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
+    if (debug_level_ >= 10 || any_failure)
     {
-      writeLog_("FATAL: External invocation of " + String(executable) + " failed. Standard output and error were:");
+      if (any_failure)
+      {
+        writeLog_("FATAL ERROR: External invocation of " + String(executable) + " failed. Standard output and error were:");
+      }
+      else
+      {
+        writeLog_("DEBUG: External invocation of " + String(executable) + " returned the following standard output/error and exit code:");
+      }
       const QString external_sout(qp.readAllStandardOutput());
       const QString external_serr(qp.readAllStandardError());
-      writeLog_(external_sout);
-      writeLog_(external_serr);
-      writeLog_(String(qp.exitCode()));
-      qp.close();
-      return EXTERNAL_PROGRAM_ERROR;
+      writeLog_("Standard output: " + external_sout);
+      writeLog_("Standard error: " + external_serr);
+      writeLog_("Exit code: " + String(qp.exitCode()));
+      if (any_failure)
+      {
+        qp.close();
+        return EXTERNAL_PROGRAM_ERROR;
+      }
     }
 
     qp.close();
@@ -2065,6 +2078,7 @@ namespace OpenMS
         tags.push_back("input file");
       if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
         tags.push_back("output file");
+
       switch (it->type)
       {
       case ParameterInformation::STRING:

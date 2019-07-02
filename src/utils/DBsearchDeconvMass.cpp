@@ -66,7 +66,7 @@ protected:
         registerDoubleOption_("tol", "<tolerance>", 10, "proteoform mass tolerance (ppm)", false, false);
         registerIntOption_("maxptm", "<max number of PTMs>", 4, "maximum number of PTMs per proteoform", false, false);
 
-        registerStringOption_("col", "<column name for masses>", "ExactMass", "Column title for deconvoluted masses", false, false);
+        registerStringOption_("col", "<column name for masses>", "MonoisotopicMass", "Column title for deconvoluted masses", false, false);
         registerFlag_("avg", "input massses are average mass instead of monoisotopic mass", false);
     }
 
