@@ -28,7 +28,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Juliane Schmachtenberg $
+// $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/QC/RTAlignment.h>
@@ -48,7 +48,7 @@ namespace OpenMS
 {
   // take the original retention time before map alignment and use the transformation information of the post alignment trafoXML
   // for calculation of the post map alignment retention times.
-  void RTAlignment::compute(FeatureMap& features, const TransformationDescription& trafo)
+  void RTAlignment::compute(FeatureMap& features, const TransformationDescription& trafo) const
   {
     if (features.empty())
     {
@@ -56,14 +56,15 @@ namespace OpenMS
     }
 
     // if featureMap after map alignment was handed, return Exception
-    auto is_elem = [](DataProcessing dp) { return (find(dp.getProcessingActions().begin(), dp.getProcessingActions().end(), DataProcessing::ProcessingAction::ALIGNMENT) != dp.getProcessingActions().end());  };
     auto vdp = features.getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
-    if (all_of(vdp.begin(), vdp.end(), is_elem))
+    if (all_of(vdp.begin(), vdp.end(), [](const DataProcessing& dp){
+          return (find(dp.getProcessingActions().begin(), dp.getProcessingActions().end(), DataProcessing::ProcessingAction::ALIGNMENT) != dp.getProcessingActions().end());
+        }))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metric RTAlignment received a featureXML AFTER map alignment, but needs a featureXML BEFORE map alignment!");
     }
 
-    //set meta values for original retention time and alignt retention time (after map alignment) values
+    // set meta values for original retention time and aligned retention time (after map alignment)
     for (Feature& feature : features)
     {
       for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
@@ -72,11 +73,18 @@ namespace OpenMS
           peptide_ID.setMetaValue("rt_raw", peptide_ID.getRT());
       }
     }
-    //set meta values for all unasssigned PeptideIdentifications
-    for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
+
+    // same for unassigned PepIDs
+    compute(features.getUnassignedPeptideIdentifications(), trafo);
+  }
+
+  void RTAlignment::compute(std::vector<PeptideIdentification>& ids, const TransformationDescription& trafo) const
+  {
+    // set meta values for all unasssigned PeptideIdentifications
+    for (PeptideIdentification& id : ids)
     {
-        unassigned_ID.setMetaValue("rt_align", trafo.apply(unassigned_ID.getRT()));
-        unassigned_ID.setMetaValue("rt_raw", unassigned_ID.getRT());
+      id.setMetaValue("rt_align", trafo.apply(id.getRT()));
+      id.setMetaValue("rt_raw", id.getRT());
     }
   }
   
@@ -85,7 +93,7 @@ namespace OpenMS
     return name_;
   }
 
-  //required input files
+  // required input files
   QCBase::Status RTAlignment::requires() const
   {
     return QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::POSTFDRFEAT;

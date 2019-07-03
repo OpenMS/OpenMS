@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Juliane Schmachtenberg $
+// $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -39,16 +39,16 @@
 namespace OpenMS
 {
   class FeatureMap;
+  class PeptideIdentification;
   class TransformationDescription;
 
   /**
-    @brief Take the original retention time before map alignment and use the transformation information of the alignment's trafoXML
-           for calculation of the post map alignment retention times.
+    @brief Take the original retention time before map alignment and use the alignment's trafoXML
+           for calculation of the new alignment retention times.
            
-    Sets meta values "rt_raw" and "rt_align" in PeptideIdentifications of the featureMap.
+    Sets meta values "rt_raw" and "rt_align" in PeptideIdentifications of the featureMap's PepIDs.
+    It does <b>not</b> change the RT of the features.
     
-    @param trafo: Transformation information of map alignment
-    @param features: featureMap before map alignment, contains original retention time
     **/
   class OPENMS_DLLAPI RTAlignment : public QCBase
   {
@@ -60,13 +60,23 @@ namespace OpenMS
     virtual ~RTAlignment() = default;
 
     /**
-     @brief Calculates post map alignment retention time
-     and sets meta values "rt_raw" and "rt_align" in PeptideIdentification
-     @param features: FeatureMap where the meta values are annotated
+     @brief Calculates retention time after map alignment
+            and sets meta values "rt_raw" and "rt_align" in all PepIDs (on features and all unassigned PepIDs)
+    
+     @param fm: FeatureMap to receive the new metavalues
      @param trafo: Transformation information to get needed data from
     **/
-    void compute(FeatureMap& features, const TransformationDescription& trafo);
+    void compute(FeatureMap& fm, const TransformationDescription& trafo) const;
     
+    /**
+    @brief Calculates retention time after map alignment
+    and sets meta values "rt_raw" and "rt_align" in all PepIDs
+
+    @param ids: PepIDs to receive the new metavalues
+    @param trafo: Transformation information to get needed data from
+    **/
+    void compute(std::vector<PeptideIdentification>& ids, const TransformationDescription& trafo) const;
+
     /// returns the name of the metric
     const String& getName() const override;
     

@@ -31,11 +31,11 @@
 // $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/QC/TopNoverRT.h>
 
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/QC/TopNoverRT.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 using namespace std;

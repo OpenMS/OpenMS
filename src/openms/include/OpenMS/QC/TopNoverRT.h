@@ -33,20 +33,26 @@
 // --------------------------------------------------------------------------
 
 #pragma once
+
 #include <OpenMS/QC/QCBase.h>
+
+#include <OpenMS/KERNEL/Peak1D.h>
+
 
 namespace OpenMS
 {
   class FeatureMap;
   class MSExperiment;
-  class TransformationDescription;
   class MSSpectrum;
+  class PeptideIdentification;
+  class TransformationDescription;
 
   /**
     @brief  QC metric to determine the number of MS2 scans per MS1 scan over RT
 
-    TopNoverRT adds empty PeptideIdentifications (with no sequence) for all unidentified MS2 scans to the unassignedPeptideIdentifications()
-    specifying the RT and the metaValues "ScanEventNumber" and "identified".
+    TopNoverRT creates empty PeptideIdentifications (with no sequence) for all unidentified MS2 scans
+    specifying the RT and the metaValues "ScanEventNumber" and "identified"
+    and returns them as in a vector.
 
     "ScanEventNumber": consecutive number of each MS2 scan after the MS1 scan
     "identified": All PeptideIdentifications of the FeatureMap are marked with '+' and all unidentified MS2-Spectra with '-'.
@@ -113,6 +119,6 @@ namespace OpenMS
 
     /// calculate highest intensity (base peak intensity) and summed intensities (total ion count)
     /// writes result into given variables
-    void getBPIandCIC_(const MSSpectrum& spec, Peak1D::IntensityType& bpi, Peak1D::IntensityType& tic); //TODO move functionality to MSSpectrum
+    static void getBPIandCIC_(const MSSpectrum& spec, Peak1D::IntensityType& bpi, Peak1D::IntensityType& tic); //TODO move functionality to MSSpectrum
   };
 }

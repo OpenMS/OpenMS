@@ -284,7 +284,7 @@ protected:
       }
 
       if (isRunnable_(&qc_rt_alignment, status))
-      {
+      { // add metavalues rt_raw & rt_align to all PepIDs
         qc_rt_alignment.compute(fmap, trafo_descr);
       }
 
@@ -308,6 +308,14 @@ protected:
         {
           pep_id.setIdentifier(ptr_cmap->second);
         }
+
+        // annotate the RT alignment
+        if (isRunnable_(&qc_rt_alignment, status))
+        {
+          qc_rt_alignment.compute(new_upep_ids, trafo_descr);
+        }
+
+
         // save the just calculated IDs for appending to Cmap later (not now, because the vector might resize and invalidate our PepID*).
         all_new_upep_ids.insert(all_new_upep_ids.end(), new_upep_ids.begin(), new_upep_ids.end());
       }
