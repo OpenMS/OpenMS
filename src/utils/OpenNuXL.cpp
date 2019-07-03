@@ -603,7 +603,7 @@ protected:
 
   // score ions without nucleotide shift
   static void scorePeptideIons_(
-      const PeakSpectrum& exp_spectrum, 
+      const PeakSpectrum& exp_spectrum,
       const DataArrays::IntegerDataArray& exp_charges,
       const vector<double>& total_loss_template_z1_b_ions,
       const vector<double>& total_loss_template_z1_y_ions,
@@ -613,6 +613,7 @@ protected:
       const double fragment_mass_tolerance, 
       const bool fragment_mass_tolerance_unit_ppm,
       std::vector<double>& intensity_sum,
+      vector<bool>& peak_matched, 
       float& hyperScore,
       float& MIC,
       float& Morph,
@@ -627,12 +628,13 @@ protected:
     OPENMS_PRECONDITION(total_loss_template_z1_b_ions.size() > 0, "b- and y-ion arrays must not be empty.");
     OPENMS_PRECONDITION(intensity_sum.size() == total_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
     OPENMS_PRECONDITION(intensity_sum.size() == total_loss_template_z1_y_ions.size(), "Sum array needs to be of same size as y-ion array");
+    OPENMS_PRECONDITION(peak_matched.size() == exp_spectrum.size(), "Peak matched needs to be of same size as experimental spectrum");
+    OPENMS_PRECONDITION(std::count_if(peak_matched.begin(), peak_matched.end(), [](bool b){return b == true;}) == 0;, "Peak matched must be initialized to false");
 
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
     const Size N = intensity_sum.size();
     std::vector<float> b_ions(N, 0.0), y_ions(N, 0.0);
 
-    vector<bool> peak_matched(exp_spectrum.size(), false);
 
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
@@ -747,6 +749,7 @@ protected:
       const double bFact = logfactorial_(b_ion_count);
       hyperScore = log1p(dot_product) + yFact + bFact;
       MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
+      for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
       MIC /= TIC;
       Morph = b_ion_count + y_ion_count + MIC;
       err = (y_mean_err + b_mean_err)/(b_sum + y_sum);
@@ -880,6 +883,7 @@ protected:
                         const PeakSpectrum& exp_spectrum, 
                         const DataArrays::IntegerDataArray& exp_charges,
                         std::vector<double>& intensity_sum,
+                        std::vector<bool>& peak_matched,
                         float& plss_hyperScore,
                         float& plss_MIC,
                         float& plss_Morph,
@@ -901,8 +905,6 @@ protected:
 
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
-
-    vector<bool> peak_matched(exp_spectrum.size(), false);
 
     // match b- and a-ions (we record a-ions as b-ions)
     for (double diff2b : {0.0, -27.994915} ) // b-ion and a-ion ('CO' mass diff from b- to a-ion)
@@ -1011,6 +1013,7 @@ protected:
       const double bFact = logfactorial_(b_ion_count);
       plss_hyperScore = log1p(dot_product) + yFact + bFact;
       plss_MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
+      for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
       plss_MIC /= TIC;
       plss_Morph = b_ion_count + y_ion_count + plss_MIC;
       plss_err = (y_mean_err + b_mean_err)/(b_sum + y_sum);
@@ -1151,7 +1154,7 @@ protected:
   static float calculateCombinedScore(const AnnotatedHit& ah, const bool isXL)
   {
      return -7.9010278  + 0.7545435 * ah.total_loss_score + 3.1219378 * ah.sequence_score
-            + 0.33 * ah.mass_error_p;
+            + 0.33 * ah.mass_error_p + 0.01*ah.total_MIC;
 /*
           (Intercept) NuXL.total_loss_score   NuXL.sequence_score 
            -7.9010278             0.7545435             3.1219378 
@@ -1209,6 +1212,7 @@ static void scoreShiftedFragments_(
                                   const vector<double> &partial_loss_template_z1_y_ions,
                                   const PeakSpectrum &marker_ions_sub_score_spectrum_z1,
                                   vector<double>& intensity_sum,
+                                  vector<bool>& matched_peaks,
                                   float &partial_loss_sub_score,
                                   float &marker_ions_sub_score,
                                   float &plss_MIC, 
@@ -1248,6 +1252,7 @@ static void scoreShiftedFragments_(
                       exp_spectrum, 
                       exp_spectrum.getIntegerDataArrays()[0],
                       intensity_sum,
+                      matched_peaks,
                       partial_loss_sub_score,
                       plss_MIC,
                       plss_Morph,
@@ -1280,11 +1285,11 @@ static void scoreShiftedFragments_(
     for (auto & spec : exp)
     {
       if (spec.getMSLevel() != 2) continue;
-      // maximum charge considered
-      const unsigned int max_z = std::min(2U, static_cast<unsigned int>(spec.getPrecursors()[0].getCharge() - 1));
-
+      // faster
       vector<double> mzs;
-      for (auto const& p : spec) { mzs.push_back(p.getMZ()); } // faster
+      vector<double> charges;
+      for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
+      for (auto const& p : spec.getIntegerDataArrays()[0]) { charges.push_back(p); }
  
       Size match(0);
       for (Size i = 0; i != mzs.size(); ++i)
@@ -1293,13 +1298,13 @@ static void scoreShiftedFragments_(
         {
           double m =  mzs[j];
           double dm = m - mzs[i];
-          for (Size z = 1; z <= max_z; ++z)
-          {
-            const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
-            auto left = adduct_mass.lower_bound((dm*z) - tolerance);
-            if (left == adduct_mass.end()) continue;
-            if (fabs(*left - (dm*z)) < tolerance) ++match;
-          }
+
+          if (charges[i] != charges[j]) continue;
+
+          const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
+          auto left = adduct_mass.lower_bound((dm*charges[i]) - tolerance);
+          if (left == adduct_mass.end()) continue;
+          if (fabs(*left - (dm*charges[i])) < tolerance ) ++match;
         } 
       } 
 
@@ -1310,7 +1315,16 @@ static void scoreShiftedFragments_(
   }
 
   /* @brief Filter spectra to remove noise.
-     Parameter are passed to spectra filter.
+
+     - Remove zero intensities
+     - Scale by root to reduce impact of high-intensity peaks
+     - Normalize max intensity to 1.0
+     - Remove isotopic peaks and determine charge
+     - Set Unknown charge to z=1. Otherwise we get a lot of spurious matches 
+     - Keep 20 highest-intensity peaks in 100 m/z windows
+     - Keep max. 400 peaks per spectrum
+       to highly charged fragments in the low m/z region
+     - Calculate TIC of filtered spectrum
    */
   void preprocessSpectra_(PeakMap& exp, 
     double fragment_mass_tolerance, 
@@ -1318,13 +1332,13 @@ static void scoreShiftedFragments_(
     bool single_charge_spectra, 
     bool annotate_charge = false)
   {
-    SqrtMower sqrt_mower_filter;
-    sqrt_mower_filter.filterPeakMap(exp);
-
     // filter MS2 map
     // remove 0 intensities
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
+
+    SqrtMower sqrt_mower_filter;
+    sqrt_mower_filter.filterPeakMap(exp);
 
     Normalizer normalizer;
     normalizer.filterPeakMap(exp);
@@ -2707,6 +2721,7 @@ static void scoreShiftedFragments_(
       im_MIC(0);
 
     vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0); 
+    vector<bool> peak_matched(exp_spectrum.size(), false);
 
     scorePeptideIons_(
       exp_spectrum, 
@@ -2719,6 +2734,7 @@ static void scoreShiftedFragments_(
       fragment_mass_tolerance, 
       fragment_mass_tolerance_unit_ppm,
       intensity_sum,
+      peak_matched,
       total_loss_score,
       tlss_MIC,
       tlss_Morph,
@@ -3031,8 +3047,8 @@ static void scoreShiftedFragments_(
     preprocessSpectra_(spectra, 
                        fragment_mass_tolerance, 
                        fragment_mass_tolerance_unit_ppm, 
-                       convert_to_single_charge, // no single charge (false), annotate charge (true)
-                       annotate_charge);
+                       convert_to_single_charge,
+                       annotate_charge);  
     progresslogger.endProgress();
 
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
@@ -3255,6 +3271,7 @@ static void scoreShiftedFragments_(
                         im_MIC(0);
 
                   vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0);
+                  vector<bool> peak_matched(exp_spectrum.size(), false);
                   scorePeptideIons_(
                     exp_spectrum, 
                     exp_spectrum.getIntegerDataArrays()[0],
@@ -3266,6 +3283,7 @@ static void scoreShiftedFragments_(
                     fragment_mass_tolerance, 
                     fragment_mass_tolerance_unit_ppm,
                     intensity_sum,
+                    peak_matched,
                     hyperScore,
                     tlss_MIC,
                     tlss_Morph,
@@ -3393,6 +3411,8 @@ static void scoreShiftedFragments_(
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
                     vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0);
+                    vector<bool> peak_matched(exp_spectrum.size(), false);
+
                     scorePeptideIons_(
                       exp_spectrum, 
                       exp_spectrum.getIntegerDataArrays()[0],
@@ -3404,6 +3424,7 @@ static void scoreShiftedFragments_(
                       fragment_mass_tolerance, 
                       fragment_mass_tolerance_unit_ppm,
                       intensity_sum,
+                      peak_matched,
                       hyperScore,
                       tlss_MIC,
                       tlss_Morph,
@@ -3433,6 +3454,7 @@ static void scoreShiftedFragments_(
                                                partial_loss_template_z1_yions,
                                                marker_ions_sub_score_spectrum_z1,
                                                intensity_sum,
+                                               peak_matched,
                                                partial_loss_sub_score,
                                                marker_ions_sub_score,
                                                plss_MIC, 
@@ -3576,12 +3598,11 @@ static void scoreShiftedFragments_(
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);    
 
-    // for post scoring don't convert fragments to single charge. Annotate charge instead to every peak.
     preprocessSpectra_(spectra, 
                        fragment_mass_tolerance, 
                        fragment_mass_tolerance_unit_ppm, 
-                       false, // no single charge (false), annotate charge (true)
-                       true); 
+                       false, // no single charge (false)
+                       true); // annotate charge (true)
 
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
     progresslogger.startProgress(0, 1, "localization...");
