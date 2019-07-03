@@ -149,8 +149,8 @@ protected:
     registerTOPPSubsection_("precursor", "Filtering by precursor attributes (RT, m/z, charge, length)");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
     registerStringOption_("precursor:mz", "[min]:[max]", ":", "Mass-to-charge range to extract.", false);
-    registerStringOption_("length", "[min]:[max]", ":", "Keep only peptide hits with a sequence length in this range.", false);
-    registerStringOption_("charge", "[min]:[max]", ":", "Keep only peptide hits with charge states in this range.", false);
+    registerStringOption_("precursor:length", "[min]:[max]", ":", "Keep only peptide hits with a sequence length in this range.", false);
+    registerStringOption_("precursor:charge", "[min]:[max]", ":", "Keep only peptide hits with charge states in this range.", false);
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept.", false);
@@ -226,7 +226,7 @@ protected:
 
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (as defined in the 'SearchParameters' section of the input file).", false);
 
-    registerFlag_("remove_ambiguous_peptides", "If a peptide-spectrum match occurs more than once for a spectrum, only the first instance is kept.", true);
+    registerFlag_("remove_ambiguous_peptides", "Removes duplicated PSMs per spectrum and retrains the one with the higher score.", true);
     registerFlag_("remove_shared_peptides", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the IDs.");
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
@@ -424,12 +424,12 @@ protected:
 
 
     Int min_length = 0, max_length = 0;
-    if (parseRange_(getStringOption_("length"), min_length, max_length))
+    if (parseRange_(getStringOption_("precursor:length"), min_length, max_length))
     {
       OPENMS_LOG_INFO << "Filtering by peptide length..." << endl;
       if ((min_length < 0) || (max_length < 0))
       {
-        OPENMS_LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'length'" << endl;
+        OPENMS_LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'precursor:length'" << endl;
         return ILLEGAL_PARAMETERS;
       }
       IDFilter::filterPeptidesByLength(peptides, Size(min_length),
@@ -546,7 +546,7 @@ protected:
 
     Int min_charge = numeric_limits<Int>::min(), max_charge =
       numeric_limits<Int>::max();
-    if (parseRange_(getStringOption_("charge"), min_charge, max_charge))
+    if (parseRange_(getStringOption_("precursor:charge"), min_charge, max_charge))
     {
       OPENMS_LOG_INFO << "Filtering by peptide charge..." << endl;
       IDFilter::filterPeptidesByCharge(peptides, min_charge, max_charge);
