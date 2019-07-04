@@ -91,7 +91,6 @@ namespace OpenMS
 
   void MRMFeature::addScore(const String & score_name, double score)
   {
-    // pg_scores_[score_name] = score;
     setMetaValue(score_name, score);
   }
 

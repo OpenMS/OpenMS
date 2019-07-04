@@ -930,9 +930,9 @@ namespace OpenMS
         pep_hit_.setCharge(pep->getChargeState());
       }
       pep_hit_.setScore(xx_lda_prescore);
-      if (swath_present)
+      if (swath_present && mrmfeature->metaValueExists("xx_swath_prelim_score"))
       {
-        // pep_hit_.setScore(mrmfeature->getMetaValue("xx_swath_prelim_score"));
+        pep_hit_.setScore(mrmfeature->getMetaValue("xx_swath_prelim_score"));
       }
 
       if (pep->isPeptide())
