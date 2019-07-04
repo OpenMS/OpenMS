@@ -41,7 +41,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 
 // Functions
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 // #define SWATHMAPMASSCORRECTION_DEBUG
 
@@ -162,7 +162,7 @@ namespace OpenMS
         }
 
         // integrate spectrum at the position of the theoretical mass
-        OpenSwath::integrateWindow(sp, left, right, mz, intensity, centroided);
+        DIAHelpers::integrateWindow(sp, left, right, mz, intensity, centroided);
 
         // skip empty windows
         if (mz == -1)

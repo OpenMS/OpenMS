@@ -37,7 +37,8 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoringHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 using namespace std;
 using namespace OpenMS;
