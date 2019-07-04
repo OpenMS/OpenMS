@@ -34,8 +34,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 
-// #define ENABLE_OPENMS_NESTED_PARALLELISM
-
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
 {
@@ -534,7 +532,7 @@ namespace OpenMS
     // in which they were given to the program / acquired. This gives much
     // better load balancing than static allocation.
 #ifdef _OPENMP
-#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
+#ifdef MT_ENABLE_NESTED_OPENMP
     int total_nr_threads = omp_get_max_threads(); // store total number of threads we are allowed to use
     if (threads_outer_loop_ > -1)
     {
@@ -616,7 +614,7 @@ namespace OpenMS
           SignedSize nr_batches = (transition_exp_used_all.getCompounds().size() / batch_size);
 
 #ifdef _OPENMP
-#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
+#ifdef MT_ENABLE_NESTED_OPENMP
           // If we have a multiple of threads_outer_loop_ here, then use nested
           // parallelization here. E.g. if we use 8 threads for the outer loop,
           // but we have a total of 24 cores available, each of the 8 threads
@@ -635,7 +633,7 @@ namespace OpenMS
             OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
 
 #ifdef _OPENMP
-#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
+#ifdef MT_ENABLE_NESTED_OPENMP
             // To ensure multi-threading safe access to the individual spectra, we
             // need to use a light clone of the spectrum access (if multiple threads
             // share a single filestream and call seek on it, chaos will ensue).
@@ -649,7 +647,7 @@ namespace OpenMS
             {
               std::cout << "Thread " <<
 #ifdef _OPENMP
-#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
+#ifdef MT_ENABLE_NESTED_OPENMP
               outer_thread_nr << "_" << omp_get_thread_num() << " " <<
 #else
               omp_get_thread_num() << "_0 " <<
@@ -719,7 +717,7 @@ namespace OpenMS
     this->endProgress();
     
 #ifdef _OPENMP
-#ifdef ENABLE_OPENMS_NESTED_PARALLELISM
+#ifdef MT_ENABLE_NESTED_OPENMP
     if (threads_outer_loop_ > -1)
     {
       omp_set_num_threads(total_nr_threads); // set number of available threads back to initial value
