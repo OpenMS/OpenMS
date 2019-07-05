@@ -55,7 +55,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         bool use_total_mi_score_
         bool use_nr_peaks_score_
         bool use_sn_score_
-        bool use_sn_score_sub_
         bool use_mi_score_
         bool use_dia_scores_
         bool use_sonar_scores
@@ -134,7 +133,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
 
         double dotprod_score_dia
         double manhatt_score_dia
-
-        libcpp_vector[double] masserror_ppm
 
 
