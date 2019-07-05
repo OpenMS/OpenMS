@@ -281,14 +281,16 @@ protected:
     double rt_min = -init, rt_max = init, mz_min = -init, mz_max = init;
     bool filter_rt = parseRange_(getStringOption_("rt"), rt_min, rt_max);
     bool filter_mz = parseRange_(getStringOption_("mz"), mz_min, mz_max);
+    bool show_precursors = getFlag_("precursors");
 
     PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
     if (filter_rt) f.getOptions().setRTRange(DRange<1>(rt_min, rt_max));
     if (filter_mz) f.getOptions().setMZRange(DRange<1>(mz_min, mz_max));
+    if (!show_precursors) f.getOptions().setMSLevels({1});
     f.load(in, exp);
-    if (filter_mz)
+    if (filter_mz && show_precursors)
     {
       // MS2 spectra were not filtered by precursor m/z, remove them now:
       auto predicate =
@@ -298,27 +300,9 @@ protected:
     }
     exp.updateRanges(1);
 
-    SignedSize rows = getIntOption_("height");
-    if (rows == 0)
-    {
-      rows = exp.size();
-    }
-    if (rows <= 0)
-    {
-      writeLog_("Error: Zero rows is not possible.");
-      return ILLEGAL_PARAMETERS;
-    }
-
-    SignedSize cols = getIntOption_("width");
-    if (cols == 0)
-    {
-      cols = UInt(ceil(exp.getMaxMZ() - exp.getMinMZ()));
-    }
-    if (cols <= 0)
-    {
-      writeLog_("Error: Zero columns is not possible.");
-      return ILLEGAL_PARAMETERS;
-    }
+    Size rows = getIntOption_("height"), cols = getIntOption_("width");
+    if (rows == 0) rows = exp.size();
+    if (cols == 0) cols = UInt(ceil(exp.getMaxMZ() - exp.getMinMZ()));
 
     //----------------------------------------------------------------
     //Do the actual resampling
@@ -371,19 +355,22 @@ protected:
     int scans = (int) bilip.getData().sizePair().first;
     int peaks = (int) bilip.getData().sizePair().second;
 
+    bool use_log = getFlag_("log_intensity");
+
     MultiGradient gradient;
     String gradient_str = getStringOption_("gradient");
     if (gradient_str != "")
     {
       gradient.fromString(String("Linear|") + gradient_str);
     }
+    else if (use_log)
+    {
+      gradient = MultiGradient::getDefaultGradientLogarithmicIntensityMode();
+    }
     else
     {
-      gradient.fromString("Linear|0,#FFFFFF;2,#FFFF00;11,#FFAA00;32,#FF0000;55,#AA00FF;78,#5500FF;100,#000000");
+      gradient = MultiGradient::getDefaultGradientLinearIntensityMode();
     }
-
-    bool use_log = getFlag_("log_intensity");
-    writeDebug_("log_intensity: " + String(use_log), 1);
 
     QImage image(peaks, scans, QImage::Format_RGB32);
     string s = getStringOption_("background_color");
@@ -402,7 +389,9 @@ protected:
     {
       factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
     }
-    // logarithmize max. intensity as well:
+    // with a user-supplied gradient, we need to logarithmize explicitly;
+    // by default, the gradient itself is adjusted to the log-scale:
+    use_log &= !gradient_str.empty();
     if (use_log) factor = std::log(factor);
 
     factor /= 100.0;
@@ -423,7 +412,7 @@ protected:
       }
     }
 
-    if (getFlag_("precursors"))
+    if (show_precursors)
     {
       markMS2Locations_(exp, image, getFlag_("transpose"),
                         getStringOption_("precursor_color").toQString(),
