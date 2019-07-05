@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
 
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -61,10 +62,9 @@ using namespace std;
 
     @brief Transforms an LC-MS map into a png image.
 
-    The input is first resampled into a matrix using
-    bilinear forward resampling.  Then the content of the matrix is written to
-    an image file.  The output has a uniform spacing in both dimensions regardless
-    of the input.
+    The input is first resampled into a matrix using bilinear forward resampling.
+    Then the content of the matrix is written to an image file.
+    The output has a uniform spacing in both dimensions regardless of the input.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_ImageCreator.cli
@@ -89,7 +89,7 @@ public:
 protected:
   StringList out_formats_; ///< valid output formats for image
 
-  void addPoint_(int x, int y, QImage & image, QColor color = Qt::black,
+  void addPoint_(int x, int y, QImage& image, QColor color = Qt::black,
                  Size size = 2)
   {
     int h = image.height(), w = image.width();
@@ -118,7 +118,7 @@ protected:
     }
   }
 
-  void addFeatureBox_(int lower_mz, int lower_rt, int upper_mz, int upper_rt, QImage & image, QColor color = Qt::black)
+  void addFeatureBox_(int lower_mz, int lower_rt, int upper_mz, int upper_rt, QImage& image, QColor color = Qt::black)
   {
     QPainter * painter = new QPainter(&image);
     painter->setPen(color);
@@ -126,7 +126,7 @@ protected:
     delete painter;
   }
 
-  void markMS2Locations_(PeakMap & exp, QImage & image, bool transpose,
+  void markMS2Locations_(PeakMap& exp, QImage& image, bool transpose,
                          QColor color, Size size)
   {
     double xcoef = image.width(), ycoef = image.height();
@@ -163,7 +163,7 @@ protected:
     }
   }
 
-  void markFeatureLocations_(FeatureMap & feature_map, PeakMap & exp, QImage & image, bool transpose, QColor color)
+  void markFeatureLocations_(FeatureMap& feature_map, PeakMap& exp, QImage& image, bool transpose, QColor color)
   {
     double xcoef = image.width(), ycoef = image.height();
     if (transpose)
@@ -226,6 +226,9 @@ protected:
     registerStringOption_("out_type", "<file type>", "", "The image format. Set this if you want to force a format not reflected by the 'out' filename.", false);
     setValidStrings_("out_type", out_formats_);
 
+    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
+    registerStringOption_("mz", "[min]:[max]", ":", "Mass-to-charge range to extract", false);
+
     registerIntOption_("width", "<number>", 1024, "Number of pixels in m/z dimension.\nIf 0, one pixel per Th.", false);
     setMinInt_("width", 0);
     registerIntOption_("height", "<number>", 1024, "Number of pixels in RT dimension.\nIf 0, one pixel per spectrum.", false);
@@ -248,7 +251,7 @@ protected:
     setMaxInt_("precursor_size", 3);
   }
 
-  ExitCodes main_(int, const char **) override
+  ExitCodes main_(int, const char**) override
   {
     //----------------------------------------------------------------
     // load data
@@ -263,7 +266,7 @@ protected:
       {
         format = out.suffix('.');
       }
-      catch (Exception::ElementNotFound & /*e*/)
+      catch (Exception::ElementNotFound& /*e*/)
       {
         format = "nosuffix";
       }
@@ -274,11 +277,25 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
     }
+    const double init = numeric_limits<double>::max();
+    double rt_min = -init, rt_max = init, mz_min = -init, mz_max = init;
+    bool filter_rt = parseRange_(getStringOption_("rt"), rt_min, rt_max);
+    bool filter_mz = parseRange_(getStringOption_("mz"), mz_min, mz_max);
+
     PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
+    if (filter_rt) f.getOptions().setRTRange(DRange<1>(rt_min, rt_max));
+    if (filter_mz) f.getOptions().setMZRange(DRange<1>(mz_min, mz_max));
     f.load(in, exp);
-
+    if (filter_mz)
+    {
+      // MS2 spectra were not filtered by precursor m/z, remove them now:
+      auto predicate =
+        InPrecursorMZRange<MSSpectrum>(mz_min, mz_max, true);
+      exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), predicate),
+                             exp.end());
+    }
     exp.updateRanges(1);
 
     SignedSize rows = getIntOption_("height");
@@ -375,7 +392,7 @@ protected:
     string feature_color_string = getStringOption_("feature_color");
     QColor feature_color(feature_color_string.c_str());
 
-    QPainter * painter = new QPainter(&image);
+    QPainter* painter = new QPainter(&image);
     painter->setPen(background_color);
     painter->fillRect(0, 0, peaks, scans, Qt::SolidPattern);
     delete painter;
@@ -428,7 +445,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPImageCreator tool;
   return tool.main(argc, argv);
