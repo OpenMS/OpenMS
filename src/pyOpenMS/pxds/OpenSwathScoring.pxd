@@ -133,5 +133,3 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
 
         double dotprod_score_dia
         double manhatt_score_dia
-
-
