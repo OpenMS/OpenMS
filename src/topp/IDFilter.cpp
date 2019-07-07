@@ -226,7 +226,7 @@ protected:
 
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (as defined in the 'SearchParameters' section of the input file).", false);
 
-    registerFlag_("remove_ambiguous_peptides", "Removes duplicated PSMs per spectrum and retrains the one with the higher score.", true);
+    registerFlag_("remove_duplicate_psm", "Removes duplicated PSMs per spectrum and retains the one with the higher score.", true);
     registerFlag_("remove_shared_peptides", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the IDs.");
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
@@ -285,9 +285,9 @@ protected:
 
     // Filtering peptide hits according to set criteria
 
-    if (getFlag_("remove_ambiguous_peptides"))
+    if (getFlag_("remove_duplicate_psm"))
     {
-      OPENMS_LOG_INFO << "Removing ambiguous peptides..." << endl;
+      OPENMS_LOG_INFO << "Removing duplicated psms..." << endl;
       IDFilter::removeDuplicatePeptideHits(peptides);
     }
 
