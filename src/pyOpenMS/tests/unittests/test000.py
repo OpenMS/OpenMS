@@ -3338,11 +3338,31 @@ def testMRMFeature():
       MRMFeature.getScore
      """
     mrmfeature = pyopenms.MRMFeature()
+    f = pyopenms.Feature()
 
-    mrmfeature.addScore("testscore", 6)
-    assert mrmfeature.getScore("testscore") == 6.0
-    mrmfeature.addScore("testscore", 7)
-    assert mrmfeature.getScore("testscore") == 7.0
+    fs = mrmfeature.getFeatures()
+    assert len(fs) == 0
+
+    mrmfeature.addFeature(f, "myFeature")
+    fs = mrmfeature.getFeatures()
+    assert len(fs) == 1
+    assert mrmfeature.getFeature("myFeature") is not None
+    slist = []
+    mrmfeature.getFeatureIDs(slist)
+    assert len(slist) == 1
+
+    mrmfeature.addPrecursorFeature(f, "myFeature_Pr0")
+    slist = []
+    mrmfeature.getPrecursorFeatureIDs(slist)
+    assert len(slist) == 1
+    assert mrmfeature.getPrecursorFeature("myFeature_Pr0") is not None
+
+    s = mrmfeature.getScores()
+    assert abs(s.yseries_score - 0.0) < 1e-4
+    s.yseries_score = 4.0
+    mrmfeature.setScores(s)
+    s2 = mrmfeature.getScores()
+    assert abs(s2.yseries_score - 4.0) < 1e-4
 
 @report
 def testConfidenceScoring():
