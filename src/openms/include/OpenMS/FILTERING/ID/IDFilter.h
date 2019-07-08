@@ -701,26 +701,6 @@ public:
     }
 
     /**
-       @brief Filters peptide or protein identifications according to the significance threshold of the hits.
-
-       Only peptide/protein hits which reach a score above (or below, depending on score orientation) @p threshold_fraction * @p significance_threshold (as stored in the ID) are kept.
-    */
-    template <class IdentificationType>
-    static void filterHitsBySignificance(std::vector<IdentificationType>& ids,
-                                         double threshold_fraction = 1.0)
-    {
-      for (typename std::vector<IdentificationType>::iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
-      {
-        double threshold_score = (threshold_fraction *
-                                  id_it->getSignificanceThreshold());
-        struct HasGoodScore<typename IdentificationType::HitType> score_filter(
-          threshold_score, id_it->isHigherScoreBetter());
-        keepMatchingItems(id_it->getHits(), score_filter);
-      }
-    }
-
-    /**
       @brief Filters peptide or protein identifications according to the score of the hits, keeping the @p n best hits per ID.
 
       The score orientation (are higher scores better?) is taken into account.
@@ -990,30 +970,6 @@ public:
       {
         filterHitsByScore(exp_it->getPeptideIdentifications(),
                           peptide_threshold_score);
-        removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-        updateProteinReferences(exp_it->getPeptideIdentifications(),
-                                experiment.getProteinIdentifications());
-      }
-      // @TODO: remove proteins that aren't referenced by peptides any more?
-    }
-
-    /// Filters an MS/MS experiment according to fractions of the significance thresholds
-    static void filterHitsBySignificance(PeakMap& experiment,
-                                         double peptide_threshold_fraction,
-                                         double protein_threshold_fraction)
-    {
-      // filter protein hits:
-      filterHitsBySignificance(experiment.getProteinIdentifications(),
-                               protein_threshold_fraction);
-      // don't remove empty protein IDs - they contain search meta data and may
-      // be referenced by peptide IDs (via run ID)
-
-      // filter peptide hits:
-      for (PeakMap::Iterator exp_it = experiment.begin();
-           exp_it != experiment.end(); ++exp_it)
-      {
-        filterHitsBySignificance(exp_it->getPeptideIdentifications(),
-                                 peptide_threshold_fraction);
         removeEmptyIdentifications(exp_it->getPeptideIdentifications());
         updateProteinReferences(exp_it->getPeptideIdentifications(),
                                 experiment.getProteinIdentifications());
