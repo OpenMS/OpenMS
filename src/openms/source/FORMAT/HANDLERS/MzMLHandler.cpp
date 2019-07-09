@@ -667,32 +667,31 @@ namespace OpenMS
 
     void MzMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      static const XMLCh* s_count = xercesc::XMLString::transcode("count");
-      static const XMLCh* s_default_array_length = xercesc::XMLString::transcode("defaultArrayLength");
-      static const XMLCh* s_array_length = xercesc::XMLString::transcode("arrayLength");
-      static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
-      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-      static const XMLCh* s_id = xercesc::XMLString::transcode("id");
-      //~ static const XMLCh * s_cvref = xercesc::XMLString::transcode("cvRef"); TODO
-      static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
-      static const XMLCh* s_version = xercesc::XMLString::transcode("version");
-      static const XMLCh* s_version_mzml = xercesc::XMLString::transcode("mzML:version");
-      static const XMLCh* s_order = xercesc::XMLString::transcode("order");
-      static const XMLCh* s_location = xercesc::XMLString::transcode("location");
-      static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
-      static const XMLCh* s_software_ref = xercesc::XMLString::transcode("softwareRef");
-      static const XMLCh* s_source_file_ref = xercesc::XMLString::transcode("sourceFileRef");
-      static const XMLCh* s_default_instrument_configuration_ref = xercesc::XMLString::transcode("defaultInstrumentConfigurationRef");
-      static const XMLCh* s_instrument_configuration_ref = xercesc::XMLString::transcode("instrumentConfigurationRef");
-      static const XMLCh* s_default_data_processing_ref = xercesc::XMLString::transcode("defaultDataProcessingRef");
-      static const XMLCh* s_data_processing_ref = xercesc::XMLString::transcode("dataProcessingRef");
-      static const XMLCh* s_start_time_stamp = xercesc::XMLString::transcode("startTimeStamp");
-      static const XMLCh* s_external_spectrum_id = xercesc::XMLString::transcode("externalSpectrumID");
-      static const XMLCh* s_default_source_file_ref = xercesc::XMLString::transcode("defaultSourceFileRef");
-      static const XMLCh* s_scan_settings_ref = xercesc::XMLString::transcode("scanSettingsRef");
+      constexpr XMLCh s_count[] = L"count";
+      constexpr XMLCh s_default_array_length[] = L"defaultArrayLength";
+      constexpr XMLCh s_array_length[] = L"arrayLength";
+      constexpr XMLCh s_accession[] = L"accession";
+      constexpr XMLCh s_name[] = L"name";
+      constexpr XMLCh s_type[] = L"type";
+      constexpr XMLCh s_value[] = L"value";
+      constexpr XMLCh s_unit_accession[] = L"unitAccession";
+      constexpr XMLCh s_id[] = L"id";
+      constexpr XMLCh s_ref[] = L"ref";
+      constexpr XMLCh s_version[] = L"version";
+      constexpr XMLCh s_version_mzml[] = L"mzML:version";
+      constexpr XMLCh s_order[] = L"order";
+      constexpr XMLCh s_location[] = L"location";
+      constexpr XMLCh s_sample_ref[] = L"sampleRef";
+      constexpr XMLCh s_software_ref[] = L"softwareRef";
+      constexpr XMLCh s_source_file_ref[] = L"sourceFileRef";
+      constexpr XMLCh s_default_instrument_configuration_ref[] = L"defaultInstrumentConfigurationRef";
+      constexpr XMLCh s_instrument_configuration_ref[] = L"instrumentConfigurationRef";
+      constexpr XMLCh s_default_data_processing_ref[] = L"defaultDataProcessingRef";
+      constexpr XMLCh s_data_processing_ref[] = L"dataProcessingRef";
+      constexpr XMLCh s_start_time_stamp[] = L"startTimeStamp";
+      constexpr XMLCh s_external_spectrum_id[] = L"externalSpectrumID";
+      constexpr XMLCh s_default_source_file_ref[] = L"defaultSourceFileRef";
+      constexpr XMLCh s_scan_settings_ref[] = L"scanSettingsRef";
 
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
@@ -718,7 +717,7 @@ namespace OpenMS
       if (tag == "spectrum")
       {
         // for cppcheck
-        static const XMLCh* s_spot_id = xercesc::XMLString::transcode("spotID");
+        constexpr XMLCh s_spot_id[] = L"spotID";
 
         //number of peaks
         spec_ = SpectrumType();
@@ -1169,11 +1168,11 @@ namespace OpenMS
 
     void MzMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
-      static const XMLCh* s_chromatogram = xercesc::XMLString::transcode("chromatogram");
-      static const XMLCh* s_spectrum_list = xercesc::XMLString::transcode("spectrumList");
-      static const XMLCh* s_chromatogram_list = xercesc::XMLString::transcode("chromatogramList");
-      static const XMLCh* s_mzml = xercesc::XMLString::transcode("mzML");
+      constexpr XMLCh s_spectrum[] = L"spectrum";
+      constexpr XMLCh s_chromatogram[] = L"chromatogram";
+      constexpr XMLCh s_spectrum_list[] = L"spectrumList";
+      constexpr XMLCh s_chromatogram_list[] = L"chromatogramList";
+      constexpr XMLCh s_mzml[] = L"mzML";
 
       open_tags_.pop_back();
 
