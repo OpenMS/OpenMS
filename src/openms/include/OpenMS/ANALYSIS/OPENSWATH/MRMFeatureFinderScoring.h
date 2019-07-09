@@ -300,6 +300,10 @@ private:
     double uis_threshold_sn_;
     double uis_threshold_peak_area_;
 
+    double sn_win_len_;
+    unsigned int sn_bin_count_;
+    bool write_log_messages_;
+
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;

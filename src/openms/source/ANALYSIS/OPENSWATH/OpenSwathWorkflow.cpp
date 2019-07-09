@@ -38,6 +38,28 @@
 namespace OpenMS
 {
 
+  OpenSwath::SpectrumAccessPtr loadMS1Map(const std::vector< OpenSwath::SwathMap > & swath_maps, bool load_into_memory)
+  {
+    OpenSwath::SpectrumAccessPtr ms1_map;
+    // store reference to MS1 map for later -> note that this is *not* threadsafe!
+    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+    {
+      // if (swath_maps[i].ms1 && use_ms1_traces_)
+      if (swath_maps[i].ms1)
+      {
+        ms1_map = swath_maps[i].sptr;
+      }
+    }
+    if (load_into_memory)
+    {
+      // This creates an InMemory object that keeps all data in memory
+      // but provides the same access functionality to the raw data as
+      // any object implementing ISpectrumAccess
+      ms1_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*ms1_map) );
+    }
+    return ms1_map;
+  }
+
   TransformationDescription OpenSwathCalibrationWorkflow::performRTNormalization(
     const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenSwath::SwathMap > & swath_maps,
@@ -443,14 +465,11 @@ namespace OpenMS
     this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
-    std::vector< MSChromatogram > ms1_chromatograms;
     ChromExtractParams ms1_cp(cp_ms1);
     if (!use_ms1_ion_mobility_)
     {
       ms1_cp.im_extraction_window = -1;
     }
-    MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, ms1_cp,
-                   transition_exp, trafo_inverse, load_into_memory, ms1_only, ms1_isotopes);
 
     if (ms1_only && !use_ms1_traces_)
     {
@@ -458,9 +477,15 @@ namespace OpenMS
           "Error, you need to enable use_ms1_traces when run in MS1 mode." );
     }
 
+    if (use_ms1_traces_) ms1_map_ = loadMS1Map(swath_maps, load_into_memory);
+
     // (ii) Precursor extraction only
     if (ms1_only)
     {
+      std::vector< MSChromatogram > ms1_chromatograms;
+      MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, chromConsumer, ms1_cp,
+                     transition_exp, trafo_inverse, ms1_only, ms1_isotopes);
+
       FeatureMap featureFile;
       boost::shared_ptr<MSExperiment> empty_exp = boost::shared_ptr<MSExperiment>(new MSExperiment);
 
@@ -642,9 +667,19 @@ namespace OpenMS
               "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")" << std::endl;
             }
 
+
             // Create the new, batch-size transition experiment
             OpenSwath::LightTargetedExperiment transition_exp_used;
             selectCompoundsForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
+
+            // Extract MS1 chromatograms for this batch
+            std::vector< MSChromatogram > ms1_chromatograms;
+            if (ms1_map_ != nullptr) 
+            {
+              OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
+              MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, chromConsumer, ms1_cp,
+                  transition_exp_used, trafo_inverse, ms1_only, ms1_isotopes);
+            }
 
             // Step 2.1: extract these transitions
             ChromatogramExtractor extractor;
@@ -732,30 +767,18 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathWorkflowBase::MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
+  void OpenSwathWorkflowBase::MS1Extraction_(const OpenSwath::SpectrumAccessPtr ms1_map,
+                                             const std::vector< OpenSwath::SwathMap > & swath_maps,
                                              std::vector< MSChromatogram >& ms1_chromatograms,
                                              Interfaces::IMSDataConsumer* chromConsumer,
                                              const ChromExtractParams& cp,
                                              const OpenSwath::LightTargetedExperiment& transition_exp,
                                              const TransformationDescription& trafo_inverse,
-                                             bool load_into_memory, 
                                              bool ms1_only,
                                              int ms1_isotopes)
   {
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
     {
-      if (swath_maps[i].ms1 && use_ms1_traces_)
       {
-        // store reference to MS1 map for later -> note that this is *not* threadsafe!
-        ms1_map_ = swath_maps[i].sptr;
-
-        if (load_into_memory)
-        {
-          // This creates an InMemory object that keeps all data in memory
-          // but provides the same access functionality to the raw data as
-          // any object implementing ISpectrumAccess
-          ms1_map_ = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*ms1_map_) );
-        }
 
         std::vector< OpenSwath::ChromatogramPtr > chrom_list;
         std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
@@ -764,7 +787,7 @@ namespace OpenMS
 
         // prepare the extraction coordinates and extract chromatogram
         prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp, true, ms1_isotopes);
-        extractor.extractChromatograms(ms1_map_, chrom_list, coordinates, cp.mz_extraction_window,
+        extractor.extractChromatograms(ms1_map, chrom_list, coordinates, cp.mz_extraction_window,
             cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
         extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
@@ -786,12 +809,17 @@ namespace OpenMS
                   swath_maps[i].lower < coordinates[j].mz && swath_maps[i].upper > coordinates[j].mz)
                 )
             {
-              // write MS1 chromatograms to disk
-              chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
+#ifdef _OPENMP
+#pragma omp critical (osw_write_out)
+#endif
+              {
+                // write MS1 chromatograms to disk
+                chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
+              }
             }
           }
+        } // end of for coordinates
 
-        }
       }
     }
   }
@@ -1092,10 +1120,15 @@ namespace OpenMS
           String("No swath maps provided"));
       }
 
+      if (use_ms1_traces_) ms1_map_ = loadMS1Map(swath_maps, load_into_memory);
+
       // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
       std::vector< MSChromatogram > ms1_chromatograms;
-      MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
-                     transition_exp, trafo_inverse, load_into_memory);
+      if (ms1_map_ != nullptr)
+      {
+        MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
+            transition_exp, trafo_inverse);
+      }
 
       ///////////////////////////////////////////////////////////////////////////
       // (ii) Compute SONAR window sizes and upper/lower limit
