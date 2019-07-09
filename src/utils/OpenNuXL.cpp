@@ -730,7 +730,6 @@ protected:
       }       
     }
 
-    OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays().size() == 1, "Exactly one float data array expected.");
     OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].getName() == "TIC", "No TIC stored in spectrum meta data.");
     OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].size() == 1, "Exactly one TIC expected.");
 
@@ -1151,45 +1150,26 @@ protected:
 /*
 *  Combine subscores of all-ion scoring.
 */
-  static float calculateCombinedScore(const AnnotatedHit& ah, const bool isXL)
+  static float calculateCombinedScore(const AnnotatedHit& ah, 
+    const bool isXL, 
+    const double nucleotide_mass_tags/*,
+    const double fraction_of_top50annotated*/)
   {
-     return -7.9010278  + 0.7545435 * ah.total_loss_score + 3.1219378 * ah.sequence_score
-            + 0.33 * ah.mass_error_p + 0.01*ah.total_MIC;
-/*
-          (Intercept) NuXL.total_loss_score   NuXL.sequence_score 
-           -7.9010278             0.7545435             3.1219378 
-*/
-/*
-           (Intercept) NuXL.total_loss_score            NuXL.modds 
-          -10.2740314             0.7115905             0.6139411 
-            NuXL.isXL         NuXL.pl_modds     NuXL.ladder_score 
-            1.6851418             0.6187959             2.7555106
+//    if (ah.Morph + ah.pl_Morph < 5.03) return 0;
+//    return ah.total_MIC + ah.marker_ions_score + fraction_of_top50annotated;
 
-    return  
-               + 0.7115905 * ah.total_loss_score
-               + 0.6139411 * ah.modds
-               + 1.6851418 * ah.isXL
-               + 0.6187959 * ah.pl_modds
-               + 2.7555106 * ah.ladder_score;
-  //               + 1.0 * ah.total_MIC         
-  //             + 0.333 * ah.mass_error_p;
+    return -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err 
+           + 52.2888 * ah.pl_err - 0.0105 * ah.modds
+           + 88.7997 * ah.immonium_score- 0.88823 * ah.partial_loss_score + 14.2052 * ah.pl_MIC
+           + 0.61144 * ah.pl_modds + 10.07574543 * ah.pl_pc_MIC -28.05701 * ah.pl_im_MIC
+           + 2.59655 * ah.total_MIC + 2.38320 * ah.ladder_score + 0.65422535 * (ah.total_loss_score + ah.partial_loss_score);
+//           4267 without perc / 5306 with perc auf 1-
+//           5010 with perc auf 2-
 
-    if (!isXL)
-    {
-	    return  
-               + 1.0 * ah.total_loss_score
-  //               + 1.0 * ah.total_MIC         
-  //             + 0.333 * ah.mass_error_p;
-    }
-    else
-    {
-	    return 
-               + 1.0 * ah.total_loss_score 
-  //             + 1.0 * (ah.MIC + ah.immonium_score + ah.precursor_score)         
-  //             + 0.333 * ah.mass_error_p;
-    }
-*/
+
+//    return -7.9010278  + 0.7545435 * ah.total_loss_score + 3.1219378 * ah.sequence_score  + 0.33 * ah.mass_error_p + 0.01*ah.total_MIC;
   }
+
 
   static float calculateFastScore(const AnnotatedHit& ah)
   {
@@ -1291,7 +1271,7 @@ static void scoreShiftedFragments_(
       for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
       for (auto const& p : spec.getIntegerDataArrays()[0]) { charges.push_back(p); }
  
-      Size match(0);
+      Size match(0), in_mass_range(0);
       for (Size i = 0; i != mzs.size(); ++i)
       {
         for (Size j = i+1; j < mzs.size(); ++j)
@@ -1304,13 +1284,30 @@ static void scoreShiftedFragments_(
           const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
           auto left = adduct_mass.lower_bound((dm*charges[i]) - tolerance);
           if (left == adduct_mass.end()) continue;
+          ++in_mass_range;
           if (fabs(*left - (dm*charges[i])) < tolerance ) ++match;
         } 
       } 
 
+      spec.getFloatDataArrays().resize(2);
+      spec.getFloatDataArrays()[1].push_back((double)match / (double)in_mass_range);
+      spec.getFloatDataArrays()[1].setName("nucleotide_mass_tags");
+
+
       spec.getIntegerDataArrays().resize(2);
-      spec.getIntegerDataArrays()[1].push_back(match);
-      spec.getIntegerDataArrays()[1].setName("nucleotide_mass_tags");
+      // calculate ranks
+      //
+      // initialize original index locations
+      vector<size_t> idx(spec.size());
+      std::iota(idx.begin(), idx.end(), 0);
+        
+      // sort indexes based on comparing intensity values (0 = highest intensity)
+      sort(idx.begin(), idx.end(),
+        [&spec](size_t i1, size_t i2) { return spec[i1].getIntensity() > spec[i2].getIntensity(); });
+      
+      for (int rank : idx) spec.getIntegerDataArrays()[1].push_back(rank);
+      spec.getIntegerDataArrays()[1].setName("intensity_rank");
+      
     }
   }
 
@@ -1540,7 +1537,8 @@ static void scoreShiftedFragments_(
 
         if (precursor_rna_adduct == "none") 
         {
-          ah.score = OpenNuXL::calculateCombinedScore(ah, false);
+          const double tags = exp[scan_index].getFloatDataArrays()[1][0];
+          ah.score = OpenNuXL::calculateCombinedScore(ah, false, tags);
           continue;
         }
 
@@ -1642,7 +1640,8 @@ static void scoreShiftedFragments_(
         ah.marker_ions_score = marker_ions_sub_score;
         ah.partial_loss_score = partial_loss_sub_score;
         // combined score
-        ah.score = OpenNuXL::calculateCombinedScore(ah, true);
+        const double tags = exp[scan_index].getFloatDataArrays()[1][0];
+        ah.score = OpenNuXL::calculateCombinedScore(ah, true, tags);
       } 
     } 
   }
@@ -2483,7 +2482,7 @@ static void scoreShiftedFragments_(
         ph.setMetaValue("precursor_purity", purities[scan_index].signal_proportion);
       }
 
-      ph.setMetaValue("nucleotide_mass_tags_log10", log10(1.0 + (double)spec.getIntegerDataArrays()[1][0]));
+      ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[1][0]);
 
       ph.setPeakAnnotations(ah.fragment_annotations);
       ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
@@ -2615,7 +2614,7 @@ static void scoreShiftedFragments_(
        << "NuXL:total_Morph"
        << "NuXL:total_HS"
        << "precursor_intensity_log10"
-       << "nucleotide_mass_tags_log10";
+       << "nucleotide_mass_tags";
     if (!purities.empty()) feature_set << "precursor_purity";
 
     // one-hot encoding of cross-linked nucleotide
@@ -3326,7 +3325,8 @@ static void scoreShiftedFragments_(
                   }
 
                   // combined score
-                  ah.score = OpenNuXL::calculateCombinedScore(ah, false);
+                  const double tags = exp_spectrum.getFloatDataArrays()[1][0];
+                  ah.score = OpenNuXL::calculateCombinedScore(ah, false, tags);
 
 #ifdef DEBUG_OpenNuXL
                   OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -3464,7 +3464,7 @@ static void scoreShiftedFragments_(
                                                plss_pc_MIC,
                                                plss_im_MIC);
 
-                    const double total_MIC = tlss_MIC + im_MIC + pc_MIC + plss_MIC + plss_pc_MIC + plss_im_MIC;
+                    const double total_MIC = tlss_MIC + im_MIC + pc_MIC + plss_MIC + plss_pc_MIC + plss_im_MIC + marker_ions_sub_score;
 
 /* 
                   // less then two shifted peaks? seems to throw out some good hits ???
@@ -3516,7 +3516,8 @@ static void scoreShiftedFragments_(
                     }
 
                     // combined score
-                    ah.score = OpenNuXL::calculateCombinedScore(ah, true);
+                    const double tags = exp_spectrum.getFloatDataArrays()[1][0];
+                    ah.score = OpenNuXL::calculateCombinedScore(ah, true, tags);
 
 #ifdef DEBUG_OpenNuXL
                     OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
