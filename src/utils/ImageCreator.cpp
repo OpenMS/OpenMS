@@ -280,7 +280,9 @@ protected:
     const double init = numeric_limits<double>::max();
     double rt_min = -init, rt_max = init, mz_min = -init, mz_max = init;
     bool filter_rt = parseRange_(getStringOption_("rt"), rt_min, rt_max);
+    if (rt_min > rt_max) swap(rt_min, rt_max);
     bool filter_mz = parseRange_(getStringOption_("mz"), mz_min, mz_max);
+    if (mz_min > mz_max) swap(mz_min, mz_max);
     bool show_precursors = getFlag_("precursors");
 
     PeakMap exp;
