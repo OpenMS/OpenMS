@@ -105,7 +105,6 @@ namespace OpenMS
                   "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
     }
 
-
     // Get peptides
     select_sql = "SELECT " \
                   "PRECURSOR.PRECURSOR_MZ AS precursor, " \
