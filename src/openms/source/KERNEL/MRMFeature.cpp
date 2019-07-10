@@ -100,6 +100,12 @@ namespace OpenMS
     feature_map_[key] = Int(features_.size()) - 1;
   }
 
+  void MRMFeature::addFeature(Feature && feature, const String& key)
+  {
+    features_.push_back(std::move(feature));
+    feature_map_[key] = Int(features_.size()) - 1;
+  }
+
   Feature & MRMFeature::getFeature(const String& key) 
   {
     return features_.at(feature_map_[key]);
@@ -126,6 +132,12 @@ namespace OpenMS
   void MRMFeature::addPrecursorFeature(const Feature & feature, const String& key)
   {
     precursor_features_.push_back(feature);
+    precursor_feature_map_[key] = Int(precursor_features_.size()) - 1;
+  }
+
+  void MRMFeature::addPrecursorFeature(Feature && feature, const String& key)
+  {
+    precursor_features_.push_back(std::move(feature));
     precursor_feature_map_[key] = Int(precursor_features_.size()) - 1;
   }
 

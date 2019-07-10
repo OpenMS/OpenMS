@@ -93,6 +93,7 @@ namespace OpenMS
     return *this;
   }
 
+  // Move assignment
   MetaInfoInterface& MetaInfoInterface::operator=(MetaInfoInterface&& rhs) noexcept
   {
     if (this == &rhs)
