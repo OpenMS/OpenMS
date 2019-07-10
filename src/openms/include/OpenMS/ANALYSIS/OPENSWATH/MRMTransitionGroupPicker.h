@@ -135,8 +135,8 @@ public:
         MSChromatogram picked_chrom, smoothed_chrom;
         picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
         picked_chrom.sortByIntensity();
-        picked_chroms.push_back(picked_chrom);
-        smoothed_chroms.push_back(smoothed_chrom);
+        picked_chroms.push_back(std::move(picked_chrom));
+        smoothed_chroms.push_back(std::move(smoothed_chrom));
       }
 
       // Pick precursor chromatograms
@@ -177,15 +177,17 @@ public:
 
         // Compute a feature from the individual chromatograms and add non-zero features
         MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
-        if (mrm_feature.getIntensity() > 0)
+        double total_xic = 0;
+        double intensity = mrm_feature.getIntensity();
+        if (intensity > 0)
         {
-          features.push_back(mrm_feature);
+          total_xic = mrm_feature.getMetaValue("total_xic");
+          features.push_back(std::move(mrm_feature));
         }
 
         cnt++;
         if (stop_after_feature_ > 0 && cnt > stop_after_feature_) {break;}
-        if (mrm_feature.getIntensity() > 0 && 
-            mrm_feature.getIntensity() / (double)mrm_feature.getMetaValue("total_xic") < stop_after_intensity_ratio_)
+        if (intensity > 0 && intensity / total_xic < stop_after_intensity_ratio_)
         {
           break;
         }
