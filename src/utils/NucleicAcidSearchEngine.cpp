@@ -902,13 +902,17 @@ protected:
       for (const auto& charge_pair : entry.second)
       {
         charges.push_back(charge_pair.first);
-        // get RT of precursor with max. intensity per charge:
-        auto best_it = max_element(charge_pair.second.begin(),
-                                   charge_pair.second.end());
-        rts.push_back(best_it->second);
+        // use intensity-weighted mean of precursor RTs as "apex" RT:
+        double weighted_rt = 0.0, total_weight = 0.0;
+        for (const auto& rt_pair : charge_pair.second)
+        {
+          weighted_rt += rt_pair.first * rt_pair.second;
+          total_weight += rt_pair.first;
+        }
+        rts.push_back(weighted_rt / total_weight);
       }
       tsv << name << ef << 0 << ListUtils::concatenate(charges, ",");
-      // @TODO: do something more sophisticated for the RT?
+      // overall target RT is median over all charge states:
       tsv << Math::median(rts.begin(), rts.end(), false) << 0 << 0 << endl;
     }
   }
