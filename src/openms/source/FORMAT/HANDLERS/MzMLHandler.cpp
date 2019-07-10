@@ -665,34 +665,34 @@ namespace OpenMS
       }
     }
 
+
     void MzMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      constexpr XMLCh s_count[] = L"count";
-      constexpr XMLCh s_default_array_length[] = L"defaultArrayLength";
-      constexpr XMLCh s_array_length[] = L"arrayLength";
-      constexpr XMLCh s_accession[] = L"accession";
-      constexpr XMLCh s_name[] = L"name";
-      constexpr XMLCh s_type[] = L"type";
-      constexpr XMLCh s_value[] = L"value";
-      constexpr XMLCh s_unit_accession[] = L"unitAccession";
-      constexpr XMLCh s_id[] = L"id";
-      constexpr XMLCh s_ref[] = L"ref";
-      constexpr XMLCh s_version[] = L"version";
-      constexpr XMLCh s_version_mzml[] = L"mzML:version";
-      constexpr XMLCh s_order[] = L"order";
-      constexpr XMLCh s_location[] = L"location";
-      constexpr XMLCh s_sample_ref[] = L"sampleRef";
-      constexpr XMLCh s_software_ref[] = L"softwareRef";
-      constexpr XMLCh s_source_file_ref[] = L"sourceFileRef";
-      constexpr XMLCh s_default_instrument_configuration_ref[] = L"defaultInstrumentConfigurationRef";
-      constexpr XMLCh s_instrument_configuration_ref[] = L"instrumentConfigurationRef";
-      constexpr XMLCh s_default_data_processing_ref[] = L"defaultDataProcessingRef";
-      constexpr XMLCh s_data_processing_ref[] = L"dataProcessingRef";
-      constexpr XMLCh s_start_time_stamp[] = L"startTimeStamp";
-      constexpr XMLCh s_external_spectrum_id[] = L"externalSpectrumID";
-      constexpr XMLCh s_default_source_file_ref[] = L"defaultSourceFileRef";
-      constexpr XMLCh s_scan_settings_ref[] = L"scanSettingsRef";
-
+      constexpr XMLCh s_count[] = {'c','o','u','n','t', 0};
+      constexpr XMLCh s_default_array_length[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr XMLCh s_array_length[] = { 'a','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr XMLCh s_accession[] = { 'a','c','c','e','s','s','i','o','n' , 0};
+      constexpr XMLCh s_name[] = { 'n','a','m','e' , 0};
+      constexpr XMLCh s_type[] = { 't','y','p','e' , 0};
+      constexpr XMLCh s_value[] = { 'v','a','l','u','e' , 0};
+      constexpr XMLCh s_unit_accession[] = { 'u','n','i','t','A','c','c','e','s','s','i','o','n' , 0};
+      constexpr XMLCh s_id[] = { 'i','d' , 0};
+      constexpr XMLCh s_ref[] = { 'r','e','f' , 0};
+      constexpr XMLCh s_version[] = { 'v','e','r','s','i','o','n' , 0};
+      constexpr XMLCh s_version_mzml[] = { 'm','z','M','L',':','v','e','r','s','i','o','n' , 0};
+      constexpr XMLCh s_order[] = { 'o','r','d','e','r' , 0};
+      constexpr XMLCh s_location[] = { 'l','o','c','a','t','i','o','n' , 0};
+      constexpr XMLCh s_sample_ref[] = { 's','a','m','p','l','e','R','e','f' , 0};
+      constexpr XMLCh s_software_ref[] = { 's','o','f','t','w','a','r','e','R','e','f' , 0};
+      constexpr XMLCh s_source_file_ref[] = { 's','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr XMLCh s_default_instrument_configuration_ref[] = { 'd','e','f','a','u','l','t','I','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr XMLCh s_instrument_configuration_ref[] = { 'i','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr XMLCh s_default_data_processing_ref[] = { 'd','e','f','a','u','l','t','D','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr XMLCh s_data_processing_ref[] = { 'd','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr XMLCh s_start_time_stamp[] = { 's','t','a','r','t','T','i','m','e','S','t','a','m','p' , 0};
+      constexpr XMLCh s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
+      constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr XMLCh s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
 
@@ -717,7 +717,7 @@ namespace OpenMS
       if (tag == "spectrum")
       {
         // for cppcheck
-        constexpr XMLCh s_spot_id[] = L"spotID";
+        constexpr XMLCh s_spot_id[] = { 's','p','o','t','I','D', 0 };
 
         //number of peaks
         spec_ = SpectrumType();
@@ -1168,11 +1168,11 @@ namespace OpenMS
 
     void MzMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      constexpr XMLCh s_spectrum[] = L"spectrum";
-      constexpr XMLCh s_chromatogram[] = L"chromatogram";
-      constexpr XMLCh s_spectrum_list[] = L"spectrumList";
-      constexpr XMLCh s_chromatogram_list[] = L"chromatogramList";
-      constexpr XMLCh s_mzml[] = L"mzML";
+      constexpr XMLCh s_spectrum[] = { 's','p','e','c','t','r','u','m' , 0};
+      constexpr XMLCh s_chromatogram[] = { 'c','h','r','o','m','a','t','o','g','r','a','m' , 0};
+      constexpr XMLCh s_spectrum_list[] = { 's','p','e','c','t','r','u','m','L','i','s','t' , 0};
+      constexpr XMLCh s_chromatogram_list[] = { 'c','h','r','o','m','a','t','o','g','r','a','m','L','i','s','t' , 0};
+      constexpr XMLCh s_mzml[] = { 'm','z','M','L' , 0};
 
       open_tags_.pop_back();
 
