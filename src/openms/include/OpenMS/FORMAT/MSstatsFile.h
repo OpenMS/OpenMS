@@ -225,7 +225,7 @@ namespace OpenMS
                     const String& _bioreplicate,
                     const String& _run,
                     const String& _mixture,
-                    const String& _techmixture,
+                    const String& _techrepmixture,
                     const String& _fraction
             ): has_fraction_(_has_fraction),
                accession_(_accession),
@@ -236,7 +236,7 @@ namespace OpenMS
                bioreplicate_(_bioreplicate),
                run_(_run),
                mixture_(_mixture),
-               techmixture_(_techmixture),
+               techrepmixture_(_techrepmixture),
                fraction_(_fraction) {}
 
             const String& accession() const {return this->accession_;}
@@ -255,7 +255,7 @@ namespace OpenMS
                       + delim + bioreplicate_
                       + delim + run_
                       + delim + mixture_
-                      + delim + techmixture_
+                      + delim + techrepmixture_
                       + (this->has_fraction_ ? delim + String(fraction_) : "");
             }
 
@@ -277,7 +277,7 @@ namespace OpenMS
             String bioreplicate_;
             String run_;
             String mixture_;
-            String techmixture_;
+            String techrepmixture_;
             String fraction_;
         };
         

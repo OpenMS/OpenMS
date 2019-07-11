@@ -46,7 +46,9 @@ OpenMS::MSstatsFile::~MSstatsFile()
 
 }
 
-void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition)
+void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection,
+                                             const String& bioreplicate,
+                                             const String& condition)
 {
   // Sample Section must contain the column that contains the condition used for MSstats
   if (!sampleSection.hasFactor(condition))
@@ -61,7 +63,10 @@ void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSec
   } 
 }
 
-void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition, const String& mixture)
+void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection,
+                                             const String& bioreplicate,
+                                             const String& condition,
+                                             const String& mixture)
 {
   checkConditionLFQ_(sampleSection, bioreplicate, condition);
   
@@ -73,9 +78,9 @@ void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSec
 }
 
 void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const ConsensusMap &consensus_map,
-                                const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
-                                const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
-                                const String& retention_time_summarization_method)
+                                   const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
+                                   const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
+                                   const String& retention_time_summarization_method)
 {
   // Experimental Design file
   ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
@@ -530,7 +535,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
 
   // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
   TextFile csv_out;
-  csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechMixture," + String(has_fraction ? "Fraction,": "") + "Intensity");
+  csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture," + String(has_fraction ? "Fraction,": "") + "Intensity");
 
   // These are placeholder peptide evidences in case the original ones are empty
   PeptideEvidence new_pep_ev;
@@ -584,10 +589,10 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
               const unsigned sample = path_label_to_sample[tpl1];
               const unsigned fraction = path_label_to_fraction[tpl1];
 
-              // Resolve techmixture, run
+              // Resolve techrepmixture, run
               const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
-              String techmixture = String(sampleSection.getFactorValue(sample, mixture)) + "_" + String(openms_fractiongroup);
-              String run = techmixture + (has_fraction ? String("_" + String(fraction)) : "");  
+              String techrepmixture = String(sampleSection.getFactorValue(sample, mixture)) + "_" + String(openms_fractiongroup);
+              String run = techrepmixture + (has_fraction ? String("_" + String(fraction)) : "");
                           
               // Assemble MSstats line
               MSstatsTMTLine prefix(
@@ -600,7 +605,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
                       sampleSection.getFactorValue(sample, bioreplicate),
                       String(run),
                       sampleSection.getFactorValue(sample, mixture),
-                      String(techmixture),
+                      String(techrepmixture),
                       (has_fraction ? String(fraction) : "")
               );
               pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
@@ -615,7 +620,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
   for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
     cout << "MSstats run " << String(run_mapping.first)
-         << " corresponds to OpenMS TechMixture " << String(run_mapping.second) << endl;
+         << " corresponds to OpenMS TechRepMixture " << String(run_mapping.second) << endl;
   }
 
   // sanity check that the triples (peptide_sequence, precursor_charge, run) only appears once
