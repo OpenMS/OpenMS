@@ -409,6 +409,7 @@ protected:
       Int scan_number = getScanNumber_(scan_identifier);
       
       double exp_mass = it->getMZ();
+      double retention_time = it->getRT();
       for (vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
       {
         if (jt->getPeptideEvidences().empty())
@@ -453,6 +454,12 @@ protected:
         }
                 
         hit.setMetaValue("ExpMass", exp_mass);
+        
+        // needed in case "description of correct" option is used
+        double delta_mass = exp_mass - calc_mass;
+        hit.setMetaValue("deltamass", delta_mass);
+        hit.setMetaValue("retentiontime", retention_time);
+        
         hit.setMetaValue("mass", exp_mass);
         
         double score = hit.getScore();
@@ -477,7 +484,6 @@ protected:
         int enzInt = countEnzymatic_(unmodified_sequence, enz);
         hit.setMetaValue("enzInt", enzInt);
         
-        double delta_mass = exp_mass - calc_mass;
         hit.setMetaValue("dm", delta_mass);
         
         double abs_delta_mass = abs(delta_mass);
@@ -491,7 +497,8 @@ protected:
 
         sequence += aa_before;
         sequence += "."; 
-        sequence += hit.getSequence().toString();
+        // Percolator uses square brackets to indicate PTMs
+        sequence += hit.getSequence().toBracketString(false, true);
         sequence += "."; 
         sequence += aa_after;
         
@@ -774,6 +781,8 @@ protected:
     
     bool peptide_level_fdrs = getFlag_("peptide-level-fdrs");
     bool protein_level_fdrs = getFlag_("protein-level-fdrs");  
+    
+    Int description_of_correct = getIntOption_("doc");
 
     double ipf_max_peakgroup_pep = getDoubleOption_("ipf_max_peakgroup_pep");
     double ipf_max_transition_isotope_overlap = getDoubleOption_("ipf_max_transition_isotope_overlap");
@@ -874,6 +883,11 @@ protected:
       feature_set.push_back("SpecId");
       feature_set.push_back("Label");
       feature_set.push_back("ScanNr");
+      if (description_of_correct != 0)
+      {
+        feature_set.push_back("retentiontime");
+        feature_set.push_back("deltamass");
+      }
       feature_set.push_back("ExpMass");
       feature_set.push_back("CalcMass");
       feature_set.push_back("mass");
@@ -988,7 +1002,6 @@ protected:
       if (seed != 1) arguments << "-S" << String(seed).toQString();
       if (getFlag_("klammer")) arguments << "-K";
       
-      Int description_of_correct = getIntOption_("doc");
       if (description_of_correct != 0) arguments << "-D" << String(description_of_correct).toQString();
 
       arguments << pin_file.toQString();
@@ -1049,7 +1062,7 @@ protected:
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          String peptide_sequence = hit->getSequence().toString();
+          String peptide_sequence = hit->getSequence().toBracketString(false, true);
           String psm_identifier = scan_identifier + peptide_sequence;
           
           writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);        
@@ -1078,8 +1091,15 @@ protected:
           }
           else
           {
-            OPENMS_LOG_WARN << "Identifier " << psm_identifier << " not found in peptide map." << endl;
-            hit->setMetaValue("MS:1001492", 0.0);  // svm score
+            // If the input contains multiple PSMs per spectrum, Percolator only reports the top scoring PSM.
+            // The remaining PSMs should be reported as not identified
+            writeDebug_("PSM identifier " + psm_identifier + " not found in peptide map", 10);
+
+            // Percolator's svm score is scaled such that 0.0 is the score at the chosen FDR threshold,
+            // with positive scores representing PSMs under the FDR threshold (i.e. identified)
+            // and negative scores PSMs above the FDR threshold (i.e. not identified);
+            // -100.0 is typically more than low enough to represent a confidently non-identified PSM.
+            hit->setMetaValue("MS:1001492", -100.0);  // svm score
             hit->setMetaValue("MS:1001491", 1.0);  // percolator q value
             hit->setMetaValue("MS:1001493", 1.0);  // percolator pep
 
@@ -1089,7 +1109,7 @@ protected:
             }
             else if (scoreType == "svm")
             {
-              hit->setScore(0.0); // set SVM score to 0.0 if hit not found in results
+              hit->setScore(-100.0); // set SVM score to -100.0 if hit not found in results
             }
           }
         }

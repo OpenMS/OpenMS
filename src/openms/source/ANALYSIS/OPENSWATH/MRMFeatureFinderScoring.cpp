@@ -569,7 +569,7 @@ namespace OpenMS
         // Call the scoring for MS1 only
         ///////////////////////////////////
 
-        OpenSwath_Scores scores;
+        OpenSwath_Scores& scores = mrmfeature->getScores();
         precursor_mz = mrmfeature->getMZ();
 
         // S/N scores
@@ -662,7 +662,7 @@ namespace OpenMS
           precursor_ids.push_back(precursor_id);
         }
 
-        OpenSwath_Scores scores;
+        OpenSwath_Scores& scores = mrmfeature->getScores();
         scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
                                               signal_noise_estimators, scores);
 
@@ -885,9 +885,9 @@ namespace OpenMS
         pep_hit_.setCharge(pep->getChargeState());
       }
       pep_hit_.setScore(xx_lda_prescore);
-      if (swath_present)
+      if (swath_present && mrmfeature->metaValueExists("xx_swath_prelim_score"))
       {
-        pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
+        pep_hit_.setScore(mrmfeature->getMetaValue("xx_swath_prelim_score"));
       }
 
       if (pep->isPeptide())
@@ -946,6 +946,7 @@ namespace OpenMS
       mrmfeature->setMetaValue("peak_apices_sum", total_peak_apices);
       mrmfeature->setMetaValue("ms1_area_intensity", ms1_total_intensity);
       mrmfeature->setMetaValue("ms1_apex_intensity", ms1_total_peak_apices);
+      mrmfeature->setMetaValue("xx_swath_prelim_score", 0.0);
       feature_list.push_back((*mrmfeature));
 
       delete imrmfeature;
@@ -1036,7 +1037,7 @@ namespace OpenMS
       const TransitionType* transition = &transition_exp.getTransitions()[i];
       if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
       {
-        std::cerr << "Error: Transition " + transition->getNativeID() + " from group " +
+        OPENMS_LOG_DEBUG << "Error: Transition " + transition->getNativeID() + " from group " +
           transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
         if (strict_)
         {
