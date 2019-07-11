@@ -59,7 +59,7 @@ namespace OpenMS
     auto mz_it = spec->getMZArray()->data.begin();
     for (Size i = 0; i < spec->getMZArray()->data.size(); ++i)
     {
-      sorted_indices.push_back(std::make_pair(*mz_it, i));
+      sorted_indices.emplace_back(*mz_it, i);
       ++mz_it;
     }
     std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<double, Size> >());
@@ -67,9 +67,9 @@ namespace OpenMS
     // extract list of indices
     std::vector<Size> select_indices;
     select_indices.reserve(sorted_indices.size());
-    for (Size i = 0; i < sorted_indices.size(); ++i)
+    for (const auto& sidx : sorted_indices)
     {
-      select_indices.push_back(sorted_indices[i].second);
+      select_indices.push_back(sidx.second);
     }
 
     for (auto& da : spec->getDataArrays() )
@@ -108,9 +108,10 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
-    int add_up_spectra, double spacing_for_spectra_resampling,
-    const OpenSwath_Scores_Usage & su,
-    const std::string& spectrum_addition_method)
+                                    int add_up_spectra,
+                                    double spacing_for_spectra_resampling,
+                                    const OpenSwath_Scores_Usage& su,
+                                    const std::string& spectrum_addition_method)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;

@@ -94,7 +94,7 @@ namespace OpenMS
     defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("write_convex_hull", ListUtils::create<String>("true,false"));
     defaults_.setValue("spectrum_addition_method", "simple", "For spectrum addition, either use simple concatenation or use peak resampling", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("spectrum_addition_method", ListUtils::create<String>("simple,resample"));
+    defaults_.setValidStrings("spectrum_addition_method", {"simple", "resample"});
     defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer)", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("add_up_spectra", 1);
     defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", ListUtils::create<String>("advanced"));
