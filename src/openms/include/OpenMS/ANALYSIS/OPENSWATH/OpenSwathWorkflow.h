@@ -273,6 +273,7 @@ protected:
     */
     TransformationDescription performRTNormalization(const OpenSwath::LightTargetedExperiment & irt_transitions,
       std::vector< OpenSwath::SwathMap > & swath_maps,
+      TransformationDescription& im_trafo,
       double min_rsq,
       double min_coverage,
       const Param & feature_finder_param,
@@ -317,6 +318,7 @@ protected:
     */
     TransformationDescription doDataNormalization_(const OpenSwath::LightTargetedExperiment& transition_exp_,
       const std::vector< OpenMS::MSChromatogram >& chromatograms,
+      TransformationDescription& im_trafo,
       std::vector< OpenSwath::SwathMap > & swath_maps,
       double min_rsq,
       double min_coverage,

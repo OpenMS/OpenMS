@@ -63,6 +63,7 @@ namespace OpenMS
   TransformationDescription OpenSwathCalibrationWorkflow::performRTNormalization(
     const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenSwath::SwathMap > & swath_maps,
+    TransformationDescription& im_trafo,
     double min_rsq,
     double min_coverage,
     const Param& feature_finder_param,
@@ -105,7 +106,7 @@ namespace OpenMS
 
     // perform RT and m/z correction on the data
     TransformationDescription tr = doDataNormalization_(irt_transitions,
-        irt_chromatograms, swath_maps, 
+        irt_chromatograms, im_trafo, swath_maps,
         min_rsq, min_coverage, feature_finder_param,
         irt_detection_param, calibration_param);
     return tr;
@@ -114,6 +115,7 @@ namespace OpenMS
   TransformationDescription OpenSwathCalibrationWorkflow::doDataNormalization_(
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenMS::MSChromatogram >& chromatograms,
+    TransformationDescription& im_trafo,
     std::vector< OpenSwath::SwathMap > & swath_maps,
     double min_rsq,
     double min_coverage,
@@ -278,6 +280,7 @@ namespace OpenMS
     SwathMapMassCorrection mc;
     mc.setParameters(calibration_param);
     mc.correctMZ(trgrmap_final, swath_maps);
+    mc.correctIM(trgrmap_final, swath_maps, im_trafo, targeted_exp);
 
     // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
