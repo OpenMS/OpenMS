@@ -82,13 +82,33 @@ public:
      *
      */
     void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
-                          std::vector< OpenSwath::SwathMap > & swath_maps);
+                   std::vector< OpenSwath::SwathMap > & swath_maps);
+
+    /**
+     * @brief Correct the ion mobility values of a SWATH map based on the RT-normalization peptides
+     *
+     * This extracts the full spectra at the most likely elution time of the
+     * calibrant peptides and fits a linear regression curve to correct for a
+     * possible ion mobility (drift time) shift of the empirical drift time vs
+     * the theoretically expected drift time.
+     *
+     * @param transition_group_map A MRMFeatureFinderScoring result map
+     * @param swath_maps The raw swath maps from the current run
+     * @param im_trafo The resulting map containing the transformation
+     *
+     */
+    void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+                   const std::vector< OpenSwath::SwathMap > & swath_maps,
+                   TransformationDescription& im_trafo,
+                   const OpenSwath::LightTargetedExperiment& targeted_exp);
 
   private:
     double mz_extraction_window_;
     bool mz_extraction_window_ppm_;
-    bool im_extraction_window_;
+    bool ms1_im_;
+    double im_extraction_window_;
     String mz_correction_function_;
+    String im_correction_function_;
     String debug_im_file_;
     String debug_mz_file_;
 
