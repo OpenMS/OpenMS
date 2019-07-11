@@ -74,6 +74,23 @@ namespace OpenMS
                                         std::vector<double>& integratedWindowsMZ, bool remZero = false);
 
     /**
+      @brief Integrate intensity in an ion mobility spectrum from start to end
+
+      This function will integrate the intensity in a spectrum between mz_start
+      and mz_end, returning the total intensity and an intensity-weighted drift
+      time value.
+
+      @note If there is no signal, mz will be set to -1 and intensity to 0
+    */
+    OPENMS_DLLAPI void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum,
+                                              double mz_start,
+                                              double mz_end,
+                                              double & im,
+                                              double & intensity,
+                                              double drift_start,
+                                              double drift_end);
+
+    /**
       @brief Adjust left/right window based on window and whether its ppm or not
     */
     OPENMS_DLLAPI void adjustExtractionWindow(double& right, double& left, const double& mz_extraction_window, const bool& mz_extraction_ppm);
