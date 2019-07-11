@@ -57,6 +57,7 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
   return left.first < right.first;
 }
 
+
 void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hull_, double
                              quantification_cutoff_, double& total_intensity, double& total_peak_apices, std::string ms_level)
 {
@@ -910,42 +911,7 @@ namespace OpenMS
       mrmfeature->ensureUniqueId();
 
       mrmfeature->setMetaValue("PrecursorMZ", precursor_mz);
-
-      // Prepare the subordinates for the mrmfeature (process all current
-      // features and then append all precursor subordinate features)
-      std::vector<Feature> allFeatures = mrmfeature->getFeatures();
-      double total_intensity = 0, total_peak_apices = 0;
-      double ms1_total_intensity = 0, ms1_total_peak_apices = 0;
-
-      for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
-      {
-        processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
-      }
-      // Also append data for MS1 precursors
-      std::vector<String> precursors_ids;
-      mrmfeature->getPrecursorFeatureIDs(precursors_ids);
-      for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
-      {
-        Feature curr_feature = mrmfeature->getPrecursorFeature(*id_it);
-        if (pep->getChargeState() != 0)
-        {
-          curr_feature.setCharge(pep->getChargeState());
-        }
-        processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, ms1_total_intensity, ms1_total_peak_apices, "MS1");
-        if (ms1only)
-        {
-          total_intensity += curr_feature.getIntensity();
-          total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
-        }
-        allFeatures.push_back(curr_feature);
-      }
-      mrmfeature->setSubordinates(allFeatures); // add all the subfeatures as subordinates
-
-      // overwrite the reported intensities with those above the m/z cutoff
-      mrmfeature->setIntensity(total_intensity);
-      mrmfeature->setMetaValue("peak_apices_sum", total_peak_apices);
-      mrmfeature->setMetaValue("ms1_area_intensity", ms1_total_intensity);
-      mrmfeature->setMetaValue("ms1_apex_intensity", ms1_total_peak_apices);
+      prepareFeatureOutput_(*mrmfeature, ms1only, pep->getChargeState());
       mrmfeature->setMetaValue("xx_swath_prelim_score", 0.0);
       feature_list.push_back((*mrmfeature));
 
@@ -964,6 +930,45 @@ namespace OpenMS
 
     // store all data manipulation performed on the features of the transition group
     transition_group = transition_group_detection;
+  }
+
+  void MRMFeatureFinderScoring::prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge)
+  {
+    // Prepare the subordinates for the mrmfeature (process all current
+    // features and then append all precursor subordinate features)
+    std::vector<Feature> allFeatures = mrmfeature.getFeatures();
+    double total_intensity = 0, total_peak_apices = 0;
+    double ms1_total_intensity = 0, ms1_total_peak_apices = 0;
+
+    for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
+    {
+      processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
+    }
+    // Also append data for MS1 precursors
+    std::vector<String> precursors_ids;
+    mrmfeature.getPrecursorFeatureIDs(precursors_ids);
+    for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
+    {
+      Feature curr_feature = mrmfeature.getPrecursorFeature(*id_it);
+      if (charge != 0)
+      {
+        curr_feature.setCharge(charge);
+      }
+      processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, ms1_total_intensity, ms1_total_peak_apices, "MS1");
+      if (ms1only)
+      {
+        total_intensity += curr_feature.getIntensity();
+        total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
+      }
+      allFeatures.push_back(curr_feature);
+    }
+    mrmfeature.setSubordinates(allFeatures); // add all the subfeatures as subordinates
+
+    // overwrite the reported intensities with those above the m/z cutoff
+    mrmfeature.setIntensity(total_intensity);
+    mrmfeature.setMetaValue("peak_apices_sum", total_peak_apices);
+    mrmfeature.setMetaValue("ms1_area_intensity", ms1_total_intensity);
+    mrmfeature.setMetaValue("ms1_apex_intensity", ms1_total_peak_apices);
   }
 
   void MRMFeatureFinderScoring::updateMembers_()
