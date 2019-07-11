@@ -130,6 +130,7 @@ namespace OpenMS
                                             double drift_lower,
                                             double drift_upper)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
@@ -237,6 +238,7 @@ namespace OpenMS
                                               OpenSwath_Scores & scores,
                                               double drift_lower, double drift_upper)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
     // Identify corresponding SONAR maps (if more than one map is used)
@@ -284,6 +286,7 @@ namespace OpenMS
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
         OpenSwath_Scores & scores)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OpenSwath::MRMScoring mrmscore_;
     if (su_.use_coelution_score_ || su_.use_shape_score_ || (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation))
       mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
@@ -376,6 +379,7 @@ namespace OpenMS
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
         OpenSwath_Ind_Scores & idscores)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OpenSwath::MRMScoring mrmscore_;
     mrmscore_.initializeXCorrContrastMatrix(imrmfeature, native_ids_identification, native_ids_detection);
 
@@ -410,6 +414,7 @@ namespace OpenMS
         const double normalized_feature_rt,
         OpenSwath_Scores & scores)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
