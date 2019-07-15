@@ -112,6 +112,13 @@ START_SECTION((ConvexHull2D& operator=(const ConvexHull2D& rhs)))
 	TEST_EQUAL(tmp2.getHullPoints().size(),3)
 END_SECTION
 
+START_SECTION((ConvexHull2D(const ConvexHull2D&& source)))
+{
+  // Ensure that ConvexHull2D has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(ConvexHull2D(std::declval<ConvexHull2D&&>())), true)
+}
+END_SECTION
 
 START_SECTION((void addPoints(const PointArrayType &points)))
 	ConvexHull2D tmp;
