@@ -153,13 +153,14 @@ START_SECTION((void setCharge(const ChargeType &ch)))
 END_SECTION
 
 START_SECTION((BaseFeature(const BaseFeature &feature)))
+{
   BaseFeature::PositionType pos;
   pos[0] = 21.21;
   pos[1] = 22.22;
   BaseFeature p;
   p.setIntensity(123.456f);
   p.setPosition(pos);
-  p.setMetaValue("cluster_id",4711);
+  p.setMetaValue("cluster_id", 4711);
   p.setQuality((QualityType)0.9);
 
   BaseFeature copy_of_p(p);
@@ -170,8 +171,39 @@ START_SECTION((BaseFeature(const BaseFeature &feature)))
   TEST_REAL_SIMILAR(i2, 123.456)
   TEST_REAL_SIMILAR(pos2[0], 21.21)
   TEST_REAL_SIMILAR(pos2[1], 22.22)
-  TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4711));
+  TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"), DataValue(4711));
   TEST_REAL_SIMILAR(q2, 0.9)
+}
+END_SECTION
+
+START_SECTION((BaseFeature(BaseFeature &&feature)))
+{
+  // Ensure that BaseFeature has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(BaseFeature(std::declval<BaseFeature&&>())), true)
+
+  BaseFeature::PositionType pos;
+  pos[0] = 21.21;
+  pos[1] = 22.22;
+  BaseFeature p;
+  p.setIntensity(123.456f);
+  p.setPosition(pos);
+  p.setMetaValue("cluster_id",4711);
+  p.setQuality((QualityType)0.9);
+
+  BaseFeature orig = p;
+  BaseFeature copy_of_p(std::move(p));
+
+  BaseFeature::PositionType pos2 = copy_of_p.getPosition();
+  BaseFeature::IntensityType i2 = copy_of_p.getIntensity();
+  BaseFeature::QualityType q2 = copy_of_p.getQuality();
+
+  TEST_REAL_SIMILAR(i2, 123.456)
+  TEST_REAL_SIMILAR(pos2[0], 21.21)
+  TEST_REAL_SIMILAR(pos2[1], 22.22)
+  TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"), DataValue(4711));
+  TEST_REAL_SIMILAR(q2, 0.9)
+}
 END_SECTION
 
 START_SECTION((BaseFeature(const Peak2D& point)))
