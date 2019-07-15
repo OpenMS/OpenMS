@@ -43,8 +43,12 @@ namespace OpenMS
 
   MapAlignmentAlgorithmIdentification::MapAlignmentAlgorithmIdentification() :
     DefaultParamHandler("MapAlignmentAlgorithmIdentification"),
-    ProgressLogger(), reference_index_(-1), reference_(), min_run_occur_(0)
+    ProgressLogger(), reference_index_(-1), reference_(), min_run_occur_(0), min_score_(0.)
   {
+    defaults_.setValue("score_cutoff", "false", "If only IDs above a score cutoff should be used. Used together with min_score.");
+    defaults_.setValidStrings("score_cutoff", {"true","false"});
+    defaults_.setValue("min_score", 0.05, "Minimum score for an ID to be considered. Applies to the last score calculated.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
+
     defaults_.setValue("min_run_occur", 2, "Minimum number of runs (incl. reference, if any) in which a peptide must occur to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
     defaults_.setMinInt("min_run_occur", 2);
 
@@ -81,6 +85,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << msg << endl;
       min_run_occur_ = runs;
     }
+    min_score_ = param_.getValue("min_score");
   }
 
   // RT lists in "rt_data" will be sorted (unless "sorted" is true)
@@ -100,7 +105,7 @@ namespace OpenMS
 
   // lists of peptide hits in "peptides" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    vector<PeptideIdentification>& peptides, SeqToList& rt_data)
+      vector<PeptideIdentification>& peptides, SeqToList& rt_data)
   {
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
@@ -108,8 +113,11 @@ namespace OpenMS
       if (!pep_it->getHits().empty())
       {
         pep_it->sort();
-        const String& seq = pep_it->getHits()[0].getSequence().toString();
-        rt_data[seq].push_back(pep_it->getRT());
+        if (better_(pep_it->getHits()[0].getScore(), min_score_))
+        {
+          const String& seq = pep_it->getHits()[0].getSequence().toString();
+          rt_data[seq].push_back(pep_it->getRT());
+        }
       }
     }
     return false;
@@ -117,7 +125,7 @@ namespace OpenMS
 
   // lists of peptide hits in "maps" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    PeakMap& experiment, SeqToList& rt_data)
+      PeakMap& experiment, SeqToList& rt_data)
   {
     for (PeakMap::Iterator exp_it = experiment.begin();
          exp_it != experiment.end(); ++exp_it)

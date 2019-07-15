@@ -144,6 +144,7 @@ foreach (includedir
 endforeach()
 
 #set(OpenMS_sources ${OpenMS_sources} openms_pch.cpp)
+
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
@@ -153,6 +154,7 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY} ${ISOSPEC_INCLUDE_DIRECTORY} 
                    EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS}
                                      ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
+                                     ${EVERGREEN_INCLUDE_DIRECTORY}
                                      ${INCLUDES_FROM_CONTRIB}
                                      ${INCLUDES_FROM_SYSTEM}
                                      ${Qt5Core_INCLUDE_DIRS}

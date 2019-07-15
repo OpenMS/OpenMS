@@ -70,6 +70,14 @@
 #include <map>
 #include <algorithm>
 
+#ifdef _OPENMP
+  #include <omp.h>
+  #define NUMBER_OF_THREADS (omp_get_num_threads())
+#else
+  #define NUMBER_OF_THREADS (1)
+#endif
+
+
 namespace OpenMS
 {
 
@@ -121,8 +129,8 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       std::vector<ProteinIdentification>& protein_ids, 
       std::vector<PeptideIdentification>& peptide_ids, 
       Size top_hits,
-      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
-      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
       Size max_variable_mods_per_peptide,
       const StringList& modifications_fixed,
       const StringList& modifications_variable,

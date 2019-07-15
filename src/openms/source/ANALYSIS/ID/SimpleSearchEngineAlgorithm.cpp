@@ -194,7 +194,7 @@ namespace OpenMS
     NLargest nlargest_filter = NLargest(400);
 
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for default(none) shared(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
 #endif
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
@@ -224,8 +224,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       std::vector<ProteinIdentification>& protein_ids, 
       std::vector<PeptideIdentification>& peptide_ids, 
       Size top_hits,
-      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
-      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
       Size max_variable_mods_per_peptide,
       const StringList& modifications_fixed,
       const StringList& modifications_variable,
@@ -241,7 +241,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
   {
     // remove all but top n scoring
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for default(none) shared(annotated_hits, top_hits)
 #endif
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -253,7 +253,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     }
 
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for default(none) shared(annotated_hits, peptide_ids, max_variable_mods_per_peptide)
 #endif
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -430,11 +430,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     set<StringView> processed_petides;
 
-    std::atomic<Size> count_proteins(0), count_peptides(0);
+    Size count_proteins(0), count_peptides(0);
 
-    #pragma omp parallel for schedule(static)
-    for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
-    {
+#pragma omp parallel for schedule(static) default(none) shared(count_proteins, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, count_peptides, peptide_motif_regex, spectra, annotated_hits_lock)
+      for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
+      {
+
+#pragma omp atomic
       ++count_proteins;
 
       IF_MASTERTHREAD

@@ -460,13 +460,18 @@ namespace OpenMS
     bool meta_present = false;
     for (Size i = 0; i < spectra_.size(); ++i)
     {
-      if (spectra_[i].getFloatDataArrays().size() != 0 || spectra_[i].getIntegerDataArrays().size() != 0 || spectra_[i].getStringDataArrays().size() != 0)
+      if (spectra_[i].getFloatDataArrays().size() != 0 
+        || spectra_[i].getIntegerDataArrays().size() != 0 
+        || spectra_[i].getStringDataArrays().size() != 0)
       {
         meta_present = true;
       }
       spectra_[i].getStringDataArrays().clear();
+      spectra_[i].getStringDataArrays().shrink_to_fit();
       spectra_[i].getIntegerDataArrays().clear();
+      spectra_[i].getIntegerDataArrays().shrink_to_fit();
       spectra_[i].getFloatDataArrays().clear();
+      spectra_[i].getFloatDataArrays().shrink_to_fit();
     }
     return meta_present;
   }

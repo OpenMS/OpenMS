@@ -34,13 +34,13 @@
 
 #pragma once
 
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <algorithm> // for "min"
 #include <string>
 #include <vector>
+#include <utility>
 
 class QString;
 
@@ -497,7 +497,7 @@ public:
     }
 
     // create view on string
-    StringView(const std::string& s) : begin_(s.data()), size_(s.size()) 
+    StringView(const std::string& s) : begin_(s.data()), size_(s.size())
     {
     }
 
@@ -547,7 +547,7 @@ public:
     inline Size size() const
     {
       return size_;
-    }   
+    }
 
     /// create String object from view
     inline String getString() const
@@ -560,16 +560,16 @@ public:
       const char* begin_;
       Size size_;
   };
-} // namespace OPENMS
+} // namespace OpenMS
 
 namespace std
 {
-  template <> struct hash<OpenMS::String> //hash for String
+  template<>
+  struct hash<OpenMS::String> //hash for String
   {
-    std::size_t operator()( OpenMS::String const& s) const
+    OPENMS_DLLAPI size_t operator()(const OpenMS::String &s) const
     {
-      return std::hash<string>()(static_cast<string>(s));
+      return std::hash<std::string>()(static_cast<std::string>(s));
     }
   };
 } // namespace std
-

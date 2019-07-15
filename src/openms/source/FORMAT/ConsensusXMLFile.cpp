@@ -793,6 +793,7 @@ namespace OpenMS
       os << " higher_score_better=\"" << (current_prot_id.isHigherScoreBetter() ? "true" : "false") << "\"";
       os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 
+      //TODO @julianus @timo IMPLEMENT PROTEIN GROUP SUPPORT!!
       // write protein hits
       for (Size j = 0; j < current_prot_id.getHits().size(); ++j)
       {

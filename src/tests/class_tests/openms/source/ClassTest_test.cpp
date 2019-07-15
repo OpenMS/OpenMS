@@ -52,7 +52,7 @@ on the same line of code.  */
 		if (TEST::verbose > 1)																							\
 		{																																		\
 			TEST::initialNewline();																						\
-			std__cout << __FILE__ ":" <<  __LINE__ <<													\
+			stdcout << __FILE__ ":" <<  __LINE__ <<													\
 				": note:  The preceeding test was supposed to fail intentionally.  =>  SUCCESS" << \
 				std::endl;																											\
 		}																																		\
@@ -65,7 +65,7 @@ on the same line of code.  */
 		if (TEST::verbose > 1)																							\
 		{																																		\
 			TEST::initialNewline();																						\
-			std__cout << __FILE__ ":" <<  __LINE__ <<													\
+			stdcout << __FILE__ ":" <<  __LINE__ <<													\
 				" error:  The preceeding test was supposed to fail, but it did not.  =>  FAILURE" << \
 				std::endl;																											\
 		}																																		\
@@ -145,8 +145,8 @@ START_SECTION("TEST_REAL_SIMILAR()")
 	std::ofstream tmp_file(tmp_file_name.c_str());
 	STATUS('\n' << tmp_file_name << ":0:  output of TEST_REAL_SIMILAR() elementary tests starts here");
 
-#undef std__cout
-#define std__cout tmp_file
+#undef stdcout
+#define stdcout tmp_file
 	// The many {} are intended for code folding.  Do not mess them up.
 	{
 		{
@@ -667,8 +667,8 @@ START_SECTION("TEST_REAL_SIMILAR()")
 			}
 		}
 	}
-#undef std__cout
-#define std__cout std::cout
+#undef stdcout
+#define stdcout std::cout
 
 }
 END_SECTION

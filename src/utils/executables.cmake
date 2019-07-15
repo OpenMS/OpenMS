@@ -13,6 +13,7 @@ DecoyDatabase
 DeMeanderize
 Digestor
 DigestorMotif
+Epifany
 ERPairFinder
 FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
@@ -50,6 +51,7 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
+ProteomicsLFQ
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter

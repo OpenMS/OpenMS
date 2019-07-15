@@ -41,7 +41,6 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 
 #include <vector>
-#include <unordered_map>
 
 namespace OpenMS
 {
@@ -115,7 +114,7 @@ protected:
 
     /// Add data from ProteinGroups to a MetaInfoInterface
     void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
-                           const String& group_name, const std::unordered_map<std::string, UInt>& accession_to_id);
+                           const String& group_name, const std::unordered_map<std::string, UInt>& accession_to_id, XMLHandler::ActionMode mode);
 
     /// Read and store ProteinGroup data
     void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name);
@@ -137,7 +136,7 @@ protected:
       * Helper function to write out fragment annotations as user param fragment_annotation
       */  
     static void writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
-                                          const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent); 
+                                          const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent);
 
     /**
       * Helper function to parse fragment annotations from string

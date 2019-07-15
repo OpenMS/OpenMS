@@ -22,6 +22,7 @@
 			<ProteinHit id="PH_4" accession="tr|A9GV08|A9GV08_SORC5" score="0" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
+                        <UserParam type="stringList" name="spectra_data" value="[share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="358.174682617188" RT="1554.4921875" >
 			<PeptideHit score="0" sequence="SHC(Carbamidomethyl)IAEVEK" charge="3" aa_before="K" aa_after="D" protein_refs="PH_0" >

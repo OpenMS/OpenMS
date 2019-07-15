@@ -84,6 +84,7 @@ namespace OpenMS
       
       // Note: consensus elements of the same fraction group corresponds to one sample abundance
       ExperimentalDesign::MSFileSection msfile_section;
+      ExperimentalDesign::SampleSection sample_section;
 
       Size fraction_groups_assigned(0);
 
@@ -128,18 +129,7 @@ namespace OpenMS
                             - msfiles.begin())  + 1;
         }
 
-        if (f.second.metaValueExists("channel_id"))
-        {
-          r.label = static_cast<unsigned int>(f.second.getMetaValue("channel_id")) + 1;
-        }
-        else
-        {
-          if (experiment_type != "label-free")
-          {
-            OPENMS_LOG_WARN << "No channel id annotated in consensusXML. Assuming one channel." << endl;
-          }
-          r.label = 1;
-        }
+        r.label = f.second.getLabelAsUInt(experiment_type);
 
         if (experiment_type == "label-free")
         {
@@ -147,13 +137,18 @@ namespace OpenMS
         }
         else // MS1 or MS2 labeled
         {
-          r.sample = r.label;
+          r.sample = r.label; //TODO why??
         }
 
         msfile_section.push_back(r);
+        if (!sample_section.hasSample(r.sample))
+          sample_section.addSample(r.sample);
+
+
       }
 
       experimental_design.setMSFileSection(msfile_section);
+      experimental_design.setSampleSection(sample_section);
       OPENMS_LOG_DEBUG << "Experimental design (ConsensusMap derived):\n"
                << "  Files: " << experimental_design.getNumberOfMSFiles()
                << "  Fractions: " << experimental_design.getNumberOfFractions()
@@ -161,6 +156,14 @@ namespace OpenMS
                << "  Samples: " << experimental_design.getNumberOfSamples() << "\n"
                << endl;
       return experimental_design;
+    }
+
+    void ExperimentalDesign::SampleSection::addSample(unsigned sample, const vector<String>& content)
+    {
+      //TODO warn when already present? Overwrite?
+      //TODO check content size
+      sample_to_rowindex_.emplace(sample, sample_to_rowindex_.size());
+      content_.push_back(content);
     }
 
     ExperimentalDesign ExperimentalDesign::fromFeatureMap(const FeatureMap &fm)
@@ -205,20 +208,14 @@ namespace OpenMS
       StringList ms_run_paths;
       for (const auto &protein : proteins)
       {
+        // Due to merging it is valid to have multiple origins in a ProteinIDRun
         StringList tmp_ms_run_paths;
         protein.getPrimaryMSRunPath(tmp_ms_run_paths);
-        if (tmp_ms_run_paths.size() != 1)
-        {
-          throw Exception::MissingInformation(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "ProteinIdentification annotated with " + String(tmp_ms_run_paths.size()) +
-            " MS files. Must be exactly one.");
-        }
-        ms_run_paths.push_back(tmp_ms_run_paths[0]);
+        ms_run_paths.insert(ms_run_paths.end(), tmp_ms_run_paths.begin(), tmp_ms_run_paths.end());
+        //TODO think about uniquifying or warning if duplicates occur
       }
 
+      // For now and without further info we have to assume a labelfree, unfractionated experiment
       // no fractionation -> as many fraction_groups as samples
       // each identification run corresponds to one sample abundance
       unsigned sample(1);
@@ -266,6 +263,171 @@ namespace OpenMS
         const String path = String(r.path);
         pair<String, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.label);
         ret[tpl] = f(r);
+      }
+      return ret;
+    }
+
+    map<vector<String>, set<unsigned>> ExperimentalDesign::getUniqueSampleRowToSampleMapping() const
+    {
+      map<vector<String>, set<unsigned> > rowContent2RowIdx;
+      auto factors = sample_section_.getFactors();
+      assert(!factors.empty());
+
+      factors.erase("Sample"); // we do not care about ID in duplicates
+
+
+      for (unsigned u : sample_section_.getSamples())
+      {
+        std::vector<String> valuesToHash{};
+        for (const String& fac : factors)
+        {
+          valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
+        }
+        auto emplace_pair = rowContent2RowIdx.emplace(valuesToHash, set<unsigned>{});
+        emplace_pair.first->second.insert(u);
+      }
+
+      return rowContent2RowIdx;
+    }
+
+    map<unsigned, unsigned> ExperimentalDesign::getSampleToPrefractionationMapping() const
+    {
+      map<unsigned, unsigned> res;
+
+      // could happen when the Experimental Design was loaded from an idXML or consensusXML
+      // without additional Experimental Design file
+      if (sample_section_.getFactors().empty())
+      {
+        // no information about the origin of the samples -> assume uniqueness of all
+        unsigned nr(getNumberOfSamples());
+        for (unsigned i(1); i <= nr; ++i)
+        {
+          res[i] = i;
+        }
+      }
+      else
+      {
+        const map<vector<String>, set<unsigned>>& rowContent2RowIdx = getUniqueSampleRowToSampleMapping();
+        Size s(0);
+        for (const auto &condition : rowContent2RowIdx)
+        {
+          for (auto &sample : condition.second)
+          {
+            res.emplace(sample, s);
+          }
+          ++s;
+        }
+      }
+      return res;
+    }
+
+    map<vector<String>, set<unsigned>> ExperimentalDesign::getConditionToSampleMapping() const
+    {
+      const auto& facset = sample_section_.getFactors();
+      // assert(!facset.empty()); // not needed: If no factors are given, same condition is assumed for every run
+      set<String> nonRepFacs{};
+
+      for (const String& fac : facset)
+      {
+        if (fac != "Sample" && !fac.hasSubstring("replicate") && !fac.hasSubstring("Replicate"))
+        {
+          nonRepFacs.insert(fac);
+        }
+      }
+
+      map<vector<String>, set<unsigned> > rowContent2RowIdx;
+      for (unsigned u : sample_section_.getSamples())
+      {
+        std::vector<String> valuesToHash{};
+        for (const String& fac : nonRepFacs)
+        {
+          valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
+        }
+        auto emplace_pair = rowContent2RowIdx.emplace(valuesToHash, set<unsigned>{});
+        emplace_pair.first->second.insert(u);
+      }
+      return rowContent2RowIdx;
+    }
+
+    map<unsigned, unsigned> ExperimentalDesign::getSampleToConditionMapping() const
+    {
+      map<unsigned, unsigned> res;
+      // could happen when the Experimental Design was loaded from an idXML or consensusXML
+      // without additional Experimental Design file
+      if (sample_section_.getFactors().empty())
+      {
+        // no information about the origin of the samples -> assume uniqueness of all
+        unsigned nr(getNumberOfSamples());
+        for (unsigned i(1); i <= nr; ++i)
+        {
+          res[i] = i;
+        }
+      }
+      else
+      {
+        const map<vector<String>, set<unsigned>>& rowContent2RowIdx = getConditionToSampleMapping();
+        Size s(0);
+        for (const auto &condition : rowContent2RowIdx)
+        {
+          for (auto &sample : condition.second)
+          {
+            res.emplace(sample, s);
+          }
+          ++s;
+        }
+      }
+      return res;
+    }
+
+    vector<vector<pair<String, unsigned>>> ExperimentalDesign::getConditionToPathLabelVector() const
+    {
+      const map<vector<String>, set<unsigned>>& rowContent2RowIdx = getConditionToSampleMapping();
+
+      const map<pair<String, unsigned>, unsigned>& pathLab2Sample = getPathLabelToSampleMapping(false);
+      vector<vector<pair<String, unsigned>>> res{rowContent2RowIdx.size()};
+      Size s(0);
+      // ["wt","24h","10mg"] -> sample [1, 3]
+      for (const auto& rcri : rowContent2RowIdx)
+      {
+        // sample 1
+        for (const auto& ri : rcri.second)
+        {
+          // [foo.mzml, ch1] -> sample 1
+          for (const auto& pl2Sample : pathLab2Sample)
+          {
+            // sample 1 == sample 1
+            if (pl2Sample.second == ri)
+            {
+              // res[0] -> [[foo, 1],...]
+              res[s].emplace_back(pl2Sample.first);
+            }
+          }
+        }
+        ++s;
+      }
+      return res;
+    }
+
+    map<pair< String, unsigned >, unsigned> ExperimentalDesign::getPathLabelToPrefractionationMapping(const bool basename) const
+    {
+      const auto& sToPreFrac = getSampleToPrefractionationMapping();
+      const auto& pToS = getPathLabelToSampleMapping(basename);
+      map<pair<String, unsigned>, unsigned> ret;
+      for (const auto& entry : pToS)
+      {
+        ret.emplace(entry.first, sToPreFrac.at(entry.second));
+      }
+      return ret;
+    }
+
+    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathLabelToConditionMapping(const bool basename) const
+    {
+      const auto& sToC = getSampleToConditionMapping();
+      const auto& pToS = getPathLabelToSampleMapping(basename);
+      map<pair<String, unsigned>, unsigned> ret;
+      for (const auto& entry : pToS)
+      {
+        ret.emplace(entry.first, sToC.at(entry.second));
       }
       return ret;
     }
@@ -452,7 +614,7 @@ namespace OpenMS
         fractiongroup_label_to_sample[fractiongroup_label].insert(row.sample);
 
         if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1)
-        { 
+        {
 
          OPENMS_LOG_INFO << "Please correct your experimental design if this is a label free experiment." << std::endl;
          // throw Exception::MissingInformation(
@@ -526,7 +688,7 @@ namespace OpenMS
     return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
   }
 
-  String ExperimentalDesign::SampleSection::getFactorValue(const unsigned sample, const String &factor)
+  String ExperimentalDesign::SampleSection::getFactorValue(const unsigned sample, const String &factor) const
   {
    if (! hasSample(sample))
    {
@@ -544,8 +706,21 @@ namespace OpenMS
                 OPENMS_PRETTY_FUNCTION,
                 "Factor " + factor + " is not present in the Experimental Design");
    }
-   StringList sample_row = content_[sample_to_rowindex_[sample]];
-   const Size col_index = columnname_to_columnindex_[factor];
+   const StringList& sample_row = content_.at(sample_to_rowindex_.at(sample));
+   const Size col_index = columnname_to_columnindex_.at(factor);
    return sample_row[col_index];
+  }
+
+  Size ExperimentalDesign::SampleSection::getFactorColIdx(const String &factor) const
+  {
+    if (! hasFactor(factor))
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Factor " + factor + " is not present in the Experimental Design");
+    }
+    return columnname_to_columnindex_.at(factor);
   }
 }

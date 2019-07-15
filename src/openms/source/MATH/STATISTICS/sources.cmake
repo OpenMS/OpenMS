@@ -10,6 +10,7 @@ CumulativeBinomial.cpp
 GammaDistributionFitter.cpp
 GaussFitter.cpp
 GumbelDistributionFitter.cpp
+GumbelMaxLikelihoodFitter.cpp
 Histogram.cpp
 LinearRegression.cpp
 LinearRegressionWithoutIntercept.cpp

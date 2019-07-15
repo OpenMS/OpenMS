@@ -55,6 +55,7 @@ namespace OpenMS
 
     PeptideIdentification instances are grouped by sequence of the respective best-scoring PeptideHit and retention time data is collected (PeptideIdentification::getRT()).
     ID groups with the same sequence in different maps represent points of correspondence between the maps and form the basis of the alignment.
+    Only the best PSM per spectrum is considered as the correct identification.
 
     Each map is aligned to a reference retention time scale.
     This time scale can either come from a reference file (@p reference parameter) or be computed as a consensus of the input maps (median retention times over all maps of the ID groups).
@@ -158,6 +159,12 @@ protected:
     /// Minimum number of runs a peptide must occur in
     Size min_run_occur_;
 
+    /// Minimum score to reach for a peptide to be considered
+    double min_score_;
+
+    /// Score better?
+    bool (*better_) (double,double) = [](double, double) {return true;};
+
     /**
       @brief Compute the median retention time for each peptide sequence
 
@@ -206,6 +213,22 @@ protected:
     template <typename MapType>
     bool getRetentionTimes_(MapType& features, SeqToList& rt_data)
     {
+      if (param_.getValue("score_cutoff") == "false")
+      {
+        better_ = [](double, double)
+        {return true;};
+      }
+      else if (features[0].getPeptideIdentifications()[0].isHigherScoreBetter())
+      {
+        better_ = [](double a, double b)
+        { return a >= b; };
+      }
+      else
+      {
+        better_ = [](double a, double b)
+        { return a <= b; };
+      }
+
       bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
       for (typename MapType::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
@@ -228,8 +251,11 @@ protected:
               if (current_distance < rt_distance)
               {
                 pep_it->sort();
-                sequence = pep_it->getHits()[0].getSequence().toString();
-                rt_distance = current_distance;
+                if (better_(pep_it->getHits()[0].getScore(), min_score_))
+                {
+                  sequence = pep_it->getHits()[0].getSequence().toString();
+                  rt_distance = current_distance;
+                }
               }
             }
           }

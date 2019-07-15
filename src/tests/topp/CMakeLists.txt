@@ -268,7 +268,7 @@ set_tests_properties("TOPP_FeatureFinderCentroided_1_out1" PROPERTIES DEPENDS "T
 # FeatureFinderIdentification test
 ## internal IDs only:
 add_test("TOPP_FeatureFinderIdentification_1" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -out FeatureFinderIdentification_1.tmp -extract:mz_window 0.1 -detect:peak_width 60 -model:type none)
-add_test("TOPP_FeatureFinderIdentification_1_out1" ${DIFF} -whitelist "spectra_data" -in1 FeatureFinderIdentification_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_output.featureXML)
+add_test("TOPP_FeatureFinderIdentification_1_out1" ${DIFF} -whitelist "spectra_data" "featureMap" -in1 FeatureFinderIdentification_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderIdentification_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_1")
 ## with (faked) external IDs; fix SVM parameters to avoid randomness:
 ## test currently produces different results on Windows, Mac, and Linux
@@ -279,7 +279,7 @@ set_tests_properties("TOPP_FeatureFinderIdentification_1_out1" PROPERTIES DEPEND
 
 ## with elution model fitting:
 add_test("TOPP_FeatureFinderIdentification_3" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -out FeatureFinderIdentification_3.tmp -extract:mz_window 0.1 -detect:peak_width 60 -model:type symmetric)
-add_test("TOPP_FeatureFinderIdentification_3_out1" ${DIFF} -whitelist "spectra_data" -in1 FeatureFinderIdentification_3.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderIdentification_3_output.featureXML)
+add_test("TOPP_FeatureFinderIdentification_3_out1" ${DIFF} -whitelist "spectra_data" "featureMap" -in1 FeatureFinderIdentification_3.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderIdentification_3_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderIdentification_3_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_3")
 
 #------------------------------------------------------------------------------
@@ -1711,9 +1711,17 @@ add_test("TOPP_LowMemPeakPickerHiResRandomAccess_1" ${TOPP_BIN_PATH}/LowMemPeakP
 add_test("TOPP_LowMemPeakPickerHiResRandomAccess_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 LowMemPeakPickerHiRes_RandomAccess_1.tmp -in2 ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_RandomAccess_output.mzML)
 set_tests_properties("TOPP_LowMemPeakPickerHiResRandomAccess_1_out1" PROPERTIES DEPENDS "TOPP_LowMemPeakPickerHiResRandomAccess_1")
 
+
+#------------------------------------------------------------------------------
+# Basic ProteinInference
+add_test("TOPP_ProteinInference_1" ${TOPP_BIN_PATH}/ProteinInference -test -in ${DATA_DIR_TOPP}/ProteinInference_1_input.idXML -out ProteinInference_1_output.tmp -Algorithm:use_shared_peptides false -merge_runs all -Merging:annotate_origin false)
+add_test("TOPP_ProteinInference_1_out1" ${DIFF} -in1 ProteinInference_1_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinInference_1_output.idXML)
+set_tests_properties("TOPP_ProteinInference_1_out1" PROPERTIES DEPENDS "TOPP_ProteinInference_1")
+
+
+#------------------------------------------------------------------------------
+# Resampler tests
 if(WITH_GUI)
-  #------------------------------------------------------------------------------
-  # Resampler tests
   add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler.mzML -sampling_rate 0.3)
   add_test("TOPP_Resampler_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 Resampler.mzML -in2 ${DATA_DIR_TOPP}/Resampler_1_output.mzML )
   set_tests_properties("TOPP_Resampler_1_out1" PROPERTIES DEPENDS "TOPP_Resampler_1")
@@ -2105,12 +2113,6 @@ add_test("TOPP_PrecursorMassCorrector_1_out1" ${DIFF} -whitelist ${INDEX_WHITELI
 set_tests_properties("TOPP_PrecursorMassCorrector_1_out1" PROPERTIES DEPENDS "TOPP_PrecursorMassCorrector_1")
 
 #------------------------------------------------------------------------------
-# ProteinInference tests
-add_test("TOPP_ProteinInference_1" ${TOPP_BIN_PATH}/ProteinInference -test -in ${DATA_DIR_TOPP}/ProteinInference.idXML -out ProteinInference_output.tmp)
-add_test("TOPP_ProteinInference_1_out1" ${DIFF} -in1 ProteinInference_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinInference_proteins.idXML )
-set_tests_properties("TOPP_ProteinInference_1_out1" PROPERTIES DEPENDS "TOPP_ProteinInference_1")
-
-#------------------------------------------------------------------------------
 # FalseDiscoveryRate_tests (1: default param, 2: with runs separated, 3: with charge variants individual, 4: with charge variants and no charge 1 decoys -> q_value 0)
 add_test("TOPP_FalseDiscoveryRate_1" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_1.tmp -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_1_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_1.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_1.idXML)
@@ -2125,7 +2127,8 @@ add_test("TOPP_FalseDiscoveryRate_4" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -
 add_test("TOPP_FalseDiscoveryRate_4_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_4.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_4.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_4_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_4")
 # proteins only, keep decoys (input is derived from "THIRDPARTY/FidoAdapter_1_output.idXML"):
-add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -PSM false -protein true -algorithm:add_decoy_proteins)
+# use force flag since there is no inference score in it and FDRs are basically meaningless
+add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -PSM false -protein true -algorithm:add_decoy_proteins -force)
 add_test("TOPP_FalseDiscoveryRate_5_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_5_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_5_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_5")
 # FDR filtering
@@ -2133,7 +2136,7 @@ add_test("TOPP_FalseDiscoveryRate_6" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -
 add_test("TOPP_FalseDiscoveryRate_6_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_6_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_6_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_6_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_6")
 # FDR filtering, proteins only, decoys removed (default)
-add_test("TOPP_FalseDiscoveryRate_7" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_input.idXML -out FalseDiscoveryRate_7_output.tmp -PSM false -protein true -FDR:protein 0.30)
+add_test("TOPP_FalseDiscoveryRate_7" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_input.idXML -out FalseDiscoveryRate_7_output.tmp -PSM false -protein true -FDR:protein 0.30 -force)
 add_test("TOPP_FalseDiscoveryRate_7_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_7_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_7_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_7")
 
@@ -2197,7 +2200,7 @@ add_test("TOPP_ProteinQuantifier_1_out1" ${DIFF} -in1 ProteinQuantifier_1_output
 set_tests_properties("TOPP_ProteinQuantifier_1_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
 add_test("TOPP_ProteinQuantifier_1_out2" ${DIFF} -in1 ProteinQuantifier_1_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_1_output2.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_1_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
-add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_2_output1.tmp -peptide_out ProteinQuantifier_2_output2.tmp -top 2 -include_all -filter_charge -average sum)
+add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_2_output1.tmp -peptide_out ProteinQuantifier_2_output2.tmp -top 2 -include_all -best_charge_and_fraction -average sum)
 add_test("TOPP_ProteinQuantifier_2_out1" ${DIFF} -in1 ProteinQuantifier_2_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output1.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_2_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_2")
 add_test("TOPP_ProteinQuantifier_2_out2" ${DIFF} -in1 ProteinQuantifier_2_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output2.txt -whitelist "computed from file" )
@@ -2227,13 +2230,6 @@ set_tests_properties("TOPP_ProteinQuantifier_8_out1" PROPERTIES DEPENDS "TOPP_Pr
 add_test("TOPP_ProteinQuantifier_9" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_9_output.tmp -top 3 -include_all -consensus:fix_peptides -average sum)
 add_test("TOPP_ProteinQuantifier_9_out1" ${DIFF} -in1 ProteinQuantifier_9_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_9_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_9_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_9")
-# mzTab output:
-#add_test("TOPP_ProteinQuantifier_10" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -mzTab_out ProteinQuantifier_10_output.tmp -top 0 -average sum)
-#add_test("TOPP_ProteinQuantifier_10_out1" ${DIFF} -in1 ProteinQuantifier_10_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_10_output.mzTab)
-#set_tests_properties("TOPP_ProteinQuantifier_10_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_10")
-#add_test("TOPP_ProteinQuantifier_11" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -mzTab_out ProteinQuantifier_11_output.tmp -top 0 -average sum -filter_charge)
-#add_test("TOPP_ProteinQuantifier_11_out1" ${DIFF} -in1 ProteinQuantifier_11_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_11_output.mzTab)
-#set_tests_properties("TOPP_ProteinQuantifier_11_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_11")
 #ratios
 add_test("TOPP_ProteinQuantifier_12" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_12_output.tmp -top 3 -include_all -consensus:fix_peptides -average sum -ratios)
 add_test("TOPP_ProteinQuantifier_12_out1" ${DIFF} -in1 ProteinQuantifier_12_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_12_output.txt -whitelist "computed from file" )
@@ -2322,15 +2318,15 @@ set_tests_properties("TOPP_PeptideIndexer_14_out" PROPERTIES DEPENDS "TOPP_Pepti
 #------------------------------------------------------------------------------
 # MzTabExporter tests
 add_test("TOPP_MzTabExporter_1" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_1_input.consensusXML -out MzTabExporter_1_output.tmp)
-add_test("TOPP_MzTabExporter_1_out" ${DIFF} -in1 MzTabExporter_1_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_1_output.mzTab -whitelist "MTD\turi[1]" "MTD\tsoftware")
+add_test("TOPP_MzTabExporter_1_out" ${DIFF} -in1 MzTabExporter_1_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_1_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware")
 set_tests_properties("TOPP_MzTabExporter_1_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_1")
 
 add_test("TOPP_MzTabExporter_2" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_2_input.idXML -out MzTabExporter_2_output.tmp)
-add_test("TOPP_MzTabExporter_2_out" ${DIFF} -in1 MzTabExporter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_2_output.mzTab -whitelist "MTD\turi[1]" "MTD\tsoftware")
+add_test("TOPP_MzTabExporter_2_out" ${DIFF} -in1 MzTabExporter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_2_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware")
 set_tests_properties("TOPP_MzTabExporter_2_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_2")
 
 add_test("TOPP_MzTabExporter_3" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_3_input.featureXML -out MzTabExporter_3_output.tmp)
-add_test("TOPP_MzTabExporter_3_out" ${DIFF} -in1 MzTabExporter_3_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_3_output.mzTab -whitelist "MTD\turi[1]" "MTD\tsoftware")
+add_test("TOPP_MzTabExporter_3_out" ${DIFF} -in1 MzTabExporter_3_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_3_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware")
 set_tests_properties("TOPP_MzTabExporter_3_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_3")
 
 ## Tests for TOPPAS/ExecutePipeline are in ./src/tests/TOPPAS/...

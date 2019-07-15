@@ -93,7 +93,9 @@ namespace OpenMS
     // We always take first PepHit from PepID, because those were used for
     // inference in Fido
     typedef std::map<Size, std::set<Size> > IndexMap_;
-    
+
+    /// if the protein group at index i contains a target (first) and/or decoy (second)
+    // std::vector<std::pair<bool,bool>> indist_prot_grp_td_;
     /// mapping indist. protein group indices -> peptide identification indices
     IndexMap_ indist_prot_grp_to_pep_;
     /// mapping indist. protein group indices <- peptide identification indices
@@ -111,12 +113,21 @@ namespace OpenMS
     /// Constructor
     /// @param statistics Specifies if the class stores/outputs info about statistics    
     PeptideProteinResolution(bool statistics=false);
-    
-    /// Initialize and store the graph (= maps)
+
+
+    static void resolve(ProteinIdentification& protein,
+                        std::vector<PeptideIdentification>& peptides,
+                        bool resolve_ties,
+                        bool targets_first);
+    /// Initialize and store the graph (= maps), needs sorted groups for
+    /// correct functionality. Therefore sorts the indist. protein groups
+    /// if not skipped.
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param peptides vector of ProteinIdentifications with links to the proteins
-    void buildGraph(const ProteinIdentification& protein,
-                    const std::vector<PeptideIdentification>& peptides);
+    /// @param skip_sort Skips sorting of groups, nothing is modified then.
+    void buildGraph(ProteinIdentification& protein,
+                    const std::vector<PeptideIdentification>& peptides,
+                    bool skip_sort = false);
       
     /// Applies resolveConnectedComponent to every component of the graph and
     /// is able to write statistics when specified. Parameters will

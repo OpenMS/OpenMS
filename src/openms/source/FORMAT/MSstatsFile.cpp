@@ -32,6 +32,8 @@
 // $Authors: Timo Sachsenberg, Lukas Heumos $
 // --------------------------------------------------------------------------
 
+#include <include/OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
+#include <include/OpenMS/FILTERING/ID/IDFilter.h>
 #include "OpenMS/FORMAT/MSstatsFile.h"
 
 using namespace std;
@@ -58,27 +60,27 @@ void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSec
   if (!sampleSection.hasFactor(bioreplicate))
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section of the experimental design does not contain MSstats_BioReplicate");
-  } 
+  }
 }
 
 void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition, const String& mixture)
 {
   checkConditionLFQ_(sampleSection, bioreplicate, condition);
-  
+
   // Sample Section must contain column for Mixture
   if (!sampleSection.hasFactor(mixture))
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section of the experimental design does not contain MSstats_Mixture");
-  } 
+  }
 }
 
-void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const ConsensusMap &consensus_map,
+void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap &consensus_map,
                                 const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
                                 const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
                                 const String& retention_time_summarization_method)
 {
   // Experimental Design file
-  ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
+  const ExperimentalDesign::SampleSection& sampleSection = design.getSampleSection();
 
   if (design.getNumberOfLabels() != 1)
   {
@@ -195,8 +197,12 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
 
   // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
   TextFile csv_out;
-  csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType," + "Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
-  
+  csv_out.addLine(
+    String(rt_summarization_manual ? "RetentionTime,": "") +
+    "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,"
+    "ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," +
+    String(has_fraction ? "Fraction,": "") + "Intensity");
+
   // Regex definition for fragment ions
   boost::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
 
@@ -222,13 +228,98 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
   }
   const String delim(",");
 
-  // Keeps track of unique peptides (Size of value set is 1)
-  std::map< String, std::set<String > > peptideseq_to_accessions;
+  if (consensus_map.getProteinIdentifications().empty())
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+	  "No protein information found in the ConsensusXML.");
+  }
 
-  // Stores all the lines that will be present in the final MSstats output,
-  // We need to map peptide sequences to full features, because then we can ignore peptides
-  // that are mapped to multiple proteins. We also need to map to the
-  // intensities, such that we combine intensities over multiple retention times.
+  // warn if we have more than one protein ID run
+  //TODO actually allow having more than one inference run e.g. for different conditions
+  if (consensus_map.getProteinIdentifications().size() > 1)
+  {
+    OPENMS_LOG_WARN << "Found " +
+    String(consensus_map.getProteinIdentifications().size()) +
+    " protein runs in consensusXML. Using first one only to parse inference data for now." << std::endl;
+  }
+
+  if (!consensus_map.getProteinIdentifications()[0].hasInferenceData())
+  {
+    OPENMS_LOG_WARN << "No inference was performed, defaulting to one-peptide-rule across all runs." << std::endl;
+    ConsensusMapMergerAlgorithm merger;
+    merger.mergeAllIDRuns(consensus_map);
+    IDFilter::updateProteinReferences(consensus_map, true); //remove dangling peptides
+  }
+
+  // We quantify indistinguishable groups with one (corner case) or multiple proteins.
+  // If indistinguishable groups are not annotated (no inference or only trivial inference has been performed) we assume
+  // that all proteins can be independently quantified (each forming an indistinguishable group).
+  using IndProtGrp = ProteinIdentification::ProteinGroup;
+  using IndProtGrps = std::vector<IndProtGrp>;
+  consensus_map.getProteinIdentifications()[0].fillIndistinguishableGroupsWithSingletons();
+  IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
+
+  // Map protein accession to its indistinguishable group
+  std::map< String, const IndProtGrp* > accession_to_group;
+  for (const IndProtGrp& pgrp : ind_prots)
+  {
+    //std::cout << "Group size: " << pgrp.accessions.size() << endl;
+    for (const String& a : pgrp.accessions)
+    {
+      //std::cout << a << endl;
+      accession_to_group[a] = &(pgrp);
+    }
+  }
+
+  // Map peptides to protein accessions
+  //TODO one map to save all the Strings
+  std::map< String, std::set<String > > peptideseq_to_accessions;
+  std::map< String, bool > peptideseq_quantifyable;
+  for (Size i = 0; i < features.size(); ++i)
+  {
+    const OpenMS::BaseFeature &base_feature = features[i];
+    for (const OpenMS::PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
+    {
+      for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
+      {
+        const std::vector<PeptideEvidence> & original_peptide_evidences = pep_hit.getPeptideEvidences();
+        const std::vector<PeptideEvidence> & peptide_evidences = (original_peptide_evidences.empty()) ? placeholder_peptide_evidences : original_peptide_evidences;
+        //TODO Really double check with Meena Choi (MSStats author) or make it an option! I can't find any info
+        // on what is correct. For TMT we include them (since it is necessary)
+        const String & sequence = pep_hit.getSequence().toUnmodifiedString(); // to modified string
+
+        // check if all referenced protein accessions are part of the same indistinguishable group
+        // if so, we mark the sequence as quantifiable
+        std::set<String> accs = pep_hit.extractProteinAccessionsSet();
+        std::set<const IndProtGrp*> maps_to_indgrps;
+        for (const String& a : accs)
+        {
+          //TODO inefficient double lookup especially in a slow ordered map
+          if (accession_to_group.find(a) != accession_to_group.end())
+          {
+            maps_to_indgrps.insert(accession_to_group[a]);
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Accession " << a << " does not match to an inferred group." << std::endl;
+          }
+        }
+        peptideseq_quantifyable[sequence] = (maps_to_indgrps.size() == 1);
+
+        for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
+        {
+          const String & accession = pep_ev.getProteinAccession();
+  	      peptideseq_to_accessions[sequence].insert(accession); // TODO: check: will add NA for peptide evidences without protein reference
+        }
+      }
+    }
+  }
+
+  // Stores all the lines that will be present in the final MSstats output
+  // Several things needs to be considered:
+  // - We need to map peptide sequences to full features, because then we can ignore peptides
+  //   that are mapped to multiple proteins.
+  // - We also need to map to the intensities, such that we combine intensities over multiple retention times.
   map< String, map< MSstatsLine, set< pair<Intensity, Coordinate> > > > peptideseq_to_prefix_to_intensities;
 
   for (Size i = 0; i < features.size(); ++i)
@@ -249,7 +340,9 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
         const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
-        const String & sequence = pep_hit.getSequence().toUnmodifiedString();
+        //TODO Really double check with Meena Choi (MSStats author) or make it an option! I can't find any info
+        // on what is correct. For TMT we include them (since it is necessary) (see occurrence above as well when map is built!)
+        const String & sequence = pep_hit.getSequence().toUnmodifiedString(); // to modified string
 
         // Have to combine all fragment annotations with all peptide evidences
         for (const OpenMS::PeptideHit::PeakAnnotation & frag_ann : fragment_annotations)
@@ -275,6 +368,16 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
 
           for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
           {
+            // link sequence to protein
+            const String & accession = pep_ev.getProteinAccession();
+
+            // TODO: @julianus check if this is correct
+            if (accession_to_group.find(accession) == accession_to_group.end())
+            {
+              OPENMS_LOG_WARN << "Can't map accession: " << accession << " to indistinguishable group." << endl;
+              continue;
+            }
+
             // Write new line for each run
             for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
             {
@@ -283,8 +386,10 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
               const Coordinate retention_time(consensus_feature_retention_times[i][j]);
               const unsigned label(consensus_feature_labels[i][j]);
 
-              const String & accession = pep_ev.getProteinAccession();
-              peptideseq_to_accessions[sequence].insert(accession);
+              // link protein to indistinguishable group
+              const StringList & ind_proteins = accession_to_group[accession]->accessions;
+              // concatenated protein accessions
+              const String ind_group_accession = ListUtils::concatenate(ind_proteins,";");
 
               const pair< String, unsigned> tpl1 = make_pair(current_filename, label);
               const unsigned sample = path_label_to_sample[tpl1];
@@ -320,7 +425,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
       }
     }
   }
-  
+
   // Print the run mapping between MSstats and OpenMS
   for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
   {
@@ -334,12 +439,13 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
   // test
   int count_similar = 0;
 
-  for (const pair<const String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
+  for (const auto& peptideseq_accessions : peptideseq_to_accessions)
   {
-    // Only write if unique peptide
-    if (peptideseq_accessions.second.size() == 1)
+    const String& seq = peptideseq_accessions.first;
+    // Only write peptide if all referenced proteins are from the same indistinguishable group
+    if (peptideseq_quantifyable[seq])
     {
-      for (const pair<const MSstatsLine, set< pair< Intensity, Coordinate > > > &line :
+      for (const pair< MSstatsLine, set< pair< Intensity, Coordinate > > > &line :
               peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
       {
         // First, we collect all retention times and intensities
@@ -360,11 +466,11 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
 
         tuple<String, String, String > tpl = make_tuple(
                 line.first.sequence(), line.first.precursor_charge(), line.first.run());
- 
         if (peptideseq_precursor_charge_run.find(tpl) != peptideseq_precursor_charge_run.end())
         {
-         count_similar += 1;
-         // throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide ion appears multiple times for the same run!");
+          //TODO What is this doing here??
+          count_similar += 1;
+          // throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide ion appears multiple times for the same run!");
         }
         peptideseq_precursor_charge_run.insert(tpl);
 
@@ -406,7 +512,6 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
   // Store the final assembled CSV file
   csv_out.store(filename);
 }
-
 
 void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const ConsensusMap &consensus_map,
                                    const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
@@ -565,51 +670,51 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
         const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
         const String & sequence = pep_hit.getSequence().toString();
-          
-          for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
+
+        for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
+        {
+          // Write new line for each run
+          for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
           {
-            // Write new line for each run
-            for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
-            {
-              const String &current_filename = consensus_feature_filenames[i][j];
+            const String &current_filename = consensus_feature_filenames[i][j];
 
-              const Intensity intensity(consensus_feature_intensites[i][j]);
-              const Coordinate retention_time(consensus_feature_retention_times[i][j]);
-              const unsigned channel(consensus_feature_labels[i][j] + 1);
+            const Intensity intensity(consensus_feature_intensites[i][j]);
+            const Coordinate retention_time(consensus_feature_retention_times[i][j]);
+            const unsigned channel(consensus_feature_labels[i][j] + 1);
 
-              const String & accession = pep_ev.getProteinAccession();
-              peptideseq_to_accessions[sequence].insert(accession);
-              
-              const pair< String, unsigned> tpl1 = make_pair(current_filename, channel);
-              const unsigned sample = path_label_to_sample[tpl1];
-              const unsigned fraction = path_label_to_fraction[tpl1];
+            const String & accession = pep_ev.getProteinAccession();
+            peptideseq_to_accessions[sequence].insert(accession);
 
-              // Resolve techmixture, run
-              const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
-              String techmixture = String(sampleSection.getFactorValue(sample, mixture)) + "_" + String(openms_fractiongroup);
-              String run = techmixture + (has_fraction ? String("_" + String(fraction)) : "");  
-                          
-              // Assemble MSstats line
-              MSstatsTMTLine prefix(
-                      has_fraction,
-                      accession,
-                      sequence,
-                      precursor_charge,
-                      String(channel),
-                      sampleSection.getFactorValue(sample, condition),
-                      sampleSection.getFactorValue(sample, bioreplicate),
-                      String(run),
-                      sampleSection.getFactorValue(sample, mixture),
-                      String(techmixture),
-                      (has_fraction ? String(fraction) : "")
-              );
-              pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
-              peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
-            }
+            const pair< String, unsigned> tpl1 = make_pair(current_filename, channel);
+            const unsigned sample = path_label_to_sample[tpl1];
+            const unsigned fraction = path_label_to_fraction[tpl1];
+
+            // Resolve techmixture, run
+            const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
+            String techmixture = String(sampleSection.getFactorValue(sample, mixture)) + "_" + String(openms_fractiongroup);
+            String run = techmixture + (has_fraction ? String("_" + String(fraction)) : "");
+
+            // Assemble MSstats line
+            MSstatsTMTLine prefix(
+                has_fraction,
+                accession,
+                sequence,
+                precursor_charge,
+                String(channel),
+                sampleSection.getFactorValue(sample, condition),
+                sampleSection.getFactorValue(sample, bioreplicate),
+                String(run),
+                sampleSection.getFactorValue(sample, mixture),
+                String(techmixture),
+                (has_fraction ? String(fraction) : "")
+            );
+            pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
+            peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
           }
         }
       }
     }
+  }
 
   // Print the run mapping between MSstats and OpenMS
   for (const auto& run_mapping : msstats_run_to_openms_fractiongroup)
@@ -630,7 +735,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
     if (peptideseq_accessions.second.size() == 1)
     {
       for (const pair<const MSstatsTMTLine, set< pair< Intensity, Coordinate > > > &line :
-              peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
+          peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
       {
         // First, we collect all retention times and intensities
         set< Coordinate > retention_times;
@@ -649,12 +754,12 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
         }
 
         tuple<String, String, String > tpl = make_tuple(
-                line.first.sequence(), line.first.precursor_charge(), line.first.run());
- 
+            line.first.sequence(), line.first.precursor_charge(), line.first.run());
+
         if (peptideseq_precursor_charge_run.find(tpl) != peptideseq_precursor_charge_run.end())
         {
-         count_similar += 1;
-         // throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide ion appears multiple times for the same run!");
+          count_similar += 1;
+          // throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide ion appears multiple times for the same run!");
         }
         peptideseq_precursor_charge_run.insert(tpl);
 
@@ -675,17 +780,17 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
             intensity = *(std::max_element(intensities.begin(), intensities.end()));
           }
           else if (retention_time_summarization_method == "min")
-          {
-            intensity = *(std::min_element(intensities.begin(), intensities.end()));
-          }
-          else if (retention_time_summarization_method == "mean")
-          {
-            intensity = meanIntensity(intensities);
-          }
-          else if (retention_time_summarization_method == "sum")
-          {
-            intensity = sumIntensity(intensities);
-          }
+            {
+              intensity = *(std::min_element(intensities.begin(), intensities.end()));
+            }
+            else if (retention_time_summarization_method == "mean")
+              {
+                intensity = meanIntensity(intensities);
+              }
+              else if (retention_time_summarization_method == "sum")
+                {
+                  intensity = sumIntensity(intensities);
+                }
           csv_out.addLine(line.first.toString() + delim + String(intensity));
         }
 
@@ -696,4 +801,3 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, const Consens
   // Store the final assembled CSV file
   csv_out.store(filename);
 }
-

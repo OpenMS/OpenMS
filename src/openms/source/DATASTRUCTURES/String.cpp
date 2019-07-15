@@ -526,5 +526,11 @@ namespace OpenMS
     this->append(s);
     return *this;
   }
+  
+  std::size_t hash_value(const OpenMS::String & s) noexcept
+  {
+	auto hasher = std::hash<std::string>{};
+    return hasher(static_cast<std::string>(s));
+  }
 
 } // namespace OpenMS

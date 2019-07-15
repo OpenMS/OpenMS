@@ -65,7 +65,7 @@ namespace OpenMS
 
         /// store label free experiment (MSstats)
         void storeLFQ(const String& filename, 
-                      const ConsensusMap &consensus_map,
+                      ConsensusMap &consensus_map, // we might add singleton protein groups
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const bool is_isotope_label_type,

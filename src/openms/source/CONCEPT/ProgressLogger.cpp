@@ -100,7 +100,11 @@ public:
     }
     SignedSize nextProgress() const override
     {
-      return ++current_;
+      #ifdef _OPENMP
+       #pragma omp atomic
+      #endif
+      ++current_;
+      return current_;
     }
 
     void endProgress(const int current_recursion_depth) const override
