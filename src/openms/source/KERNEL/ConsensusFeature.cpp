@@ -32,9 +32,9 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -45,12 +45,6 @@ namespace OpenMS
   ConsensusFeature::ConsensusFeature() :
     BaseFeature(), handles_(), ratios_()
   {
-  }
-
-  ConsensusFeature::ConsensusFeature(const ConsensusFeature& rhs) :
-    BaseFeature(rhs), handles_(rhs.handles_), ratios_()
-  {
-    ratios_ = rhs.ratios_;
   }
 
   ConsensusFeature::ConsensusFeature(const BaseFeature& feature) :
@@ -68,17 +62,6 @@ namespace OpenMS
     BaseFeature(element, map_index), handles_(), ratios_()
   {
     insert(FeatureHandle(map_index, element));
-  }
-
-  ConsensusFeature& ConsensusFeature::operator=(const ConsensusFeature& rhs)
-  {
-    if (&rhs == this)
-      return *this;
-
-    BaseFeature::operator=(rhs);
-    handles_ = rhs.handles_;
-    ratios_ = rhs.ratios_;
-    return *this;
   }
 
   ConsensusFeature::~ConsensusFeature()
