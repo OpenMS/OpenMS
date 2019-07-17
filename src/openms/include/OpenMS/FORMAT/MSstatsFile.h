@@ -63,21 +63,6 @@ namespace OpenMS
         ///Destructor
         ~MSstatsFile();
 
-        typedef OpenMS::Peak2D::IntensityType Intensity;
-        typedef OpenMS::Peak2D::CoordinateType Coordinate;
-
-        struct AggregatedConsensusInfo
-        {
-          std::vector< std::vector< String > > consensus_feature_filenames;           // Filenames of ConsensusFeature
-          std::vector< std::vector< Intensity > > consensus_feature_intensites;       // Intensites of ConsensusFeature
-          std::vector< std::vector< Coordinate > > consensus_feature_retention_times; // Retention times of ConsensusFeature
-          std::vector< std::vector< unsigned > > consensus_feature_labels;          // Labels of ConsensusFeature
-        };
-
-        MSstatsFile::AggregatedConsensusInfo aggregateInfo(ConsensusMap const &consensus_map,
-                                                           std::vector<BaseFeature> &features,
-                                                           std::vector<String> const &spectra_paths);
-
         /// store label free experiment (MSstats)
         void storeLFQ(const String& filename, 
                       const ConsensusMap &consensus_map,
@@ -99,8 +84,23 @@ namespace OpenMS
                       const String& retention_time_summarization_method);
     
     private:
-     
+
+        typedef OpenMS::Peak2D::IntensityType Intensity;
+        typedef OpenMS::Peak2D::CoordinateType Coordinate;
+
         const String na_string = "NA";
+
+        struct AggregatedConsensusInfo
+        {
+          std::vector< std::vector< String > > consensus_feature_filenames;           // Filenames of ConsensusFeature
+          std::vector< std::vector< Intensity > > consensus_feature_intensites;       // Intensites of ConsensusFeature
+          std::vector< std::vector< Coordinate > > consensus_feature_retention_times; // Retention times of ConsensusFeature
+          std::vector< std::vector< unsigned > > consensus_feature_labels;          // Labels of ConsensusFeature
+        };
+
+        MSstatsFile::AggregatedConsensusInfo aggregateInfo(ConsensusMap const &consensus_map,
+                                                           std::vector<BaseFeature> &features,
+                                                           std::vector<String> const &spectra_paths);
 
         /*
         *  @brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition in Experimental Design

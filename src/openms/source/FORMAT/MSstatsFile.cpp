@@ -244,6 +244,8 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
   // intensities, such that we combine intensities over multiple retention times.
   map< String, map< MSstatsLine, set< pair<Intensity, Coordinate> > > > peptideseq_to_prefix_to_intensities;
 
+
+  // TODO: how to deal with that in AggregatedInfo
   for (Size i = 0; i < features.size(); ++i)
   {
     const OpenMS::BaseFeature &base_feature = features[i];
@@ -267,6 +269,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, const Consens
         // Have to combine all fragment annotations with all peptide evidences
         for (const OpenMS::PeptideHit::PeakAnnotation & frag_ann : fragment_annotations)
         {
+
           String fragment_ion = na_string;
 
           // Determine if the FragmentIon field can be assigned
