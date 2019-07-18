@@ -31,15 +31,16 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
-#define OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
+#pragma once
 
 //#define INFERENCE_BENCH
 
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/MISC/GridSearch.h>
+
 #include <vector>
 #include <functional>
 #include <boost/optional.hpp>
@@ -50,14 +51,31 @@ namespace OpenMS
   class IDBoostGraph;
   class PeptideIdentification;
   class ProteinIdentification;
-  class ExperimentalDesign;
 
+  /**
+   * @brief Performs a Bayesian protein inference on Protein/Peptide identifications or ConsensusMap (experimental).
+   * - Filters for best n PSMs per spectrum.
+   * - Calculates and filters for best peptide per spectrum.
+   * - Builds a k-partite graph from the structures.
+   * - Finds and splits into connected components by DFS
+   * - Extends the graph by adding layers from indist. protein groups, peptides with the same parents and optionally
+   *   some additional layers (peptide sequence, charge, replicate -> extended model = experimental)
+   * - Builds a factor graph representation of a Bayesian network using the Evergreen library
+   *   See model param section. It is based on the Fido noidy-OR model with an option for
+   *   regularizing the number of proteins per peptide.
+   * - Performs loopy belief propagation on the graph and queries protein, protein group and/or peptide posteriors
+   *   See loopy_belief_propagation param section.
+   * - Learns best parameters via grid search if the parameters were not given in the param section.
+   * - Writes posteriors to peptides and/or proteins and adds indistinguishable protein groups to the underlying
+   *   data structures.
+   * - Can make use of OpenMP to parallelize over connected components.
+   */
   class OPENMS_DLLAPI BayesianProteinInferenceAlgorithm :
       public DefaultParamHandler,
       public ProgressLogger
   {
   public:
-    /// Constructor
+    /// Constructor @todo is there a better way to pass the debug level from TOPPBase?
     explicit BayesianProteinInferenceAlgorithm(unsigned int debug_lvl = 0);
 
     /// Destructor
@@ -65,50 +83,55 @@ namespace OpenMS
 
     void updateMembers_() override;
 
-    //Note: How to perform group inference
-    // Three options:
-    // - (as implemented) use the automatically created indist. groups and report their posterior
-    // - (can be done additionally) collapse proteins to groups beforehand and run inference
-    // - (if no single protein scores wanted at all) calculate prior from proteins for the group
-    //  beforehand and remove proteins from network (saves computation
-    //  because messages are not passed from prots to groups anymore.
-
     /// A function object to pass into the IDBoostGraph class to perform algorithms on
     /// connected components
     class GraphInferenceFunctor;
 
     /// A function object to pass into the IDBoostGraph class to perform algorithms on
-    /// connected components
+    /// connected components. This can make use of additional layers. @todo use static type checking
+    /// by using two different Graph types
     class ExtendedGraphInferenceFunctor;
 
-    /// A function object to pass into the GridSearch;
+    /// A function object to pass into the GridSearch class
     struct GridSearchEvaluator;
 
-    /// Perform inference. Writes its results into protein and (optionally) peptide hits (new score).
-    /// Optionally adds indistinguishable protein groups with separate scores, too.
-    /// Currently only takes first proteinID run.
-    /// TODO loop over all runs
+    /// Perform inference. Filter, build graph, run the private inferPosteriorProbabilities_ function.
+    /// Writes its results into protein and (optionally also) peptide hits (as new score).
+    /// Optionally adds indistinguishable protein groups with separate scores, too. See Param object of class.
+    /// Currently only takes first proteinID run and all peptides.
+    /// Experimental design can be used to create an extended graph with replicate information. (experimental)
+    /// @TODO loop over all runs
     void inferPosteriorProbabilities(
         std::vector<ProteinIdentification>& proteinIDs,
         std::vector<PeptideIdentification>& peptideIDs,
-        boost::optional<const ExperimentalDesign&> = boost::optional<const ExperimentalDesign&>());
+        boost::optional<const ExperimentalDesign> exp_des = boost::optional<const ExperimentalDesign>());
 
+    /// Perform inference. Filter, build graph, run the private inferPosteriorProbabilities_ function.
+    /// Writes its results into protein and (optionally also) peptide hits (as new score).
+    /// Optionally adds indistinguishable protein groups with separate scores, too. See Param object of class.
+    /// Loops over all runs in the ConsensusMaps' protein IDs. (experimental)
     void inferPosteriorProbabilities(
         ConsensusMap& cmap,
-        boost::optional<const ExperimentalDesign&> = boost::optional<const ExperimentalDesign&>());
+        boost::optional<const ExperimentalDesign> exp_des = boost::optional<const ExperimentalDesign>());
 
   private:
 
+    /// after a graph was built, use this method to perform inference and write results to the structures
+    /// with which the graph was built
     void inferPosteriorProbabilities_(IDBoostGraph& ibg);
 
+    /// read Param object and set the grid
     GridSearch<double,double,double> initGridSearchFromParams_(
         std::vector<double>& alpha_search,
         std::vector<double>& beta_search,
         std::vector<double>& gamma_search
         );
 
+    /// set score type and settings for every ProteinID run processed
     void setScoreTypeAndSettings_(ProteinIdentification& proteinIDs);
 
+    /// function initialized based on the algorithm parameters that is used to filter PeptideHits
+    /// @todo extend to allow filtering only for the current run
     std::function<void(PeptideIdentification&/*, const String& run_id*/)> checkConvertAndFilterPepHits_;
 
     /// The grid search object initialized with a default grid
@@ -122,4 +145,3 @@ namespace OpenMS
 
   };
 }
-#endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
