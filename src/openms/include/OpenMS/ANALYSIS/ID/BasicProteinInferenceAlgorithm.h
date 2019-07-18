@@ -40,18 +40,35 @@
 
 namespace OpenMS
 {
-  /// \brief Algorithm class that implements simple protein inference by aggregation of peptide scores
-  /// It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
-  /// and if you want to use shared peptides.
+  /** \brief Algorithm class that implements simple protein inference by aggregation of peptide scores.
+   * It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
+   * and if you want to use shared peptides.
+   * First, the best PSM per spectrum is used, then only the best PSM per peptidoform is aggregated.
+   * Peptidoforms can optionally be distinguished via:
+   * - Modifications (modified sequence string)
+   * - Charge states
+   * The algorithm assumes posteriors or posterior error probabilities and converts to posteriors initially.
+   * Possible aggregation methods that can be set via the Params object are:
+   * - Maximum (default)
+   * - Sum
+   * - Product (ignoring zeroes)
+   * Annotation of the number of the number of peptides used for aggregation can be disabled (see parameters).
+   * Supports multiple runs and goes through them one by one iterating over the full PeptideIdentification vector.
+   */
   class OPENMS_DLLAPI BasicProteinInferenceAlgorithm :
     public DefaultParamHandler,
     public ProgressLogger
   {
     public:
 
+    /**
+     * @brief The aggregation method
+     */
     enum AggregationMethod
     {
-      PROD, SUM, MAXIMUM
+      PROD, ///< aggregate by product (ignore zeroes)
+      SUM, ///< aggregate by summing
+      MAXIMUM ///< aggregate by maximum
     };
 
     /// Default constructor
@@ -64,16 +81,20 @@ namespace OpenMS
     void run(std::vector<PeptideIdentification> &pep_ids, ProteinIdentification &prot_id) const;
 
   private:
+
+    /**
+     * @brief Performs simple inference on one protein run.
+     * @param acc_to_protein_hitP_and_count Maps Accessions to a pair of ProteinHit pointers
+     *  and number of peptidoforms encountered @Todo could use member as hash to save strings
+     * @param best_pep Maps (un)modified peptide sequence to a map from charge (0 when unconsidered) to the
+     *  best PeptideHit pointer
+     * @param prot_run The current run to process
+     * @param pep_ids Peptides for the current run to process
+     */
     void processRun_(
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       ProteinIdentification& prot_run,
-      std::vector<PeptideIdentification>& pep_ids,
-      AggregationMethod aggregation_method,
-      String& aggMethodString,
-      bool use_shared_peptides,
-      bool treat_charge_variants_separately,
-      bool treat_modification_variants_separately,
-      bool skip_count_annotation) const;
+      std::vector<PeptideIdentification>& pep_ids) const;
   };
 } //namespace OpenMS

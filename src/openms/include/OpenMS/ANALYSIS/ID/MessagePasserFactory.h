@@ -32,8 +32,7 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_MESSAGEPASSERFACTORY_HPP
-#define OPENMS_ANALYSIS_ID_MESSAGEPASSERFACTORY_HPP
+#pragma once
 
 #include <cmath>
 #include <Evergreen/evergreen.hpp>
@@ -41,40 +40,71 @@
 
 typedef unsigned long int uiint;
 
-template <typename Label>
-class MessagePasserFactory {
-private:
-    const int minInputsPAF = 3;
-    double alpha, beta, gamma, p, pepPrior;
-    Label offset;
-    std::map<int, double> chgPriors = {{1,0.7},{2,0.9},{3,0.7},{4,0.5},{5,0.5}};
+namespace OpenMS
+{
+  /// Produces MessagePassers (nodes in a factor graph = bayesian network) for use with Evergreen library,
+  /// based on a parameterization of the Protein-Peptide Bayesian network.
+  /// Those MessagePassers can be tables or convolution trees. Labels are used to associate the variables they are
+  /// working on. They can be integers (for speed) or strings (for readability/debug)
+  template <typename Label>
+  class MessagePasserFactory {
+  private:
+    //const int minInputsPAF = 3; //@todo could be used to decide when brute force is better.
 
+    /// the model parameters
+    double alpha, beta, gamma, p, pepPrior;
+
+    /// Likelihoods for the charge states given presence of the peptide sequence (@todo could be calculated from IDPEP
+    /// if we do per charge state fitting) or empirically estimated from the input PSMs
+    std::map<int, double> chgLLhoods = {{1, 0.7}, {2, 0.9}, {3, 0.7}, {4, 0.5}, {5, 0.5}};
+
+    /// to fill the noisy-OR table for a peptide given parent proteins
     inline double notConditionalGivenSum(unsigned long summ) {
-        // use log for better precision
-        return pow(2., log2(1. - beta) + summ * log2(1. - alpha));
-        //return std::pow((1.0 - alpha), summ) * (1.0 - beta);
+      // use log for better precision
+      return pow(2., log2(1. - beta) + summ * log2(1. - alpha));
+      //return std::pow((1.0 - alpha), summ) * (1.0 - beta);
     }
 
-public:
+  public:
+    /// Protein Factor initialized with model prior (missing peps are experimental)
     TableDependency<Label> createProteinFactor(Label id, int nrMissingPeps = 0);
+    /// Protein Factor initialized with user prior (missing peps are experimental)
     TableDependency<Label> createProteinFactor(Label id, double prior, int nrMissingPeps = 0);
 
+    /// Peptide Factor initialized with:
+    /// @param prob peptide evidence probability
     TableDependency<Label> createPeptideEvidenceFactor(Label id, double prob);
 
+    /// Conditional probability table of peptide given number of parent proteins, based on model params.
+    /// Additionally regularizes on the amount of parent proteins.
+    /// @param nrParents (maximum) number of parent proteins
     TableDependency<Label> createRegularizingSumEvidenceFactor(size_t nrParents, Label nId, Label pepId);
+
+    /// Conditional probability table of peptide given number of parent proteins, based on model params.
+    /// @param nrParents (maximum) number of parent proteins
     TableDependency<Label> createSumEvidenceFactor(size_t nrParents, Label nId, Label pepId);
 
+    //For extended model. @todo currently unused
     TableDependency<Label> createSumFactor(size_t nrParents, Label nId);
+    TableDependency<Label> createReplicateFactor(Label seqId, Label repId);
+    TableDependency<Label> createChargeFactor(Label repId, Label chargeId, int chg);
 
-    TableDependency<Label> createReplicateFactor(Label seqID, Label repID);
-    TableDependency<Label> createChargeFactor(Label repID, Label chargeID, int chg);
-
+    /// To sum up distributions for the number of parent proteins of a peptide with convolution trees
     AdditiveDependency<Label> createPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nId);
+    /// To sum up distributions for the number of parent proteins of a peptide with convolution trees
     AdditiveDependency<Label> createPeptideProbabilisticAdderFactor(const std::vector<Label> & parentProteinIDs, Label nId);
-
+    /// To sum up distributions for the number of parent proteins of a peptide brute-force
     PseudoAdditiveDependency<Label> createBFPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nId, const std::vector<TableDependency <Label> > & deps);
 
-    MessagePasserFactory<Label>(double alpha, double beta, double gamma, double p, double pepPrior);
+    /**
+     * @brief Constructor
+     * @param alpha Peptide emission probability
+     * @param beta Spurious peptide emission probability
+     * @param gamma Protein prior
+     * @param p Marginalization norm
+     * @param pepPrior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
+     */
+    MessagePasserFactory<Label>(double alpha_, double beta_, double gamma_, double p_, double pep_prior_);
 
 
 
@@ -89,247 +119,212 @@ public:
     //                                 const std::vector<std::vector<Label>> & parentsOfPeps,
     //                                 const std::vector<double> & pepEvidences,
     //                                 InferenceGraphBuilder<Label> & igb);
+  };
 
-    //const std::vector<std::set<Label>> getPosteriorVariables(const std::vector<uiint> & protIDs);
-    //const std::vector<std::vector<Label>> getPosteriorVariablesVectors(const std::vector<uiint> & protIDs);
-    //const std::vector<std::set<Label>> getPosteriorVariables(uiint rangeProtIDs);
-};
+  //IMPLEMENTATIONS:
 
-//IMPLEMENTATIONS:
-
-template <typename L>
-MessagePasserFactory<L>::MessagePasserFactory(double alpha_, double beta_, double gamma_, double p_, double pep_prior_) {
-  assert(0. <= alpha_ && alpha_ <= 1.);
-  assert(0. <= beta_ && beta_ <= 1.);
-  assert(0. <= gamma_ && gamma_ <= 1.);
-  //Note: smaller than 1 might be possible but is untested right now.
-  assert(p_ >= 1.);
-  assert(0. < pep_prior_ && pep_prior_ < 1.);
-  alpha = alpha_;
-  beta = beta_;
-  gamma = gamma_;
-  p = p_;
-  pepPrior = pep_prior_;
-}
-
-template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, int nrMissingPeps) {
-  double prior = gamma;
-  if (nrMissingPeps > 0)
-  {
-    double powFactor = std::pow(1.0 - alpha, -nrMissingPeps);
-    prior = -prior/(prior * powFactor - prior - powFactor);
+  template <typename L>
+  MessagePasserFactory<L>::MessagePasserFactory(double alpha_, double beta_, double gamma_, double p_, double pep_prior_) {
+    assert(0. <= alpha_ && alpha_ <= 1.);
+    assert(0. <= beta_ && beta_ <= 1.);
+    assert(0. <= gamma_ && gamma_ <= 1.);
+    //Note: smaller than 1 might be possible but is untested right now.
+    assert(p_ >= 1.);
+    assert(0. < pep_prior_ && pep_prior_ < 1.);
+    alpha = alpha_;
+    beta = beta_;
+    gamma = gamma_;
+    p = p_;
+    pepPrior = pep_prior_;
   }
-  double table[] = {1.0 - prior, prior};
-  LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
-  return TableDependency<L>(lpmf,p);
-}
 
-template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, double prior, int nrMissingPeps) {
-  if (nrMissingPeps > 0)
-  {
-    double powFactor = std::pow(1.0 - alpha, -nrMissingPeps);
-    prior = -prior/(prior * powFactor - prior - powFactor);
-  }
-  double table[] = {1.0 - prior, prior};
-  LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
-  return TableDependency<L>(lpmf,p);
-}
-
-template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createPeptideEvidenceFactor(L id, double prob) {
-  double table[] = {(1 - prob) * (1 - pepPrior), prob * pepPrior};
-  LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
-  return TableDependency<L>(lpmf,p);
-}
-
-
-template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createSumEvidenceFactor(size_t nrParents, L nId, L pepId) {
-  Tensor<double> table({static_cast<unsigned long>(nrParents + 1) , 2});
-  for (unsigned long i=0; i <= nrParents; ++i) {
-    double notConditional = notConditionalGivenSum(i);
-    unsigned long indexArr[2] = {i,0ul};
-    table[indexArr] = notConditional;
-    unsigned long indexArr2[2] = {i,1ul};
-    table[indexArr2] = 1.0 - notConditional;
-  }
-  //std::cout << table << std::endl;
-  LabeledPMF<L> lpmf({nId, pepId}, PMF({0L,0L}, table));
-  //std::cout << lpmf << std::endl;
-  return TableDependency<L>(lpmf,p);
-}
-
-template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createRegularizingSumEvidenceFactor(size_t nrParents, L nId, L pepId) {
-  Tensor<double> table({static_cast<unsigned long>(nrParents + 1) , 2});
-  unsigned long z[2]{0ul,0ul};
-  unsigned long z1[2]{0ul,1ul};
-  table[z] = 1. - beta;
-  table[z1] = beta;
-  for (unsigned long i=1; i <= nrParents; ++i) {
-    double notConditional = notConditionalGivenSum(i);
-    unsigned long indexArr[2] = {i,0ul};
-    table[indexArr] = notConditional / i;
-    unsigned long indexArr2[2] = {i,1ul};
-    table[indexArr2] = (1.0 - notConditional) / i;
-  }
-  //std::cout << table << std::endl;
-  LabeledPMF<L> lpmf({nId, pepId}, PMF({0L,0L}, table));
-  //std::cout << lpmf << std::endl;
-  return TableDependency<L>(lpmf,p);
-}
-
-template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createSumFactor(size_t nrParents, L nId) {
-  Tensor<double> table({nrParents+1});
-  for (unsigned long i=0; i <= nrParents; ++i) {
-    table[i] = 1.0/(nrParents+1);
-  }
-  //std::cout << table << std::endl;
-  LabeledPMF<L> lpmf({nId}, PMF({0L}, table));
-  //std::cout << lpmf << std::endl;
-  return TableDependency<L>(lpmf,p);
-}
-
-template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createReplicateFactor(L seqId, L repId) {
-  using arr = unsigned long[2];
-  Tensor<double> table({2,2});
-  table[arr{0,0}] = 0.999;
-  table[arr{0,1}] = 0.001;
-  table[arr{1,0}] = 0.1;
-  table[arr{1,1}] = 0.9;
-  //std::cout << table << std::endl;
-  LabeledPMF<L> lpmf({seqId,repId}, PMF({0L,0L}, table));
-  //std::cout << lpmf << std::endl;
-  return TableDependency<L>(lpmf,p);
-}
-
-template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createChargeFactor(L repId, L chgId, int chg) {
-  double chgPrior = chgPriors[chg];
-  using arr = unsigned long[2];
-  Tensor<double> table({2,2});
-  table[arr{0,0}] = 0.999;
-  table[arr{0,1}] = 0.001;
-  table[arr{1,0}] = 0.1;
-  table[arr{1,1}] = chgPrior;
-  //std::cout << table << std::endl;
-  LabeledPMF<L> lpmf({repId,chgId}, PMF({0L,0L}, table));
-  //std::cout << lpmf << std::endl;
-  return TableDependency<L>(lpmf,p);
-}
-
-template <typename L>
-AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::set<L> & parentProteinIDs, L nId) {
-  std::vector<std::vector<L>> parents;
-  std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
-  return AdditiveDependency<L>(parents, {nId}, p);
-}
-
-template <typename L>
-AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::vector<L> & parentProteinIDs, L nId) {
-  std::vector<std::vector<L>> parents;
-  std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
-  return AdditiveDependency<L>(parents, {nId}, p);
-}
-
-template <typename L>
-PseudoAdditiveDependency<L> MessagePasserFactory<L>::createBFPeptideProbabilisticAdderFactor(const std::set<L> & parentProteinIDs, L nId, const std::vector<TableDependency<L>> & deps) {
-  std::vector<std::vector<L>> parents;
-  std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
-  return PseudoAdditiveDependency<L>(parents, {nId}, deps, p);
-}
-
-/// Works on a vector of protein indices (potentially not consecutive)
-// TODO we could recollect the protIDs from the union of parents.
-template <typename L>
-void MessagePasserFactory<L>::fillVectorsOfMessagePassers(const std::vector<L> & protIDs,
-                                                          const std::vector<std::vector<L>> & parentsOfPeps,
-                                                          const std::vector<double> & pepEvidences,
-                                                          InferenceGraphBuilder<L> & igb)
-{
-  //TODO asserts could be loosened
-  assert(parentsOfPeps.size() == pepEvidences.size());
-  for (std::vector<uiint> parents : parentsOfPeps)
-    for (L parent : parents)
-      assert(std::find(protIDs.begin(), protIDs.end(), parent) != protIDs.end());
-
-  for (uiint pid : protIDs)
-    igb.insert_dependency(createProteinFactor(pid));
-
-  for (uiint j = 0; j < parentsOfPeps.size(); j++)
-  {
-    igb.insert_dependency(createPeptideEvidenceFactor(j,pepEvidences[j]));
-    igb.insert_dependency(createSumEvidenceFactor(parentsOfPeps[j],j,j));
-    igb.insert_dependency(createPeptideProbabilisticAdderFactor(parentsOfPeps[j],j));
-  }
-}
-
-/* unused but working
-template <typename L>
-void MessagePasserFactory<L>::fillVectorsOfMessagePassersBruteForce(const std::vector<L> & protIDs,
-                                                                    const std::vector<std::vector<L>> & parentsOfPeps,
-                                                                    const std::vector<double> & pepEvidences,
-                                                                    InferenceGraphBuilder<L> & igb)
-{
-  assert(parentsOfPeps.size() == pepEvidences.size());
-  for (std::vector<uiint> parents : parentsOfPeps)
-    for (uiint parent : parents)
-      assert(std::find(protIDs.begin(), protIDs.end(), parent) != protIDs.end());
-
-  for (uiint pid : protIDs)
-    igb.insert_dependency(createProteinFactor(pid));
-
-  for (uiint j = 0; j < parentsOfPeps.size(); j++)
-  {
-    std::vector<TableDependency<std::string> > deps;
-    auto pepdep = createSumEvidenceFactor(parentsOfPeps[j],j,j);
-    auto sumdep = createSumFactor(parentsOfPeps[j],j);
-    igb.insert_dependency(createPeptideEvidenceFactor(j,pepEvidences[j]));
-    igb.insert_dependency(pepdep);
-    deps.push_back(sumdep);
-    for (auto parent : parentsOfPeps[j]) {
-      deps.push_back(createProteinFactor(parent));
+  template <typename L>
+  TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, int nrMissingPeps) {
+    double prior = gamma;
+    if (nrMissingPeps > 0)
+    {
+      double powFactor = std::pow(1.0 - alpha, -nrMissingPeps);
+      prior = -prior/(prior * powFactor - prior - powFactor);
     }
-
-    //igb.insert_dependency(createEmptyPeptideProbabilisticAdderFactor(parentsOfPeps[j],j));
-    igb.insert_dependency(createBFPeptideProbabilisticAdderFactor(parentsOfPeps[j],j,deps));
+    double table[] = {1.0 - prior, prior};
+    LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
+    return TableDependency<L>(lpmf,p);
   }
-}
- */
 
-/* Not needed anymore. We use indices directly now.
-template <typename L>
-const std::vector<std::set<L>> MessagePasserFactory<L>::getPosteriorVariables(const std::vector<L> & protIDs){
-    std::vector<std::set<L>> varSets{};
-    for (L protID : protIDs){
-        std::set<L> varSet{"Pr" + std::to_string(protID)};
-        varSets.push_back(varSet);
+  template <typename L>
+  TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, double prior, int nrMissingPeps) {
+    if (nrMissingPeps > 0)
+    {
+      double powFactor = std::pow(1.0 - alpha, -nrMissingPeps);
+      prior = -prior/(prior * powFactor - prior - powFactor);
     }
-    return varSets;
-}
-
-template <typename L>
-const std::vector<std::vector<std::string>> MessagePasserFactory<L>::getPosteriorVariablesVectors(const std::vector<uiint> & protIDs){
-  std::vector<std::vector<std::string>> varVecs{};
-  for (uiint protID : protIDs){
-    std::vector<std::string> varVec{"Pr" + std::to_string(protID)};
-    varVecs.push_back(varVec);
+    double table[] = {1.0 - prior, prior};
+    LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
+    return TableDependency<L>(lpmf,p);
   }
-  return varVecs;
-}
 
-template <typename L>
-const std::vector<std::set<std::string>> MessagePasserFactory<L>::getPosteriorVariables(uiint rangeProtIDs){
-    std::vector<std::set<std::string>> varSets{};
-    for (uiint i=0; i < rangeProtIDs; ++i){
-        std::set<std::string> varSet{"Pr" + std::to_string(i)};
-        varSets.push_back(varSet);
+  template <typename L>
+  TableDependency<L> MessagePasserFactory<L>::createPeptideEvidenceFactor(L id, double prob) {
+    double table[] = {(1 - prob) * (1 - pepPrior), prob * pepPrior};
+    LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
+    return TableDependency<L>(lpmf,p);
+  }
+
+
+  template <typename L>
+  TableDependency<L> MessagePasserFactory<L>::createSumEvidenceFactor(size_t nrParents, L nId, L pepId) {
+    Tensor<double> table({static_cast<unsigned long>(nrParents + 1) , 2});
+    for (unsigned long i=0; i <= nrParents; ++i) {
+      double notConditional = notConditionalGivenSum(i);
+      unsigned long indexArr[2] = {i,0ul};
+      table[indexArr] = notConditional;
+      unsigned long indexArr2[2] = {i,1ul};
+      table[indexArr2] = 1.0 - notConditional;
     }
-    return varSets;
-}*/
+    //std::cout << table << std::endl;
+    LabeledPMF<L> lpmf({nId, pepId}, PMF({0L,0L}, table));
+    //std::cout << lpmf << std::endl;
+    return TableDependency<L>(lpmf,p);
+  }
 
-#endif //OPENMS_ANALYSIS_ID_MESSAGEPASSERFACTORY_HPP
+  template <typename L>
+  TableDependency<L> MessagePasserFactory<L>::createRegularizingSumEvidenceFactor(size_t nrParents, L nId, L pepId) {
+    Tensor<double> table({static_cast<unsigned long>(nrParents + 1) , 2});
+    unsigned long z[2]{0ul,0ul};
+    unsigned long z1[2]{0ul,1ul};
+    table[z] = 1. - beta;
+    table[z1] = beta;
+    for (unsigned long i=1; i <= nrParents; ++i) {
+      double notConditional = notConditionalGivenSum(i);
+      unsigned long indexArr[2] = {i,0ul};
+      table[indexArr] = notConditional / i;
+      unsigned long indexArr2[2] = {i,1ul};
+      table[indexArr2] = (1.0 - notConditional) / i;
+    }
+    //std::cout << table << std::endl;
+    LabeledPMF<L> lpmf({nId, pepId}, PMF({0L,0L}, table));
+    //std::cout << lpmf << std::endl;
+    return TableDependency<L>(lpmf,p);
+  }
+
+  template <typename L>
+  TableDependency<L> MessagePasserFactory<L>::createSumFactor(size_t nrParents, L nId) {
+    Tensor<double> table({nrParents+1});
+    for (unsigned long i=0; i <= nrParents; ++i) {
+      table[i] = 1.0/(nrParents+1.);
+    }
+    //std::cout << table << std::endl;
+    LabeledPMF<L> lpmf({nId}, PMF({0L}, table));
+    //std::cout << lpmf << std::endl;
+    return TableDependency<L>(lpmf,p);
+  }
+
+  template <typename L>
+  TableDependency<L> MessagePasserFactory<L>::createReplicateFactor(L seqId, L repId) {
+    using arr = unsigned long[2];
+    Tensor<double> table({2,2});
+    table[arr{0,0}] = 0.999;
+    table[arr{0,1}] = 0.001;
+    table[arr{1,0}] = 0.1;
+    table[arr{1,1}] = 0.9;
+    //std::cout << table << std::endl;
+    LabeledPMF<L> lpmf({seqId,repId}, PMF({0L,0L}, table));
+    //std::cout << lpmf << std::endl;
+    return TableDependency<L>(lpmf,p);
+  }
+
+  template <typename L>
+  TableDependency<L> MessagePasserFactory<L>::createChargeFactor(L repId, L chgId, int chg) {
+    double chgPrior = chgLLhoods[chg];
+    using arr = unsigned long[2];
+    Tensor<double> table({2,2});
+    table[arr{0,0}] = 0.999;
+    table[arr{0,1}] = 0.001;
+    table[arr{1,0}] = 0.1;
+    table[arr{1,1}] = chgPrior;
+    //std::cout << table << std::endl;
+    LabeledPMF<L> lpmf({repId,chgId}, PMF({0L,0L}, table));
+    //std::cout << lpmf << std::endl;
+    return TableDependency<L>(lpmf,p);
+  }
+
+  template <typename L>
+  AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::set<L> & parentProteinIDs, L nId) {
+    std::vector<std::vector<L>> parents;
+    std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
+    return AdditiveDependency<L>(parents, {nId}, p);
+  }
+
+  template <typename L>
+  AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::vector<L> & parentProteinIDs, L nId) {
+    std::vector<std::vector<L>> parents;
+    std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
+    return AdditiveDependency<L>(parents, {nId}, p);
+  }
+
+  template <typename L>
+  PseudoAdditiveDependency<L> MessagePasserFactory<L>::createBFPeptideProbabilisticAdderFactor(const std::set<L> & parentProteinIDs, L nId, const std::vector<TableDependency<L>> & deps) {
+    std::vector<std::vector<L>> parents;
+    std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
+    return PseudoAdditiveDependency<L>(parents, {nId}, deps, p);
+  }
+
+  /// Works on a vector of protein indices (potentially not consecutive)
+  // TODO we could recollect the protIDs from the union of parents.
+  template <typename L>
+  void MessagePasserFactory<L>::fillVectorsOfMessagePassers(const std::vector<L> & protIDs,
+                                                            const std::vector<std::vector<L>> & parentsOfPeps,
+                                                            const std::vector<double> & pepEvidences,
+                                                            InferenceGraphBuilder<L> & igb)
+  {
+    //TODO asserts could be loosened
+    assert(parentsOfPeps.size() == pepEvidences.size());
+    for (const std::vector<uiint>& parents : parentsOfPeps)
+      for (L parent : parents)
+        assert(std::find(protIDs.begin(), protIDs.end(), parent) != protIDs.end());
+
+    for (uiint pid : protIDs)
+      igb.insert_dependency(createProteinFactor(pid));
+
+    for (uiint j = 0; j < parentsOfPeps.size(); j++)
+    {
+      igb.insert_dependency(createPeptideEvidenceFactor(j,pepEvidences[j]));
+      igb.insert_dependency(createSumEvidenceFactor(parentsOfPeps[j],j,j));
+      igb.insert_dependency(createPeptideProbabilisticAdderFactor(parentsOfPeps[j],j));
+    }
+  }
+
+  /* unused but working
+  template <typename L>
+  void MessagePasserFactory<L>::fillVectorsOfMessagePassersBruteForce(const std::vector<L> & protIDs,
+                                                                      const std::vector<std::vector<L>> & parentsOfPeps,
+                                                                      const std::vector<double> & pepEvidences,
+                                                                      InferenceGraphBuilder<L> & igb)
+  {
+    assert(parentsOfPeps.size() == pepEvidences.size());
+    for (std::vector<uiint> parents : parentsOfPeps)
+      for (uiint parent : parents)
+        assert(std::find(protIDs.begin(), protIDs.end(), parent) != protIDs.end());
+
+    for (uiint pid : protIDs)
+      igb.insert_dependency(createProteinFactor(pid));
+
+    for (uiint j = 0; j < parentsOfPeps.size(); j++)
+    {
+      std::vector<TableDependency<std::string> > deps;
+      auto pepdep = createSumEvidenceFactor(parentsOfPeps[j],j,j);
+      auto sumdep = createSumFactor(parentsOfPeps[j],j);
+      igb.insert_dependency(createPeptideEvidenceFactor(j,pepEvidences[j]));
+      igb.insert_dependency(pepdep);
+      deps.push_back(sumdep);
+      for (auto parent : parentsOfPeps[j]) {
+        deps.push_back(createProteinFactor(parent));
+      }
+
+      //igb.insert_dependency(createEmptyPeptideProbabilisticAdderFactor(parentsOfPeps[j],j));
+      igb.insert_dependency(createBFPeptideProbabilisticAdderFactor(parentsOfPeps[j],j,deps));
+    }
+  }
+   */
+
+} // namespace OpenMS

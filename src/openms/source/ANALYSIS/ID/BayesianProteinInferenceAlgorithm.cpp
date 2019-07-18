@@ -50,52 +50,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  /* TODO This is implemented in the IDBoostGraph class now. Remove if it works.
-  /// Only works if ProteinGroup nodes are present, which is the case when used in this class
-  //TODO private
-  class BayesianProteinInferenceAlgorithm::AnnotateIndistGroupsFunctor :
-      public std::function<void(IDBoostGraph::Graph&)>
-  {
-  private:
-    ProteinIdentification& prots;
-  public:
-    explicit AnnotateIndistGroupsFunctor(ProteinIdentification& proteinIDToAnnotateGroups):
-        prots(proteinIDToAnnotateGroups)
-    {}
-
-    void operator() (IDBoostGraph::Graph& fg) {
-      // this skips CCs with just peps or prots. We only add edges between different types.
-      // and if there were no edges, it would not be a CC.
-      if (boost::num_vertices(fg) >= 2)
-      {
-        IDBoostGraph::Graph::vertex_iterator ui, ui_end;
-        boost::tie(ui,ui_end) = boost::vertices(fg);
-
-        for (; ui != ui_end; ++ui)
-        {
-          if (fg[*ui].which() == 1) //prot group
-          {
-            ProteinIdentification::ProteinGroup pg{};
-            pg.probability = (double) boost::get<IDBoostGraph::ProteinGroup>(fg[*ui]); //init
-            IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
-            boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
-
-            ProteinHit *proteinPtr = nullptr;
-            for (; nbIt != nbIt_end; ++nbIt)
-            {
-              if (fg[*nbIt].which() == 0)
-              {
-                proteinPtr = boost::get<ProteinHit*>(fg[*nbIt]);
-                pg.accessions.push_back(proteinPtr->getAccession());
-              }
-            }
-            prots.getIndistinguishableProteins().push_back(pg);
-          }
-        }
-      }
-    }
-  };
-   */
 
   /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
   class BayesianProteinInferenceAlgorithm::GraphInferenceFunctor /*:
@@ -314,7 +268,8 @@ namespace OpenMS
     }
   };
 
-  /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
+  /// A functor that specifies what to do on a connected component with additional layers (i.e. implicitly extended
+  /// graph. @TODO static type checking
   class BayesianProteinInferenceAlgorithm::ExtendedGraphInferenceFunctor /* :
       public std::function<unsigned long(IDBoostGraph::Graph&)> */
   {
@@ -696,35 +651,6 @@ namespace OpenMS
     };
   }
 
-
-/* TODO under construction: mode based on theoretical digest
-  void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities
-  (
-      ConsensusMap cmap,
-      const ExperimentalDesign& expDesign,
-      const String& db,
-      const ProteaseDigestion pd,
-      ProteinIdentification& proteinIds
-  )
-  {
-    proteinIds.getHits().clear();
-
-    FASTAContainer<TFI_File> fastaDB(db);
-    //assume that fasta is given for now. (you could use protein ids in the input idXMLs instead and merge)
-    //run peptideindexer (with integrated missing peptide counting or after?)
-    PeptideIndexing pi{};
-    Param piparams = pi.getDefaults();
-    piparams.setValue("annotate_nr_theoretical_peptides", true);
-    piparams.setValue("enzyme:name", pd.getEnzymeName());
-    //TODO expose enzyme specificity. Default Full
-    //piparams.setValue("enzyme:specificity", full)
-    pi.setParameters(piparams);
-    std::vector<ProteinIdentification> singletonProteinId{proteinIds};
-
-    //Next line: PepIdxr needs to accept ConsensusMap and ExpDesign and annotate one ProtID per sample (frac group/rep combo)
-    //pi.run<FASTAContainer<TFI_File>>(fastaDB, singletonProteinId, pepIdConcatReplicates);
-*/
-
   void BayesianProteinInferenceAlgorithm::setScoreTypeAndSettings_(ProteinIdentification& proteinIDs)
   {
     proteinIDs.setScoreType("Posterior Probability");
@@ -735,7 +661,7 @@ namespace OpenMS
 
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(
       ConsensusMap& cmap,
-      boost::optional<const ExperimentalDesign&> exp_des)
+      boost::optional<const ExperimentalDesign> exp_des)
   {
     //TODO BIG filtering needs to account for run info if used
     cmap.applyFunctionOnPeptideIDs(checkConvertAndFilterPepHits_);
@@ -908,9 +834,8 @@ namespace OpenMS
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(
       std::vector<ProteinIdentification>& proteinIDs,
       std::vector<PeptideIdentification>& peptideIDs,
-      boost::optional<const ExperimentalDesign&> exp_des)
+      boost::optional<const ExperimentalDesign> exp_des)
   {
-
     //TODO The following is a sketch to think about how to include missing peptides
     // Requirement: Datastructures for peptides first
     // Options:
@@ -950,6 +875,11 @@ namespace OpenMS
     }*/
 
     //TODO actually loop over all proteinID runs.
+    if (proteinIDs.size() > 1)
+    {
+      OPENMS_LOG_WARN << "Warning: more than one protein identification run provided for inference. Only "
+                         "the first will be processed for now." << std::endl;
+    }
 
     bool use_run_info = param_.getValue("model_parameters:extended_model").toBool();
 

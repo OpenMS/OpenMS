@@ -65,29 +65,7 @@ namespace OpenMS
   void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
                                            ProteinIdentification &prot_id) const
   {
-    //Size min_peptides_per_protein = getIntOption_("min_peptides_per_protein");
-    bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
-    bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
-    bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
-    bool skip_count_annotation(param_.getValue("skip_count_annotation").toBool());
-
-    String aggMethodString(param_.getValue("score_aggregation_method").toString());
-    AggregationMethod aggregation_method = AggregationMethod::MAXIMUM;
-
-    if (aggMethodString == "maximum")
-    {
-      aggregation_method = AggregationMethod::MAXIMUM;
-    }
-    else if (aggMethodString == "product")
-    {
-      aggregation_method = AggregationMethod::PROD;
-    }
-    else if (aggMethodString == "sum")
-    {
-      aggregation_method = AggregationMethod::SUM;
-    }
-
-    std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep{};
+    std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
 
     // iterate over runs
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
@@ -96,13 +74,8 @@ namespace OpenMS
         acc_to_protein_hitP_and_count,
         best_pep,
         prot_id,
-        pep_ids,
-        aggregation_method,
-        aggMethodString,
-        use_shared_peptides,
-        treat_charge_variants_separately,
-        treat_modification_variants_separately,
-        skip_count_annotation);
+        pep_ids
+    );
 
     //TODO Filtering? I think this should be done separate afterwards with IDFilter
     //for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides
@@ -111,28 +84,6 @@ namespace OpenMS
   void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
                                            std::vector<ProteinIdentification> &prot_ids) const
   {
-    //Size min_peptides_per_protein = getIntOption_("min_peptides_per_protein");
-    bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
-    bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
-    bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
-    bool skip_count_annotation(param_.getValue("skip_count_annotation").toBool());
-
-    String aggMethodString(param_.getValue("score_aggregation_method").toString());
-    AggregationMethod aggregation_method = AggregationMethod::MAXIMUM;
-
-    if (aggMethodString == "maximum")
-    {
-      aggregation_method = AggregationMethod::MAXIMUM;
-    }
-    else if (aggMethodString == "product")
-    {
-      aggregation_method = AggregationMethod::PROD;
-    }
-    else if (aggMethodString == "sum")
-    {
-      aggregation_method = AggregationMethod::SUM;
-    }
-
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep{};
 
     // iterate over runs
@@ -144,38 +95,48 @@ namespace OpenMS
           acc_to_protein_hitP_and_count,
           best_pep,
           prot_run,
-          pep_ids,
-          aggregation_method,
-          aggMethodString,
-          use_shared_peptides,
-          treat_charge_variants_separately,
-          treat_modification_variants_separately,
-          skip_count_annotation);
+          pep_ids);
     }
 
     //TODO Filtering? I think this should be done separate afterwards with IDFilter
     //for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides
   }
 
-
   void BasicProteinInferenceAlgorithm::processRun_(
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       ProteinIdentification& prot_run,
-      std::vector<PeptideIdentification>& pep_ids,
-      AggregationMethod aggregation_method,
-      String& aggMethodString,
-      bool use_shared_peptides,
-      bool treat_charge_variants_separately,
-      bool treat_modification_variants_separately,
-      bool skip_count_annotation) const
+      std::vector<PeptideIdentification>& pep_ids) const
   {
+    //Size min_peptides_per_protein = getIntOption_("min_peptides_per_protein");
+    bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
+    bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
+    bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
+    bool skip_count_annotation(param_.getValue("skip_count_annotation").toBool());
+
+    String agg_method_string(param_.getValue("score_aggregation_method").toString());
+    AggregationMethod aggregation_method = AggregationMethod::MAXIMUM;
+
+    if (agg_method_string == "maximum")
+    {
+      aggregation_method = AggregationMethod::MAXIMUM;
+    }
+    else if (agg_method_string == "product")
+    {
+      aggregation_method = AggregationMethod::PROD;
+    }
+    else if (agg_method_string == "sum")
+    {
+      aggregation_method = AggregationMethod::SUM;
+    }
+
+    //TODO think about only clearing values or using a big map for all runs together
     acc_to_protein_hitP_and_count.clear();
     best_pep.clear();
 
     prot_run.setInferenceEngine("TOPPProteinInference");
     ProteinIdentification::SearchParameters sp = prot_run.getSearchParameters();
-    sp.setMetaValue("TOPPProteinInference:aggregation_method", aggMethodString);
+    sp.setMetaValue("TOPPProteinInference:aggregation_method", agg_method_string);
     sp.setMetaValue("TOPPProteinInference:use_shared_peptides", use_shared_peptides);
     sp.setMetaValue("TOPPProteinInference:treat_charge_variants_separately", treat_charge_variants_separately);
     sp.setMetaValue("TOPPProteinInference:treat_modification_variants_separately", treat_modification_variants_separately);
@@ -207,6 +168,7 @@ namespace OpenMS
     String overall_score_type = "";
     bool higher_better = true;
 
+    //TODO check all pep IDs?
     if (!pep_ids.empty())
     {
       overall_score_type = pep_ids[0].getScoreType();
@@ -249,6 +211,7 @@ namespace OpenMS
       //{
       PeptideHit &hit = pep.getHits()[0];
       //skip if shared and option not enabled
+      //TODO warn if not present but requested?
       if (!use_shared_peptides &&
           (!hit.metaValueExists("protein_references") || (hit.getMetaValue("protein_references") == "non-unique")))
         continue;

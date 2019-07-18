@@ -835,7 +835,7 @@ namespace OpenMS
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
-    std::vector<std::pair<double,bool>> scores_labels;
+    ScoreToTgtDecLabelPairs scores_labels;
     getScores_(scores_labels, ids, use_all_hits);
 
     if (scores_labels.empty())
@@ -860,7 +860,7 @@ namespace OpenMS
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
-    std::vector<std::pair<double,bool>> scores_labels;
+    ScoreToTgtDecLabelPairs scores_labels;
     getScores_(scores_labels, ids, use_all_hits, identifier);
 
     if (scores_labels.empty())
@@ -885,7 +885,7 @@ namespace OpenMS
     bool higher_score_better(ids[0].getPeptideIdentifications().begin()->isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
-    std::vector<std::pair<double,bool>> scores_labels;
+    ScoreToTgtDecLabelPairs scores_labels;
     getPeptideScoresFromMap_(scores_labels, ids, use_all_hits);
 
     if (scores_labels.empty())
@@ -910,7 +910,7 @@ namespace OpenMS
     bool higher_score_better(ids[0].getPeptideIdentifications().begin()->isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
-    std::vector<std::pair<double,bool>> scores_labels;
+    ScoreToTgtDecLabelPairs scores_labels;
     getPeptideScoresFromMap_(scores_labels, ids, use_all_hits, identifier);
 
     if (scores_labels.empty())
@@ -1004,7 +1004,7 @@ namespace OpenMS
     const string& score_type = q_value ? "q-value" : "FDR";
     bool higher_score_better(id.isHigherScoreBetter());
 
-    std::vector<std::pair<double,bool>> scores_labels;
+    ScoreToTgtDecLabelPairs scores_labels;
     scores_labels.reserve(id.getHits().size());
     std::map<double,double> scores_to_FDR;
 
@@ -1070,7 +1070,7 @@ namespace OpenMS
     //TODO not yet implemented
     //bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
 
-    std::vector<std::pair<double,bool>> scores_labels;
+    ScoreToTgtDecLabelPairs scores_labels;
     std::map<double,double> scores_to_FDR;
 
     std::vector<int> charges = {0};
@@ -1117,7 +1117,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Proteins in ProteinIdentification do not have a posterior (error) probability assigned. Please run an inference first.", ids[0].getScoreType());
     }
 
-    std::vector<std::pair<double,bool>> scores_labels;
+    ScoreToTgtDecLabelPairs scores_labels;
     std::map<double,double> scores_to_FDR;
     //TODO actually we do not need the labels for estimated FDR and it currently fails if we do not have TD annotations
     //TODO maybe separate getScores and getScoresAndLabels
@@ -1143,7 +1143,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Proteins in ProteinIdentification do not have a posterior probability assigned. Please run an inference first.", ids[0].getScoreType());
     }
 
-    std::vector<std::pair<double,bool>> scores_labels;
+    ScoreToTgtDecLabelPairs scores_labels;
     getScores_(scores_labels, ids[0]);
     std::sort(scores_labels.rbegin(), scores_labels.rend());
     return diffEstimatedEmpirical_(scores_labels, pepCutoff) * diffWeight + rocN_(scores_labels, fpCutoff) * (1 - diffWeight);
@@ -1156,7 +1156,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Proteins in ProteinIdentification do not have a posterior probability assigned. Please run an inference first.", ids.getScoreType());
     }
 
-    std::vector<std::pair<double,bool>> scores_labels;
+    ScoreToTgtDecLabelPairs scores_labels;
     getScores_(scores_labels, ids);
     std::sort(scores_labels.rbegin(), scores_labels.rend());
     double diff = diffEstimatedEmpirical_(scores_labels, pepCutoff);
@@ -1168,7 +1168,7 @@ namespace OpenMS
   }
 
   //TODO the following two methods assume sortedness. Add precondition and/or doxygen comment
-  double FalseDiscoveryRate::diffEstimatedEmpirical_(const std::vector<std::pair<double, bool>>& scores_labels, double pepCutoff)
+  double FalseDiscoveryRate::diffEstimatedEmpirical_(const ScoreToTgtDecLabelPairs& scores_labels, double pepCutoff)
   {
     bool conservative = param_.getValue("conservative").toBool();
     if (scores_labels.empty())
@@ -1223,7 +1223,7 @@ namespace OpenMS
     return diffArea;
   }
 
-  double FalseDiscoveryRate::rocN_(const std::vector<std::pair<double, bool>>& scores_labels, Size fpCutoff) const
+  double FalseDiscoveryRate::rocN_(const ScoreToTgtDecLabelPairs& scores_labels, Size fpCutoff) const
   {
     if (scores_labels.empty())
     {
@@ -1288,7 +1288,7 @@ namespace OpenMS
   // Actually this does not need the bool entries in the scores_labels, but leads to less code
   // Assumes P(E)Probabilities as scores
   void FalseDiscoveryRate::calculateEstimatedQVal_(std::map<double, double> &scores_to_FDR,
-                                                   std::vector<std::pair<double, bool>> &scores_labels,
+                                                   ScoreToTgtDecLabelPairs &scores_labels,
                                                    bool higher_score_better) const
   {
     if (scores_labels.empty())
@@ -1329,7 +1329,7 @@ namespace OpenMS
     std::transform(scores_labels.begin(), scores_labels.end(), estimatedFDR.begin(), std::inserter(scores_to_FDR, scores_to_FDR.begin()), [&](std::pair<double,bool> sl, double fdr){return make_pair(sl.first, fdr);});
   }
 
-  void FalseDiscoveryRate::calculateFDRBasic_(std::map<double,double>& scores_to_FDR, std::vector<std::pair<double,bool>>& scores_labels, bool qvalue, bool higher_score_better)
+  void FalseDiscoveryRate::calculateFDRBasic_(std::map<double,double>& scores_to_FDR, ScoreToTgtDecLabelPairs& scores_labels, bool qvalue, bool higher_score_better)
   {
     //TODO put in separate function to avoid ifs in iteration
     bool conservative = param_.getValue("conservative").toBool();
@@ -1406,8 +1406,12 @@ namespace OpenMS
     }
   }
 
+  /** @ingroup getScoresFunctions
+    * @brief For protein groups. Groups are target if at least one protein is target
+    * Therefore it needs an unordered set of decoy accessions to evaluate that.
+  */
   void FalseDiscoveryRate::getScores_(
-      std::vector<std::pair<double,bool>>& scores_labels,
+      ScoreToTgtDecLabelPairs& scores_labels,
       const std::vector<ProteinIdentification::ProteinGroup>& grps,
       const std::unordered_set<string>& decoy_accs) const
   {
@@ -1428,8 +1432,12 @@ namespace OpenMS
     }
   }
 
-  // score_type and higher_better unused since ProteinGroups do not carry that information.
-  // You have to assume that groups will always have the same scores as the ProteinHits
+
+  /** @ingroup setScoresFunctions
+  * @brief For protein groups. Unaffected by keep_decoy_proteins. Always keeps all for now @todo.
+  * score_type and higher_better unused since ProteinGroups do not carry that information.
+  * You have to assume that groups will always have the same scores as the ProteinHits
+  */
   void FalseDiscoveryRate::setScores_(const map<double,double>& scores_to_FDR, vector<ProteinIdentification::ProteinGroup>& grps, const string& /*score_type*/, bool /*higher_better*/) const
   {
     for (auto& grp : grps)

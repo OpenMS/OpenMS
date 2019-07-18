@@ -159,8 +159,14 @@ protected:
     /// Minimum number of runs a peptide must occur in
     Size min_run_occur_;
 
+    /// Use feature RT instead of RT from best peptide ID in the feature.
+    bool use_feature_rt_;
+
     /// Minimum score to reach for a peptide to be considered
     double min_score_;
+
+    /// Actually use the above defined score_cutoff? Needed since it is hard to define a non-cutting score for a user.
+    bool score_cutoff_;
 
     /// Score better?
     bool (*better_) (double,double) = [](double, double) {return true;};
@@ -204,6 +210,8 @@ protected:
       The following global flags (mutually exclusive) influence the processing:\n
       Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
       Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
+      Depending on @p score_cutoff and min_score, only peptide IDs with minimum score X are used. Higher score better is
+      determined from the first PeptideID encountered. Make sure they are the same. This param is useless with use_feature_rt yet.
 
       @param features Input features for RT data
       @param rt_data Lists of RT values for diff. peptide sequences (output)
@@ -213,7 +221,7 @@ protected:
     template <typename MapType>
     bool getRetentionTimes_(MapType& features, SeqToList& rt_data)
     {
-      if (param_.getValue("score_cutoff") == "false")
+      if (!score_cutoff_)
       {
         better_ = [](double, double)
         {return true;};
@@ -229,11 +237,10 @@ protected:
         { return a <= b; };
       }
 
-      bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
       for (typename MapType::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
-        if (use_feature_rt)
+        if (use_feature_rt_)
         {
           // find the peptide ID closest in RT to the feature centroid:
           String sequence;
@@ -268,7 +275,7 @@ protected:
         }
       }
 
-      if (!use_feature_rt &&
+      if (!use_feature_rt_ &&
           param_.getValue("use_unassigned_peptides").toBool())
       {
         getRetentionTimes_(features.getUnassignedPeptideIdentifications(),

@@ -61,6 +61,11 @@ namespace OpenMS
       One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
       @note All parameters are stored in GaussFitResult. In the case of the Gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
 
+      @todo test performance and make fitGumbelGauss available via parameters.
+      @todo allow charge state based fitting
+      @todo allow semi-supervised by using decoy annotations
+      @todo allow non-parametric via kernel density estimation
+
       @htmlinclude OpenMS_Math::PosteriorErrorProbabilityModel.parameters
 
       @ingroup Math
@@ -120,12 +125,23 @@ public:
         bool & data_might_not_be_well_fit);
 
       /**
-          @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables. computeProbability can be used afterwards.
+          @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
+          computeProbability can be used afterwards.
+          Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities.
           @param search_engine_scores a vector which holds the data points
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
       */
       bool fit(std::vector<double> & search_engine_scores);
+
+      /**
+          @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
+          computeProbability can be used afterwards.
+          Uses Gumbel+Gauss for everything. Fits Gumbel by maximizing log likelihood.
+          @param search_engine_scores a vector which holds the data points
+          @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
+          @note the vector is sorted from smallest to biggest value!
+      */
       bool fitGumbelGauss(std::vector<double>& search_engine_scores);
 
       /**
@@ -145,6 +161,7 @@ public:
       void fillLogDensitiesGumbel(const std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
       ///computes the Likelihood with a log-likelihood function.
       double computeLogLikelihood(const std::vector<double> & incorrect_density, const std::vector<double> & correct_density);
+      
       /**computes the posteriors for the datapoints to belong to the incorrect distribution
        * @param incorrect_posterior resulting posteriors
        * @return the loglikelihood of the model
@@ -154,8 +171,21 @@ public:
           const std::vector<double>& correct_log_density,
           std::vector<double>& incorrect_posterior);
 
+      /**
+       * @param x_scores Scores observed "on the x-axis"
+       * @param incorrect_posteriors Posteriors/responsibilities of belonging to the incorrect component
+       * @return New estimate for the mean of the correct (pair.first) and incorrect (pair.second) component
+       * @note only for Gaussian estimates
+       */
       std::pair<double, double> pos_neg_mean_weighted_posteriors(const std::vector<double> &x_scores,
                                                                  const std::vector<double> &incorrect_posteriors);
+
+      /**
+       * @param x_scores Scores observed "on the x-axis"
+       * @param incorrect_posteriors Posteriors/responsibilities of belonging to the incorrect component
+       * @return New estimate for the std. deviation of the correct (pair.first) and incorrect (pair.second) component
+       * @note only for Gaussian estimates
+       */
       std::pair<double, double> pos_neg_sigma_weighted_posteriors(const std::vector<double> &x_scores,
                                                                  const std::vector<double> &incorrect_posteriors,
                                                                  const std::pair<double, double>& means);

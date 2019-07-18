@@ -59,6 +59,7 @@ using namespace std;
 namespace OpenMS
 {
 
+  /// Hasher for sets of uints using boost::hash_range
   struct MyUIntSetHasher
   {
   public:
@@ -68,6 +69,7 @@ namespace OpenMS
         }
   };
 
+  /// Helper struct to create Sequence->Replicate->Chargestate hierarchy for a set of PSMs from a protein
   struct IDBoostGraph::SequenceToReplicateChargeVariantHierarchy
   {
     //TODO only add the intermediate nodes if there are more than one "splits"
@@ -139,7 +141,7 @@ namespace OpenMS
                              std::vector<PeptideIdentification>& idedSpectra,
                              Size use_top_psms,
                              bool use_run_info,
-                             const boost::optional<const ExperimentalDesign&>& ed):
+                             const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
     if (use_run_info)
@@ -157,7 +159,7 @@ namespace OpenMS
                              Size use_top_psms,
                              bool use_run_info,
                              bool use_unassigned_ids,
-                             const boost::optional<const ExperimentalDesign&>& ed):
+                             const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
     if (use_run_info)
@@ -1583,18 +1585,6 @@ namespace OpenMS
   ProteinIdentification& IDBoostGraph::getProteinIDs()
   {
     return protIDs_;
-  }
-
-  // TODO templatize
-  void IDBoostGraph::printFilteredGraph(std::ostream& out, const FilteredGraph& fg)
-  {
-    LabelVisitor lv;
-    // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
-    //TODO Is passing "this" to lambda bad? How can I pass private members then?
-    auto labels = boost::make_transform_value_property_map([&](const IDPointer &p) { return boost::apply_visitor(lv, p); },
-                                                           boost::get(boost::vertex_bundle, fg));
-    //boost::print_graph(fg);
-    boost::write_graphviz(out, fg, boost::make_label_writer(labels));
   }
 
   void IDBoostGraph::printGraph(std::ostream& out, const Graph& fg)

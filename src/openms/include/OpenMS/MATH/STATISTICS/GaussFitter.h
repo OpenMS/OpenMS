@@ -37,8 +37,9 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <math.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
+#include <cmath>
 #include <vector>
 
 namespace OpenMS
@@ -100,7 +101,7 @@ public:
       private:
         /// cached value of log sigma
         double logsigma;
-        double halflogtwopi = 0.5*log(2.0*M_PI);
+        double halflogtwopi = 0.5*log(2.0*Constants::PI);
       };
 
       /// Constructor

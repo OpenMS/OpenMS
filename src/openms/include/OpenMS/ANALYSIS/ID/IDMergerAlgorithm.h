@@ -45,8 +45,19 @@
 namespace OpenMS
 {
 
-  //TODO add params for checking consistency
-  //TODO add another subclass that does score-aware merging?
+  //TODO add params for checking consistency (i.e. how strict to check)
+  //TODO add another subclass that does score-aware merging? (i.e. only keep best per peptide[sequence])
+
+  /**
+   * @brief Creates a new Protein ID run into which other runs can be inserted.
+   * Creates union of protein hits but concatenates PSMs. Checks
+   * search engine consistency of all inserted runs. It differs from the IDMerger tool,
+   * in that it is an algorithm class and it allows inserting multiple peptide hits per
+   * peptide sequence (not only the first occurrence).
+   *
+   * @todo allow filtering for peptide sequence to supersede the IDMerger tool.
+   *       Make it keep the best PSMs though.
+   */
   class OPENMS_DLLAPI IDMergerAlgorithm:
     public DefaultParamHandler,
     public ProgressLogger
@@ -60,6 +71,7 @@ namespace OpenMS
                     std::vector<PeptideIdentification>&& peps);
     void insertRuns(const std::vector<ProteinIdentification>& prots,
                     const std::vector<PeptideIdentification>& peps);
+
     //TODO add methods to just insert prots or just peps. Especially makes sense if you do re-indexing anyway,
     // then you do not need the proteins. But then we need origin information. Either externally in form of a
     // String or StringList (like the one from ProteinID.getPrimaryMSRunPath). Or by having the file annotated
@@ -72,7 +84,11 @@ namespace OpenMS
                    std::vector<PeptideIdentification>& peps);
 
   private:
+
+    /// Returns the new identifier. The initial identifier plus a timestamp.
     String getNewIdentifier_() const;
+
+    /// Copies over search parameters
     static void copySearchParams_(const ProteinIdentification& from, ProteinIdentification& to);
 
     /// Checks consistency of search engines and settings across runs before merging.
@@ -95,16 +111,14 @@ namespace OpenMS
         const ProteinIdentification& ref,
         const String& experiment_type) const;
 
-
-    /*void movePepIDsAndRefProteinsToResult_(
-        std::vector<PeptideIdentification>&& pepIDs,
-        std::vector<ProteinIdentification>&& oldProtRuns
-    );*/
-
+    /// moves and inserts protein IDs if not yet present
+    /// then clears the input
     void insertProteinIDs_(
         std::vector<ProteinIdentification>&& oldProtRuns
     );
 
+    /// updates the reference to the new protein ID run
+    /// then moves the peptide IDs based on the
     void updateAndMovePepIDs_(
         std::vector<PeptideIdentification>&& pepIDs,
         const std::map<String, Size>& runIDToRunIdx,
@@ -112,26 +126,35 @@ namespace OpenMS
         bool annotate_origin
     );
 
+
     void movePepIDsAndRefProteinsToResultFaster_(
         std::vector<PeptideIdentification>&& pepIDs,
         std::vector<ProteinIdentification>&& oldProtRuns
     );
 
-    ProteinIdentification protResult;
-    std::vector<PeptideIdentification> pepResult;
+    /// the resulting new Protein IDs
+    ProteinIdentification prot_result_;
 
-    static size_t accessionHash(const ProteinHit& p){
+    /// the resulting new Peptide IDs
+    std::vector<PeptideIdentification> pep_result_;
+
+    static size_t accessionHash_(const ProteinHit& p){
       return std::hash<String>()(p.getAccession());
     }
-    static bool accessionEqual(const ProteinHit& p1, const ProteinHit& p2){
+    static bool accessionEqual_(const ProteinHit& p1, const ProteinHit& p2){
       return p1.getAccession() == p2.getAccession();
     }
     using hash_type = std::size_t (*)(const ProteinHit&);
     using equal_type = bool (*)(const ProteinHit&, const ProteinHit&);
-    std::unordered_set<ProteinHit, hash_type, equal_type> proteinsCollectedHits;
+    std::unordered_set<ProteinHit, hash_type, equal_type> collected_protein_hits_;
 
-    bool filled = false;
-    std::map<String, Size> fileOriginToIdx;
-    String id;
+    /// is the resulting protein ID already filled?
+    bool filled_ = false;
+
+    /// to keep track of the mzML origins of spectra
+    std::map<String, Size> file_origin_to_idx_;
+
+    /// the new identifier string
+    String id_;
   };
 } // namespace OpenMS

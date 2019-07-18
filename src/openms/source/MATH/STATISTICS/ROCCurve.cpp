@@ -196,10 +196,6 @@ namespace OpenMS
       return result;
     }
 
-    /**
-    \param fraction
-    \return cutoff for classifying <i>fraction</i> of the positives right <br>
-    */
     double ROCCurve::cutoffPos(double fraction)
     {
       sort();
@@ -218,10 +214,6 @@ namespace OpenMS
       return -1;
     }
 
-    /**
-    \param fraction
-    \return cutoff for classifying <i>fraction</i> of the negatives right <br>
-    */
     double ROCCurve::cutoffNeg(double fraction)
     {
       sort();

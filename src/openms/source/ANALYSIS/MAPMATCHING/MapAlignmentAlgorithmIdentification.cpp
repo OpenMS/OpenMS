@@ -76,6 +76,7 @@ namespace OpenMS
     // reference is not counted as a regular run:
     if (!reference_.empty()) runs++;
 
+    use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
     if (min_run_occur_ > runs)
     {
       String msg = "Warning: Value of parameter 'min_run_occur' (here: " +
@@ -85,6 +86,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << msg << endl;
       min_run_occur_ = runs;
     }
+    score_cutoff_ = param_.getValue("score_cutoff").toBool();
     min_score_ = param_.getValue("min_score");
   }
 

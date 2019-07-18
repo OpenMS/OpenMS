@@ -46,21 +46,20 @@ namespace OpenMS
   // proteins of this peptide could be skipped (if we assume same database as we do currently, it has to be there already)
   IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier) :
       IDMergerAlgorithm::DefaultParamHandler("IDMergerAlgorithm"),
-      protResult(),
-      pepResult(),
-      proteinsCollectedHits(0,accessionHash,accessionEqual),
-      id(runIdentifier)
+      prot_result_(),
+      pep_result_(),
+      collected_protein_hits_(0, accessionHash_, accessionEqual_),
+      id_(runIdentifier)
   {
     defaults_.setValue("annotate_origin",
                        "true",
                        "If true, adds a map_index MetaValue to the PeptideIDs to annotate the IDRun they came from.");
     defaults_.setValidStrings("annotate_origin", ListUtils::create<String>("true,false"));
     defaultsToParam_();
-    protResult.setIdentifier(getNewIdentifier_());
+    prot_result_.setIdentifier(getNewIdentifier_());
   }
 
   //TODO overload to accept a set of specific runIDs only
-  //TODO rename to insertRuns
   void IDMergerAlgorithm::insertRuns(
       std::vector<ProteinIdentification>&& prots,
       std::vector<PeptideIdentification>&& peps
@@ -69,20 +68,20 @@ namespace OpenMS
     if (prots.empty() || peps.empty()) return; //error?
 
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
-    if (!filled)
+    if (!filled_)
     {
       if (prots.size() > 1)
       {
         //Without any exp. design we assume label-free for checking mods
         checkOldRunConsistency_(prots, "label-free");
       }
-      copySearchParams_(prots[0], protResult);
-      filled = true;
+      copySearchParams_(prots[0], prot_result_);
+      filled_ = true;
     }
     else
     {
       //Without any exp. design we assume label-free for checking mods
-      checkOldRunConsistency_(prots, this->protResult, "label-free");
+      checkOldRunConsistency_(prots, this->prot_result_, "label-free");
     }
     // move proteins and move peps
     movePepIDsAndRefProteinsToResultFaster_(std::move(peps), std::move(prots));
@@ -99,20 +98,20 @@ namespace OpenMS
     if (prots.empty() || peps.empty()) return; //error?
 
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
-    if (!filled)
+    if (!filled_)
     {
       if (prots.size() > 1)
       {
         //Without any exp. design we assume label-free for checking mods
         checkOldRunConsistency_(prots, "label-free");
       }
-      copySearchParams_(prots[0], protResult);
-      filled = true;
+      copySearchParams_(prots[0], prot_result_);
+      filled_ = true;
     }
     else
     {
       //Without any exp. design we assume label-free for checking mods
-      checkOldRunConsistency_(prots, this->protResult, "label-free");
+      checkOldRunConsistency_(prots, this->prot_result_, "label-free");
     }
     movePepIDsAndRefProteinsToResultFaster_(std::move(pep), std::move(pr));
   }
@@ -123,28 +122,28 @@ namespace OpenMS
   {
     // convert the map from file origin to idx into
     // a vector
-    StringList newOrigins(fileOriginToIdx.size());
-    for (auto& entry : fileOriginToIdx)
+    StringList newOrigins(file_origin_to_idx_.size());
+    for (auto& entry : file_origin_to_idx_)
     {
       newOrigins[entry.second] = entry.first;
     }
     // currently setPrimaryMSRunPath does not support move (const ref)
-    protResult.setPrimaryMSRunPath(newOrigins);
-    std::swap(prots, protResult);
-    std::swap(peps, pepResult);
+    prot_result_.setPrimaryMSRunPath(newOrigins);
+    std::swap(prots, prot_result_);
+    std::swap(peps, pep_result_);
     //reset so the new this class is reuseable
-    protResult = ProteinIdentification{};
-    protResult.setIdentifier(getNewIdentifier_());
+    prot_result_ = ProteinIdentification{};
+    prot_result_.setIdentifier(getNewIdentifier_());
     //clear, if user gave non-empty vector
-    pepResult.clear();
+    pep_result_.clear();
     //reset internals
-    fileOriginToIdx.clear();
+    file_origin_to_idx_.clear();
 
-    for (auto& p : proteinsCollectedHits)
+    for (auto& p : collected_protein_hits_)
       prots.getHits().push_back(std::move(const_cast<ProteinHit&>(p)));
     // above invalidates set but we clear right after
 
-    proteinsCollectedHits.clear();
+    collected_protein_hits_.clear();
   }
 
   String IDMergerAlgorithm::getNewIdentifier_() const
@@ -155,7 +154,7 @@ namespace OpenMS
     time(&rawtime);
     const auto timeinfo = localtime(&rawtime);
     strftime(buffer.data(), sizeof(buffer), "%d-%m-%Y %H-%M-%S", timeinfo);
-    return id + String(buffer.data());
+    return id_ + String(buffer.data());
   }
 
 
@@ -167,32 +166,13 @@ namespace OpenMS
     for (auto& protRun : oldProtRuns) //TODO check run ID when option is added
     {
       auto& hits = protRun.getHits();
-      proteinsCollectedHits.insert(
+      collected_protein_hits_.insert(
           std::move_iterator<iter_t>(hits.begin()),
           std::move_iterator<iter_t>(hits.end())
       );
       hits.clear();
     }
   }
-
-  /* When creating the set on the strings only, use this
-  void IDMergerAlgorithm::insertProteinIDs_(
-      vector<ProteinIdentification>&& oldProtRuns
-  )
-  {
-    for (auto& protRun : oldProtRuns) //TODO check run ID when option is added
-    {
-      auto& hits = protRun.getHits();
-      for(auto& hit : hits)
-      {
-        if (proteinsCollected.emplace(hit.getAccession()).second)
-        {
-          protResult.getHits().push_back(std::move(hit));
-        }
-      }
-      hits.clear();
-    }
-  }*/
 
   void IDMergerAlgorithm::updateAndMovePepIDs_(
       vector<PeptideIdentification>&& pepIDs,
@@ -254,11 +234,11 @@ namespace OpenMS
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
               " the index exceeds the number of files in the run.");
         }
-        pid.setMetaValue("map_index", fileOriginToIdx[originFiles[runIdxIt->second][oldFileIdx]]);
+        pid.setMetaValue("map_index", file_origin_to_idx_[originFiles[runIdxIt->second][oldFileIdx]]);
       }
-      pid.setIdentifier(protResult.getIdentifier());
+      pid.setIdentifier(prot_result_.getIdentifier());
       //move peptides into right vector
-      pepResult.emplace_back(std::move(pid));
+      pep_result_.emplace_back(std::move(pid));
     }
   }
 
@@ -291,7 +271,7 @@ namespace OpenMS
       originFiles.push_back(toFill);
       for (String& f : toFill)
       {
-        fileOriginToIdx.emplace(std::move(f), fileOriginToIdx.size());
+        file_origin_to_idx_.emplace(std::move(f), file_origin_to_idx_.size());
       }
       toFill.clear();
     }
@@ -336,7 +316,7 @@ namespace OpenMS
       originFiles.push_back(toFill);
       for (String& f : toFill)
       {
-        fileOriginToIdx.emplace(std::move(f), fileOriginToIdx.size());
+        file_origin_to_idx_.emplace(std::move(f), file_origin_to_idx_.size());
       }
       toFill.clear();
     }
@@ -386,9 +366,9 @@ namespace OpenMS
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
               "no old map_index present");
         }
-        pid.setMetaValue("map_index", fileOriginToIdx[originFiles[oldProtRunIdx].at(oldFileIdx)]);
+        pid.setMetaValue("map_index", file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
       }
-      pid.setIdentifier(protResult.getIdentifier());
+      pid.setIdentifier(prot_result_.getIdentifier());
       for (auto &phit : pid.getHits())
       {
         for (auto &acc : phit.extractProteinAccessionsSet())
@@ -398,12 +378,12 @@ namespace OpenMS
           {
             //TODO this linear findHit is not so nice: Maybe we can just insert all proteins into a
             // unordered_set member
-            protResult.getHits().emplace_back(std::move(*oldProtRuns[oldProtRunIdx].findHit(acc)));
+            prot_result_.getHits().emplace_back(std::move(*oldProtRuns[oldProtRunIdx].findHit(acc)));
           } // else it was there already
         }
       }
       //move peptides into right vector
-      pepResult.emplace_back(std::move(pid));
+      pep_result_.emplace_back(std::move(pid));
     }
     pepIDs.clear();
     oldProtRuns.clear();

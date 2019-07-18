@@ -100,9 +100,7 @@ public:
     }
     SignedSize nextProgress() const override
     {
-      #ifdef _OPENMP
-       #pragma omp atomic
-      #endif
+      #pragma omp atomic
       ++current_;
       return current_;
     }

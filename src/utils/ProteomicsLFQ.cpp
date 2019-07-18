@@ -101,36 +101,9 @@ using namespace std;
   // TODO:
      - check experimental design at startup
      - run R script directly from tool?
+     - add test for the scripts
 
-  TODO: add test for
-
-  ./bin/ProteomicsLFQ \
--in ../share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML ../share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML ../share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML ../share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML ../share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML ../share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML \
--ids ../share/OpenMS/examples/FRACTIONS/BSA1_F1.idXML ../share/OpenMS/examples/FRACTIONS/BSA1_F2.idXML ../share/OpenMS/examples/FRACTIONS/BSA2_F1.idXML ../share/OpenMS/examples/FRACTIONS/BSA2_F2.idXML ../share/OpenMS/examples/FRACTIONS/BSA3_F1.idXML ../share/OpenMS/examples/FRACTIONS/BSA3_F2.idXML \
--design ../share/OpenMS/examples/FRACTIONS/BSA_design.tsv \
--Alignment:max_rt_shift 0 \
--fasta ../share/OpenMS/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta \
--out BSA.mzTab -threads 4 -debug 667 
-
-
-Potential script to perform the search
-# perform search, score calibration, and PSM-level q-value/PEP estimation
-for f in ${DATA_PATH}*.mzML; do
-  echo $f
-  fn=${f%.mzML} # filename and path without mzML extension
-  # search with default fixed and variable mods
-  MSGFPlusAdapter -in ${f} -out ${fn}.idXML -database ${DATA_PATH}/iPRG2015_decoy.fasta -executable ${MSGF_PATH} -max_precursor_charge 5 -threads 10 
-  # annotate target/decoy and protein links
-  PeptideIndexer -fasta ${DATA_PATH}/iPRG2015_decoy.fasta  -in ${fn}.idXML -out ${fn}.idXML -enzyme:specificity none
-  # run percolator so we get well calibrated PEPs and q-values
-  PSMFeatureExtractor -in ${fn}.idXML -out ${fn}.idXML 
-  PercolatorAdapter -in ${fn}.idXML -out ${fn}.idXML -percolator_executable percolator -post-processing-tdc -subset-max-train 100000 
-  FalseDiscoveryRate -in ${fn}.idXML -out ${fn}.idXML -algorithm:add_decoy_peptides -algorithm:add_decoy_proteins 
-  # pre-filter to 5% PSM-level FDR to reduce data
-  IDFilter -in ${fn}.idXML -out ${fn}.idXML -score:pep 0.05 
-  # switch to PEP score
-  IDScoreSwitcher -in ${fn}.idXML -out ${fn}.idXML -old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score "Posterior Error Probability" 
-done
+Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
  **/
 
 class UTILProteomicsLFQ :
@@ -149,7 +122,7 @@ protected:
     registerInputFileList_("in", "<file list>", StringList(), "Input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFileList_("ids", "<file list>", StringList(), 
-      "Identifications filtered at PSM level (e.g., q-vaue < 0.01)."
+      "Identifications filtered at PSM level (e.g., q-value < 0.01)."
       "And annotated with PEP as main score.\n"
       "We suggest using:\n"
       "1. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
@@ -286,7 +259,7 @@ protected:
 
     if (ms_raw.empty())
     {
-     OPENMS_LOG_WARN << "The given file does not contain any spectra.";
+      OPENMS_LOG_WARN << "The given file does not contain any spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -382,7 +355,7 @@ protected:
                   qc_residual_png_path,
                   "Rscript"))
     {
-     OPENMS_LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;
+      OPENMS_LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;
     }
   }
 
@@ -407,7 +380,7 @@ protected:
 
     double median_fwhm = Math::median(fwhm_1000.begin(), fwhm_1000.end());
 
-   OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << std::endl;
+    OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << std::endl;
 
     return median_fwhm;
   }
@@ -440,7 +413,7 @@ protected:
     const bool progress(true);
     algorithm.run(e, progress);
     seeds = algorithm.getFeatureMap(); 
-   OPENMS_LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
+    OPENMS_LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
   }
 
 
@@ -506,7 +479,7 @@ protected:
               [](TrafoStat a, TrafoStat b) 
               { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
       // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
-     OPENMS_LOG_INFO << "Max alignment difference (seconds): " << max_alignment_diff << endl;
+      OPENMS_LOG_INFO << "Max alignment difference (seconds): " << max_alignment_diff << endl;
       max_alignment_diff = std::max(max_alignment_diff, 120.0);
       return max_alignment_diff;
     }
@@ -574,7 +547,7 @@ protected:
 */
     linker.setParameters(fl_param);      
     linker.group(feature_maps, consensus_fraction);
-   OPENMS_LOG_INFO << "Size of consensus fraction: " << consensus_fraction.size() << endl;
+    OPENMS_LOG_INFO << "Size of consensus fraction: " << consensus_fraction.size() << endl;
     assert(!consensus_fraction.empty());
   }
 
@@ -706,7 +679,7 @@ protected:
         ++n_transferred_ids;
       }
     }
-   OPENMS_LOG_INFO << "Transfered IDs: " << n_transferred_ids << endl;
+    OPENMS_LOG_INFO << "Transfered IDs: " << n_transferred_ids << endl;
     return transfer_ids;
   }
  
@@ -774,7 +747,7 @@ protected:
 
       if (protein_ids.size() != 1)
       {
-       OPENMS_LOG_FATAL_ERROR << "Exactly one protein identification run must be annotated in " << id_file_abs_path << endl;
+        OPENMS_LOG_FATAL_ERROR << "Exactly one protein identification run must be annotated in " << id_file_abs_path << endl;
         return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
 
@@ -783,7 +756,7 @@ protected:
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
       if (id_msfile_ref.empty())
       {
-       OPENMS_LOG_DEBUG << "MS run path not set in ID file." << endl;
+        OPENMS_LOG_DEBUG << "MS run path not set in ID file." << endl;
       }
       else
       {
@@ -809,7 +782,7 @@ protected:
         }
         else
         {
-         OPENMS_LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl;
+          OPENMS_LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl;
         }
       }
 
@@ -826,8 +799,8 @@ protected:
       // reannotate spectrum references if missing
       if (missing_spec_ref)
       {
-       OPENMS_LOG_WARN << "The identification files don't contain a meta value with the spectrum native id." << endl;
-       OPENMS_LOG_WARN << "OpenMS will try to reannotate them by matching retention times between id and spectra." << endl;
+        OPENMS_LOG_WARN << "The identification files don't contain a meta value with the spectrum native id." << endl;
+        OPENMS_LOG_WARN << "OpenMS will try to reannotate them by matching retention times between id and spectra." << endl;
 
         SpectrumMetaDataLookup::addMissingSpectrumReferences(
           peptide_ids, 
@@ -1091,7 +1064,7 @@ protected:
         const String& mz_file_abs_path = File::absolutePath(mz_file);
         if (mzfile2idfile.find(mz_file_abs_path) == mzfile2idfile.end())
         {
-         OPENMS_LOG_FATAL_ERROR << "MzML file in experimental design file '"
+          OPENMS_LOG_FATAL_ERROR << "MzML file in experimental design file '"
             << mz_file_abs_path << "'not passed as 'in' parameter.\n" 
             << "Note: relative paths in the experimental design file "
             << "are resolved relative to the design file path. \n"
@@ -1143,7 +1116,7 @@ protected:
         
       if (getStringOption_("transfer_ids") != "false")
       {  
-       OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
+        OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
         // needs to occur in >= 50% of all runs for transfer
         const Size min_occurrance = (ms_files.second.size() + 1) / 2;
         multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurrance);

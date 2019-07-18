@@ -118,16 +118,14 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
+    //TODO support seperate runs
     registerInputFileList_("in", "<file>", StringList(), "Input: identification results");
     setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
     registerInputFile_("exp_design", "<file>", "", "(Currently unused) Input: experimental design", false);
     setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML,consensusXML"));
-    // Not yet supported
-    //registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately,"
-    //                               " don't merge them. Merging results in loss of descriptive information"
-    //                               " of the single protein identification runs.", false);
+
     registerStringOption_("protein_fdr",
                           "<option>",
                           "false",
@@ -361,46 +359,15 @@ protected:
       fdr.applyBasic(mergedprots[0], true);
     }
 
-   OPENMS_LOG_INFO << "Writing inference run as first ProteinIDRun with " <<
+    OPENMS_LOG_INFO << "Writing inference run as first ProteinIDRun with " <<
              mergedprots[0].getHits().size() << " proteins in " <<
              mergedprots[0].getIndistinguishableProteins().size() <<
              " indist. groups." << std::endl;
 
-    idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
-    return ExitCodes::EXECUTION_OK;
-
-    /* That was test code for the old merger
-    ProteinIdentification pi1{};
-    ProteinIdentification pi2{};
-    ProteinIdentification pi3{};
-    ProteinIdentification pi4{};
-    pi1.setPrimaryMSRunPath({"a.mzml", "b.mzml", "c.mzml"});
-    pi2.setPrimaryMSRunPath({"d.mzml", "c.mzml", "e.mzml"});
-    pi3.setPrimaryMSRunPath({"g.mzml", "f.mzml", "e.mzml"});
-    pi4.setPrimaryMSRunPath({"h.mzml", "e.mzml"});
-    vector<ProteinIdentification> pis{pi1,pi2,pi3,pi4};
-    vector<PeptideIdentification> peps1{};
-    IDMergerAlgorithm merger1;
-    vector<vector<PeptideIdentification>> newpeps1{};
-    merger1.mergeIDRunsAndSplitPeptides(pis, peps1, {{0,0},{1,0},{2,1},{3,1}}, newpeps1);
-
-    return ExitCodes::EXECUTION_OK;
+     idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
+     return ExitCodes::EXECUTION_OK;
 
 
-    //TODO remove until ExitCode and allow a (merged) ConsensusXML as input
-    vector<PeptideIdentification> peps;
-    vector<ProteinIdentification> prots;
-    ConsensusMap cmap;
-    ConsensusXMLFile cXML;
-    cXML.load(getStringOption_("in"), cmap);
-    IDMergerAlgorithm merger;
-    ExperimentalDesignFile expFile;
-    ExperimentalDesign expDesign = expFile.load(getStringOption_("exp_design"), false);
-    merger.mergeProteinsAcrossFractionsAndReplicates(cmap, expDesign);
-    cXML.store(getStringOption_("out"), cmap);
-
-    return ExitCodes::EXECUTION_OK;
-     */
 
     // Some thoughts about how to leverage info from different runs.
     //Fractions: Always merge (not much to leverage, maybe agreement at borders)
@@ -413,20 +380,6 @@ protected:
     //   based on deviation in profiles
     // - merge and don't assume same proteins: -> We need an extended graph, that has multiple versions
     //   of the proteins for every sample
-
-    vector<PeptideIdentification> peps;
-    vector<ProteinIdentification> prots;
-    IdXMLFile idXML;
-    idXML.load(getStringOption_("in"), prots, peps);
-    //TODO filter unmatched proteins and peptides before!
-    //TODO check t+d annotations
-
-    BayesianProteinInferenceAlgorithm bpi;
-    bpi.inferPosteriorProbabilities(prots, peps);
-
-    idXML.store(getStringOption_("out"),prots, peps);
-
-    return ExitCodes::EXECUTION_OK;
   }
 
 };

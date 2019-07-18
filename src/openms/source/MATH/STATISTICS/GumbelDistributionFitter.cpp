@@ -145,15 +145,5 @@ namespace OpenMS
       return {x_init(0), x_init(1)};
     }
 
-    /*GumbelDistributionFitter::GumbelDistributionFitResult GumbelDistributionFitter::fitWeighted(const std::vector<double> & x, const std::vector<double> & w)
-    {
-      double min = *std::min_element(x.begin(),x.end());
-      double max = *std::max_element(x.begin(),x.end());
-      unsigned bins = 10000;
-      double binsize = (max - min)/bins;
-      std::vector<DPosition<2>> xyvalues;
-      for ()
-    }*/
-
   }   //namespace Math
 } // namespace OpenMS

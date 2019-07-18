@@ -227,9 +227,11 @@ private:
       size_t sample, 
       const PeptideHit& hit);
 
-    /*
+    /**
      *   @brief Determine fraction and charge state of a peptide with the highest
      *   number of abundances.
+     *   @param peptide_abundances Const input map fraction -> charge -> SampleAbundances
+     *   @param best Will additionally return the best fraction and charge state
      *   @return true if at least one abundance was found, false otherwise
      */ 
     bool getBest_(
@@ -247,12 +249,13 @@ private:
           const Int & fraction = fa.first;
           const Int & charge = ca.first;
 
-          double current_abundance(0);
-          for (auto & sa : ca.second) // loop over abundances
-          {
-            const double & sample_abundance = sa.second;
-            current_abundance += sample_abundance;
-          }
+          double current_abundance = std::accumulate(
+              std::begin(ca.second),
+              std::end(ca.second),
+              0.0,
+              [] (int value, const SampleAbundances::value_type& p)
+              { return value + p.second; }
+          ); // loop over abundances
 
           if (current_abundance <= 0) { continue; }
 
@@ -271,8 +274,7 @@ private:
           }
         }
       }
-      if (best_abundance <= 0) { return false; } // only identified, not quantified
-      return true;
+      return best_abundance > 0.;
     }
 
     /**

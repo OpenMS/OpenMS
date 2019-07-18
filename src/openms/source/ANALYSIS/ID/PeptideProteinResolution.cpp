@@ -76,8 +76,6 @@ namespace OpenMS
   {
   }
 
-
-  // Initialization of global variables (= graph)
   void PeptideProteinResolution::resolve(ProteinIdentification& protein,
                                             vector<PeptideIdentification>& peptides,
                                             bool resolve_ties,
@@ -97,7 +95,7 @@ namespace OpenMS
           "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
     }
 
-   OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << std::endl;
+    OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << std::endl;
 
     // I dont think we need to assume sortedness here
     //if (!skip_sort) sort(groups.begin(), groups.end());
@@ -241,10 +239,10 @@ namespace OpenMS
            OPENMS_LOG_INFO << "Resolution: Peptide " << pep_it->getHits()[0].getSequence().toString() << " had groups:" << std::endl;
 
            OPENMS_LOG_INFO << "tgt: ";
-            for (const auto& g : bestNonDecoyGrpTie)OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            for (const auto& g : bestNonDecoyGrpTie) OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
            OPENMS_LOG_INFO << std::endl;
            OPENMS_LOG_INFO << "dec: ";
-            for (const auto& g : bestDecoyGrpTie)OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+            for (const auto& g : bestDecoyGrpTie) OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
            OPENMS_LOG_INFO << std::endl;
            OPENMS_LOG_INFO << "Kept: " << *toResolve->begin() << std::endl;
           }
@@ -419,7 +417,7 @@ namespace OpenMS
         }
       }
       
-      // resolve shared peptides based on Fido probabilities
+      // resolve shared peptides based on posterior probabilities
       // -> modifies PeptideIDs in peptides
       PeptideProteinResolution::resolveConnectedComponent(curr_component,
                                                            protein,
@@ -515,7 +513,7 @@ namespace OpenMS
     return conn_comp;
   }
 
-  /*
+  /* TODO this does not produce correct results yet. Check again.
    * Resolves connected components based on Fido probabilities and adds them
    * as additional protein_groups to the output idXML.
    * Thereby greedily assigns shared peptides in this component uniquely to
@@ -532,15 +530,6 @@ namespace OpenMS
       vector<PeptideIdentification>& peptides,
       bool targets_first)
   {
-    *//* TODO for resolving ties:
-     while grpit not at end
-     while grpit.probability does not change:
-     save index with max nr of peptides in mapping and compare
-     grpit++
-     resolve(with max index grp)
-     *//*
-    // TODO think about ignoring decoy proteins (at least when resolving ties!)
-
     // Nothing to resolve in a singleton group (will not be added to output though)
     if (conn_comp.prot_grp_indices.size() == 1) return;
 

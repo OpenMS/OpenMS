@@ -90,10 +90,12 @@ public:
       /// some points in the ROC Curve
       std::vector<std::pair<double, double> > curve(UInt resolution = 10);
 
-      ///
+      /// returns the score at which you would need to set a cutoff to have fraction positives
+      /// returns -1 if there are not enough positives
       double cutoffPos(double fraction = 0.95);
 
-      ///
+      /// returns the score at which you would need to set a cutoff to have fraction positives
+      /// returns -1 if there are not enough positives
       double cutoffNeg(double fraction = 0.95);
 
       // @}

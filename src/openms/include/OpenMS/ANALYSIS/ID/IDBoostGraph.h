@@ -32,8 +32,7 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
-#define OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
+#pragma once
 
 // define to get timings for connected components
 //#define INFERENCE_BENCH
@@ -80,17 +79,23 @@ namespace OpenMS
 
   public:
 
+    // boost has a weird extra semicolon in their strong typedef
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wextra-semi"
 
+    /// placeholder for peptides with the same parent proteins or protein groups
     BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster)
 
+    /// indistinguishable protein groups
     BOOST_STRONG_TYPEDEF(double, ProteinGroup)
 
+    /// an (currently unmodified) peptide sequence
     BOOST_STRONG_TYPEDEF(String, Peptide)
 
+    /// in which run a PSM was observed
     BOOST_STRONG_TYPEDEF(Size, RunIndex)
 
+    /// in which charge state a PSM was observed
     BOOST_STRONG_TYPEDEF(int, Charge)
 
     #pragma clang diagnostic pop
@@ -104,13 +109,12 @@ namespace OpenMS
     // does not allow computation of "non-strongly" connected components for directed graphs, which is what we would
     // need. We can think about after/while copying to CCs, to insert it into a directed graph!
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
-    //typedef boost::subgraph<boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer>> SubGraph;
     typedef std::vector<Graph> Graphs;
-    //typedef std::vector<SubGraph> SubGraphs;
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> GraphConst;
+
     typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
     typedef boost::graph_traits<Graph>::edge_descriptor edge_t;
-    typedef boost::filtered_graph<Graph, boost::function<bool(edge_t)>, boost::function<bool(vertex_t)> > FilteredGraph;
+
     typedef std::set<IDBoostGraph::vertex_t> ProteinNodeSet;
     typedef std::set<IDBoostGraph::vertex_t> PeptideNodeSet;
 
@@ -319,14 +323,14 @@ namespace OpenMS
                 std::vector<PeptideIdentification>& idedSpectra,
                 Size use_top_psms,
                 bool use_run_info,
-                const boost::optional<const ExperimentalDesign&>& ed = boost::optional<const ExperimentalDesign&>());
+                const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
 
     IDBoostGraph(ProteinIdentification& proteins,
                 ConsensusMap& cmap,
                 Size use_top_psms,
                 bool use_run_info,
                 bool use_unassigned_ids,
-                const boost::optional<const ExperimentalDesign&>& ed = boost::optional<const ExperimentalDesign&>());
+                const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
 
 
     /// Do sth on connected components (your functor object has to inherit from std::function or be a lambda)
@@ -371,7 +375,6 @@ namespace OpenMS
     //TODO docu
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
 
-    static void printFilteredGraph(std::ostream& out, const FilteredGraph& fg);
     static void printGraph(std::ostream& out, const Graph& fg);
 
   private:
@@ -537,4 +540,3 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
