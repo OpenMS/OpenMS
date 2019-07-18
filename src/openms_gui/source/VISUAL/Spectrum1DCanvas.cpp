@@ -87,7 +87,8 @@ namespace OpenMS
     aligned_peaks_mz_delta_(),
     alignment_score_(0),
     is_swapped_(true),
-    ion_ladder_visible_(true)
+    ion_ladder_visible_(true),
+    draw_interesting_MZs_(false)
   {
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
