@@ -867,9 +867,11 @@ protected:
 
   void generateLFQInput_(IdentificationData& id_data, const String& out_file)
   {
-    // mapping: (oligo, adduct) -> charge -> (precursor intensity, RT)
-    map<pair<NASequence, String>,
-        map<Int, vector<pair<double, double>>>> rt_info;
+    using AdductedOligo = pair<NASequence, String>; // oligo, adduct
+    using PrecursorPair = pair<double, double>; // precursor intensity, RT
+    // mapping: charge -> list of precursors
+    using PrecursorsByCharge = map<Int, vector<PrecursorPair>>;
+    map<AdductedOligo, PrecursorsByCharge> rt_info;
     for (const IdentificationData::MoleculeQueryMatch& match :
            id_data.getMoleculeQueryMatches())
     {
@@ -894,8 +896,6 @@ protected:
         name += "+[" + entry.first.second + "]";
         ef += parseAdduct_(entry.first.second);
       }
-      // strategy for selecting RT (should be near the top of the elution peak):
-      // get highest-intensity precursor per charge, use median RT of those
       // @TODO: use charge-specific RTs?
       vector<Int> charges;
       vector<double> rts;
