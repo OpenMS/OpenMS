@@ -2,6 +2,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from libcpp.map cimport map as libcpp_map
 from String cimport *
 from Feature cimport *
+from OpenSwathScoring cimport *
 
 cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
 
@@ -13,10 +14,8 @@ cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
         MRMFeature() nogil except +
         MRMFeature(MRMFeature &) nogil except +
 
-        # TODO STL map with wrapped key
-        # libcpp_map[String, double] getScores() nogil except +
-        double getScore(String name) nogil except +
-        void addScore(String name, double score) nogil except +
+        OpenSwath_Scores getScores() nogil except +
+        void setScores(OpenSwath_Scores s) nogil except +
 
         Feature getFeature(String key) nogil except +
         void addFeature(Feature & f, String key) nogil except +

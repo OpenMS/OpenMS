@@ -539,10 +539,12 @@ namespace OpenMS
   {
     // show advanced options?
     bool verbose = getFlag_("-helphelp");
+    String docurl = getDocumentationURL();
 
     // common output
     cerr << "\n"
          << ConsoleUtils::breakString(tool_name_ + " -- " + tool_description_, 0, 10) << "\n"
+         << ConsoleUtils::breakString(String("Full documentation: ") + docurl, 0, 10) << "\n"
          << "Version: " << verboseVersion_ << "\n"
          << "To cite OpenMS:\n  " << cite_openms_.toString() << "\n";
     if (!citations_.empty())
@@ -756,7 +758,8 @@ namespace OpenMS
       cerr << "\n"
            << ConsoleUtils::breakString("You can write an example INI file using the '-write_ini' option.", 0, 10) << "\n"
            << ConsoleUtils::breakString("Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.", 0, 10) << "\n"
-           << ConsoleUtils::breakString("Have a look at the OpenMS documentation for more information.", 0, 10) << "\n";
+           << ConsoleUtils::breakString("For more information, please consult the online documentation for this tool:", 0, 10) << "\n"
+           << ConsoleUtils::breakString("  - " + docurl, 0, 10) << "\n";
     }
     cerr << endl;
   }
@@ -2319,6 +2322,24 @@ namespace OpenMS
     map.getDataProcessing().push_back(dp);
   }
 
+  String TOPPBase::getDocumentationURL() const
+  {
+    if (official_) // we use a different URL for the TOPP (official) and UTILS (unofficial) tools
+    {
+      return String("http://www.openms.de/documentation/TOPP_") + tool_name_ + ".html";
+    }
+    else if (ToolHandler::getUtilList().count(tool_name_))
+    {
+      return String("http://www.openms.de/documentation/UTILS_") + tool_name_ + ".html";
+    }
+    else
+    {
+      // TODO: Fix tests first
+      // throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A tool either needs to be an official tool or registered as util (TOPP tool not registered)");
+      return "";
+    }
+  }
+
   bool TOPPBase::writeCTD_()
   {
     //store ini-file content in ini_file_str
@@ -2351,15 +2372,14 @@ namespace OpenMS
       String ini_file_str(ss->str());
 
       //
-      QString docurl = "", category = "";
+      QString docurl = getDocumentationURL().toQString();
+      QString category = "";
       if (official_) // we can only get the docurl/category from registered/official tools
       {
-        docurl = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/TOPP_" + tool_name_.toQString() + ".html";
         category = ToolHandler::getCategory(tool_name_).toQString();
       }
       else if (ToolHandler::getUtilList().count(tool_name_))
       {
-        docurl = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/UTILS_" + tool_name_.toQString() + ".html";
         category = ToolHandler::getCategory(tool_name_).toQString();
       }
 

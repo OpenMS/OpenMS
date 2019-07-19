@@ -353,7 +353,7 @@ namespace OpenMS
       if (compute_features)
       {
         // The intensity of a feature is (proportional to) its total ion count
-        // http://ftp.mi.fu-berlin.de/pub/OpenMS/develop-documentation/html/classOpenMS_1_1Feature.html
+        // http://www.openms.de/documentation/classOpenMS_1_1Feature.html
         features[i].setIntensity(score);
         features[i].setMetaValue("log10_total_tic", log10_total_tic);
         features[i].setMetaValue("inverse_avgFWHM", inverse_avgFWHM);
