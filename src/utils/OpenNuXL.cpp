@@ -43,6 +43,7 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -92,6 +93,7 @@
 #include <algorithm>
 
 #include <OpenMS/ANALYSIS/ID/AScore.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -379,7 +381,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,raw"));
+    registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, ListUtils::create<String>("skipexists"));
+    registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, ListUtils::create<String>("skipexists"));
 
     registerInputFile_("database", "<file>", "", "input file ");
     setValidFormats_("database", ListUtils::create<String>("fasta"));
@@ -438,6 +442,18 @@ protected:
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
+    registerDoubleOption_("report:peptideFDR", "<num>", 0.0, "Maximum q-value of non-cross-linked peptides. (0 = disabled)", false, true);
+    registerDoubleOption_("report:xlFDR", "<num>", 0.0, "Maximum q-value of cross-linked peptides. (0 = disabled)", false, true);
+
+    registerInputFile_("percolator_executable", "<executable>", 
+ // choose the default value according to the platform where it will be executed
+        #ifdef OPENMS_WINDOWSPLATFORM
+                       "percolator.exe",
+        #else
+                       "percolator",
+        #endif
+                       "Percolator executable of the installation e.g. 'percolator.exe'", false, false, ListUtils::create<String>("skipexists"));
+
 
     // RNPxl specific
     registerTOPPSubsection_("RNPxl", "RNPxl Options");
@@ -1155,17 +1171,56 @@ protected:
     const double nucleotide_mass_tags/*,
     const double fraction_of_top50annotated*/)
   {
-//    if (ah.Morph + ah.pl_Morph < 5.03) return 0;
+    return + 1.0 * ah.total_loss_score;
+/*
+     double score = 2.52872532
+                   +0.38318303 * nucleotide_mass_tags;
+           
+    if (!isXL)
+    {
+       score += ah.mass_error_p * 0.45919677
++ ah.err          * 0.01016288
++ ah.modds        * -0.02450589
++ ah.immonium_score  * 0.26555840
++ ah.precursor_score * 0.06148951
++ ah.MIC             * 0.91845925
++ ah.sequence_score  * 0.23213255
++ ah.total_loss_score * 8.69880275;
+    }
+    else
+    {
+score += ah.mass_error_p     *   1.15386068
++ah.err         *       -0.75849696
++ah.pl_err       *       0.01731052
++ah.marker_ions_score *  0.40870416
++ah.total_loss_score *   4.92806210
++ah.modds           *    0.96869679
++ah.immonium_score   *   0.14292426
++ah.precursor_score *   -0.05822564
++ah.MIC            *     0.73432514
++ah.pl_MIC         *     0.27953670
++ah.pl_modds       *     0.03810840
++ah.pl_pc_MIC      *     0.15083043
++ah.pl_im_MIC      *    -0.12681649
++ah.sequence_score  *    0.46228471;
+    }
+
+    return score;
+*/
+
+//TODO: check Alex    if (ah.Morph + ah.pl_Morph < 5.03) return 0;
 //    return ah.total_MIC + ah.marker_ions_score + fraction_of_top50annotated;
 
-    return -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err 
+/*
+    return 
+            -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err 
            + 52.2888 * ah.pl_err - 0.0105 * ah.modds
            + 88.7997 * ah.immonium_score- 0.88823 * ah.partial_loss_score + 14.2052 * ah.pl_MIC
            + 0.61144 * ah.pl_modds + 10.07574543 * ah.pl_pc_MIC -28.05701 * ah.pl_im_MIC
            + 2.59655 * ah.total_MIC + 2.38320 * ah.ladder_score + 0.65422535 * (ah.total_loss_score + ah.partial_loss_score);
 //           4267 without perc / 5306 with perc auf 1-
 //           5010 with perc auf 2-
-
+*/
 
 //    return -7.9010278  + 0.7545435 * ah.total_loss_score + 3.1219378 * ah.sequence_score  + 0.33 * ah.mass_error_p + 0.01*ah.total_MIC;
   }
@@ -1173,8 +1228,7 @@ protected:
 
   static float calculateFastScore(const AnnotatedHit& ah)
   {
-	    return  
-               + 1.0 * ah.total_loss_score
+	    return + 1.0 * ah.total_loss_score
 /*               + 1.0 * ah.total_MIC         
                + 0.333 * ah.mass_error_p*/;
   } 
@@ -1635,7 +1689,7 @@ static void scoreShiftedFragments_(
         ah.pl_modds = plss_modds;
         // add extra matched ion current
 // TODO: dieser Teil ist anders
-        ah.total_MIC += plss_MIC; 
+        ah.total_MIC += plss_MIC + marker_ions_sub_score; 
         // scores from shifted peaks
         ah.marker_ions_score = marker_ions_sub_score;
         ah.partial_loss_score = partial_loss_sub_score;
@@ -2395,7 +2449,6 @@ static void scoreShiftedFragments_(
 
       ph.setMetaValue(String("variable_modifications"), n_var_mods);
 
-
       // determine NA modification from index in map
       std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
       std::advance(mod_combinations_it, ah.rna_mod_index);
@@ -2585,38 +2638,111 @@ static void scoreShiftedFragments_(
      */     
     StringList feature_set;
     feature_set
-       << "isotope_error"
-       << "NuXL:score"
-       << "variable_modifications"
-       << "NuXL:isXL" 
-       << "NuXL:isPhospho" 
        << "NuXL:mass_error_p"
+       << "NuXL:err"
        << "NuXL:total_loss_score"
        << "NuXL:modds"
        << "NuXL:immonium_score"
        << "NuXL:precursor_score"
+       << "NuXL:MIC"
+       << "NuXL:Morph"
+       << "NuXL:total_MIC"
+       << "NuXL:ladder_score"
+       << "NuXL:sequence_score"
+       << "NuXL:total_Morph"
+       << "NuXL:total_HS";
+
+#ifdef OPENNUXL_SEPARATE_FEATURES
+    for (auto & pi : peptide_ids)
+    {
+      for (auto & ph : pi.getHits())
+      {
+        if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
+        {
+          ph.setMetaValue("XL_NuXL:mass_error_p",    0.0);
+          ph.setMetaValue("XL_NuXL:err",             0.0);               
+          ph.setMetaValue("XL_NuXL:total_loss_score",0.0);       
+          ph.setMetaValue("XL_NuXL:modds",           0.0);       
+          ph.setMetaValue("XL_NuXL:immonium_score",  0.0);        
+          ph.setMetaValue("XL_NuXL:precursor_score", 0.0);        
+          ph.setMetaValue("XL_NuXL:MIC",             0.0);        
+          ph.setMetaValue("XL_NuXL:Morph",           0.0);      
+          ph.setMetaValue("XL_NuXL:total_MIC",       0.0);       
+          ph.setMetaValue("XL_NuXL:ladder_score",    0.0);        
+          ph.setMetaValue("XL_NuXL:sequence_score",  0.0);        
+          ph.setMetaValue("XL_NuXL:total_Morph",     0.0);        
+          ph.setMetaValue("XL_NuXL:total_HS",        0.0);        
+        }
+        else  // XL
+        {
+          ph.setMetaValue("XL_NuXL:mass_error_p",     static_cast<double>(ph.getMetaValue("NuXL:mass_error_p")));
+          ph.setMetaValue("XL_NuXL:err",              static_cast<double>(ph.getMetaValue("NuXL:err")));               
+          ph.setMetaValue("XL_NuXL:total_loss_score", static_cast<double>(ph.getMetaValue("NuXL:total_loss_score")));
+          ph.setMetaValue("XL_NuXL:modds",            static_cast<double>(ph.getMetaValue( "NuXL:modds")));
+          ph.setMetaValue("XL_NuXL:immonium_score",   static_cast<double>(ph.getMetaValue("NuXL:immonium_score")));
+          ph.setMetaValue("XL_NuXL:precursor_score",  static_cast<double>(ph.getMetaValue("NuXL:precursor_score")));
+          ph.setMetaValue("XL_NuXL:MIC",              static_cast<double>(ph.getMetaValue("NuXL:MIC")));
+          ph.setMetaValue("XL_NuXL:Morph",            static_cast<double>(ph.getMetaValue("NuXL:Morph")));
+          ph.setMetaValue("XL_NuXL:total_MIC",        static_cast<double>(ph.getMetaValue( "NuXL:total_MIC")));
+          ph.setMetaValue("XL_NuXL:ladder_score",     static_cast<double>(ph.getMetaValue("NuXL:ladder_score")));
+          ph.setMetaValue("XL_NuXL:sequence_score",   static_cast<double>(ph.getMetaValue("NuXL:sequence_score")));
+          ph.setMetaValue("XL_NuXL:total_Morph",      static_cast<double>(ph.getMetaValue("NuXL:total_Morph")));
+          ph.setMetaValue("XL_NuXL:total_HS",         static_cast<double>(ph.getMetaValue("NuXL:total_HS")));
+
+          ph.setMetaValue("NuXL:mass_error_p",    0.0);
+          ph.setMetaValue("NuXL:err",             0.0);               
+          ph.setMetaValue("NuXL:total_loss_score",0.0);       
+          ph.setMetaValue("NuXL:modds",           0.0);       
+          ph.setMetaValue("NuXL:immonium_score",  0.0);        
+          ph.setMetaValue("NuXL:precursor_score", 0.0);        
+          ph.setMetaValue("NuXL:MIC",             0.0);        
+          ph.setMetaValue("NuXL:Morph",           0.0);      
+          ph.setMetaValue("NuXL:total_MIC",       0.0);       
+          ph.setMetaValue("NuXL:ladder_score",    0.0);        
+          ph.setMetaValue("NuXL:sequence_score",  0.0);        
+          ph.setMetaValue("NuXL:total_Morph",     0.0);        
+          ph.setMetaValue("NuXL:total_HS",        0.0);        
+        }
+      }
+    }
+
+    feature_set
+       << "XL_NuXL:mass_error_p"
+       << "XL_NuXL:err"
+       << "XL_NuXL:total_loss_score"
+       << "XL_NuXL:modds"
+       << "XL_NuXL:immonium_score"
+       << "XL_NuXL:precursor_score"
+       << "XL_NuXL:MIC"
+       << "XL_NuXL:Morph"
+       << "XL_NuXL:total_MIC"
+       << "XL_NuXL:ladder_score"
+       << "XL_NuXL:sequence_score"
+       << "XL_NuXL:total_Morph"
+       << "XL_NuXL:total_HS";
+#endif
+
+    feature_set
        << "NuXL:marker_ions_score"
        << "NuXL:partial_loss_score"
-       << "NuXL:MIC"
-       << "NuXL:err"
-       << "NuXL:Morph"
        << "NuXL:pl_MIC"
        << "NuXL:pl_err"
        << "NuXL:pl_Morph"
        << "NuXL:pl_modds"
        << "NuXL:pl_pc_MIC"
-       << "NuXL:pl_im_MIC"
-       << "NuXL:total_MIC"
+       << "NuXL:pl_im_MIC";
+
+    feature_set
+       << "NuXL:isPhospho" 
+       << "NuXL:isXL" 
+       << "NuXL:score"
+       << "isotope_error"
+       << "variable_modifications"
+       << "precursor_intensity_log10"
        << "NuXL:NA_MASS_z0"
        << "NuXL:NA_length"   
-       << "NuXL:ladder_score"
-       << "NuXL:sequence_score"
-       << "NuXL:total_Morph"
-       << "NuXL:total_HS"
-       << "precursor_intensity_log10"
        << "nucleotide_mass_tags";
-    if (!purities.empty()) feature_set << "precursor_purity";
-
+       if (!purities.empty()) feature_set << "precursor_purity";
     // one-hot encoding of cross-linked nucleotide
     const String can_cross_link = getStringOption_("RNPxl:can_cross_link");
     for (const auto& c : can_cross_link) 
@@ -2895,11 +3021,75 @@ static void scoreShiftedFragments_(
     return count + MIC; // Morph score of matched (complete / partial) ladder
   }
 
+  String convertRawFile_(const String& in)
+  {
+    writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
+    String net_executable = getStringOption_("NET_executable");
+    TOPPBase::ExitCodes exit_code;
+    QStringList arguments;
+    String out = in + ".mzML";
+    // check if this file exists and not empty so we can skip further conversions
+    if (!File::empty(out)) { return out; }
+#ifdef OPENMS_WINDOWSPLATFORM      
+    if (net_executable.empty())
+    { // default on Windows: if no mono executable is set use the "native" .NET one
+      arguments << String("-i=" + in).toQString()
+                << String("--output_file=" + out).toQString()
+                << String("-f=2").toQString() // indexedMzML
+                << String("-e").toQString(); // ignore instrument errors
+      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
+      exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
+    }
+    else
+    { // use e.g., mono
+      arguments << getStringOption_("ThermoRaw_executable").toQString()
+                << String("-i=" + in).toQString()
+                << String("--output_file=" + out).toQString()
+                << String("-f=2").toQString()
+                << String("-e").toQString();
+      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
+      exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
+    }      
+#else
+    // default on Mac, Linux: use mono
+    net_executable = net_executable.empty() ? "mono" : net_executable;
+    arguments << getStringOption_("ThermoRaw_executable").toQString()
+              << String("-i=" + in).toQString()
+              << String("--output_file=" + out).toQString()
+              << String("-f=2").toQString()
+              << String("-e").toQString();
+    exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
+#endif
+    if (exit_code != ExitCodes::EXECUTION_OK)
+    {
+      OPENMS_LOG_ERROR << "File conversion from RAW file to mzML failed." << endl;
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "Raw File successfuly converted to mzML." << endl;
+      OPENMS_LOG_INFO << "Please delete it if not needed anymore." << endl;
+    }
+    return out;
+  }
+
   ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    String in_mzml = getStringOption_("in");
+
+    FileHandler fh;
+    FileTypes::Type in_type = fh.getType(getStringOption_("in"));
+
+    String in_mzml; 
+    if (in_type == FileTypes::MZML)
+    {
+      in_mzml = getStringOption_("in");
+    }
+    else if (in_type == FileTypes::RAW)
+    {
+      in_mzml = convertRawFile_(getStringOption_("in"));
+    }
+
     String in_db = getStringOption_("database");
     String out_idxml = getStringOption_("out");
     String out_csv = getStringOption_("out_tsv");
@@ -2953,6 +3143,8 @@ static void scoreShiftedFragments_(
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
 
     size_t report_top_hits = (size_t)getIntOption_("report:top_hits");
+    double peptide_FDR = getDoubleOption_("report:peptideFDR");
+    double XL_FDR = getDoubleOption_("report:xlFDR");
 
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides = getStringList_("RNPxl:target_nucleotides");
@@ -3678,10 +3870,127 @@ static void scoreShiftedFragments_(
     // annotate RNPxl related information to hits and create report
     vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
 
-    if (generate_decoys) { fdr.apply(peptide_ids); }
+    if (generate_decoys) 
+    { 
+      fdr.apply(peptide_ids); 
+  
+      // write ProteinIdentifications and PeptideIdentifications to IdXML
+      IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
-    // write ProteinIdentifications and PeptideIdentifications to IdXML
-    IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+      // generate filtered results
+      IDFilter::keepNBestHits(peptide_ids, 1);
+
+      // split PSMs into XLs and non-XLs but keep only best one of both
+      vector<PeptideIdentification> pep_pi;
+      vector<PeptideIdentification> xl_pi;
+      for (auto pi : peptide_ids)
+      {
+        vector<PeptideHit> pep_ph;
+        vector<PeptideHit> xl_ph;
+        for (auto ph : pi.getHits())
+        {
+           if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
+           { // only add best hit
+             if (pep_ph.empty() && xl_ph.empty()) pep_ph.push_back(ph); 
+           }
+           else
+           {
+             if (pep_ph.empty() && xl_ph.empty()) xl_ph.push_back(ph); 
+           }
+        }
+        if (!pep_ph.empty()) { pep_pi.push_back(pi); pep_pi.back().setHits(pep_ph); }
+        if (!xl_ph.empty()) { xl_pi.push_back(pi); xl_pi.back().setHits(xl_ph); }
+      }
+
+      // calculate FDRs separately
+      fdr.apply(xl_pi); 
+      fdr.apply(pep_pi);
+ 
+      if (peptide_FDR > 0.0 && peptide_FDR < 1.0)
+      {
+         IDFilter::filterHitsByScore(pep_pi, peptide_FDR); 
+      }
+ 
+      if (XL_FDR > 0.0 && XL_FDR < 1.0)
+      {
+        IDFilter::filterHitsByScore(xl_pi, XL_FDR);
+      }
+      String out2(out_idxml);
+      out2.substitute(".idXML", "_");
+      IdXMLFile().store(out2 + String::number(XL_FDR, 4) + "_XLs.idXML", protein_ids, xl_pi);
+      IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", protein_ids, pep_pi);
+
+      String percolator_executable = getStringOption_("percolator_executable");
+      if (!percolator_executable.empty())
+      {
+        // run percolator on idXML
+        String perc_out = out_idxml;
+        perc_out.substitute(".idXML", "_perc.idXML");
+        QStringList process_params;
+        process_params << "-percolator_executable" << percolator_executable.toQString()
+                       << "-train_best_positive" 
+                       << "-score_type" << "svm"
+                       << "-in" << out_idxml.toQString()
+                       << "-out" << perc_out.toQString();
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable.toQString(), process_params);
+        if (exit_code != EXECUTION_OK) 
+        { 
+          OPENMS_LOG_WARN << "Score recalibration failed." << endl; 
+        }
+        else
+        { 
+          // load back idXML
+          IdXMLFile().load(perc_out, protein_ids, peptide_ids);
+ 
+          // generate filtered results
+          IDFilter::keepNBestHits(peptide_ids, 1);
+
+          // split PSMs into XLs and non-XLs but keep only best one of both
+          vector<PeptideIdentification> pep_pi;
+          vector<PeptideIdentification> xl_pi;
+          for (auto pi : peptide_ids)
+          {
+            vector<PeptideHit> pep_ph, xl_ph;
+            for (auto ph : pi.getHits())
+            {
+               if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
+               { // only add best hit
+                 if (pep_ph.empty() && xl_ph.empty()) pep_ph.push_back(ph); 
+               }
+               else
+               {
+                 if (pep_ph.empty() && xl_ph.empty()) xl_ph.push_back(ph); 
+               }
+            }
+            if (!pep_ph.empty()) { pep_pi.push_back(pi); pep_pi.back().setHits(pep_ph); }
+            if (!xl_ph.empty()) { xl_pi.push_back(pi); xl_pi.back().setHits(xl_ph); }
+          }
+
+          // calculate FDRs separately
+          fdr.apply(xl_pi); 
+          fdr.apply(pep_pi);
+ 
+          if (peptide_FDR > 0.0 && peptide_FDR < 1.0)
+          {
+            IDFilter::filterHitsByScore(pep_pi, peptide_FDR); 
+          }
+ 
+          if (XL_FDR > 0.0 && XL_FDR < 1.0)
+          {
+            IDFilter::filterHitsByScore(xl_pi, XL_FDR);
+          }
+          String out2(out_idxml);
+          out2.substitute(".idXML", "_perc_");
+          IdXMLFile().store(out2 + String::number(XL_FDR, 4) + "_XLs.idXML", protein_ids, xl_pi);
+          IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", protein_ids, pep_pi);
+        }
+      }
+    }
+    else  // no decoys
+    {
+      // write ProteinIdentifications and PeptideIdentifications to IdXML
+      IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+    }
 
     // save report
     if (!out_csv.empty())
