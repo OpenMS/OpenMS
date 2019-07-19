@@ -668,6 +668,7 @@ namespace OpenMS
     {
       if (stream != nullptr)
       {
+OPENMS_THREAD_CRITICAL(oms_log)
         *stream << "Map descriptions (file name + label) in ConsensusMap are not unique:\n" << all_maps << std::endl;
       }
       return false;
@@ -692,11 +693,14 @@ namespace OpenMS
     {
       if (stream != nullptr)
       {
+OPENMS_THREAD_CRITICAL(oms_log)
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
         for (Map<Size, Size>::ConstIterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
         {
+OPENMS_THREAD_CRITICAL(oms_log)
           *stream << "  wrong id=" << it->first << " (occurred " << it->second << "x)\n";
         }
+OPENMS_THREAD_CRITICAL(oms_log)
         *stream << std::endl;
       }
       return false;
