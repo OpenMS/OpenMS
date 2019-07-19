@@ -159,11 +159,11 @@ namespace OpenMS
 
 
   void IDMergerAlgorithm::insertProteinIDs_(
-      vector<ProteinIdentification>&& oldProtRuns
+      vector<ProteinIdentification>&& old_protRuns
   )
   {
     typedef std::vector<ProteinHit>::iterator iter_t;
-    for (auto& protRun : oldProtRuns) //TODO check run ID when option is added
+    for (auto& protRun : old_protRuns) //TODO check run ID when option is added
     {
       auto& hits = protRun.getHits();
       collected_protein_hits_.insert(
@@ -176,7 +176,7 @@ namespace OpenMS
 
   void IDMergerAlgorithm::updateAndMovePepIDs_(
       vector<PeptideIdentification>&& pepIDs,
-      const map<String, Size>& runIDToRunIdx,
+      const map<String, Size>& runID_to_runIdx,
       const vector<StringList>& originFiles,
       bool annotate_origin)
   {
@@ -188,9 +188,9 @@ namespace OpenMS
     {
       const String &runID = pid.getIdentifier();
 
-      const auto& runIdxIt = runIDToRunIdx.find(runID);
+      const auto& runIdxIt = runID_to_runIdx.find(runID);
 
-      if (runIdxIt == runIDToRunIdx.end())
+      if (runIdxIt == runID_to_runIdx.end())
       {
         //This is an easy way to just merge peptides from a certain run
         continue;
@@ -247,13 +247,13 @@ namespace OpenMS
   // therefore it can merge peptides and proteins separately and a bit faster.
   void IDMergerAlgorithm::movePepIDsAndRefProteinsToResultFaster_(
       vector<PeptideIdentification>&& pepIDs,
-      vector<ProteinIdentification>&& oldProtRuns
+      vector<ProteinIdentification>&& old_protRuns
   )
   {
     bool annotate_origin(param_.getValue("annotate_origin").toBool());
     vector<StringList> originFiles{};
     //TODO here check run ID if we allow this option
-    for (const auto& protRun : oldProtRuns)
+    for (const auto& protRun : old_protRuns)
     {
       StringList toFill{};
       protRun.getPrimaryMSRunPath(toFill);
@@ -277,16 +277,16 @@ namespace OpenMS
     }
 
     std::map<String, Size> runIDToRunIdx;
-    for (Size oldProtRunIdx = 0; oldProtRunIdx < oldProtRuns.size(); ++oldProtRunIdx)
+    for (Size oldProtRunIdx = 0; oldProtRunIdx < old_protRuns.size(); ++oldProtRunIdx)
     {
-      ProteinIdentification &protIDRun = oldProtRuns[oldProtRunIdx];
+      ProteinIdentification &protIDRun = old_protRuns[oldProtRunIdx];
       runIDToRunIdx[protIDRun.getIdentifier()] = oldProtRunIdx;
     }
 
     updateAndMovePepIDs_(std::move(pepIDs), runIDToRunIdx, originFiles, annotate_origin);
-    insertProteinIDs_(std::move(oldProtRuns));
+    insertProteinIDs_(std::move(old_protRuns));
     pepIDs.clear();
-    oldProtRuns.clear();
+    old_protRuns.clear();
   }
 
   /* Old version. Quite slower but only copies actually referenced proteins

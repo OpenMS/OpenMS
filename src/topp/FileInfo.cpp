@@ -1190,7 +1190,6 @@ protected:
     //-------------------------------------------------------------
     if (getFlag_("m") || !getStringOption_("out_tsv").empty())
     {
-
       //basic info
       os << "\n"
          << "-- Meta information --"
@@ -1222,10 +1221,10 @@ protected:
       }
       else if (in_type == FileTypes::FASTA)
       {
+        // TODO
       }
       else //peaks
       {
-
         os << "Document ID:        " << exp.getIdentifier() << "\n"
            << "Date:               " << exp.getDateTime().get() << "\n";
         os_tsv << "document id"

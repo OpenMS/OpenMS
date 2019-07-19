@@ -813,6 +813,7 @@ namespace OpenMS
           continue;
         }
       }
+
       if (k == target_scores.size()) { score_to_fdr[ds] = score_to_fdr[target_scores.back()]; continue; }
 
       if (fabs(target_scores[k] - ds) < fabs(target_scores[k - 1] - ds))
@@ -824,7 +825,6 @@ namespace OpenMS
         score_to_fdr[ds] = score_to_fdr[target_scores[k - 1]];
       }
     }
-
   }
 
   //TODO does not support "by run" and/or "by charge"
@@ -1109,7 +1109,6 @@ namespace OpenMS
     if (ids.size() > 1)
     {
      OPENMS_LOG_WARN << "More than one set of ProteinIdentifications found. Only using the first one for FDR calculation.\n";
-
     }
 
     if (ids[0].getScoreType() != "Posterior Probability" && ids[0].getScoreType() != "Posterior Error Probability")
@@ -1355,7 +1354,6 @@ namespace OpenMS
     size_t j = 0;
     for (; j < scores_labels.size(); ++j)
     {
-
       //TODO think about double comparison here, but an equal should actually be fine here.
       if (scores_labels[j].first != last_score)
       {

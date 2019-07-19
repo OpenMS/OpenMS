@@ -61,7 +61,7 @@ namespace OpenMS
    * - Extends the graph by adding layers from indist. protein groups, peptides with the same parents and optionally
    *   some additional layers (peptide sequence, charge, replicate -> extended model = experimental)
    * - Builds a factor graph representation of a Bayesian network using the Evergreen library
-   *   See model param section. It is based on the Fido noidy-OR model with an option for
+   *   See model param section. It is based on the Fido noisy-OR model with an option for
    *   regularizing the number of proteins per peptide.
    * - Performs loopy belief propagation on the graph and queries protein, protein group and/or peptide posteriors
    *   See loopy_belief_propagation param section.

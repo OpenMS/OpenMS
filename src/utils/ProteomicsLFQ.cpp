@@ -116,7 +116,6 @@ public:
   }
 
 protected:
-
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input files");

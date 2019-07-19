@@ -127,11 +127,11 @@ namespace OpenMS
 
     // Not fully supported yet because an ID would need to reference multiple protID runs.
     // we could replicate the ID in the future or allow multiple references.
-    bool labelfree = true;
     if (experiment_type != "label-free")
     {
       OPENMS_LOG_WARN << "Merging untested for labelled experiments" << endl;
-      labelfree = false;
+
+
     }
 
     // Unfortunately we need a kind of bimap here.

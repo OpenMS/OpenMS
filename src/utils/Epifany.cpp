@@ -93,7 +93,7 @@ using namespace std;
   are preprocessed with a low posterior probability cutoff to neglect very unreliable matches. Then
   the probabilities are aggregated with the maximum per peptide and the graph is built and split into
   connected components. When compiled with the OpenMP
-  flag (default enabled in the release binaries) the tool is multithreaded which can
+  flag (default enabled in the release binaries) the tool is multi-threaded which can
   be activated at runtime by the threads parameter. Note that peak memory requirements
   may rise significantly when processing multiple components of the graph at the same time.
   </p>
@@ -291,14 +291,14 @@ protected:
     double pre_filter = getDoubleOption_("psm_probability_cutoff");
     if (pre_filter > min_nonnull_obs_probability)
     {
-     OPENMS_LOG_INFO << "Removing PSMs with probability < " << pre_filter << std::endl;
+      OPENMS_LOG_INFO << "Removing PSMs with probability < " << pre_filter << std::endl;
       IDFilter::filterHitsByScore(mergedpeps, pre_filter);
       IDFilter::removeEmptyIdentifications(mergedpeps);
     }
 
     if (mergedpeps.empty())
     {
-     OPENMS_LOG_ERROR << "No PSMs found. Please check input. Aborting." << std::endl;
+      OPENMS_LOG_ERROR << "No PSMs found. Please check input. Aborting." << std::endl;
       return ExitCodes::INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -310,14 +310,14 @@ protected:
     // Alternative would be to reset scores but this does not work well if you wanna work with i.e. user priors
     IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
 
-   OPENMS_LOG_INFO << "Loading, merging, filtering took " << sw.toString() << std::endl;
+    OPENMS_LOG_INFO << "Loading, merging, filtering took " << sw.toString() << std::endl;
     sw.reset();
-   OPENMS_LOG_INFO << "Graph now consists of " << mergedprots[0].getHits().size() << " proteins and " << mergedpeps.size() << " peptides." << std::endl;
+    OPENMS_LOG_INFO << "Graph now consists of " << mergedprots[0].getHits().size() << " proteins and " << mergedpeps.size() << " peptides." << std::endl;
 
     BayesianProteinInferenceAlgorithm bpi1(getIntOption_("debug"));
     bpi1.setParameters(epifany_param);
     bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps);
-   OPENMS_LOG_INFO << "Inference total took " << sw.toString() << std::endl;
+    OPENMS_LOG_INFO << "Inference total took " << sw.toString() << std::endl;
     sw.stop();
 
     // Let's always add all the proteins to the protein group section, easier in postprocessing.
@@ -330,7 +330,7 @@ protected:
 
     if (greedy_group_resolution)
     {
-     OPENMS_LOG_INFO << "Postprocessing: Removing associations from spectrum via best PSM to all but the best protein group..." << std::endl;
+      OPENMS_LOG_INFO << "Postprocessing: Removing associations from spectrum via best PSM to all but the best protein group..." << std::endl;
       //TODO add group resolution to the IDBoostGraph class so we do not
       // unnecessarily build a second (old) data structure
 
@@ -342,7 +342,7 @@ protected:
     }
     if (remove_prots_wo_evidence)
     {
-     OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
+      OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
       IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
       IDFilter::updateProteinGroups(mergedprots[0].getIndistinguishableProteins(), mergedprots[0].getHits());
       IDFilter::updateProteinGroups(mergedprots[0].getProteinGroups(), mergedprots[0].getHits());
@@ -351,7 +351,7 @@ protected:
     bool calc_protFDR = getStringOption_("protein_fdr") == "true";
     if (calc_protFDR)
     {
-     OPENMS_LOG_INFO << "Calculating target-decoy q-values..." << std::endl;
+      OPENMS_LOG_INFO << "Calculating target-decoy q-values..." << std::endl;
       FalseDiscoveryRate fdr;
       Param fdrparam = fdr.getParameters();
       fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
@@ -364,10 +364,8 @@ protected:
              mergedprots[0].getIndistinguishableProteins().size() <<
              " indist. groups." << std::endl;
 
-     idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
-     return ExitCodes::EXECUTION_OK;
-
-
+    idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
+    return ExitCodes::EXECUTION_OK;
 
     // Some thoughts about how to leverage info from different runs.
     //Fractions: Always merge (not much to leverage, maybe agreement at borders)

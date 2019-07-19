@@ -63,7 +63,7 @@ namespace OpenMS
 
     For peptide hits, a hit is considered target also if it maps to both
     a target and a decoy protein (i.e. "target+decoy") as value in the
-    "target_decoy" metavalue e.g. annotated by PeptideIndexer
+    "target_decoy" metavalue e.g. annotated by @ref TOPP_PeptideIndexer
 
     @note The parameter add_decoy_proteins currently does not affect groups
 
@@ -517,7 +517,7 @@ private:
 
     /**
      * @brief Used when keep_decoy_peptides or proteins is false
-     * @tparam HitType Protein or PeptideHit
+     * @tparam HitType ProteinHit or PeptideHit
      * @param scores_to_FDR map from original score to FDR/qVal
      * @param hit the Hit itself
      * @param old_score_type to save it in metavalue
@@ -531,7 +531,7 @@ private:
       if (target_decoy[0] == 't')
       {
         hit.setMetaValue(old_score_type, hit.getScore());
-        hit.setScore(scores_to_FDR.at(hit.getScore()));
+        hit.setScore(scores_to_FDR.lower_bound(hit.getScore())->second);
         new_hits.push_back(std::move(hit));
       } // else do not move over
     }
@@ -553,7 +553,7 @@ private:
         if (target_decoy[0] == 't')
         {
           hit.setMetaValue(old_score_type, hit.getScore());
-          hit.setScore(scores_to_FDR.at(hit.getScore()));
+          hit.setScore(scores_to_FDR.lower_bound(hit.getScore())->second);
           new_hits.push_back(std::move(hit));
         } // else do not move over
       }
@@ -584,12 +584,12 @@ private:
 
     /**
      * @brief To check the metavalues before we do anything
-     * @param idOrHit
-     * @throws Exception::MissingInformation if it does not exist
+     * @param id_or_hit Any Object with MetaInfoInterface. Specifically ID or Hit Type here.
+     * @throws Exception::MissingInformation if target_decoy annotation does not exist
      */
-    static void checkTDAnnotation_(const MetaInfoInterface & idOrHit)
+    static void checkTDAnnotation_(const MetaInfoInterface & id_or_hit)
     {
-        if (!idOrHit.metaValueExists("target_decoy"))
+        if (!id_or_hit.metaValueExists("target_decoy"))
         {
           throw Exception::MissingInformation(__FILE__,
                                               __LINE__,

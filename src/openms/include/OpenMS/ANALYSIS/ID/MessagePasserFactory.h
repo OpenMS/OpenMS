@@ -52,7 +52,7 @@ namespace OpenMS
     //const int minInputsPAF = 3; //@todo could be used to decide when brute force is better.
 
     /// the model parameters
-    double alpha, beta, gamma, p, pepPrior;
+    double alpha_, beta_, gamma_, p_, pepPrior_;
 
     /// Likelihoods for the charge states given presence of the peptide sequence (@todo could be calculated from IDPEP
     /// if we do per charge state fitting) or empirically estimated from the input PSMs
@@ -61,8 +61,8 @@ namespace OpenMS
     /// to fill the noisy-OR table for a peptide given parent proteins
     inline double notConditionalGivenSum(unsigned long summ) {
       // use log for better precision
-      return pow(2., log2(1. - beta) + summ * log2(1. - alpha));
-      //return std::pow((1.0 - alpha), summ) * (1.0 - beta);
+      return pow(2., log2(1. - beta_) + summ * log2(1. - alpha_));
+      //return std::pow((1.0 - alpha_), summ) * (1.0 - beta_);
     }
 
   public:
@@ -104,7 +104,7 @@ namespace OpenMS
      * @param p Marginalization norm
      * @param pepPrior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
      */
-    MessagePasserFactory<Label>(double alpha_, double beta_, double gamma_, double p_, double pep_prior_);
+    MessagePasserFactory<Label>(double alpha, double beta, double gamma, double p, double pep_prior);
 
 
 
@@ -124,50 +124,50 @@ namespace OpenMS
   //IMPLEMENTATIONS:
 
   template <typename L>
-  MessagePasserFactory<L>::MessagePasserFactory(double alpha_, double beta_, double gamma_, double p_, double pep_prior_) {
-    assert(0. <= alpha_ && alpha_ <= 1.);
-    assert(0. <= beta_ && beta_ <= 1.);
-    assert(0. <= gamma_ && gamma_ <= 1.);
+  MessagePasserFactory<L>::MessagePasserFactory(double alpha, double beta, double gamma, double p, double pep_prior) {
+    assert(0. <= alpha && alpha <= 1.);
+    assert(0. <= beta && beta <= 1.);
+    assert(0. <= gamma && gamma <= 1.);
     //Note: smaller than 1 might be possible but is untested right now.
-    assert(p_ >= 1.);
-    assert(0. < pep_prior_ && pep_prior_ < 1.);
-    alpha = alpha_;
-    beta = beta_;
-    gamma = gamma_;
-    p = p_;
-    pepPrior = pep_prior_;
+    assert(p >= 1.);
+    assert(0. < pep_prior && pep_prior < 1.);
+    alpha_ = alpha;
+    beta_ = beta;
+    gamma_ = gamma;
+    p_ = p;
+    pepPrior_ = pep_prior;
   }
 
   template <typename L>
   TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, int nrMissingPeps) {
-    double prior = gamma;
+    double prior = gamma_;
     if (nrMissingPeps > 0)
     {
-      double powFactor = std::pow(1.0 - alpha, -nrMissingPeps);
+      double powFactor = std::pow(1.0 - alpha_, -nrMissingPeps);
       prior = -prior/(prior * powFactor - prior - powFactor);
     }
     double table[] = {1.0 - prior, prior};
     LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
-    return TableDependency<L>(lpmf,p);
+    return TableDependency<L>(lpmf,p_);
   }
 
   template <typename L>
   TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, double prior, int nrMissingPeps) {
     if (nrMissingPeps > 0)
     {
-      double powFactor = std::pow(1.0 - alpha, -nrMissingPeps);
+      double powFactor = std::pow(1.0 - alpha_, -nrMissingPeps);
       prior = -prior/(prior * powFactor - prior - powFactor);
     }
     double table[] = {1.0 - prior, prior};
     LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
-    return TableDependency<L>(lpmf,p);
+    return TableDependency<L>(lpmf,p_);
   }
 
   template <typename L>
   TableDependency<L> MessagePasserFactory<L>::createPeptideEvidenceFactor(L id, double prob) {
-    double table[] = {(1 - prob) * (1 - pepPrior), prob * pepPrior};
+    double table[] = {(1 - prob) * (1 - pepPrior_), prob * pepPrior_};
     LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
-    return TableDependency<L>(lpmf,p);
+    return TableDependency<L>(lpmf,p_);
   }
 
 
@@ -184,7 +184,7 @@ namespace OpenMS
     //std::cout << table << std::endl;
     LabeledPMF<L> lpmf({nId, pepId}, PMF({0L,0L}, table));
     //std::cout << lpmf << std::endl;
-    return TableDependency<L>(lpmf,p);
+    return TableDependency<L>(lpmf,p_);
   }
 
   template <typename L>
@@ -192,8 +192,8 @@ namespace OpenMS
     Tensor<double> table({static_cast<unsigned long>(nrParents + 1) , 2});
     unsigned long z[2]{0ul,0ul};
     unsigned long z1[2]{0ul,1ul};
-    table[z] = 1. - beta;
-    table[z1] = beta;
+    table[z] = 1. - beta_;
+    table[z1] = beta_;
     for (unsigned long i=1; i <= nrParents; ++i) {
       double notConditional = notConditionalGivenSum(i);
       unsigned long indexArr[2] = {i,0ul};
@@ -204,7 +204,7 @@ namespace OpenMS
     //std::cout << table << std::endl;
     LabeledPMF<L> lpmf({nId, pepId}, PMF({0L,0L}, table));
     //std::cout << lpmf << std::endl;
-    return TableDependency<L>(lpmf,p);
+    return TableDependency<L>(lpmf,p_);
   }
 
   template <typename L>
@@ -216,7 +216,7 @@ namespace OpenMS
     //std::cout << table << std::endl;
     LabeledPMF<L> lpmf({nId}, PMF({0L}, table));
     //std::cout << lpmf << std::endl;
-    return TableDependency<L>(lpmf,p);
+    return TableDependency<L>(lpmf,p_);
   }
 
   template <typename L>
@@ -230,7 +230,7 @@ namespace OpenMS
     //std::cout << table << std::endl;
     LabeledPMF<L> lpmf({seqId,repId}, PMF({0L,0L}, table));
     //std::cout << lpmf << std::endl;
-    return TableDependency<L>(lpmf,p);
+    return TableDependency<L>(lpmf,p_);
   }
 
   template <typename L>
@@ -245,28 +245,28 @@ namespace OpenMS
     //std::cout << table << std::endl;
     LabeledPMF<L> lpmf({repId,chgId}, PMF({0L,0L}, table));
     //std::cout << lpmf << std::endl;
-    return TableDependency<L>(lpmf,p);
+    return TableDependency<L>(lpmf,p_);
   }
 
   template <typename L>
   AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::set<L> & parentProteinIDs, L nId) {
     std::vector<std::vector<L>> parents;
     std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
-    return AdditiveDependency<L>(parents, {nId}, p);
+    return AdditiveDependency<L>(parents, {nId}, p_);
   }
 
   template <typename L>
   AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::vector<L> & parentProteinIDs, L nId) {
     std::vector<std::vector<L>> parents;
     std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
-    return AdditiveDependency<L>(parents, {nId}, p);
+    return AdditiveDependency<L>(parents, {nId}, p_);
   }
 
   template <typename L>
   PseudoAdditiveDependency<L> MessagePasserFactory<L>::createBFPeptideProbabilisticAdderFactor(const std::set<L> & parentProteinIDs, L nId, const std::vector<TableDependency<L>> & deps) {
     std::vector<std::vector<L>> parents;
     std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
-    return PseudoAdditiveDependency<L>(parents, {nId}, deps, p);
+    return PseudoAdditiveDependency<L>(parents, {nId}, deps, p_);
   }
 
   /// Works on a vector of protein indices (potentially not consecutive)

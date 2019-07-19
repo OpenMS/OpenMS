@@ -42,18 +42,18 @@ namespace OpenMS
 {
   /** \brief Algorithm class that implements simple protein inference by aggregation of peptide scores.
    * It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
-   * and if you want to use shared peptides.
+   * and if you want to use shared peptides ("use_shared_peptides").
    * First, the best PSM per spectrum is used, then only the best PSM per peptidoform is aggregated.
-   * Peptidoforms can optionally be distinguished via:
+   * Peptidoforms can optionally be distinguished via the treat_X_separate parameters:
    * - Modifications (modified sequence string)
    * - Charge states
    * The algorithm assumes posteriors or posterior error probabilities and converts to posteriors initially.
-   * Possible aggregation methods that can be set via the Params object are:
-   * - Maximum (default)
-   * - Sum
-   * - Product (ignoring zeroes)
-   * Annotation of the number of the number of peptides used for aggregation can be disabled (see parameters).
-   * Supports multiple runs and goes through them one by one iterating over the full PeptideIdentification vector.
+   * Possible aggregation methods that can be set via the parameter "aggregation_method" are:
+   * - "maximum" (default)
+   * - "sum"
+   * - "product" (ignoring zeroes)
+   * Annotation of the number of peptides used for aggregation can be disabled (see parameters).
+   * Supports multiple runs but goes through them one by one iterating over the full PeptideIdentification vector.
    */
   class OPENMS_DLLAPI BasicProteinInferenceAlgorithm :
     public DefaultParamHandler,
@@ -64,7 +64,7 @@ namespace OpenMS
     /**
      * @brief The aggregation method
      */
-    enum AggregationMethod
+    enum class AggregationMethod
     {
       PROD, ///< aggregate by product (ignore zeroes)
       SUM, ///< aggregate by summing

@@ -93,7 +93,6 @@ namespace OpenMS
     //TODO finish and rework (root not needed?)
     void insertToGraph(vertex_t /*rootProteinVtx*/, Graph& graph)
     {
-
       for (const auto& seqContainer : seq_to_vecs_)
       {
         vertex_t pep = boost::add_vertex(Peptide{seqContainer.first}, graph);
@@ -629,7 +628,10 @@ namespace OpenMS
      OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
       #endif
 
-      unsigned long result = functor(curr_cc);
+      #ifdef INFERENCE_DEBUG
+      unsigned long result =
+      #endif
+          functor(curr_cc);
 
       #ifdef INFERENCE_BENCH
       sw.stop();
@@ -978,8 +980,6 @@ namespace OpenMS
         // if the node is a group, find their members first.
       }
     }
-
-
   }
 
 
@@ -1197,7 +1197,6 @@ namespace OpenMS
       //TODO better to do quick bruteforce calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
-
         Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(curr_cc);
 
@@ -1359,7 +1358,6 @@ namespace OpenMS
         printGraph(LOG_INFO, curr_cc);
        OPENMS_LOG_INFO << "Printed cc " << i << "with intermediate nodes." << std::endl;
         #endif
-
       }
       else
       {
@@ -1370,7 +1368,6 @@ namespace OpenMS
 
   void IDBoostGraph::clusterIndistProteinsAndPeptides()
   {
-
     if (ccs_.empty()) {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
     }
@@ -1396,7 +1393,6 @@ namespace OpenMS
       //TODO better to do quick bruteforce calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
-
         Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(curr_cc);
 
@@ -1526,7 +1522,6 @@ namespace OpenMS
         printGraph(LOG_INFO, curr_cc);
        OPENMS_LOG_INFO << "Printed cc " << i << "with intermediate nodes." << std::endl;
         #endif
-
       }
       else
       {

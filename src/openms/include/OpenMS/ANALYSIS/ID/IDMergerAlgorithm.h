@@ -114,14 +114,15 @@ namespace OpenMS
     /// moves and inserts protein IDs if not yet present
     /// then clears the input
     void insertProteinIDs_(
-        std::vector<ProteinIdentification>&& oldProtRuns
+        std::vector<ProteinIdentification>&& old_protRuns
     );
 
-    /// updates the reference to the new protein ID run
+    /// updates the references in pepIDs to the new protein ID run
     /// then moves the peptide IDs based on the
+    /// mapping in
     void updateAndMovePepIDs_(
         std::vector<PeptideIdentification>&& pepIDs,
-        const std::map<String, Size>& runIDToRunIdx,
+        const std::map<String, Size>& runID_to_runIdx,
         const std::vector<StringList>& originFiles,
         bool annotate_origin
     );
@@ -129,7 +130,7 @@ namespace OpenMS
 
     void movePepIDsAndRefProteinsToResultFaster_(
         std::vector<PeptideIdentification>&& pepIDs,
-        std::vector<ProteinIdentification>&& oldProtRuns
+        std::vector<ProteinIdentification>&& old_protRuns
     );
 
     /// the resulting new Protein IDs

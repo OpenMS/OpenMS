@@ -811,7 +811,6 @@ protected:
           //TODO also iterate over all protein ID runs.
           if (prot_ids.size() == 1)
             protein_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, StringList>(prot_ids[0].getHits().begin(), prot_ids[0].getHits().end(), add_id_metavalues);
-
         }
 
         if (sorting_method == "none")
@@ -1233,7 +1232,6 @@ protected:
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
-
         }
 
         if (add_hit_metavalues >= 0)
@@ -1252,7 +1250,6 @@ protected:
           //TODO also iterate over all protein ID runs.
           if (prot_ids.size() == 1)
             protein_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, StringList>(prot_ids[0].getHits().begin(), prot_ids[0].getHits().end(), add_id_metavalues);
-
         }
 
         ofstream txt_out(out.c_str());
@@ -1418,7 +1415,6 @@ protected:
 
       return EXECUTION_OK;
     }
-
   };
 }
 

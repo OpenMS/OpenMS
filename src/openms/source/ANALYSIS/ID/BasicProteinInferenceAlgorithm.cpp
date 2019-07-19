@@ -66,8 +66,6 @@ namespace OpenMS
                                            ProteinIdentification &prot_id) const
   {
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
-
-    // iterate over runs
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
     processRun_(
@@ -76,17 +74,12 @@ namespace OpenMS
         prot_id,
         pep_ids
     );
-
-    //TODO Filtering? I think this should be done separate afterwards with IDFilter
-    //for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides
   }
 
   void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
                                            std::vector<ProteinIdentification> &prot_ids) const
   {
-    std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep{};
-
-    // iterate over runs
+    std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
     for (auto &prot_run : prot_ids)
@@ -97,9 +90,6 @@ namespace OpenMS
           prot_run,
           pep_ids);
     }
-
-    //TODO Filtering? I think this should be done separate afterwards with IDFilter
-    //for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides
   }
 
   void BasicProteinInferenceAlgorithm::processRun_(
