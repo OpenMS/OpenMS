@@ -581,7 +581,6 @@ namespace OpenMS
       // add up all spectra
       if (spectra_addition_method_ == "simple")
       {
-
         // Ensure that we have the same number of data arrays as in the input spectrum
         if (!all_spectra.empty() && all_spectra[0]->getDataArrays().size() > 2)
         {
