@@ -93,6 +93,8 @@ namespace OpenMS
     defaults_.setMinFloat("quantification_cutoff", 0.0);
     defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("write_convex_hull", ListUtils::create<String>("true,false"));
+    defaults_.setValue("spectrum_addition_method", "simple", "For spectrum addition, either use simple concatenation or use peak resampling", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("spectrum_addition_method", {"simple", "resample"});
     defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer)", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("add_up_spectra", 1);
     defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", ListUtils::create<String>("advanced"));
@@ -530,7 +532,7 @@ namespace OpenMS
     expected_rt = newtr.apply(expected_rt);
 
     OpenSwathScoring scorer;
-    scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
+    scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_, spectrum_addition_method_);
 
     ProteaseDigestion pd;
     pd.setEnzyme("Trypsin");
@@ -1019,6 +1021,7 @@ namespace OpenMS
     quantification_cutoff_ = (double)param_.getValue("quantification_cutoff");
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
     add_up_spectra_ = param_.getValue("add_up_spectra");
+    spectrum_addition_method_ = param_.getValue("spectrum_addition_method");
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
     uis_threshold_sn_ = param_.getValue("uis_threshold_sn");
     uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
