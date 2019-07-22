@@ -9,9 +9,23 @@
 #define EVERGREEN_ALWAYS_INLINE inline __attribute__((always_inline))
 #endif
 
-// for convenience:
-#include "../Utility/vector_ostream.hpp"
+// added by jpfeuffer to throw exceptions
+#include <stdexcept>
+#include <sstream>
 
+// added by jpfeuffer to enable header guards before the namespace evergreen
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+#include <iostream>
+#include <iomanip>
+#include <chrono>
+#include <array>
+#include <set>
+#include <cmath>
+#include <list>
+#include <map>
+#include <utility>
 
 // Can be commented out for greater performance; these simply verify
 // shapes of things and will not be very expensive (they are not like
@@ -29,25 +43,28 @@
 // For debugging only (substantially decreases performance):
 //#define BOUNDS_CHECK
 
-// added by jpfeuffer to throw exceptions
-#include <stdexcept>
-#include <sstream>
+namespace evergreen
+{
+  // for convenience:
+  #include "../Utility/vector_ostream.hpp"
 
-// Inference engines:
-#include "../Engine/BeliefPropagationInferenceEngine.hpp"
-#include "BruteForceInferenceEngine.hpp"
+  // Inference engines:
+  #include "../Engine/BeliefPropagationInferenceEngine.hpp"
+  #include "BruteForceInferenceEngine.hpp"
 
-// Standard schedulers:
-#include "../Engine/PriorityScheduler.hpp"
-#include "../Engine/FIFOScheduler.hpp"
-#include "../Engine/RandomSubtreeScheduler.hpp"
+  // Standard schedulers:
+  #include "../Engine/PriorityScheduler.hpp"
+  #include "../Engine/FIFOScheduler.hpp"
+  #include "../Engine/RandomSubtreeScheduler.hpp"
 
-// Standard dependencies:
-#include "AdditiveDependency.hpp"
-#include "PseudoAdditiveDependency.hpp"
-#include "ConstantMultiplierDependency.hpp"
-// TableDependency will already be included.
+  // Standard dependencies:
+  #include "AdditiveDependency.hpp"
+  #include "PseudoAdditiveDependency.hpp"
+  #include "ConstantMultiplierDependency.hpp"
+  // TableDependency will already be included.
 
-#include "BetheInferenceGraphBuilder.hpp"
+  #include "BetheInferenceGraphBuilder.hpp"
+}
+
 
 #endif

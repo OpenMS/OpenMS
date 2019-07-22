@@ -116,7 +116,7 @@ public:
     embed(*this, rhs);
   }
   Tensor(const Tensor & rhs):
-    Tensor( static_cast<const TensorLike<T, ::Tensor> &>(rhs) )
+    Tensor( static_cast<const TensorLike<T, evergreen::Tensor> &>(rhs) )
   { }
 
   Tensor(Tensor<T> && rhs):
@@ -136,7 +136,7 @@ public:
     return *this;
   }
   const Tensor & operator =(const Tensor<T> & rhs) {
-    *this = static_cast<const TensorLike<T, ::Tensor> &>(rhs);
+    *this = static_cast<const TensorLike<T, evergreen::Tensor> &>(rhs);
     return *this;
   }
 
@@ -163,18 +163,18 @@ public:
   // Rewiring other [] operators to TensorLike (unfortunately,
   // the compiler cannot detect the appropriate one on its own):
   const T & operator[](const_tup_t tuple) const {
-    return static_cast<const TensorLike<T, ::Tensor> &>(*this)[tuple];
+    return static_cast<const TensorLike<T, evergreen::Tensor> &>(*this)[tuple];
   }
   T & operator[](const_tup_t tuple) {
-    return static_cast<WritableTensorLike<T, ::Tensor> &>(*this)[tuple];
+    return static_cast<WritableTensorLike<T, evergreen::Tensor> &>(*this)[tuple];
   }
   template <template <typename> class VECTOR>
   const T & operator[](const VectorLike<unsigned long, VECTOR> & tuple) const {
-    return static_cast<const TensorLike<T, ::Tensor> &>(*this)[tuple];
+    return static_cast<const TensorLike<T, evergreen::Tensor> &>(*this)[tuple];
   }
   template <template <typename> class VECTOR>
   T & operator[](const VectorLike<unsigned long, VECTOR> & tuple) {
-    return static_cast<WritableTensorLike<T, ::Tensor> &>(*this)[tuple];
+    return static_cast<WritableTensorLike<T, evergreen::Tensor> &>(*this)[tuple];
   }
 
   unsigned char dimension() const {

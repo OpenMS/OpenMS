@@ -36,7 +36,9 @@
 
 #include <cmath>
 #include <Evergreen/evergreen.hpp>
-#include <Utility/inference_utilities.hpp>
+
+
+using namespace evergreen;
 
 typedef unsigned long int uiint;
 

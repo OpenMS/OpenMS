@@ -13,6 +13,7 @@
 #include "p_norm.hpp"
 #include "any_all.hpp"
 
+
 // Note: Vector<T> is for simple numeric T types; uses aligned_malloc
 // rather than new[], so no constructor is called:
 template <typename T>
@@ -62,7 +63,7 @@ public:
       _data[k] = (T)rhs[k];
   }
   Vector(const Vector<T> & rhs): 
-    Vector( static_cast<const VectorLike<T, ::Vector> &>(rhs) )
+    Vector( static_cast<const VectorLike<T, evergreen::Vector> &>(rhs) )
   { }
 
   Vector(Vector<T> && rhs):
@@ -109,7 +110,7 @@ public:
   // Necessary because = (const&) operator is deleted when = (&&)
   // operator is defined:
   const Vector & operator =(const Vector & rhs) {
-    (*this) = static_cast<const VectorLike<T, ::Vector> &>(rhs);
+    (*this) = static_cast<const VectorLike<T, evergreen::Vector> &>(rhs);
     return *this;
   }
 

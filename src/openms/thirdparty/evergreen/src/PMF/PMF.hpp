@@ -233,7 +233,7 @@ public:
     for (k=0; k<axes_to_keep.size(); ++k)
       new_first_support[k] = _first_support[ axes_to_keep[k] ];
 
-    PMF result( new_first_support, ::marginal(_table, axes_to_keep, p));
+    PMF result( new_first_support, evergreen::marginal(_table, axes_to_keep, p));
     result.add_to_log_normalization_constant( _log_normalization_constant );
     
     return result;
@@ -263,7 +263,7 @@ public:
       new_first_support[i] = _first_support[ new_order[i] ];
     _first_support = std::move(new_first_support);
 
-    ::transpose(_table, new_order);
+    evergreen::transpose(_table, new_order);
   }
 };
 

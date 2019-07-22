@@ -40,6 +40,7 @@
 #include <map>
 #include <unordered_map>
 #include <iostream>
+#include <include/OpenMS/FILTERING/ID/IDFilter.h>
 
 namespace OpenMS
 {
@@ -47,8 +48,8 @@ namespace OpenMS
       DefaultParamHandler("BasicProteinInferenceAlgorithm"),
       ProgressLogger()
   {
-    //registerIntOption_("min_peptides_per_protein", "<num>", 2, "Minimal number of peptides needed for a protein identification", false);
-    //setMinInt_("min_peptides_per_protein", 1);
+    defaults_.setValue("min_peptides_per_protein", 1, "Minimal number of peptides needed for a protein identification");
+    defaults_.setMinInt("min_peptides_per_protein", 1);
     defaults_.setValue("score_aggregation_method",
                        "maximum",
                        "How to aggregate scores of peptides matching to the same protein?");
@@ -98,7 +99,7 @@ namespace OpenMS
       ProteinIdentification& prot_run,
       std::vector<PeptideIdentification>& pep_ids) const
   {
-    //Size min_peptides_per_protein = getIntOption_("min_peptides_per_protein");
+    Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
     bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
@@ -310,6 +311,11 @@ namespace OpenMS
 
     prot_run.setScoreType("Posterior Probability");
     prot_run.setHigherScoreBetter(true);
+    if (min_peptides_per_protein > 0)
+    {
+      IDFilter::removeMatchingItems<std::vector<ProteinHit>>(prot_run.getHits(),
+          IDFilter::HasMaxMetaValue<ProteinHit>("nr_found_peptides", min_peptides_per_protein));
+    }
     //TODO Allow count as aggregation method -> i.e. set as protein score?
   }
 } //namespace OpenMS

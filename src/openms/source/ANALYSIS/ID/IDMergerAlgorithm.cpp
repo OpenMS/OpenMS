@@ -208,23 +208,25 @@ namespace OpenMS
       if (annotate_origin || annotated)
       {
         Size oldFileIdx(0);
+        const StringList& origins = originFiles[runIdxIt->second];
         if (annotated)
         {
           oldFileIdx = pid.getMetaValue("map_index");
         }
+        else if (origins.size() > 1)
+        {
           // If there is more than one possible file it might be from
           // and it is not annotated -> fail
-        else if (originFiles[runIdxIt->second].size() > 1)
-          {
-            throw Exception::MissingInformation(
-                __FILE__,
-                __LINE__,
-                OPENMS_PRETTY_FUNCTION,
-                "Trying to annotate new map_index for PeptideIdentification "
-                "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
-                "no old map_index present");
-          }
-        if (oldFileIdx >= originFiles[runIdxIt->second].size())
+          throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "Trying to annotate new map_index for PeptideIdentification "
+              "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
+              "no old map_index present");
+        }
+
+        if (oldFileIdx >= origins.size())
         {
           throw Exception::MissingInformation(
               __FILE__,
@@ -234,7 +236,7 @@ namespace OpenMS
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
               " the index exceeds the number of files in the run.");
         }
-        pid.setMetaValue("map_index", file_origin_to_idx_[originFiles[runIdxIt->second][oldFileIdx]]);
+        pid.setMetaValue("map_index", file_origin_to_idx_[origins[oldFileIdx]]);
       }
       pid.setIdentifier(prot_result_.getIdentifier());
       //move peptides into right vector

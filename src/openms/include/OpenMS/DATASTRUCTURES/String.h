@@ -567,7 +567,7 @@ namespace std
   template<>
   struct hash<OpenMS::String> //hash for String
   {
-    OPENMS_DLLAPI size_t operator()(const OpenMS::String &s) const
+    std::size_t operator()(const OpenMS::String &s) const
     {
       return std::hash<std::string>()(static_cast<std::string>(s));
     }

@@ -32,12 +32,12 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/openms_package_version.h>
@@ -56,7 +56,7 @@ namespace OpenMS
       public std::function<unsigned long(IDBoostGraph::Graph&)> */
   {
   public:
-    //TODO think about restructuring params (we do not need every param from the BPI class here.
+    //TODO think about restructuring the passed params (we do not need every param from the BPI class here.
     const Param& param_;
     unsigned int debug_lvl_;
     unsigned long cnt_;
@@ -103,7 +103,7 @@ namespace OpenMS
         std::vector<IDBoostGraph::vertex_t> in{};
         //std::vector<IDBoostGraph::vertex_t> out{};
 
-        //TODO the try section could in theory be slimmed down a little bit. First use of insertDependency maybe.
+        //TODO the try section could in theory be slimmed down a little bit. Start at first use of insertDependency maybe.
         // check performance impact.
         try
         {
@@ -234,7 +234,7 @@ namespace OpenMS
         {
           //TODO print failing component and implement the following options
           // 1) Leave posteriors (e.g. if Percolator was ran before. Make sure they are PPs not PEPs)
-          // 2) set posteriors to priors
+          // 2) set posteriors to priors (implicitly done right now)
           // 3) try another type of inference on that connected component. Different scheduler,
           //    different extreme probabilities or maybe best: trivial aggregation-based inference.
           // 4) Cancelling this and all other threads/ the loop and call this set of parameters invalid
@@ -255,7 +255,7 @@ namespace OpenMS
                 , std::ofstream::out | std::ofstream::app);
             IDBoostGraph::printGraph(ofs, fg);
           }
-         OPENMS_LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
+          std::cout << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
                       " inference there." << std::endl;
           return 0;
         }
@@ -403,7 +403,7 @@ namespace OpenMS
 
           // Graph builder needs to build otherwise it leaks memory.
           bigb.to_graph();
-         OPENMS_LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
+          std::cout << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
                       "inference there." << std::endl;
           return 0;
         }
@@ -431,7 +431,7 @@ namespace OpenMS
 
     double operator() (double alpha, double beta, double gamma)
     {
-     OPENMS_LOG_INFO << "Evaluating: " << alpha << " " << beta << " " << gamma << std::endl;
+      OPENMS_LOG_INFO << "Evaluating: " << alpha << " " << beta << " " << gamma << std::endl;
       param_.setValue("model_parameters:prot_prior", gamma);
       param_.setValue("model_parameters:pep_emission", alpha);
       param_.setValue("model_parameters:pep_spurious_emission", beta);
@@ -576,7 +576,7 @@ namespace OpenMS
     defaults_.setMaxFloat("loopy_belief_propagation:dampening_lambda", 0.5);
 
     defaults_.setValue("loopy_belief_propagation:max_nr_iterations",
-                       1ul<<31,
+                       (1ul<<31)-1,
                        "(Unused, autodetermined) If not all messages converge, how many iterations should be done at max?");
     //I think restricting does not work because it only works for type Int (= int)
     //defaults_.setMinInt("loopy_belief_propagation:max_nr_iterations", 10);
@@ -767,8 +767,8 @@ namespace OpenMS
     double bestGamma = gamma_search[bestParams[2]];
     double bestBeta = beta_search[bestParams[1]];
     double bestAlpha = alpha_search[bestParams[0]];
-    std::cout << "Best params found at a=" << bestAlpha << ", b=" << bestBeta << ", g=" << bestGamma << std::endl;
-    std::cout << "Running with best parameters:" << std::endl;
+    OPENMS_LOG_INFO << "Best params found at a=" << bestAlpha << ", b=" << bestBeta << ", g=" << bestGamma << std::endl;
+    OPENMS_LOG_INFO << "Running with best parameters:" << std::endl;
     param_.setValue("model_parameters:prot_prior", bestGamma);
     param_.setValue("model_parameters:pep_emission", bestAlpha);
     param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
@@ -907,13 +907,13 @@ namespace OpenMS
       }
     }
 
-   OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
+    OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
 
     setScoreTypeAndSettings_(proteinIDs[0]);
     IDBoostGraph ibg(proteinIDs[0], peptideIDs, nr_top_psms, use_run_info, exp_des);
     inferPosteriorProbabilities_(ibg);
 
-   OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
+    OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
   }
 
 }

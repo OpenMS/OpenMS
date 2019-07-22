@@ -361,8 +361,8 @@ LabeledPMF<VARIABLE_KEY> mult_or_div(const LabeledPMF<VARIABLE_KEY> & lhs, const
     for (unsigned char i=0; i<intersection_size; ++i)
       new_rhs_order[unique_rhs_dims+i] = rhs.variable_index(new_variable_order[unique_lhs_dims+unique_rhs_dims+i]);
 
-    ::transpose(lhs_part, new_lhs_order);
-    ::transpose(rhs_part, new_rhs_order);
+    evergreen::transpose(lhs_part, new_lhs_order);
+    evergreen::transpose(rhs_part, new_rhs_order);
 
     // Compute the first support of the result distribution:
     for (unsigned char i=0; i<unique_lhs_dims; ++i) {

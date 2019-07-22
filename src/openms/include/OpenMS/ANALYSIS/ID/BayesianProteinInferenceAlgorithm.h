@@ -35,7 +35,6 @@
 
 //#define INFERENCE_BENCH
 
-#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -133,9 +132,6 @@ namespace OpenMS
     /// function initialized based on the algorithm parameters that is used to filter PeptideHits
     /// @todo extend to allow filtering only for the current run
     std::function<void(PeptideIdentification&/*, const String& run_id*/)> checkConvertAndFilterPepHits_;
-
-    /// The grid search object initialized with a default grid
-    GridSearch<double,double,double> grid{{0.008,0.032,0.128},{0.001},{0.5}};
 
     unsigned int debug_lvl_;
 

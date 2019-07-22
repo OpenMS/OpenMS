@@ -499,7 +499,7 @@ protected:
         {
           MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
             transformations[i]);
-        } catch (Exception::IllegalArgument e)
+        } catch (Exception::IllegalArgument& e)
         {
          OPENMS_LOG_WARN << e.getMessage() << endl;
         }

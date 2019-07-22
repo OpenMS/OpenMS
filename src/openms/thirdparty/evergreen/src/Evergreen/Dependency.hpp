@@ -18,7 +18,7 @@ public:
   // hyperedges.
   virtual MessagePasser<VARIABLE_KEY>* create_message_passer(InferenceGraphBuilder<VARIABLE_KEY> & igb) const = 0;
   
-  virtual std::vector<VARIABLE_KEY> get_all_variables_used() const = 0;
+  //virtual std::vector<VARIABLE_KEY> get_all_variables_used() const = 0;
   
   virtual ~Dependency() {}
 };
