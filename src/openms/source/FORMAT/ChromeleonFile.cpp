@@ -59,6 +59,7 @@ namespace OpenMS
     boost::regex re_signal_unit("^Signal Unit\t(.+)", boost::regex::no_mod_s);
     boost::regex re_signal_info("^Signal Info\t(.+)", boost::regex::no_mod_s);
     boost::regex re_raw_data("^Raw Data:", boost::regex::no_mod_s);
+    boost::regex re_chromatogram_data("^Chromatogram Data:", boost::regex::no_mod_s);
     while (!ifs.eof())
     {
       ifs.getline(line, BUFSIZE);
@@ -102,7 +103,8 @@ namespace OpenMS
       {
         experiment.setMetaValue("signal_info", std::string(m[1]));
       }
-      else if (boost::regex_search(line, m, re_raw_data))
+      else if (boost::regex_search(line, m, re_raw_data) ||
+               boost::regex_search(line, m, re_chromatogram_data))
       {
         ifs.getline(line, BUFSIZE); // remove the subsequent line, right before the raw data
         break;
@@ -112,7 +114,7 @@ namespace OpenMS
     {
       ifs.getline(line, BUFSIZE);
       double rt, intensity;
-      int ret = std::sscanf(line, "%lf\t%*f\t%lf", &rt, &intensity);
+      int ret = std::sscanf(line, "%lf\t%*s\t%lf", &rt, &intensity);
       if (ret == 2)
       {
         chromatogram.push_back(ChromatogramPeak(rt, intensity));
