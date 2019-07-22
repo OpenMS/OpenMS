@@ -430,8 +430,9 @@ protected:
     ProteinIdentification::SearchParameters sp;
     sp.db = getStringOption_("database");
     //sp.charges = getIntList_("charge"); //dont know. Seems like tide doesnt support ranges and usually searches all?
-    sp.fixed_modifications = getStringList_("fixed_modifications");
-    sp.variable_modifications = getStringList_("variable_modifications");
+    //TODO input options do not follow our standard so we cant just copy here
+    sp.fixed_modifications = {}; //getStringList_("fixed_modifications");
+    sp.variable_modifications = {}; //getStringList_("variable_modifications");
     sp.missed_cleavages = getIntOption_("allowed_missed_cleavages");
     sp.fragment_mass_tolerance = getDoubleOption_("fragment_bin_width");
     sp.fragment_mass_tolerance_ppm = "Da";

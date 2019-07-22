@@ -48,8 +48,8 @@ namespace OpenMS
       DefaultParamHandler("BasicProteinInferenceAlgorithm"),
       ProgressLogger()
   {
-    defaults_.setValue("min_peptides_per_protein", 1, "Minimal number of peptides needed for a protein identification");
-    defaults_.setMinInt("min_peptides_per_protein", 1);
+    defaults_.setValue("min_peptides_per_protein", 1, "Minimal number of peptides needed for a protein identification. If set to zero, unmatched proteins get a score of -Infinity.");
+    defaults_.setMinInt("min_peptides_per_protein", 0);
     defaults_.setValue("score_aggregation_method",
                        "maximum",
                        "How to aggregate scores of peptides matching to the same protein?");

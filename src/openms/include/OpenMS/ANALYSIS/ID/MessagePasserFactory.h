@@ -38,7 +38,13 @@
 #include <Evergreen/evergreen.hpp>
 
 
-using namespace evergreen;
+using evergreen::TableDependency;
+using evergreen::AdditiveDependency;
+using evergreen::PseudoAdditiveDependency;
+using evergreen::InferenceGraphBuilder;
+using evergreen::LabeledPMF;
+using evergreen::Tensor;
+using evergreen::PMF;
 
 typedef unsigned long int uiint;
 
@@ -63,7 +69,7 @@ namespace OpenMS
     /// to fill the noisy-OR table for a peptide given parent proteins
     inline double notConditionalGivenSum(unsigned long summ) {
       // use log for better precision
-      return pow(2., log2(1. - beta_) + summ * log2(1. - alpha_));
+      return std::pow(2., log2(1. - beta_) + summ * log2(1. - alpha_));
       //return std::pow((1.0 - alpha_), summ) * (1.0 - beta_);
     }
 

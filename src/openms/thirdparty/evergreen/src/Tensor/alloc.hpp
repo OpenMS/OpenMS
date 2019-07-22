@@ -1,8 +1,8 @@
 #ifndef _ALLOC_HPP
 #define _ALLOC_HPP
 
-#include <stdlib.h>
-#include <stdio.h>
+//#include <stdlib.h>
+//#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #ifdef _MSC_VER

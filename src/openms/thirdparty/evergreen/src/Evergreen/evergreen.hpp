@@ -26,6 +26,10 @@
 #include <list>
 #include <map>
 #include <utility>
+#include <algorithm>
+#include <functional>
+#include <assert.h>
+#include <string.h>
 
 // Can be commented out for greater performance; these simply verify
 // shapes of things and will not be very expensive (they are not like

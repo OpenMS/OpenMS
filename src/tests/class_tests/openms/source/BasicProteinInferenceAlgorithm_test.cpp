@@ -49,6 +49,9 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BasicProteinInferenceAlgorithm bpia;
+      Param p = bpia.getParameters();
+      p.setValue("min_peptides_per_protein", 0);
+      bpia.setParameters(p);
       bpia.run(peps, prots);
       TEST_EQUAL(prots[0].getHits()[0].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[1].getScore(), 0.6)
@@ -75,6 +78,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       BasicProteinInferenceAlgorithm bpia;
       Param p = bpia.getParameters();
       p.setValue("use_shared_peptides","false");
+      p.setValue("min_peptides_per_protein", 0);
       bpia.setParameters(p);
       bpia.run(peps, prots);
       TEST_EQUAL(prots[0].getHits()[0].getScore(), -std::numeric_limits<float>::infinity())

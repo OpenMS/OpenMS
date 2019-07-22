@@ -39,11 +39,12 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/openms_package_version.h>
 
 #include <set>
-#include <include/OpenMS/FILTERING/ID/IDFilter.h>
+
 
 
 using namespace std;
@@ -90,7 +91,7 @@ namespace OpenMS
                                                  param_.getValue("model_parameters:prot_prior"),
                                                  pnorm,
                                                  param_.getValue("model_parameters:pep_prior")); // the p used for marginalization: 1 = sum product, inf = max product
-        BetheInferenceGraphBuilder<IDBoostGraph::vertex_t> bigb;
+        evergreen::BetheInferenceGraphBuilder<IDBoostGraph::vertex_t> bigb;
 
         IDBoostGraph::Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
@@ -181,7 +182,7 @@ namespace OpenMS
           }
 
           // create factor graph for Bayesian network
-          InferenceGraph < IDBoostGraph::vertex_t > ig = bigb.to_graph();
+          evergreen::InferenceGraph < IDBoostGraph::vertex_t > ig = bigb.to_graph();
           graph_mp_ownership_acquired = true;
 
           unsigned long maxMessages = param_
@@ -193,12 +194,12 @@ namespace OpenMS
           unsigned long nrEdges = boost::num_edges(fg);
 
           //TODO parametrize the type of scheduler.
-          PriorityScheduler<IDBoostGraph::vertex_t> scheduler(initDampeningLambda,
+          evergreen::PriorityScheduler<IDBoostGraph::vertex_t> scheduler(initDampeningLambda,
                                                               initConvergenceThreshold,
                                                               maxMessages);
           scheduler.add_ab_initio_edges(ig);
 
-          BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
+          evergreen::BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
 
           auto posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
               {
@@ -216,7 +217,7 @@ namespace OpenMS
             double posterior = 1.0;
             IDBoostGraph::SetPosteriorVisitor pv;
             IDBoostGraph::vertex_t nodeId = posteriorFactor.ordered_variables()[0];
-            const PMF &pmf = posteriorFactor.pmf();
+            const evergreen::PMF &pmf = posteriorFactor.pmf();
             // If Index 0 is in the range of this result PMFFactor is probability is non-zero
             // and the prob of presence is 1-P(p=0). Important in multi-value factors like protein groups.
             if (0 >= pmf.first_support()[0] && 0 <= pmf.last_support()[0])
@@ -299,7 +300,7 @@ namespace OpenMS
                                                  pnorm,
                                                  param_.getValue("model_parameters:pep_prior")); // the p used for marginalization: 1 = sum product, inf = max product
 
-        BetheInferenceGraphBuilder<IDBoostGraph::vertex_t> bigb;
+        evergreen::BetheInferenceGraphBuilder<IDBoostGraph::vertex_t> bigb;
 
         IDBoostGraph::Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
@@ -364,15 +365,15 @@ namespace OpenMS
           }
 
           // create factor graph for Bayesian network
-          InferenceGraph<IDBoostGraph::vertex_t> ig = bigb.to_graph();
+          evergreen::InferenceGraph<IDBoostGraph::vertex_t> ig = bigb.to_graph();
 
           //TODO parametrize the type of scheduler.
-          PriorityScheduler<IDBoostGraph::vertex_t> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
+          evergreen::PriorityScheduler<IDBoostGraph::vertex_t> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
                                                      param_.getValue("loopy_belief_propagation:convergence_threshold"),
                                                      param_.getValue("loopy_belief_propagation:max_nr_iterations"));
           scheduler.add_ab_initio_edges(ig);
 
-          BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
+          evergreen::BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
 
           auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
 
@@ -382,7 +383,7 @@ namespace OpenMS
             double posterior = 0.0;
             IDBoostGraph::SetPosteriorVisitor pv;
             unsigned long nodeId = posteriorFactor.ordered_variables()[0];
-            const PMF &pmf = posteriorFactor.pmf();
+            const evergreen::PMF &pmf = posteriorFactor.pmf();
             // If Index 1 is in the range of this result PMFFactor it is non-zero
             if (1 >= pmf.first_support()[0] && 1 <= pmf.last_support()[0])
             {
