@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ChromeleonFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 namespace OpenMS
 {
@@ -47,21 +48,21 @@ namespace OpenMS
     String line;
     MSChromatogram chromatogram;
     boost::smatch m;
-    boost::regex re_channel("^Channel\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_injection("^Injection\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_processing_method("^Processing Method\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_instrument_method("^Instrument Method\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_injection_date("^Injection Date\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_injection_time("^Injection Time\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_detector("^Detector\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_signal_quantity("^Signal Quantity\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_signal_unit("^Signal Unit\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_signal_info("^Signal Info\t(.*)\r?", boost::regex::no_mod_s);
-    boost::regex re_raw_data("^Raw Data:\r?", boost::regex::no_mod_s);
-    boost::regex re_chromatogram_data("^Chromatogram Data:\r?", boost::regex::no_mod_s);
+    boost::regex re_channel("^Channel\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_injection("^Injection\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_processing_method("^Processing Method\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_instrument_method("^Instrument Method\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_injection_date("^Injection Date\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_injection_time("^Injection Time\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_detector("^Detector\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_signal_quantity("^Signal Quantity\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_signal_unit("^Signal Unit\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_signal_info("^Signal Info\t(.*)", boost::regex::no_mod_s);
+    boost::regex re_raw_data("^Raw Data:", boost::regex::no_mod_s);
+    boost::regex re_chromatogram_data("^Chromatogram Data:", boost::regex::no_mod_s);
     while (!ifs.eof())
     {
-      std::getline(ifs, line);
+      TextFile::getLine(ifs, line);
       if (boost::regex_match(line, m, re_injection))
       {
         experiment.setMetaValue("mzml_id", m.str(1));
@@ -105,20 +106,20 @@ namespace OpenMS
       else if (boost::regex_match(line, m, re_raw_data) ||
                boost::regex_match(line, m, re_chromatogram_data))
       {
-        std::getline(ifs, line); // remove the subsequent line, right before the raw data
+        TextFile::getLine(ifs, line); // remove the subsequent line, right before the raw data
         break;
       }
     }
     while (!ifs.eof())
     {
-      std::getline(ifs, line);
+      TextFile::getLine(ifs, line);
       double rt, intensity;
       int ret = std::sscanf(line.c_str(), "%lf\t%*s\t%lf", &rt, &intensity);
       if (ret == 2)
       {
         chromatogram.push_back(ChromatogramPeak(rt, intensity));
       }
-      else if (line == "\r" || line == "")
+      else if (line.empty())
       {
         continue; // skips eventual empty lines, eg. the last before EOF
       }
