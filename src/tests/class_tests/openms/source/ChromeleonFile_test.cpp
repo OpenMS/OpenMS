@@ -123,7 +123,7 @@ END_SECTION
 
 START_SECTION(load_with_new_raw_data_header)
 {
-  String input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_test_new_header.txt");
+  String input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_new_header.txt");
   MSExperiment experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);
@@ -134,9 +134,9 @@ START_SECTION(load_with_new_raw_data_header)
   TEST_EQUAL(experiment.getMetaValue("injection_date"), "13/06/2019")
   TEST_EQUAL(experiment.getMetaValue("injection_time"), "12:11:41 AM")
   TEST_EQUAL(experiment.getMetaValue("detector"), "LCSystem")
-  TEST_EQUAL(experiment.getMetaValue("signal_quantity").toString(), "")
+  TEST_EQUAL(experiment.getMetaValue("signal_quantity"), "")
   TEST_EQUAL(experiment.getMetaValue("signal_unit"), "nRIU")
-  TEST_EQUAL(experiment.getMetaValue("signal_info").toString(), "")
+  TEST_EQUAL(experiment.getMetaValue("signal_info"), "")
   const vector<MSChromatogram> chromatograms = experiment.getChromatograms();
   TEST_EQUAL(chromatograms.size(), 1);
   TEST_EQUAL(chromatograms[0].size(), 10);
