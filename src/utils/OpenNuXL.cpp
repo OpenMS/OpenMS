@@ -3921,6 +3921,7 @@ static void scoreShiftedFragments_(
 
       // generate filtered results
       IDFilter::keepNBestHits(peptide_ids, 1);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
       // split PSMs into XLs and non-XLs but keep only best one of both
       vector<PeptideIdentification> pep_pi;
@@ -3959,8 +3960,16 @@ static void scoreShiftedFragments_(
       }
       String out2(out_idxml);
       out2.substitute(".idXML", "_");
-      IdXMLFile().store(out2 + String::number(XL_FDR, 4) + "_XLs.idXML", protein_ids, xl_pi);
-      IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", protein_ids, pep_pi);
+      {
+        vector<ProteinIdentification> tmp_prots = protein_ids;
+        IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
+        IdXMLFile().store(out2 + String::number(XL_FDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
+      }
+      {
+        vector<ProteinIdentification> tmp_prots = protein_ids;
+        IDFilter::removeUnreferencedProteins(tmp_prots, pep_pi);
+        IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", tmp_prots, pep_pi);
+      }
 
       String percolator_executable = getStringOption_("percolator_executable");
       if (!percolator_executable.empty())
@@ -3992,6 +4001,7 @@ static void scoreShiftedFragments_(
  
           // generate filtered results
           IDFilter::keepNBestHits(peptide_ids, 1);
+          IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
           // split PSMs into XLs and non-XLs but keep only best one of both
           vector<PeptideIdentification> pep_pi;
@@ -4029,8 +4039,16 @@ static void scoreShiftedFragments_(
           }
           String out2(out_idxml);
           out2.substitute(".idXML", "_perc_");
-          IdXMLFile().store(out2 + String::number(XL_FDR, 4) + "_XLs.idXML", protein_ids, xl_pi);
-          IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", protein_ids, pep_pi);
+          {
+            vector<ProteinIdentification> tmp_prots = protein_ids;
+            IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
+            IdXMLFile().store(out2 + String::number(XL_FDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
+          }
+          {
+            vector<ProteinIdentification> tmp_prots = protein_ids;
+            IDFilter::removeUnreferencedProteins(tmp_prots, pep_pi);
+            IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", tmp_prots, pep_pi);
+          }
         }
       }
     }
