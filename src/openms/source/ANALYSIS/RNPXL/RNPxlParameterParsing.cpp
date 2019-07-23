@@ -229,9 +229,9 @@ RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_
 
 MS2AdductsOfSinglePrecursorAdduct
 RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
-                                                               const String &exp_pc_formula,
-                                                               const RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
-                                                               const set<char> &can_xl)
+  const String &exp_pc_formula,
+  const RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
+  const set<char> &can_xl)
 {
   OPENMS_LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
 
@@ -309,7 +309,10 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
     for (auto const & n2fa : nucleotide_to_fragment_adducts)
     {
       const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
-      if (exp_pc_nucleotide_count.find(nucleotide) != exp_pc_nucleotide_count.end()) { marker_ion_set.insert(n2fa.second.begin(), n2fa.second.end()); }
+      if (exp_pc_nucleotide_count.find(nucleotide) != exp_pc_nucleotide_count.end()) 
+      { 
+        marker_ion_set.insert(n2fa.second.begin(), n2fa.second.end()); 
+      }
     }
     std::move(std::begin(marker_ion_set), std::end(marker_ion_set), std::back_inserter(ret.marker_ions));
   }

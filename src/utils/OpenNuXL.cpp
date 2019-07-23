@@ -107,7 +107,6 @@
 using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
-
 // stores which residues (known to give rise to immonium ions) are in the sequence
 struct ImmoniumIonsInPeptide
 {
@@ -376,6 +375,8 @@ public:
   static constexpr double MIN_HYPERSCORE = 0.1; // hit's with lower score than this will be neglected (usually 1 or 0 matches)
   static constexpr double MIN_TOTAL_LOSS_IONS = 1; // minimum number of matches to unshifted ions
   static constexpr double MIN_SHIFTED_IONS = 1; // minimum number of matches to shifted ions (applies to XLs only)
+  static constexpr Size IA_CHARGE_INDEX = 0;
+  static constexpr Size IA_TAG_INDEX = 1;
 protected:
 
   void registerOptionsAndFlags_() override
@@ -1171,7 +1172,8 @@ protected:
     const double nucleotide_mass_tags/*,
     const double fraction_of_top50annotated*/)
   {
-    return + 1.0 * ah.total_loss_score;
+    return + 1.0 * ah.total_loss_score + 0.01 * ah.total_MIC + 0.01 * ah.mass_error_p 
+           - 0.01 * ah.isotope_error - ah.err - ah.pl_err;
 /*
      double score = 2.52872532
                    +0.38318303 * nucleotide_mass_tags;
@@ -1268,9 +1270,9 @@ static void scoreShiftedFragments_(
       auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
-                                             exp_spectrum.getIntegerDataArrays()[0],
+                                             exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
                                              marker_ions_sub_score_spectrum_z1,
-                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0]);
+                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[IA_CHARGE_INDEX]);
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
     }
 
@@ -1284,7 +1286,7 @@ static void scoreShiftedFragments_(
                       fragment_mass_tolerance, 
                       fragment_mass_tolerance_unit_ppm, 
                       exp_spectrum, 
-                      exp_spectrum.getIntegerDataArrays()[0],
+                      exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
                       intensity_sum,
                       matched_peaks,
                       partial_loss_sub_score,
@@ -1323,7 +1325,7 @@ static void scoreShiftedFragments_(
       vector<double> mzs;
       vector<double> charges;
       for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
-      for (auto const& p : spec.getIntegerDataArrays()[0]) { charges.push_back(p); }
+      for (auto const& p : spec.getIntegerDataArrays()[IA_CHARGE_INDEX]) { charges.push_back(p); }
  
       Size match(0), in_mass_range(0);
       for (Size i = 0; i != mzs.size(); ++i)
@@ -1359,8 +1361,8 @@ static void scoreShiftedFragments_(
       sort(idx.begin(), idx.end(),
         [&spec](size_t i1, size_t i2) { return spec[i1].getIntensity() > spec[i2].getIntensity(); });
       
-      for (int rank : idx) spec.getIntegerDataArrays()[1].push_back(rank);
-      spec.getIntegerDataArrays()[1].setName("intensity_rank");
+      for (int rank : idx) spec.getIntegerDataArrays()[IA_TAG_INDEX].push_back(rank);
+      spec.getIntegerDataArrays()[IA_TAG_INDEX].setName("intensity_rank");
       
     }
   }
@@ -1430,7 +1432,7 @@ static void scoreShiftedFragments_(
       { 
         // set Unknown charge to z=1. Otherwise we get a lot of spurious matches 
         // to highly charged fragments in the low m/z region
-        DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[0]; // charge array
+        DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[IA_CHARGE_INDEX]; // charge array
         for (int & z : ia) { if (z == 0) { z = 1; } }
       } 
     #ifdef DEBUG_OpenNuXL
@@ -1655,7 +1657,7 @@ static void scoreShiftedFragments_(
         RNPxlFragmentIonGenerator::addMS2MarkerIons(
           marker_ions,
           marker_ions_sub_score_spectrum_z1,
-          marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0],
+          marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[IA_CHARGE_INDEX],
           marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
 
         const PeakSpectrum& exp_spectrum = exp[scan_index];
@@ -1810,7 +1812,7 @@ static void scoreShiftedFragments_(
         RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
           unmodified_sequence,
           total_loss_spectrum, 
-          total_loss_spectrum.getIntegerDataArrays()[0],
+          total_loss_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
           total_loss_spectrum.getStringDataArrays()[0]);
         total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
 
@@ -1837,7 +1839,7 @@ static void scoreShiftedFragments_(
          RNPxlFragmentIonGenerator::addMS2MarkerIons(
            marker_ions,
            partial_loss_spectrum,
-           partial_loss_spectrum.getIntegerDataArrays()[0],
+           partial_loss_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
            partial_loss_spectrum.getStringDataArrays()[0]);
 
         partial_loss_spectrum.sortByPosition(); // need to resort after adding marker ions
@@ -1867,12 +1869,12 @@ static void scoreShiftedFragments_(
           fragment_mass_tolerance_unit_ppm, 
           total_loss_spectrum, 
           exp_spectrum, 
-          total_loss_spectrum.getIntegerDataArrays()[0], 
-          exp_spectrum.getIntegerDataArrays()[0], 
+          total_loss_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX], 
+          exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX], 
           ppm_error_array);
 
         const PeakSpectrum::StringDataArray& total_loss_annotations = total_loss_spectrum.getStringDataArrays()[0];
-        const PeakSpectrum::IntegerDataArray& total_loss_charges = total_loss_spectrum.getIntegerDataArrays()[0];
+        const PeakSpectrum::IntegerDataArray& total_loss_charges = total_loss_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX];
 
         for (auto const & aligned : alignment)
         {
@@ -1886,7 +1888,7 @@ static void scoreShiftedFragments_(
           const String& ion_name = total_loss_annotations[aligned.first];
           const int charge = total_loss_charges[aligned.first];
 
-          OPENMS_PRECONDITION(exp_spectrum.getIntegerDataArrays().back()[fragment_index] == charge, "Charges in alignment must match.");
+          OPENMS_PRECONDITION(exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX][fragment_index] == charge, "Charges in alignment must match.");
 
           // define which ion names are annotated
           if (ion_name[0] == 'y')
@@ -2037,12 +2039,12 @@ static void scoreShiftedFragments_(
           fragment_mass_tolerance_unit_ppm, 
           partial_loss_spectrum, 
           exp_spectrum, 
-          partial_loss_spectrum.getIntegerDataArrays()[0], 
-          exp_spectrum.getIntegerDataArrays()[0], 
+          partial_loss_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX], 
+          exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX], 
           ppm_error_array);
 
         const PeakSpectrum::StringDataArray& partial_loss_annotations = partial_loss_spectrum.getStringDataArrays()[0];
-        const PeakSpectrum::IntegerDataArray& partial_loss_charges = partial_loss_spectrum.getIntegerDataArrays()[0];
+        const PeakSpectrum::IntegerDataArray& partial_loss_charges = partial_loss_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX];
 
         if (alignment.empty())
         {
@@ -2060,7 +2062,7 @@ static void scoreShiftedFragments_(
           const Peak1D & fragment = exp_spectrum[fragment_index];
           const double & fragment_intensity = fragment.getIntensity(); // in percent (%)
           const double & fragment_mz = fragment.getMZ();
-          const int & fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
+          const int & fragment_charge = exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX][fragment_index];
           #ifdef DEBUG_OpenNuXL
             OPENMS_LOG_DEBUG << "fragment_mz:" << fragment_mz << " fragment_charge:" << fragment_charge << endl; 
           #endif
@@ -2614,7 +2616,42 @@ static void scoreShiftedFragments_(
           purities);
       }
     }
+    // hits have rank and are sorted by score
 
+    map<String, Size> sequence_is_topPSM;
+    map<String, set<int>> sequence_charges; // of top PSM
+    map<String, Size> sequence_is_XL;
+    map<String, Size> sequence_is_peptide;
+    for (const auto & pid : peptide_ids)
+    {
+      if (pid.getHits().empty()) continue;
+      const auto & top_hit = pid.getHits()[0];
+      const String& unmodified_sequence = top_hit.getSequence().toUnmodifiedString();
+      ++sequence_is_topPSM[unmodified_sequence];
+      sequence_charges[unmodified_sequence].insert(top_hit.getCharge());
+      if (static_cast<int>(top_hit.getMetaValue("NuXL:isXL")) == 1)
+      {
+        ++sequence_is_XL[unmodified_sequence];
+      }
+      else
+      {
+        ++sequence_is_peptide[unmodified_sequence];
+      }
+    }
+    for (auto & pid : peptide_ids)
+    {
+      for (auto & ph : pid.getHits())
+      {
+        const String& unmodified_sequence = ph.getSequence().toUnmodifiedString();
+        if (sequence_is_topPSM.find(unmodified_sequence) != sequence_is_topPSM.end())
+        {  
+          ph.setMetaValue("CountSequenceIsTop", sequence_is_topPSM[unmodified_sequence]);
+          ph.setMetaValue("CountSequenceCharges", sequence_charges[unmodified_sequence].size());
+          ph.setMetaValue("CountSequenceIsXL", sequence_is_XL[unmodified_sequence]);
+          ph.setMetaValue("CountSequenceIsPeptide", sequence_is_peptide[unmodified_sequence]);
+        }
+      }
+    }
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
@@ -2741,7 +2778,12 @@ static void scoreShiftedFragments_(
        << "precursor_intensity_log10"
        << "NuXL:NA_MASS_z0"
        << "NuXL:NA_length"   
-       << "nucleotide_mass_tags";
+       << "nucleotide_mass_tags"
+       << "CountSequenceIsTop"
+       << "CountSequenceCharges"
+       << "CountSequenceIsXL"
+       << "CountSequenceIsPeptide";
+
        if (!purities.empty()) feature_set << "precursor_purity";
     // one-hot encoding of cross-linked nucleotide
     const String can_cross_link = getStringOption_("RNPxl:can_cross_link");
@@ -2850,7 +2892,7 @@ static void scoreShiftedFragments_(
 
     scorePeptideIons_(
       exp_spectrum, 
-      exp_spectrum.getIntegerDataArrays()[0],
+      exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
       total_loss_template_z1_b_ions,
       total_loss_template_z1_y_ions,
       current_peptide_mass_without_NA,
@@ -3465,7 +3507,7 @@ static void scoreShiftedFragments_(
                   vector<bool> peak_matched(exp_spectrum.size(), false);
                   scorePeptideIons_(
                     exp_spectrum, 
-                    exp_spectrum.getIntegerDataArrays()[0],
+                    exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
                     total_loss_template_z1_b_ions,
                     total_loss_template_z1_y_ions,
                     current_peptide_mass_without_NA,
@@ -3568,13 +3610,13 @@ static void scoreShiftedFragments_(
                   const vector<RNPxlFragmentAdductDefinition>& partial_loss_modification = nuc_2_adducts.second;
 
                   PeakSpectrum marker_ions_sub_score_spectrum_z1;
-                  // add shifted marker ions
+                  // add shifted marker ions of charge 1
                   marker_ions_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
-                  marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation
+                  marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation                   
                   RNPxlFragmentIonGenerator::addMS2MarkerIons(
                     marker_ions,
                     marker_ions_sub_score_spectrum_z1,
-                    marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0],
+                    marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[IA_CHARGE_INDEX],
                     marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
 
                   // nucleotide is associated with certain NA-related fragment losses?
@@ -3607,7 +3649,7 @@ static void scoreShiftedFragments_(
 
                     scorePeptideIons_(
                       exp_spectrum, 
-                      exp_spectrum.getIntegerDataArrays()[0],
+                      exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
                       total_loss_template_z1_b_ions,
                       total_loss_template_z1_y_ions,
                       current_peptide_mass_without_NA,
@@ -3927,12 +3969,18 @@ static void scoreShiftedFragments_(
         String perc_out = out_idxml;
         perc_out.substitute(".idXML", "_perc.idXML");
         QStringList process_params;
-        process_params << "-percolator_executable" << percolator_executable.toQString()
-                       << "-train_best_positive" 
+        process_params << "-in" << out_idxml.toQString()
+                       << "-out" << perc_out.toQString()
+                       << "-percolator_executable" << percolator_executable.toQString()
+                       << "-train-best-positive" 
                        << "-score_type" << "svm"
-                       << "-in" << out_idxml.toQString()
-                       << "-out" << perc_out.toQString();
-        TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable.toQString(), process_params);
+                       << "-post-processing-tdc"
+#if DEBUG_OpenNuXL
+                       << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab"
+#endif
+                       ;
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
+
         if (exit_code != EXECUTION_OK) 
         { 
           OPENMS_LOG_WARN << "Score recalibration failed." << endl; 
@@ -4034,9 +4082,9 @@ static void scoreShiftedFragments_(
       auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
-                                             exp_spectrum.getIntegerDataArrays()[0],
+                                             exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
                                              marker_ions_sub_score_spectrum_z1,
-                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0]);
+                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[IA_CHARGE_INDEX]);
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
     }
 
@@ -4051,17 +4099,17 @@ static void scoreShiftedFragments_(
       partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, 
                                                     fragment_mass_tolerance_unit_ppm,
                                                     exp_spectrum, 
-                                                    exp_spectrum.getIntegerDataArrays()[0],
+                                                    exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
                                                     *pl_spec,
-                                                    pl_spec->getIntegerDataArrays()[0],
+                                                    pl_spec->getIntegerDataArrays()[IA_CHARGE_INDEX],
                                                     intensity_sum);
                                                     
       auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                           fragment_mass_tolerance_unit_ppm,
                                                           exp_spectrum,
-                                                          exp_spectrum.getIntegerDataArrays()[0],
+                                                          exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
                                                           *pl_spec,
-                                                          pl_spec->getIntegerDataArrays()[0]);      
+                                                          pl_spec->getIntegerDataArrays()[IA_CHARGE_INDEX]);      
       plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
       plss_Morph = pl_sub_scores.score;
 
