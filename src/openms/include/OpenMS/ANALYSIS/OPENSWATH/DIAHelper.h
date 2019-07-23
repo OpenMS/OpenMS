@@ -51,7 +51,7 @@ namespace OpenMS
     /**
       @brief Adjust left/right window based on window and whether its ppm or not
     */
-    OPENMS_DLLAPI void adjustExtractionWindow(double& right, double& left, const double& mz_extraction_window, const bool& mz_extraction_ppm);
+    OPENMS_DLLAPI void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm);
 
     /// compute the b and y series masses for a given AASequence
     OPENMS_DLLAPI void getBYSeries(const AASequence& a,
