@@ -307,7 +307,7 @@ namespace OpenMS
       if (it->getMZ() < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMZ());
       if (it->getMZ() > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMZ());
 
-      // do not update RT and intensity if the spectrum is empty
+      // do not update RT and intensity if the chromatogram is empty
       if (it->size() == 0) continue;
 
       total_size_ += it->size();
