@@ -95,6 +95,7 @@ namespace OpenMS
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       ProteinIdentification& prot_run,
-      std::vector<PeptideIdentification>& pep_ids) const;
+      std::vector<PeptideIdentification>& pep_ids,
+      Size min_peptides_per_protein) const;
   };
 } //namespace OpenMS

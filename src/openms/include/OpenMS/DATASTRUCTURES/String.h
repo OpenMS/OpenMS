@@ -40,7 +40,6 @@
 #include <algorithm> // for "min"
 #include <string>
 #include <vector>
-#include <utility>
 
 class QString;
 
@@ -566,9 +565,9 @@ namespace std
 {
   template <> struct hash<OpenMS::String> //hash for String
   {
-    std::size_t operator()(const OpenMS::String &s) const
+    std::size_t operator()( OpenMS::String const& s) const
     {
-      return std::hash<std::string>()(static_cast<std::string>(s));
+      return std::hash<string>()(static_cast<string>(s));
     }
   };
 } // namespace std

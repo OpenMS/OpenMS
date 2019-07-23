@@ -519,7 +519,7 @@ private:
      * @brief Used when keep_decoy_peptides or proteins is false
      * @tparam HitType ProteinHit or PeptideHit
      * @param scores_to_FDR map from original score to FDR/qVal
-     * @param hit the Hit itself
+     * @param hit The hit (moved to @p new_hits if its a target hit)
      * @param old_score_type to save it in metavalue
      * @param new_hits where to move if target (i.e. target or target+decoy)
      */

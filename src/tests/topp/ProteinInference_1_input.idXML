@@ -15,25 +15,25 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.9" sequence="ELEFANT" charge="2" aa_before="[" aa_after="K" start="0" end="6" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.92" sequence="RMYFINGE" charge="2" aa_before="E A A" aa_after="R R" start="15 3 3" end="11 11 22" protein_refs="PH_0 PH_1 PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.7" sequence="RGIRAFFE" charge="2" aa_before="E E" aa_after="R K" start="10 10" end="18 18" protein_refs="PH_1 PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.001" sequence="RMYTIGE" charge="2" aa_before="E T" aa_after="R R" start="18 25" end="25 32" protein_refs="PH_1 PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
@@ -52,31 +52,31 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.9" sequence="ELEFANT" charge="2" aa_before="[" aa_after="K" start="0" end="6" protein_refs="PH_3" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.92" sequence="ELEFANT" charge="3" aa_before="[" aa_after="K" start="0" end="6" protein_refs="PH_3" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.8" sequence="RMYFINGE" charge="2" aa_before="E A A" aa_after="R R" start="15 3 3" end="11 11 22" protein_refs="PH_3 PH_4 PH_5" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.7" sequence="RGIRAFFE" charge="2" aa_before="E E" aa_after="R K" start="10 10" end="18 18" protein_refs="PH_4 PH_5" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.001" sequence="RMYTIGE" charge="2" aa_before="E T" aa_after="R R" start="18 25" end="25 32" protein_refs="PH_4 PH_5" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>

@@ -48,17 +48,21 @@ namespace OpenMS
       DefaultParamHandler("BasicProteinInferenceAlgorithm"),
       ProgressLogger()
   {
-    defaults_.setValue("min_peptides_per_protein", 1, "Minimal number of peptides needed for a protein identification. If set to zero, unmatched proteins get a score of -Infinity.");
+    defaults_.setValue("min_peptides_per_protein", 1,
+        "Minimal number of peptides needed for a protein identification."
+        " If set to zero, unmatched proteins get a score of -Infinity."
+        " If bigger than zero, proteins with less peptides are filtered and evidences removed from the PSMs."
+        " PSMs that do not reference any proteins anymore are removed but the spectrum info is kept.");
     defaults_.setMinInt("min_peptides_per_protein", 0);
     defaults_.setValue("score_aggregation_method",
                        "maximum",
                        "How to aggregate scores of peptides matching to the same protein?");
     defaults_.setValidStrings("score_aggregation_method", ListUtils::create<String>("maximum,product,sum"));
     defaults_.setValue("treat_charge_variants_separately", "true",
-                       "If this is true, different charge variants of the same peptide sequence count as individual evidences.");
+                       "If this is set, different charge variants of the same peptide sequence count as individual evidences.");
     defaults_.setValue("treat_modification_variants_separately", "true",
-                       "If this is true, different modification variants of the same peptide sequence count as individual evidences.");
-    defaults_.setValue("use_shared_peptides", "true", "If this is true, shared peptides are used as evidences.");
+                       "If this is set, different modification variants of the same peptide sequence count as individual evidences.");
+    defaults_.setValue("use_shared_peptides", "true", "If this is set, shared peptides are used as evidences.");
     defaults_.setValue("skip_count_annotation", "false", "If this is true, peptide counts won't be annotated at the proteins.");
     defaultsToParam_();
   }
@@ -66,6 +70,8 @@ namespace OpenMS
   void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
                                            ProteinIdentification &prot_id) const
   {
+    Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
+
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
@@ -73,13 +79,24 @@ namespace OpenMS
         acc_to_protein_hitP_and_count,
         best_pep,
         prot_id,
-        pep_ids
+        pep_ids,
+        min_peptides_per_protein
     );
+
+    if (min_peptides_per_protein > 0) //potentially sth was filtered
+    {
+      std::vector<ProteinIdentification> tmp(1);
+      std::swap(tmp[0], prot_id);
+      IDFilter::updateProteinReferences(pep_ids, tmp, true); //TODO allow keeping PSMs without evidence?
+      std::swap(tmp[0], prot_id);
+    }
   }
 
   void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
                                            std::vector<ProteinIdentification> &prot_ids) const
   {
+    Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
+
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 
@@ -89,7 +106,14 @@ namespace OpenMS
           acc_to_protein_hitP_and_count,
           best_pep,
           prot_run,
-          pep_ids);
+          pep_ids,
+          min_peptides_per_protein
+          );
+    }
+
+    if (min_peptides_per_protein > 0) //potentially sth was filtered
+    {
+      IDFilter::updateProteinReferences(pep_ids, prot_ids, true); //TODO allow keeping PSMs without evidence?
     }
   }
 
@@ -97,9 +121,9 @@ namespace OpenMS
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       ProteinIdentification& prot_run,
-      std::vector<PeptideIdentification>& pep_ids) const
+      std::vector<PeptideIdentification>& pep_ids,
+      Size min_peptides_per_protein) const
   {
-    Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
     bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
@@ -203,6 +227,7 @@ namespace OpenMS
       PeptideHit &hit = pep.getHits()[0];
       //skip if shared and option not enabled
       //TODO warn if not present but requested?
+      //TODO use nr of evidences to re-calculate sharedness?
       if (!use_shared_peptides &&
           (!hit.metaValueExists("protein_references") || (hit.getMetaValue("protein_references") == "non-unique")))
         continue;
