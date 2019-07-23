@@ -92,8 +92,8 @@ namespace OpenMS
 
 
         /*
-         *  @brief: Class to aggregate intermediate information from ConsensusFeature and ConsusneMap,
-         *  such as filenames, intensities, retention times, labes and features (for futher processing)
+         *  @brief: Struct to aggregate intermediate information from ConsensusFeature and ConsensusMap,
+         *  such as filenames, intensities, retention times, labes and features (for further processing)
          */
         struct AggregatedConsensusInfo
         {
@@ -301,7 +301,7 @@ namespace OpenMS
       };
 
         /*
-         *  @brief Constructs the lines and add them to the TextFile
+         *  @brief Constructs the lines and adds them to the TextFile
          */
         template <class LineTemplate>
         void constructFile(const String& retention_time_summarization_method,
