@@ -93,22 +93,27 @@ namespace OpenMS
 
         /*
          *  @brief: Struct to aggregate intermediate information from ConsensusFeature and ConsensusMap,
-         *  such as filenames, intensities, retention times, labes and features (for further processing)
+         *  such as filenames, intensities, retention times, labels and features (for further processing)
          */
         struct AggregatedConsensusInfo
         {
-          std::vector< std::vector< String > > consensus_feature_filenames;           // Filenames of ConsensusFeature
-          std::vector< std::vector< Intensity > > consensus_feature_intensities;       // Intensities of ConsensusFeature
-          std::vector< std::vector< Coordinate > > consensus_feature_retention_times; // Retention times of ConsensusFeature
-          std::vector< std::vector< unsigned > > consensus_feature_labels;          // Labels of ConsensusFeature
-          std::vector<BaseFeature> features;                                        // Features of ConsensusMap
+          std::vector< std::vector< String > > consensus_feature_filenames;           //< Filenames of ConsensusFeature
+          std::vector< std::vector< Intensity > > consensus_feature_intensities;       //< Intensities of ConsensusFeature
+          std::vector< std::vector< Coordinate > > consensus_feature_retention_times; //< Retention times of ConsensusFeature
+          std::vector< std::vector< unsigned > > consensus_feature_labels;          //< Labels of ConsensusFeature
+          std::vector<BaseFeature> features;                                        //<s Features of ConsensusMap
         };
 
-        MSstatsFile::AggregatedConsensusInfo aggregateInfo(const ConsensusMap& consensus_map,
+        /*
+         *  @brief: Aggregates information from ConsensusFeature and ConsensusMap,
+         *  such as filenames, intensities, retention times, labels and features.
+         *  Stores them in AggregatedConsensusInfo for later processing
+         */
+        MSstatsFile::AggregatedConsensusInfo aggregateInfo_(const ConsensusMap& consensus_map,
                                                            const std::vector<String>& spectra_paths);
 
         /*
-         *  @brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition in Experimental Design
+         *  @brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition exists in Experimental Design
          */
         static void checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const String& bioreplicate, const String& condition);
 
@@ -121,7 +126,7 @@ namespace OpenMS
          *  @brief MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)
          *  In OpenMS, a run is split into multiple fractions.
          */
-        static void assembleRunMap(
+        static void assembleRunMap_(
                 std::map< std::pair< String, unsigned>, unsigned> &run_map,
                 const ExperimentalDesign &design)
         {
@@ -147,7 +152,7 @@ namespace OpenMS
                  && std::equal(lhs.begin(), lhs.end(), rhs.begin());
         }
 
-        OpenMS::Peak2D::IntensityType sumIntensity(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
+        OpenMS::Peak2D::IntensityType sumIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
         {
           OpenMS::Peak2D::IntensityType result = 0;
           for (const OpenMS::Peak2D::IntensityType &intensity : intensities)
@@ -157,159 +162,159 @@ namespace OpenMS
           return result;
         }
 
-        OpenMS::Peak2D::IntensityType meanIntensity(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
+        OpenMS::Peak2D::IntensityType meanIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
         {
-          return sumIntensity(intensities) / intensities.size();
+          return sumIntensity_(intensities) / intensities.size();
         }
 
-        class MSstatsLine
-      {
-      public :
-        MSstatsLine(
-            bool _has_fraction,
-            const String& _accession,
-            const String& _sequence,
-            const String& _precursor_charge,
-            const String& _fragment_ion,
-            const String& _frag_charge,
-            const String& _isotope_label_type,
-            const String& _condition,
-            const String& _bioreplicate,
-            const String& _run,
-            const String& _fraction
-        ): has_fraction_(_has_fraction),
-           accession_(_accession),
-           sequence_(_sequence),
-           precursor_charge_(_precursor_charge),
-           fragment_ion_(_fragment_ion),
-           frag_charge_(_frag_charge),
-           isotope_label_type_(_isotope_label_type),
-           condition_(_condition),
-           bioreplicate_(_bioreplicate),
-           run_(_run),
-           fraction_(_fraction) {}
-
-        const String& accession() const {return this->accession_;}
-        const String& sequence() const {return this->sequence_;}
-        const String& precursor_charge() const {return this->precursor_charge_;}
-        const String& run() const {return this->run_;}
-
-        String toString() const
+        class MSstatsLine_
         {
-          const String delim(",");
-          return  accession_
-                  + delim + sequence_
-                  + delim + precursor_charge_
-                  + delim + fragment_ion_
-                  + delim + frag_charge_
-                  + delim + isotope_label_type_
-                  + delim + condition_
-                  + delim + bioreplicate_
-                  + delim + run_
-                  + (this->has_fraction_ ? delim + String(fraction_) : "");
-        }
+        public :
+          MSstatsLine_(
+              bool _has_fraction,
+              const String& _accession,
+              const String& _sequence,
+              const String& _precursor_charge,
+              const String& _fragment_ion,
+              const String& _frag_charge,
+              const String& _isotope_label_type,
+              const String& _condition,
+              const String& _bioreplicate,
+              const String& _run,
+              const String& _fraction
+          ): has_fraction_(_has_fraction),
+             accession_(_accession),
+             sequence_(_sequence),
+             precursor_charge_(_precursor_charge),
+             fragment_ion_(_fragment_ion),
+             frag_charge_(_frag_charge),
+             isotope_label_type_(_isotope_label_type),
+             condition_(_condition),
+             bioreplicate_(_bioreplicate),
+             run_(_run),
+             fraction_(_fraction) {}
 
-        friend bool operator<(const MSstatsLine &l,
-                              const MSstatsLine &r) {
+          const String& accession() const {return this->accession_;}
+          const String& sequence() const {return this->sequence_;}
+          const String& precursor_charge() const {return this->precursor_charge_;}
+          const String& run() const {return this->run_;}
 
-          return std::tie(l.accession_, l.run_, l.condition_, l.bioreplicate_, l.precursor_charge_, l.sequence_) <
-                 std::tie(r.accession_, r.run_, r.condition_, r.bioreplicate_, r.precursor_charge_, r.sequence_);
-        }
+          String toString() const
+          {
+            const String delim(",");
+            return  accession_
+                    + delim + sequence_
+                    + delim + precursor_charge_
+                    + delim + fragment_ion_
+                    + delim + frag_charge_
+                    + delim + isotope_label_type_
+                    + delim + condition_
+                    + delim + bioreplicate_
+                    + delim + run_
+                    + (this->has_fraction_ ? delim + String(fraction_) : "");
+          }
+
+          friend bool operator<(const MSstatsLine_ &l,
+                                const MSstatsLine_ &r) {
+
+            return std::tie(l.accession_, l.run_, l.condition_, l.bioreplicate_, l.precursor_charge_, l.sequence_) <
+                   std::tie(r.accession_, r.run_, r.condition_, r.bioreplicate_, r.precursor_charge_, r.sequence_);
+          }
 
 
-      private:
-        bool has_fraction_;
-        String accession_;
-        String sequence_;
-        String precursor_charge_;
-        String fragment_ion_;
-        String frag_charge_;
-        String isotope_label_type_;
-        String condition_;
-        String bioreplicate_;
-        String run_;
-        String fraction_;
-      };
+        private:
+          bool has_fraction_;
+          String accession_;
+          String sequence_;
+          String precursor_charge_;
+          String fragment_ion_;
+          String frag_charge_;
+          String isotope_label_type_;
+          String condition_;
+          String bioreplicate_;
+          String run_;
+          String fraction_;
+        };
 
-        class MSstatsTMTLine
-      {
-      public :
-        MSstatsTMTLine(
-            bool _has_fraction,
-            const String& _accession,
-            const String& _sequence,
-            const String& _precursor_charge,
-            const String& _channel,
-            const String& _condition,
-            const String& _bioreplicate,
-            const String& _run,
-            const String& _mixture,
-            const String& _techrepmixture,
-            const String& _fraction
-        ): has_fraction_(_has_fraction),
-           accession_(_accession),
-           sequence_(_sequence),
-           precursor_charge_(_precursor_charge),
-           channel_(_channel),
-           condition_(_condition),
-           bioreplicate_(_bioreplicate),
-           run_(_run),
-           mixture_(_mixture),
-           techrepmixture_(_techrepmixture),
-           fraction_(_fraction) {}
-
-        const String& accession() const {return this->accession_;}
-        const String& sequence() const {return this->sequence_;}
-        const String& precursor_charge() const {return this->precursor_charge_;}
-        const String& run() const {return this->run_;}
-
-        String toString() const
+          class MSstatsTMTLine_
         {
-          const String delim(",");
-          return  accession_
-                  + delim + sequence_
-                  + delim + precursor_charge_
-                  + delim + channel_
-                  + delim + condition_
-                  + delim + bioreplicate_
-                  + delim + run_
-                  + delim + mixture_
-                  + delim + techrepmixture_
-                  + (this->has_fraction_ ? delim + String(fraction_) : "");
-        }
+        public :
+          MSstatsTMTLine_(
+              bool _has_fraction,
+              const String& _accession,
+              const String& _sequence,
+              const String& _precursor_charge,
+              const String& _channel,
+              const String& _condition,
+              const String& _bioreplicate,
+              const String& _run,
+              const String& _mixture,
+              const String& _techrepmixture,
+              const String& _fraction
+          ): has_fraction_(_has_fraction),
+             accession_(_accession),
+             sequence_(_sequence),
+             precursor_charge_(_precursor_charge),
+             channel_(_channel),
+             condition_(_condition),
+             bioreplicate_(_bioreplicate),
+             run_(_run),
+             mixture_(_mixture),
+             techrepmixture_(_techrepmixture),
+             fraction_(_fraction) {}
 
-        friend bool operator<(const MSstatsTMTLine &l,
-                              const MSstatsTMTLine &r) {
+          const String& accession() const {return this->accession_;}
+          const String& sequence() const {return this->sequence_;}
+          const String& precursor_charge() const {return this->precursor_charge_;}
+          const String& run() const {return this->run_;}
 
-          return std::tie(l.accession_, l.run_, l.condition_, l.bioreplicate_, l.mixture_, l.precursor_charge_, l.sequence_) <
-                 std::tie(r.accession_, r.run_, r.condition_, r.bioreplicate_, r.mixture_, r.precursor_charge_, r.sequence_);
-        }
+          String toString() const
+          {
+            const String delim(",");
+            return  accession_
+                    + delim + sequence_
+                    + delim + precursor_charge_
+                    + delim + channel_
+                    + delim + condition_
+                    + delim + bioreplicate_
+                    + delim + run_
+                    + delim + mixture_
+                    + delim + techrepmixture_
+                    + (this->has_fraction_ ? delim + String(fraction_) : "");
+          }
+
+          friend bool operator<(const MSstatsTMTLine_ &l,
+                                const MSstatsTMTLine_ &r) {
+
+            return std::tie(l.accession_, l.run_, l.condition_, l.bioreplicate_, l.mixture_, l.precursor_charge_, l.sequence_) <
+                   std::tie(r.accession_, r.run_, r.condition_, r.bioreplicate_, r.mixture_, r.precursor_charge_, r.sequence_);
+          }
 
 
-      private:
-        bool has_fraction_;
-        String accession_;
-        String sequence_;
-        String precursor_charge_;
-        String channel_;
-        String condition_;
-        String bioreplicate_;
-        String run_;
-        String mixture_;
-        String techrepmixture_;
-        String fraction_;
-      };
+        private:
+          bool has_fraction_;
+          String accession_;
+          String sequence_;
+          String precursor_charge_;
+          String channel_;
+          String condition_;
+          String bioreplicate_;
+          String run_;
+          String mixture_;
+          String techrepmixture_;
+          String fraction_;
+        };
 
         /*
          *  @brief Constructs the lines and adds them to the TextFile
          */
-        template <class LineTemplate>
-        void constructFile(const String& retention_time_summarization_method,
+        template <class LineType>
+        void constructFile_(const String& retention_time_summarization_method,
                            const bool rt_summarization_manual,
                            TextFile& csv_out,
                            const String& delim,
                            const std::map<String, std::set<String> >& peptideseq_to_accessions,
-                           LineTemplate & peptideseq_to_prefix_to_intensities);
+                           LineType & peptideseq_to_prefix_to_intensities);
 
 
     };
