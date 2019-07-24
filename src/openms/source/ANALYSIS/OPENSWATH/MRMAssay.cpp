@@ -358,7 +358,7 @@ namespace OpenMS
       for (const auto& alt_aa : alternative_peptide_sequences)
       { 
         // Append peptidoform to index
-        TargetSequenceMap[precursor_swath][alt_aa.toUnmodifiedString()].insert(alt_aa.toString());
+        //TargetSequenceMap[precursor_swath][alt_aa.toUnmodifiedString()].insert(alt_aa.toString());
         // Generate theoretical ion series
         auto ionseries = mrmis.getIonSeries(alt_aa, precursor_charge,
             fragment_types, fragment_charges, enable_specific_losses,
