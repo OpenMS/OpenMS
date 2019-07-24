@@ -75,7 +75,7 @@ namespace OpenMS
         
         /// store isobaric experiment (MSstatsTMT)
         void storeISO(const String& filename, 
-                      const ConsensusMap &consensus_map,
+                      ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const String& bioreplicate,
@@ -314,6 +314,7 @@ namespace OpenMS
                            TextFile& csv_out,
                            const String& delim,
                            const std::map<String, std::set<String> >& peptideseq_to_accessions,
+                           const std::map< String, bool >& peptideseq_quantifyable,
                            LineType & peptideseq_to_prefix_to_intensities);
 
 

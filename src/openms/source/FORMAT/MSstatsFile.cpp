@@ -39,10 +39,8 @@
 using namespace std;
 
 
-OpenMS::MSstatsFile::MSstatsFile(){};
-
-OpenMS::MSstatsFile::~MSstatsFile(){};
-
+OpenMS::MSstatsFile::MSstatsFile() = default;
+OpenMS::MSstatsFile::~MSstatsFile() = default;
 
 void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection,
                                              const String& bioreplicate,
@@ -126,6 +124,7 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
                                          TextFile& csv_out,
                                          const String& delim,
                                          const std::map<String, std::set<String> >& peptideseq_to_accessions,
+                                         const std::map<String, bool>& peptideseq_quantifyable,
                                          LineType & peptideseq_to_prefix_to_intensities)
 
 {
@@ -137,9 +136,9 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
   {
     const String& seq = peptideseq_accessions.first;
     // Only write peptide if all referenced proteins are from the same indistinguishable group
-    if (peptideseq_quantifyable[seq])
+    if (peptideseq_quantifyable.at(seq))
     {
-      for (const pair< MSstatsLine, set< pair< Intensity, Coordinate > > > &line :
+      for (const auto &line :
               peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
       {
         // First, we collect all retention times and intensities
@@ -395,10 +394,10 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
         std::set<const IndProtGrp*> maps_to_indgrps;
         for (const String& a : accs)
         {
-          //TODO inefficient double lookup especially in a slow ordered map
-          if (accession_to_group.find(a) != accession_to_group.end())
+          const auto it = accession_to_group.find(a);
+          if (it != accession_to_group.end())
           {
-            maps_to_indgrps.insert(accession_to_group[a]);
+            maps_to_indgrps.insert(it->second);
           }
           else
           {
@@ -407,10 +406,12 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
         }
         peptideseq_quantifyable[sequence] = (maps_to_indgrps.size() == 1);
 
+        // since there is a weird hack that peptide evidences is substituted with a placeholder if the originals were
+        // empty, we cannot do it in the loop above.
         for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
         {
           const String & accession = pep_ev.getProteinAccession();
-  	      peptideseq_to_accessions[sequence].insert(accession); // TODO: check: will add NA for peptide evidences without protein reference
+          peptideseq_to_accessions[sequence].insert(accession); // TODO: check: will add NA for peptide evidences without protein reference
         }
       }
     }
@@ -538,6 +539,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
                               csv_out,
                               delim,
                               peptideseq_to_accessions,
+                              peptideseq_quantifyable,
                               peptideseq_to_prefix_to_intensities);
 
   // Store the final assembled CSV file
@@ -545,7 +547,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
 }
 
 void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename,
-                                   const ConsensusMap &consensus_map,
+                                   ConsensusMap &consensus_map,
                                    const OpenMS::ExperimentalDesign& design,
                                    const StringList& reannotate_filenames,
                                    const String& bioreplicate,
@@ -638,8 +640,31 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename,
 
   const String delim(",");
 
-  // Keeps track of unique peptides (Size of value set is 1)
+  // We quantify indistinguishable groups with one (corner case) or multiple proteins.
+  // If indistinguishable groups are not annotated (no inference or only trivial inference has been performed) we assume
+  // that all proteins can be independently quantified (each forming an indistinguishable group).
+  //TODO refactor since shared with LFQ and ISO
+  using IndProtGrp = ProteinIdentification::ProteinGroup;
+  using IndProtGrps = std::vector<IndProtGrp>;
+  consensus_map.getProteinIdentifications()[0].fillIndistinguishableGroupsWithSingletons();
+  IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
+
+  // Map protein accession to its indistinguishable group
+  std::map< String, const IndProtGrp* > accession_to_group;
+  for (const IndProtGrp& pgrp : ind_prots)
+  {
+    //std::cout << "Group size: " << pgrp.accessions.size() << endl;
+    for (const String& a : pgrp.accessions)
+    {
+      //std::cout << a << endl;
+      accession_to_group[a] = &(pgrp);
+    }
+  }
+
+  // Map peptides to protein accessions
+  //TODO one map to save all the Strings
   std::map< String, std::set<String > > peptideseq_to_accessions;
+  std::map< String, bool > peptideseq_quantifyable;
 
   // Stores all the lines that will be present in the final MSstats output,
   // We need to map peptide sequences to full features, because then we can ignore peptides
@@ -665,6 +690,26 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename,
         const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
         const String & sequence = pep_hit.getSequence().toString();
 
+        // check if all referenced protein accessions are part of the same indistinguishable group
+        // if so, we mark the sequence as quantifiable
+        //TODO refactor, since shared between LFQ and ISO
+        std::set<String> accs = pep_hit.extractProteinAccessionsSet();
+        std::set<const IndProtGrp*> maps_to_indgrps;
+        for (const String& a : accs)
+        {
+          const auto it = accession_to_group.find(a);
+          if ( it != accession_to_group.end())
+          {
+            maps_to_indgrps.insert(it->second);
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Accession " << a << " does not match to an inferred group." << std::endl;
+          }
+          peptideseq_to_accessions[sequence].insert(a);
+        }
+        peptideseq_quantifyable[sequence] = (maps_to_indgrps.size() == 1);
+
         for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
         {
           // Write new line for each run
@@ -677,7 +722,6 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename,
             const unsigned channel(AggregatedInfo.consensus_feature_labels[i][j] + 1);
 
             const String & accession = pep_ev.getProteinAccession();
-            peptideseq_to_accessions[sequence].insert(accession);
 
             const pair< String, unsigned> tpl1 = make_pair(current_filename, channel);
             const unsigned sample = path_label_to_sample[tpl1];
@@ -722,6 +766,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename,
                              csv_out,
                              delim,
                              peptideseq_to_accessions,
+                             peptideseq_quantifyable,
                              peptideseq_to_prefix_to_intensities);
 
   // Store the final assembled CSV file
