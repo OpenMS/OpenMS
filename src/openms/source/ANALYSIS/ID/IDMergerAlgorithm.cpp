@@ -467,10 +467,9 @@ namespace OpenMS
     }
     if (!ok /*&& TODO and no force flag*/)
     {
-      throw Exception::BaseException(__FILE__,
+      throw Exception::MissingInformation(__FILE__,
                                      __LINE__,
                                      OPENMS_PRETTY_FUNCTION,
-                                     "InvalidData",
                                      "Search settings are not matching across IdentificationRuns. "
                                      "See warnings. Aborting..");
     }

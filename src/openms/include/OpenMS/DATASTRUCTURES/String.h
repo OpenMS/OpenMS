@@ -525,12 +525,6 @@ public:
       return false;
     }
 
-    /// boost hash
-    std::size_t hash_value(String const& s) const
-    {
-      return std::hash<std::string>()(static_cast<std::string>(s));
-    }
-
     /// create view that references a substring of the original string
     inline StringView substr(Size start, Size length) const
     {
@@ -571,3 +565,7 @@ namespace std
     }
   };
 } // namespace std
+namespace boost
+{
+	OPENMS_DLLAPI ::size_t hash_value(OpenMS::String const& s);
+}

@@ -528,3 +528,19 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+
+namespace boost
+{
+	::size_t hash_value(OpenMS::String const& s)
+	{
+		return std::hash<std::string>()(static_cast<std::string>(s));
+	}
+}
+
+namespace stdext
+{
+	::size_t hash_value(OpenMS::String const& s)
+	{
+		return std::hash<std::string>()(static_cast<std::string>(s));
+	}
+}

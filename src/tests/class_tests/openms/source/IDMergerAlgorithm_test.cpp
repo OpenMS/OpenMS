@@ -174,7 +174,7 @@ START_TEST(IDMergerAlgorithm, "$Id$")
       ima.insertRuns(std::move(pr1), std::move(pe1));
       ima.insertRuns(std::move(pr2), std::move(pe2));
 
-      TEST_EXCEPTION(Exception::BaseException, ima.insertRuns({ProteinIdentification{}}, {PeptideIdentification{}}))
+      TEST_EXCEPTION(Exception::MissingInformation, ima.insertRuns({ProteinIdentification{}}, {PeptideIdentification{}}))
 
       ProteinIdentification prres;
       vector<PeptideIdentification> peres;
