@@ -219,7 +219,7 @@ namespace OpenMS
   /**
   @brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
 
-  @param ms_level MS level to consider for m/z range , RT range and intensity range (All MS levels if negative)
+  @param ms_level MS level to consider for m/z range, RT range and intensity range (all MS levels if negative)
   */
   void MSExperiment::updateRanges(Int ms_level)
   {
@@ -287,16 +287,12 @@ namespace OpenMS
     }
     std::sort(ms_levels_.begin(), ms_levels_.end());
 
-
-
-
     if (this->chromatograms_.empty())
     {
       return;
     }
 
-    //TODO CHROM update intensity, m/z and RT according to chromatograms as well! (done????)
-
+    // update intensity, m/z and RT according to chromatograms as well:
     for (std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
     {
 
@@ -311,7 +307,7 @@ namespace OpenMS
       if (it->getMZ() < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMZ());
       if (it->getMZ() > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMZ());
 
-      // do not update RT and in if the spectrum is empty
+      // do not update RT and intensity if the chromatogram is empty
       if (it->size() == 0) continue;
 
       total_size_ += it->size();
