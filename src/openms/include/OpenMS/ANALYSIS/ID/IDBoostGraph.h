@@ -58,7 +58,8 @@
 #include <boost/variant/detail/hash_variant.hpp>
 #include <boost/variant/static_visitor.hpp>
 
-namespace OpenMS
+namespace OpenMS {
+  namespace Internal
 {
 
   /**
@@ -538,5 +539,5 @@ namespace OpenMS
     }
   };
 
-} //namespace OpenMS
+} } //namespace OpenMS
 

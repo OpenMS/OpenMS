@@ -931,7 +931,7 @@ namespace OpenMS
   }
 
   //TODO implement per charge estimation
-  void FalseDiscoveryRate::applyBasic(ConsensusMap & cmap, bool groups, bool proteins, bool peptides)
+  void FalseDiscoveryRate::applyBasic(ConsensusMap & cmap, bool include_unassigned_peptides)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     const string& score_type = q_value ? "q-value" : "FDR";
@@ -944,53 +944,48 @@ namespace OpenMS
     // include the determination of orientation in the getScores methods instead
     bool higher_score_better = cmap.begin()->getPeptideIdentifications().begin()->isHigherScoreBetter();
 
-    if (peptides)
+    bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
+    vector<pair<double,bool>> scores_labels;
+
+    //Warning: this assumes that there are no dangling identifier references in the PeptideIDs
+    // because this disables checking
+    if (cmap.getProteinIdentifications().size() == 1)
     {
-      bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
-      vector<pair<double,bool>> scores_labels;
-
-      //Warning: this assumes that there are no dangling identifier references in the PeptideIDs
-      // because this disables checking
-      if (cmap.getProteinIdentifications().size() == 1)
-      {
-        treat_runs_separately = false;
-      }
-
-      if (treat_runs_separately)
-      {
-        for (const auto& protID : cmap.getProteinIdentifications())
-        {
-          if (split_charge_variants)
-          {
-            pair<int, int> chargeRange = protID.getSearchParameters().getChargeRange();
-            for (int c = chargeRange.first; c <= chargeRange.second; ++c)
-            {
-              if (c == 0) continue;
-              getPeptideScoresFromMap_(scores_labels, cmap, all_hits, c, protID.getIdentifier());
-              map<double, double> scores_to_fdr;
-              calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
-              setPeptideScoresForMap_(scores_to_fdr, cmap, score_type, higher_score_better, add_decoy_peptides, c,  protID.getIdentifier());
-            }
-          }
-          else
-          {
-            getPeptideScoresFromMap_(scores_labels, cmap, all_hits, protID.getIdentifier());
-            map<double, double> scores_to_fdr;
-            calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
-            setPeptideScoresForMap_(scores_to_fdr, cmap, score_type, higher_score_better, add_decoy_peptides, protID.getIdentifier());
-          }
-        }
-      }
-      else
-      {
-        getPeptideScoresFromMap_(scores_labels, cmap, all_hits);
-        map<double, double> scores_to_fdr;
-        calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
-        setPeptideScoresForMap_(scores_to_fdr, cmap, score_type, higher_score_better, add_decoy_peptides);
-      }
+      treat_runs_separately = false;
     }
 
-    //TODO if proteins and if protein groups or split up the function
+    if (treat_runs_separately)
+    {
+      for (const auto& protID : cmap.getProteinIdentifications())
+      {
+        if (split_charge_variants)
+        {
+          pair<int, int> chargeRange = protID.getSearchParameters().getChargeRange();
+          for (int c = chargeRange.first; c <= chargeRange.second; ++c)
+          {
+            if (c == 0) continue;
+            getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, all_hits, c, protID.getIdentifier());
+            map<double, double> scores_to_fdr;
+            calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
+            setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, c,  protID.getIdentifier());
+          }
+        }
+        else
+        {
+          getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, all_hits, protID.getIdentifier());
+          map<double, double> scores_to_fdr;
+          calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
+          setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, protID.getIdentifier());
+        }
+      }
+    }
+    else
+    {
+      getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, all_hits);
+      map<double, double> scores_to_fdr;
+      calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
+      setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides);
+    }
   }
 
   //TODO Add another overload that iterates over a vector. to be consistent with old interface

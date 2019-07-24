@@ -54,6 +54,7 @@
 
 using namespace OpenMS;
 using namespace std;
+using Internal::IDBoostGraph;
 
 //TODO go through the vectors and see if we can preallocate some.
 namespace OpenMS
@@ -1593,32 +1594,33 @@ namespace OpenMS
     boost::write_graphviz(out, fg, boost::make_label_writer(labels));
   }
 
-  ////// Hashers for the strong typedefs
-  std::size_t hash_value(const IDBoostGraph::Peptide& x)
-  {
-    boost::hash<std::string> hasher;
-    return hasher(static_cast<std::string>(x));
-  }
-  std::size_t hash_value(const IDBoostGraph::RunIndex& x)
-  {
-    boost::hash<Size> hasher;
-    return hasher(static_cast<Size>(x));
-  }
-  std::size_t hash_value(const IDBoostGraph::Charge& x)
-  {
-    boost::hash<int> hasher;
-    return hasher(static_cast<int>(x));
-  }
-  std::size_t hash_value(const IDBoostGraph::ProteinGroup&)
-  {
-    return 0;
-  }
-  std::size_t hash_value(const IDBoostGraph::PeptideCluster&)
-  {
-    return 1;
-  }
 
-
-
+  namespace Internal
+  {
+    /// Hashers for the strong typedefs
+    std::size_t hash_value(const IDBoostGraph::Peptide& x)
+    {
+      boost::hash<std::string> hasher;
+      return hasher(static_cast<std::string>(x));
+    }
+    std::size_t hash_value(const IDBoostGraph::RunIndex& x)
+    {
+      boost::hash<Size> hasher;
+      return hasher(static_cast<Size>(x));
+    }
+    std::size_t hash_value(const IDBoostGraph::Charge& x)
+    {
+      boost::hash<int> hasher;
+      return hasher(static_cast<int>(x));
+    }
+    std::size_t hash_value(const IDBoostGraph::ProteinGroup&)
+    {
+      return 0;
+    }
+    std::size_t hash_value(const IDBoostGraph::PeptideCluster&)
+    {
+      return 1;
+    }
+  }
 }
 

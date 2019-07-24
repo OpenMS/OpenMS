@@ -39,7 +39,7 @@
 
 typedef unsigned long int uiint;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
   /// Produces MessagePassers (nodes in a factor graph = bayesian network) for use with Evergreen library,
   /// based on a parameterization of the Protein-Peptide Bayesian network.

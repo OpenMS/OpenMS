@@ -714,40 +714,52 @@ OPENMS_THREAD_CRITICAL(oms_log)
     return true;
   }
 
-  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f)
+  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f, bool include_unassigned)
   {
     for (auto& feat : *this)
     {
       applyFunctionOnPeptideHits_(feat.getPeptideIdentifications(), f);
     }
-    applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
+    }
   }
 
-  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f)
+  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f, bool include_unassigned)
   {
     for (auto& feat : *this)
     {
       applyFunctionOnPeptideIDs_(feat.getPeptideIdentifications(), f);
     }
-    applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
+    }
   }
 
-  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>& f) const
+  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>& f, bool include_unassigned) const
   {
     for (const auto& feat : *this)
     {
       applyFunctionOnPeptideHits_(feat.getPeptideIdentifications(), f);
     }
-    applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
+    }
   }
 
-  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f) const
+  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f, bool include_unassigned) const
   {
     for (const auto& feat : *this)
     {
       applyFunctionOnPeptideIDs_(feat.getPeptideIdentifications(), f);
     }
-    applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
+    }
   }
 
 

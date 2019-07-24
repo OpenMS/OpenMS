@@ -46,6 +46,7 @@
 
 using namespace OpenMS;
 using namespace std;
+using Internal::IDBoostGraph;
 
 //-------------------------------------------------------------
 //Doxygen docu

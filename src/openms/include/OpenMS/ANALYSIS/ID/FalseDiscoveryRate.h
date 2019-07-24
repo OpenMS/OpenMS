@@ -129,8 +129,9 @@ public:
 
     /// simpler reimplemetation of the apply function above.
     void applyBasic(std::vector<PeptideIdentification> & ids);
-    /// @todo groups and proteins not supported on CMaps yet. WIP
-    void applyBasic(ConsensusMap & cmap, bool groups, bool proteins, bool peptides);
+    /// simpler reimplemetation of the apply function above for peptides in ConsensusMaps.
+    void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
+    /// simpler reimplemetation of the apply function above for proteins.
     void applyBasic(ProteinIdentification & id, bool groups_too = true);
 
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
@@ -350,11 +351,11 @@ private:
     template<class ...Args>
     void getPeptideScoresFromMap_(
         ScoreToTgtDecLabelPairs& scores_labels,
-        const ConsensusMap & cmap, Args&& ... args) const
+        const ConsensusMap & cmap, bool include_unassigned_peptides, Args&& ... args) const
     {
       std::function<void (const PeptideIdentification &)> f =
           [&, this](const PeptideIdentification& id) -> void {this->getScores_(scores_labels, id, std::forward<Args>(args)...);};
-      cmap.applyFunctionOnPeptideIDs(f);
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
     }
 
     /**
@@ -574,12 +575,12 @@ private:
      * @param args optional additional arguments (int charge, string run ID)
      */
     template <class ...Args>
-    void setPeptideScoresForMap_(const std::map<double,double>& scores_to_FDR, ConsensusMap& cmap,
+    void setPeptideScoresForMap_(const std::map<double,double>& scores_to_FDR, ConsensusMap& cmap, bool include_unassigned_peptides,
                                  const std::string& score_type, bool higher_better, bool keep_decoy, Args&& ... args) const
     {
       std::function<void (PeptideIdentification &)> f =
           [&,this](PeptideIdentification& id) -> void {this->setScores_(scores_to_FDR, id, score_type, higher_better, keep_decoy, std::forward<Args>(args)...);};
-      cmap.applyFunctionOnPeptideIDs(f);
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
     }
 
     /**

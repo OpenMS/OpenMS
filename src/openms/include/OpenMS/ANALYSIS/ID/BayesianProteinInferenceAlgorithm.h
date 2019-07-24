@@ -47,7 +47,10 @@
 namespace OpenMS
 {
   class ConsensusMap;
-  class IDBoostGraph;
+  namespace Internal
+  {
+    class IDBoostGraph;
+  }
   class PeptideIdentification;
   class ProteinIdentification;
 
@@ -117,7 +120,7 @@ namespace OpenMS
 
     /// after a graph was built, use this method to perform inference and write results to the structures
     /// with which the graph was built
-    void inferPosteriorProbabilities_(IDBoostGraph& ibg);
+    void inferPosteriorProbabilities_(Internal::IDBoostGraph& ibg);
 
     /// read Param object and set the grid
     GridSearch<double,double,double> initGridSearchFromParams_(
