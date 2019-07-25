@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -47,7 +48,7 @@
 #include <QDir>
 
 #include <algorithm>
-#include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
+
 
 
 using namespace std;

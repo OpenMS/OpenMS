@@ -11,9 +11,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         OpenSwathScoring() nogil except +
         OpenSwathScoring(OpenSwathScoring) nogil except + # wrap-ignore
 
-        void initialize(double rt_normalization_factor_,
-          int add_up_spectra_, double spacing_for_spectra_resampling_,
-          OpenSwath_Scores_Usage & su_) nogil except +
+        void initialize(double rt_normalization_factor,
+                        int add_up_spectra,
+                        double spacing_for_spectra_resampling,
+                        OpenSwath_Scores_Usage su,
+                        libcpp_string spectrum_addition_method) nogil except +
 
         # void calculateChromatographicScores(
         #       OpenSwath::IMRMFeature* imrmfeature,

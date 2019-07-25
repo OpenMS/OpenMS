@@ -1129,14 +1129,14 @@ public:
     static void keepBestPerPeptide(std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
       annotateBestPerPeptide(pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
-      HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", "true"};
+      HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", 1};
       keepMatchingItemsUnroll(pep_ids, best_per_peptide);
     }
 
     static void keepBestPerPeptidePerRun(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
       annotateBestPerPeptidePerRun(prot_ids, pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
-      HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", "true"};
+      HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", 1};
       keepMatchingItemsUnroll(pep_ids, best_per_peptide);
     }
 
@@ -1158,7 +1158,7 @@ public:
 
       annotateBestPerPeptidePerRunWithData(best_peps_per_run, prot_and_pep_ids.getUnassignedPeptideIdentifications(), ignore_mods, ignore_charges, nr_best_spectrum);
 
-      HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", "true"};
+      HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", 1};
       keepMatchingPeptideHits(prot_and_pep_ids, best_per_peptide);
     }
 
@@ -1221,19 +1221,19 @@ public:
                 (!higher_score_better && (hit.getScore() < p->getScore()))
                 )
             {
-              p->setMetaValue("bestForItsPep", "false");
-              hit.setMetaValue("bestForItsPep", "true");
+              p->setMetaValue("bestForItsPep", 0);
+              hit.setMetaValue("bestForItsPep", 1);
               p = &hit;
             }
             else //note that this was def. not the best
             {
               // TODO if it is only about filtering, we can omit writing this metavalue (absence = false)
-              hit.setMetaValue("bestForItsPep", "false");
+              hit.setMetaValue("bestForItsPep", 0);
             }
           }
           else //first for that sequence (and optionally charge)
           {
-            hit.setMetaValue("bestForItsPep", "true");
+            hit.setMetaValue("bestForItsPep", 1);
           }
         }
       }
@@ -1286,19 +1286,19 @@ public:
                 (!higher_score_better && (hit.getScore() < p->getScore()))
                 )
             {
-              p->setMetaValue("bestForItsPep", "false");
-              hit.setMetaValue("bestForItsPep", "true");
+              p->setMetaValue("bestForItsPep", 0);
+              hit.setMetaValue("bestForItsPep", 1);
               p = &hit;
             }
             else //note that this was def. not the best
             {
               // TODO if it is only about filtering, we can omit writing this metavalue (absence = false)
-              hit.setMetaValue("bestForItsPep", "false");
+              hit.setMetaValue("bestForItsPep", 0);
             }
           }
           else //first for that sequence (and optionally charge)
           {
-            hit.setMetaValue("bestForItsPep", "true");
+            hit.setMetaValue("bestForItsPep", 1);
           }
         }
       }

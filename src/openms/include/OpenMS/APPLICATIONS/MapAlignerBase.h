@@ -125,9 +125,9 @@ protected:
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in'). Either this option or 'trafo_out' has to be provided; they can be used together.", false);
+    registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in'). This option or 'trafo_out' has to be provided; they can be used together.", false);
     setValidFormats_("out", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. Either this option or 'out' has to be provided; they can be used together.", false);
+    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. This option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
     if (ref_params != REF_NONE)
@@ -161,7 +161,7 @@ protected:
     // check whether some kind of output file is given:
     if (outs.empty() && trafos.empty())
     {
-      writeLog_("Error: Either data output or transformation output files have to be provided (parameters 'out'/'trafo_out')");
+      writeLog_("Error: Data output or transformation output files have to be provided (parameters 'out'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
     // check whether number of input files equals number of output files:

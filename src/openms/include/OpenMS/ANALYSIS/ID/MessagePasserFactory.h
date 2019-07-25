@@ -41,6 +41,8 @@ typedef unsigned long int uiint;
 
 namespace OpenMS
 {
+  namespace Internal
+{
   /// Produces MessagePassers (nodes in a factor graph = bayesian network) for use with Evergreen library,
   /// based on a parameterization of the Protein-Peptide Bayesian network.
   /// Those MessagePassers can be tables or convolution trees. Labels are used to associate the variables they are
@@ -326,4 +328,5 @@ namespace OpenMS
   }
    */
 
+  } // namespace Internal
 } // namespace OpenMS

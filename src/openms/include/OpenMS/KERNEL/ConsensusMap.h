@@ -140,7 +140,7 @@ public:
         {
           if (experiment_type != "label-free")
           {
-            OPENMS_LOG_WARN << "No channel id annotated in consensusXML. Assuming one channel." << std::endl;
+            OPENMS_LOG_WARN << "No channel id annotated in labelled consensusXML. Assuming only a single channel was used." << std::endl;
           }
           return 1;
         }
@@ -294,13 +294,17 @@ public:
     /// returns the MS run path (stored in ColumnHeaders)
     OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
 
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f);
+    /// applies a function on all PeptideHits or only assigned ones
+    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f, bool include_unassigned = true);
 
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f);
+    /// applies a function on all PeptideIDs or only assigned ones
+    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f, bool include_unassigned = true);
 
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>& f) const;
+    /// applies a const function on all PeptideHits or only assigned ones
+    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>&, bool include_unassigned = true) const;
 
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f) const;
+    /// applies a const function on all PeptideIDs or only assigned ones
+    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f, bool include_unassigned = true) const;
 
     /// Equality operator
     OPENMS_DLLAPI bool operator==(const ConsensusMap& rhs) const;

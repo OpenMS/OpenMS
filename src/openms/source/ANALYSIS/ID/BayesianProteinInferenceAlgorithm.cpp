@@ -48,6 +48,7 @@
 
 
 using namespace std;
+using namespace OpenMS::Internal;
 
 namespace OpenMS
 {
