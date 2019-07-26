@@ -531,8 +531,17 @@ protected:
   {
     return (hyperScore < MIN_HYPERSCORE 
       || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
-//      || tlss_modds < 1e-10
       || tlss_total_MIC < 0.01); 
+  }
+
+  static bool badPartialLossScore(float tlss_Morph, float plss_Morph, float plss_MIC, float plss_im_MIC, float plss_pc_MIC, float marker_ions_score)
+  {
+    if (plss_Morph + tlss_Morph < 5.03) return true;
+
+    if (plss_MIC + plss_im_MIC + plss_pc_MIC + marker_ions_score < 0.01) return true;
+
+    // if we don't see shifted ladder ions, we need at least some signal in the shifted immonium ions
+    return (plss_Morph < MIN_SHIFTED_IONS + 1.0 && plss_im_MIC < 0.01); 
   }
 
   /*
@@ -1134,7 +1143,8 @@ protected:
         // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
         match_one_peak_z1(imK2 + fa.mass, plss_im_MIC);
         // usually only observed without shift (A. Stuetzer)
-        match_one_peak_z1(imK3 + fa.mass, plss_im_MIC);
+        // TODO: only enable for DNA? get's sometimes matched by chance  
+        // match_one_peak_z1(imK3 + fa.mass, plss_im_MIC); 
       }
       if (iip.M) 
       {
@@ -1172,8 +1182,11 @@ protected:
     const double nucleotide_mass_tags/*,
     const double fraction_of_top50annotated*/)
   {
+/* Tie-braker score
     return + 1.0 * ah.total_loss_score + 0.01 * ah.total_MIC + 0.01 * ah.mass_error_p 
            - 0.01 * ah.isotope_error - ah.err - ah.pl_err;
+*/
+
 /*
      double score = 2.52872532
                    +0.38318303 * nucleotide_mass_tags;
@@ -1213,7 +1226,6 @@ score += ah.mass_error_p     *   1.15386068
 //TODO: check Alex    if (ah.Morph + ah.pl_Morph < 5.03) return 0;
 //    return ah.total_MIC + ah.marker_ions_score + fraction_of_top50annotated;
 
-/*
     return 
             -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err 
            + 52.2888 * ah.pl_err - 0.0105 * ah.modds
@@ -1222,7 +1234,9 @@ score += ah.mass_error_p     *   1.15386068
            + 2.59655 * ah.total_MIC + 2.38320 * ah.ladder_score + 0.65422535 * (ah.total_loss_score + ah.partial_loss_score);
 //           4267 without perc / 5306 with perc auf 1-
 //           5010 with perc auf 2-
-*/
+
+
+
 
 //    return -7.9010278  + 0.7545435 * ah.total_loss_score + 3.1219378 * ah.sequence_score  + 0.33 * ah.mass_error_p + 0.01*ah.total_MIC;
   }
@@ -2779,10 +2793,13 @@ static void scoreShiftedFragments_(
        << "NuXL:NA_MASS_z0"
        << "NuXL:NA_length"   
        << "nucleotide_mass_tags"
+#ifdef DANGEROUS_FEAUTURES
        << "CountSequenceIsTop"
        << "CountSequenceCharges"
        << "CountSequenceIsXL"
-       << "CountSequenceIsPeptide";
+       << "CountSequenceIsPeptide"
+#endif
+       ;
 
        if (!purities.empty()) feature_set << "precursor_purity";
     // one-hot encoding of cross-linked nucleotide
@@ -3699,17 +3716,12 @@ static void scoreShiftedFragments_(
                                                plss_im_MIC);
 
                     const double total_MIC = tlss_MIC + im_MIC + pc_MIC + plss_MIC + plss_pc_MIC + plss_im_MIC + marker_ions_sub_score;
-
-/* 
-                  // less then two shifted peaks? seems to throw out some good hits ???
-                   if ( partial_loss_sub_score < MIN_HYPERSCORE // at least one peak with 10% of max intensity
-                      || plss_Morph < MIN_SHIFTED_IONS + 1.0 // > 1 shifted peaks
-                      || total_MIC < 0.01  // less than 1% explained peaks
-                      )
+                       
+                    if (badPartialLossScore(tlss_Morph, plss_Morph, plss_MIC, plss_im_MIC, plss_pc_MIC, marker_ions_sub_score))  
                     { 
                       continue; 
                     }
-*/
+
                     const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
                     
@@ -3948,7 +3960,10 @@ static void scoreShiftedFragments_(
       // calculate FDRs separately
       fdr.apply(xl_pi); 
       fdr.apply(pep_pi);
- 
+
+      IDFilter::removeDecoyHits(xl_pi);
+      IDFilter::removeDecoyHits(pep_pi);
+
       if (peptide_FDR > 0.0 && peptide_FDR < 1.0)
       {
          IDFilter::filterHitsByScore(pep_pi, peptide_FDR); 
@@ -4027,6 +4042,9 @@ static void scoreShiftedFragments_(
           // calculate FDRs separately
           fdr.apply(xl_pi); 
           fdr.apply(pep_pi);
+
+          IDFilter::removeDecoyHits(xl_pi);
+          IDFilter::removeDecoyHits(pep_pi);
  
           if (peptide_FDR > 0.0 && peptide_FDR < 1.0)
           {

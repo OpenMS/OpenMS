@@ -328,6 +328,12 @@ protected:
       else if ((idx = it->find("index=")) != string::npos)
       {
         scan_number = it->substr(idx + 6).toInt();
+        break;
+      } 
+      else if ((idx = it->find("spectrum=")) != string::npos)
+      {
+        scan_number = it->substr(idx + 9).toInt();
+        break;
       }
     }
     return scan_number;
