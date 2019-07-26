@@ -65,10 +65,10 @@ namespace OpenMS
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
     mz_array->data.reserve(spectrum.size());
     intensity_array->data.reserve(spectrum.size());
-    for (MSSpectrumType::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+    for (const auto& it : spectrum)
     {
-      mz_array->data.push_back(it->getMZ());
-      intensity_array->data.push_back(it->getIntensity());
+      mz_array->data.push_back(it.getMZ());
+      intensity_array->data.push_back(it.getIntensity());
     }
 
     OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
@@ -123,10 +123,10 @@ namespace OpenMS
     OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
     rt_array->data.reserve(chromatogram.size());
     intensity_array->data.reserve(chromatogram.size());
-    for (MSChromatogramType::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
+    for (const auto& it : chromatogram)
     {
-      rt_array->data.push_back(it->getRT());
-      intensity_array->data.push_back(it->getIntensity());
+      rt_array->data.push_back(it.getRT());
+      intensity_array->data.push_back(it.getIntensity());
     }
 
     OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
