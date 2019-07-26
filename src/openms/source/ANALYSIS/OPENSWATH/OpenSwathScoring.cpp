@@ -535,6 +535,9 @@ namespace OpenMS
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
     OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
+    added_spec->getDataArrays().push_back( OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray) );
+    added_spec->getDataArrays().back()->description = "Ion Mobility";
+
     if (indices.empty() )
     {
       return added_spec;
