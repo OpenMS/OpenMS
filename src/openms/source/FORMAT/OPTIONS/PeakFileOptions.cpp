@@ -107,12 +107,12 @@ namespace OpenMS
   {
     return metadata_only_;
   }
-  
+
   void PeakFileOptions::setForceMQCompatability(bool forceMQ)
   {
     force_maxquant_compatibility_ = forceMQ;
   }
-  
+
   bool PeakFileOptions::getForceMQCompatability() const
   {
     return force_maxquant_compatibility_;
@@ -122,7 +122,7 @@ namespace OpenMS
   {
     force_tpp_compatibility_ = forceTPP;
   }
-  
+
   bool PeakFileOptions::getForceTPPCompatability() const
   {
     return force_tpp_compatibility_;
@@ -225,7 +225,7 @@ namespace OpenMS
   {
     return zlib_compression_;
   }
-  
+
   bool PeakFileOptions::getAlwaysAppendData() const
   {
     return always_append_data_;

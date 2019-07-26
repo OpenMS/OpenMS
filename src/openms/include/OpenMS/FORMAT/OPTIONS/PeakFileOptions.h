@@ -60,7 +60,7 @@ public:
     void setMetadataOnly(bool only);
     ///returns whether or not to load only meta data
     bool getMetadataOnly() const;
-    
+
     /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
     void setForceMQCompatability(bool forceMQ);
     /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
@@ -223,7 +223,7 @@ public:
 
     /// do these options skip spectra or chromatograms due to RT or MSLevel filters?
     bool hasFilters();
-    
+
 private:
     bool metadata_only_;
     bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
