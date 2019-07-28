@@ -587,7 +587,7 @@ namespace OpenMS
       container.insert(item);
     }
 
-    void ExperimentalDesign::isValid_()
+    void ExperimentalDesign::isValid_(bool labelfree)
     {
       std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_label_set;
       std::set< std::tuple< std::string, unsigned > > path_label_set;
@@ -613,7 +613,7 @@ namespace OpenMS
         std::tuple<unsigned, unsigned> fractiongroup_label = std::make_tuple(row.fraction_group, row.label);
         fractiongroup_label_to_sample[fractiongroup_label].insert(row.sample);
 
-        if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1)
+        if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1 && labelfree)
         {
 
          OPENMS_LOG_INFO << "Please correct your experimental design if this is a label free experiment." << std::endl;

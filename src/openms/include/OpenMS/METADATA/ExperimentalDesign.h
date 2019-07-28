@@ -272,7 +272,7 @@ namespace OpenMS
     static void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message);
 
     // basic consistency checks
-    void isValid_();
+    void isValid_(bool labelfree = true);
 
     MSFileSection msfile_section_;
     SampleSection sample_section_;

@@ -47,9 +47,13 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <boost/regex.hpp>
+#include <unordered_set>
 
 namespace OpenMS
 {
+  using IndProtGrp = OpenMS::ProteinIdentification::ProteinGroup;
+  using IndProtGrps = std::vector<IndProtGrp>;
+
   /**
     @brief File adapter for MzTab files
     @ingroup FileIO
@@ -128,31 +132,14 @@ namespace OpenMS
          */
         static void assembleRunMap_(
                 std::map< std::pair< String, unsigned>, unsigned> &run_map,
-                const ExperimentalDesign &design)
-        {
-          run_map.clear();
-          const ExperimentalDesign::MSFileSection& msfile_section = design.getMSFileSection();
-          unsigned run_counter = 1;
+                const ExperimentalDesign &design);
 
-          for (ExperimentalDesign::MSFileSectionEntry const& r : msfile_section)
-          {
-            std::pair< String, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
-            if (run_map.find(tpl) == run_map.end())
-            {
-              run_map[tpl] = run_counter++;
-            }
-          }
-        }
+        /*
+         * @brief checks two vectors for same content
+         */
+        static bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second);
 
-        bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second)
-        {
-          const std::set< String > lhs(first.begin(), first.end());
-          const std::set< String > rhs(second.begin(), second.end());
-          return lhs == rhs
-                 && std::equal(lhs.begin(), lhs.end(), rhs.begin());
-        }
-
-        OpenMS::Peak2D::IntensityType sumIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
+        OpenMS::Peak2D::IntensityType sumIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities) const
         {
           OpenMS::Peak2D::IntensityType result = 0;
           for (const OpenMS::Peak2D::IntensityType &intensity : intensities)
@@ -162,7 +149,7 @@ namespace OpenMS
           return result;
         }
 
-        OpenMS::Peak2D::IntensityType meanIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities)
+        OpenMS::Peak2D::IntensityType meanIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities) const
         {
           return sumIntensity_(intensities) / intensities.size();
         }
@@ -236,7 +223,7 @@ namespace OpenMS
           String fraction_;
         };
 
-          class MSstatsTMTLine_
+        class MSstatsTMTLine_
         {
         public :
           MSstatsTMTLine_(
@@ -307,16 +294,30 @@ namespace OpenMS
 
         /*
          *  @brief Constructs the lines and adds them to the TextFile
+         *  @param peptideseq_quantifyable Has to be a set (only) for deterministic  ordered output
          */
         template <class LineType>
         void constructFile_(const String& retention_time_summarization_method,
                            const bool rt_summarization_manual,
                            TextFile& csv_out,
                            const String& delim,
-                           const std::map<String, std::set<String> >& peptideseq_to_accessions,
-                           const std::map< String, bool >& peptideseq_quantifyable,
-                           LineType & peptideseq_to_prefix_to_intensities);
+                           const std::set<String>& peptideseq_quantifyable,
+                           LineType & peptideseq_to_prefix_to_intensities) const;
 
+      /*
+      *  @brief Constructs the accession to indist. group mapping
+      */
+      static std::unordered_map<OpenMS::String, const IndProtGrp* > getAccessionToGroupMap_(const IndProtGrps& ind_prots);
+
+
+      /*
+       * @brief Based on the evidence accession set in a PeptideHit, checks if is unique and therefore quantifyable
+       * in a group context.
+       *
+       */
+      bool isQuantifyable_(
+          std::set<String> accs,
+          const std::unordered_map<String, const IndProtGrp*>& accession_to_group) const;
 
     };
 } // namespace OpenMS
