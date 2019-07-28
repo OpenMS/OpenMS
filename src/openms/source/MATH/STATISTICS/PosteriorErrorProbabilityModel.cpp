@@ -47,8 +47,6 @@
 
 #include <QDir>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
 #include <algorithm>
 
 
@@ -173,7 +171,7 @@ namespace OpenMS
 
         GumbelMaxLikelihoodFitter::GumbelDistributionFitResult newGumbelParams = gmlf.fitWeighted(x_scores, incorrect_posteriors);
 
-        if (newGumbelParams.b <= 0 || isnan(newGumbelParams.b))
+        if (newGumbelParams.b <= 0 || std::isnan(newGumbelParams.b))
         {
           OPENMS_LOG_WARN << "Warning: encountered impossible standard deviations. Aborting fit." << std::endl;
           break;
@@ -194,7 +192,7 @@ namespace OpenMS
         sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
         negative_prior_ = sumIncorrectPosteriors / x_scores.size();
 
-        if (boost::math::isnan(new_maxlike - maxlike)
+        if (std::isnan(new_maxlike - maxlike)
             || new_maxlike < maxlike)
         {
           return false;
@@ -335,7 +333,7 @@ namespace OpenMS
         newSigmas.first = sqrt(newSigmas.first/sumCorrectPosteriors);
         newSigmas.second = sqrt(newSigmas.second/sumIncorrectPosteriors);
 
-        if (newSigmas.first <= 0 || newSigmas.second <= 0 || isnan(newSigmas.first) || isnan(newSigmas.second) )
+        if (newSigmas.first <= 0 || newSigmas.second <= 0 || std::isnan(newSigmas.first) || std::isnan(newSigmas.second) )
         {
           OPENMS_LOG_WARN << "Warning: encountered impossible standard deviations. Aborting fit." << std::endl;
           break;
@@ -359,7 +357,7 @@ namespace OpenMS
         sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
         negative_prior_ = sumIncorrectPosteriors / x_scores.size();
 
-        if (boost::math::isnan(new_maxlike - maxlike) 
+        if (std::isnan(new_maxlike - maxlike) 
           || new_maxlike < maxlike)
         {
           return false;
@@ -916,7 +914,7 @@ namespace OpenMS
                     if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
                     {
                       double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0]);
-                      if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                      if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                       {
                         scores.push_back(score);
 
@@ -941,7 +939,7 @@ namespace OpenMS
                       if (!split_charge || (hit.getCharge() == *charge_it))
                       {
                         double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit);
-                        if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                        if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                         {
                           scores.push_back(score);
                         }
@@ -1021,7 +1019,7 @@ namespace OpenMS
 
                   //TODO they should be ignored during fitting already!
                   // and in this issue the -log(10^99) should actually be an acceptable value.
-                  if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                  if (std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                   {
                     score = 1.0;
                   }

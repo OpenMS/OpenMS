@@ -83,7 +83,7 @@ namespace OpenMS
       {
       }
 
-      MoleculeQueryMatch(const MoleculeQueryMatch& other) = default;
+      MoleculeQueryMatch(const MoleculeQueryMatch&) = default;
 
       MoleculeType getMoleculeType() const
       {
