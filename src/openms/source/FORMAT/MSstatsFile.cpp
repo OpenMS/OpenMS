@@ -178,7 +178,7 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
               OpenMS::String(intensity.second) + ',' + line.first.toString() + ',' + OpenMS::String(intensity.first));
         }
       }
-        // Otherwise, the intensities are resolved over the retention times
+      // Otherwise, the intensities are resolved over the retention times
       else
       {
         OpenMS::MSstatsFile::Intensity intensity(0);
@@ -204,8 +204,9 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
   }
 }
 
-void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap &consensus_map,
-                                   const OpenMS::ExperimentalDesign& design,
+void OpenMS::MSstatsFile::storeLFQ(const String& filename,
+                                   const ConsensusMap& consensus_map,
+                                   const ExperimentalDesign& design,
                                    const StringList& reannotate_filenames,
                                    const bool is_isotope_label_type,
                                    const String& bioreplicate,
@@ -344,10 +345,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
 
   if (!consensus_map.getProteinIdentifications()[0].hasInferenceData())
   {
-    OPENMS_LOG_WARN << "No inference was performed, defaulting to one-peptide-rule across all runs." << std::endl;
-    ConsensusMapMergerAlgorithm merger;
-    merger.mergeAllIDRuns(consensus_map);
-    IDFilter::updateProteinReferences(consensus_map, true); //remove dangling peptides
+    OPENMS_LOG_WARN << "No inference was performed on the first run, defaulting to one-peptide-rule." << std::endl;
   }
 
   // We quantify indistinguishable groups with one (corner case) or multiple proteins.
@@ -357,7 +355,7 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
   //  quite unnecessary. Think about skipping if no groups are present
 
   //consensus_map.getProteinIdentifications()[0].fillIndistinguishableGroupsWithSingletons();
-  IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
+  const IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
 
   // Map protein accession to its indistinguishable group
   std::unordered_map< String, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);
@@ -496,9 +494,9 @@ void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap 
   csv_out.store(filename);
 }
 
-void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename,
-                                   ConsensusMap &consensus_map,
-                                   const OpenMS::ExperimentalDesign& design,
+void OpenMS::MSstatsFile::storeISO(const String& filename,
+                                   const ConsensusMap& consensus_map,
+                                   const ExperimentalDesign& design,
                                    const StringList& reannotate_filenames,
                                    const String& bioreplicate,
                                    const String& condition,
@@ -509,6 +507,26 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename,
   const ExperimentalDesign::SampleSection& sampleSection = design.getSampleSection();
 
   checkConditionISO_(sampleSection, bioreplicate, condition, mixture);
+
+  if (consensus_map.getProteinIdentifications().empty())
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                     "No protein information found in the ConsensusXML.");
+  }
+
+  // warn if we have more than one protein ID run
+  //TODO actually allow having more than one inference run e.g. for different conditions
+  if (consensus_map.getProteinIdentifications().size() > 1)
+  {
+    OPENMS_LOG_WARN << "Found " +
+                       String(consensus_map.getProteinIdentifications().size()) +
+                       " protein runs in consensusXML. Using first one only to parse inference data for now." << std::endl;
+  }
+
+  if (!consensus_map.getProteinIdentifications()[0].hasInferenceData())
+  {
+    OPENMS_LOG_WARN << "No inference was performed on the first run, defaulting to one-peptide-rule." << std::endl;
+  }
 
   // Maps run in MSstats input to run for OpenMS
   map< unsigned, unsigned > msstats_run_to_openms_fractiongroup;
@@ -593,7 +611,7 @@ void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename,
   // If indistinguishable groups are not annotated (no inference or only trivial inference has been performed) we assume
   // that all proteins can be independently quantified (each forming an indistinguishable group).
   //TODO refactor since shared with LFQ and ISO
-  IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
+  const IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
 
   // Map protein accession to its indistinguishable group
   std::unordered_map< String, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);

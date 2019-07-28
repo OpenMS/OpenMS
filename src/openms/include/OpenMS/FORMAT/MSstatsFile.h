@@ -62,14 +62,14 @@ namespace OpenMS
     class OPENMS_DLLAPI MSstatsFile
     {
     public:
-        ///Default constructor
+        /// Default constructor
         MSstatsFile();
-        ///Destructor
+        /// Destructor
         ~MSstatsFile();
 
         /// store label free experiment (MSstats)
         void storeLFQ(const String& filename, 
-                      ConsensusMap &consensus_map, // we might add singleton protein groups
+                      const ConsensusMap &consensus_map, // we might add singleton protein groups
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const bool is_isotope_label_type,
@@ -79,7 +79,7 @@ namespace OpenMS
         
         /// store isobaric experiment (MSstatsTMT)
         void storeISO(const String& filename, 
-                      ConsensusMap &consensus_map,
+                      const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
                       const String& bioreplicate,

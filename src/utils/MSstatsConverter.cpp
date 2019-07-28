@@ -171,7 +171,6 @@ protected:
 
         MSstatsFile msStatsFile;
 
-
         if (arg_method == "LFQ")
         {
             msStatsFile.storeLFQ(arg_out, consensus_map, design,
