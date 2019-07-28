@@ -1182,10 +1182,9 @@ protected:
     const double nucleotide_mass_tags/*,
     const double fraction_of_top50annotated*/)
   {
-/* Tie-braker score
-    return + 1.0 * ah.total_loss_score + 0.01 * ah.total_MIC + 0.01 * ah.mass_error_p 
-           - 0.01 * ah.isotope_error - ah.err - ah.pl_err;
-*/
+// Tie-braker score
+//    return + 1.0 * ah.total_loss_score + ah.total_MIC + 0.1 * ah.mass_error_p 
+//           - 0.01 * ah.isotope_error - 10.0 * ah.err - 10.0 * ah.pl_err;
 
 /*
      double score = 2.52872532
@@ -1232,6 +1231,7 @@ score += ah.mass_error_p     *   1.15386068
            + 88.7997 * ah.immonium_score- 0.88823 * ah.partial_loss_score + 14.2052 * ah.pl_MIC
            + 0.61144 * ah.pl_modds + 10.07574543 * ah.pl_pc_MIC -28.05701 * ah.pl_im_MIC
            + 2.59655 * ah.total_MIC + 2.38320 * ah.ladder_score + 0.65422535 * (ah.total_loss_score + ah.partial_loss_score);
+
 //           4267 without perc / 5306 with perc auf 1-
 //           5010 with perc auf 2-
 
