@@ -538,10 +538,10 @@ protected:
   {
     if (plss_Morph + tlss_Morph < 5.03) return true;
 
-    if (plss_MIC + plss_im_MIC + plss_pc_MIC + marker_ions_score < 0.01) return true;
+    if (plss_MIC + plss_im_MIC + plss_pc_MIC + marker_ions_score < 0.03) return true;
 
     // if we don't see shifted ladder ions, we need at least some signal in the shifted immonium ions
-    return (plss_Morph < MIN_SHIFTED_IONS + 1.0 && plss_im_MIC < 0.01); 
+    return (plss_Morph < MIN_SHIFTED_IONS + 1.0 && plss_im_MIC < 0.03); 
   }
 
   /*
@@ -1226,15 +1226,23 @@ score += ah.mass_error_p     *   1.15386068
 //    return ah.total_MIC + ah.marker_ions_score + fraction_of_top50annotated;
 
     return 
-            -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err 
+             10.0 * ah.total_loss_score + ah.partial_loss_score 
+           + 0.01 * ah.mass_error_p 
+           - 10.0 * ah.err 
+           - 10.0 * ah.pl_err
+           + 3.0 * ah.pl_MIC
+           + isXL * 3.0 * ah.marker_ions_score
+           + 3.0 * ah.total_MIC + ah.ladder_score;
+
+/*
+            -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err
            + 52.2888 * ah.pl_err - 0.0105 * ah.modds
            + 88.7997 * ah.immonium_score- 0.88823 * ah.partial_loss_score + 14.2052 * ah.pl_MIC
            + 0.61144 * ah.pl_modds + 10.07574543 * ah.pl_pc_MIC -28.05701 * ah.pl_im_MIC
-           + 2.59655 * ah.total_MIC + 2.38320 * ah.ladder_score + 0.65422535 * (ah.total_loss_score + ah.partial_loss_score);
-
+           + 2.59655 * ah.total_MIC + 2.38320 * ah.ladder_score + 0.65422535 * (ah.total_loss_score + ah.partial_loss_score)
 //           4267 without perc / 5306 with perc auf 1-
 //           5010 with perc auf 2-
-
+*/
 
 
 
@@ -1249,7 +1257,7 @@ score += ah.mass_error_p     *   1.15386068
                + 0.333 * ah.mass_error_p*/;
   } 
 /*
-*  Score fragments carrying NA adducts .
+*  Score fragments carrying NA adducts 
 */
 static void scoreShiftedFragments_(
                                   const vector<RNPxlFragmentAdductDefinition> &partial_loss_modification,
@@ -1281,7 +1289,7 @@ static void scoreShiftedFragments_(
 
     if (!marker_ions_sub_score_spectrum_z1.empty())
     {
-      auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
+      auto const & r = MorpheusScore::compute(fragment_mass_tolerance * 2.0,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
                                              exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX],
@@ -3899,7 +3907,6 @@ static void scoreShiftedFragments_(
     param_pi.setValue("enzyme:name", getStringOption_("peptide:enzyme"));
     param_pi.setValue("enzyme:specificity", "full");
     param_pi.setValue("missing_decoy_action", "silent");
-    param_pi.setValue("log", getStringOption_("log"));
     indexer.setParameters(param_pi);
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
