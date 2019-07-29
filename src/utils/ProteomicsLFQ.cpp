@@ -458,21 +458,20 @@ protected:
       for (auto & s : alignment_stats)
       {
         OPENMS_LOG_INFO << "Alignment differences (second) for percentiles (before & after): " << endl;
-        OPENMS_LOG_INFO << "100%\t99%\t95%\t90%\t75%\t50%\t25%" << endl;
+        OPENMS_LOG_INFO << ListUtils::concatenate(s.percents,"%\t") << "%" << endl;
         OPENMS_LOG_INFO << "before alignment:" << endl;
-        OPENMS_LOG_INFO << (int)s.percentiles_before[100] << "\t"
-                  << (int)s.percentiles_before[99] << "\t" 
-                  << (int)s.percentiles_before[95] << "\t" 
-                  << (int)s.percentiles_before[90] << "\t" 
-                  << (int)s.percentiles_before[50] << "\t" 
-                  << (int)s.percentiles_before[25] << endl; 
+        for (const auto& p : s.percents)
+        {
+          OPENMS_LOG_INFO << (int)s.percentiles_before[p] << "\t";
+        }
+        OPENMS_LOG_INFO << endl;
+
         OPENMS_LOG_INFO << "after alignment:" << endl;
-        OPENMS_LOG_INFO << (int)s.percentiles_after[100] << "\t"
-                  << (int)s.percentiles_after[99] << "\t" 
-                  << (int)s.percentiles_after[95] << "\t" 
-                  << (int)s.percentiles_after[90] << "\t" 
-                  << (int)s.percentiles_after[50] << "\t" 
-                  << (int)s.percentiles_after[25] << endl; 
+        for (const auto& p : s.percents)
+        {
+          OPENMS_LOG_INFO << (int)s.percentiles_after[p] << "\t";
+        }
+        OPENMS_LOG_INFO << endl;
       }
 
       double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(),
@@ -799,8 +798,8 @@ protected:
       // reannotate spectrum references if missing
       if (missing_spec_ref)
       {
-        OPENMS_LOG_WARN << "The identification files don't contain a meta value with the spectrum native id." << endl;
-        OPENMS_LOG_WARN << "OpenMS will try to reannotate them by matching retention times between id and spectra." << endl;
+        OPENMS_LOG_WARN << "Warning: The identification files don't contain a meta value with the spectrum native id.\n"
+                           "OpenMS will try to reannotate them by matching retention times between id and spectra." << endl;
 
         SpectrumMetaDataLookup::addMissingSpectrumReferences(
           peptide_ids, 
@@ -824,7 +823,7 @@ protected:
       //////////////////////////////////////////////////////
       if (!transfered_ids.empty())
       {
-        OPENMS_PRECONDITION(is_already_aligned, "Data has not been aligned.");
+        OPENMS_PRECONDITION(is_already_aligned, "Data has not been aligned.")
 
         // transform observed IDs and spectra
         MapAlignmentTransformer::transformRetentionTimes(peptide_ids, transformations[fraction_group - 1]);
@@ -1271,7 +1270,7 @@ protected:
     }
 
     // if no or only partial grouping was performed, add rest of proteins as singleton groups
-    // (assumed by greedy resolution and MSStatsConverter)
+    // (assumed by greedy resolution for now)
     inferred_protein_ids[0].fillIndistinguishableGroupsWithSingletons();
 
     if (debug_level_ >= 666)
@@ -1314,6 +1313,15 @@ protected:
     IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
     //IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
     IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+
+    if (inferred_protein_ids[0].getHits().empty())
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "No proteins left after FDR filtering. Please check the log and adjust your settings.");
+    }
 
     if (debug_level_ >= 666)
     {

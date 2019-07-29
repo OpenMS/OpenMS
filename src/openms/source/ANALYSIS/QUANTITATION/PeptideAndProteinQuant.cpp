@@ -172,19 +172,21 @@ namespace OpenMS
       for (auto & pep_q : pep_quant_)  // for all quantified peptides
       {
         String seq = pep_q.first.toUnmodifiedString();
-        cout << "Sequence: " << seq << endl;
+        OPENMS_LOG_DEBUG << "Sequence: " << seq << endl;
         map<String, set<String> >::iterator pos = pep_info.find(seq);
         if (pos != pep_info.end()) // sequence found in protein inference data
         {
-          cout << "Accessions: ";
-          for (auto & a : pos->second) { cout << a << "\t"; }
-          cout << "\n";
+          OPENMS_LOG_DEBUG << "Accessions: ";
+          for (auto & a : pos->second) {
+            OPENMS_LOG_DEBUG << a << "\t";
+          }
+          OPENMS_LOG_DEBUG << "\n";
           pep_q.second.accessions = pos->second; // replace accessions
           filtered.insert(pep_q);
         }
         else
         {
-          cout << "not found in inference data." << endl;
+          OPENMS_LOG_DEBUG << "not found in inference data." << endl;
         }
       }
       pep_quant_ = filtered;
@@ -334,10 +336,10 @@ namespace OpenMS
                              ++leaders.begin());
       if (all_equal) return leaders[0];
     }
-    cout << "LEADERS EMPTY: " << endl;
+    OPENMS_LOG_DEBUG << "LEADERS EMPTY: " << endl;
     for (auto const & acc : pep_accessions)
     {
-      cout << acc << endl;
+      OPENMS_LOG_DEBUG << acc << endl;
     } 
     return "";
   }
@@ -368,11 +370,11 @@ namespace OpenMS
 
     // for (auto & a : accession_to_leader) { std::cout << a.first << "\tis led by:\t" << a.second << endl; }
 
-    for (auto const pep_q : pep_quant_)
+    for (auto const& pep_q : pep_quant_)
     {
       String accession = getAccession_(pep_q.second.accessions,
                                        accession_to_leader);
-      std::cout << "Pepitde id mapped to leader: " << accession << endl;
+      OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << accession << endl;
       if (!accession.empty()) // proteotypic peptide
       {
         prot_quant_[accession].id_count += pep_q.second.id_count;
@@ -682,15 +684,16 @@ namespace OpenMS
   {
     auto & id_groups = proteins.getIndistinguishableProteins();
 
-    cout << "Quantified ind. group with accessions:\n";
-    for (auto q : protein_quants)
+    OPENMS_LOG_DEBUG << "Quantified ind. group with accessions:\n";
+    for (const auto& q : protein_quants)
     {
       // accession of quantified protein(group)
       const String & acc = q.first;
 
       if (q.second.total_abundances.empty()) 
-      { 
-        cout << "Protein: " << acc << " not quantified." << endl;
+      {
+        //TODO maybe just count the number of unquantifiable proteins and report that?
+        OPENMS_LOG_DEBUG << "Protein: " << acc << " not quantified." << endl;
         continue; 
       } // not quantified
  
@@ -713,19 +716,19 @@ namespace OpenMS
         abundances.setName("abundances");        
         abundances.resize(n_samples);
 
-        for (auto const & acc : id_group->accessions)
+        for (auto const& a : id_group->accessions)
         {
-          cout << acc << "\t";
+          OPENMS_LOG_DEBUG << a << "\t";
         }
-        cout << "\n";
+        OPENMS_LOG_DEBUG << "\n";
 
         for (auto const & s : total_abundances)
         {
           // Note: sample indices are one-based
           abundances[s.first - 1] = s.second;
-          cout << s.second << "\t";
+          OPENMS_LOG_DEBUG << s.second << "\t";
         }
-        cout << endl;
+        OPENMS_LOG_DEBUG << endl;
       }
       else
       {

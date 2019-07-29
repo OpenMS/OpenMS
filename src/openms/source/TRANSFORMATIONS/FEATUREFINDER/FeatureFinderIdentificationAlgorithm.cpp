@@ -1153,7 +1153,7 @@ namespace OpenMS
     RTMap::value_type pair = make_pair(rt, &peptide);
     if (!external)
     {
-      cout << "Adding " << hit.getSequence() << " " << charge << " " << rt << endl;
+      OPENMS_LOG_DEBUG << "Adding " << hit.getSequence() << " " << charge << " " << rt << endl;
       peptide_map[hit.getSequence()][charge].first.insert(pair);
     }
     else

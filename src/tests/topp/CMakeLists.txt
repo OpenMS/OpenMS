@@ -76,6 +76,7 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 #------------------------------------------------------------------------------
 set(TOPP_BIN_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(DATA_DIR_TOPP ${PROJECT_SOURCE_DIR})
+set(DATA_DIR_SHARE ${OPENMS_HOST_DIRECTORY}/share/OpenMS)
 set(DATA_DIR_TOPP_BIN ${PROJECT_BINARY_DIR})
 set(INDEX_WHITELIST "offset" "indexListOffset")
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
@@ -2545,6 +2546,39 @@ add_test("UTILS_OpenPepXLLF_2" ${TOPP_BIN_PATH}/OpenPepXLLF -test -ini ${DATA_DI
 add_test("UTILS_OpenPepXLLF_2_out_1" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output2.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output2.idXML )
 set_tests_properties("UTILS_OpenPepXLLF_2_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_2")
 
+# ProteomicsLFQ test:
+add_test("UTILS_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -transfer_ids false
+         -mass_recalibration false
+         -out_cxml BSA.consensusXML.tmp
+         -out_msstats BSA.csv.tmp
+         -out BSA.mzTab.tmp
+         -threads 4
+         -proteinFDR 0.3
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_1_out_1" ${DIFF} -in1 BSA.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_1_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1")
 
 #------------------------------------------------------------------------------
 # XFDR tests

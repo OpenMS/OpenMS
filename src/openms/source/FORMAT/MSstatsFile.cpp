@@ -598,7 +598,10 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
 
   // The output file of the MSstats converter
   TextFile csv_out;
-  csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture," + String(has_fraction ? "Fraction,": "") + "Intensity");
+  csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") +
+    "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture," +
+    String(has_fraction ? "Fraction,": "") +
+    "Intensity");
 
   // These are placeholder peptide evidences in case the original ones are empty
   PeptideEvidence new_pep_ev;
