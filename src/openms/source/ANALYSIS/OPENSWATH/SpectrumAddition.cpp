@@ -44,6 +44,8 @@ namespace OpenMS
   OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(const std::vector<OpenSwath::SpectrumPtr> all_spectra,
       double sampling_rate, bool filter_zeros)
   {
+    OPENMS_PRECONDITION(all_spectra.empty() || all_spectra[0]->getDataArrays().size() == 2, "Can only resample spectra with 2 data dimensions (no ion mobility spectra)")
+
     if (all_spectra.size() == 1) return all_spectra[0];
     if (all_spectra.empty())
     {
@@ -60,11 +62,24 @@ namespace OpenMS
     // find global min and max -> use as start/endpoints for resampling
     double min = all_spectra[0]->getMZArray()->data[0];
     double max = all_spectra[0]->getMZArray()->data.back();
+    double min_spacing = max - min;
     for (Size i = 0; i < all_spectra.size(); i++)
     {
       if (all_spectra[i]->getMZArray()->data.empty() )
       {
         continue;
+      }
+
+      // estimate sampling rate
+      for (Size k = 0; k < all_spectra[i]->getMZArray()->data.size() && sampling_rate < 0; k++)
+      {
+        if (k > 0)
+        {
+          if (min_spacing > all_spectra[i]->getMZArray()->data[k] - all_spectra[i]->getMZArray()->data[k-1] )
+          {
+            min_spacing = all_spectra[i]->getMZArray()->data[k] - all_spectra[i]->getMZArray()->data[k-1];
+          }
+        }
       }
 
       if (all_spectra[i]->getMZArray()->data[0] < min)
@@ -76,6 +91,9 @@ namespace OpenMS
         max = all_spectra[i]->getMZArray()->data.back();
       }
     }
+
+    // in case we are asked to estimate the resampling rate
+    if (sampling_rate < 0) sampling_rate = min_spacing;
 
     // generate the resampled peaks at positions origin+i*spacing_
     int number_resampled_points = (max - min) / sampling_rate + 1;
@@ -127,6 +145,8 @@ namespace OpenMS
 
   OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(const std::vector<OpenMS::MSSpectrum> all_spectra, double sampling_rate, bool filter_zeros)
   {
+    OPENMS_PRECONDITION(all_spectra.empty() || all_spectra[0].getFloatDataArrays().empty(), "Can only resample spectra with 2 data dimensions (no ion mobility spectra)")
+
     if (all_spectra.size() == 1) return all_spectra[0];
     if (all_spectra.empty()) return MSSpectrum();
     // ensure first one is not empty
@@ -143,6 +163,7 @@ namespace OpenMS
         continue;
       }
 
+      // estimate sampling rate
       for (Size k = 0; k < all_spectra[i].size() && sampling_rate < 0; k++)
       {
         if (k > 0)

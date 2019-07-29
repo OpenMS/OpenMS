@@ -1,4 +1,4 @@
-ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechMixture,Fraction,Intensity
+ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture,Fraction,Intensity
 sp|Q14980|NUMA1_HUMAN,.(TMT6plex)AALM(Oxidation)ESQGQQQEER,3,1,1,1,1_1_1,1,1_1,1,38015.398438
 sp|Q14980|NUMA1_HUMAN,.(TMT6plex)AALM(Oxidation)ESQGQQQEER,3,2,1,2,1_1_1,1,1_1,1,44224.601563
 sp|Q14980|NUMA1_HUMAN,.(TMT6plex)AALM(Oxidation)ESQGQQQEER,3,3,1,3,1_1_1,1,1_1,1,29487.900391
