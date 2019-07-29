@@ -26,6 +26,7 @@ IDConflictResolverAlgorithm.h
 IDMapper.h
 IDMergerAlgorithm.h
 IDRipper.h
+IDScoreGetterSetter.h
 MessagePasserFactory.h
 MetaboliteSpectralMatching.h
 PeptideProteinResolution.h
