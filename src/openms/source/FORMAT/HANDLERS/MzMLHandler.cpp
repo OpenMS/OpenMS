@@ -1649,7 +1649,6 @@ namespace OpenMS
 
         if (accession == "MS:1000744") //selected ion m/z
         {
-          // @TODO: what if "isolationWindow" was missing (which is allowed)?
           double this_mz = value.toDouble();
           Precursor& precursor = in_spectrum_list_ ?
             spec_.getPrecursors().back() : chromatogram_.getPrecursor();
@@ -3712,13 +3711,13 @@ namespace OpenMS
       //isolation window (optional)
       //--------------------------------------------------------------------------------------------
 
+      double mz = precursor.metaValueExists("isolation window target m/z") ?
+        double(precursor.getMetaValue("isolation window target m/z")) :
+        precursor.getMZ(); // precursor m/z may come from "selected ion"
       // Note that TPP parsers break when the isolation window is written out
       // in mzML files and the precursorMZ gets set to zero.
-      if (precursor.getMZ() > 0.0 && !options_.getForceTPPCompatability() )
+      if (mz > 0.0 && !options_.getForceTPPCompatability())
       {
-        double mz = precursor.metaValueExists("isolation window target m/z") ?
-          double(precursor.getMetaValue("isolation window target m/z")) :
-          precursor.getMZ(); // precursor m/z may come from "selected ion"
         os << "\t\t\t\t\t\t<isolationWindow>\n";
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << mz << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
         if (precursor.getIsolationWindowLowerOffset() > 0.0)
@@ -3743,7 +3742,7 @@ namespace OpenMS
           precursor.getDriftTime() >= 0.0 ||
           precursor.getPossibleChargeStates().size() > 0)
       {
-        double mz = precursor.metaValueExists("selected ion m/z") ?
+        mz = precursor.metaValueExists("selected ion m/z") ?
           double(precursor.getMetaValue("selected ion m/z")) :
           precursor.getMZ(); // precursor m/z may come from "isolation window"
         os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
