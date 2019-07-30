@@ -23,7 +23,6 @@ addons:
          - qt59base
          - qt59svg
          - cmake-data
-         - g++-4.8
          - python-dev
          - libhdf5-dev
          - libboost-chrono1.55-dev
@@ -68,14 +67,26 @@ script:
 #second we exclude those that are redundant, don't make sense or take too long
 matrix:
   include:
-    - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON 
+    - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
       os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
       compiler: gcc
 
 ## see for example https://github.com/taocpp/PEGTL/blob/master/.travis.yml
 ## gcc tests class and TOPP tests
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release OPENMP=On
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release OPENMP=On MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
       os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
       compiler: gcc
 
 ## pyopenms test
@@ -102,3 +113,6 @@ matrix:
 #      os: osx
 #      compiler: clang
 #
+
+before_install:
+  - eval "${MATRIX_EVAL}"

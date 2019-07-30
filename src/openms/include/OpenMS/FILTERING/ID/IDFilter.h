@@ -84,6 +84,10 @@ public:
     /// Destructor
     virtual ~IDFilter();
 
+    /// Typedefs
+    typedef std::map<Int, PeptideHit*> ChargeToPepHitP;
+    typedef std::unordered_map<std::string, ChargeToPepHitP> SequenceToChargeToPepHitP;
+    typedef std::map<std::string, SequenceToChargeToPepHitP> RunToSequenceToChargeToPepHitP;
 
     /**
        @name Predicates for peptide or protein hits
@@ -236,11 +240,9 @@ public:
 
       bool operator()(const PeptideHit& hit) const
       {
-        std::set<String> present_accessions = hit.extractProteinAccessionsSet();
-        for (std::set<String>::iterator it = present_accessions.begin();
-             it != present_accessions.end(); ++it)
+        for (const auto& it : hit.extractProteinAccessionsSet())
         {
-          if (accessions.count(*it) > 0) return true;
+          if (accessions.count(it) > 0) return true;
         }
         return false;
       }
@@ -1145,10 +1147,10 @@ public:
     {
       const auto& prot_ids = prot_and_pep_ids.getProteinIdentifications();
 
-      std::map<std::string, std::unordered_map<std::string, std::map<Int, PeptideHit*>>> best_peps_per_run;
+      RunToSequenceToChargeToPepHitP best_peps_per_run;
       for (const auto& idrun : prot_ids)
       {
-        best_peps_per_run[idrun.getIdentifier()] = std::unordered_map<std::string, std::map<Int, PeptideHit*>>();
+        best_peps_per_run[idrun.getIdentifier()] = SequenceToChargeToPepHitP();
       }
 
       for (auto& feat : prot_and_pep_ids)
@@ -1162,94 +1164,48 @@ public:
       keepMatchingPeptideHits(prot_and_pep_ids, best_per_peptide);
     }
 
+    /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
+    /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
     static void annotateBestPerPeptidePerRun(const std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
-      std::map<std::string, std::unordered_map<std::string, std::map<Int, PeptideHit*>>> best_peps_per_run;
+      RunToSequenceToChargeToPepHitP best_peps_per_run;
       for (const auto& id : prot_ids)
       {
-        best_peps_per_run[id.getIdentifier()] = std::unordered_map<std::string, std::map<Int, PeptideHit*>>();
+        best_peps_per_run[id.getIdentifier()] = SequenceToChargeToPepHitP();
       }
       annotateBestPerPeptidePerRunWithData(best_peps_per_run, pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
     }
 
     /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
     /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
-    static void annotateBestPerPeptidePerRunWithData(std::map<std::string, std::unordered_map<std::string, std::map<Int, PeptideHit*>>>& best_peps_per_run, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    /// To be used when a RunToSequenceToChargeToPepHitP map is already available
+    static void annotateBestPerPeptidePerRunWithData(RunToSequenceToChargeToPepHitP& best_peps_per_run, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
       for (auto &pep : pep_ids)
       {
-        //skip if no hits (which almost could be considered and error or warning.
-        if (pep.getHits().empty())
-          continue;
-
-        bool higher_score_better = pep.isHigherScoreBetter();
-        //make sure that first = best hit
-        pep.sort();
-
-        auto& best_pep_map = best_peps_per_run[pep.getIdentifier()];
-
-        auto pepIt = pep.getHits().begin();
-        auto pepItEnd = nr_best_spectrum == 0 || pep.getHits().size() <= nr_best_spectrum ? pep.getHits().end() : pep.getHits().begin() + nr_best_spectrum;
-        for (; pepIt != pepItEnd; ++pepIt)
-        {
-          PeptideHit &hit = *pepIt;
-
-          String lookup_seq;
-          if (ignore_mods)
-          {
-            lookup_seq = hit.getSequence().toUnmodifiedString();
-          }
-          else
-          {
-            lookup_seq = hit.getSequence().toString();
-          }
-
-          int lookup_charge = 0;
-          if (!ignore_charges)
-          {
-            lookup_charge = hit.getCharge();
-          }
-
-
-          auto it_inserted = best_pep_map.emplace(std::move(lookup_seq), std::map<Int, PeptideHit*>());
-          auto it_inserted_chg = it_inserted.first->second.emplace(lookup_charge, &hit);
-          PeptideHit* &p = it_inserted_chg.first->second; //either the old one if already present, or this
-          if (!it_inserted_chg.second) //was already present -> possibly update
-          {
-            if (
-                (higher_score_better && (hit.getScore() > p->getScore())) ||
-                (!higher_score_better && (hit.getScore() < p->getScore()))
-                )
-            {
-              p->setMetaValue("bestForItsPep", 0);
-              hit.setMetaValue("bestForItsPep", 1);
-              p = &hit;
-            }
-            else //note that this was def. not the best
-            {
-              // TODO if it is only about filtering, we can omit writing this metavalue (absence = false)
-              hit.setMetaValue("bestForItsPep", 0);
-            }
-          }
-          else //first for that sequence (and optionally charge)
-          {
-            hit.setMetaValue("bestForItsPep", 1);
-          }
-        }
+        SequenceToChargeToPepHitP& best_pep = best_peps_per_run[pep.getIdentifier()];
+        annotateBestPerPeptideWithData(best_pep, pep, ignore_mods, ignore_charges, nr_best_spectrum);
       }
     }
 
     /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
     /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
+    /// Does not check Run information and just goes over all Peptide IDs
     static void annotateBestPerPeptide(std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
-      std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
-      for (auto &pep : pep_ids)
+      SequenceToChargeToPepHitP best_pep;
+      for (auto& pep : pep_ids)
       {
-        //skip if no hits (which almost could be considered and error or warning.
-        if (pep.getHits().empty())
-          continue;
+        annotateBestPerPeptideWithData(best_pep, pep, ignore_mods, ignore_charges, nr_best_spectrum);
+      }
+    }
 
+    /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
+    /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
+    /// Does not check Run information and just goes over all Peptide IDs
+    /// To be used when a SequenceToChargeToPepHitP map is already available
+    static void annotateBestPerPeptideWithData(SequenceToChargeToPepHitP& best_pep, PeptideIdentification& pep, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
         bool higher_score_better = pep.isHigherScoreBetter();
         //make sure that first = best hit
         pep.sort();
@@ -1276,9 +1232,11 @@ public:
             lookup_charge = hit.getCharge();
           }
 
-          auto it_inserted = best_pep.emplace(std::move(lookup_seq), std::map<Int, PeptideHit*>());
+          // try to insert
+          auto it_inserted = best_pep.emplace(std::move(lookup_seq), ChargeToPepHitP());
           auto it_inserted_chg = it_inserted.first->second.emplace(lookup_charge, &hit);
-          PeptideHit* &p = it_inserted_chg.first->second; //either the old one if already present, or this
+
+          PeptideHit* &p = it_inserted_chg.first->second; //now this gets either the old one if already present, or this
           if (!it_inserted_chg.second) //was already present -> possibly update
           {
             if (
@@ -1296,12 +1254,11 @@ public:
               hit.setMetaValue("bestForItsPep", 0);
             }
           }
-          else //first for that sequence (and optionally charge)
+          else //newly inserted -> first for that sequence (and optionally charge)
           {
             hit.setMetaValue("bestForItsPep", 1);
           }
         }
-      }
     }
 
     /// Filters an MS/MS experiment according to the given proteins

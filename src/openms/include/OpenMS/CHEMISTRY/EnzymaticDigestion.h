@@ -119,6 +119,20 @@ public:
        @return Number of discarded digestion products (which are not matching length restrictions)
        */
     Size digestUnmodified(const StringView& sequence, std::vector<StringView>& output, Size min_length = 1, Size max_length = 0) const;
+
+    /**
+     @brief Performs the enzymatic digestion of an unmodified sequence.
+
+     By returning only positions into the original string this is very fast and compared to the StringView output
+     version of this function it is independent of the original sequence. Can be used for matching products to
+     determine e.g. missing ones. @todo could be set of pairs.
+
+     @param sequence Sequence to digest
+     @param output Digestion products as vector of pairs of start and end positions
+     @param min_length Minimal length of reported products
+     @param max_length Maximal length of reported products (0 = no restriction)
+     @return Number of discarded digestion products (which are not matching length restrictions)
+     */
     Size digestUnmodified(const StringView& sequence, std::vector<std::pair<Size,Size>>& output, Size min_length = 1, Size max_length = 0) const;
 
     /**

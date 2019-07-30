@@ -635,11 +635,6 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
     {
       for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
       {
-        const std::vector< PeptideEvidence > & original_peptide_evidences = pep_hit.getPeptideEvidences();
-
-        // Decide whether to use original or placeholder iterator
-        //const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.empty()) ? placeholder_peptide_evidences : original_peptide_evidences;
-
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
         const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
@@ -648,6 +643,9 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
         // check if all referenced protein accessions are part of the same indistinguishable group
         // if so, we mark the sequence as quantifiable
         std::set<String> accs = pep_hit.extractProteinAccessionsSet();
+
+        // When using extractProteinAccessionSet, we do not really need to loop over Evidences
+        // anymore since MSStats does not care about anything else but the Protein accessions
 
         if (isQuantifyable_(accs, accession_to_group))
         {
