@@ -497,9 +497,11 @@ namespace OpenMS
                                  bool keep_decoy,
                                  Args &&... args)
     {
+      //Note: Gcc4.8 cannot handle variadic templates in lambdas
       std::function<void(PeptideIdentification &)> f =
           [&](PeptideIdentification &id) -> void
-          { setScores_(scores_to_FDR, id, score_type, higher_better, keep_decoy, std::forward<Args>(args)...); };
+          { setScores_(scores_to_FDR, id, score_type,
+              higher_better, keep_decoy, std::forward<Args>(args)...); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
     }
 
