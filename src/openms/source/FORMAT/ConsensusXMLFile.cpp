@@ -683,15 +683,7 @@ namespace OpenMS
 
     setProgress(++progress_);
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-    //add XSLT file if it can be found
-    try
-    {
-      String xslt_file = File::find("XSL/ConsensusXML.xsl");
-      os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
-    }
-    catch (Exception::FileNotFound&)
-    {
-    }
+    os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://www.openms.de/xml-stylesheet/ConsensusXML.xsl\" ?>\n";
 
     setProgress(++progress_);
     os << "<consensusXML version=\"" << version_ << "\"";
