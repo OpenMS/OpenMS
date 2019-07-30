@@ -1179,8 +1179,9 @@ protected:
 */
   static float calculateCombinedScore(const AnnotatedHit& ah, 
     const bool isXL, 
-    const double nucleotide_mass_tags/*,
-    const double fraction_of_top50annotated*/)
+    const double nucleotide_mass_tags
+    //, const double fraction_of_top50annotated
+    )
   {
 // Tie-braker score
 //    return + 1.0 * ah.total_loss_score + ah.total_MIC + 0.1 * ah.mass_error_p 
@@ -1240,8 +1241,8 @@ score += ah.mass_error_p     *   1.15386068
            + 88.7997 * ah.immonium_score- 0.88823 * ah.partial_loss_score + 14.2052 * ah.pl_MIC
            + 0.61144 * ah.pl_modds + 10.07574543 * ah.pl_pc_MIC -28.05701 * ah.pl_im_MIC
            + 2.59655 * ah.total_MIC + 2.38320 * ah.ladder_score + 0.65422535 * (ah.total_loss_score + ah.partial_loss_score)
-//           4267 without perc / 5306 with perc auf 1-
-//           5010 with perc auf 2-
+           4267 without perc / 5306 with perc auf 1-
+           5010 with perc auf 2-
 */
 
 
@@ -2800,16 +2801,17 @@ static void scoreShiftedFragments_(
        << "precursor_intensity_log10"
        << "NuXL:NA_MASS_z0"
        << "NuXL:NA_length"   
-       << "nucleotide_mass_tags"
+       << "nucleotide_mass_tags";
 #ifdef DANGEROUS_FEAUTURES
+    feature_set
        << "CountSequenceIsTop"
        << "CountSequenceCharges"
        << "CountSequenceIsXL"
-       << "CountSequenceIsPeptide"
+       << "CountSequenceIsPeptide";
 #endif
-       ;
+       
+    if (!purities.empty()) feature_set << "precursor_purity";
 
-       if (!purities.empty()) feature_set << "precursor_purity";
     // one-hot encoding of cross-linked nucleotide
     const String can_cross_link = getStringOption_("RNPxl:can_cross_link");
     for (const auto& c : can_cross_link) 
@@ -3088,7 +3090,7 @@ static void scoreShiftedFragments_(
     return count + MIC; // Morph score of matched (complete / partial) ladder
   }
 
-  String convertRawFile_(const String& in)
+  String convertRawFile_(const String& in, bool no_peak_picking = false)
   {
     writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
     String net_executable = getStringOption_("NET_executable");
@@ -3125,6 +3127,7 @@ static void scoreShiftedFragments_(
               << String("--output_file=" + out).toQString()
               << String("-f=2").toQString()
               << String("-e").toQString();
+    if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
     exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
 #endif
     if (exit_code != ExitCodes::EXECUTION_OK)
@@ -3945,11 +3948,11 @@ static void scoreShiftedFragments_(
       // split PSMs into XLs and non-XLs but keep only best one of both
       vector<PeptideIdentification> pep_pi;
       vector<PeptideIdentification> xl_pi;
-      for (auto pi : peptide_ids)
+      for (const auto & pi : peptide_ids)
       {
         vector<PeptideHit> pep_ph;
         vector<PeptideHit> xl_ph;
-        for (auto ph : pi.getHits())
+        for (const auto & ph : pi.getHits())
         {
            if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
            { // only add best hit
@@ -4005,9 +4008,9 @@ static void scoreShiftedFragments_(
                        << "-percolator_executable" << percolator_executable.toQString()
                        << "-train-best-positive" 
                        << "-score_type" << "svm"
-                       << "-post-processing-tdc"
+                       << "-post-processing-tdc";
 #if DEBUG_OpenNuXL
-                       << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab"
+        process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
 #endif
                        ;
         TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
@@ -4028,10 +4031,10 @@ static void scoreShiftedFragments_(
           // split PSMs into XLs and non-XLs but keep only best one of both
           vector<PeptideIdentification> pep_pi;
           vector<PeptideIdentification> xl_pi;
-          for (auto pi : peptide_ids)
+          for (const auto & pi : peptide_ids)
           {
             vector<PeptideHit> pep_ph, xl_ph;
-            for (auto ph : pi.getHits())
+            for (const auto & ph : pi.getHits())
             {
                if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
                { // only add best hit
