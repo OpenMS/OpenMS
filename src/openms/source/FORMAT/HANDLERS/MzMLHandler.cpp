@@ -121,7 +121,7 @@ namespace OpenMS
     void MzMLHandler::getCounts(Size& spectra_counts, Size& chromatogram_counts)
     {
       if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
-      { 
+      {
         spectra_counts = std::max(scan_count_total_, 0); // default is -1; if no specs were found, report 0
         chromatogram_counts = std::max(chrom_count_total_, 0);
       }
@@ -457,7 +457,7 @@ namespace OpenMS
           // Only if there are more than 2 data arrays, we need to check
           // for meta data (as there will always be an m/z and intensity
           // array)
-          if (input_data.size() > 2) 
+          if (input_data.size() > 2)
           {
             addSpectrumMetaData_(input_data, n, spectrum);
           }
@@ -1193,7 +1193,7 @@ namespace OpenMS
           else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
           }
           */
-          
+
           // Move current data to (temporary) spectral data object
           SpectrumData tmp;
           tmp.spectrum = std::move(spec_);
@@ -1649,15 +1649,25 @@ namespace OpenMS
 
         if (accession == "MS:1000744") //selected ion m/z
         {
-          //this overwrites the m/z of the isolation window, as it is probably more accurate
-          if (in_spectrum_list_)
+          // @TODO: what if "isolationWindow" was missing (which is allowed)?
+          double this_mz = value.toDouble();
+          Precursor& precursor = in_spectrum_list_ ?
+            spec_.getPrecursors().back() : chromatogram_.getPrecursor();
+          if (this_mz != precursor.getMZ())
           {
-            spec_.getPrecursors().back().setMZ(value.toDouble());
+            if (options_.getPrecursorMZSelectedIon())
+            {
+              // overwrite the m/z of the isolation window:
+              precursor.setMetaValue("isolation window target m/z",
+                                     precursor.getMZ());
+              precursor.setMZ(this_mz);
+            }
+            else // keep precursor m/z from isolation window
+            {
+              precursor.setMetaValue("selected ion m/z", this_mz);
+            }
           }
-          else
-          {
-            chromatogram_.getPrecursor().setMZ(value.toDouble());
-          }
+          // don't need to do anything if the two m/z values are the same
         }
         else if (accession == "MS:1000041") //charge state
         {
@@ -3362,7 +3372,7 @@ namespace OpenMS
           {
             unitstring = "MS:" + unitstring;
           }
-          else 
+          else
           {
             warning(LOAD, String("Unhandled unit ontology '") );
           }
@@ -3375,7 +3385,7 @@ namespace OpenMS
       return cvTerm;
     }
 
-    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator) const
+    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude) const
     {
       std::vector<String> cvParams;
       std::vector<String> userParams;
@@ -3385,6 +3395,8 @@ namespace OpenMS
 
       for (std::vector<String>::iterator key = keys.begin(); key != keys.end(); ++key)
       {
+        if (exclude.count(*key)) continue; // skip excluded entries
+
         // special treatment of GO and BTO terms
         // <cvParam cvRef="BTO" accession="BTO:0000199" name="cardiac muscle"/>
 
@@ -3456,7 +3468,7 @@ namespace OpenMS
               {
                 unitstring = "MS:" + unitstring;
               }
-              else 
+              else
               {
                 warning(LOAD, String("Unhandled unit ontology '") );
               }
@@ -3704,8 +3716,11 @@ namespace OpenMS
       // in mzML files and the precursorMZ gets set to zero.
       if (precursor.getMZ() > 0.0 && !options_.getForceTPPCompatability() )
       {
+        double mz = precursor.metaValueExists("isolation window target m/z") ?
+          double(precursor.getMetaValue("isolation window target m/z")) :
+          precursor.getMZ(); // precursor m/z may come from "selected ion"
         os << "\t\t\t\t\t\t<isolationWindow>\n";
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << mz << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
         if (precursor.getIsolationWindowLowerOffset() > 0.0)
         {
           os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
@@ -3728,9 +3743,12 @@ namespace OpenMS
           precursor.getDriftTime() >= 0.0 ||
           precursor.getPossibleChargeStates().size() > 0)
       {
+        double mz = precursor.metaValueExists("selected ion m/z") ?
+          double(precursor.getMetaValue("selected ion m/z")) :
+          precursor.getMZ(); // precursor m/z may come from "isolation window"
         os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
         os << "\t\t\t\t\t\t\t<selectedIon>\n";
-        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << mz << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
         if (options_.getForceTPPCompatability() || precursor.getCharge() != 0)
         {
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
@@ -3836,7 +3854,7 @@ namespace OpenMS
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
       }
       //as "precursor" has no own user param its userParam is stored here
-      writeUserParam_(os, precursor, 7, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator);
+      writeUserParam_(os, precursor, 7, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator, {"isolation window target m/z", "selected ion m/z"});
       os << "\t\t\t\t\t\t</activation>\n";
       os << "\t\t\t\t\t</precursor>\n";
 
