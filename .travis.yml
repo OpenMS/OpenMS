@@ -26,7 +26,6 @@ addons:
          - qt59base
          - qt59svg
          - cmake-data
-         - g++-4.8
          - python-dev
          - libboost-chrono1.58-dev
          - libboost-date-time1.58-dev
