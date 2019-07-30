@@ -62,7 +62,8 @@ namespace OpenMS
     np_config_mz_(),
     np_config_int_(),
     np_config_fda_(),
-    maximal_data_pool_size_(100)
+    maximal_data_pool_size_(100),
+    precursor_mz_selected_ion_(true)
   {
   }
 
@@ -90,7 +91,8 @@ namespace OpenMS
     np_config_mz_(options.np_config_mz_),
     np_config_int_(options.np_config_int_),
     np_config_fda_(options.np_config_fda_),
-    maximal_data_pool_size_(options.maximal_data_pool_size_)
+    maximal_data_pool_size_(options.maximal_data_pool_size_),
+    precursor_mz_selected_ion_(options.precursor_mz_selected_ion_)
   {
   }
 
@@ -348,6 +350,16 @@ namespace OpenMS
   void PeakFileOptions::setMaxDataPoolSize(Size size)
   {
     maximal_data_pool_size_ = size;
+  }
+
+  bool PeakFileOptions::getPrecursorMZSelectedIon() const
+  {
+    return precursor_mz_selected_ion_;
+  }
+
+  void PeakFileOptions::setPrecursorMZSelectedIon(bool choice)
+  {
+    precursor_mz_selected_ion_ = choice;
   }
 
   bool PeakFileOptions::hasFilters()
