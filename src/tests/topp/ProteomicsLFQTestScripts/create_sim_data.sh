@@ -27,7 +27,7 @@ Sample	MSstats_Condition	MSstats_BioReplicate
 declare -a sample_abundances_prot1=("1e3" "2e3" "3e3" "4e6" "5e6" "6e6")
 declare -a sample_abundances_prot2=("1e4" "2e4" "3e4" "4e7" "5e7" "6e7")
 
-for i in `seq 1 6`;
+for i in $(seq 1 6);
 do
 # create fasta with protein intensities
 echo ">P02769|ALBU_BOVIN Serum albumin - Bos taurus (Bovine).[# intensity=${sample_abundances_prot1[$i-1]} #]

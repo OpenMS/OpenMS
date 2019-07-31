@@ -1,3 +1,4 @@
+#!/bin/bash
 ./bin/ProteomicsLFQ -in ../share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML ../share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML ../share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML \
 ../share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML ../share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML ../share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML \
 -ids ../share/OpenMS/examples/FRACTIONS/BSA1_F1.idXML ../share/OpenMS/examples/FRACTIONS/BSA1_F2.idXML ../share/OpenMS/examples/FRACTIONS/BSA2_F1.idXML ../share/OpenMS/examples/FRACTIONS/BSA2_F2.idXML ../share/OpenMS/examples/FRACTIONS/BSA3_F1.idXML ../share/OpenMS/examples/FRACTIONS/BSA3_F2.idXML \
