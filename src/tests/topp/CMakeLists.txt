@@ -2555,7 +2555,7 @@ add_test("UTILS_XFDR_2_out23" ${DIFF} -whitelist "date=" -in1 XFDR_test_out2_tem
 set_tests_properties("UTILS_XFDR_2_out21" PROPERTIES DEPENDS "UTILS_XFDR_2")
 set_tests_properties("UTILS_XFDR_2_out22" PROPERTIES DEPENDS "UTILS_XFDR_2")
 set_tests_properties("UTILS_XFDR_2_out23" PROPERTIES DEPENDS "UTILS_XFDR_2")
-add_test("UTILS_XFDR_3" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xquest.xml -out_idXML XFDR_test_out3_temp.idXML -out_mzIdentML XFDR_test_out3_temp.mzid -out_xquest XFDR_test_out3_temp.xquest.xml)
+add_test("UTILS_XFDR_3" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -minscore 0.0 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xquest.xml -out_idXML XFDR_test_out3_temp.idXML -out_mzIdentML XFDR_test_out3_temp.mzid -out_xquest XFDR_test_out3_temp.xquest.xml)
 add_test("UTILS_XFDR_3_out31" ${DIFF} -whitelist "date=" -in1 XFDR_test_out3_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.idXML)
 add_test("UTILS_XFDR_3_out32" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out3_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.mzid)
 add_test("UTILS_XFDR_3_out33" ${DIFF} -whitelist "date=" -in1 XFDR_test_out3_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.xquest.xml)
@@ -2579,6 +2579,13 @@ set_tests_properties("UTILS_XFDR_5_out53" PROPERTIES DEPENDS "UTILS_XFDR_5")
 add_test("UTILS_XFDR_6" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in4.idXML -out_idXML XFDR_test_out6_temp.idXML)
 add_test("UTILS_XFDR_6_out6" ${DIFF} -whitelist "date=" -in1 XFDR_test_out6_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out6.idXML)
 set_tests_properties("UTILS_XFDR_6_out6" PROPERTIES DEPENDS "UTILS_XFDR_6")
+add_test("UTILS_XFDR_7" ${TOPP_BIN_PATH}/XFDR -test -uniquexl -binsize 0.1 -minscore 0.0 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xquest.xml -out_idXML XFDR_test_out7_temp.idXML -out_mzIdentML XFDR_test_out7_temp.mzid -out_xquest XFDR_test_out7_temp.xquest.xml)
+add_test("UTILS_XFDR_7_out31" ${DIFF} -whitelist "date=" -in1 XFDR_test_out7_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out7.idXML)
+add_test("UTILS_XFDR_7_out32" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out7_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out7.mzid)
+add_test("UTILS_XFDR_7_out33" ${DIFF} -whitelist "date=" -in1 XFDR_test_out7_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out7.xquest.xml)
+set_tests_properties("UTILS_XFDR_7_out31" PROPERTIES DEPENDS "UTILS_XFDR_7")
+set_tests_properties("UTILS_XFDR_7_out32" PROPERTIES DEPENDS "UTILS_XFDR_7")
+set_tests_properties("UTILS_XFDR_7_out33" PROPERTIES DEPENDS "UTILS_XFDR_7")
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
