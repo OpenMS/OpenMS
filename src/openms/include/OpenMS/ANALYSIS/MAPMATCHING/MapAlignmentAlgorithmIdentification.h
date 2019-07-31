@@ -81,6 +81,7 @@ public:
     // Set a reference for the alignment
     template <typename DataType> void setReference(DataType& data)
     {
+      use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       reference_.clear();
       if (data.empty()) return; // empty input resets the reference
       SeqToList rt_data;
