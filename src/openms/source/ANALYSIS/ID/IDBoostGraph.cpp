@@ -629,7 +629,7 @@ namespace OpenMS
      OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
       #endif
 
-      #ifdef INFERENCE_DEBUG
+      #ifdef INFERENCE_BENCH
       unsigned long result = functor(curr_cc);
       #else
       functor(curr_cc);
