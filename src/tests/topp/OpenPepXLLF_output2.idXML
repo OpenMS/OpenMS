@@ -24,7 +24,7 @@
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="OMS:precursor_mz_error_ppm,OpenPepXL:score,precursor_correction,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 	</SearchParameters>
-	<IdentificationRun date="2019-07-26T14:24:22" search_engine="OpenPepXL" search_engine_version="2.4.0-feature-XLMS-Percolator-2019-06-17" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-07-31T13:31:46" search_engine="OpenPepXL" search_engine_version="2.4.0-feature-XLMS-Percolator-2019-07-31" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|P02769|ALBU_BOVIN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -85,7 +85,7 @@
 				<UserParam type="int" name="precursor_residual_peak_count" value="13"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="sequence_beta" value="EPEQK"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="string" name="xl_pos1_protein" value="201"/>
 				<UserParam type="string" name="xl_pos2_protein" value="487"/>
@@ -337,7 +337,7 @@
 				<UserParam type="int" name="precursor_residual_peak_count" value="5"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="sequence_beta" value="EFQDC(Carbamidomethyl)NQK"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="string" name="xl_pos1_protein" value="477"/>
 				<UserParam type="string" name="xl_pos2_protein" value="192"/>
