@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <include/OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
-#include <include/OpenMS/FILTERING/ID/IDFilter.h>
 #include "OpenMS/FORMAT/MSstatsFile.h"
 
 using namespace std;
@@ -755,7 +754,7 @@ std::unordered_map<OpenMS::String, const OpenMS::IndProtGrp* > OpenMS::MSstatsFi
 }
 
 bool OpenMS::MSstatsFile::isQuantifyable_(
-    std::set<OpenMS::String> accs,
+    const std::set<OpenMS::String>& accs,
     const std::unordered_map<OpenMS::String, const OpenMS::IndProtGrp*>& accession_to_group) const
 {
   bool quantifyable = true;

@@ -316,7 +316,7 @@ namespace OpenMS
        *
        */
       bool isQuantifyable_(
-          std::set<String> accs,
+          const std::set<String>& accs,
           const std::unordered_map<String, const IndProtGrp*>& accession_to_group) const;
 
     };
