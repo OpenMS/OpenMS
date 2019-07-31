@@ -935,9 +935,6 @@ set_tests_properties("TOPP_IDFileConverter_26_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFilter_1" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_1_input.idXML -out IDFilter_1_output.tmp -whitelist:proteins ${DATA_DIR_TOPP}/IDFilter_1_input.fas)
 add_test("TOPP_IDFilter_1_out1" ${DIFF} -in1 IDFilter_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_1_output.idXML )
 set_tests_properties("TOPP_IDFilter_1_out1" PROPERTIES DEPENDS "TOPP_IDFilter_1")
-add_test("TOPP_IDFilter_2" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_2_input.idXML -out IDFilter_2_output.tmp -thresh:pep 1 -thresh:prot 1)
-add_test("TOPP_IDFilter_2_out1" ${DIFF} -in1 IDFilter_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_2_output.idXML )
-set_tests_properties("TOPP_IDFilter_2_out1" PROPERTIES DEPENDS "TOPP_IDFilter_2")
 add_test("TOPP_IDFilter_3" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_3_input.idXML -out IDFilter_3_output.tmp -blacklist:peptides ${DATA_DIR_TOPP}/IDFilter_3_2_input.idXML)
 add_test("TOPP_IDFilter_3_out1" ${DIFF} -in1 IDFilter_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_3_output.idXML )
 set_tests_properties("TOPP_IDFilter_3_out1" PROPERTIES DEPENDS "TOPP_IDFilter_3")
@@ -963,7 +960,8 @@ set_tests_properties("TOPP_IDFilter_5c_out1" PROPERTIES DEPENDS "TOPP_IDFilter_5
 add_test("TOPP_IDFilter_6" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_6_input.idXML -out IDFilter_6_output.tmp -best:n_peptide_hits 2 -best:n_protein_hits 10)
 add_test("TOPP_IDFilter_6_out1" ${DIFF} -in1 IDFilter_6_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_6_output.idXML )
 set_tests_properties("TOPP_IDFilter_6_out1" PROPERTIES DEPENDS "TOPP_IDFilter_6")
-add_test("TOPP_IDFilter_7" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_7_input.idXML -out IDFilter_7_output.tmp -unique)
+
+add_test("TOPP_IDFilter_7" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_7_input.idXML -out IDFilter_7_output.tmp -remove_duplicate_psm)
 add_test("TOPP_IDFilter_7_out1" ${DIFF} -in1 IDFilter_7_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_7_output.idXML )
 set_tests_properties("TOPP_IDFilter_7_out1" PROPERTIES DEPENDS "TOPP_IDFilter_7")
 # filter by precursor RT and m/z:
@@ -1031,7 +1029,7 @@ add_test("TOPP_IDFilter_22" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}
 add_test("TOPP_IDFilter_22_out1" ${DIFF} -in1 IDFilter_22_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_22_output.idXML)
 set_tests_properties("TOPP_IDFilter_22_out1" PROPERTIES DEPENDS "TOPP_IDFilter_22")
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
 # featureXML input:
 add_test("TOPP_MapAlignerPoseClustering_1" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input3.featureXML -out MapAlignerPoseClustering_1_output1.tmp MapAlignerPoseClustering_1_output2.tmp MapAlignerPoseClustering_1_output3.tmp -trafo_out MapAlignerPoseClustering_1_trafo1.tmp MapAlignerPoseClustering_1_trafo2.tmp MapAlignerPoseClustering_1_trafo3.tmp)
@@ -1282,6 +1280,19 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_test_5" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_output.TraML -out ConvertTraMLToTSV_output.tmp.tsv -out_type tsv)
   add_test("TOPP_TargetedFileConverter_test_5_out1" ${DIFF} -in1 ConvertTraMLToTSV_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/ConvertTraMLToTSV_output.tsv)
   set_tests_properties("TOPP_TargetedFileConverter_test_5_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_5")
+
+  # protein group conversion test PQP
+  add_test("TOPP_TargetedFileConverter_test_12_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.TraML -out TargetedFileConverter_12_output.pqp.tmp -out_type pqp)
+  add_test("TOPP_TargetedFileConverter_test_12" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in TargetedFileConverter_12_output.pqp.tmp -in_type pqp -out TargetedFileConverter_12_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_12_out1" ${DIFF} -whitelist "id=" -in1 TargetedFileConverter_12_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.TraML)
+  set_tests_properties("TOPP_TargetedFileConverter_test_12_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_12")
+  set_tests_properties("TOPP_TargetedFileConverter_test_12" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_12_prepare")
+
+  # protein group conversion test TraML
+  add_test("TOPP_TargetedFileConverter_test_13" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.tsv -out TargetedFileConverter_13_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_13_out1" ${DIFF} -in1 TargetedFileConverter_13_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_13_output.TraML)
+  set_tests_properties("TOPP_TargetedFileConverter_test_13_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_13")
+
   # Metabolomics
   add_test("TOPP_TargetedFileConverter_test_6" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_5_output.TraML -out ConvertTraMLToTSV_output_2.tmp.tsv -out_type tsv)
   add_test("TOPP_TargetedFileConverter_test_6_out1" ${DIFF} -in1 ConvertTraMLToTSV_output_2.tmp.tsv -in2 ${DATA_DIR_TOPP}/ConvertTraMLToTSV_output_2.tsv)

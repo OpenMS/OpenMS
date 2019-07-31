@@ -88,6 +88,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="412.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="tr1"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[100.01, 7.94922416102196, 101.01, 32.6000601512688, 102.02, -41.0343641330559]"/>
@@ -111,7 +112,6 @@
 			<UserParam type="float" name="var_sonar_log_diff" value="0"/>
 			<UserParam type="float" name="var_sonar_log_trend" value="0"/>
 			<UserParam type="float" name="var_sonar_rsq" value="1"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_2927519776102075938">
 			<position dim="0">9.99999952316284</position>
@@ -195,6 +195,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="462.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="7"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[300.01, 24.5361359309146, 301.01, 0.243383210139807, 302.01, -24.2904376531646]"/>
@@ -218,7 +219,6 @@
 			<UserParam type="float" name="var_sonar_log_diff" value="0"/>
 			<UserParam type="float" name="var_sonar_log_trend" value="0"/>
 			<UserParam type="float" name="var_sonar_rsq" value="0"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 	</featureList>
 </featureMap>

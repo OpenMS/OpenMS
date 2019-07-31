@@ -74,29 +74,23 @@ namespace OpenMS
   {
   }
 
-  const MRMFeature::PGScoresType & MRMFeature::getScores() const
+  const OpenSwath_Scores & MRMFeature::getScores() const
   {
     return pg_scores_;
   }
 
-  double MRMFeature::getScore(const String & score_name)
+  OpenSwath_Scores & MRMFeature::getScores()
   {
-    return pg_scores_[score_name];
+    return pg_scores_;
   }
 
-  void MRMFeature::setScores(const PGScoresType & scores)
+  void MRMFeature::setScores(const OpenSwath_Scores & scores)
   {
-
-    for (MRMFeature::PGScoresType::const_iterator score = scores.begin();
-         score != scores.end(); ++score)
-    {
-      addScore(score->first, score->second);
-    }
+    pg_scores_ = scores;
   }
 
   void MRMFeature::addScore(const String & score_name, double score)
   {
-    pg_scores_[score_name] = score;
     setMetaValue(score_name, score);
   }
 

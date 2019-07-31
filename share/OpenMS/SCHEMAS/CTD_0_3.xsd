@@ -2,10 +2,10 @@
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- Draft-Version 0.3 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:include schemaLocation="Param_1_6_2.xsd"/>
+	<xs:include schemaLocation="Param_1_7_0.xsd" />
 	<xs:element name="tool">
 		<xs:complexType>
-			<xs:sequence>
+			<xs:all>
 				<xs:element name="description" type="xs:string" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>One line description of the tool.</xs:documentation>
@@ -14,6 +14,11 @@
 				<xs:element name="manual" type="xs:string" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>More detailed description of the tool (about 10 lines).</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="citations" type="citationsType" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation />
 					</xs:annotation>
 				</xs:element>
 				<xs:element name="executableName" type="xs:string" minOccurs="0">
@@ -26,23 +31,23 @@
 						<xs:documentation>Contains the path were the tool can be found using either the name element or (if set) the executableName.</xs:documentation>
 					</xs:annotation>
 				</xs:element>
-				<xs:element name="cli" type="cliType" minOccurs="0"/>
-				<xs:element name="logs" type="logCollectionType" minOccurs="0"/>
+				<xs:element name="cli" type="cliType" minOccurs="0" />
+				<xs:element name="logs" type="logCollectionType" minOccurs="0" />
 				<xs:element name="relocators" type="relocatorCollectionType" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>Defines rules to find the output of the tool and move it to the originally desired location.</xs:documentation>
 					</xs:annotation>
 				</xs:element>
-				<xs:element name="PARAMETERS" type="PARAMETERSType"/>
-			</xs:sequence>
-			<xs:attribute name="version" type="xs:string" use="required"/>
+				<xs:element name="PARAMETERS" type="PARAMETERSType" />
+			</xs:all>
+			<xs:attribute name="version" type="xs:string" use="required" />
 			<xs:attribute name="name" use="required">
 				<xs:annotation>
-					<xs:documentation>Name of the tool. Needs to pass following regex [[A-Z]|[a-z]][[0-9]|[A-Z]|[a-z]]+ i.e.\w</xs:documentation>
+					<xs:documentation>Name of the tool. Needs to pass following regular expression [A-Za-z0-9_\-]+</xs:documentation>
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
-						<xs:pattern value="[A-Z][A-Za-z0-9]*"/>
+						<xs:pattern value="[A-Za-z0-9_\-]+" />
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
@@ -56,6 +61,16 @@
 					<xs:documentation>The category gives information on the task the associated tool performs. It can be used to categorize different tools in a GUI.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
+			<xs:attribute name="ctdVersion" type="versionString" use="required">
+				<xs:annotation>
+					<xs:documentation>Version of the CTD schema.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="tags" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>List of tags for the tool.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
 		</xs:complexType>
 	</xs:element>
 	<xs:complexType name="cliType">
@@ -63,19 +78,42 @@
 			<xs:documentation>Wraps the information necessary to construct a command line call for the tool.</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
-			<xs:element name="clielement" type="cliElementType" maxOccurs="unbounded"/>
+			<xs:element name="clielement" type="cliElementType" maxOccurs="unbounded" />
 		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="citationsType">
+		<xs:annotation>
+			<xs:documentation>List of citations for the this tool.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="citation" type="citationType" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="citationType">
+		<xs:annotation>
+			<xs:documentation>Defines a single citation</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="doi" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>The Digital Object Identifier for this citation.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="url" type="xs:anyURI">
+			<xs:annotation>
+				<xs:documentation>A URL for this documentation.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 	<xs:complexType name="mappingType">
 		<xs:annotation>
 			<xs:documentation>Defines which ITEM from the parameter part is associated to cliElement.</xs:documentation>
 		</xs:annotation>
-		<xs:attribute name="referenceName" type="xs:string"/>
-		<xs:attribute name="referenceID" type="xs:IDREF"/>
+		<xs:attribute name="referenceName" type="xs:string" />
+		<xs:attribute name="referenceID" type="xs:IDREF" />
 	</xs:complexType>
 	<xs:complexType name="cliElementType">
 		<xs:annotation>
-			<xs:documentation>Wraps a single element of a command line call (e.g., the -v flag for verbosity) and it's associated arguments. To model a non-option argument just leave the optionIdentifier empty. </xs:documentation>
+			<xs:documentation>Wraps a single element of a command line call (e.g., the -v flag for verbosity) and it's associated arguments. To model a non-option argument just leave the optionIdentifier empty.</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
 			<xs:element name="mapping" type="mappingType" minOccurs="0" maxOccurs="unbounded">
@@ -127,21 +165,21 @@
 					<xs:documentation>...</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="executionMessage" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="executionMessage" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
 		</xs:sequence>
-		<xs:attribute name="executionTimeStart" type="xs:dateTime" use="required"/>
-		<xs:attribute name="executionTimeStop" type="xs:dateTime" use="required"/>
-		<xs:attribute name="executionStatus" type="xs:int" use="required"/>
+		<xs:attribute name="executionTimeStart" type="xs:dateTime" use="required" />
+		<xs:attribute name="executionTimeStop" type="xs:dateTime" use="required" />
+		<xs:attribute name="executionStatus" type="xs:int" use="required" />
 	</xs:complexType>
 	<xs:complexType name="logMessageType">
 		<xs:sequence>
-			<xs:element name="logMessage" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="logMessage" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
 		</xs:sequence>
-		<xs:attribute name="NODEref" type="xs:IDREF"/>
+		<xs:attribute name="NODEref" type="xs:IDREF" />
 	</xs:complexType>
 	<xs:complexType name="relocatorCollectionType">
 		<xs:sequence>
-			<xs:element name="relocator" type="relocatorType"/>
+			<xs:element name="relocator" type="relocatorType" />
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="relocatorType">
@@ -156,11 +194,10 @@
 			</xs:element>
 			<xs:element name="location" type="xs:string">
 				<xs:annotation>
-					<xs:documentation>The location of the output file defined using following variables: 
+					<xs:documentation>The location of the output file defined using following variables:
 %TEMP% - the temporary directory while executing
-%PWD% - the working directory while executing 
-%BASENAME[PARAM]% - the base name of PARAM
-    		</xs:documentation>
+%PWD% - the working directory while executing
+%BASENAME[PARAM]% - the base name of PARAM</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>

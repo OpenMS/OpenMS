@@ -577,6 +577,11 @@ namespace OpenSwath
 
     spectral_angle = Scoring::SpectralAngle(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
 
+    if (boost::math::isnan(spectral_angle))
+    {
+      spectral_angle = 0.0;
+    }
+
     Scoring::normalize_sum(&experimental_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
     Scoring::normalize_sum(&library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
 

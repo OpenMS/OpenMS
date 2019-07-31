@@ -665,35 +665,34 @@ namespace OpenMS
       }
     }
 
+
     void MzMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      static const XMLCh* s_count = xercesc::XMLString::transcode("count");
-      static const XMLCh* s_default_array_length = xercesc::XMLString::transcode("defaultArrayLength");
-      static const XMLCh* s_array_length = xercesc::XMLString::transcode("arrayLength");
-      static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
-      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-      static const XMLCh* s_id = xercesc::XMLString::transcode("id");
-      //~ static const XMLCh * s_cvref = xercesc::XMLString::transcode("cvRef"); TODO
-      static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
-      static const XMLCh* s_version = xercesc::XMLString::transcode("version");
-      static const XMLCh* s_version_mzml = xercesc::XMLString::transcode("mzML:version");
-      static const XMLCh* s_order = xercesc::XMLString::transcode("order");
-      static const XMLCh* s_location = xercesc::XMLString::transcode("location");
-      static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
-      static const XMLCh* s_software_ref = xercesc::XMLString::transcode("softwareRef");
-      static const XMLCh* s_source_file_ref = xercesc::XMLString::transcode("sourceFileRef");
-      static const XMLCh* s_default_instrument_configuration_ref = xercesc::XMLString::transcode("defaultInstrumentConfigurationRef");
-      static const XMLCh* s_instrument_configuration_ref = xercesc::XMLString::transcode("instrumentConfigurationRef");
-      static const XMLCh* s_default_data_processing_ref = xercesc::XMLString::transcode("defaultDataProcessingRef");
-      static const XMLCh* s_data_processing_ref = xercesc::XMLString::transcode("dataProcessingRef");
-      static const XMLCh* s_start_time_stamp = xercesc::XMLString::transcode("startTimeStamp");
-      static const XMLCh* s_external_spectrum_id = xercesc::XMLString::transcode("externalSpectrumID");
-      static const XMLCh* s_default_source_file_ref = xercesc::XMLString::transcode("defaultSourceFileRef");
-      static const XMLCh* s_scan_settings_ref = xercesc::XMLString::transcode("scanSettingsRef");
-
+      constexpr XMLCh s_count[] = {'c','o','u','n','t', 0};
+      constexpr XMLCh s_default_array_length[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr XMLCh s_array_length[] = { 'a','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr XMLCh s_accession[] = { 'a','c','c','e','s','s','i','o','n' , 0};
+      constexpr XMLCh s_name[] = { 'n','a','m','e' , 0};
+      constexpr XMLCh s_type[] = { 't','y','p','e' , 0};
+      constexpr XMLCh s_value[] = { 'v','a','l','u','e' , 0};
+      constexpr XMLCh s_unit_accession[] = { 'u','n','i','t','A','c','c','e','s','s','i','o','n' , 0};
+      constexpr XMLCh s_id[] = { 'i','d' , 0};
+      constexpr XMLCh s_ref[] = { 'r','e','f' , 0};
+      constexpr XMLCh s_version[] = { 'v','e','r','s','i','o','n' , 0};
+      constexpr XMLCh s_version_mzml[] = { 'm','z','M','L',':','v','e','r','s','i','o','n' , 0};
+      constexpr XMLCh s_order[] = { 'o','r','d','e','r' , 0};
+      constexpr XMLCh s_location[] = { 'l','o','c','a','t','i','o','n' , 0};
+      constexpr XMLCh s_sample_ref[] = { 's','a','m','p','l','e','R','e','f' , 0};
+      constexpr XMLCh s_software_ref[] = { 's','o','f','t','w','a','r','e','R','e','f' , 0};
+      constexpr XMLCh s_source_file_ref[] = { 's','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr XMLCh s_default_instrument_configuration_ref[] = { 'd','e','f','a','u','l','t','I','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr XMLCh s_instrument_configuration_ref[] = { 'i','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr XMLCh s_default_data_processing_ref[] = { 'd','e','f','a','u','l','t','D','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr XMLCh s_data_processing_ref[] = { 'd','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr XMLCh s_start_time_stamp[] = { 's','t','a','r','t','T','i','m','e','S','t','a','m','p' , 0};
+      constexpr XMLCh s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
+      constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr XMLCh s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
 
@@ -718,7 +717,7 @@ namespace OpenMS
       if (tag == "spectrum")
       {
         // for cppcheck
-        static const XMLCh* s_spot_id = xercesc::XMLString::transcode("spotID");
+        constexpr XMLCh s_spot_id[] = { 's','p','o','t','I','D', 0 };
 
         //number of peaks
         spec_ = SpectrumType();
@@ -1169,11 +1168,11 @@ namespace OpenMS
 
     void MzMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
-      static const XMLCh* s_chromatogram = xercesc::XMLString::transcode("chromatogram");
-      static const XMLCh* s_spectrum_list = xercesc::XMLString::transcode("spectrumList");
-      static const XMLCh* s_chromatogram_list = xercesc::XMLString::transcode("chromatogramList");
-      static const XMLCh* s_mzml = xercesc::XMLString::transcode("mzML");
+      constexpr XMLCh s_spectrum[] = { 's','p','e','c','t','r','u','m' , 0};
+      constexpr XMLCh s_chromatogram[] = { 'c','h','r','o','m','a','t','o','g','r','a','m' , 0};
+      constexpr XMLCh s_spectrum_list[] = { 's','p','e','c','t','r','u','m','L','i','s','t' , 0};
+      constexpr XMLCh s_chromatogram_list[] = { 'c','h','r','o','m','a','t','o','g','r','a','m','L','i','s','t' , 0};
+      constexpr XMLCh s_mzml[] = { 'm','z','M','L' , 0};
 
       open_tags_.pop_back();
 
