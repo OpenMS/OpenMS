@@ -323,10 +323,6 @@ protected:
     types.clear();
     bool xl_is_decoy = ph.getMetaValue(Constants::TARGET_DECOY) == "decoy";
 
-    // cout << "TEST new link TARGET_DECOY: " << ph.getMetaValue(Constants::TARGET_DECOY) << " | " << xl_is_decoy
-    //       << " | INTRA: " << ph.getMetaValue("XFDR:is_intraprotein") << " | INTER: " << ph.getMetaValue("XFDR:is_interprotein")
-    //       << " | XL_TYPE: " << ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) << endl;
-
     // target or decoy
     if (xl_is_decoy)
     {
@@ -746,10 +742,6 @@ private:
   // Data structures
   // Vector of peptideIdentifications and indizes for rank one hits
   vector<PeptideIdentification> all_pep_ids_;
-  // vector<Size> rank_one_pep_idx;
-
-  // Spectrum Map, needed for calculating the delta score
-  // map<String, map<Size,Size>> specref_to_rank_to_pepidx;
 
   // maps index of peptide id all_pep_ids_ to vector of cross link class
   map<String, vector<String>> cross_link_classes_;
@@ -779,42 +771,6 @@ private:
   {
     OPENMS_LOG_ERROR << "FATAL: " << message << " Terminating now!" << std::endl;
   }
-
-  // bool validateDataStructures() const
-  // {
-  //   // Ensure that we have as many rank one pep ids as spectra
-  //   if (this->rank_one_pep_idx.size() != this->specref_to_rank_to_pepidx.size())
-  //   {
-  //     logFatal("Not each spectrum has a number one ranked peptide.");
-  //     return false;
-  //   }
-  //
-  //   // Check that the Spectrum Map is Valid
-  //   return validateSpectrumMap();
-  // }
-
-  // bool validateSpectrumMap() const
-  // {
-  //   for (const auto &spectrum : this->specref_to_rank_to_pepidx)
-  //   {
-  //     std::set<Size> ranks;
-  //     for (const auto &rank : spectrum.second)
-  //     {
-  //       ranks.insert(rank.first);
-  //     }
-  //     // Check that all the ranks are present
-  //     for (Size i = 1; i <= ranks.size(); ++i)
-  //     {
-  //       if (ranks.find(i) == ranks.end())
-  //       {
-  //         // Ranks is not present in spectrum map
-  //         logFatal("Rank " + String(i) + " does not exist for spectrum " + spectrum.first);
-  //         return false;
-  //       }
-  //     }
-  //   }
-  //   return true;
-  // }
 
   void loadArguments()
   {
@@ -975,72 +931,6 @@ private:
     }
   }
 
-  // double calculateDeltaScore(const PeptideIdentification &pep_id, const int rank_one_hit_index, const int rank_two_hit_index)
-  // {
-  //   // map of rank to index
-  //   // map<Size, Size> &rank_to_idx = this->specref_to_rank_to_pepidx[getSpectrumReference(pep_id)];
-  //   // const Size pep_id_rank = getRank(pep_id);
-  //
-  //   vector<int> rank_indices(pep_id.getHits().size(), 0)
-  //   for (Size i = 0; i < rank_indices.size(); ++i)
-  //   {
-  //     PeptideHit& ph = pep_id.getHits()[i];
-  //     rank_indices[ph.getMetaValue(Constants::OPENPEPXL_XL_RANK).toInt()-1] = i;
-  //   }
-  //
-  //   double result(0);
-  //
-  //   // for (Size rank = 1; rank < rank_to_idx.size(); ++rank)
-  //   for (Size rank = 0; rank < rank_indices.size(); ++rank)
-  //   {
-  //     PeptideIdentification &first = all_pep_ids_[rank_to_idx[rank + 1]];
-  //     PeptideIdentification &second = all_pep_ids_[rank_to_idx[rank]];
-  //
-  //     PeptideHit& first = pep_id.getHits
-  //
-  //     PeptideHit& first = pep_id.getHits()[]
-  //
-  //     double delta_score = first.getHits()[0].getScore()
-  //                          / second.getHits()[0].getScore();
-  //
-  //     if (rank == pep_id_rank)
-  //     {
-  //       result = delta_score;
-  //     }
-  //
-  //     // also add as a meta value so that it is written out
-  //     for (PeptideHit &hit : second.getHits())
-  //     {
-  //       hit.setMetaValue("delta_score", delta_score);
-  //     }
-  //   }
-  //
-  //   // rank_to_idx.size()
-  //   for (PeptideHit &pep_hit : all_pep_ids_[rank_to_idx[rank_to_idx.size()]].getHits())
-  //   {
-  //     pep_hit.setMetaValue("delta_score", pep_hit.getScore());
-  //   }
-  //
-  //   return result;
-  // }
-
-
-  /*
-   * STATIC MEMBERS
-   */
-
-
-  // static double getRelativeError(const PeptideIdentification &pep_id)
-  // {
-  //   const PeptideHit &alpha = pep_id.getHits()[0];
-  //   if (alpha.metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
-  //   {
-  //     return static_cast<double>(alpha.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
-  //   }
-  //   return 0;
-  // }
-
-
   static Size getMinIonsMatched(const PeptideHit& ph)
   {
     Size alpha_ions = Size(ph.getMetaValue("matched_linear_alpha")) + Size(ph.getMetaValue("matched_xlink_alpha"));
@@ -1049,62 +939,30 @@ private:
   }
 
 
-  // static Size getRank(const PeptideIdentification &pep_id)
-  // {
-  //   return static_cast<Size>(pep_id.getHits()[0].getMetaValue(Constants::OPENPEPXL_XL_RANK));
-  // }
+  static void setIntraProtein(PeptideHit& ph, const bool value)
+  {
+    ph.setMetaValue("XFDR:is_intraprotein", DataValue(value ? "true" : "false"));
+  }
 
-  // static String getSpectrumReference(const PeptideIdentification &pep_id)
-  // {
-  //   return pep_id.getHits()[0].getMetaValue("spectrum_index");
-  // }
+  static void setInterProtein(PeptideHit& ph, const bool value)
+  {
+    ph.setMetaValue("XFDR:is_interprotein", DataValue(value ? "true" : "false"));
+  }
 
-//   /**
-//    * @brief Returns the score of a crosslink peptide identification.
-//    * @param pep_id Which peptide identification the score should be taken from
-//    * @return crosslink score of that peptide identification
-//    */
-//   static double getCrosslinkScore(const PeptideIdentification &pep_id)
-//   {
-//     // TODO Shouldn't we move this function to the util class for CrossLinking stuff ?
-//     const std::vector<PeptideHit> &pep_hits = pep_id.getHits();
-//
-// #ifndef NDEBUG
-//     const Size n_hits = pep_hits.size();
-//     assert(n_hits == 1 || n_hits == 2);
-//     if (n_hits == 2)
-//     {
-//       assert(std::fabs(pep_hits[0].getScore() - pep_hits[1].getScore()) < 0.000001);
-//     }
-// #endif
-//     return pep_hits[0].getScore();
-//   }
-
-
-    static void setIntraProtein(PeptideHit& ph, const bool value)
-    {
-      ph.setMetaValue("XFDR:is_intraprotein", DataValue(value ? "true" : "false"));
-    }
-
-    static void setInterProtein(PeptideHit& ph, const bool value)
-    {
-      ph.setMetaValue("XFDR:is_interprotein", DataValue(value ? "true" : "false"));
-    }
-
-    /**
-     *  @brief Determines whether the Petide Evidences belong to the same protein, modulo decoy
-     */
-    static bool isSameProtein(
-            String prot1,
-            String prot2,
-            const String &decoy_string)
-    {
-      prot1.substitute(decoy_string, "");
-      prot2.substitute(decoy_string, "");
-      assert( ! prot1.hasSubstring(decoy_string));
-      assert( ! prot2.hasSubstring(decoy_string));
-      return prot1 == prot2;
-    }
+  /**
+   *  @brief Determines whether the Petide Evidences belong to the same protein, modulo decoy
+   */
+  static bool isSameProtein(
+          String prot1,
+          String prot2,
+          const String &decoy_string)
+  {
+    prot1.substitute(decoy_string, "");
+    prot2.substitute(decoy_string, "");
+    assert( ! prot1.hasSubstring(decoy_string));
+    assert( ! prot2.hasSubstring(decoy_string));
+    return prot1 == prot2;
+  }
 };
 
 
