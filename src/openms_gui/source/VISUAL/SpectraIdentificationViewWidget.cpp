@@ -612,13 +612,6 @@ namespace OpenMS
           {
             const PeptideHit & ph = pi[pi_idx].getHits()[ph_idx];
 
-            // for XL-MS data, do not show the beta peptide hit, as it is largely redundant
-            // and not visualized correctly; "MS:1002510" is the CV term for beta chain
-            if (ph.metaValueExists("xl_chain") && ph.getMetaValue("xl_chain") == "MS:1002510")
-            {
-              continue;
-            }
-
             // add new row at the end of the table
             table_widget_->insertRow(table_widget_->rowCount());
 
