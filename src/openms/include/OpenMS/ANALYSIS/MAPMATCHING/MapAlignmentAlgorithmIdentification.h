@@ -84,6 +84,7 @@ public:
     {
       reference_.clear();
       if (data.empty()) return; // empty input resets the reference
+      use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       SeqToList rt_data;
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
