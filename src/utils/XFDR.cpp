@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <boost/iterator/counting_iterator.hpp>
 
@@ -141,8 +142,8 @@ public:
 
   TOPPXFDR() :
     TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", false),
-    min_score(0),
-    max_score(0)
+    min_score_(0),
+    max_score_(0)
   {
   }
 
@@ -159,7 +160,7 @@ protected:
     setValidFormats_(TOPPXFDR::param_in, formats);
 
     // File input type (if omitted, guessed from the file extension)
-    registerStringOption_(TOPPXFDR::param_in_type, "<in_type>", "", "Type of input file provided with -in", false, false);
+    registerStringOption_(TOPPXFDR::param_in_type, "<in_type>", "", "Type of input file provided with -in. If omitted, the file type is guessed from the file extension.", false, false);
     setValidStrings_(TOPPXFDR::param_in_type, formats);
 
     // idXML output
@@ -178,13 +179,13 @@ protected:
     registerStringOption_(TOPPXFDR::param_decoy_string, "<string>", "DECOY_", "Prefix of decoy protein ids. The correspondig target protein id should be retrievable by deleting this prefix.", false);
 
     // Minborder
-    registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -1, "Filter for minimum precursor mass error (ppm).", false);
+    registerDoubleOption_(TOPPXFDR::param_minborder, "<minborder>", -50, "Filter for minimum precursor mass error (ppm) before FDR estimation. Values outside of the tolerance window of the original search will effectively disable this filter.", false);
 
     // Maxborder
-    registerIntOption_(TOPPXFDR::param_maxborder, "<maxborder>", -1, "Filter for maximum precursor mass error (ppm).", false);
+    registerDoubleOption_(TOPPXFDR::param_maxborder, "<maxborder>", 50, "Filter for maximum precursor mass error (ppm) before FDR estimation. Values outside of the tolerance window of the original search will effectively disable this filter.", false);
 
     // Mindeltas
-    registerDoubleOption_(TOPPXFDR::param_mindeltas, "<mindeltas>", 0, "Filter for delta score, 0 is no filter. Minimum delta score required, hits are rejected if larger or equal.", false);
+    registerDoubleOption_(TOPPXFDR::param_mindeltas, "<mindeltas>", 0, "Filter for delta score, 0 disables the filter. Minimum delta score required, hits are rejected if larger or equal. The delta score is a ratio of the score of a hit and the score of the next best hit to the same spectrum, so the value range is between 0 and 1 with 1.0 meaning the scores are equal and 0.5 meaning the next best score is half as high as the current one.", false);
     setMinFloat_(TOPPXFDR::param_mindeltas, 0.0);
     setMaxFloat_(TOPPXFDR::param_mindeltas, 1.0);
 
@@ -193,23 +194,23 @@ protected:
     setMinInt_(TOPPXFDR::param_minionsmatched, 0);
 
     // Uniquexl
-    registerFlag_(TOPPXFDR::param_uniquexl, "Calculate statistics based only on unique IDs.");
+    registerFlag_(TOPPXFDR::param_uniquexl, "Calculate statistics based only on unique IDs. For a set of IDs from equal candidates (same pair of peptides, modifications and cross-linked positions), only the highest scoring hit will be considered. By default the score distribution will be estimated using all 1st ranked candidates.");
 
     // Qtransform
     registerFlag_(TOPPXFDR::param_no_qvalues, "Do not transform simple FDR to q-values");
 
     // Minscore
-    registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum score to be considered for FDR calculation", false);
+    registerDoubleOption_(TOPPXFDR::param_minscore, "<minscore>", -10, "Minimum score to be considered for FDR calculation. A number lower than the lowest score will effectively disable this filter.", false);
 
     // Cumulative Histograms bin size
-    registerDoubleOption_(TOPPXFDR::param_binsize, "<binsize>", 0.0001, "Bin size for the cumulative histograms for score distributions. Should be about the same size as the smallest expected difference between scores. Smaller numbers will make XFDR more robust, but much slower. Negative numbers are not allowed.", false, true);
+    registerDoubleOption_(TOPPXFDR::param_binsize, "<binsize>", 0.0001, "Bin size for the cumulative histograms for score distributions. Should be about the same size as the smallest expected difference between scores. Smaller numbers will make XFDR more robust, but much slower. Negative numbers are not allowed. Should only be changed if the range of the main score changes or another score than the OpenPepXL score is used.", false, true);
     setMinFloat_(TOPPXFDR::param_binsize, 1e-15);
   }
 
     /**
    * @brief Prepares vector of PeptideIdentification such that it can be processed downstream.
    * The encompassed steps are:
-   *  * Set min_score and max_score encountered in the data
+   *  * Set min_score_ and max_score_ encountered in the data
    *  * Ensure that crosslink_type and crosslink_rank are available in the PeptideIdentification
    *  * Define peptide_identification as decoy if at least one of the peptide_hits is decoy
    *    (this semantic is also used by the XQuestResultXMLHandler)
@@ -219,82 +220,97 @@ protected:
    */
   void initDataStructures()
   {
-    const String prot_identifier = prot_id.getIdentifier();
+    const String prot_identifier = prot_id_.getIdentifier();
     String decoy_string = getStringOption_(TOPPXFDR::param_decoy_string);
 
     // if the metaValue exists in search_params and the default value for XFDR was not changed, use the one in search_params
-    ProteinIdentification::SearchParameters search_params = prot_id.getSearchParameters();
+    ProteinIdentification::SearchParameters search_params = prot_id_.getSearchParameters();
     if (search_params.metaValueExists("decoy_string") && decoy_string == "DECOY_")
     {
       decoy_string = search_params.getMetaValue("decoy_string");
     }
 
     // Preprocess all peptide identifications and construct derived data structures necessary for XFDR
-    for (Size i = 0; i < all_pep_ids.size(); ++i)
+    for (Size i = 0; i < all_pep_ids_.size(); ++i)
     {
-      PeptideIdentification &pep_id = all_pep_ids[i];
+      PeptideIdentification &pep_id = all_pep_ids_[i];
+      if (pep_id.getHits().size() < 1)
+      {
+        continue;
+      }
+
       pep_id.setIdentifier(prot_identifier);
 
-      // Map spectrum to rank to index and save rank one positions
-      const Size rank = getRank(pep_id);
-      this->specref_to_rank_to_pepidx[getSpectrumReference(pep_id)][rank] = i;
-
-      // If the peptide is rank one, save index
-      if (rank == 1)
-      {
-        rank_one_pep_idx.push_back(i);
-      }
-
-      // Set the minScore and MaxScore attribute depending on the input data
-      const double score = getCrosslinkScore(pep_id);
-
-      // Set score boundaries
-      if (score < this->min_score)
-      {
-        this->min_score = std::floor(score);
-      }
-      if (score > this->max_score)
-      {
-        this->max_score = std::ceil(score);
-      }
-      assert(this->min_score <= this->max_score);
-
-      // Ensure that each PeptideIdentification consists of one or two peptide hits
       vector< PeptideHit > &pep_hits = pep_id.getHits();
-      const Size n_hits = pep_hits.size();
-      assert(n_hits == 1 || n_hits == 2);
 
-      // figure out if crosslink is inter- or intra protein
-      // for cases with multiple proteins, count as true, if any one possible combination of proteins fits the criteria
-      // so both can be true at the same time (or false for mono-links)
-      PeptideHit &alpha_hit = pep_hits[0];
-
-      setIntraProtein(alpha_hit, false);
-      setInterProtein(alpha_hit, false);
-      if (n_hits == 2)
+      for (PeptideHit& ph : pep_hits)
       {
-        PeptideHit &beta_hit = pep_hits[1];
-        setIntraProtein(beta_hit, false);
-        setInterProtein(beta_hit, false);
+        // Set the minScore and MaxScore attribute depending on the input data
+        // const double score = getCrosslinkScore(pep_id);
+        const double score = ph.getScore();
 
-        for (const PeptideEvidence &alpha_ev : alpha_hit.getPeptideEvidences())
+        // Set score boundaries
+        if (score < this->min_score_)
         {
-          for (const PeptideEvidence &beta_ev : beta_hit.getPeptideEvidences())
+          this->min_score_ = std::floor(score);
+        }
+        if (score > this->max_score_)
+        {
+          this->max_score_ = std::ceil(score);
+        }
+        assert(this->min_score_ <= this->max_score_);
+
+        // figure out if crosslink is inter- or intra protein
+        // for cases with multiple proteins, count as true, if any one possible combination of proteins fits the criteria
+        // so both can be true at the same time (or false for mono-links)
+        setIntraProtein(ph, false);
+        setInterProtein(ph, false);
+
+        if (ph.metaValueExists(Constants::OPENPEPXL_XL_TYPE) && ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "cross-link")
+        {
+          // String alpha_prots_string;
+          StringList alpha_prots;
+          const std::vector<PeptideEvidence> pevs_alpha = ph.getPeptideEvidences();
+          for (PeptideEvidence pev : pevs_alpha)
           {
-            if (isSameProtein(alpha_ev, beta_ev, decoy_string))
+            // alpha_prots_string = alpha_prots_string + "," + pev->getProteinAccession();
+            alpha_prots.push_back(pev.getProteinAccession());
+          }
+
+          // StringList alpha_prots = ListUtils::create<String>(ph.getAccession());
+          StringList beta_prots = ListUtils::create<String>(ph.getMetaValue(Constants::OPENPEPXL_BETA_ACCESSIONS).toString());
+
+
+          for (String& alpha_prot : alpha_prots)
+          {
+            for (String& beta_prot : beta_prots)
             {
-              setIntraProtein(alpha_hit,  true);
-              setIntraProtein(beta_hit, true);
-            }
-            else
-            {
-              setInterProtein(alpha_hit, true);
-              setInterProtein(beta_hit, true);
+              if (isSameProtein(alpha_prot, beta_prot, decoy_string))
+              {
+                // cout << "TEST Protein Combo: " << alpha_prot << " | " << beta_prot << " == INTRA" << endl;
+                setIntraProtein(ph, true);
+              }
+              else
+              {
+                // cout << "TEST Protein Combo: " << alpha_prot << " | " << beta_prot << " == INTER" << endl;
+                setInterProtein(ph, true);
+              }
             }
           }
         }
+
+        String id = getId(ph);
+        ph.setMetaValue("OpenPepXL:id", id);
+        // candidates with the same ID will also have the same types
+        if (this->cross_link_classes_.find(id) == this->cross_link_classes_.end())
+        {
+          assignTypes(ph, this->cross_link_classes_[id]);
+        }
       }
-      assignTypes(pep_id, this->cross_link_classes[i]);
+    }
+    if (arg_uniquex)
+    {
+      findTopUniqueHits();
     }
   }
 
@@ -304,103 +320,95 @@ protected:
    * @param pep_id Peptide ID to be assigned.
    * @param types Result vector containing the names of the crosslink classes
    */
-  static void assignTypes(PeptideIdentification &pep_id, StringList &types)
+  static void assignTypes(PeptideHit &ph, StringList &types)
   {
     types.clear();
-    const std::vector< PeptideHit > &pep_hits = pep_id.getHits();
-    Size n_pep_hits = pep_hits.size();
-    bool pep_is_decoy = ((pep_hits[0].getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy")
-                      || ((n_pep_hits == 2) && (pep_hits[1].getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy")));
+    bool xl_is_decoy = ph.getMetaValue(Constants::TARGET_DECOY) == "decoy";
 
-    // Intradecoys
-    if (pep_hits[0].getMetaValue("OpenXQuest:is_intraprotein").toBool() && pep_is_decoy)
-    {
-      types.push_back(TOPPXFDR::crosslink_class_intradecoys);
-    }
+    // cout << "TEST new link TARGET_DECOY: " << ph.getMetaValue(Constants::TARGET_DECOY) << " | " << xl_is_decoy
+    //       << " | INTRA: " << ph.getMetaValue("XFDR:is_intraprotein") << " | INTER: " << ph.getMetaValue("XFDR:is_interprotein")
+    //       << " | XL_TYPE: " << ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) << endl;
 
-    // decoys
-    if (pep_is_decoy)
+    // target or decoy
+    if (xl_is_decoy)
     {
       types.push_back(TOPPXFDR::crosslink_class_decoys);
     }
-
-    // decoys
-    if (!pep_is_decoy)
+    else
     {
       types.push_back(TOPPXFDR::crosslink_class_targets);
     }
 
     // intralinks
-    if (pep_hits[0].getMetaValue("OpenXQuest:is_intraprotein").toBool() && ! pep_is_decoy)
+    if (ph.getMetaValue("XFDR:is_intraprotein").toBool() && (!xl_is_decoy))
     {
       types.push_back(TOPPXFDR::crosslink_class_intralinks);
     }
 
-    // interdecoys
-    if (pep_hits[0].getMetaValue("OpenXQuest:is_interprotein").toBool() && pep_is_decoy)
+    // intradecoys
+    if (ph.getMetaValue("XFDR:is_intraprotein").toBool() && xl_is_decoy)
     {
-      types.push_back(TOPPXFDR::crosslink_class_interdecoys);
+      types.push_back(TOPPXFDR::crosslink_class_intradecoys);
     }
 
     // interlinks
-    if (pep_hits[0].getMetaValue("OpenXQuest:is_interprotein").toBool() && ! pep_is_decoy)
+    if (ph.getMetaValue("XFDR:is_interprotein").toBool() && (!xl_is_decoy))
     {
       types.push_back(TOPPXFDR::crosslink_class_interlinks);
     }
 
-    assert(pep_hits[0].metaValueExists(TOPPXFDR::crosslink_type));
-    String current_crosslink_type = pep_hits[0].getMetaValue(TOPPXFDR::crosslink_type);
+    // interdecoys
+    if (ph.getMetaValue("XFDR:is_interprotein").toBool() && xl_is_decoy)
+    {
+      types.push_back(TOPPXFDR::crosslink_class_interdecoys);
+    }
+
+    assert(ph.metaValueExists(Constants::OPENPEPXL_XL_TYPE));
+    String current_crosslink_type = ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE);
 
     // monolinks
-    if ( ! pep_is_decoy && (current_crosslink_type == "mono-link"
+    if ( (!xl_is_decoy) && (current_crosslink_type == "mono-link"
         ||  current_crosslink_type == "loop-link"))
     {
       types.push_back(TOPPXFDR::crosslink_class_monolinks);
     }
 
     // monodecoys
-    if ( pep_is_decoy && (current_crosslink_type == "mono-link"
+    if ( xl_is_decoy && (current_crosslink_type == "mono-link"
         ||  current_crosslink_type == "loop-link"))
     {
       types.push_back(TOPPXFDR::crosslink_class_monodecoys);
     }
 
-    if (n_pep_hits == 2)
+    if (current_crosslink_type == "cross-link")
     {
-      PeptideHit alpha = pep_hits[0];
-      PeptideHit beta = pep_hits[1];
-
-      const bool alpha_is_decoy = alpha.getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy";
-      const bool beta_is_decoy = beta.getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy";
+      const bool alpha_is_decoy = ph.getMetaValue(Constants::OPENPEPXL_TARGET_DECOY_ALPHA).toString() == "decoy";
+      const bool beta_is_decoy = ph.getMetaValue(Constants::OPENPEPXL_TARGET_DECOY_BETA).toString() == "decoy";
 
       // fulldecoysintralinks
-      if (pep_hits[0].getMetaValue("OpenXQuest:is_intraprotein").toBool() && alpha_is_decoy && beta_is_decoy)
+      if (ph.getMetaValue("XFDR:is_intraprotein").toBool() && alpha_is_decoy && beta_is_decoy)
       {
         types.push_back(TOPPXFDR::crosslink_class_fulldecoysintralinks);
       }
 
       // fulldecoysinterlinks
-      if (pep_hits[0].getMetaValue("OpenXQuest:is_interprotein").toBool() && alpha_is_decoy && beta_is_decoy)
+      if (ph.getMetaValue("XFDR:is_interprotein").toBool() && alpha_is_decoy && beta_is_decoy)
       {
         types.push_back(TOPPXFDR::crosslink_class_fulldecoysinterlinks);
       }
 
       // hybriddecoysintralinks
-      if (       pep_hits[0].getMetaValue("OpenXQuest:is_intraprotein").toBool()
-          && (( ! alpha_is_decoy
-          &&     beta_is_decoy)
-          ||     (alpha_is_decoy
-          &&   ! beta_is_decoy)))
+      if (ph.getMetaValue("XFDR:is_intraprotein").toBool()
+          && (( (!alpha_is_decoy) &&   beta_is_decoy)
+          ||     (alpha_is_decoy  && (!beta_is_decoy))))
       {
         types.push_back(TOPPXFDR::crosslink_class_hybriddecoysintralinks);
       }
 
       // hybriddecoysinterlinks
-      if (       pep_hits[0].getMetaValue("OpenXQuest:is_interprotein").toBool()
-          && (( ! alpha_is_decoy
-          &&     beta_is_decoy)
-          ||     (alpha_is_decoy
-          &&   ! beta_is_decoy)))
+      if (ph.getMetaValue("XFDR:is_interprotein").toBool()
+          && (( (!alpha_is_decoy) &&   beta_is_decoy)
+          ||     (alpha_is_decoy  && (!beta_is_decoy))))
       {
         types.push_back(TOPPXFDR::crosslink_class_hybriddecoysinterlinks);
       }
@@ -421,8 +429,8 @@ protected:
     bool decoyclass_present = cum_histograms.find(decoyclass) != cum_histograms.end();
     bool fulldecoyclass_present = cum_histograms.find(fulldecoyclass) != cum_histograms.end();
 
-    for (double current_score = this->min_score +  (arg_binsize/2);
-        current_score <= this->max_score - (arg_binsize/2);
+    for (double current_score = this->min_score_ +  (arg_binsize/2);
+        current_score <= this->max_score_ - (arg_binsize/2);
         current_score += arg_binsize)
     {
       double estimated_n_decoys = decoyclass_present ? cum_histograms[decoyclass].binValue(current_score) : 0;
@@ -459,6 +467,32 @@ protected:
     }
   }
 
+  void findTopUniqueHits()
+  {
+    for (PeptideIdentification& pep_id : this->all_pep_ids_)
+    {
+      for (PeptideHit& ph : pep_id.getHits())
+      {
+        String id = ph.getMetaValue("OpenPepXL:id");
+        auto uid_it = std::find(this->unique_ids_.begin(), this->unique_ids_.end(), id);
+        // if an ID for this candidate already exists, check if the new score is higher than the last
+        if (uid_it != this->unique_ids_.end())
+        {
+          int index = std::distance(this->unique_ids_.begin(), uid_it);
+          if (this->unique_id_scores_[index] < ph.getScore())
+          {
+            this->unique_id_scores_[index] = ph.getScore();
+          }
+        }
+        else
+        {
+          this->unique_ids_.push_back(id);
+          this->unique_id_scores_.push_back(ph.getScore());
+        }
+      }
+    }
+  }
+
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) final
   {
@@ -467,7 +501,8 @@ protected:
     validateArguments();
     writeArgumentsLog();
 
-    // Input File loading, initializes all_pep_ids vector
+    writeLog_("Reading input file...");
+    // Input File loading, initializes all_pep_ids_ vector
     ExitCodes load_result = loadInputFile();
     if (load_result != EXECUTION_OK)
     {
@@ -475,44 +510,86 @@ protected:
       return load_result;
     }
 
+    writeLog_("Initializing data structures...");
     // Initialize and validate data structures that are derived from the main peptide identification vector 'all_pep)ids'
     initDataStructures();
-    if ( !validateDataStructures())
-    {
-      logFatal("Validation of internal data structures has failed");
-      return ILLEGAL_PARAMETERS;
-    }
 
     // Maps the cross link class to the encountered scores
     map<String, vector<double>> scores;
-    UInt num_flagged = 0;
-    set<String> unique_ids;
+    UInt num_flagged(0);
 
+    writeLog_("Collecting scores for each class...");
     // Loop through the peptides, apply filter, and assign cross-link types
-    for (const Size &idx : this->rank_one_pep_idx)
+    // for (const Size &idx : this->rank_one_pep_idx)
+    for (PeptideIdentification& pep_id : this->all_pep_ids_)
     {
-      num_flagged++;
-      PeptideIdentification &pep_id = this->all_pep_ids[idx];
+      if (pep_id.getHits().size() < 1)
+      {
+        continue;
+      }
+
+      // usually the 1st ranked hit should be the first in the list
+      // but we make sure here and use the first hit with rank 1 that we find
+      int rank_one_hit_index(0);
+      for (Size i = 0; i < pep_id.getHits().size(); ++i)
+      {
+        PeptideHit& ph = pep_id.getHits()[i];
+        if (int(ph.getMetaValue(Constants::OPENPEPXL_XL_RANK)) == 1)
+        {
+          rank_one_hit_index = i;
+          break;
+        }
+      }
+      PeptideHit& ph = pep_id.getHits()[rank_one_hit_index];
+
+
+      // if after the search above we don't have a rank 1 hit, skip this pep_id
+      if (int(ph.getMetaValue(Constants::OPENPEPXL_XL_RANK)) != 1)
+      {
+        continue;
+      }
 
       // Attributes of peptide identification that can be used for filtering
-      const double delta_score = calculateDeltaScore(pep_id);
-      const double score = getCrosslinkScore(pep_id);
-      const double error_rel = getRelativeError(pep_id);
-      const Size min_ions_matched = getMinIonsMatched(pep_id);
-      const String id = getId(pep_id);
+      // const double delta_score = calculateDeltaScore(pep_id, rank_one_hit_index, rank_two_hit_index);
+      const double delta_score = ph.getMetaValue(Constants::DELTA_SCORE);
+      const double score = ph.getScore();
 
-      // Only consider peptide identifications which  fullfill all filter criteria specified by the user
-      if (   (arg_minborder == -1 || arg_minborder <= error_rel)   // minborder disabled or fullfilled
-          && (arg_maxborder == -1 || arg_maxborder >= error_rel)   // maxborder disabled or fullfilled
+      double error_rel(0);
+      if (ph.metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
+      {
+        error_rel = ph.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
+      }
+
+      const Size min_ions_matched = getMinIonsMatched(ph);
+      const String id = ph.getMetaValue("OpenPepXL:id");
+
+      // Only consider IDs which fullfill all filter criteria specified by the user
+      if (   (arg_minborder <= error_rel)   // minborder fullfilled
+          && (arg_maxborder >= error_rel)   // maxborder fullfilled
           && (arg_mindeltas == 0  || delta_score < arg_mindeltas)
           && (min_ions_matched  >= (Size)arg_minionsmatched)
           &&  score >= arg_minscore
-          && ( (!arg_uniquex) || unique_ids.find(id) == unique_ids.end()) )
+         )
       {
-        pep_id.setMetaValue("OpenXQuest:xprophet_f", 1);
-        unique_ids.insert(id);
+        // check for the unique ID criterion
+        if (arg_uniquex)
+        {
+          auto uid_it = std::find(this->unique_ids_.begin(), this->unique_ids_.end(), id);
+          if (uid_it != this->unique_ids_.end())
+          {
+            int index = std::distance(this->unique_ids_.begin(), uid_it);
+            if (this->unique_id_scores_[index] != ph.getScore())
+            {
+              // this is not the highest scoring ID for this candidate
+              continue;
+            }
+          }
+        }
+        num_flagged++;
 
-        for (const String &cross_link_class : this->cross_link_classes[idx])
+        ph.setMetaValue("XFDR:used_for_FDR", 1);
+
+        for (const String &cross_link_class : this->cross_link_classes_[id])
         {
           scores[cross_link_class].push_back(score);
         }
@@ -535,11 +612,12 @@ protected:
     {
       vector< double > current_scores = class_scores.second;
 
-      Math::Histogram<> histogram(this->min_score, this->max_score, arg_binsize);
+      Math::Histogram<> histogram(this->min_score_, this->max_score_, arg_binsize);
       Math::Histogram<>::getCumulativeHistogram(current_scores.begin(), current_scores.end(), true, true, histogram);
       cum_histograms[class_scores.first] = histogram;
     }
 
+    writeLog_("Calculating Score Distributions...");
     // Calculate FDR for interlinks
     vector< double > fdr_interlinks;
     this->fdr_xprophet(cum_histograms, TOPPXFDR::crosslink_class_interlinks, TOPPXFDR::crosslink_class_interdecoys, TOPPXFDR::crosslink_class_fulldecoysinterlinks, fdr_interlinks, false);
@@ -558,7 +636,7 @@ protected:
 
     if ( ! arg_no_qvalues)
     {
-      writeLog_("Performing qFDR transformation");
+      writeLog_("Performing qFDR transformation...");
 
       vector< double > qfdr_interlinks;
       this->calc_qfdr(fdr_interlinks, qfdr_interlinks);
@@ -574,86 +652,85 @@ protected:
       fdr_monolinks = qfdr_monolinks;
     }
 
+    writeLog_("Assigning FDRs...");
     // Assign FDR values to all identifications
-    for (PeptideIdentification &pep_id : all_pep_ids)
+    for (PeptideIdentification &pep_id : all_pep_ids_)
     {
-      if ( ! pep_id.metaValueExists("OpenXQuest:xprophet_f"))
+      for (PeptideHit& ph : pep_id.getHits())
       {
-        pep_id.setMetaValue("OpenXQuest:xprophet_f", 0);
-      }
-      double score = getCrosslinkScore(pep_id);
+        if ( ! ph.metaValueExists("XFDR:used_for_FDR"))
+        {
+          ph.setMetaValue("XFDR:used_for_FDR", 0);
+        }
+        double score = ph.getScore();
 
-      StringList crosslink_types;
-      assignTypes(pep_id, crosslink_types);
+        StringList crosslink_types;
+        assignTypes(ph, crosslink_types);
 
-      pep_id.setMetaValue("OpenXQuest:fdr_type", score_type);
+        ph.setMetaValue("XFDR:fdr_type", score_type);
 
-      // Get PeptideHits
-      vector< PeptideHit > & pep_hits = pep_id.getHits();
-      Size n_hits = pep_hits.size();
-      assert(n_hits == 1 || n_hits == 2);
-      // Assign FDR value as meta value and also set as score
-      bool assigned = false;
-      double fdr = 1;
-      for (StringList::const_iterator crosslink_types_it = crosslink_types.begin();
-          crosslink_types_it != crosslink_types.end(); ++crosslink_types_it)
-      {
-        String current_crosslink_type = *crosslink_types_it;
-        Size idx = std::floor((score - this->min_score) / arg_binsize);
-        if (   current_crosslink_type == TOPPXFDR::crosslink_class_fulldecoysinterlinks
-            || current_crosslink_type == TOPPXFDR::crosslink_class_hybriddecoysinterlinks
-            || current_crosslink_type == TOPPXFDR::crosslink_class_interdecoys
-            || current_crosslink_type == TOPPXFDR::crosslink_class_interlinks)
+        // Assign FDR value as meta value and also set as score
+        bool assigned = false;
+        double fdr = 1;
+        for (StringList::const_iterator crosslink_types_it = crosslink_types.begin();
+            crosslink_types_it != crosslink_types.end(); ++crosslink_types_it)
         {
-          fdr = fdr_interlinks[idx];
-          assigned = true;
-          break;
+          String current_crosslink_type = *crosslink_types_it;
+          Size idx = std::floor((score - this->min_score_) / arg_binsize);
+          if (   current_crosslink_type == TOPPXFDR::crosslink_class_fulldecoysinterlinks
+              || current_crosslink_type == TOPPXFDR::crosslink_class_hybriddecoysinterlinks
+              || current_crosslink_type == TOPPXFDR::crosslink_class_interdecoys
+              || current_crosslink_type == TOPPXFDR::crosslink_class_interlinks)
+          {
+            fdr = fdr_interlinks[idx];
+            assigned = true;
+            break;
+          }
+          else if (   current_crosslink_type == TOPPXFDR::crosslink_class_fulldecoysintralinks
+              || current_crosslink_type == TOPPXFDR::crosslink_class_hybriddecoysintralinks
+              || current_crosslink_type == TOPPXFDR::crosslink_class_intradecoys
+              || current_crosslink_type == TOPPXFDR::crosslink_class_intralinks)
+          {
+            fdr = fdr_intralinks[idx];
+            assigned = true;
+            break;
+          }
+          else if (   current_crosslink_type == TOPPXFDR::crosslink_class_monodecoys
+              || current_crosslink_type == TOPPXFDR::crosslink_class_monolinks)
+          {
+            fdr = fdr_monolinks[idx];
+            assigned = true;
+            break;
+          }
         }
-        else if (   current_crosslink_type == TOPPXFDR::crosslink_class_fulldecoysintralinks
-            || current_crosslink_type == TOPPXFDR::crosslink_class_hybriddecoysintralinks
-            || current_crosslink_type == TOPPXFDR::crosslink_class_intradecoys
-            || current_crosslink_type == TOPPXFDR::crosslink_class_intralinks)
+        if ( assigned)
         {
-          fdr = fdr_intralinks[idx];
-          assigned = true;
-          break;
+          ph.setMetaValue("XFDR:FDR", fdr);
         }
-        else if (   current_crosslink_type == TOPPXFDR::crosslink_class_monodecoys
-            || current_crosslink_type == TOPPXFDR::crosslink_class_monolinks)
+        else
         {
-          fdr = fdr_monolinks[idx];
-          assigned = true;
-          break;
+          OPENMS_LOG_WARN << "WARNING: A Crosslink could not be identified as either interlink, intralink, or monolink, so no FDR will be available for it." << endl;
         }
-      }
-      if ( assigned)
-      {
-        for (Size i = 0; i < n_hits; ++i)
-        {
-          pep_hits[i].setMetaValue("OpenXQuest:fdr", fdr);
-        }
-      }
-      else
-      {
-        OPENMS_LOG_WARN << "WARNING: Crosslink could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
       }
     }
 
-    // Write idXML
-    if ( ! arg_out_idXML.empty())
+    writeLog_("Writing output...");
+    // write idXML
+    if (! arg_out_idXML.empty())
     {
-      IdXMLFile().store( arg_out_idXML, all_prot_ids, all_pep_ids);
+      IdXMLFile().store( arg_out_idXML, all_prot_ids_, all_pep_ids_);
     }
 
-    // Write mzid file
+    // write mzid file
     if (! arg_out_mzid.empty())
     {
-      MzIdentMLFile().store( arg_out_mzid, all_prot_ids, all_pep_ids);
+      MzIdentMLFile().store( arg_out_mzid, all_prot_ids_, all_pep_ids_);
     }
 
+    // write xquest.xml file
     if (! arg_out_xquest.empty())
     {
-      XQuestResultXMLFile().store(arg_out_xquest, all_prot_ids, all_pep_ids);
+      XQuestResultXMLFile().store(arg_out_xquest, all_prot_ids_, all_pep_ids_);
     }
     return EXECUTION_OK;
   }
@@ -661,26 +738,30 @@ protected:
 private:
 
   // Score range for this of the tool
-  Int min_score;
-  Int max_score;
+  Int min_score_;
+  Int max_score_;
+
+  // unique top hits
+  vector<String> unique_ids_;
+  vector<double> unique_id_scores_;
 
   // Data structures
   // Vector of peptideIdentifications and indizes for rank one hits
-  vector<PeptideIdentification> all_pep_ids;
-  vector<Size> rank_one_pep_idx;
+  vector<PeptideIdentification> all_pep_ids_;
+  // vector<Size> rank_one_pep_idx;
 
   // Spectrum Map, needed for calculating the delta score
-  map<String, map<Size,Size>> specref_to_rank_to_pepidx;
+  // map<String, map<Size,Size>> specref_to_rank_to_pepidx;
 
-  // maps index of peptide id all_pep_ids to vector of cross link class
-  map<Size, vector<String>> cross_link_classes;
+  // maps index of peptide id all_pep_ids_ to vector of cross link class
+  map<String, vector<String>> cross_link_classes_;
 
   // Protein Identification
-  vector<ProteinIdentification> all_prot_ids;
-  ProteinIdentification prot_id;
+  vector<ProteinIdentification> all_prot_ids_;
+  ProteinIdentification prot_id_;
 
   // Whether input comes from xQuest
-  bool is_xquest_input;
+  bool is_xquest_input_;
 
   // Program arguments
   String arg_out_idXML;
@@ -688,10 +769,10 @@ private:
   String arg_out_xquest;
   String arg_in;
   double arg_mindeltas;
-  Int arg_minborder;
-  Int arg_maxborder;
+  double arg_minborder;
+  double arg_maxborder;
   Int arg_minionsmatched;
-  Int arg_minscore;
+  double arg_minscore;
   bool arg_uniquex;
   double arg_binsize;
 
@@ -701,41 +782,41 @@ private:
     OPENMS_LOG_ERROR << "FATAL: " << message << " Terminating now!" << std::endl;
   }
 
-  bool validateDataStructures() const
-  {
-    // Ensure that we have as many rank one pep ids as spectra
-    if (this->rank_one_pep_idx.size() != this->specref_to_rank_to_pepidx.size())
-    {
-      logFatal("Not each spectrum has a number one ranked peptide.");
-      return false;
-    }
+  // bool validateDataStructures() const
+  // {
+  //   // Ensure that we have as many rank one pep ids as spectra
+  //   if (this->rank_one_pep_idx.size() != this->specref_to_rank_to_pepidx.size())
+  //   {
+  //     logFatal("Not each spectrum has a number one ranked peptide.");
+  //     return false;
+  //   }
+  //
+  //   // Check that the Spectrum Map is Valid
+  //   return validateSpectrumMap();
+  // }
 
-    // Check that the Spectrum Map is Valid
-    return validateSpectrumMap();
-  }
-
-  bool validateSpectrumMap() const
-  {
-    for (const auto &spectrum : this->specref_to_rank_to_pepidx)
-    {
-      std::set<Size> ranks;
-      for (const auto &rank : spectrum.second)
-      {
-        ranks.insert(rank.first);
-      }
-      // Check that all the ranks are present
-      for (Size i = 1; i <= ranks.size(); ++i)
-      {
-        if (ranks.find(i) == ranks.end())
-        {
-          // Ranks is not present in spectrum map
-          logFatal("Rank " + String(i) + " does not exist for spectrum " + spectrum.first);
-          return false;
-        }
-      }
-    }
-    return true;
-  }
+  // bool validateSpectrumMap() const
+  // {
+  //   for (const auto &spectrum : this->specref_to_rank_to_pepidx)
+  //   {
+  //     std::set<Size> ranks;
+  //     for (const auto &rank : spectrum.second)
+  //     {
+  //       ranks.insert(rank.first);
+  //     }
+  //     // Check that all the ranks are present
+  //     for (Size i = 1; i <= ranks.size(); ++i)
+  //     {
+  //       if (ranks.find(i) == ranks.end())
+  //       {
+  //         // Ranks is not present in spectrum map
+  //         logFatal("Rank " + String(i) + " does not exist for spectrum " + spectrum.first);
+  //         return false;
+  //       }
+  //     }
+  //   }
+  //   return true;
+  // }
 
   void loadArguments()
   {
@@ -744,10 +825,10 @@ private:
     arg_out_xquest = getStringOption_(TOPPXFDR::param_out_xquest);
     arg_in = getStringOption_(TOPPXFDR::param_in);
     arg_mindeltas = getDoubleOption_(TOPPXFDR::param_mindeltas);
-    arg_minborder = getIntOption_(TOPPXFDR::param_minborder);
-    arg_maxborder = getIntOption_(TOPPXFDR::param_maxborder);
+    arg_minborder = getDoubleOption_(TOPPXFDR::param_minborder);
+    arg_maxborder = getDoubleOption_(TOPPXFDR::param_maxborder);
     arg_minionsmatched = getIntOption_(TOPPXFDR::param_minionsmatched);
-    arg_minscore = getIntOption_(TOPPXFDR::param_minscore);
+    arg_minscore = getDoubleOption_(TOPPXFDR::param_minscore);
     arg_uniquex = getFlag_(TOPPXFDR::param_uniquexl);
     arg_binsize = getDoubleOption_(TOPPXFDR::param_binsize);
   }
@@ -814,31 +895,31 @@ private:
     const FileTypes::Type in_type = arg_in_type.empty() ?
                                       FileHandler::getType(this->arg_in) : FileTypes::nameToType(arg_in_type);
 
-    this->is_xquest_input = false;
+    this->is_xquest_input_ = false;
     if (in_type == FileTypes::XQUESTXML)
     {
-      this->is_xquest_input = true;
+      this->is_xquest_input_ = true;
       XQuestResultXMLFile xquest_file;
-      xquest_file.load(arg_in, all_pep_ids, all_prot_ids);
+      xquest_file.load(arg_in, all_pep_ids_, all_prot_ids_);
 
      writeLog_("\nTotal number of hits in xQuest input: " + String(xquest_file.getNumberOfHits()));
     }
     else if (in_type == FileTypes::MZIDENTML)
     {
-       MzIdentMLFile().load(arg_in, all_prot_ids, all_pep_ids);
+       MzIdentMLFile().load(arg_in, all_prot_ids_, all_pep_ids_);
      }
      else if (in_type == FileTypes::IDXML)
      {
        // TODO I doubt that the filters are supported for IDXML Input
-       IdXMLFile().load(arg_in, all_prot_ids, all_pep_ids);
+       IdXMLFile().load(arg_in, all_prot_ids_, all_pep_ids_);
      }
      else
      {
        logFatal("Input file type not recognized.");
        return ILLEGAL_PARAMETERS;
      }
-     const Size n_pep_ids = all_pep_ids.size();
-     const Size n_prot_ids = all_prot_ids.size();
+     const Size n_pep_ids = all_pep_ids_.size();
+     const Size n_prot_ids = all_prot_ids_.size();
 
      writeLog_("Number of Peptide IDs in input file: " + String(n_pep_ids));
      writeLog_("Number of Protein IDs in input file: " + String(n_prot_ids));
@@ -856,84 +937,94 @@ private:
        logFatal("There is not exactly one protein identification in the input file. This is unsupported!");
        return INPUT_FILE_CORRUPT;
      }
-     this->prot_id = all_prot_ids[0];
+     this->prot_id_ = all_prot_ids_[0];
 
      return EXECUTION_OK;
   }
 
-
-  String getId(const PeptideIdentification &pep_id) const
+  String getId(const PeptideHit& ph) const
   {
-    if (is_xquest_input)
+    if (is_xquest_input_)
     {
-      return pep_id.getMetaValue("OpenXQuest:id").toString();
-    }
-    const std::vector<PeptideHit> &pep_hits = pep_id.getHits();
-    const PeptideHit &alpha = pep_hits[0];
-
-    if (pep_hits.size() > 1)
-    {
-      // TODO adjust to new xl_pos param later
-      return   alpha.getSequence().toUnmodifiedString()
-               + "-" + pep_hits[1].getSequence().toUnmodifiedString()
-               + "-a" + String(alpha.getMetaValue("xl_pos"))
-               + "-b" + String(pep_hits[1].getMetaValue("xl_pos"));
+      return ph.getMetaValue("OpenPepXL:id").toString();
     }
 
-    // TODO adjust to new xl_pos param later
-    if (alpha.metaValueExists("xl_pos2"))
+    if (ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "cross-link")
     {
-      return   alpha.getSequence().toUnmodifiedString()
-               + "-a" + String(alpha.getMetaValue("xl_pos"))
-               + "-b" + String(alpha.getMetaValue("xl_pos2"));
+      return   ph.getSequence().toUnmodifiedString()
+               + "-" + AASequence::fromString(ph.getMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString()
+               + "-a" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1))
+               + "-b" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS2));
+
     }
-    if (alpha.metaValueExists("xl_mass"))
+    else if (ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "loop-link")
     {
-      return   alpha.getSequence().toUnmodifiedString()
-               + "-" + String(alpha.getMetaValue("xl_pos"))
-               + "-" + String(alpha.getMetaValue("xl_mass"));
+      return   ph.getSequence().toUnmodifiedString()
+               + "-a" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1))
+               + "-b" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS2));
+
     }
-    return   alpha.getSequence().toUnmodifiedString()
-             + "-" + String(alpha.getMetaValue("xl_pos"));
+    else if (ph.metaValueExists(Constants::OPENPEPXL_XL_MASS))
+    {
+      return   ph.getSequence().toUnmodifiedString()
+               + "-" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1))
+               + "-" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_MASS));
+    }
+    else
+    {
+      return   ph.getSequence().toUnmodifiedString()
+               + "-" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1));
+    }
   }
 
-
-  double calculateDeltaScore(const PeptideIdentification &pep_id)
-  {
-    // map of rank to index
-    map<Size, Size> &rank_to_idx = this->specref_to_rank_to_pepidx[getSpectrumReference(pep_id)];
-    const Size pep_id_rank = getRank(pep_id);
-
-    double result(0);
-
-    for (Size rank = 1; rank < rank_to_idx.size(); ++rank)
-    {
-      PeptideIdentification &first = all_pep_ids[rank_to_idx[rank + 1]];
-      PeptideIdentification &second = all_pep_ids[rank_to_idx[rank]];
-
-      double delta_score = first.getHits()[0].getScore()
-                           / second.getHits()[0].getScore();
-
-      if (rank == pep_id_rank)
-      {
-        result = delta_score;
-      }
-
-      // also add as a meta value so that it is written out
-      for (PeptideHit &hit : second.getHits())
-      {
-        hit.setMetaValue("delta_score", delta_score);
-      }
-    }
-
-    // rank_to_idx.size()
-    for (PeptideHit &pep_hit : all_pep_ids[rank_to_idx[rank_to_idx.size()]].getHits())
-    {
-      pep_hit.setMetaValue("delta_score", pep_hit.getScore());
-    }
-
-    return result;
-  }
+  // double calculateDeltaScore(const PeptideIdentification &pep_id, const int rank_one_hit_index, const int rank_two_hit_index)
+  // {
+  //   // map of rank to index
+  //   // map<Size, Size> &rank_to_idx = this->specref_to_rank_to_pepidx[getSpectrumReference(pep_id)];
+  //   // const Size pep_id_rank = getRank(pep_id);
+  //
+  //   vector<int> rank_indices(pep_id.getHits().size(), 0)
+  //   for (Size i = 0; i < rank_indices.size(); ++i)
+  //   {
+  //     PeptideHit& ph = pep_id.getHits()[i];
+  //     rank_indices[ph.getMetaValue(Constants::OPENPEPXL_XL_RANK).toInt()-1] = i;
+  //   }
+  //
+  //   double result(0);
+  //
+  //   // for (Size rank = 1; rank < rank_to_idx.size(); ++rank)
+  //   for (Size rank = 0; rank < rank_indices.size(); ++rank)
+  //   {
+  //     PeptideIdentification &first = all_pep_ids_[rank_to_idx[rank + 1]];
+  //     PeptideIdentification &second = all_pep_ids_[rank_to_idx[rank]];
+  //
+  //     PeptideHit& first = pep_id.getHits
+  //
+  //     PeptideHit& first = pep_id.getHits()[]
+  //
+  //     double delta_score = first.getHits()[0].getScore()
+  //                          / second.getHits()[0].getScore();
+  //
+  //     if (rank == pep_id_rank)
+  //     {
+  //       result = delta_score;
+  //     }
+  //
+  //     // also add as a meta value so that it is written out
+  //     for (PeptideHit &hit : second.getHits())
+  //     {
+  //       hit.setMetaValue("delta_score", delta_score);
+  //     }
+  //   }
+  //
+  //   // rank_to_idx.size()
+  //   for (PeptideHit &pep_hit : all_pep_ids_[rank_to_idx[rank_to_idx.size()]].getHits())
+  //   {
+  //     pep_hit.setMetaValue("delta_score", pep_hit.getScore());
+  //   }
+  //
+  //   return result;
+  // }
 
 
   /*
@@ -941,101 +1032,80 @@ private:
    */
 
 
-  static double getRelativeError(const PeptideIdentification &pep_id)
-  {
-    const PeptideHit &alpha = pep_id.getHits()[0];
-    const String error_rel = "OpenXQuest:error_rel";
-    if (alpha.metaValueExists(error_rel))
-    {
-      return static_cast<double>(alpha.getMetaValue(error_rel));
-    }
-    if (alpha.metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
-    {
-      return static_cast<double>(alpha.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
-    }
-    return 0;
-  }
+  // static double getRelativeError(const PeptideIdentification &pep_id)
+  // {
+  //   const PeptideHit &alpha = pep_id.getHits()[0];
+  //   if (alpha.metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
+  //   {
+  //     return static_cast<double>(alpha.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
+  //   }
+  //   return 0;
+  // }
 
 
-  static Size getMinIonsMatched(const PeptideIdentification &pep_id)
+  static Size getMinIonsMatched(const PeptideHit& ph)
   {
-    const PeptideHit &hit = pep_id.getHits()[0];
-    Size alpha_ions(0);
-    Size beta_ions(0);
-    if (hit.metaValueExists("matched_common_alpha"))
-    {
-      alpha_ions = Size(hit.getMetaValue("matched_common_alpha")) + Size(hit.getMetaValue("matched_xlink_alpha"));
-      beta_ions = Size(hit.getMetaValue("matched_common_beta")) + Size(hit.getMetaValue("matched_xlink_beta"));
-    }
-    else if (hit.metaValueExists("matched_linear_alpha"))
-    {
-      alpha_ions = Size(hit.getMetaValue("matched_linear_alpha")) + Size(hit.getMetaValue("matched_xlink_alpha"));
-      beta_ions = Size(hit.getMetaValue("matched_linear_beta")) + Size(hit.getMetaValue("matched_xlink_beta"));
-    }
+    Size alpha_ions = Size(ph.getMetaValue("matched_linear_alpha")) + Size(ph.getMetaValue("matched_xlink_alpha"));
+    Size beta_ions = Size(ph.getMetaValue("matched_linear_beta")) + Size(ph.getMetaValue("matched_xlink_beta"));
     return std::min(alpha_ions, beta_ions);
   }
 
 
-  static Size getRank(const PeptideIdentification &pep_id)
-  {
-    return static_cast<Size>(pep_id.getHits()[0].getMetaValue(TOPPXFDR::crosslink_rank));
-  }
+  // static Size getRank(const PeptideIdentification &pep_id)
+  // {
+  //   return static_cast<Size>(pep_id.getHits()[0].getMetaValue(Constants::OPENPEPXL_XL_RANK));
+  // }
 
-  static String getSpectrumReference(const PeptideIdentification &pep_id)
-  {
-    return pep_id.getHits()[0].getMetaValue("spectrum_index");
-  }
+  // static String getSpectrumReference(const PeptideIdentification &pep_id)
+  // {
+  //   return pep_id.getHits()[0].getMetaValue("spectrum_index");
+  // }
 
-  /**
-   * @brief Returns the score of a crosslink peptide identification.
-   * @param pep_id Which peptide identification the score should be taken from
-   * @return crosslink score of that peptide identification
-   */
-  static double getCrosslinkScore(const PeptideIdentification &pep_id)
-  {
-    // TODO Shouldn't we move this function to the util class for CrossLinking stuff ?
-    const std::vector<PeptideHit> &pep_hits = pep_id.getHits();
+//   /**
+//    * @brief Returns the score of a crosslink peptide identification.
+//    * @param pep_id Which peptide identification the score should be taken from
+//    * @return crosslink score of that peptide identification
+//    */
+//   static double getCrosslinkScore(const PeptideIdentification &pep_id)
+//   {
+//     // TODO Shouldn't we move this function to the util class for CrossLinking stuff ?
+//     const std::vector<PeptideHit> &pep_hits = pep_id.getHits();
+//
+// #ifndef NDEBUG
+//     const Size n_hits = pep_hits.size();
+//     assert(n_hits == 1 || n_hits == 2);
+//     if (n_hits == 2)
+//     {
+//       assert(std::fabs(pep_hits[0].getScore() - pep_hits[1].getScore()) < 0.000001);
+//     }
+// #endif
+//     return pep_hits[0].getScore();
+//   }
 
-#ifndef NDEBUG
-    const Size n_hits = pep_hits.size();
-    assert(n_hits == 1 || n_hits == 2);
-    if (n_hits == 2)
+
+    static void setIntraProtein(PeptideHit& ph, const bool value)
     {
-      assert(std::fabs(pep_hits[0].getScore() - pep_hits[1].getScore()) < 0.000001);
+      ph.setMetaValue("XFDR:is_intraprotein", DataValue(value ? "true" : "false"));
     }
-#endif
-    return pep_hits[0].getScore();
-  }
 
-
-    static void setIntraProtein(PeptideHit &pep_hit, const bool value)
+    static void setInterProtein(PeptideHit& ph, const bool value)
     {
-      pep_hit.setMetaValue("OpenXQuest:is_intraprotein", DataValue(value ? "true" : "false"));
-    }
-
-    static void setInterProtein(PeptideHit& pep_hit, const bool value)
-    {
-      pep_hit.setMetaValue("OpenXQuest:is_interprotein", DataValue(value ? "true" : "false"));
+      ph.setMetaValue("XFDR:is_interprotein", DataValue(value ? "true" : "false"));
     }
 
     /**
      *  @brief Determines whether the Petide Evidences belong to the same protein, modulo decoy
      */
     static bool isSameProtein(
-            const PeptideEvidence &ev1,
-            const PeptideEvidence &ev2,
+            String prot1,
+            String prot2,
             const String &decoy_string)
     {
-      String accession1 = ev1.getProteinAccession();
-      String accession2 = ev2.getProteinAccession();
-
-      accession1.substitute(decoy_string, "");
-      accession2.substitute(decoy_string, "");
-
-      assert( ! accession1.hasSubstring(decoy_string));
-      assert( ! accession2.hasSubstring(decoy_string));
-
-      return accession1 == accession2;
+      prot1.substitute(decoy_string, "");
+      prot2.substitute(decoy_string, "");
+      assert( ! prot1.hasSubstring(decoy_string));
+      assert( ! prot2.hasSubstring(decoy_string));
+      return prot1 == prot2;
     }
 };
 
@@ -1067,11 +1137,6 @@ const String TOPPXFDR::crosslink_class_decoys = "decoys";
 const String TOPPXFDR::crosslink_class_targets = "targets";
 const String TOPPXFDR::crosslink_class_hybriddecoysintralinks = "hybriddecoysintralinks";
 const String TOPPXFDR::crosslink_class_hybriddecoysinterlinks = "hybriddecoysinterlinks";
-
-// meta values for crosslink identifications
-const String TOPPXFDR::crosslink_type = "xl_type";
-const String TOPPXFDR::crosslink_rank = "xl_rank";
-const String TOPPXFDR::target_decoy = "target_decoy";
 
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
