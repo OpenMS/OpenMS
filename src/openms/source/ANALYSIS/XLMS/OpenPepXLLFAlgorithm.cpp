@@ -999,5 +999,8 @@ using namespace OpenMS;
     OPXLHelper::addProteinPositionMetaValues(peptide_ids);
     OPXLHelper::addBetaAccessions(peptide_ids);
     OPXLHelper::addXLTargetDecoyMV(peptide_ids);
+    OPXLHelper::removeBetaPeptideHits(peptide_ids);
+    OPXLHelper::computeDeltaScores(peptide_ids);
+    OPXLHelper::addPercolatorFeatureList(protein_ids[0]);
     return OpenPepXLLFAlgorithm::ExitCodes::EXECUTION_OK;
   }
