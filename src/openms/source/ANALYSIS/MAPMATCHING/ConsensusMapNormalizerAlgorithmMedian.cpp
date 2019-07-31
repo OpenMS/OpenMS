@@ -67,7 +67,8 @@ namespace OpenMS
       if (it == map.getColumnHeaders().end()) 
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
-      } else if (i >= feature_int.size())
+      }
+      else if (i >= feature_int.size())
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           String(i) + " exceeds map number");

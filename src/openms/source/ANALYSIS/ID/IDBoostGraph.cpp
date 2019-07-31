@@ -146,7 +146,7 @@ namespace OpenMS
   {
     if (use_run_info)
     {
-      buildGraphWithRunInfo_(proteins, idedSpectra, use_top_psms, ed.value_or(ExperimentalDesign::fromIdentifications({proteins})));
+      buildGraphWithRunInfo_(proteins, idedSpectra, use_top_psms, ed.get_value_or(ExperimentalDesign::fromIdentifications({proteins})));
     }
     else
     {
@@ -164,7 +164,7 @@ namespace OpenMS
   {
     if (use_run_info)
     {
-      buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.value_or(ExperimentalDesign::fromConsensusMap(cmap)));
+      buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.get_value_or(ExperimentalDesign::fromConsensusMap(cmap)));
     }
     else
     {
@@ -337,7 +337,7 @@ namespace OpenMS
     {
       for (auto& spectrum : feat.getPeptideIdentifications())
       {
-        if(spectrum.getIdentifier() == protRun)
+        if (spectrum.getIdentifier() == protRun)
         {
           addPeptideAndAssociatedProteinsWithRunInfo_(spectrum, indexToPrefractionationGroup,
                                                       vertex_map, accession_map, use_top_psms);
@@ -350,7 +350,7 @@ namespace OpenMS
     {
       for (auto& id : cmap.getUnassignedPeptideIdentifications())
       {
-        if(id.getIdentifier() == protRun)
+        if (id.getIdentifier() == protRun)
         {
           addPeptideAndAssociatedProteinsWithRunInfo_(id, indexToPrefractionationGroup,
                                                       vertex_map, accession_map, use_top_psms);
@@ -429,7 +429,7 @@ namespace OpenMS
     const String& protRun = proteins.getIdentifier();
     for (auto& spectrum : idedSpectra)
     {
-      if(spectrum.getIdentifier() == protRun)
+      if (spectrum.getIdentifier() == protRun)
       {
         addPeptideIDWithAssociatedProteins_(spectrum, vertex_map, accession_map, use_top_psms);
       }
@@ -466,7 +466,7 @@ namespace OpenMS
     {
       for (auto& id : feature.getPeptideIdentifications())
       {
-        if(id.getIdentifier() == protRun)
+        if (id.getIdentifier() == protRun)
         {
           addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms);
         }
@@ -477,7 +477,7 @@ namespace OpenMS
     {
       for (auto& id : cmap.getUnassignedPeptideIdentifications())
       {
-        if(id.getIdentifier() == protRun)
+        if (id.getIdentifier() == protRun)
         {
           addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms);
         }
@@ -630,9 +630,11 @@ namespace OpenMS
       #endif
 
       #ifdef INFERENCE_DEBUG
-      unsigned long result =
+      unsigned long result = functor(curr_cc);
+      #else
+      functor(curr_cc);
       #endif
-          functor(curr_cc);
+
 
       #ifdef INFERENCE_BENCH
       sw.stop();
@@ -644,7 +646,7 @@ namespace OpenMS
     ofstream debugfile;
     debugfile.open("idgraph_functortimes_" + DateTime::now().getTime() + ".tsv");
 
-    for( const auto& size_time : sizes_and_times_ )
+    for (const auto& size_time : sizes_and_times_ )
     {
       debugfile << std::get<0>(size_time) << "\t" << std::get<1>(size_time) <<  "\t" << std::get<2>(size_time) << "\t" << std::get<3>(size_time) << "\n";
     }
@@ -687,7 +689,7 @@ namespace OpenMS
     ofstream debugfile;
     debugfile.open("idgraph_functortimes_" + DateTime::now().getTime() + ".tsv");
 
-    for( const auto& size_time : sizes_and_times_ )
+    for (const auto& size_time : sizes_and_times_ )
     {
       debugfile << std::get<0>(size_time) << "\t" << std::get<1>(size_time) <<  "\t" << std::get<2>(size_time) << "\t" << std::get<3>(size_time) << "\n";
     }
@@ -911,10 +913,11 @@ namespace OpenMS
           {
             q.emplace(*adjIt);
           }
-        } else if (graph[*adjIt].which() > graph[curr_node].which())
-          {
+        }
+        else if (graph[*adjIt].which() > graph[curr_node].which())
+        {
             q.emplace(*adjIt);
-          }
+        }
       }
     }
   }

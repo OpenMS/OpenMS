@@ -256,7 +256,8 @@ namespace OpenMS
       }
     }
 
-    double ROCCurve::trapezoidal_area(double x1, double x2, double y1, double y2){
+    double ROCCurve::trapezoidal_area(double x1, double x2, double y1, double y2)
+    {
       double base = fabs(x1 - x2);
       double avgHeight = (y1+y2)/2.0;
       return base * avgHeight;

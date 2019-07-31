@@ -276,13 +276,14 @@ protected:
     double min_nonnull_obs_probability = getDoubleOption_("min_psms_extreme_probability");
     double max_nonone_obs_probability = getDoubleOption_("max_psms_extreme_probability");
     // Currently unused
-    bool datadependent_extrema_removal = false;
+    /*bool datadependent_extrema_removal = false;
     if (datadependent_extrema_removal)
     {
       pair<double,double> minmax = checkExtremePSMScores_(mergedpeps);
       min_nonnull_obs_probability = minmax.first;
       max_nonone_obs_probability = minmax.second;
     }
+     */
     if (min_nonnull_obs_probability > 0.0 || max_nonone_obs_probability < 1.0 )
     {
       removeExtremeValues_(mergedpeps, min_nonnull_obs_probability, max_nonone_obs_probability);

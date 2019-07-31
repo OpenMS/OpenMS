@@ -318,7 +318,7 @@ namespace OpenMS
       igb.insert_dependency(createPeptideEvidenceFactor(j,pepEvidences[j]));
       igb.insert_dependency(pepdep);
       deps.push_back(sumdep);
-      for (auto parent : parentsOfPeps[j]) {
+      for (const auto& parent : parentsOfPeps[j]) {
         deps.push_back(createProteinFactor(parent));
       }
 

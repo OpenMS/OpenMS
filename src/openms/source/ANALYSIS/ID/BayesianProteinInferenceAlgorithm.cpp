@@ -54,8 +54,8 @@ namespace OpenMS
 {
 
   /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
-  class BayesianProteinInferenceAlgorithm::GraphInferenceFunctor /*:
-      public std::function<unsigned long(IDBoostGraph::Graph&)> */
+  class BayesianProteinInferenceAlgorithm::GraphInferenceFunctor
+      //: public std::function<unsigned long(IDBoostGraph::Graph&)>
   {
   public:
     //TODO think about restructuring the passed params (we do not need every param from the BPI class here.
@@ -272,8 +272,8 @@ namespace OpenMS
 
   /// A functor that specifies what to do on a connected component with additional layers (i.e. implicitly extended
   /// graph. @TODO static type checking
-  class BayesianProteinInferenceAlgorithm::ExtendedGraphInferenceFunctor /* :
-      public std::function<unsigned long(IDBoostGraph::Graph&)> */
+  class BayesianProteinInferenceAlgorithm::ExtendedGraphInferenceFunctor
+     //: public std::function<unsigned long(IDBoostGraph::Graph&)>
   {
   public:
     const Param& param_;

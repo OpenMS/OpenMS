@@ -302,25 +302,9 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
     "ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," +
     String(has_fraction ? "Fraction,": "") + "Intensity");
 
-  // Regex definition for fragment ions
-  boost::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
-
-  // These are placeholder fragment annotations and peptide evidences in case the original ones are empty
-
-  // Placeholder fragment annotation
-  PeptideHit::PeakAnnotation new_peak_ann{};
-  new_peak_ann.annotation = na_string;
-  new_peak_ann.charge = -1;
-  std::vector< PeptideHit::PeakAnnotation > placeholder_fragment_annotations = {new_peak_ann};
-
-  // Placeholder peptide evidence
-  PeptideEvidence new_pep_ev{};
-  new_pep_ev.setProteinAccession(na_string);
-  std::vector< PeptideEvidence > placeholder_peptide_evidences = {new_pep_ev};
-
   // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
   String isotope_label_type = "L";
-  if (is_isotope_label_type)
+  if (is_isotope_label_type) //@todo remove? not sure if this is correct. I think DDA LFQ is always "L"
   {
     // use the channel_id information (?)
     isotope_label_type = "H";
@@ -380,7 +364,7 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
       {
         //TODO Really double check with Meena Choi (MSStats author) or make it an option! I can't find any info
         // on what is correct. For TMT we include them (since it is necessary) (see occurrence above as well when map is built!)
-        const String & sequence = pep_hit.getSequence().toUnmodifiedString(); // to modified string
+        const String & sequence = pep_hit.getSequence().toString(); // to modified string
 
         // check if all referenced protein accessions are part of the same indistinguishable group
         // if so, we mark the sequence as quantifiable
@@ -399,77 +383,54 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
           continue; // we dont need the rest of the loop
         }
 
-        const std::vector< PeptideHit::PeakAnnotation > & original_fragment_annotations = pep_hit.getPeakAnnotations();
-        //const std::vector< PeptideEvidence > & original_peptide_evidences = pep_hit.getPeptideEvidences();
-
-        // Decide whether to use original or placeholder iterator
-        const std::vector< PeptideHit::PeakAnnotation > & fragment_annotations = (original_fragment_annotations.empty()) ? placeholder_fragment_annotations : original_fragment_annotations;
-        //const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.empty()) ? placeholder_peptide_evidences : original_peptide_evidences;
-
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
-        const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
+        const Int precursor_charge = pep_hit.getCharge();
 
-        // Have to combine all fragment annotations with all peptide evidences
-        for (const OpenMS::PeptideHit::PeakAnnotation & frag_ann : fragment_annotations)
+        // Unused for DDA data anyway
+        String fragment_ion = na_string;
+        String frag_charge = "0";
+
+        String accession  = ListUtils::concatenate(accs,";");
+        if (accession.empty()) accession = na_string; //shouldn't really matter since we skip unquantifyable peptides
+
+        // Write new line for each run
+        for (Size j = 0; j < aggregatedInfo.consensus_feature_filenames[i].size(); j++)
         {
-          String fragment_ion = na_string;
+          const String &current_filename = aggregatedInfo.consensus_feature_filenames[i][j];
+          const Intensity intensity(aggregatedInfo.consensus_feature_intensities[i][j]);
+          const Coordinate retention_time(aggregatedInfo.consensus_feature_retention_times[i][j]);
+          const unsigned label(aggregatedInfo.consensus_feature_labels[i][j]);
 
-          // Determine if the FragmentIon field can be assigned
-          if (frag_ann.annotation != na_string)
-          {
-            std::set< std::string > frag_ions;
-            boost::smatch sm;
-            boost::regex_search(frag_ann.annotation, sm, regex_msstats_FragmentIon);
-            frag_ions.insert(sm.begin(), sm.end());
-            if (frag_ions.size() == 1)
-            {
-              for (const auto& frag_ions_elem : frag_ions)
-              {
-                fragment_ion = frag_ions_elem;
-              }
-            }
-          }
-          const Int frag_charge = (std::max)(frag_ann.charge, 0);
+          const pair< String, unsigned> tpl1 = make_pair(current_filename, label);
+          const unsigned sample = path_label_to_sample[tpl1];
+          const unsigned fraction = path_label_to_fraction[tpl1];
 
-          String accession  = ListUtils::concatenate(accs,";");
+          const pair< String, unsigned> tpl2 = make_pair(current_filename, fraction);
 
-          // Write new line for each run
-          for (Size j = 0; j < aggregatedInfo.consensus_feature_filenames[i].size(); j++)
-          {
-            const String &current_filename = aggregatedInfo.consensus_feature_filenames[i][j];
-            const Intensity intensity(aggregatedInfo.consensus_feature_intensities[i][j]);
-            const Coordinate retention_time(aggregatedInfo.consensus_feature_retention_times[i][j]);
-            const unsigned label(aggregatedInfo.consensus_feature_labels[i][j]);
+          // Resolve run
+          const unsigned run = run_map[tpl2];  // MSstats run according to the file table
+          const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
+          msstats_run_to_openms_fractiongroup[run] = openms_fractiongroup;
 
-            const pair< String, unsigned> tpl1 = make_pair(current_filename, label);
-            const unsigned sample = path_label_to_sample[tpl1];
-            const unsigned fraction = path_label_to_fraction[tpl1];
-
-            const pair< String, unsigned> tpl2 = make_pair(current_filename, fraction);
-
-            // Resolve run
-            const unsigned run = run_map[tpl2];  // MSstats run according to the file table
-            const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
-            msstats_run_to_openms_fractiongroup[run] = openms_fractiongroup;
-
-            // Assemble MSstats line
-            MSstatsLine_ prefix(
-                    has_fraction,
-                    accession,
-                    sequence,
-                    precursor_charge,
-                    fragment_ion,
-                    frag_charge,
-                    isotope_label_type,
-                    sampleSection.getFactorValue(sample, condition),
-                    sampleSection.getFactorValue(sample, bioreplicate),
-                    String(run),
-                    (has_fraction ? String(fraction) : "")
-            );
-            pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
-            peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
-          }
+          // Assemble MSstats line
+          //TODO since a lot of cols are constant in DDA LFQ, we could reduce the prefix and add the constant
+          // cols on-the-fly during constructFile_ (so we save during checking duplicates)
+          MSstatsLine_ prefix(
+                  has_fraction,
+                  accession,
+                  sequence,
+                  precursor_charge,
+                  fragment_ion,
+                  frag_charge,
+                  isotope_label_type,
+                  sampleSection.getFactorValue(sample, condition),
+                  sampleSection.getFactorValue(sample, bioreplicate),
+                  String(run),
+                  (has_fraction ? String(fraction) : "")
+          );
+          pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
+          peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
         }
       }
     }
@@ -602,11 +563,6 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
     String(has_fraction ? "Fraction,": "") +
     "Intensity");
 
-  // These are placeholder peptide evidences in case the original ones are empty
-  PeptideEvidence new_pep_ev;
-  new_pep_ev.setProteinAccession(na_string);
-  std::vector< PeptideEvidence > placeholder_peptide_evidences = {new_pep_ev};
-
   const String delim(",");
 
   // We quantify indistinguishable groups with one (corner case) or multiple proteins.
@@ -655,7 +611,8 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
           continue; // we dont need the rest of the loop
         }
 
-        String accession = ListUtils::concatenate(accs,";");
+        String accession = ListUtils::concatenate(accs,delim);
+        if (accession.empty()) accession = na_string; //shouldn't really matter since we skip unquantifyable peptides
 
         // Write new line for each run
         for (Size j = 0; j < AggregatedInfo.consensus_feature_filenames[i].size(); j++)

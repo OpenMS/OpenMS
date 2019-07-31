@@ -506,7 +506,7 @@ protected:
     map<String, pair<StringList, double> > leader_to_group;
     if (!proteins_.getIndistinguishableProteins().empty())
     {
-      for (auto group : proteins_.getIndistinguishableProteins())
+      for (auto group : proteins_.getIndistinguishableProteins()) //OMS_CODING_TEST_EXCLUDE
       {
         StringList& accessions = leader_to_group[group.accessions[0]].first;
         accessions = group.accessions;

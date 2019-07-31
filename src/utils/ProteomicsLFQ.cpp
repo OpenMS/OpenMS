@@ -236,7 +236,7 @@ protected:
   map<String, String> mapId2MzMLs_(const map<String, String>& m2i)
   {
     map<String, String> idfile2mzfile;
-    for (auto m : m2i)
+    for (const auto& m : m2i)
     {
       idfile2mzfile[m.second] = m.first;
     }
@@ -388,7 +388,7 @@ protected:
   void calculateSeeds_(const MSExperiment & ms_centroided, FeatureMap & seeds, double median_fwhm)
   {
     MSExperiment e;
-    for (auto s : ms_centroided) 
+    for (const auto& s : ms_centroided)
     { 
       if (s.getMSLevel() == 1) 
       {              
@@ -831,7 +831,7 @@ protected:
 
         // copy the (already) aligned, consensus feature derived ids that are to be transferred to this map to peptide_ids
         auto range = transfered_ids.equal_range(fraction_group - 1);
-        for (auto it = range.first; it != range.second; ++it)
+        for (auto& it = range.first; it != range.second; ++it)
         {
           if (getStringOption_("transfer_ids") == "merged" )
           {
@@ -1498,7 +1498,7 @@ protected:
       for (const auto& r : quantifier.getProteinResults())
       {
         std::cout << "Accession:" << r.first << "\n";
-        for (auto s : r.second.total_abundances)
+        for (const auto& s : r.second.total_abundances)
         {
           std::cout << s.second << "\t"; 
         }
