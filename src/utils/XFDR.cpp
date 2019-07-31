@@ -285,12 +285,10 @@ protected:
             {
               if (isSameProtein(alpha_prot, beta_prot, decoy_string))
               {
-                // cout << "TEST Protein Combo: " << alpha_prot << " | " << beta_prot << " == INTRA" << endl;
                 setIntraProtein(ph, true);
               }
               else
               {
-                // cout << "TEST Protein Combo: " << alpha_prot << " | " << beta_prot << " == INTER" << endl;
                 setInterProtein(ph, true);
               }
             }
