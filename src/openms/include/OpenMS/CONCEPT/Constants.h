@@ -259,7 +259,8 @@ namespace OpenMS
     extern OPENMS_DLLAPI const std::string   PRECURSOR_ERROR_PPM_USERPARAM;
 
 
-    /** User parameter name for monoisotopic peak misassignment correction of a precursor (usually an integer x with the correction being x times C13C12_MASSDIFF_U)
+    /** User parameter name for monoisotopic peak misassignment correction of a precursor (usually an integer with e.g. 1 = subtract (1/charge)*C13C12_MASSDIFF_U from uncorrected precursor_mz).
+
             String
     */
     extern OPENMS_DLLAPI const std::string   PRECURSOR_ASSIGNMENT_CORRECTION;
