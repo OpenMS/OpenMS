@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lukas Zimmermann $
-// $Authors: Lukas Zimmermann $
+// $Maintainer: Eugen Netz $
+// $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -44,8 +44,6 @@
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/Constants.h>
-
-#include <boost/iterator/counting_iterator.hpp>
 
 #include <string>
 #include <cmath>
