@@ -853,12 +853,6 @@ namespace OpenMS
       ph_alpha.setMetaValue("matched_linear_alpha",top_csms_spectrum[i].matched_linear_alpha);
       ph_alpha.setMetaValue("matched_linear_beta",top_csms_spectrum[i].matched_linear_beta);
 
-      // ph_alpha.setMetaValue("num_iso_peaks_mean", top_csms_spectrum[i].num_iso_peaks_mean);
-      // ph_alpha.setMetaValue("num_iso_peaks_mean_linear_alpha", top_csms_spectrum[i].num_iso_peaks_mean_linear_alpha);
-      // ph_alpha.setMetaValue("num_iso_peaks_mean_linear_beta", top_csms_spectrum[i].num_iso_peaks_mean_linear_beta);
-      // ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_alpha", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_alpha);
-      // ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_beta", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_beta);
-
       ph_alpha.setMetaValue("ppm_error_abs_sum_linear_alpha", top_csms_spectrum[i].ppm_error_abs_sum_linear_alpha);
       ph_alpha.setMetaValue("ppm_error_abs_sum_linear_beta", top_csms_spectrum[i].ppm_error_abs_sum_linear_beta);
       ph_alpha.setMetaValue("ppm_error_abs_sum_xlinks_alpha", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_alpha);
@@ -892,71 +886,10 @@ namespace OpenMS
         ph_beta.setSequence(*top_csms_spectrum[i].cross_link.beta);
         ph_beta.setCharge(precursor_charge);
         ph_beta.setScore(top_csms_spectrum[i].score);
-        // ph_beta.setRank(DataValue(i+1));
 
-        // TODO when beta PeptideHits are not used anymore, remove most of these, that are not used by PeptideInderer
-        // ph_beta.setMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE, (*top_csms_spectrum[i].cross_link.beta).toString());
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
-        // ph_beta.setMetaValue(Constants::OPENPEPXL_XL_POS1, DataValue(alpha_pos));
-        // ph_beta.setMetaValue(Constants::OPENPEPXL_XL_POS2, DataValue(beta_pos));
         ph_beta.setMetaValue(Constants::SPECTRUM_REFERENCE, spectra[scan_index].getNativeID());
         ph_beta.setMetaValue("spectrum_index", scan_index);
-        // ph_beta.setMetaValue(Constants::OPENPEPXL_XL_TYPE, xltype);
-        // ph_beta.setMetaValue(Constants::OPENPEPXL_XL_RANK, DataValue(i + 1));
-
-        // ph_beta.setMetaValue(Constants::OPENPEPXL_XL_TERM_SPEC_BETA, beta_term);
-        // ph_beta.setMetaValue(Constants::PRECURSOR_ASSIGNMENT_CORRECTION, top_csms_spectrum[i].precursor_correction);
-
-        // if (scan_index_heavy != scan_index)
-        // {
-        //   ph_beta.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_RT, spectra[scan_index_heavy].getRT());
-        //   ph_beta.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_MZ, spectra[scan_index_heavy].getPrecursors()[0].getMZ());
-        //   ph_beta.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF, spectra[scan_index_heavy].getNativeID());
-        //   ph_beta.setMetaValue("spectrum_index_heavy", scan_index_heavy);
-        // }
-        // ph_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, top_csms_spectrum[i].precursor_error_ppm);
-
-        // ph_beta.setMetaValue("OpenPepXL:xquest_score", top_csms_spectrum[i].xquest_score);
-        // ph_beta.setMetaValue("OpenPepXL:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
-        // ph_beta.setMetaValue("OpenPepXL:xcorr common", top_csms_spectrum[i].xcorrc_max);
-        // ph_beta.setMetaValue("OpenPepXL:match-odds", top_csms_spectrum[i].match_odds);
-        // ph_beta.setMetaValue("OpenPepXL:intsum", top_csms_spectrum[i].int_sum);
-        // ph_beta.setMetaValue("OpenPepXL:wTIC", top_csms_spectrum[i].wTIC);
-        // ph_beta.setMetaValue("OpenPepXL:TIC", top_csms_spectrum[i].percTIC);
-        // ph_beta.setMetaValue("OpenPepXL:prescore", top_csms_spectrum[i].pre_score);
-
-        // ph_beta.setMetaValue("OpenPepXL:log_occupancy", top_csms_spectrum[i].log_occupancy);
-        // ph_beta.setMetaValue("OpenPepXL:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
-        // ph_beta.setMetaValue("OpenPepXL:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
-        // ph_beta.setMetaValue("selected", "false");
-
-        // ph_beta.setMetaValue("matched_xlink_alpha",top_csms_spectrum[i].matched_xlink_alpha);
-        // ph_beta.setMetaValue("matched_xlink_beta",top_csms_spectrum[i].matched_xlink_beta);
-        // ph_beta.setMetaValue("matched_linear_alpha",top_csms_spectrum[i].matched_linear_alpha);
-        // ph_beta.setMetaValue("matched_linear_beta",top_csms_spectrum[i].matched_linear_beta);
-
-        // ph_beta.setMetaValue("num_iso_peaks_mean", top_csms_spectrum[i].num_iso_peaks_mean);
-        // ph_beta.setMetaValue("num_iso_peaks_mean_linear_alpha", top_csms_spectrum[i].num_iso_peaks_mean_linear_alpha);
-        // ph_beta.setMetaValue("num_iso_peaks_mean_linear_beta", top_csms_spectrum[i].num_iso_peaks_mean_linear_beta);
-        // ph_beta.setMetaValue("num_iso_peaks_mean_xlinks_alpha", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_alpha);
-        // ph_beta.setMetaValue("num_iso_peaks_mean_xlinks_beta", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_beta);
-
-        // ph_beta.setMetaValue("ppm_error_abs_sum_linear_alpha", top_csms_spectrum[i].ppm_error_abs_sum_linear_alpha);
-        // ph_beta.setMetaValue("ppm_error_abs_sum_linear_beta", top_csms_spectrum[i].ppm_error_abs_sum_linear_beta);
-        // ph_beta.setMetaValue("ppm_error_abs_sum_xlinks_alpha", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_alpha);
-        // ph_beta.setMetaValue("ppm_error_abs_sum_xlinks_beta", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_beta);
-        //
-        // ph_beta.setMetaValue("ppm_error_abs_sum_linear", top_csms_spectrum[i].ppm_error_abs_sum_linear);
-        // ph_beta.setMetaValue("ppm_error_abs_sum_xlinks", top_csms_spectrum[i].ppm_error_abs_sum_xlinks);
-        // ph_beta.setMetaValue("ppm_error_abs_sum_alpha", top_csms_spectrum[i].ppm_error_abs_sum_alpha);
-        // ph_beta.setMetaValue("ppm_error_abs_sum_beta", top_csms_spectrum[i].ppm_error_abs_sum_beta);
-        // ph_beta.setMetaValue("ppm_error_abs_sum", top_csms_spectrum[i].ppm_error_abs_sum);
-        //
-        // ph_beta.setMetaValue("precursor_total_intensity", top_csms_spectrum[i].precursor_total_intensity);
-        // ph_beta.setMetaValue("precursor_target_intensity", top_csms_spectrum[i].precursor_target_intensity);
-        // ph_beta.setMetaValue("precursor_signal_proportion", top_csms_spectrum[i].precursor_signal_proportion);
-        // ph_beta.setMetaValue("precursor_target_peak_count", top_csms_spectrum[i].precursor_target_peak_count);
-        // ph_beta.setMetaValue("precursor_residual_peak_count", top_csms_spectrum[i].precursor_residual_peak_count);
 
         phs.push_back(ph_alpha);
         phs.push_back(ph_beta);
