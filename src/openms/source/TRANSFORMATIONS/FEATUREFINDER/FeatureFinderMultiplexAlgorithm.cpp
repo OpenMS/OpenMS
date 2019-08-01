@@ -676,7 +676,9 @@ namespace OpenMS
               feature.getConvexHulls().push_back(hull);
             }
           }
-          
+        
+          if (intensity_sum <= 0) continue;
+  
           rt /= intensity_sum;
           mz /= intensity_sum;
           

@@ -39,10 +39,15 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-using namespace OpenMS;
+
 using namespace std;
+using namespace OpenMS;
+
+namespace OpenMS
+{
 
    const std::string PrecursorCorrection::csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
+
 
    void PrecursorCorrection::getPrecursors(const MSExperiment & exp,
                                            vector<Precursor> & precursors,
@@ -202,7 +207,7 @@ using namespace std;
         MSSpectrum::ConstIterator right = rt_it->MZEnd(tolerance_window.second);
 
         // no MS1 precursor peak in +- tolerance window found
-        if  (left == right || left > right)
+        if  (left == right)
         {
           count_error_highest_intenstiy += 1;
           continue;
@@ -240,7 +245,6 @@ using namespace std;
 
       return corrected_precursors;
     }
-
 
     set<Size> PrecursorCorrection::correctToNearestFeature(const FeatureMap& features,
                                                            MSExperiment & exp,
@@ -443,4 +447,5 @@ using namespace std;
         return false;
       }
     }
+}
 

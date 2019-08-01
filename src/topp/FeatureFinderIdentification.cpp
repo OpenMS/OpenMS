@@ -194,7 +194,11 @@ protected:
     registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
     setValidFormats_("candidates_in", ListUtils::create<String>("featureXML"));
 
-    registerFullParam_(FeatureFinderIdentificationAlgorithm().getDefaults());
+    Param algo_with_subsection;
+    Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
+    subsection.remove("candidates_out");
+    algo_with_subsection.insert("", subsection);
+    registerFullParam_(algo_with_subsection);
   }
 
   ExitCodes main_(int, const char**) override
@@ -211,7 +215,7 @@ protected:
 
     FeatureFinderIdentificationAlgorithm ffid_algo;
     ffid_algo.getProgressLogger().setLogType(log_type_);
-    ffid_algo.setParameters(getParam_());
+    ffid_algo.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
 
     if (candidates_in.empty())
     {

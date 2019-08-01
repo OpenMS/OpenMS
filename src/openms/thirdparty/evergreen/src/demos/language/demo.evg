@@ -1,0 +1,33 @@
+# first parallelizable sub-problem:
+PMF (A,B) (0,0) [[0.15, 0.3, 0.1], [0.2, 0.3, 0.2], [0.9, 0.7, 0.3]]
+PMF (C,D) (-1,0) [[0.6, 0.1, 0.4], [0.7, 0.1, 0.9], [0.3, 0.3, 0.1]]
+D + C = A - B
+
+# second parallelizable sub-problem:
+PMF (X) (0) (5) UNIFORM
+PMF (Y) (-3) (4) UNIFORM
+PMF (Z) (0) (1) UNIFORM
+Y = X - Z
+
+# Draw the graph:
+Gr("/tmp/t.dot")
+
+# Runs Pr(A;B;C;D) on one thread and Pr(X;Y) on another thread
+@engine=brute_force()
+Pr("Brute force posteriors")
+Pr(A;B;C;D)
+# Normalization constant over only A,B,C,D and their dependent variables:
+Pr()
+
+Pr(X;Y)
+# Normalization constant over only X,Y and their dependent variables:
+Pr()
+
+# Normalization constant over all variables:
+Pr(*)
+
+# run and print posteriors
+@engine=loopy(@dampening=0.1, @epsilon=1e-6, @max_iter=1000000)
+Pr("Loopy posteriors")
+Pr(A;B;C;D; X;Y)
+Pr(*)
