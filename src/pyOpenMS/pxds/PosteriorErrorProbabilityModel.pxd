@@ -30,8 +30,9 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         bool fit(libcpp_vector[double] & search_engine_scores) nogil except +
         bool fit(libcpp_vector[double] & search_engine_scores, libcpp_vector[double] & probabilities) nogil except +
 
-        #Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorreclty assigned seqeuences.
+        #Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
         void fillDensities(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
+        void fillLogDensities(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
 
         #computes the Maximum Likelihood with a log-likelihood function.
         double computeLogLikelihood(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
