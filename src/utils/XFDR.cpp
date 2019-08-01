@@ -264,7 +264,7 @@ protected:
         setIntraProtein(ph, false);
         setInterProtein(ph, false);
 
-        if (ph.metaValueExists(Constants::OPENPEPXL_XL_TYPE) && ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "cross-link")
+        if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE) && ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
         {
           // String alpha_prots_string;
           StringList alpha_prots;
@@ -276,7 +276,7 @@ protected:
           }
 
           // StringList alpha_prots = ListUtils::create<String>(ph.getAccession());
-          StringList beta_prots = ListUtils::create<String>(ph.getMetaValue(Constants::OPENPEPXL_BETA_ACCESSIONS).toString());
+          StringList beta_prots = ListUtils::create<String>(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS).toString());
 
 
           for (String& alpha_prot : alpha_prots)
@@ -319,7 +319,7 @@ protected:
   static void assignTypes(PeptideHit &ph, StringList &types)
   {
     types.clear();
-    bool xl_is_decoy = ph.getMetaValue(Constants::TARGET_DECOY) == "decoy";
+    bool xl_is_decoy = ph.getMetaValue(Constants::UserParam::TARGET_DECOY) == "decoy";
 
     // target or decoy
     if (xl_is_decoy)
@@ -355,8 +355,8 @@ protected:
       types.push_back(TOPPXFDR::crosslink_class_interdecoys);
     }
 
-    assert(ph.metaValueExists(Constants::OPENPEPXL_XL_TYPE));
-    String current_crosslink_type = ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE);
+    assert(ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE));
+    String current_crosslink_type = ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE);
 
     // monolinks
     if ( (!xl_is_decoy) && (current_crosslink_type == "mono-link"
@@ -374,8 +374,8 @@ protected:
 
     if (current_crosslink_type == "cross-link")
     {
-      const bool alpha_is_decoy = ph.getMetaValue(Constants::OPENPEPXL_TARGET_DECOY_ALPHA).toString() == "decoy";
-      const bool beta_is_decoy = ph.getMetaValue(Constants::OPENPEPXL_TARGET_DECOY_BETA).toString() == "decoy";
+      const bool alpha_is_decoy = ph.getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA).toString() == "decoy";
+      const bool beta_is_decoy = ph.getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA).toString() == "decoy";
 
       // fulldecoysintralinks
       if (ph.getMetaValue("XFDR:is_intraprotein").toBool() && alpha_is_decoy && beta_is_decoy)
@@ -526,7 +526,7 @@ protected:
       for (Size i = 0; i < pep_id.getHits().size(); ++i)
       {
         PeptideHit& ph = pep_id.getHits()[i];
-        if (int(ph.getMetaValue(Constants::OPENPEPXL_XL_RANK)) == 1)
+        if (int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK)) == 1)
         {
           rank_one_hit_index = i;
           break;
@@ -536,20 +536,20 @@ protected:
 
 
       // if after the search above we don't have a rank 1 hit, skip this pep_id
-      if (int(ph.getMetaValue(Constants::OPENPEPXL_XL_RANK)) != 1)
+      if (int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK)) != 1)
       {
         continue;
       }
 
       // Attributes of peptide identification that can be used for filtering
       // const double delta_score = calculateDeltaScore(pep_id, rank_one_hit_index, rank_two_hit_index);
-      const double delta_score = ph.getMetaValue(Constants::DELTA_SCORE);
+      const double delta_score = ph.getMetaValue(Constants::UserParam::DELTA_SCORE);
       const double score = ph.getScore();
 
       double error_rel(0);
-      if (ph.metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
+      if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
       {
-        error_rel = ph.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
+        error_rel = ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
       }
 
       const Size min_ions_matched = getMinIonsMatched(ph);
@@ -901,31 +901,31 @@ private:
       return ph.getMetaValue("OpenPepXL:id").toString();
     }
 
-    if (ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "cross-link")
+    if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
     {
       return   ph.getSequence().toUnmodifiedString()
-               + "-" + AASequence::fromString(ph.getMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString()
-               + "-a" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1))
-               + "-b" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS2));
+               + "-" + AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString()
+               + "-a" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))
+               + "-b" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2));
 
     }
-    else if (ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "loop-link")
+    else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
     {
       return   ph.getSequence().toUnmodifiedString()
-               + "-a" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1))
-               + "-b" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS2));
+               + "-a" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))
+               + "-b" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2));
 
     }
-    else if (ph.metaValueExists(Constants::OPENPEPXL_XL_MASS))
+    else if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_MASS))
     {
       return   ph.getSequence().toUnmodifiedString()
-               + "-" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1))
-               + "-" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_MASS));
+               + "-" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))
+               + "-" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS));
     }
     else
     {
       return   ph.getSequence().toUnmodifiedString()
-               + "-" + String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1));
+               + "-" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1));
     }
   }
 

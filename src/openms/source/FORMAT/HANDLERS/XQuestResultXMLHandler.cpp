@@ -593,26 +593,25 @@ namespace OpenMS
         UInt charge = this->attributeAsInt_(attributes, "charge");
         peptide_hit_alpha.setCharge(charge);
 
-        peptide_hit_alpha.setMetaValue(Constants::SPECTRUM_REFERENCE, spectrum_index_light_);
+        peptide_hit_alpha.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrum_index_light_);
         peptide_hit_alpha.setMetaValue("spectrum_index", spectrum_index_light_);
         peptide_hit_alpha.setMetaValue("spectrum_input_file", spectrum_input_file_);
 
         String specIDs;
         if (spectrum_index_light_ != spectrum_index_heavy_)
         {
-          // peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF, spectrum_index_heavy_);
           specIDs = String(spectrum_index_light_) + "," + String(spectrum_index_heavy_);
 
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_RT, this->rt_heavy_);
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_MZ, this->mz_heavy_);
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF, spectrum_index_heavy_);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT, this->rt_heavy_);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ, this->mz_heavy_);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF, spectrum_index_heavy_);
           peptide_hit_alpha.setMetaValue("spectrum_index_heavy", spectrum_index_heavy_);
         }
         else
         {
           specIDs = String(spectrum_index_light_);
         }
-        peptide_identification.setMetaValue(Constants::SPECTRUM_REFERENCE, specIDs);
+        peptide_identification.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, specIDs);
 
         // Set xl_chain meta value for alpha
         peptide_hit_alpha.setMetaValue("xl_chain", "MS:1002509");
@@ -643,12 +642,12 @@ namespace OpenMS
         }
         peptide_hit_alpha.setScore(score);
 
-        peptide_hit_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
+        peptide_hit_alpha.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
 
         // Get common attributes of Peptide Identification
         this->peptide_id_meta_values_["OpenPepXL:id"] = DataValue(this->attributeAsString_(attributes, "id"));
         this->peptide_id_meta_values_["OpenPepXL:xlinkermass"] = xlinkermass;
-        this->peptide_id_meta_values_[Constants::OPENPEPXL_XL_RANK] = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
+        this->peptide_id_meta_values_[Constants::UserParam::OPENPEPXL_XL_RANK] = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
         this->peptide_id_meta_values_["OpenPepXL:score"] = DataValue(score);
         this->peptide_id_meta_values_["OpenPepXL:structure"] = DataValue(this->attributeAsString_(attributes, "structure"));
 
@@ -689,7 +688,7 @@ namespace OpenMS
 
         assert(this->peptide_id_meta_values_["OpenPepXL:id"] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["OpenPepXL:xlinkermass"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values_[Constants::OPENPEPXL_XL_RANK] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_[Constants::UserParam::OPENPEPXL_XL_RANK] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["OpenPepXL:score"] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["OpenPepXL:structure"] != DataValue::EMPTY);
 
@@ -707,8 +706,8 @@ namespace OpenMS
 
         peptide_hit_alpha.setMetaValue("prot1", DataValue(prot1_string));
         peptide_hit_alpha.setMetaValue("prot2", DataValue("-"));
-        peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_BETA_ACCESSIONS, DataValue("-"));
-        peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_MASS, xlinkermass);
+        peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, DataValue("-"));
+        peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS, xlinkermass);
 
         // Set peptide Evidences for Alpha (need one for each accession in the prot1_string)
         this->setPeptideEvidence_(prot1_string, peptide_hit_alpha);
@@ -726,7 +725,7 @@ namespace OpenMS
 
           peptide_hit_beta.setScore(score);
 
-          peptide_hit_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
 
           String seq2 = String(this->attributeAsString_(attributes, "seq2"));
           if (!this->is_openpepxl_)
@@ -734,33 +733,31 @@ namespace OpenMS
             seq2 = seq2.substitute("X", "M(Oxidation)");
           }
           peptide_hit_beta.setSequence(AASequence::fromString(seq2));
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE, seq2);
-          peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE, seq2);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, seq2);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, seq2);
 
           peptide_hit_beta.setCharge(charge);
 
-          peptide_hit_beta.setMetaValue(Constants::SPECTRUM_REFERENCE, spectrum_index_light_);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrum_index_light_);
 
           if (spectrum_index_light_ != spectrum_index_heavy_)
           {
-            // peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF, spectrum_index_heavy_);
-
-            peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_RT, this->rt_heavy_);
-            peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_MZ, this->mz_heavy_);
-            peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF, spectrum_index_heavy_);
+            peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT, this->rt_heavy_);
+            peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ, this->mz_heavy_);
+            peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF, spectrum_index_heavy_);
             peptide_hit_beta.setMetaValue("spectrum_index_heavy", spectrum_index_heavy_);
           }
 
           this->addMetaValues_(peptide_hit_beta);
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_TYPE, DataValue("cross-link"));
-          peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_XL_TYPE, DataValue("cross-link"));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, DataValue("cross-link"));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, DataValue("cross-link"));
 
           // Set xl positions, depends on xl_type
           this->getLinkPosition_(attributes, positions);
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_POS1, DataValue(positions.first - 1));
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
-          peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_XL_POS1, DataValue(positions.first - 1));
-          peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, DataValue(positions.first - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, DataValue(positions.first - 1));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
 
           String term_spec_alpha("ANYWHERE"), term_spec_beta("ANYWHERE");
           StringList aarequired1 = search_params.getMetaValue("cross_link:residue1");
@@ -783,15 +780,15 @@ namespace OpenMS
           {
             term_spec_beta = "C_TERM";
           }
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_TERM_SPEC_ALPHA, term_spec_alpha);
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_TERM_SPEC_BETA, term_spec_beta);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, term_spec_alpha);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, term_spec_beta);
 
           // Protein
           String prot2_string = this->attributeAsString_(attributes, "prot2");
 
           // Decide if decoy for beta
           target_decoy = DataValue(prot2_string.hasSubstring(this->decoy_string_) ? "decoy" : "target");
-          peptide_hit_beta.setMetaValue(Constants::TARGET_DECOY, target_decoy);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::TARGET_DECOY, target_decoy);
 
           //  Set xl_chain meta value for beta
           peptide_hit_beta.setMetaValue("xl_chain", "MS:1002510");
@@ -807,11 +804,11 @@ namespace OpenMS
                                           DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_beta")));
 
           peptide_hit_alpha.setMetaValue("prot2", DataValue(prot2_string));
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_BETA_ACCESSIONS, DataValue(prot2_string));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, DataValue(prot2_string));
           peptide_hit_beta.setMetaValue("prot1", DataValue(prot1_string));
-          peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_BETA_ACCESSIONS, DataValue(prot2_string));
-          peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_XL_MASS, xlinkermass);
-          peptide_hit_beta.setMetaValue(Constants::OPENPEPXL_XL_MOD, this->cross_linker_name_);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, DataValue(prot2_string));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS, xlinkermass);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, this->cross_linker_name_);
 
           // Set Peptide Evidences for Beta
           this->setPeptideEvidence_(prot2_string, peptide_hit_beta);
@@ -826,15 +823,15 @@ namespace OpenMS
         else if (xlink_type_string == "intralink")
         {
           // xl type
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_TYPE, DataValue("loop-link"));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, DataValue("loop-link"));
 
           // Set xl positions, depends on xl_type
           this->getLinkPosition_(attributes, positions);
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_POS1, DataValue(positions.first - 1));
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_MASS, xlinkermass);
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_MOD, this->cross_linker_name_);
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE, "-");
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, DataValue(positions.first - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS, xlinkermass);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, this->cross_linker_name_);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, "-");
         }
         else if (xlink_type_string == "monolink")
         {
@@ -842,13 +839,13 @@ namespace OpenMS
           // this->monolinks_masses_.insert(this->attributeAsDouble_(attributes, "xlinkermass"));
 
           // xl_type
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_TYPE, DataValue("mono-link"));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, DataValue("mono-link"));
 
           std::pair< SignedSize, SignedSize > xlink_pos;
           this->getLinkPosition_(attributes, xlink_pos);
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_POS1, DataValue(xlink_pos.first - 1));
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_XL_POS2, DataValue("-"));
-          peptide_hit_alpha.setMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE, "-");
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, DataValue(xlink_pos.first - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue("-"));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, "-");
         }
         else
         {
@@ -859,7 +856,7 @@ namespace OpenMS
         // Finalize this record
         peptide_hits.push_back(peptide_hit_alpha);
 
-        if (peptide_hit_beta.metaValueExists(Constants::OPENPEPXL_XL_POS1))
+        if (peptide_hit_beta.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS1))
         {
           peptide_hits.push_back(peptide_hit_beta);
         }
@@ -1012,8 +1009,8 @@ namespace OpenMS
           double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
 
           bool new_spectrum(false);
-          new_spectrum = (ph.getMetaValue(Constants::SPECTRUM_REFERENCE) != current_spectrum_light) ||
-              (ph.metaValueExists(Constants::OPENPEPXL_HEAVY_SPEC_REF) && ph.getMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF) != current_spectrum_heavy);
+          new_spectrum = (ph.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE) != current_spectrum_light) ||
+              (ph.metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF) && ph.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF) != current_spectrum_heavy);
 
           if (new_spectrum)
           {
@@ -1021,11 +1018,11 @@ namespace OpenMS
             {
               os << "</spectrum_search>" << std::endl;
             }
-            current_spectrum_light = ph.getMetaValue(Constants::SPECTRUM_REFERENCE);
+            current_spectrum_light = ph.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
             current_spectrum_heavy = "";
-            if (ph.metaValueExists(Constants::OPENPEPXL_HEAVY_SPEC_REF))
+            if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF))
             {
-              current_spectrum_heavy = ph.getMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF);
+              current_spectrum_heavy = ph.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF);
             }
 
             vector<String> input_split_dir;
@@ -1065,8 +1062,8 @@ namespace OpenMS
             }
             else
             {
-              rt_scans += ph.getMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_RT).toString();
-              mz_scans += ph.getMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_MZ).toString();
+              rt_scans += ph.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT).toString();
+              mz_scans += ph.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ).toString();
             }
 
 
@@ -1086,15 +1083,15 @@ namespace OpenMS
 
           }
           // one of "cross-link", "mono-link" or "loop-link"
-          String xltype_OPXL = ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE);
+          String xltype_OPXL = ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE);
           String xltype = "monolink";
 
 
           String structure = ph.getSequence().toUnmodifiedString();
-          String letter_first = structure.substr( Int(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1)), 1);
+          String letter_first = structure.substr( Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)), 1);
 
           double weight = ph.getSequence().getMonoWeight();
-          int alpha_pos = Int(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1)) + 1;
+          int alpha_pos = Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)) + 1;
           int beta_pos = 0;
 
           String topology = String("a") + alpha_pos;
@@ -1104,18 +1101,18 @@ namespace OpenMS
           if (xltype_OPXL == "cross-link")
           {
             xltype = "xlink";
-            beta_pos = Int(ph.getMetaValue(Constants::OPENPEPXL_XL_POS2)) + 1;
-            AASequence beta_aaseq = AASequence::fromString(ph.getMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE));
+            beta_pos = Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)) + 1;
+            AASequence beta_aaseq = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE));
             structure += "-" + beta_aaseq.toUnmodifiedString();
             topology += String("-b") + beta_pos;
-            weight += beta_aaseq.getMonoWeight() + double(ph.getMetaValue(Constants::OPENPEPXL_XL_MASS));
+            weight += beta_aaseq.getMonoWeight() + double(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS));
             id = structure + "-" + topology;
-            seq_beta = ph.getMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE);
+            seq_beta = ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE);
           }
           else if (xltype_OPXL == "loop-link")
           {
             xltype = "intralink";
-            beta_pos = Int(ph.getMetaValue(Constants::OPENPEPXL_XL_POS2)) + 1;
+            beta_pos = Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)) + 1;
             topology += String("-b") + beta_pos;
             String letter_second = structure.substr(beta_pos-1, 1);
             id = structure + String("-") + letter_first + alpha_pos + String("-") + letter_second + beta_pos;
@@ -1123,11 +1120,11 @@ namespace OpenMS
           }
           else // mono-link
           {
-            if (ph.getMetaValue(Constants::OPENPEPXL_XL_MOD).toString().hasPrefix("unknown"))
+            if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD).toString().hasPrefix("unknown"))
             {
-              weight += double(ph.getMetaValue(Constants::OPENPEPXL_XL_MASS));
+              weight += double(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS));
             }
-            id = structure + String("-") + letter_first + alpha_pos + String("-") + Int(double(ph.getMetaValue(Constants::OPENPEPXL_XL_MASS)));
+            id = structure + String("-") + letter_first + alpha_pos + String("-") + Int(double(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)));
           }
 
           // Precursor error calculation, rel_error is read from the metaValue for consistency, but an absolute error is also used in the xQuest format
@@ -1135,9 +1132,9 @@ namespace OpenMS
           double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
           double error = precursor_mz - theo_mz;
           double rel_error = 0;
-          if (ph.metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
+          if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
           {
-            rel_error = double(ph.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
+            rel_error = double(ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
           }
           else
           {
@@ -1155,9 +1152,9 @@ namespace OpenMS
           }
 
           String prot_beta = "";
-          if (ph.metaValueExists(Constants::OPENPEPXL_BETA_ACCESSIONS) && ph.getMetaValue(Constants::OPENPEPXL_BETA_ACCESSIONS) != "-")
+          if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS) && ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS) != "-")
           {
-            prot_beta = ph.getMetaValue(Constants::OPENPEPXL_BETA_ACCESSIONS);
+            prot_beta = ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS);
           }
 
           String xlinkposition = String(alpha_pos);
@@ -1166,9 +1163,9 @@ namespace OpenMS
             xlinkposition += "," + String(beta_pos);
           }
 
-          os << "<search_hit search_hit_rank=\"" << ph.getMetaValue(Constants::OPENPEPXL_XL_RANK).toString() << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << ph.getSequence().toString() << "\" seq2=\"" << seq_beta
+          os << "<search_hit search_hit_rank=\"" << ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK).toString() << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << ph.getSequence().toString() << "\" seq2=\"" << seq_beta
                 << "\" prot1=\"" << prot_alpha << "\" prot2=\"" << prot_beta << "\" topology=\"" << topology << "\" xlinkposition=\"" << xlinkposition
-                << "\" Mr=\"" << weight << "\" mz=\"" << theo_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << ph.getMetaValue(Constants::OPENPEPXL_XL_MASS).toString()
+                << "\" Mr=\"" << weight << "\" mz=\"" << theo_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS).toString()
                 << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << error << "\" error_rel=\"" << rel_error
                 << "\" xlinkions_matched=\"" << (Int(ph.getMetaValue("matched_xlink_alpha")) + Int(ph.getMetaValue("matched_xlink_beta"))) << "\" backboneions_matched=\"" << (Int(ph.getMetaValue("matched_linear_alpha")) + Int(ph.getMetaValue("matched_linear_beta")))
                 << "\" xcorrx=\"" << ph.getMetaValue("OpenPepXL:xcorr xlink").toString() << "\" xcorrb=\"" << ph.getMetaValue("OpenPepXL:xcorr common").toString() << "\" match_odds=\"" << ph.getMetaValue("OpenPepXL:match-odds").toString() << "\" prescore=\"" << ph.getMetaValue("OpenPepXL:prescore").toString()
@@ -1186,19 +1183,19 @@ namespace OpenMS
           {
             os << "\" fdr_type=\"" << ph.getMetaValue("XFDR:fdr_type");
           }
-          if (ph.metaValueExists(Constants::XFDR_FDR))
+          if (ph.metaValueExists(Constants::UserParam::XFDR_FDR))
           {
-            os << "\" fdr=\"" << ph.getMetaValue(Constants::XFDR_FDR);
+            os << "\" fdr=\"" << ph.getMetaValue(Constants::UserParam::XFDR_FDR);
           }
 
           // remove MetaValues, that were already used and written out with a different key.
-          ph.removeMetaValue(Constants::OPENPEPXL_XL_MASS);
-          ph.removeMetaValue(Constants::OPENPEPXL_XL_RANK);
-          ph.removeMetaValue(Constants::OPENPEPXL_XL_POS1);
-          ph.removeMetaValue(Constants::OPENPEPXL_XL_TYPE);
-          if (ph.metaValueExists(Constants::OPENPEPXL_XL_POS2))
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE);
+          if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS2))
           {
-            ph.removeMetaValue(Constants::OPENPEPXL_XL_POS2);
+            ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2);
           }
           ph.removeMetaValue("matched_xlink_alpha");
           ph.removeMetaValue("matched_linear_alpha");
@@ -1212,16 +1209,16 @@ namespace OpenMS
           ph.removeMetaValue("OpenPepXL:wTIC");
           ph.removeMetaValue("OpenPepXL:intsum");
           ph.removeMetaValue("spectrum_reference");
-          ph.removeMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF);
           ph.removeMetaValue("spectrum_index");
           ph.removeMetaValue("spectrum_index_heavy");
-          ph.removeMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_RT);
-          ph.removeMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_MZ);
-          ph.removeMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
-          ph.removeMetaValue(Constants::XFDR_FDR);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ);
+          ph.removeMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
+          ph.removeMetaValue(Constants::UserParam::XFDR_FDR);
 
           // also remove MetaValues, that we do not need in xquestXML
-          ph.removeMetaValue(Constants::OPENPEPXL_XL_MOD);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD);
           // ph.removeMetaValue("xl_chain");
 
           // these metaValues can be present, e.g. if the data came from loading a xquest.xml file

@@ -700,7 +700,7 @@ namespace OpenMS
         const double rt = it->getRT();
         String ert = rt == rt ? String(rt) : "nan";
 
-        String sid = it->getMetaValue(Constants::SPECTRUM_REFERENCE);
+        String sid = it->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
         if (sid.empty())
         {
           sid = String(it->getMetaValue("spectrum_id"));
@@ -719,9 +719,9 @@ namespace OpenMS
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
         }
-        if (is_ppxl && it->metaValueExists(Constants::OPENPEPXL_HEAVY_SPEC_REF))
+        if (is_ppxl && it->metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF))
         {
-          sid.append("," + String(it->getMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF)));
+          sid.append("," + String(it->getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF)));
         }
         String sidres;
         String sir = "SIR_" + String(UniqueIdGenerator::getUniqueId());
@@ -769,7 +769,7 @@ namespace OpenMS
             String ppxl_linkid = UniqueIdGenerator::getUniqueId();
             MzIdentMLHandler::writeXLMSPeptideHit(*jt, it, ppxl_linkid, pep_ids, cv_ns, sen_set, sen_ids, pep_evis, pp_identifier_2_thresh, ppxl_crosslink_mass, ppxl_specref_2_element, sid, true);
             // XL-MS IDs from OpenPepXL can have two Peptides and SpectrumIdentifications, but with practically the same data except for the sequence and its modifications
-            if (jt->metaValueExists(Constants::OPENPEPXL_XL_TYPE) && jt->getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "cross-link")
+            if (jt->metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE) && jt->getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
             {
               MzIdentMLHandler::writeXLMSPeptideHit(*jt, it, ppxl_linkid, pep_ids, cv_ns, sen_set, sen_ids, pep_evis, pp_identifier_2_thresh, ppxl_crosslink_mass, ppxl_specref_2_element, sid, false);
             }
@@ -1309,9 +1309,9 @@ namespace OpenMS
               continue;
             }
             String idec;
-            if (hit.metaValueExists(Constants::TARGET_DECOY))
+            if (hit.metaValueExists(Constants::UserParam::TARGET_DECOY))
             {
-              idec = String(boost::lexical_cast<std::string>((String(hit.getMetaValue(Constants::TARGET_DECOY))).hasSubstring("decoy")));
+              idec = String(boost::lexical_cast<std::string>((String(hit.getMetaValue(Constants::UserParam::TARGET_DECOY))).hasSubstring("decoy")));
             }
 
             String e;
@@ -1467,7 +1467,7 @@ namespace OpenMS
           sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("MS-GF:RawScore").toXMLString(cv_ns, sc);
           copy_hit.removeMetaValue(cv_.getTermByName("MS-GF:RawScore").id);
         }
-        else if (st == Constants::OPENPEPXL_SCORE)
+        else if (st == Constants::UserParam::OPENPEPXL_SCORE)
         {
           sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
           copy_hit.removeMetaValue(cv_.getTermByName(st).id);
@@ -1483,7 +1483,7 @@ namespace OpenMS
         sii_tmp += "\n";
 
         copy_hit.removeMetaValue("calcMZ");
-        copy_hit.removeMetaValue(Constants::TARGET_DECOY);
+        copy_hit.removeMetaValue(Constants::UserParam::TARGET_DECOY);
         writeMetaInfos_(sii_tmp, copy_hit, 5);
 
         //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
@@ -1512,7 +1512,7 @@ namespace OpenMS
       }
       else
       {
-        peptide_sequence = AASequence::fromString(hit.getMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE));
+        peptide_sequence = AASequence::fromString(hit.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE));
       }
       String pepi = peptide_sequence.toString();
 
@@ -1527,15 +1527,15 @@ namespace OpenMS
       {
         pepi += "_MS:1002510";
       }
-      if (hit.getMetaValue(Constants::OPENPEPXL_XL_TYPE) != "mono-link")  //sequence may contain more than one linker anchors; also code position linked
+      if (hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) != "mono-link")  //sequence may contain more than one linker anchors; also code position linked
       {
         if (alpha_peptide)
         {
-          pepi += "_" + hit.getMetaValue(Constants::OPENPEPXL_XL_POS1).toString();
+          pepi += "_" + hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1).toString();
         }
         else
         {
-          pepi += "_" + hit.getMetaValue(Constants::OPENPEPXL_XL_POS2).toString();
+          pepi += "_" + hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2).toString();
         }
       }
       pepi += ppxl_linkid;
@@ -1543,7 +1543,7 @@ namespace OpenMS
       bool duplicate = false;
       std::map<String, String>::iterator pit;
       // avoid duplicates in case with only one peptide
-      if (hit.getMetaValue(Constants::OPENPEPXL_XL_TYPE) != "cross-link")
+      if (hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) != "cross-link")
       {
         pit = pep_ids.find(pepi);
         if (pit != pep_ids.end())
@@ -1686,35 +1686,35 @@ namespace OpenMS
             }
           }
           // Failsafe, if someone uses a new cross-linker (given these conditions, there MUST be a linker at this position, but it does not have a Unimod or XLMOD entry)
-          else if (alpha_peptide && hit.metaValueExists(Constants::OPENPEPXL_XL_MOD) && (static_cast<Size>(hit.getMetaValue(Constants::OPENPEPXL_XL_POS1).toString().toInt()) == i) && (hit.getMetaValue(Constants::OPENPEPXL_XL_TYPE).toString() == "mono-link") )
+          else if (alpha_peptide && hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_MOD) && (static_cast<Size>(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1).toString().toInt()) == i) && (hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE).toString() == "mono-link") )
           {
             p += "\t\t<Modification location=\"" + String(i + 1);
             p += "\" residues=\"" + String(peptide_sequence[i].getOneLetterCode());
             p += "\">\n\t\t\t<cvParam accession=\"XLMOD:XXXXX";
-            p += "\" name=\"" +  hit.getMetaValue(Constants::OPENPEPXL_XL_MOD).toString();
+            p += "\" name=\"" +  hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD).toString();
             p += "\" cvRef=\"XLMOD\"/>";
             p += "\n\t\t</Modification>\n";
           }
         }
 
-        if (hit.metaValueExists(Constants::OPENPEPXL_XL_TYPE) && hit.getMetaValue(Constants::OPENPEPXL_XL_TYPE) != "mono-link")
+        if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) != "mono-link")
         {
-          int i = hit.getMetaValue(Constants::OPENPEPXL_XL_POS1).toString().toInt();
+          int i = hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1).toString().toInt();
           if (alpha_peptide)
           {
             CrossLinksDB* xl_db = CrossLinksDB::getInstance();
             std::vector<String> mods;
-            if (hit.metaValueExists(Constants::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "N_TERM")
+            if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "N_TERM")
             {
-              xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::OPENPEPXL_XL_MASS)), 0.0001, "", ResidueModification::N_TERM);
+              xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)), 0.0001, "", ResidueModification::N_TERM);
               if (mods.size() > 0)
               {
                 p += "\t\t<Modification location=\"0";
               }
             }
-            else if (hit.metaValueExists(Constants::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "C_TERM")
+            else if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "C_TERM")
             {
-              xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::OPENPEPXL_XL_MASS)), 0.0001, "", ResidueModification::C_TERM);
+              xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)), 0.0001, "", ResidueModification::C_TERM);
               if (mods.size() > 0)
               {
                 p += "\t\t<Modification location=\"" + String(i + 2);
@@ -1722,7 +1722,7 @@ namespace OpenMS
             }
             else
             {
-              xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::OPENPEPXL_XL_MASS)), 0.0001, String(hit.getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
+              xl_db->searchModificationsByDiffMonoMass(mods, double(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)), 0.0001, String(hit.getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
               if (mods.size() > 0)
               {
                 p += "\t\t<Modification location=\"" + String(i + 1);
@@ -1733,7 +1733,7 @@ namespace OpenMS
             String name = "";
             for (Size s = 0; s < mods.size(); ++s)
             {
-              if (mods[s].hasSubstring(hit.getMetaValue(Constants::OPENPEPXL_XL_MOD)))
+              if (mods[s].hasSubstring(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD)))
               {
                 const ResidueModification* mod = nullptr;
                 try
@@ -1742,11 +1742,11 @@ namespace OpenMS
                 }
                 catch (...)
                 {
-                  if (hit.metaValueExists(Constants::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "N_TERM")
+                  if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "N_TERM")
                   {
                     mod = xl_db->getModification(mods[s], "", ResidueModification::N_TERM);
                   }
-                  else if (hit.metaValueExists(Constants::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "C_TERM")
+                  else if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA) == "C_TERM")
                   {
                     mod = xl_db->getModification(mods[s], "", ResidueModification::C_TERM);
                   }
@@ -1769,25 +1769,25 @@ namespace OpenMS
             if (!acc.empty())
             {
               p += "\" residues=\"" + String(peptide_sequence[i].getOneLetterCode());
-              p += "\" monoisotopicMassDelta=\"" + hit.getMetaValue(Constants::OPENPEPXL_XL_MASS).toString() + "\">\n";
+              p += "\" monoisotopicMassDelta=\"" + hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS).toString() + "\">\n";
               p += "\t\t\t<cvParam accession=\"" + acc + "\" cvRef=\"XLMOD\" name=\"" + name + "\"/>\n";
             }
             else // if there is no matching modification in the database, write out a placeholder
             {
               p += "\t\t<Modification location=\"" + String(i + 1);
               p += "\" residues=\"" + String(peptide_sequence[i].getOneLetterCode());
-              p += "\" monoisotopicMassDelta=\"" + hit.getMetaValue(Constants::OPENPEPXL_XL_MASS).toString() + "\">\n";
-              p += "\t\t\t<cvParam accession=\"XLMOD:XXXXX\" cvRef=\"XLMOD\" name=\"" + hit.getMetaValue(Constants::OPENPEPXL_XL_MOD).toString() + "\"/>\n";
+              p += "\" monoisotopicMassDelta=\"" + hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS).toString() + "\">\n";
+              p += "\t\t\t<cvParam accession=\"XLMOD:XXXXX\" cvRef=\"XLMOD\" name=\"" + hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD).toString() + "\"/>\n";
             }
           }
           else // xl_chain = "MS:1002510", acceptor, beta peptide
           {
-            i = hit.getMetaValue(Constants::OPENPEPXL_XL_POS2).toString().toInt();
-            if (hit.metaValueExists(Constants::OPENPEPXL_XL_TERM_SPEC_BETA) && hit.getMetaValue(Constants::OPENPEPXL_XL_TERM_SPEC_BETA) == "N_TERM")
+            i = hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2).toString().toInt();
+            if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA) == "N_TERM")
             {
               p += "\t\t<Modification location=\"0";
             }
-            else if (hit.metaValueExists(Constants::OPENPEPXL_XL_TERM_SPEC_BETA) && hit.getMetaValue(Constants::OPENPEPXL_XL_TERM_SPEC_BETA) == "C_TERM")
+            else if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA) == "C_TERM")
             {
               p += "\t\t<Modification location=\"" + String(peptide_sequence.size() + 2);
             }
@@ -1808,9 +1808,9 @@ namespace OpenMS
           }
           p += "\n\t\t</Modification>\n";
         }
-        if (hit.metaValueExists(Constants::OPENPEPXL_XL_TYPE) && hit.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "loop-link")
+        if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE) && hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
         {
-          int i = hit.getMetaValue(Constants::OPENPEPXL_XL_POS2).toString().toInt();
+          int i = hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2).toString().toInt();
           p += "\t\t<Modification location=\"" + String(i + 1);
           p += "\" residues=\"" + String(peptide_sequence[i].getOneLetterCode());
           p += "\" monoisotopicMassDelta=\"0";
@@ -1851,9 +1851,9 @@ namespace OpenMS
               continue;
             }
             String idec;
-            if (hit.metaValueExists(Constants::OPENPEPXL_TARGET_DECOY_ALPHA))
+            if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA))
             {
-              idec = String(boost::lexical_cast<std::string>((String(hit.getMetaValue(Constants::OPENPEPXL_TARGET_DECOY_ALPHA))).hasSubstring("decoy")));
+              idec = String(boost::lexical_cast<std::string>((String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA))).hasSubstring("decoy")));
             }
 
             String e;
@@ -1904,11 +1904,11 @@ namespace OpenMS
         }
         else // acceptor, beta peptide, does not have its own PeptideHit and PeptideEvidences
         {
-          StringList prot = ListUtils::create<String>(String(hit.getMetaValue(Constants::OPENPEPXL_BETA_ACCESSIONS)));
-          StringList pre = ListUtils::create<String>(String(hit.getMetaValue(Constants::OPENPEPXL_BETA_PEPEV_PRE)));
-          StringList post = ListUtils::create<String>(String(hit.getMetaValue(Constants::OPENPEPXL_BETA_PEPEV_POST)));
-          StringList start = ListUtils::create<String>(String(hit.getMetaValue(Constants::OPENPEPXL_BETA_PEPEV_START)));
-          StringList end = ListUtils::create<String>(String(hit.getMetaValue(Constants::OPENPEPXL_BETA_PEPEV_END)));
+          StringList prot = ListUtils::create<String>(String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS)));
+          StringList pre = ListUtils::create<String>(String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_PRE)));
+          StringList post = ListUtils::create<String>(String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_POST)));
+          StringList start = ListUtils::create<String>(String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_START)));
+          StringList end = ListUtils::create<String>(String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_END)));
           for (Size ev = 0; ev < pre.size(); ++ev)
           {
             String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
@@ -1924,9 +1924,9 @@ namespace OpenMS
               continue;
             }
             String idec;
-            if (hit.metaValueExists(Constants::OPENPEPXL_TARGET_DECOY_BETA))
+            if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA))
             {
-              idec = String(boost::lexical_cast<std::string>((String(hit.getMetaValue(Constants::OPENPEPXL_TARGET_DECOY_BETA))).hasSubstring("decoy")));
+              idec = String(boost::lexical_cast<std::string>((String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA))).hasSubstring("decoy")));
             }
 
             String e;
@@ -1975,21 +1975,21 @@ namespace OpenMS
 
       String r(hit.getRank()); //rank
       String sc(hit.getScore());
-      if (hit.metaValueExists(Constants::OPENPEPXL_XL_RANK))
+      if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_RANK))
       {
-        r = hit.getMetaValue(Constants::OPENPEPXL_XL_RANK).toString();  // ppxl remove xl_rank later (in copy_hit)
+        r = hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK).toString();  // ppxl remove xl_rank later (in copy_hit)
       }
 
       //Calculated mass to charge for cross-linked is both peptides + linker
       double calc_ppxl_mass = hit.getSequence().getMonoWeight();
-      if (hit.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "cross-link")
+      if (hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
       {
-        calc_ppxl_mass += ppxl_crosslink_mass + AASequence::fromString(hit.getMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE)).getMonoWeight();
+        calc_ppxl_mass += ppxl_crosslink_mass + AASequence::fromString(hit.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).getMonoWeight();
       }
       // if xl_mod and xl_mass MetaValues exist, then the mass of the mono-link could not be set as a AASequence modification and will not be considered by .getMonoWeight
-      else if (hit.metaValueExists(Constants::OPENPEPXL_XL_MOD) && hit.metaValueExists(Constants::OPENPEPXL_XL_MASS))
+      else if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_MOD) && hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_MASS))
       {
-        calc_ppxl_mass += double(hit.getMetaValue(Constants::OPENPEPXL_XL_MASS));
+        calc_ppxl_mass += double(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS));
       }
       String cmz = String( ((calc_ppxl_mass) +  (hit.getCharge() * Constants::PROTON_MASS_U)) / hit.getCharge()); //calculatedMassToCharge
 
@@ -2067,7 +2067,7 @@ namespace OpenMS
         sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("percolator:PEP").toXMLString(cv_ns, sc); // 'percolaror' was not a typo in the code but in the cv.
         copy_hit.removeMetaValue(cv_.getTermByName("percolator:PEP").id);
       }
-      else if (st == Constants::OPENPEPXL_SCORE)
+      else if (st == Constants::UserParam::OPENPEPXL_SCORE)
       {
         sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
         copy_hit.removeMetaValue(cv_.getTermByName(st).id);
@@ -2083,32 +2083,31 @@ namespace OpenMS
       sii_tmp += "\n";
 
       copy_hit.removeMetaValue("calcMZ");
-      copy_hit.removeMetaValue(Constants::TARGET_DECOY);
+      copy_hit.removeMetaValue(Constants::UserParam::TARGET_DECOY);
 
       // TODO this would be the correct way, but need to adjust parsing as well
-      if (copy_hit.metaValueExists(Constants::OPENPEPXL_HEAVY_SPEC_MZ) || copy_hit.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "cross-link")
+      if (copy_hit.metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ) || copy_hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
       {
         sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm("MS:1002511").toXMLString(cv_ns, ppxl_linkid) + "\n"; // cross-linked spectrum identification item
       }
 
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_XL_RANK);
-      // copy_hit.removeMetaValue(Constants::OPENPEPXL_XL_TYPE);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_XL_POS1);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_XL_POS2);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_XL_MOD);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD);
       copy_hit.removeMetaValue("xl_chain");
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_XL_MASS);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS);
       copy_hit.removeMetaValue("protein_references");
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_REF);
-      copy_hit.removeMetaValue(Constants::SPECTRUM_REFERENCE);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_MZ);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_RT);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_BETA_PEPEV_PRE);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_BETA_PEPEV_POST);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_BETA_PEPEV_START);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_BETA_PEPEV_END);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE);
-      copy_hit.removeMetaValue(Constants::OPENPEPXL_BETA_ACCESSIONS);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF);
+      copy_hit.removeMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_PRE);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_POST);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_START);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_END);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE);
+      copy_hit.removeMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS);
 
       writeMetaInfos_(sii_tmp, copy_hit, 5);
 
@@ -2123,13 +2122,13 @@ namespace OpenMS
       sii_tmp = sii_tmp.substitute("</SpectrumIdentificationItem>",
                                    "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, rtcv) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
       ppxl_specref_2_element[sid] += sii_tmp;
-      if (hit.metaValueExists(Constants::OPENPEPXL_HEAVY_SPEC_RT) && hit.metaValueExists(Constants::OPENPEPXL_HEAVY_SPEC_MZ))
+      if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT) && hit.metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ))
       {
         // ppxl : TODO remove if existing <Fragmentation/>block
         sii_tmp = sii_tmp.substitute(String("experimentalMassToCharge=\"") + String(emz),
-                                     String("experimentalMassToCharge=\"") + String(hit.getMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_MZ))); // mz
+                                     String("experimentalMassToCharge=\"") + String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ))); // mz
         sii_tmp = sii_tmp.substitute(sii, String("SII_") + String(UniqueIdGenerator::getUniqueId())); // uid
-        sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(hit.getMetaValue(Constants::OPENPEPXL_HEAVY_SPEC_RT)));
+        sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(hit.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT)));
 
         ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
         double iso_shift = String(search_params.getMetaValue("cross_link:mass_isoshift")).toDouble();

@@ -350,17 +350,17 @@ namespace OpenMS
             // use stored fragment annotations
             addPeakAnnotationsFromID_(ph);
 
-            if (ph.metaValueExists(Constants::OPENPEPXL_XL_TYPE)) // if this meta value exists, this should be an XL-MS annotation
+            if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE)) // if this meta value exists, this should be an XL-MS annotation
             {
               String box_text;
               String vert_bar = "&#124;";
 
-              if (ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "loop-link")
+              if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
               {
                 String hor_bar = "_";
                 String seq_alpha = ph.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1)).toInt();
-                int xl_pos_beta = String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS2)).toInt() - xl_pos_alpha - 1;
+                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+                int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() - xl_pos_alpha - 1;
 
                 String alpha_cov;
                 String beta_cov;
@@ -370,12 +370,12 @@ namespace OpenMS
                 box_text += alpha_cov + "<br>" +  seq_alpha +  "<br>" + String(xl_pos_alpha, ' ') +  vert_bar + n_times(xl_pos_beta, hor_bar) + vert_bar;
                 // cut out line: "<br>" + String(xl_pos_alpha, ' ') + vert_bar + String(xl_pos_beta, ' ') + vert_bar +
               }
-              else if (ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "cross-link")
+              else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
               {
                 String seq_alpha = ph.getSequence().toUnmodifiedString();
-                String seq_beta = AASequence::fromString(ph.getMetaValue(Constants::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1)).toInt();
-                int xl_pos_beta = String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS2)).toInt();
+                String seq_beta = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString();
+                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+                int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt();
 
                 // String formatting
                 Size prefix_length = max(xl_pos_alpha, xl_pos_beta);
@@ -390,10 +390,10 @@ namespace OpenMS
                 box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
                 // color: <font color=\"green\">&boxur;</font>
               }
-              else // if (ph.getMetaValue(Constants::OPENPEPXL_XL_TYPE) == "mono-link")
+              else // if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "mono-link")
               {
                 String seq_alpha = ph.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue(Constants::OPENPEPXL_XL_POS1)).toInt();
+                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
                 Size prefix_length = xl_pos_alpha;
 
                 String alpha_cov;
