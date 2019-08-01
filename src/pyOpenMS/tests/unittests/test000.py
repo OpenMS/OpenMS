@@ -1729,7 +1729,6 @@ def testPosteriorErrorProbabilityModel():
 
     assert model.computeLogLikelihood is not None
     assert model.pos_neg_mean_weighted_posteriors is not None
-    assert model.computeLLAndIncorrectPosteriorsFromLogDensities is not None
 
     GaussFitResult = model.getCorrectlyAssignedFitResult()
     GaussFitResult = model.getIncorrectlyAssignedFitResult()
