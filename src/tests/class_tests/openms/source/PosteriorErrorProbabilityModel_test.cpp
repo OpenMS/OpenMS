@@ -207,35 +207,11 @@ START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<
 
 END_SECTION
 
-START_SECTION((void fillDensities(std::vector<double>& x_scores,std::vector<double>& incorrect_density,std::vector<double>& correct_density)))
+START_SECTION((void fillLogDensities(std::vector<double>& x_scores,std::vector<double>& incorrect_density,std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((double computeMaxLikelihood(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double one_minus_sum_post(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_post(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_pos_x0(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_neg_x0(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_pos_sigma(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density, double positive_mean)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_neg_sigma(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density, double positive_mean)))
+START_SECTION((double computeLogLikelihood(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION

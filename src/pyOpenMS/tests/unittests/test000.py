@@ -1725,15 +1725,11 @@ def testPosteriorErrorProbabilityModel():
     model.fit(scores)
     model.fit(scores, scores)
 
-    model.fillDensities(scores, scores, scores)
+    model.fillLogDensities(scores, scores, scores)
 
-    assert model.computeMaxLikelihood is not None
-    assert model.one_minus_sum_post is not None
-    assert model.sum_post is not None
-    assert model.sum_pos_x0 is not None
-    assert model.sum_neg_x0 is not None
-    assert model.sum_pos_sigma is not None
-    assert model.sum_neg_sigma is not None
+    assert model.computeLogLikelihood is not None
+    assert model.pos_neg_mean_weighted_posteriors is not None
+    assert model.computeLLAndIncorrectPosteriorsFromLogDensities is not None
 
     GaussFitResult = model.getCorrectlyAssignedFitResult()
     GaussFitResult = model.getIncorrectlyAssignedFitResult()
