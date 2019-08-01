@@ -39,8 +39,6 @@ MzMLSplitter
 NovorAdapter
 NucleicAcidSearchEngine
 OpenMSInfo
-OpenPepXL
-OpenPepXLLF
 PeakPickerIterative
 PSMFeatureExtractor
 QCCalculator
@@ -64,7 +62,6 @@ SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
-XFDR
 XMLValidator
 )
 
