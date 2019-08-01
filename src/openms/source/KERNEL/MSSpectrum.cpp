@@ -133,6 +133,7 @@ namespace OpenMS
   void MSSpectrum::clear(bool clear_meta_data)
   {
     ContainerType::clear();
+    ContainerType::shrink_to_fit(); 
 
     if (clear_meta_data)
     {
@@ -143,9 +144,13 @@ namespace OpenMS
       drift_time_unit_ = MSSpectrum::DriftTimeUnit::NONE;
       ms_level_ = 1;
       name_.clear();
+      name_.shrink_to_fit();
       float_data_arrays_.clear();
+      float_data_arrays_.shrink_to_fit();
       string_data_arrays_.clear();
+      string_data_arrays_.shrink_to_fit();
       integer_data_arrays_.clear();
+      integer_data_arrays_.shrink_to_fit();
     }
   }
 

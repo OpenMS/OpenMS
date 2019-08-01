@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser, Lucia Espona, Moritz Freidank $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_IDCONFLICTRESOLVERALGORITHM
-#define OPENMS_ANALYSIS_ID_IDCONFLICTRESOLVERALGORITHM
+#pragma once
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -67,14 +66,18 @@ public:
   /** @brief Resolves ambiguous annotations of features with peptide identifications.
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
+    @param keep_matching Keeps all IDs that match the modified sequence of the best
+    hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
   **/
-  static void resolve(FeatureMap & features);
+  static void resolve(FeatureMap & features, bool keep_matching = false);
 
   /** @brief Resolves ambiguous annotations of consensus features with peptide identifications.
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
+    @param keep_matching Keeps all IDs that match the modified sequence of the best
+    hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
   **/
-  static void resolve(ConsensusMap & features);
+  static void resolve(ConsensusMap & features, bool keep_matching = false);
 
   /** @brief In a single (feature/consensus) map, features with the same (possibly modified) sequence and charge state may appear.
    This filter removes the peptide sequence annotations from features, if a higher-intensity feature with the same (charge, sequence)
@@ -93,7 +96,7 @@ public:
 protected:
 
   template<class T>
-  static void resolveConflict_(T & map)
+  static void resolveConflict_(T & map, bool keep_matching)
   {
     // annotate as not part of the resolution
     for (PeptideIdentification & p : map.getUnassignedPeptideIdentifications())
@@ -104,9 +107,18 @@ protected:
     for (auto & c : map)
     {
       c.setMetaValue("feature_id", String(c.getUniqueId()));
-      resolveConflict_(c.getPeptideIdentifications(), 
-        map.getUnassignedPeptideIdentifications(),
-        c.getUniqueId());
+      if (!keep_matching)
+      {
+        resolveConflict_(c.getPeptideIdentifications(),
+                         map.getUnassignedPeptideIdentifications(),
+                         c.getUniqueId());
+      }
+      else
+      {
+        resolveConflictKeepMatching_(c.getPeptideIdentifications(),
+                         map.getUnassignedPeptideIdentifications(),
+                         c.getUniqueId());
+      }
     }
   }
   
@@ -120,6 +132,11 @@ protected:
     std::vector<PeptideIdentification> & peptides,
     std::vector<PeptideIdentification> & removed,
     UInt64 uid);
+
+  static void resolveConflictKeepMatching_(
+      std::vector<PeptideIdentification> & peptides,
+      std::vector<PeptideIdentification> & removed,
+      UInt64 uid);
   
   template<class T>
   static void resolveBetweenFeatures_(T & map)
@@ -198,7 +215,5 @@ protected:
   
 };
 
-}
-
-#endif
+}// namespace OpenMS
 

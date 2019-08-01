@@ -73,6 +73,7 @@
   - @subpage UTILS_DecoyDatabase - Creates decoy peptide databases from normal ones.
   - @subpage UTILS_Digestor - Digests a protein database in-silico.
   - @subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
+  - @subpage UTILS_Epifany - Bayesian protein inference based on PSM probabilities.
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
   - @subpage UTILS_IDScoreSwitcher - Switches between different scores of peptide or protein hits in identification data.
@@ -94,6 +95,7 @@
   - @subpage UTILS_ERPairFinder - Evaluates pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
   - @subpage UTILS_FeatureFinderSuperHirn - Finds features using the SuperHirn algorithm (can handle centroided or profile data, see .ini file).
+  - @subpage UTILS_ProteomicLFQ - A standard Proteomics LFQ pipeline.
   - @subpage UTILS_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
   - @subpage UTILS_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
 
