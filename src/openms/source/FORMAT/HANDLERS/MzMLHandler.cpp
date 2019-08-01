@@ -3852,7 +3852,9 @@ namespace OpenMS
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
       }
-      //as "precursor" has no own user param its userParam is stored here
+      // as "precursor" has no own user param its userParam is stored here;
+      // don't write out parameters that are used internally to distinguish
+      // between precursor m/z values from different sources:
       writeUserParam_(os, precursor, 7, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator, {"isolation window target m/z", "selected ion m/z"});
       os << "\t\t\t\t\t\t</activation>\n";
       os << "\t\t\t\t\t</precursor>\n";
