@@ -683,15 +683,7 @@ namespace OpenMS
 
     setProgress(++progress_);
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-    //add XSLT file if it can be found
-    try
-    {
-      String xslt_file = File::find("XSL/ConsensusXML.xsl");
-      os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
-    }
-    catch (Exception::FileNotFound&)
-    {
-    }
+    os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://www.openms.de/xml-stylesheet/ConsensusXML.xsl\" ?>\n";
 
     setProgress(++progress_);
     os << "<consensusXML version=\"" << version_ << "\"";
@@ -793,6 +785,7 @@ namespace OpenMS
       os << " higher_score_better=\"" << (current_prot_id.isHigherScoreBetter() ? "true" : "false") << "\"";
       os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 
+      //TODO @julianus @timo IMPLEMENT PROTEIN GROUP SUPPORT!!
       // write protein hits
       for (Size j = 0; j < current_prot_id.getHits().size(); ++j)
       {

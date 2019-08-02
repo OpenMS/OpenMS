@@ -49,9 +49,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
-#ifdef _OPENMP
-#endif
-
 #define BUFFER_LENGTH 32768
 
 using namespace std;

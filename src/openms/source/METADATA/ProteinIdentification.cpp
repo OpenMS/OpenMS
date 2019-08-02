@@ -365,12 +365,51 @@ namespace OpenMS
     }
   }
 
-  /// get the file path to the first MS run
+  /// get the file path to the first MS runs
   void ProteinIdentification::getPrimaryMSRunPath(StringList& toFill) const
   {
     if (this->metaValueExists("spectra_data"))
     {
       toFill = this->getMetaValue("spectra_data");
+    }
+  }
+
+  void ProteinIdentification::addPrimaryMSRunPath(const StringList& toAdd)
+  {
+    if (this->metaValueExists("spectra_data"))
+    {
+      StringList tmp = this->getMetaValue("spectra_data");
+      tmp.insert(tmp.end(),toAdd.begin(),toAdd.end());
+      this->setMetaValue("spectra_data", DataValue(tmp));
+    }
+    else
+    {
+      this->setMetaValue("spectra_data", DataValue(toAdd));
+    }
+  }
+
+
+  void ProteinIdentification::addPrimaryMSRunPath(const String& toAdd)
+  {
+    if (this->metaValueExists("spectra_data"))
+    {
+      StringList tmp = this->getMetaValue("spectra_data");
+      tmp.push_back(toAdd);
+      this->setMetaValue("spectra_data", DataValue(tmp));
+    }
+    else
+    {
+      this->setMetaValue("spectra_data", DataValue(toAdd));
+    }
+  }
+
+  /// get the file path to the first MS runs
+  void ProteinIdentification::getPrimaryMSRunPath(set<String>& toFill) const
+  {
+    if (this->metaValueExists("spectra_data"))
+    {
+      const auto& strlist = this->getMetaValue("spectra_data").toStringList();
+      toFill = set<String>(strlist.begin(),strlist.end());
     }
   }
 
@@ -456,7 +495,7 @@ namespace OpenMS
     {
       // peptide hits
       const PeptideIdentification & peptide_id = pep_ids[pep_i];
-      const vector<PeptideHit> peptide_hits = peptide_id.getHits();
+      const vector<PeptideHit>& peptide_hits = peptide_id.getHits();
       for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
       {
         const PeptideHit & peptide_hit = peptide_hits[ph_i];
@@ -514,7 +553,7 @@ namespace OpenMS
   }
 
   void ProteinIdentification::computeModifications(
-    const std::vector<PeptideIdentification>& pep_ids, 
+    const std::vector<PeptideIdentification>& pep_ids,
     const StringList & skip_modifications)
   {
     // map protein accession to observed position,modifications pairs
@@ -564,7 +603,7 @@ namespace OpenMS
                 for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
                 {
                   const String & acc = ph_evidences[phe_i].getProteinAccession();
-                  const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai 
+                  const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai
                   prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
                 }
               }

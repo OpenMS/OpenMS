@@ -836,7 +836,7 @@ protected:
     fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
     fdr.setParameters(fdr_params);
     IdentificationData::ScoreTypeRef fdr_ref =
-      fdr.applyToQueryMatches(id_data, score_ref);
+    fdr.applyToQueryMatches(id_data, score_ref);
     double fdr_cutoff = getDoubleOption_("fdr:cutoff");
     if (remove_decoys) // remove references to decoys from shared oligos
     {

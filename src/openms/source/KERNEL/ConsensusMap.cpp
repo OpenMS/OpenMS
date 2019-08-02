@@ -496,6 +496,12 @@ namespace OpenMS
     protein_identifications_ = protein_identifications;
   }
 
+  /// sets the protein identifications
+  void ConsensusMap::setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications)
+  {
+    protein_identifications_ = std::move(protein_identifications);
+  }
+
   /// non-mutable access to the unassigned peptide identifications
   const std::vector<PeptideIdentification>& ConsensusMap::getUnassignedPeptideIdentifications() const
   {
@@ -537,11 +543,10 @@ namespace OpenMS
   {
     if (s.empty())
     {
-      OPENMS_LOG_WARN << "Setting empty MS runs paths. Expected " + String(column_description_.size()) << std::endl;
+      OPENMS_LOG_WARN << "Setting empty MS runs paths. Expected one for each map. Resulting ConsensusMap contains " + String(column_description_.size()) + " maps." << std::endl;
       for (auto & cd : column_description_)
       {
-        OPENMS_LOG_WARN << "Setting empty MS runs paths. Expected " + String(column_description_.size()) << std::endl;
-        cd.second.filename = "UKNOWN";
+        cd.second.filename = "UNKNOWN";
        }
     } 
     else if (!column_description_.empty() && s.size() != column_description_.size())
@@ -708,5 +713,93 @@ OPENMS_THREAD_CRITICAL(oms_log)
 
     return true;
   }
+
+  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f, bool include_unassigned)
+  {
+    for (auto& feat : *this)
+    {
+      applyFunctionOnPeptideHits_(feat.getPeptideIdentifications(), f);
+    }
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f, bool include_unassigned)
+  {
+    for (auto& feat : *this)
+    {
+      applyFunctionOnPeptideIDs_(feat.getPeptideIdentifications(), f);
+    }
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>& f, bool include_unassigned) const
+  {
+    for (const auto& feat : *this)
+    {
+      applyFunctionOnPeptideHits_(feat.getPeptideIdentifications(), f);
+    }
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f, bool include_unassigned) const
+  {
+    for (const auto& feat : *this)
+    {
+      applyFunctionOnPeptideIDs_(feat.getPeptideIdentifications(), f);
+    }
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
+    }
+  }
+
+
+  void ConsensusMap::applyFunctionOnPeptideIDs_(vector<PeptideIdentification>& idvec, std::function<void(PeptideIdentification&)>& f)
+  {
+    for (auto& id : idvec)
+    {
+      f(id);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideHits_(vector<PeptideIdentification>& idvec, std::function<void(PeptideHit&)>& f)
+  {
+    for (auto& id : idvec)
+    {
+      for (auto& hit : id.getHits())
+      {
+        f(hit);
+      }
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideIDs_(const vector<PeptideIdentification>& idvec, std::function<void(const PeptideIdentification&)>& f) const
+  {
+    for (const auto& id : idvec)
+    {
+      f(id);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideHits_(const vector<PeptideIdentification>& idvec, std::function<void(const PeptideHit&)>& f) const
+  {
+    for (const auto& id : idvec)
+    {
+      for (const auto& hit : id.getHits())
+      {
+        f(hit);
+      }
+    }
+  }
+
 
 } // namespace OpenMS

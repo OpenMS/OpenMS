@@ -126,6 +126,7 @@ namespace OpenMS
     tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", "Identification");
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", "Quantitation");
     tools_map["ProteinResolver"] = Internal::ToolDescription("ProteinResolver", "Quantitation");
+    tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", "Standard Proteomic LFQ pipeline");
     tools_map["PTModel"] = Internal::ToolDescription("PTModel", "Peptide property prediction");
     tools_map["PTPredict"] = Internal::ToolDescription("PTPredict", "Peptide property prediction");
     tools_map["RTModel"] = Internal::ToolDescription("RTModel", "Peptide property prediction");
@@ -195,6 +196,7 @@ namespace OpenMS
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
     util_map["Digestor"] = Internal::ToolDescription("Digestor", util_category);
     util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", util_category);
+    util_map["Epifany"] = Internal::ToolDescription("Epifany", util_category);
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     util_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", util_category);
     util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);

@@ -9,6 +9,7 @@ BasicStatistics.h
 GammaDistributionFitter.h
 GaussFitter.h
 GumbelDistributionFitter.h
+GumbelMaxLikelihoodFitter.h
 Histogram.h
 LinearRegression.h
 LinearRegressionWithoutIntercept.h

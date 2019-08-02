@@ -727,6 +727,38 @@ namespace OpenMS
     }
   }
 
+  Param Param::copySubset(const Param& subset) const
+  {
+    ParamNode out("ROOT", "");
+
+    for (const auto& entry : subset.root_.entries)
+    {
+      const auto& n = root_.findEntry(entry.name);
+      if (n == root_.entries.end())
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to copy non-existent parameter entry " << entry.name << std::endl;
+      }
+      else
+      {
+        out.insert(*n);
+      }
+    }
+
+    for (const auto& node : subset.root_.nodes)
+    {
+      const auto& n = root_.findNode(node.name);
+      if (n == root_.nodes.end())
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to copy non-existent parameter node " << node.name << std::endl;
+      }
+      else
+      {
+        out.insert(*n);
+      }
+    }
+    return Param(out);
+  }
+
   Param Param::copy(const String& prefix, bool remove_prefix) const
   {
     ParamNode out("ROOT", "");
@@ -1458,8 +1490,6 @@ OPENMS_THREAD_CRITICAL(oms_log)
         }
       }
     }
-
-    return *this; // TODO unreachable code
   }
 
   bool Param::ParamIterator::operator==(const ParamIterator& rhs) const

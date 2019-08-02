@@ -136,8 +136,10 @@ namespace OpenMS
     //delete log file if empty
     StringList log_files;
     DataValue topplog = getParam_("log");
+
     if (!topplog.isEmpty() && !(topplog.toString().empty()))
       log_files.push_back(topplog.toString());
+    
     for (Size i = 0; i < log_files.size(); ++i)
     {
       if (File::empty(log_files[i]))
@@ -1680,6 +1682,15 @@ namespace OpenMS
       }
     }
 
+    if (debug_level_ >= 10)
+    {
+      const QString external_sout(qp.readAllStandardOutput());
+      const QString external_serr(qp.readAllStandardError());
+      writeDebug_("DEBUG: Printing standard output and error of " + String(executable), 10);
+      writeDebug_(external_sout, 10);
+      writeDebug_(external_serr, 10);
+    }
+
     qp.close();
     writeLog_("Executed " + String(executable) + " successfully!");
     return EXECUTION_OK;
@@ -1835,7 +1846,7 @@ namespace OpenMS
       String log_destination = "";
       if (param_cmdline_.exists("log"))
         log_destination = param_cmdline_.getValue("log");
-      if (log_destination != "")
+      if (!log_destination.empty())
       {
         log_.open(log_destination.c_str(), ofstream::out | ofstream::app);
         if (debug_level_ >= 1)
@@ -1845,7 +1856,6 @@ namespace OpenMS
         }
       }
     }
-    return;
   }
 
   void TOPPBase::checkParam_(const Param& param, const String& filename, const String& location) const

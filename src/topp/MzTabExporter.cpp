@@ -131,7 +131,7 @@ protected:
       FileTypes::Type in_type = FileHandler::getType(in);
 
       String out = getStringOption_("out");
-      
+
       StringList optional_columns = getStringList_("opt_columns");
       bool export_subfeatures = ListUtils::contains(optional_columns, "subfeatures");
 
