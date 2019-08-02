@@ -51,7 +51,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenPepXLLF OpenPepXLLF
+  @page TOPP_OpenPepXLLF OpenPepXLLF
 
   @brief Search for cross-linked peptide pairs in tandem MS spectra
 
