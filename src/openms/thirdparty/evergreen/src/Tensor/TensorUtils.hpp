@@ -90,7 +90,7 @@ inline unsigned long* index_to_tuple(unsigned long index, const unsigned long* _
 // range. Could also be implemented a set in O(n log(n)), but this
 // version is in O(n).
 inline void verify_subpermutation(const Vector<unsigned char> & permutation, unsigned char dim) {
-  std::vector<bool> indices(permutation.size(), false);
+  std::vector<bool> indices(dim, false);
   for (unsigned char i=0; i<permutation.size(); ++i) {
     // All values must be in 0, 1, ... n-1, where n is the number of
     // dimensions allowed:
