@@ -42,8 +42,8 @@ using namespace OpenMS;
     : DefaultParamHandler("XFDRAlgorithm")
   {
     defaults_.setValue(param_decoy_string_, "DECOY_", "Prefix of decoy protein ids. The correspondig target protein id should be retrievable by deleting this prefix.");
-    defaults_.setValue(param_minborder_, -50, "Filter for minimum precursor mass error (ppm) before FDR estimation. Values outside of the tolerance window of the original search will effectively disable this filter.");
-    defaults_.setValue(param_maxborder_, 50, "Filter for maximum precursor mass error (ppm) before FDR estimation. Values outside of the tolerance window of the original search will effectively disable this filter.");
+    defaults_.setValue(param_minborder_, -50.0, "Filter for minimum precursor mass error (ppm) before FDR estimation. Values outside of the tolerance window of the original search will effectively disable this filter.");
+    defaults_.setValue(param_maxborder_, 50.0, "Filter for maximum precursor mass error (ppm) before FDR estimation. Values outside of the tolerance window of the original search will effectively disable this filter.");
 
     defaults_.setValue(param_mindeltas_, 0.0, "Filter for delta score, 0 disables the filter. Minimum delta score required, hits are rejected if larger or equal. The delta score is a ratio of the score of a hit and the score of the next best hit to the same spectrum, so the value range is between 0 and 1 with 1.0 meaning the scores are equal and 0.5 meaning the next best score is half as high as the current one.");
     defaults_.setMinFloat(param_mindeltas_, 0.0);
@@ -564,9 +564,9 @@ using namespace OpenMS;
 
   XFDRAlgorithm::ExitCodes XFDRAlgorithm::validateClassArguments() const
   {
-    if (arg_minborder_ > arg_maxborder_)
+    if (arg_minborder_ >= arg_maxborder_)
     {
-      std::cout << "Minborder cannot be larger than Maxboder!" << std::endl;
+      std::cout << "Minborder cannot be larger or equal than Maxboder!" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
     return EXECUTION_OK;

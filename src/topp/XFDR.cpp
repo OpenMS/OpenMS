@@ -134,7 +134,28 @@ protected:
   {
     // Tool Arguments
     loadArguments_();
-    validateToolArguments_();
+    ExitCodes tool_arg_validation_code = validateToolArguments_();
+    if (tool_arg_validation_code != EXECUTION_OK)
+    {
+      return tool_arg_validation_code;
+    }
+
+    // initialize algorithm and paramteres
+    XFDRAlgorithm fdr_algorithm;
+    Param this_param = getParam_().copy("", true);
+    Param algo_param = fdr_algorithm.getParameters();
+    algo_param.update(this_param, false, OpenMS_Log_debug); // suppress param. update message
+    fdr_algorithm.setParameters(algo_param);
+    fdr_algorithm.setLogType(this->log_type_);
+
+    // TODO use this code? or just run the function?
+    XFDRAlgorithm::ExitCodes class_arg_validation_code = fdr_algorithm.validateClassArguments();
+    if (class_arg_validation_code == XFDRAlgorithm::ILLEGAL_PARAMETERS)
+    {
+      logFatal("Invalid input parameters!");
+      return ILLEGAL_PARAMETERS;
+    }
+
     writeLog_("Reading input file...");
 
     std::vector<PeptideIdentification> peptide_ids;
@@ -147,28 +168,7 @@ protected:
       return load_result;
     }
 
-    XFDRAlgorithm fdr_algorithm;
-    Param this_param = getParam_().copy("", true);
-    Param algo_param = fdr_algorithm.getParameters();
-    algo_param.update(this_param, false, OpenMS_Log_debug); // suppress param. update message
-    fdr_algorithm.setParameters(algo_param);
-    fdr_algorithm.setLogType(this->log_type_);
-
-    // TODO use this code? or just run the function?
-    // XFDRAlgorithm::ExitCodes validation_code = fdr_algorithm.validateClassArguments();
-    fdr_algorithm.validateClassArguments();
-
-    // XFDRAlgorithm::ExitCodes exit_code = fdr_algorithm.run(all_prot_ids_, all_pep_ids_);
-
     fdr_algorithm.run(peptide_ids, protein_id, this->is_xquest_input_);
-
-    // if (exit_code != XFDRAlgorithm::EXECUTION_OK)
-    // {
-    //   if (exit_code == XFDRAlgorithm::ILLEGAL_PARAMETERS)
-    //   {
-    //     return ILLEGAL_PARAMETERS;
-    //   }
-    // }
 
     std::vector<ProteinIdentification> protein_ids;
     protein_ids.push_back(protein_id);
