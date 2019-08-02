@@ -86,6 +86,7 @@
     sudo yum install cmake3 qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg-devel python-devel glpk-devel
     # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
     #sudo yum boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel
+    # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
     </pre>
     </td>
   </tr>
