@@ -110,7 +110,7 @@ namespace OpenMS
      * @param peptide_ids The PeptideIdentifications from an XL-MS experiment
 
      */
-    ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id, bool is_xquest_input);
+    ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
 
     /**
     * @brief Checks whether the parameters of the object are valid
@@ -203,9 +203,6 @@ private:
 
     // maps index of peptide id all_pep_ids_ to vector of cross link class
     std::map<String, std::vector<String>> cross_link_classes_;
-
-    // Whether input comes from xQuest
-    bool is_xquest_input_;
 
     // Program arguments
     String decoy_string_;

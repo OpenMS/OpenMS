@@ -168,7 +168,7 @@ protected:
       return load_result;
     }
 
-    fdr_algorithm.run(peptide_ids, protein_id, this->is_xquest_input_);
+    fdr_algorithm.run(peptide_ids, protein_id);
 
     std::vector<ProteinIdentification> protein_ids;
     protein_ids.push_back(protein_id);
@@ -201,7 +201,6 @@ private:
   String arg_out_xquest_;
   String arg_in_;
   String arg_in_type_;
-  bool is_xquest_input_;
 
   static const String param_in_;
   static const String param_in_type_;
@@ -233,10 +232,8 @@ private:
                                       FileHandler::getType(this->arg_in_) : FileTypes::nameToType(arg_in_type_);
 
     std::vector<ProteinIdentification> protein_ids;
-    this->is_xquest_input_ = false;
     if (in_type == FileTypes::XQUESTXML)
     {
-      this->is_xquest_input_ = true;
       XQuestResultXMLFile xquest_file;
       xquest_file.load(arg_in_, peptide_ids, protein_ids);
 

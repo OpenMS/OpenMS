@@ -87,10 +87,9 @@ using namespace OpenMS;
     max_score_ = arg_minscore_;
   }
 
-  XFDRAlgorithm::ExitCodes XFDRAlgorithm::run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id, bool is_xquest_input)
+  XFDRAlgorithm::ExitCodes XFDRAlgorithm::run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
   {
     writeArgumentsLog_();
-    is_xquest_input_ = is_xquest_input;
     std::cout << "Initializing data structures..." << std::endl;
     // Initialize and validate data structures that are derived from the main peptide identification vector 'all_pep)ids'
     initDataStructures_(peptide_ids, protein_id);
@@ -574,7 +573,7 @@ using namespace OpenMS;
 
   String XFDRAlgorithm::getId_(const PeptideHit& ph) const
   {
-    if (is_xquest_input_)
+    if (ph.metaValueExists("OpenPepXL:id"))
     {
       return ph.getMetaValue("OpenPepXL:id").toString();
     }
