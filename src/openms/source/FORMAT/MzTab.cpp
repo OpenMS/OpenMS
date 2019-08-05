@@ -2134,15 +2134,23 @@ namespace OpenMS
           MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, set<String> >(protein_hits.begin(), protein_hits.end(), 100.0);
 
         // column headers may not contain spaces
-        for (String s : protein_hit_user_value_keys)
-        {
-          if (s.has(' '))
-          {
-            protein_hit_user_value_keys.erase(s);
-            s.substitute(' ', '_');
-            protein_hit_user_value_keys.insert(s);
-          }
-        }
+		{
+			set<String> tmp_protein_hit_user_value_keys;
+			for (String s : protein_hit_user_value_keys)
+			{
+				if (s.has(' '))
+				{
+					s.substitute(' ', '_');
+					tmp_protein_hit_user_value_keys.insert(std::move(s));
+				}
+				else
+				{
+					tmp_protein_hit_user_value_keys.insert(std::move(s));
+				}
+			}
+			swap(protein_hit_user_value_keys, tmp_protein_hit_user_value_keys);
+		}
+
         // we do not want descriptions twice
         protein_hit_user_value_keys.erase("Description");
 
