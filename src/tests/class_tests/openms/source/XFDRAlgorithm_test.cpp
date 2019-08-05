@@ -65,7 +65,7 @@ START_SECTION(virtual ~XFDRAlgorithm())
 }
 END_SECTION
 
-START_SECTION(ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id, bool is_xquest_input))
+START_SECTION(ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id))
 
 std::vector<PeptideIdentification> peptide_ids;
 std::vector<ProteinIdentification> protein_ids;
@@ -82,7 +82,7 @@ algo_param.setValue("binsize", 0.1);
 fdr_algorithm.setParameters(algo_param);
 
 // run algorithm
-XFDRAlgorithm::ExitCodes exit_code = fdr_algorithm.run(peptide_ids, protein_id, true);
+XFDRAlgorithm::ExitCodes exit_code = fdr_algorithm.run(peptide_ids, protein_id);
 
 TEST_EQUAL(exit_code, XFDRAlgorithm::EXECUTION_OK)
 TEST_EQUAL(protein_ids.size(), 1)
