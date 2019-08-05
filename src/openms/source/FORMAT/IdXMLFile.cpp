@@ -802,7 +802,7 @@ namespace OpenMS
         String value = (String)attributeAsString_(attributes, "value");
 
         // TODO: check if we are parsing a peptide hit
-        if (name == Constants::FRAGMENT_ANNOTATION_USERPARAM)
+        if (name == Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM)
         {
           std::vector<PeptideHit::PeakAnnotation> annotations;
           parseFragmentAnnotation_(value, annotations);

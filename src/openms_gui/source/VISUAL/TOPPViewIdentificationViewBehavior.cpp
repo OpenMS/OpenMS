@@ -46,6 +46,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <boost/range/adaptor/reversed.hpp>
 #include <QtWidgets/QMessageBox>
@@ -349,18 +350,17 @@ namespace OpenMS
             // use stored fragment annotations
             addPeakAnnotationsFromID_(ph);
 
-            if (ph.metaValueExists("xl_chain")) // if this meta value exists, this should be an XLMS annotation
+            if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE)) // if this meta value exists, this should be an XL-MS annotation
             {
               String box_text;
               String vert_bar = "&#124;";
 
-              if (ph.metaValueExists("xl_pos2") && pis[peptide_id_index].getHits().size() == 1 && ph.getMetaValue("xl_pos2") != "-") // if this meta value exists, this should be the special case of a loop-link
+              if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
               {
                 String hor_bar = "_";
-                PeptideHit ph_alpha = pis[peptide_id_index].getHits()[0];
                 String seq_alpha = ph.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue("xl_pos")).toInt();
-                int xl_pos_beta = String(ph.getMetaValue("xl_pos2")).toInt() - xl_pos_alpha - 1;
+                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+                int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() - xl_pos_alpha - 1;
 
                 String alpha_cov;
                 String beta_cov;
@@ -370,15 +370,12 @@ namespace OpenMS
                 box_text += alpha_cov + "<br>" +  seq_alpha +  "<br>" + String(xl_pos_alpha, ' ') +  vert_bar + n_times(xl_pos_beta, hor_bar) + vert_bar;
                 // cut out line: "<br>" + String(xl_pos_alpha, ' ') + vert_bar + String(xl_pos_beta, ' ') + vert_bar +
               }
-              else if (pis[peptide_id_index].getHits().size() == 2) // xl_chain exists and 2 PeptideHits: should be a cross-link
+              else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
               {
-                PeptideHit ph_alpha = pis[peptide_id_index].getHits()[0];
-                PeptideHit ph_beta = pis[peptide_id_index].getHits()[1];
-                String seq_alpha = ph_alpha.getSequence().toUnmodifiedString();
-                String seq_beta = ph_beta.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph_alpha.getMetaValue("xl_pos")).toInt();
-                int xl_pos_beta = String(ph_alpha.getMetaValue("xl_pos2")).toInt();
-
+                String seq_alpha = ph.getSequence().toUnmodifiedString();
+                String seq_beta = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString();
+                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+                int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt();
 
                 // String formatting
                 Size prefix_length = max(xl_pos_alpha, xl_pos_beta);
@@ -388,15 +385,15 @@ namespace OpenMS
 
                 String alpha_cov;
                 String beta_cov;
-                extractCoverageStrings(ph_alpha.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
+                extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
 
                 box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
                 // color: <font color=\"green\">&boxur;</font>
               }
-              else // no value in xl_pos2 and no second PeptideHit, should be a mono-link
+              else // if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "mono-link")
               {
                 String seq_alpha = ph.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue("xl_pos")).toInt();
+                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
                 Size prefix_length = xl_pos_alpha;
 
                 String alpha_cov;

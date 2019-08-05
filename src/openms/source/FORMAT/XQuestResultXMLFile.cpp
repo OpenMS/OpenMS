@@ -71,6 +71,8 @@ namespace OpenMS
    // but using the total number of hits we will just keep everything contained in the file
    // (just reassigned to single spectra and reranked by score)
    pep_ids = OPXLHelper::combineTopRanksFromPairs(pep_ids, this->n_hits_);
+   OPXLHelper::removeBetaPeptideHits(pep_ids);
+   OPXLHelper::computeDeltaScores(pep_ids);
   }
 
   int XQuestResultXMLFile::getNumberOfHits() const

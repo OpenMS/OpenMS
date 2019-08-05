@@ -253,18 +253,156 @@ namespace OpenMS
     */
     extern OPENMS_DLLAPI const double   CAL_PER_JOULE;
 
-    /** User parameter name for precursor mz error in ppm
-            String
-    */
-    extern OPENMS_DLLAPI const std::string   PRECURSOR_ERROR_PPM_USERPARAM;
+    namespace UserParam
+    {
+      /** User parameter name for precursor mz error in ppm
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   PRECURSOR_ERROR_PPM_USERPARAM;
 
-    /** User parameter name for fragment annotations
-            String
-    */
-    extern OPENMS_DLLAPI const std::string   FRAGMENT_ANNOTATION_USERPARAM;
+      /** User parameter name for monoisotopic peak misassignment correction of a precursor (usually an integer with e.g. 1 = subtract (1/charge)*C13C12_MASSDIFF_U from uncorrected precursor_mz).
 
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   PRECURSOR_ASSIGNMENT_CORRECTION;
+
+      /** User parameter name for fragment annotations
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   FRAGMENT_ANNOTATION_USERPARAM;
+
+      /** User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   SPECTRUM_REFERENCE;
+
+      /** User parameter name for target/decoy annotation of a PeptideHit, e.g. as annotated by PeptideIndexer. One of: target, decoy, target+decoy
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   TARGET_DECOY;
+
+      /** User parameter name for a delta score: a score ratio between a rank x hit and the rank x+1 hit
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   DELTA_SCORE;
+
+      // Cross-Linking Mass Spectrometry user parameters
+      /** Name of OpenPepXL main score (PSI CV term)
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_SCORE;
+
+      /** User parameter name for the sequence of the second peptide in a cross-link
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_BETA_SEQUENCE;
+
+      /** User parameter name for the protein accessions of the second peptide in a cross-link
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_BETA_ACCESSIONS;
+
+      /** User parameter name for the 1st position of cross-link (alpha peptide position in a real cross-link, 1st of two positions in a loop-link, modified position in a mono-link)
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_POS1;
+
+      /** User parameter name for the 2nd position of cross-link (beta peptide position in a real cross-link, 2nd of two positions in a loop-link, "-" in a mono-link)
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_POS2;
+
+      /** User parameter name for the 1st cross-link position on the protein
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_POS1_PROT;
+
+      /** User parameter name for the 2nd cross-link position on the protein
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_POS2_PROT;
+
+      /** User parameter name for the cross-link type, one of: cross-link, loop-link, mono-link
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_TYPE;
+
+      /** User parameter name for the cross-link rank (ranks of PeptideHits across different PeptideIdentifications)
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_RANK;
+
+      /** User parameter name for the name of a cross-link
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_MOD;
+
+      /** User parameter name for the mass of a cross-link
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_MASS;
+
+      /** User parameter name for the terminal specificity of a cross-link on the alpha peptide (to distinguish a link to the first or last residue side chain from a terminal link)
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_TERM_SPEC_ALPHA;
+
+      /** User parameter name for the terminal specificity of a cross-link on the beta peptide (to distinguish a link to the first or last residue side chain from a terminal link)
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_XL_TERM_SPEC_BETA;
+
+      /** User parameter name for the RT of the heavy spectrum precursor in a labeled cross-linking experiment
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_HEAVY_SPEC_RT;
+
+      /** User parameter name for the m/z of the heavy spectrum precursor in a labeled cross-linking experiment
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_HEAVY_SPEC_MZ;
+
+      /** User parameter name for the spectrum reference of the heavy spectrum in a labeled cross-linking experiment
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_HEAVY_SPEC_REF;
+
+      /** User parameter name for target/decoy annotation of alpha peptides
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_TARGET_DECOY_ALPHA;
+
+      /** User parameter name for target/decoy annotation of beta peptides
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_TARGET_DECOY_BETA;
+
+      /** User parameter name for PeptideEvidence info for the beta/acceptor peptide: pre
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_BETA_PEPEV_PRE;
+
+      /** User parameter name for PeptideEvidence info for the beta/acceptor peptide: post
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_BETA_PEPEV_POST;
+
+      /** User parameter name for PeptideEvidence info for the beta/acceptor peptide: start
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_BETA_PEPEV_START;
+
+      /** User parameter name for PeptideEvidence info for the beta/acceptor peptide: end
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   OPENPEPXL_BETA_PEPEV_END;
+
+      /** User parameter name for XL-MS FDR values
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   XFDR_FDR;
+    }
 
     //@}
   }
 }
-

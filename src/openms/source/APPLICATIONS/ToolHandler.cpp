@@ -106,6 +106,8 @@ namespace OpenMS
     tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", "Signal processing and preprocessing");
     tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
     tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Identification");
+    tools_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", "Identification");
+    tools_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", "Identification");
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", "Targeted Experiments");
     tools_map["OpenSwathAssayGenerator"] = Internal::ToolDescription("OpenSwathAssayGenerator", "Targeted Experiments");
     tools_map["OpenSwathChromatogramExtractor"] = Internal::ToolDescription("OpenSwathChromatogramExtractor", "Targeted Experiments");
@@ -144,6 +146,7 @@ namespace OpenMS
     tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", "Signal processing and preprocessing");
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", "File Handling");
     tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", "Signal processing and preprocessing");
+    tools_map["XFDR"] = Internal::ToolDescription("XFDR", "ID Processing");
     tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", "Identification");
     // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)
 
@@ -219,8 +222,6 @@ namespace OpenMS
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
     util_map["NucleicAcidSearchEngine"] = Internal::ToolDescription("NucleicAcidSearchEngine", util_category);
-    util_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", util_category);
-    util_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
     util_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", "Targeted Experiments");
     util_map["OpenSwathFileSplitter"] = Internal::ToolDescription("OpenSwathFileSplitter", "Targeted Experiments");
@@ -251,7 +252,6 @@ namespace OpenMS
     util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", util_category);
     util_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", util_category);
     util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", util_category);
-    util_map["XFDR"] = Internal::ToolDescription("XFDR", util_category);
     util_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", util_category);
     // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)
 

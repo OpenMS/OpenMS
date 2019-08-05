@@ -260,7 +260,6 @@ set(math_executables_list
   BilinearInterpolation_test
   BSpline2d_test
   CubicSpline2d_test
-  CumulativeBinomial_test
   EmgGradientDescent_test
   GammaDistributionFitter_test
   GaussFitter_test
@@ -537,6 +536,7 @@ set(analysis_executables_list
   TransformationModelLowess_test
   TransformationModelInterpolated_test
   TransformationModelLinear_test
+  XFDRAlgorithm_test
   XQuestScores_test
 )
 

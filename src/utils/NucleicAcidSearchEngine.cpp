@@ -780,7 +780,7 @@ protected:
         match.peak_annotations[id_data.getCurrentProcessingStep()] =
           hit.annotations;
         // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
-        match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
+        match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.isotope);
         if (!hit.adduct.empty()) match.setMetaValue("adduct", hit.adduct);

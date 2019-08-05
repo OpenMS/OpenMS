@@ -53,7 +53,7 @@
 		<userParam name="mzml_id" type="xsd:string" value="IMM_3.6_014"/>
 		<chromatogramList count="42" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="" index="0" defaultArrayLength="3">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="217" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -84,7 +84,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="1" defaultArrayLength="3">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="218" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -115,7 +115,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="2" defaultArrayLength="4">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="219" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -146,7 +146,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="3" defaultArrayLength="4">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="220" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -177,7 +177,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="4" defaultArrayLength="4">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="221" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -208,7 +208,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="5" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="222" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -239,7 +239,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="6" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="223" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -270,7 +270,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="7" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="245" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -301,7 +301,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="8" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="246" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -332,7 +332,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="9" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="247" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -363,7 +363,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="10" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="248" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -394,7 +394,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="11" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="249" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -425,7 +425,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="12" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="250" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -456,7 +456,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="13" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="307" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -487,7 +487,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="14" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="308" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -518,7 +518,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="15" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="309" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -549,7 +549,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="16" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="310" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -580,7 +580,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="17" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="311" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -611,7 +611,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="18" defaultArrayLength="3">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="357" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -642,7 +642,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="19" defaultArrayLength="3">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="358" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -673,7 +673,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="20" defaultArrayLength="3">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="359" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -704,7 +704,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="21" defaultArrayLength="2">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="360" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -735,7 +735,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="22" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -766,7 +766,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="23" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="401" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -797,7 +797,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="24" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="402" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -828,7 +828,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="25" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="403" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -859,7 +859,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="26" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="404" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -890,7 +890,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="27" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="445" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -921,7 +921,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="28" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="446" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -952,7 +952,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="29" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="447" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -983,7 +983,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="30" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="448" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1014,7 +1014,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="31" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="449" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1045,7 +1045,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="32" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1076,7 +1076,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="33" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="472" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1107,7 +1107,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="34" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="473" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1138,7 +1138,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="35" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="474" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1169,7 +1169,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="36" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="475" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1200,7 +1200,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="37" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="476" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1231,7 +1231,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="38" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="765" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1262,7 +1262,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="39" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="767" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1293,7 +1293,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="40" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="769" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1324,7 +1324,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="" index="41" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="770" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />

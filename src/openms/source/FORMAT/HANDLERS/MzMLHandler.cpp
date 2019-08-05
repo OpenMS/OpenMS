@@ -121,7 +121,7 @@ namespace OpenMS
     void MzMLHandler::getCounts(Size& spectra_counts, Size& chromatogram_counts)
     {
       if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
-      { 
+      {
         spectra_counts = std::max(scan_count_total_, 0); // default is -1; if no specs were found, report 0
         chromatogram_counts = std::max(chrom_count_total_, 0);
       }
@@ -252,7 +252,7 @@ namespace OpenMS
       chromatogram_data_.clear();
     }
 
-    void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
+    void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                            const Size n,
                                            SpectrumType& spectrum) const
     {
@@ -422,10 +422,10 @@ namespace OpenMS
 
       // the most common case: no ranges, 64 / 32 precision
       //  -> this saves about 10 % load time
-      if ( mz_precision_64 && !int_precision_64 && 
-           input_data.size() == 2 &&  
-           !peak_file_options.hasMZRange() && 
-           !peak_file_options.hasIntensityRange() 
+      if ( mz_precision_64 && !int_precision_64 &&
+           input_data.size() == 2 &&
+           !peak_file_options.hasMZRange() &&
+           !peak_file_options.hasIntensityRange()
          )
       {
         std::vector< double >::const_iterator mz_it = input_data[mz_index].floats_64.begin();
@@ -457,7 +457,7 @@ namespace OpenMS
           // Only if there are more than 2 data arrays, we need to check
           // for meta data (as there will always be an m/z and intensity
           // array)
-          if (input_data.size() > 2) 
+          if (input_data.size() > 2)
           {
             addSpectrumMetaData_(input_data, n, spectrum);
           }
@@ -872,7 +872,7 @@ namespace OpenMS
       {
         current_id_ = attributeAsString_(attributes, s_id);
         // Name of the source file, without reference to location (either URI or local path). e.g. "control.mzML"
-        String name_of_file = attributeAsString_(attributes, s_name); 
+        String name_of_file = attributeAsString_(attributes, s_name);
 
         //URI-formatted location where the file was retrieved.
         String path_to_file = attributeAsString_(attributes, s_location);
@@ -1193,7 +1193,7 @@ namespace OpenMS
           else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
           }
           */
-          
+
           // Move current data to (temporary) spectral data object
           SpectrumData tmp;
           tmp.spectrum = std::move(spec_);
@@ -3362,7 +3362,7 @@ namespace OpenMS
           {
             unitstring = "MS:" + unitstring;
           }
-          else 
+          else
           {
             warning(LOAD, String("Unhandled unit ontology '") );
           }
@@ -3456,7 +3456,7 @@ namespace OpenMS
               {
                 unitstring = "MS:" + unitstring;
               }
-              else 
+              else
               {
                 warning(LOAD, String("Unhandled unit ontology '") );
               }
@@ -4222,7 +4222,7 @@ namespace OpenMS
         {
           for (Size i = 0; i < exp[s].getFloatDataArrays()[m].getDataProcessing().size(); ++i)
           {
-            writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i, 
+            writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i,
                 exp[s].getFloatDataArrays()[m].getDataProcessing()[i]->getSoftware(), validator);
           }
         }
@@ -4833,7 +4833,7 @@ namespace OpenMS
       {
         for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
         {
-          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, 
+          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m,
               exp[s].getFloatDataArrays()[m].getDataProcessing(), validator);
         }
       }
@@ -5028,7 +5028,7 @@ namespace OpenMS
       for (Size j = 0; j < spec.getAcquisitionInfo().size(); ++j)
       {
         const Acquisition& ac = spec.getAcquisitionInfo()[j];
-        os << "\t\t\t\t\t<scan "; // TODO 
+        os << "\t\t\t\t\t<scan "; // TODO
         if (ac.getIdentifier() != "")
         {
           os << "externalSpectrumID=\"" << ac.getIdentifier() << "\"";
@@ -5036,7 +5036,7 @@ namespace OpenMS
         os << ">\n";
         if (j == 0)
         {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() 
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT()
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
           // if drift time was never set, don't report it
           if (spec.getDriftTime() >= 0.0)
@@ -5448,7 +5448,7 @@ namespace OpenMS
       // write cvParams (chromatogram type)
       if (chromatogram.getChromatogramType() == ChromatogramSettings::MASS_CHROMATOGRAM)
       {
-        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"mass chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"ion current chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
       {
