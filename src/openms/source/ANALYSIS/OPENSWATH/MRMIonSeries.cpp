@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -528,8 +527,7 @@ namespace OpenMS
                 *ft_it + " ion series for peptide sequence \"" + sequence.toString() +
                 "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
           }
-
-          std::cout << *ft_it + String(i) + "^" + String(charge) << ":" << Math::roundDecimal(pos, round_decPow) << std::endl; 
+          
           ionseries[*ft_it + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);
 
           for (Size j = 0; j < ion.size(); ++j)
