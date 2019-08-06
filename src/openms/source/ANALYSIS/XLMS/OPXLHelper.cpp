@@ -1190,12 +1190,21 @@ namespace OpenMS
     {
       pep_id.sort();
       vector<PeptideHit>& phs = pep_id.getHits();
-      for (Size rank = 0; rank < phs.size()-1; ++rank)
+
+      // at least two PeptideHits needed for an actual delta score
+      if (phs.size() > 1)
       {
-        double delta_score = phs[rank+1].getScore() / phs[rank].getScore();
-        phs[rank].setMetaValue(Constants::UserParam::DELTA_SCORE, delta_score);
+        for (Size rank = 0; rank < phs.size()-1; ++rank)
+        {
+          double delta_score = phs[rank+1].getScore() / phs[rank].getScore();
+          phs[rank].setMetaValue(Constants::UserParam::DELTA_SCORE, delta_score);
+        }
       }
-      phs[phs.size()-1].setMetaValue(Constants::UserParam::DELTA_SCORE, 0.0);
+      // set delta score to 0 for the last ranked PeptideHit, or if only one Peptide hit is available
+      if (phs.size() > 0)
+      {
+        phs[phs.size()-1].setMetaValue(Constants::UserParam::DELTA_SCORE, 0.0);
+      }
     }
   }
 
