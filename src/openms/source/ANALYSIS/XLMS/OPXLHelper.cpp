@@ -1188,6 +1188,7 @@ namespace OpenMS
   {
     for (PeptideIdentification& pep_id : peptide_ids)
     {
+      pep_id.sort();
       vector<PeptideHit>& phs = pep_id.getHits();
       for (Size rank = 0; rank < phs.size()-1; ++rank)
       {
