@@ -1188,27 +1188,13 @@ namespace OpenMS
   {
     for (PeptideIdentification& pep_id : peptide_ids)
     {
-      // instead of assuming that the 1st ranked hit is also 1st in order,
-      // make an index of the position for each rank
-      vector<int> rank_indices(pep_id.getHits().size(), 0);
-      for (Size i = 0; i < rank_indices.size(); ++i)
+      vector<PeptideHit>& phs = pep_id.getHits();
+      for (Size rank = 0; rank < phs.size()-1; ++rank)
       {
-        PeptideHit& ph = pep_id.getHits()[i];
-        rank_indices[int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK))-1] = i;
+        double delta_score = phs[rank+1].getScore() / phs[rank].getScore();
+        phs[rank].setMetaValue(Constants::UserParam::DELTA_SCORE, delta_score);
       }
-
-      // calculate the delta scores and store them as a MetaValue
-      for (Size rank = 0; rank < rank_indices.size()-1; ++rank)
-      {
-        PeptideHit& first = pep_id.getHits()[rank_indices[rank + 1]];
-        PeptideHit& second = pep_id.getHits()[rank_indices[rank]];
-
-        double delta_score = first.getScore()
-                             / second.getScore();
-
-        second.setMetaValue(Constants::UserParam::DELTA_SCORE, delta_score);
-      }
-      pep_id.getHits()[rank_indices.back()].setMetaValue(Constants::UserParam::DELTA_SCORE, 0.0);
+      phs[phs.size()-1].setMetaValue(Constants::UserParam::DELTA_SCORE, 0.0);
     }
   }
 

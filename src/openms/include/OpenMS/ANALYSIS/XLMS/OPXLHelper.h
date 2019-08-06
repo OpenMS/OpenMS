@@ -218,7 +218,7 @@ namespace OpenMS
       static void addPercolatorFeatureList(ProteinIdentification& prot_id);
 
       /**
-       * @brief adds the delta score as a MetaValue
+       * @brief adds the delta score as a MetaValue, assumes the hits under each PeptideIdentification are ordered by score rank
        * @param peptide_ids The vector of peptide_ids containing XL-MS search results without beta PeptideHits
        */
       static void computeDeltaScores(std::vector< PeptideIdentification >& peptide_ids);
