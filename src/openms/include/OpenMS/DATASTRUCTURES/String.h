@@ -553,6 +553,8 @@ public:
       const char* begin_;
       Size size_;
   };
+	
+  OPENMS_DLLAPI ::size_t hash_value(OpenMS::String const& s);
 } // namespace OpenMS
 
 namespace std
@@ -565,7 +567,3 @@ namespace std
     }
   };
 } // namespace std
-namespace boost
-{
-	OPENMS_DLLAPI ::size_t hash_value(OpenMS::String const& s);
-}

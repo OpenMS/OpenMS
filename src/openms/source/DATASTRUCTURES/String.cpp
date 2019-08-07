@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <boost/functional/hash.hpp>
+
 using namespace std;
 
 namespace OpenMS
@@ -526,13 +528,11 @@ namespace OpenMS
     this->append(s);
     return *this;
   }
+  
+  ::size_t hash_value(String const& s)
+  {
+    boost::hash<std::string> hasher;
+    return hasher(static_cast<std::string>(s));
+  }
 
 } // namespace OpenMS
-
-namespace boost
-{
-	::size_t hash_value(OpenMS::String const& s)
-  {
-		return std::hash<std::string>()(static_cast<std::string>(s));
-	}
-}
