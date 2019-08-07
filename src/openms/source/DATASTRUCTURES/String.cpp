@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <boost/functional/hash.hpp>
+
 using namespace std;
 
 namespace OpenMS
