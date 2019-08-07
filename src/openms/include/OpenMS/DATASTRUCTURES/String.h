@@ -567,8 +567,3 @@ namespace std
     }
   };
 } // namespace std
-
-namespace boost
-{
-  OPENMS_DLLAPI ::size_t hash_value(OpenMS::String const& s);
-} // namespace boost
