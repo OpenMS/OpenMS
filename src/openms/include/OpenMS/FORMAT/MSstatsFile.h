@@ -92,8 +92,10 @@ namespace OpenMS
         typedef OpenMS::Peak2D::IntensityType Intensity;
         typedef OpenMS::Peak2D::CoordinateType Coordinate;
 
-        const String na_string = "NA";
-
+        static const String na_string_;
+        static const char delim_ = ',';
+        static const char accdelim_ = ';';
+        static const char quote_ = '"';
 
         /*
          *  @brief: Struct to aggregate intermediate information from ConsensusFeature and ConsensusMap,
@@ -300,7 +302,6 @@ namespace OpenMS
         void constructFile_(const String& retention_time_summarization_method,
                            const bool rt_summarization_manual,
                            TextFile& csv_out,
-                           const String& delim,
                            const std::set<String>& peptideseq_quantifyable,
                            LineType & peptideseq_to_prefix_to_intensities) const;
 

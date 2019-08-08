@@ -41,6 +41,8 @@ using namespace std;
 OpenMS::MSstatsFile::MSstatsFile() = default;
 OpenMS::MSstatsFile::~MSstatsFile() = default;
 
+const OpenMS::String OpenMS::MSstatsFile::na_string_ = "NA";
+
 void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection,
                                              const String& bioreplicate,
                                              const String& condition)
@@ -122,11 +124,12 @@ OpenMS::MSstatsFile::AggregatedConsensusInfo OpenMS::MSstatsFile::aggregateInfo_
   return aggregatedInfo;
 }
 
+//@todo LineType should be a template only for the line, not for the whole
+// mapping structure. More exact type matching/info then.
 template <class LineType>
 void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarization_method,
                                          const bool rt_summarization_manual,
                                          TextFile& csv_out,
-                                         const String& delim,
                                          const std::set<String>& peptideseq_quantifyable,
                                          LineType& peptideseq_to_prefix_to_intensities) const
 
@@ -145,7 +148,7 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
       set<OpenMS::MSstatsFile::Intensity> intensities{};
       for (const auto &p : line.second)
       {
-        if (retention_times.find(p.second) != retention_times.end())
+        if (retention_times.find(get<1>(p)) != retention_times.end())
         {
           OPENMS_LOG_WARN << "Peptide ion appears multiple times at the same retention time."
                              " This is not expected."
@@ -153,8 +156,8 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
         }
         else
         {
-          retention_times.insert(p.second);
-          intensities.insert(p.first);
+          retention_times.insert(get<1>(p));
+          intensities.insert(get<0>(p));
         }
       }
 
@@ -171,10 +174,12 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
       // If the rt summarization method is set to manual, we simply output all it,rt pairs
       if (rt_summarization_manual)
       {
-        for (const auto &intensity : line.second)
+        for (const auto &ity_rt_file : line.second)
         {
+          //RT, common prefix items, intensity, "unique ID (file+spectrumID)"
           csv_out.addLine(
-              OpenMS::String(intensity.second) + ',' + line.first.toString() + ',' + OpenMS::String(intensity.first));
+              String(get<1>(ity_rt_file)) + ',' + line.first.toString() + ',' + String(get<0>(ity_rt_file)) + ','
+              + quote_ + get<2>(ity_rt_file) + quote_);
         }
       }
       // Otherwise, the intensities are resolved over the retention times
@@ -197,7 +202,11 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
         {
           intensity = sumIntensity_(intensities);
         }
-        csv_out.addLine(line.first.toString() + delim + OpenMS::String(intensity));
+        //common prefix items, aggregated intensity, "unique ID (file of first spectrum in the set of 'same')"
+        //@todo we could collect all spectrum references contributing to this intensity instead
+        csv_out.addLine(
+            line.first.toString() + delim_ + OpenMS::String(intensity) + delim_ + quote_ +
+            get<2>(*line.second.begin()) + quote_);
       }
     }
   }
@@ -239,7 +248,10 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
 
   if (rt_summarization_manual)
   {
-    cout << "WARNING: One feature might appear at multiple retention times in the output file. This is invalid input for MSstats. Combining of features over retention times is needed!" << endl;
+    OPENMS_LOG_WARN << "WARNING: rt_summarization set to manual."
+                       " One feature might appear at multiple retention times in the output file."
+                       " This is invalid input for standard MSstats."
+                       " Combining of features over retention times is recommended!" << endl;
   }
 
   ExperimentalDesign::MSFileSection msfile_section = design.getMSFileSection();
@@ -300,7 +312,7 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
     String(rt_summarization_manual ? "RetentionTime,": "") +
     "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,"
     "ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," +
-    String(has_fraction ? "Fraction,": "") + "Intensity");
+    String(has_fraction ? "Fraction,": "") + "Intensity,Reference");
 
   // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
   String isotope_label_type = "L";
@@ -309,7 +321,6 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
     // use the channel_id information (?)
     isotope_label_type = "H";
   }
-  const String delim(",");
 
   if (consensus_map.getProteinIdentifications().empty())
   {
@@ -352,7 +363,7 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
   // - We need to map peptide sequences to full features, because then we can ignore peptides
   //   that are mapped to multiple proteins.
   // - We also need to map to the intensities, such that we combine intensities over multiple retention times.
-  map< String, map< MSstatsLine_, set< pair<Intensity, Coordinate> > > > peptideseq_to_prefix_to_intensities;
+  map< String, map< MSstatsLine_, set< tuple<Intensity, Coordinate, String> > > > peptideseq_to_prefix_to_intensities;
 
   for (Size i = 0; i < aggregatedInfo.features.size(); ++i)
   {
@@ -388,11 +399,11 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
         const Int precursor_charge = pep_hit.getCharge();
 
         // Unused for DDA data anyway
-        String fragment_ion = na_string;
+        String fragment_ion = na_string_;
         String frag_charge = "0";
 
-        String accession  = ListUtils::concatenate(accs,";");
-        if (accession.empty()) accession = na_string; //shouldn't really matter since we skip unquantifyable peptides
+        String accession  = ListUtils::concatenate(accs,accdelim_);
+        if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifyable peptides
 
         // Write new line for each run
         for (Size j = 0; j < aggregatedInfo.consensus_feature_filenames[i].size(); j++)
@@ -429,7 +440,7 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
                   String(run),
                   (has_fraction ? String(fraction) : "")
           );
-          pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
+          tuple<Intensity, Coordinate, String> intensity_retention_time = make_tuple(intensity, retention_time, current_filename);
           peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
         }
       }
@@ -444,11 +455,10 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
   }
 
   constructFile_(retention_time_summarization_method,
-                              rt_summarization_manual,
-                              csv_out,
-                              delim,
-                              peptideseq_quantifyable,
-                              peptideseq_to_prefix_to_intensities);
+                 rt_summarization_manual,
+                 csv_out,
+                 peptideseq_quantifyable,
+                 peptideseq_to_prefix_to_intensities);
 
   // Store the final assembled CSV file
   csv_out.store(filename);
@@ -497,11 +507,14 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
   map< pair< String, unsigned >, unsigned> path_label_to_fractiongroup = design.getPathLabelToFractionGroupMapping(true);
 
   // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
-  const bool rt_summarization_manual(retention_time_summarization_method == "manual");
+  bool rt_summarization_manual(retention_time_summarization_method == "manual");
 
-  if (rt_summarization_manual)
+  if (!rt_summarization_manual)
   {
-    cout << "WARNING: One feature might appear at multiple retention times in the output file. This is invalid input for MSstats. Combining of features over retention times is needed!" << endl;
+    OPENMS_LOG_WARN << "WARNING: rt_summarization set to something else than 'manual' but MSstatsTMT does aggregation of"
+            " intensities of peptide-chargestate combinations in the same file itself."
+            " Reverting to 'manual'" << endl;
+    rt_summarization_manual = true;
   }
 
   ExperimentalDesign::MSFileSection msfile_section = design.getMSFileSection();
@@ -560,10 +573,8 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
   TextFile csv_out;
   csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") +
     "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture," +
-    String(has_fraction ? "Fraction,": "") +
-    "Intensity");
+    String(has_fraction ? "Fraction,": "") + "Intensity,Reference");
 
-  const String delim(",");
 
   // We quantify indistinguishable groups with one (corner case) or multiple proteins.
   // If indistinguishable groups are not annotated (no inference or only trivial inference has been performed) we assume
@@ -580,7 +591,7 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
   // We need to map peptide sequences to full features, because then we can ignore peptides
   // that are mapped to multiple proteins. We also need to map to the
   // intensities, such that we combine intensities over multiple retention times.
-  map< String, map< MSstatsTMTLine_, set< pair<Intensity, Coordinate> > > > peptideseq_to_prefix_to_intensities;
+  map< String, map< MSstatsTMTLine_, set< tuple<Intensity, Coordinate, String> > > > peptideseq_to_prefix_to_intensities;
 
   for (Size i = 0; i < AggregatedInfo.features.size(); ++i)
   {
@@ -588,6 +599,12 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
 
     for (const OpenMS::PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
     {
+      String nativeID = "NONATIVEID";
+      if (pep_id.metaValueExists("spectrum_reference"))
+      {
+        nativeID = pep_id.getMetaValue("spectrum_reference");
+      }
+
       for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
       {
         // Variables of the peptide hit
@@ -611,8 +628,8 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
           continue; // we dont need the rest of the loop
         }
 
-        String accession = ListUtils::concatenate(accs,delim);
-        if (accession.empty()) accession = na_string; //shouldn't really matter since we skip unquantifyable peptides
+        String accession = ListUtils::concatenate(accs,accdelim_);
+        if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifyable peptides
 
         // Write new line for each run
         for (Size j = 0; j < AggregatedInfo.consensus_feature_filenames[i].size(); j++)
@@ -646,7 +663,13 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
               String(techrepmixture),
               (has_fraction ? String(fraction) : "")
           );
-          pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
+
+          String identifier = current_filename;
+          if (rt_summarization_manual)
+          {
+            identifier += "_" + nativeID;
+          }
+          tuple<Intensity, Coordinate, String> intensity_retention_time = make_tuple(intensity, retention_time, identifier);
           peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
         }
       }
@@ -663,7 +686,6 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
   constructFile_(retention_time_summarization_method,
                  rt_summarization_manual,
                  csv_out,
-                 delim,
                  peptideseq_quantifyable,
                  peptideseq_to_prefix_to_intensities);
 
@@ -671,7 +693,7 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
   csv_out.store(filename);
 }
 
-bool OpenMS::MSstatsFile::checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second)
+bool OpenMS::MSstatsFile::checkUnorderedContent_(const std::vector<String> &first, const std::vector<String> &second)
 {
   const std::set< String > lhs(first.begin(), first.end());
   const std::set< String > rhs(second.begin(), second.end());
@@ -680,7 +702,7 @@ bool OpenMS::MSstatsFile::checkUnorderedContent_(const std::vector< String> &fir
 }
 
 void OpenMS::MSstatsFile::assembleRunMap_(
-    std::map< std::pair< OpenMS::String, unsigned>, unsigned> &run_map,
+    std::map< std::pair<OpenMS::String, unsigned>, unsigned> &run_map,
     const OpenMS::ExperimentalDesign &design)
 {
   run_map.clear();
