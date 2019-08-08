@@ -41,6 +41,8 @@ using namespace std;
 OpenMS::MSstatsFile::MSstatsFile() = default;
 OpenMS::MSstatsFile::~MSstatsFile() = default;
 
+const OpenMS::String OpenMS::MSstatsFile::na_string_ = "NA";
+
 void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection,
                                              const String& bioreplicate,
                                              const String& condition)
@@ -128,7 +130,6 @@ template <class LineType>
 void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarization_method,
                                          const bool rt_summarization_manual,
                                          TextFile& csv_out,
-                                         const String& delim,
                                          const std::set<String>& peptideseq_quantifyable,
                                          LineType& peptideseq_to_prefix_to_intensities) const
 
@@ -175,10 +176,10 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
       {
         for (const auto &ity_rt_file : line.second)
         {
-          //RT, common prefix items, intensity, unique ID (file+spectrumID)
+          //RT, common prefix items, intensity, "unique ID (file+spectrumID)"
           csv_out.addLine(
               String(get<1>(ity_rt_file)) + ',' + line.first.toString() + ',' + String(get<0>(ity_rt_file)) + ','
-              + get<2>(ity_rt_file));
+              + quote_ + get<2>(ity_rt_file) + quote_);
         }
       }
       // Otherwise, the intensities are resolved over the retention times
@@ -201,11 +202,11 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
         {
           intensity = sumIntensity_(intensities);
         }
-        //common prefix items, summed intensity, unique ID (file of first spectrum in the set of "same")
+        //common prefix items, aggregated intensity, "unique ID (file of first spectrum in the set of 'same')"
         //@todo we could collect all spectrum references contributing to this intensity instead
         csv_out.addLine(
-            line.first.toString() + delim + OpenMS::String(intensity) + delim +
-            get<2>(*line.second.begin()));
+            line.first.toString() + delim_ + OpenMS::String(intensity) + delim_ + quote_ +
+            get<2>(*line.second.begin()) + quote_);
       }
     }
   }
@@ -320,7 +321,6 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
     // use the channel_id information (?)
     isotope_label_type = "H";
   }
-  const String delim(",");
 
   if (consensus_map.getProteinIdentifications().empty())
   {
@@ -399,11 +399,11 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
         const Int precursor_charge = pep_hit.getCharge();
 
         // Unused for DDA data anyway
-        String fragment_ion = na_string;
+        String fragment_ion = na_string_;
         String frag_charge = "0";
 
-        String accession  = ListUtils::concatenate(accs,";");
-        if (accession.empty()) accession = na_string; //shouldn't really matter since we skip unquantifyable peptides
+        String accession  = ListUtils::concatenate(accs,accdelim_);
+        if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifyable peptides
 
         // Write new line for each run
         for (Size j = 0; j < aggregatedInfo.consensus_feature_filenames[i].size(); j++)
@@ -455,11 +455,10 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
   }
 
   constructFile_(retention_time_summarization_method,
-                              rt_summarization_manual,
-                              csv_out,
-                              delim,
-                              peptideseq_quantifyable,
-                              peptideseq_to_prefix_to_intensities);
+                 rt_summarization_manual,
+                 csv_out,
+                 peptideseq_quantifyable,
+                 peptideseq_to_prefix_to_intensities);
 
   // Store the final assembled CSV file
   csv_out.store(filename);
@@ -512,7 +511,7 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
 
   if (!rt_summarization_manual)
   {
-    OPENMS_LOG_WARN << "WARNING: rt_summarization set to something else thatn 'manual' but MSstatsTMT does aggregation of"
+    OPENMS_LOG_WARN << "WARNING: rt_summarization set to something else than 'manual' but MSstatsTMT does aggregation of"
             " intensities of peptide-chargestate combinations in the same file itself."
             " Reverting to 'manual'" << endl;
     rt_summarization_manual = true;
@@ -576,7 +575,6 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
     "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture," +
     String(has_fraction ? "Fraction,": "") + "Intensity,Reference");
 
-  const String delim(",");
 
   // We quantify indistinguishable groups with one (corner case) or multiple proteins.
   // If indistinguishable groups are not annotated (no inference or only trivial inference has been performed) we assume
@@ -605,7 +603,6 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
       if (pep_id.metaValueExists("spectrum_reference"))
       {
         nativeID = pep_id.getMetaValue("spectrum_reference");
-        std::replace(nativeID.begin(), nativeID.end(), ' ', '_');
       }
 
       for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
@@ -631,8 +628,8 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
           continue; // we dont need the rest of the loop
         }
 
-        String accession = ListUtils::concatenate(accs,delim);
-        if (accession.empty()) accession = na_string; //shouldn't really matter since we skip unquantifyable peptides
+        String accession = ListUtils::concatenate(accs,accdelim_);
+        if (accession.empty()) accession = na_string_; //shouldn't really matter since we skip unquantifyable peptides
 
         // Write new line for each run
         for (Size j = 0; j < AggregatedInfo.consensus_feature_filenames[i].size(); j++)
@@ -689,7 +686,6 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
   constructFile_(retention_time_summarization_method,
                  rt_summarization_manual,
                  csv_out,
-                 delim,
                  peptideseq_quantifyable,
                  peptideseq_to_prefix_to_intensities);
 
