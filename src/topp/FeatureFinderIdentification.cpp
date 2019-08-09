@@ -234,6 +234,9 @@ protected:
       mzml.getOptions().addMSLevel(1);
       mzml.load(in, ffid_algo.getMSData());
 
+      // annotate mzML file
+      features.setPrimaryMSRunPath({in}, ffid_algo.getMSData());
+
       vector<PeptideIdentification> peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
 
@@ -271,11 +274,6 @@ protected:
         MzMLFile().store(chrom_out, ffid_algo.getChromatograms());
         ffid_algo.getChromatograms().clear(true);
       }
-
-      // annotate mzML file
-      StringList feature_msfile_ref;
-      feature_msfile_ref.push_back("file://" + in);
-      features.setPrimaryMSRunPath(feature_msfile_ref);
 
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
     }

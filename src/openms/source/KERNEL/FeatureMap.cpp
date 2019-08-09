@@ -38,6 +38,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
 namespace OpenMS
@@ -361,6 +363,22 @@ namespace OpenMS
       this->setMetaValue("spectra_data", DataValue(s));
     }
   }
+
+
+  void FeatureMap::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
+  {
+    StringList ms_path;
+    e.getPrimaryMSRunPath(ms_path);
+    if (ms_path.size() == 1 && ms_path[0].hasSuffix("mzML") && File::exists(ms_path[0]))
+    {
+      setPrimaryMSRunPath(ms_path);
+    }
+    else
+    {
+      setPrimaryMSRunPath(s);
+    }        
+  }
+
 
   /// get the file path to the first MS run
   void FeatureMap::getPrimaryMSRunPath(StringList& toFill) const

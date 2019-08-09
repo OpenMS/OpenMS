@@ -573,9 +573,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     endProgress();
 
     // add meta data on spectra file
-    StringList ms_runs;
-    spectra.getPrimaryMSRunPath(ms_runs);
-    protein_ids[0].setPrimaryMSRunPath(ms_runs);
+    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
 
     // reindex peptides to proteins
     PeptideIndexing indexer;

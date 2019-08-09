@@ -32,7 +32,11 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/METADATA/ProteinIdentification.h>
+
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <numeric>
@@ -363,6 +367,20 @@ namespace OpenMS
     {
       this->setMetaValue("spectra_data", DataValue(s));
     }
+  }
+
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
+  {
+    StringList ms_path;
+    e.getPrimaryMSRunPath(ms_path);
+    if (ms_path.size() == 1 && ms_path[0].hasSuffix("mzML") && File::exists(ms_path[0]))
+    {
+      setPrimaryMSRunPath(ms_path);
+    }
+    else
+    {
+      setPrimaryMSRunPath(s);
+    }        
   }
 
   /// get the file path to the first MS runs

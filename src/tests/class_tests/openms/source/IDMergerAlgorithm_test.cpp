@@ -49,26 +49,26 @@ START_TEST(IDMergerAlgorithm, "$Id$")
 
       ProteinIdentification pr1;
       pr1.setIdentifier("PR1");
-      pr1.setPrimaryMSRunPath({"f1r1.mzml","f2r1.mzml"});
+      pr1.setPrimaryMSRunPath({"f1r1.mzML","f2r1.mzML"});
       pr1.getHits().emplace_back(0,1,"A","");
       pr1.getHits().emplace_back(0,1,"B","");
       pr1.getHits().emplace_back(0,1,"C","");
       ProteinIdentification pr2;
       pr2.setIdentifier("PR2");
-      pr2.setPrimaryMSRunPath({"f1r2.mzml","f2r2.mzml"});
+      pr2.setPrimaryMSRunPath({"f1r2.mzML","f2r2.mzML"});
       pr2.getHits().emplace_back(0,1,"A","");
       pr2.getHits().emplace_back(0,1,"D","");
       pr2.getHits().emplace_back(0,1,"E","");
       ProteinIdentification pr3;
       pr3.setIdentifier("PR3");
-      pr3.setPrimaryMSRunPath({"f1r3.mzml","f2r3.mzml"});
+      pr3.setPrimaryMSRunPath({"f1r3.mzML","f2r3.mzML"});
       pr3.getHits().emplace_back(0,1,"D","");
       pr3.getHits().emplace_back(0,1,"E","");
       pr3.getHits().emplace_back(0,1,"F","");
       pr3.getHits().emplace_back(0,1,"G","");
       ProteinIdentification pr4; //empty
       pr4.setIdentifier("PR4");
-      pr4.setPrimaryMSRunPath({"control.mzml"});
+      pr4.setPrimaryMSRunPath({"control.mzML"});
 
       PeptideHit ph0{0,1,1,AASequence::fromString("AA")};
       ph0.addPeptideEvidence(PeptideEvidence{"A",1,3,'A','A'});

@@ -40,6 +40,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 namespace OpenMS
 {
 
@@ -562,6 +564,20 @@ namespace OpenMS
       column_description_[i].filename = p;
       ++i;
     }
+  }
+
+  void ConsensusMap::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
+  {
+    StringList ms_path;
+    e.getPrimaryMSRunPath(ms_path);
+    if (ms_path.size() == 1 && ms_path[0].hasSuffix("mzML") && File::exists(ms_path[0]))
+    {
+      setPrimaryMSRunPath(ms_path);
+    }
+    else
+    {
+      setPrimaryMSRunPath(s);
+    }        
   }
 
   void ConsensusMap::getPrimaryMSRunPath(StringList& toFill) const

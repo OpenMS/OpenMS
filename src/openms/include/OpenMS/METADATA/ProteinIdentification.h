@@ -40,10 +40,13 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
+
+
 #include <set>
 
 namespace OpenMS
 {
+  class MSExperiment;
   class PeptideIdentification;
 
   /**
@@ -386,6 +389,8 @@ public:
     void setIdentifier(const String& id);
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
     void setPrimaryMSRunPath(const StringList& s);
+    /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
+    void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
     void addPrimaryMSRunPath(const String& toAdd);
     void addPrimaryMSRunPath(const StringList& toAdd);
     /// get the file path to the first MS run
