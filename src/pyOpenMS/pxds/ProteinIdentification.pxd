@@ -8,6 +8,8 @@ from ProteinHit cimport *
 from DigestionEnzymeProtein cimport *
 from PeptideIdentification cimport *
 from DateTime cimport *
+from MSExperiment cimport *
+
 
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
 
