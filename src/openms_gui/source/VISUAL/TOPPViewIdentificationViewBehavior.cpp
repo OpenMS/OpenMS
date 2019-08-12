@@ -827,8 +827,10 @@ namespace OpenMS
       for (vector<Precursor>::const_iterator it = pcs.begin(); it != pcs.end(); ++it)
       {
         // determine start and stop of isolation window
-        double isolation_window_lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();
-        double isolation_window_upper_mz = it->getMZ() + it->getIsolationWindowUpperOffset();
+        double center_mz = it->metaValueExists("isolation window target m/z") ?
+          double(it->getMetaValue("isolation window target m/z")) : it->getMZ();
+        double isolation_window_lower_mz = center_mz - it->getIsolationWindowLowerOffset();
+        double isolation_window_upper_mz = center_mz + it->getIsolationWindowUpperOffset();
 
         // determine maximum peak intensity in isolation window
         SpectrumType::const_iterator vbegin = spectrum.MZBegin(isolation_window_lower_mz);
