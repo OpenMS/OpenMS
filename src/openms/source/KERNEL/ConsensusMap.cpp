@@ -201,7 +201,7 @@ namespace OpenMS
     {
       UniqueIdIndexer<ConsensusMap>::updateUniqueIdToIndex();
     }
-    catch (Exception::Postcondition /*&e*/) // assign new UID's for conflicting entries
+    catch (Exception::Postcondition&) // assign new UID's for conflicting entries
     {
       Size replaced_uids =  UniqueIdIndexer<ConsensusMap>::resolveUniqueIdConflicts();
       OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
@@ -549,7 +549,7 @@ namespace OpenMS
       for (auto & cd : column_description_)
       {
         cd.second.filename = "UNKNOWN";
-       }
+      }
     } 
     else if (!column_description_.empty() && s.size() != column_description_.size())
     {
@@ -561,6 +561,12 @@ namespace OpenMS
     Size i(0);
     for (auto const & p : s)
     {
+      if (!p.hasSuffix("mzML"))
+      {
+        OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
+                        << "Filename: '" << p << "'" << std::endl;                          
+      }
+
       column_description_[i].filename = p;
       ++i;
     }

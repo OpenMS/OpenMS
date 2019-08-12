@@ -197,7 +197,7 @@ namespace OpenMS
     {
       UniqueIdIndexer<FeatureMap>::updateUniqueIdToIndex();
     }
-    catch (Exception::Postcondition /*&e*/) // assign new UID's for conflicting entries
+    catch (Exception::Postcondition&) // assign new UID's for conflicting entries
     {
       Size replaced_uids =  UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
       OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
@@ -358,10 +358,23 @@ namespace OpenMS
   /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
   void FeatureMap::setPrimaryMSRunPath(const StringList& s)
   {
-    if (!s.empty())
+    if (s.empty())
     {
+      OPENMS_LOG_WARN << "Setting empty MS runs paths." << std::endl;
       this->setMetaValue("spectra_data", DataValue(s));
+      return;
+    } 
+
+    for (const String& filename : s)
+    {
+      if (!filename.hasSuffix("mzML"))
+      {
+        OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
+                        << "Filename: '" << filename << "'" << std::endl;                          
+      }
     }
+
+    this->setMetaValue("spectra_data", DataValue(s));
   }
 
 

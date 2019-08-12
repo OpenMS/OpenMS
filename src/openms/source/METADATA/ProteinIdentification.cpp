@@ -36,6 +36,7 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -363,10 +364,23 @@ namespace OpenMS
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
   {
-    if (!s.empty())
+    if (s.empty())
     {
+      OPENMS_LOG_WARN << "Setting empty MS runs paths." << std::endl;
       this->setMetaValue("spectra_data", DataValue(s));
+      return;
+    }     
+
+    for (const String& filename : s)
+    {
+      if (!filename.hasSuffix("mzML"))
+      {
+        OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
+                        << "Filename: '" << filename << "'" << std::endl;                          
+      }
     }
+
+    this->setMetaValue("spectra_data", DataValue(s));
   }
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
