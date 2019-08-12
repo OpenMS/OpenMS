@@ -142,9 +142,6 @@
 				</scanList>
 				<precursorList count="1">
 					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -213,9 +210,6 @@
 				</scanList>
 				<precursorList count="1">
 					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -263,10 +257,10 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=0">8036</offset>
-		<offset idRef="spectrum=1">12007</offset>
-		<offset idRef="spectrum=2">12788</offset>
-		<offset idRef="spectrum=3">16838</offset>
+		<offset idRef="spectrum=0">8046</offset>
+		<offset idRef="spectrum=1">11847</offset>
+		<offset idRef="spectrum=2">12628</offset>
+		<offset idRef="spectrum=3">16509</offset>
 	</index>
 </indexList>
 <indexListOffset>17756</indexListOffset>

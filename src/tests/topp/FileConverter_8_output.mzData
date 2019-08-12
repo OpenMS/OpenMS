@@ -127,6 +127,7 @@
 							<userParam name="source_file_name" value="pr.dta"/>
 							<userParam name="source_file_path" value="file:///F:/data/Exp03"/>
 							<userParam name="iwname" value="isolationwindow1"/>
+							<userParam name="isolation window target m/z" value="5.55"/>
 							<userParam name="siname" value="selectedion1"/>
 							<userParam name="buffer gas" value="Krypton"/>
 							<userParam name="collision gas" value="Argon"/>
