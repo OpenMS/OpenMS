@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" id="fm_7459857709672936328" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UserParam type="stringList" name="spectra_data" value="[file://./EU_Gliadinextrakt_100ng_25bis40in90min2.RAW]"/>
+	<UserParam type="stringList" name="spectra_data" value="[file://FeatureFinderMetabo_1_input.mzML]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinderMetabo" version="version_string" />
 		<processingAction name="Quantitation" />

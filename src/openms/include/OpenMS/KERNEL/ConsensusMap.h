@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
@@ -290,6 +292,10 @@ public:
 
     /// set the file paths to the primary MS run (stored in ColumnHeaders)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
+
+    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e. 
+    /// If it doesn't exist, fallback to @param s.
+    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
 
     /// returns the MS run path (stored in ColumnHeaders)
     OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;

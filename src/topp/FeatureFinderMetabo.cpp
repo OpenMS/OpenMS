@@ -40,6 +40,8 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/SYSTEM/File.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -367,9 +369,15 @@ protected:
     addDataProcessing_(feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // annotate "spectra_data" metavalue
-    StringList ms_runs;
-    ms_peakmap.getPrimaryMSRunPath(ms_runs);
-    feat_map.setPrimaryMSRunPath(ms_runs);
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      feat_map.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      feat_map.setPrimaryMSRunPath({in}, ms_peakmap);
+    }    
 
     FeatureXMLFile feature_xml_file;
     feature_xml_file.setLogType(log_type_);

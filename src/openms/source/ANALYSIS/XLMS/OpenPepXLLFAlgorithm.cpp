@@ -246,9 +246,8 @@ using namespace OpenMS;
     digestor.setEnzyme(enzyme_name_);
     digestor.setMissedCleavages(missed_cleavages_);
 
-    StringList ms_runs;
-    unprocessed_spectra.getPrimaryMSRunPath(ms_runs);
-    protein_ids[0].setPrimaryMSRunPath(ms_runs);
+    // TODO: this should probably be set in the tool where the input filename is available
+    protein_ids[0].setPrimaryMSRunPath({}, unprocessed_spectra);
 
     ProteinIdentification::SearchParameters search_params = protein_ids[0].getSearchParameters();
     String searched_charges((String(min_precursor_charge_)));

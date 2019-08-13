@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input2.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="3,4,5,6,7" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/media/sachsenb/Samsung_T5/OpenMS/src/tests/topp/OpenPepXLLF_input2.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="3,4,5,6,7" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input2.mzML"/>
+				<UserParam type="string" name="input_mzML" value="/media/sachsenb/Samsung_T5/OpenMS/src/tests/topp/OpenPepXLLF_input2.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
 				<UserParam type="string" name="out_xquest_specxml" value=""/>
 				<UserParam type="int" name="decoy_prefix" value="1"/>
@@ -24,7 +24,7 @@
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="OMS:precursor_mz_error_ppm,OpenPepXL:score,precursor_correction,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 	</SearchParameters>
-	<IdentificationRun date="2019-07-31T13:31:46" search_engine="OpenPepXL" search_engine_version="2.4.0-feature-XLMS-Percolator-2019-07-31" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-08-09T14:43:11" search_engine="OpenPepXL" search_engine_version="2.4.0-develop-2019-08-09" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|P02769|ALBU_BOVIN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -33,7 +33,7 @@
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<UserParam type="string" name="SpectrumIdentificationProtocol" value="MS:1002494"/>
-			<UserParam type="stringList" name="spectra_data" value="[file:///D:\RAW\ETHZurich_2018_05\BSA_PDH_CID/aleitner_C1708_079.raw]"/>
+			<UserParam type="stringList" name="spectra_data" value="[file://OpenPepXLLF_input2.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="440.218688964843977" RT="273.605999999999995" spectrum_reference="controllerType=0 controllerNumber=1 scan=505" >
 			<PeptideHit score="-0.07670961257237" sequence="C(Carbamidomethyl)ASIQK" charge="3" aa_before="R" aa_after="F" start="198" end="203" protein_refs="PH_0" >

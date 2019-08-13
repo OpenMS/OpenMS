@@ -168,6 +168,13 @@ class SimpleSearchEngine :
         return TOPPBase::ExitCodes::INTERNAL_ERROR;
       }
 
+      // MS path already set in algorithm. Overwrite here so we get something testable
+      if (getFlag_("test"))
+      {
+        // if test mode set, add file without path so we can compare it
+        protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in)});
+      }   
+    
       IdXMLFile().store(out, protein_ids, peptide_ids);
 
       return EXECUTION_OK;

@@ -321,9 +321,7 @@ protected:
 
     vector<ProteinIdentification> protein_ids;
     ProteinIdentification protein_id;
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
-    protein_id.setPrimaryMSRunPath(ms_runs);
+    protein_id.setPrimaryMSRunPath({in}, exp);
     vector<PeptideIdentification> peptide_ids;
 
     // read the output of X! Tandem and write it to idXML

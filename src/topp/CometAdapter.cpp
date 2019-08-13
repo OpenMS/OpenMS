@@ -617,7 +617,7 @@ protected:
     writeDebug_(out, 1);
 
     //Whatever the pepXML says, overwrite origin as the input mzML
-    protein_identifications[0].setPrimaryMSRunPath({inputfile_name});
+    protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     //-------------------------------------------------------------

@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -243,6 +244,13 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
     }
+
+    // MS path already set in algorithm. Overwrite here so we get something testable
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_mzml)});
+    }   
 
     // write output
     progresslogger.startProgress(0, 1, "Writing output...");
