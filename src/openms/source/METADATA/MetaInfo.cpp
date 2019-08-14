@@ -55,24 +55,24 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const DataValue& MetaInfo::getValue(const String& name) const
+  const DataValue& MetaInfo::getValue(const String& name, const DataValue& default_value) const
   {
     MapType::const_iterator it = index_to_value_.find(registry_.getIndex(name));
     if (it != index_to_value_.end())
     {
       return it->second;
     }
-    return DataValue::EMPTY;
+    return default_value;
   }
 
-  const DataValue& MetaInfo::getValue(UInt index) const
+  const DataValue& MetaInfo::getValue(UInt index, const DataValue& default_value) const
   {
     MapType::const_iterator it = index_to_value_.find(index);
     if (it != index_to_value_.end())
     {
       return it->second;
     }
-    return DataValue::EMPTY;
+    return default_value;
   }
 
   void MetaInfo::setValue(const String& name, const DataValue& value)

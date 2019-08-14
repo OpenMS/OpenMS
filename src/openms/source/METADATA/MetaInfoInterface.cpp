@@ -136,22 +136,22 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const DataValue& MetaInfoInterface::getMetaValue(const String& name) const
+  const DataValue& MetaInfoInterface::getMetaValue(const String& name, const DataValue& default_value) const
   {
     if (meta_ == nullptr)
     {
-      return DataValue::EMPTY;
+      return default_value;
     }
-    return meta_->getValue(name);
+    return meta_->getValue(name, default_value);
   }
 
-  const DataValue& MetaInfoInterface::getMetaValue(UInt index) const
+  const DataValue& MetaInfoInterface::getMetaValue(UInt index, const DataValue& default_value) const
   {
     if (meta_ == nullptr)
     {
-      return DataValue::EMPTY;
+      return default_value;
     }
-    return meta_->getValue(index);
+    return meta_->getValue(index, default_value);
   }
 
   bool MetaInfoInterface::metaValueExists(const String& name) const
