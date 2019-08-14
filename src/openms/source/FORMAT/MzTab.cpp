@@ -2691,6 +2691,7 @@ Not sure how to handle these:
   MzTab MzTab::exportConsensusMapToMzTab(
     const ConsensusMap& consensus_map,
     const String& filename,
+    const bool first_run_inference_only,
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
     const bool export_subfeatures,
@@ -2720,7 +2721,7 @@ Not sure how to handle these:
     // In this case, the first run is only for inference, get peptide info from the rest of the runs.
     map<pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
     map<String, size_t> idrun_2_run_index;
-    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, true,
+    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only,
                                                map_run_fileidx_2_msfileidx,
                                                idrun_2_run_index);
 
@@ -2915,8 +2916,8 @@ Not sure how to handle these:
       const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
       {
 	    return [f,&row](const String &user_value_key)
-		{
-		  MzTabOptionalColumnEntry opt_entry;
+		    {
+		      MzTabOptionalColumnEntry opt_entry;
           opt_entry.first = "opt_global_" + user_value_key;
           f(user_value_key, opt_entry);
 
@@ -2929,12 +2930,12 @@ Not sure how to handle these:
       for_each(consensus_feature_user_value_keys.begin(), consensus_feature_user_value_keys.end(),
 						addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
 						  {
-							if (c.metaValueExists(key))
-							{
-							  opt_entry.second = MzTabString(c.getMetaValue(key).toString());
-							}
+                if (c.metaValueExists(key))
+                {
+                  opt_entry.second = MzTabString(c.getMetaValue(key).toString());
+                }
 						  })
-	  );
+	    );
 
       // create opt_ columns for psm (PeptideHit) user values
       for_each(peptide_hit_user_value_keys.begin(), peptide_hit_user_value_keys.end(),
@@ -3107,7 +3108,20 @@ Not sure how to handle these:
           }
 
           double curr_score = pep.getHits()[0].getScore();
-          row.search_engine_score_ms_run[1].at(msfile_index) = MzTabDouble(curr_score);
+          auto sit = row.search_engine_score_ms_run[1].find(msfile_index);
+          if (sit == row.search_engine_score_ms_run[1].end())
+          {
+            String ref = "";
+            if (pep.metaValueExists("spectrum_reference"))
+            {
+              ref = pep.getMetaValue("spectrum_reference");
+            }
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                "PSM " + ref + " does not map to an MS file registered in the quantitative metadata. "
+                                                "Check your merging and filtering steps and/or report the issue, please.");
+          }
+          sit->second = MzTabDouble(curr_score);
+
           //TODO assumes same scores & score types
           if ((pep.isHigherScoreBetter() && curr_score > best_score)
           || (!pep.isHigherScoreBetter() && curr_score < best_score))
