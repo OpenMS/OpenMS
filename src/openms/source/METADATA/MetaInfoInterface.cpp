@@ -47,7 +47,7 @@ namespace OpenMS
   }
 
   /// Copy constructor
-  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface & rhs) :
+  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface& rhs) :
     meta_(nullptr)
   {
     if (rhs.meta_ != nullptr)
@@ -69,7 +69,7 @@ namespace OpenMS
     delete(meta_);
   }
 
-  MetaInfoInterface & MetaInfoInterface::operator=(const MetaInfoInterface & rhs)
+  MetaInfoInterface& MetaInfoInterface::operator=(const MetaInfoInterface& rhs)
   {
     if (this == &rhs)
     {
@@ -108,7 +108,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool MetaInfoInterface::operator==(const MetaInfoInterface & rhs) const
+  bool MetaInfoInterface::operator==(const MetaInfoInterface& rhs) const
   {
     if (rhs.meta_ == nullptr && meta_ == nullptr)
     {
@@ -131,12 +131,12 @@ namespace OpenMS
     return *meta_ == *(rhs.meta_);
   }
 
-  bool MetaInfoInterface::operator!=(const MetaInfoInterface & rhs) const
+  bool MetaInfoInterface::operator!=(const MetaInfoInterface& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const DataValue & MetaInfoInterface::getMetaValue(const String & name) const
+  const DataValue& MetaInfoInterface::getMetaValue(const String& name) const
   {
     if (meta_ == nullptr)
     {
@@ -145,7 +145,7 @@ namespace OpenMS
     return meta_->getValue(name);
   }
 
-  const DataValue & MetaInfoInterface::getMetaValue(UInt index) const
+  const DataValue& MetaInfoInterface::getMetaValue(UInt index) const
   {
     if (meta_ == nullptr)
     {
@@ -154,7 +154,7 @@ namespace OpenMS
     return meta_->getValue(index);
   }
 
-  bool MetaInfoInterface::metaValueExists(const String & name) const
+  bool MetaInfoInterface::metaValueExists(const String& name) const
   {
     if (meta_ == nullptr)
     {
@@ -172,19 +172,19 @@ namespace OpenMS
     return meta_->exists(index);
   }
 
-  void MetaInfoInterface::setMetaValue(const String & name, const DataValue & value)
+  void MetaInfoInterface::setMetaValue(const String& name, const DataValue& value)
   {
     createIfNotExists_();
     meta_->setValue(name, value);
   }
 
-  void MetaInfoInterface::setMetaValue(UInt index, const DataValue & value)
+  void MetaInfoInterface::setMetaValue(UInt index, const DataValue& value)
   {
     createIfNotExists_();
     meta_->setValue(index, value);
   }
 
-  MetaInfoRegistry & MetaInfoInterface::metaRegistry()
+  MetaInfoRegistry& MetaInfoInterface::metaRegistry()
   {
     return MetaInfo::registry();
   }
@@ -197,7 +197,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoInterface::getKeys(std::vector<String> & keys) const
+  void MetaInfoInterface::getKeys(std::vector<String>& keys) const
   {
     if (meta_ != nullptr)
     {
@@ -205,7 +205,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoInterface::getKeys(std::vector<UInt> & keys) const
+  void MetaInfoInterface::getKeys(std::vector<UInt>& keys) const
   {
     if (meta_ != nullptr)
     {
@@ -228,7 +228,7 @@ namespace OpenMS
     meta_ = nullptr;
   }
 
-  void MetaInfoInterface::removeMetaValue(const String & name)
+  void MetaInfoInterface::removeMetaValue(const String& name)
   {
     if (meta_ != nullptr)
     {
