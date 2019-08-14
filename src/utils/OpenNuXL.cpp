@@ -337,6 +337,12 @@ class AnnotatedHit
   String best_localization;  
   std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
 
+  size_t tag_unshifted = 0;
+  size_t tag_shifted = 0;
+  size_t tag_XLed = 0;  // tag that contains the transition from unshifted to shifted
+
+  double rank_product = 0;
+
   static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
   {
     return a.score > b.score;
@@ -376,7 +382,7 @@ public:
   static constexpr double MIN_TOTAL_LOSS_IONS = 1; // minimum number of matches to unshifted ions
   static constexpr double MIN_SHIFTED_IONS = 1; // minimum number of matches to shifted ions (applies to XLs only)
   static constexpr Size IA_CHARGE_INDEX = 0;
-  static constexpr Size IA_TAG_INDEX = 1;
+  static constexpr Size IA_RANK_INDEX = 1;
 protected:
 
   void registerOptionsAndFlags_() override
@@ -1327,6 +1333,106 @@ static void scoreShiftedFragments_(
     if (plss_err > ft_da) plss_err = ft_da;
   }
 
+  class OPENMS_DLLAPI OpenNuXLTagger
+  {
+    public:
+      // initalize tagger with minimum/maximum tag length and +- tolerance ppm
+  OpenNuXLTagger(float ppm, size_t min_tag_length = 3, size_t max_tag_length = 65535)
+  {
+    ppm_ = ppm;
+    min_tag_length_ = min_tag_length;
+    max_tag_length_ = max_tag_length;
+    const std::set<const Residue*> aas = ResidueDB::getInstance()->getResidues();
+    for (const auto& r : aas)
+    {
+      const char letter = r->getOneLetterCode()[0]; 
+      const float mass = r->getMonoWeight(Residue::Internal);
+      mass2aa[mass] = letter;
+      //cout << "Mass: " << mass << "\t" << letter << endl; 
+    }
+    min_gap_ = mass2aa.begin()->first - Math::ppmToMass(ppm, mass2aa.begin()->first);
+    max_gap_ = mass2aa.rbegin()->first + Math::ppmToMass(ppm, mass2aa.rbegin()->first);
+  }
+
+  void getTag(const std::vector<float>& mzs, std::set<std::string>& tags) const 
+  {
+    // start peak
+    std::string tag;
+    if (min_tag_length_ > mzs.size()) return; // avoid segfault
+    
+    for (size_t i = 0; i < mzs.size() - min_tag_length_; ++i)
+    {
+      getTag_(tag, mzs, i, tags);
+      tag.clear();
+    }
+  }
+
+      // generate tags from mass vector @mzs using the standard residues in ResidueDB
+  void getTag(const MSSpectrum& spec, std::set<std::string>& tags) const
+  {
+    const size_t N = spec.size();
+    if (N < min_tag_length_) { return; }
+    // copy to float vector (speed)
+    std::vector<float> mzs;
+    mzs.reserve(N);
+    for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
+    getTag(mzs, tags); 
+  }
+
+    private:
+      float min_gap_; // will be set to smallest residue mass in ResidueDB
+      float max_gap_; // will be set to highest residue mass in ResidueDB
+      float ppm_; // < tolerance
+      size_t min_tag_length_; // < minimum tag length
+      size_t max_tag_length_; // < maximum tag length
+      std::map<float, char> mass2aa;
+      char getAAByMass_(float m) const
+      {
+        // fast check for border cases
+        if (m < min_gap_ || m > max_gap_) return ' ';
+        const float delta = Math::ppmToMass(ppm_, m);
+        auto left = mass2aa.lower_bound(m - delta);
+        //if (left == mass2aa.end()) return ' '; // cannot happen, since we checked boundaries above
+        if (fabs(left->second - m) < delta) return left->second;
+        return ' ';
+      }        
+
+    void getTag_(std::string & tag, const std::vector<float>& mzs, const size_t i, std::set<std::string>& tags) const
+    {
+      const size_t N = mzs.size();
+      size_t j = i + 1;
+      // recurse for all peaks in distance < max_gap
+      while (j < N) 
+      {
+        if (tag.size() == max_tag_length_) { return; } // maximum tag size reached? - continue with next parent
+
+        const float gap = mzs[j] - mzs[i];
+        //cout << i << "\t" << j << "\t" << mzs[i] << "\t" << mzs[j] << "\t" << gap << endl;
+        if (gap > max_gap_) { return; } // already too far away - continue with next parent
+        const char aa = getAAByMass_(gap);
+        if (aa == ' ') { ++j; continue; } // can't extend tag
+        tag += aa;
+        getTag_(tag, mzs, j, tags);
+        if (tag.size() >= min_tag_length_) tags.insert(tag);
+        tag.pop_back();  // remove last char
+        ++j;
+      }         
+    }
+  };
+
+
+  double rankProduct_(const MSSpectrum& spectrum, vector<bool> peak_matched)
+  {
+    double rp(0);
+    for (size_t i = 0; i != peak_matched.size(); ++i)
+    {
+      if (!peak_matched[i]) continue;
+      const double rank = 1 + spectrum.getIntegerDataArrays()[IA_RANK_INDEX][i]; // ranks start at 0 -> add 1
+      rp += 1.0/(double)peak_matched.size() * log((double)rank);
+    }
+    return exp(rp);
+  }
+
   void calculateNucleotideTags_(PeakMap& exp, 
     const double fragment_mass_tolerance, 
     const bool fragment_mass_tolerance_unit_ppm,
@@ -1341,6 +1447,31 @@ static void scoreShiftedFragments_(
         adduct_mass.insert(fa.mass);
       }
     }
+
+    // mass shift to residue + adduct (including no adduct)
+    map<double, pair<const Residue*, double> > aa_plus_adduct_mass;
+    auto residues = ResidueDB::getInstance()->getResidues("Natural20");
+
+    for (const double d : adduct_mass)
+    {
+      for (const Residue* r : residues)
+      {
+        double m = d + r->getMonoWeight(Residue::Internal);
+        if (aa_plus_adduct_mass.count(m) > 0) cout << "WARNING: mass " << m << " of residue " << r->getName() << " with adduct " << d <<  " already present." << endl;
+        aa_plus_adduct_mass[m] = {r, d};
+      }
+    }
+    // add mass shits of plain residues
+    for (const Residue* r : residues)
+    {
+      double m = r->getMonoWeight(Residue::Internal);
+      if (aa_plus_adduct_mass.count(m) > 0) cout << "WARNING: mass " << m << " of residue " << r->getName() << " already present." << endl;
+      aa_plus_adduct_mass[m] = {r, 0};
+    }
+
+    map<double, size_t> adduct_mass_count;
+    map<double, size_t> aa_plus_adduct_mass_count;
+
     for (auto & spec : exp)
     {
       if (spec.getMSLevel() != 2) continue;
@@ -1350,7 +1481,8 @@ static void scoreShiftedFragments_(
       for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
       for (auto const& p : spec.getIntegerDataArrays()[IA_CHARGE_INDEX]) { charges.push_back(p); }
  
-      Size match(0), in_mass_range(0);
+      size_t match(0);
+      size_t in_mass_range(0);
       for (Size i = 0; i != mzs.size(); ++i)
       {
         for (Size j = i+1; j < mzs.size(); ++j)
@@ -1361,17 +1493,43 @@ static void scoreShiftedFragments_(
           if (charges[i] != charges[j]) continue;
 
           const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
-          auto left = adduct_mass.lower_bound((dm*charges[i]) - tolerance);
+          auto left = adduct_mass.lower_bound((dm * charges[i]) - tolerance);
           if (left == adduct_mass.end()) continue;
           ++in_mass_range;
-          if (fabs(*left - (dm*charges[i])) < tolerance ) ++match;
+          if (fabs(*left - (dm * charges[i])) < tolerance )
+          {
+            ++match;
+            ++adduct_mass_count[*left];
+          }
+        } 
+      } 
+
+      size_t aa_plus_adduct_match(0);
+      size_t aa_plus_adduct_in_mass_range(0);
+      for (Size i = 0; i != mzs.size(); ++i)
+      {
+        for (Size j = i+1; j < mzs.size(); ++j)
+        {
+          double m =  mzs[j];
+          double dm = m - mzs[i];
+
+          if (charges[i] != charges[j]) continue;
+
+          const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
+          auto left = aa_plus_adduct_mass.lower_bound((dm * charges[i]) - tolerance);
+          if (left == aa_plus_adduct_mass.end()) continue;
+          ++aa_plus_adduct_in_mass_range;
+          if (fabs(left->first - (dm * charges[i])) < tolerance )
+          {
+            ++aa_plus_adduct_match;
+            ++aa_plus_adduct_mass_count[left->first];
+          }
         } 
       } 
 
       spec.getFloatDataArrays().resize(2);
       spec.getFloatDataArrays()[1].push_back((double)match / (double)in_mass_range);
       spec.getFloatDataArrays()[1].setName("nucleotide_mass_tags");
-
 
       spec.getIntegerDataArrays().resize(2);
       // calculate ranks
@@ -1384,10 +1542,51 @@ static void scoreShiftedFragments_(
       sort(idx.begin(), idx.end(),
         [&spec](size_t i1, size_t i2) { return spec[i1].getIntensity() > spec[i2].getIntensity(); });
       
-      for (int rank : idx) spec.getIntegerDataArrays()[IA_TAG_INDEX].push_back(rank);
-      spec.getIntegerDataArrays()[IA_TAG_INDEX].setName("intensity_rank");
-      
+      for (int rank : idx) spec.getIntegerDataArrays()[IA_RANK_INDEX].push_back(rank);
+      spec.getIntegerDataArrays()[IA_RANK_INDEX].setName("intensity_rank");
     }
+/*
+    for (const auto& mra : aa_plus_adduct_mass)
+    {
+      double m = mra.first;
+      const pair<const Residue*, double>& residue_adduct = mra.second;
+      cout << m << "\t" << residue_adduct.first->getOneLetterCode() << "\ŧ" << residue_adduct.second << endl;
+    }
+*/
+
+
+/* 
+    cout << "Distinct residue + adduct pairs: " << aa_plus_adduct_mass_count.size() << endl; 
+    map<const Residue*, map<double, size_t> > aa2mass2count;
+
+    for (const auto& mc : aa_plus_adduct_mass_count)
+    {
+      auto it = aa_plus_adduct_mass.lower_bound(mc.first - 1e-6);
+      if (it == aa_plus_adduct_mass.end()) continue;
+      const Residue* residue = it->second.first;
+      String name = residue->getName();
+      aa2mass2count[residue][mc.first] = mc.second;
+    }
+    cout << "Total counts per residue:" << endl;
+    for (const auto& aa2 : aa2mass2count)
+    {
+      for (const auto m2c : aa2.second)
+      {
+        cout << aa2.first->getName() << "\t" << m2c.first << "\t" << m2c.second << endl; // aa mass count  
+      }
+    }
+    cout << "Normalized counts per residue:" << endl;
+    for (const auto& aa2 : aa2mass2count)
+    {
+      auto& mass2count = aa2.second;
+      for (const auto m2c : mass2count)
+      {
+        // normalize by counts
+        cout << aa2.first->getName() << "\t" << m2c.first << "\t" << (double)m2c.second / mass2count.begin()->second << endl ; // aa mass count  
+      }
+    }
+*/
+
   }
 
   /* @brief Filter spectra to remove noise.
@@ -2414,7 +2613,8 @@ static void scoreShiftedFragments_(
     const Size max_variable_mods_per_peptide,
     const Size scan_index, 
     const MSSpectrum& spec,
-    const vector<PrecursorPurity::PurityScores>& purities)
+    const vector<PrecursorPurity::PurityScores>& purities,
+    const vector<size_t>& nr_candidates)
   {
     pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
     pi.setMetaValue("spectrum_reference", spec.getNativeID());
@@ -2497,6 +2697,10 @@ static void scoreShiftedFragments_(
       ph.setMetaValue(String("NuXL:pl_im_MIC"), ah.pl_im_MIC);
       ph.setMetaValue(String("NuXL:total_Morph"), ah.Morph + ah.pl_Morph);
       ph.setMetaValue(String("NuXL:total_HS"), ah.total_loss_score + ah.partial_loss_score);
+
+      ph.setMetaValue(String("NuXL:tag_XLed"), ah.tag_XLed);
+      ph.setMetaValue(String("NuXL:tag_unshifted"), ah.tag_unshifted);
+      ph.setMetaValue(String("NuXL:tag_shifted"), ah.tag_shifted);
       
       ph.setMetaValue(String("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
@@ -2561,6 +2765,8 @@ static void scoreShiftedFragments_(
       }
 
       ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[1][0]);
+      ph.setMetaValue("nr_candidates", nr_candidates[scan_index]);
+      ph.setMetaValue("NuXL:rank_product", ah.rank_product);
 
       ph.setPeakAnnotations(ah.fragment_annotations);
       ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
@@ -2595,7 +2801,8 @@ static void scoreShiftedFragments_(
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
-    const vector<PrecursorPurity::PurityScores>& purities)
+    const vector<PrecursorPurity::PurityScores>& purities,
+    const vector<size_t>& nr_candidates)
   {
    assert(annotated_XL_hits.size() == annotated_peptide_hits.size());
    SignedSize hit_count = static_cast<SignedSize>(annotated_XL_hits.size());
@@ -2622,7 +2829,8 @@ static void scoreShiftedFragments_(
           max_variable_mods_per_peptide,
           scan_index, 
           spec,
-          purities);
+          purities,
+          nr_candidates);
       }
 
       if (!ahs_peptide.empty())
@@ -2636,7 +2844,8 @@ static void scoreShiftedFragments_(
           max_variable_mods_per_peptide,
           scan_index, 
           spec,
-          purities);
+          purities,
+          nr_candidates);
       }
     }
     // hits have rank and are sorted by score
@@ -2710,8 +2919,12 @@ static void scoreShiftedFragments_(
        << "NuXL:ladder_score"
        << "NuXL:sequence_score"
        << "NuXL:total_Morph"
-       << "NuXL:total_HS";
-
+       << "NuXL:total_HS"
+       << "NuXL:tag_XLed"
+       << "NuXL:tag_unshifted"
+       << "NuXL:tag_shifted"
+       << "nr_candidates"
+       << "NuXL:rank_product";
 #ifdef OPENNUXL_SEPARATE_FEATURES
     for (auto & pi : peptide_ids)
     {
@@ -3142,6 +3355,58 @@ static void scoreShiftedFragments_(
     return out;
   }
 
+  // datastructure to store longest tag in unshifte/shifted sequence and tag spanning the XL position
+  struct XLTags
+  {
+    size_t tag_unshifted = 0;
+    size_t tag_shifted = 0;
+    size_t tag_XLed = 0;  // tag that contains the transition from unshifted to shifted
+  };
+
+  XLTags getLongestTagWithShift(const vector<double>& intL, const vector<double>& intXL)
+  {
+    // calculate longest consecutive unshifted / shifted sequence and longest sequence spanning unshifted + shifted residues
+    // Note to myself: kind of nice and simple algorithm by the way ;)
+    XLTags tags;             
+    vector<int> runL(intL.size(), 0);
+    size_t run(0);
+    for (int l = 0; l != intL.size(); ++l)
+    {
+      if (intL[l] == 0) { run = 0; continue; }
+      ++run;
+      runL[l] = run;
+      if (run > tags.tag_unshifted) tags.tag_unshifted = run;
+    }
+
+    // runL[i] now contains current run length e.g.: 000123400100
+    if (!intXL.empty())
+    {
+      vector<int> runX(intXL.size(), 0);
+      run = 0;
+      for (int x = (int)intXL.size() - 1; x >= 0; --x) // note the reverse order
+      {
+        if (intXL[x] == 0) { run = 0; continue; }
+        ++run;
+        runX[x] = run;
+        if (run > tags.tag_shifted) tags.tag_shifted = run;
+      }
+      // runX[i] now contains the longest run in X starting at position i e.g.: 00003210000
+    
+      //vector<int> runLX(intX.size(), 0);
+      size_t maximum_tag_length(0);
+      // calculate maximum tag that spans linear intensities and at least one XLed amino acid    
+      for (Size i = 0; i < intXL.size() - 1; ++i)
+      {
+        if (runX[i + 1] == 0 || runL[i] == 0) continue; // must have one cross-linked amino acid next to non-cross-linked amino acid
+        const size_t tag_length = runL[i] + runX[i + 1]; // tag length if cross-link is introduced at amino acid i+1
+        if (tag_length > maximum_tag_length) maximum_tag_length = tag_length; 
+      }
+      tags.tag_XLed = maximum_tag_length;
+    }
+    return tags;
+  }
+
+
   ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
@@ -3325,9 +3590,8 @@ static void scoreShiftedFragments_(
                               spectra,
                               multimap_mass_2_scan_index);
 
-
-
     // preallocate storage for PSMs
+    vector<size_t> nr_candidates(spectra.size(), 0);
     vector<vector<AnnotatedHit> > annotated_XLs(spectra.size(), vector<AnnotatedHit>());
     for (auto & a : annotated_XLs) { a.reserve(2 * report_top_hits); }
     vector<vector<AnnotatedHit> > annotated_peptides(spectra.size(), vector<AnnotatedHit>());
@@ -3497,6 +3761,7 @@ static void scoreShiftedFragments_(
 
             if (low_it == up_it) { continue; } // no matching precursor in data
 
+
             // add peaks for b- and y- ions with charge 1 (sorted by m/z)
             // total / complete loss spectra are generated for fast and (slow) full scoring
             if (total_loss_template_z1_b_ions.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
@@ -3517,8 +3782,16 @@ static void scoreShiftedFragments_(
                 // score peptide without NA (same method as fast scoring)
                 for (auto & l = low_it; l != up_it; ++l)
                 {
-                  //const double exp_pc_mass = l->first;
                   const Size & scan_index = l->second.first;
+                  // count candidate for spectrum
+#ifdef _OPENMP
+                  omp_set_lock(&(annotated_peptides_lock[scan_index]));
+                  omp_set_lock(&(annotated_XLs_lock[scan_index]));
+                  ++nr_candidates[scan_index];
+                  omp_unset_lock(&(annotated_XLs_lock[scan_index]));
+                  omp_unset_lock(&(annotated_peptides_lock[scan_index]));
+#endif
+                  //const double exp_pc_mass = l->first;
                   const int & isotope_error = l->second.second;
                   const PeakSpectrum & exp_spectrum = spectra[scan_index];
                   const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
@@ -3551,7 +3824,7 @@ static void scoreShiftedFragments_(
                     tlss_modds,
                     tlss_err,
                     pc_MIC,
-                    im_MIC   
+                    im_MIC
                   );                  
 
                   const double tlss_total_MIC = tlss_MIC + im_MIC + pc_MIC;
@@ -3585,6 +3858,18 @@ static void scoreShiftedFragments_(
                   {
                     ah.sequence_score = ladderScore_(range) / (double)intensity_sum.size();
                   }
+
+                  ah.rank_product = rankProduct_(exp_spectrum, peak_matched);
+
+                  const XLTags longest_tags = getLongestTagWithShift(intensity_sum, vector<double>());
+
+                  // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
+                  if (longest_tags.tag_XLed == 0) continue;
+
+                  ah.tag_XLed = longest_tags.tag_XLed;
+                  ah.tag_unshifted = longest_tags.tag_unshifted;
+                  ah.tag_shifted = longest_tags.tag_shifted;
+
 
                   // combined score
                   const double tags = exp_spectrum.getFloatDataArrays()[1][0];
@@ -3658,6 +3943,14 @@ static void scoreShiftedFragments_(
                   for (auto & l = low_it; l != up_it; ++l)
                   {
                     const Size & scan_index = l->second.first;
+            // count candidate for spectrum
+#ifdef _OPENMP
+            omp_set_lock(&(annotated_peptides_lock[scan_index]));
+            omp_set_lock(&(annotated_XLs_lock[scan_index]));
+            ++nr_candidates[scan_index];
+            omp_unset_lock(&(annotated_XLs_lock[scan_index]));
+            omp_unset_lock(&(annotated_peptides_lock[scan_index]));
+#endif
                     const int & isotope_error = l->second.second;
                     const PeakSpectrum & exp_spectrum = spectra[scan_index];
                     float tlss_MIC(0), 
@@ -3672,7 +3965,7 @@ static void scoreShiftedFragments_(
 
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
-                    vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0);
+                    vector<double> intensity_linear(total_loss_template_z1_b_ions.size(), 0.0);
                     vector<bool> peak_matched(exp_spectrum.size(), false);
 
                     scorePeptideIons_(
@@ -3685,7 +3978,7 @@ static void scoreShiftedFragments_(
                       iip, 
                       fragment_mass_tolerance, 
                       fragment_mass_tolerance_unit_ppm,
-                      intensity_sum,
+                      intensity_linear,
                       peak_matched,
                       hyperScore,
                       tlss_MIC,
@@ -3698,6 +3991,8 @@ static void scoreShiftedFragments_(
 
                     const double tlss_total_MIC = tlss_MIC + im_MIC + pc_MIC;
                     if (badTotalLossScore(hyperScore, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
+
+                    vector<double> intensity_xls(total_loss_template_z1_b_ions.size(), 0.0);
 
                     float plss_MIC(0), 
                       plss_err(1.0), 
@@ -3715,7 +4010,7 @@ static void scoreShiftedFragments_(
                                                partial_loss_template_z1_bions, 
                                                partial_loss_template_z1_yions,
                                                marker_ions_sub_score_spectrum_z1,
-                                               intensity_sum,
+                                               intensity_xls,
                                                peak_matched,
                                                partial_loss_sub_score,
                                                marker_ions_sub_score,
@@ -3727,7 +4022,8 @@ static void scoreShiftedFragments_(
                                                plss_im_MIC);
 
                     const double total_MIC = tlss_MIC + im_MIC + pc_MIC + plss_MIC + plss_pc_MIC + plss_im_MIC + marker_ions_sub_score;
-                       
+
+                    // decreases number of hits (especially difficult cases - but also number of false discoveries)
                     if (badPartialLossScore(tlss_Morph, plss_Morph, plss_MIC, plss_im_MIC, plss_pc_MIC, marker_ions_sub_score))  
                     { 
                       continue; 
@@ -3764,13 +4060,24 @@ static void scoreShiftedFragments_(
                     ah.rna_mod_index = rna_mod_index;
                     ah.isotope_error = isotope_error;
 
-                    auto range = make_pair(intensity_sum.begin(), intensity_sum.end());
-                    ah.ladder_score = ladderScore_(range) / (double)intensity_sum.size(); 
-                    range = longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end());
+                    auto range = make_pair(intensity_linear.begin(), intensity_linear.end());
+                    ah.ladder_score = ladderScore_(range) / (double)intensity_linear.size(); 
+                    range = longestCompleteLadder_(intensity_linear.begin(), intensity_linear.end());
                     if (range.second != range.first)
                     {
-                      ah.sequence_score = ladderScore_(range) / (double)intensity_sum.size();
+                      ah.sequence_score = ladderScore_(range) / (double)intensity_linear.size();
                     }
+
+                    const XLTags longest_tags = getLongestTagWithShift(intensity_linear, intensity_xls);
+
+                    ah.rank_product = rankProduct_(exp_spectrum, peak_matched);
+
+                    ah.tag_XLed = longest_tags.tag_XLed;
+                    ah.tag_unshifted = longest_tags.tag_unshifted;
+                    ah.tag_shifted = longest_tags.tag_shifted;
+
+                    // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
+                    if (longest_tags.tag_XLed == 0) continue;
 
                     // combined score
                     const double tags = exp_spectrum.getFloatDataArrays()[1][0];
@@ -3805,6 +4112,13 @@ static void scoreShiftedFragments_(
               for (auto & l = low_it; l != up_it; ++l)
               {
                 const Size & scan_index = l->second.first;
+#ifdef _OPENMP
+            omp_set_lock(&(annotated_peptides_lock[scan_index]));
+            omp_set_lock(&(annotated_XLs_lock[scan_index]));
+            ++nr_candidates[scan_index];
+            omp_unset_lock(&(annotated_XLs_lock[scan_index]));
+            omp_unset_lock(&(annotated_peptides_lock[scan_index]));
+#endif
                 const int & isotope_error = l->second.second;
                 const double & exp_pc_mass = l->first;
 
@@ -3900,7 +4214,8 @@ static void scoreShiftedFragments_(
                      fixed_modifications, 
                      variable_modifications, 
                      max_variable_mods_per_peptide,
-                     purities);
+                     purities,
+                     nr_candidates);
     progresslogger.endProgress();
 
     // reindex ids
@@ -3933,6 +4248,40 @@ static void scoreShiftedFragments_(
 
     // annotate RNPxl related information to hits and create report
     vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
+
+    // determine average mass error / sd (needs to be after annotate for now)
+    map<size_t, double, std::greater<double>> map_index2ppm;
+    for (size_t index = 0; index != peptide_ids.size(); ++index)
+    {
+       if (peptide_ids[index].getHits().empty()) continue;
+       if (peptide_ids[index].getHits()[0].getMetaValue("target_decoy") == "target")
+       {
+         double ppm_error = peptide_ids[index].getHits()[0].getMetaValue(OpenMS::Constants::PRECURSOR_ERROR_PPM_USERPARAM);
+         map_index2ppm[peptide_ids[index].getHits()[0].getScore()] = ppm_error; 
+       }
+    }
+
+    size_t i(0);
+    double mean(0);
+    for (auto & m : map_index2ppm)
+    {
+       mean += m.second;
+       ++i;
+       if (peptide_ids.size() > 1000 &&  i > peptide_ids.size() / 10) break; 
+    }
+    mean /= i;
+    double sd(0);
+    i = 0; 
+    for (auto & m : map_index2ppm)
+    {
+       sd += pow(m.second - mean, 2.0);
+       ++i;
+       if (peptide_ids.size() > 1000 && i > peptide_ids.size() / 10) break; 
+    }
+    sd = sqrt(1.0/(double)i * sd);
+    cout << "mean ppm error: " << mean << " sd: " << sd << " 3*sd: " << 3*sd << endl;
+    map_index2ppm.clear(); 
+
 
     if (generate_decoys) 
     { 
@@ -3997,7 +4346,8 @@ static void scoreShiftedFragments_(
       }
 
       String percolator_executable = getStringOption_("percolator_executable");
-      if (!percolator_executable.empty())
+      bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) > 1000;
+      if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
       {
         // run percolator on idXML
         String perc_out = out_idxml;
@@ -4078,6 +4428,10 @@ static void scoreShiftedFragments_(
             IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", tmp_prots, pep_pi);
           }
         }
+      }
+      else
+      {
+         if (sufficient_PSMs_for_score_recalibration == false) OPENMS_LOG_WARN << "Too few PSMs for score recalibration. Skipped." << endl;
       }
     }
     else  // no decoys
