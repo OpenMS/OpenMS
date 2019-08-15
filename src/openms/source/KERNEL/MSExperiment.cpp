@@ -532,10 +532,9 @@ namespace OpenMS
 
     if (!iterator->getPrecursors().empty())
     {
-      if (iterator->getPrecursors().size() > 1)
-      {
-        //TODO warn about taking first with the blocking LOG_WARN in such a central class?
-      }
+      //TODO warn about taking first with the blocking LOG_WARN in such a central class?
+      //if (iterator->getPrecursors().size() > 1) ...
+
       const auto precursor = iterator->getPrecursors()[0];
       if (precursor.metaValueExists("spectrum_ref"))
       {
