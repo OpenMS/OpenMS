@@ -685,6 +685,7 @@ namespace OpenMS
       constexpr XMLCh s_sample_ref[] = { 's','a','m','p','l','e','R','e','f' , 0};
       constexpr XMLCh s_software_ref[] = { 's','o','f','t','w','a','r','e','R','e','f' , 0};
       constexpr XMLCh s_source_file_ref[] = { 's','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr XMLCh s_spectrum_ref[] = { 's','p','e','c','t','r','u','m','R','e','f' , 0};
       constexpr XMLCh s_default_instrument_configuration_ref[] = { 'd','e','f','a','u','l','t','I','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
       constexpr XMLCh s_instrument_configuration_ref[] = { 'i','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
       constexpr XMLCh s_default_data_processing_ref[] = { 'd','e','f','a','u','l','t','D','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
@@ -1112,6 +1113,13 @@ namespace OpenMS
           if (optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
           {
             spec_.getPrecursors().back().setMetaValue("external_spectrum_id", external_spectrum_id);
+          }
+
+          //spectrum_ref => meta data
+          String spectrum_ref;
+          if (optionalAttributeAsString_(spectrum_ref, attributes, s_spectrum_ref))
+          {
+            spec_.getPrecursors().back().setMetaValue("spectrum_ref",  spectrum_ref);
           }
           //reset selected ion count
           selected_ion_count_ = 0;
