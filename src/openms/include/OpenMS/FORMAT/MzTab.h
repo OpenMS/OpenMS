@@ -983,6 +983,7 @@ public:
     static MzTab exportConsensusMapToMzTab(
       const ConsensusMap & consensus_map,
       const String & filename,
+      const bool first_run_inference_only,
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
       const bool export_subfeatures,
