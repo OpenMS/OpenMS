@@ -90,6 +90,7 @@ namespace OpenMS
 
       // determine vector of ms file names (in order of appearance)
       vector<String> msfiles;
+      std::map<pair<UInt,UInt>, UInt> fractiongroup_label_to_sample_mapping;
       for (const auto &f : cm.getColumnHeaders())
       {
         if (std::find(msfiles.begin(), msfiles.end(), f.second.filename) == msfiles.end())
@@ -133,17 +134,21 @@ namespace OpenMS
 
         if (experiment_type == "label-free")
         {
+          //since lfq has no labels, samples are defined solely by fraction groups
           r.sample = r.fraction_group;
         }
-        else // MS1 or MS2 labeled
+        else // MS1 or MS2 labeled -> We create one sample for each fractiongroup/label combination
+        // this assumes that fractionation took place after labelling. Otherwise a design needs to be given.
         {
-          r.sample = r.label; //TODO why??
+          //check fractiongroup_label_to_sample_mapping and add if not present, otherwise use present
+          auto key = make_pair(r.fraction_group, r.label);
+          auto it = fractiongroup_label_to_sample_mapping.emplace(key, fractiongroup_label_to_sample_mapping.size()+1);
+          r.sample = it.first->second;
         }
 
         msfile_section.push_back(r);
         if (!sample_section.hasSample(r.sample))
           sample_section.addSample(r.sample);
-
 
       }
 
