@@ -198,7 +198,7 @@
 					</scan>
 				</scanList>
 				<precursorList count="1">
-					<precursor>
+					<precursor spectrumRef="index=1">
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -209,7 +209,6 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="35" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
 							<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
-							<userParam name="spectrum_ref" type="xsd:string" value="index=1"/>
 						</activation>
 					</precursor>
 				</precursorList>
@@ -248,9 +247,9 @@
 	<index name="spectrum">
 		<offset idRef="spectrum=0">8821</offset>
 		<offset idRef="spectrum=1">12030</offset>
-		<offset idRef="spectrum=2">15905</offset>
+		<offset idRef="spectrum=2">15853</offset>
 	</index>
 </indexList>
-<indexListOffset>16744</indexListOffset>
+<indexListOffset>16692</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

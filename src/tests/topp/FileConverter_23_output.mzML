@@ -294,7 +294,7 @@
 					</scan>
 				</scanList>
 				<precursorList count="2">
-					<precursor>
+					<precursor spectrumRef="index=0">
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="5.55" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="6.66" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -319,7 +319,6 @@
 							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="4.2" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
 							<userParam name="source_file_name" type="xsd:string" value="pr.dta"/>
 							<userParam name="source_file_path" type="xsd:string" value="file:///F:/data/Exp03"/>
-							<userParam name="spectrum_ref" type="xsd:string" value="index=0"/>
 							<userParam name="iwname" type="xsd:string" value="isolationwindow1"/>
 							<userParam name="siname" type="xsd:string" value="selectedion1"/>
 							<userParam name="acname" type="xsd:string" value="activation1"/>
@@ -516,14 +515,14 @@
 	<index name="spectrum">
 		<offset idRef="index=0">13958</offset>
 		<offset idRef="index=1">18045</offset>
-		<offset idRef="index=2">26730</offset>
-		<offset idRef="index=3">31540</offset>
+		<offset idRef="index=2">26678</offset>
+		<offset idRef="index=3">31488</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">32878</offset>
-		<offset idRef="sic native">34257</offset>
+		<offset idRef="tic native">32826</offset>
+		<offset idRef="sic native">34205</offset>
 	</index>
 </indexList>
-<indexListOffset>35838</indexListOffset>
+<indexListOffset>35786</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
