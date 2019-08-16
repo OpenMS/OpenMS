@@ -194,9 +194,6 @@ class AnnotatedHit
        Mass error is assumed normally distributed with:
          - mean = 0
          - sd = sqrt(precursor_mass_tolerance) => variance = precursor tolerance
-       Background error (false hits) is assumed uniform in precursor tolerance window.
-           mass_error_prior_negatives = 1.0 / (2.0 * precursor_mass_tolerance);        
-       mass_error_p = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
   */
   float mass_error_p = 0;
 
@@ -342,6 +339,7 @@ class AnnotatedHit
   size_t tag_XLed = 0;  // tag that contains the transition from unshifted to shifted
 
   double rank_product = 0;
+  double wTop50 = 0;
 
   static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
   {
@@ -666,7 +664,6 @@ protected:
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
     const Size N = intensity_sum.size();
     std::vector<float> b_ions(N, 0.0), y_ions(N, 0.0);
-
 
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
@@ -1259,7 +1256,7 @@ score += ah.mass_error_p     *   1.15386068
 
   static float calculateFastScore(const AnnotatedHit& ah)
   {
-	    return + 1.0 * ah.total_loss_score
+    return + 1.0 * ah.total_loss_score
 /*               + 1.0 * ah.total_MIC         
                + 0.333 * ah.mass_error_p*/;
   } 
@@ -1420,17 +1417,40 @@ static void scoreShiftedFragments_(
     }
   };
 
-
-  double rankProduct_(const MSSpectrum& spectrum, vector<bool> peak_matched)
+  struct RankScores
   {
-    double rp(0);
+    double rp = 0; // normalized intensity rank product
+    double wTop50 = 0;
+  };
+
+  RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
+  {
+    double matched = std::accumulate(peak_matched.begin(), peak_matched.end(), 0);
+    double U1(0);
+    size_t c1(0);
+    RankScores r;
     for (size_t i = 0; i != peak_matched.size(); ++i)
     {
-      if (!peak_matched[i]) continue;
-      const double rank = 1 + spectrum.getIntegerDataArrays()[IA_RANK_INDEX][i]; // ranks start at 0 -> add 1
-      rp += 1.0/(double)peak_matched.size() * log((double)rank);
+      if (!peak_matched[i]) 
+      {
+        continue;
+      }
+      else
+      { 
+        const double rank = 1 + spectrum.getIntegerDataArrays()[IA_RANK_INDEX][i]; // ranks start at 0 -> add 1
+        r.rp += 1.0/matched * log((double)rank);
+        U1 += rank;
+        ++c1;
+      }
     }
-    return exp(rp);
+    U1 -= c1 * (c1 + 1.0) / 2.0;
+    size_t c2 = peak_matched.size() - c1;
+    double U2 = c1 * c2 - U1;    
+    double U = std::min(U1, U2);
+    U = (U - 0.5 * c1 * c2) / sqrt(c1*c2*(c1+c2+1.0)/12.0); // normal approximation of test statistic - not sure if this works for small c1/c2
+    r.wTop50 = fabs(U);
+    r.rp = exp(r.rp - 1.0 / matched * lgamma(matched+1)); // = rp / lowest possible rp given number of matches
+    return r;
   }
 
   void calculateNucleotideTags_(PeakMap& exp, 
@@ -2767,6 +2787,7 @@ static void scoreShiftedFragments_(
       ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[1][0]);
       ph.setMetaValue("nr_candidates", nr_candidates[scan_index]);
       ph.setMetaValue("NuXL:rank_product", ah.rank_product);
+      ph.setMetaValue("NuXL:wTop50", ah.wTop50);
 
       ph.setPeakAnnotations(ah.fragment_annotations);
       ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
@@ -2924,7 +2945,8 @@ static void scoreShiftedFragments_(
        << "NuXL:tag_unshifted"
        << "NuXL:tag_shifted"
        << "nr_candidates"
-       << "NuXL:rank_product";
+       << "NuXL:rank_product"
+       << "NuXL:wTop50";
 #ifdef OPENNUXL_SEPARATE_FEATURES
     for (auto & pi : peptide_ids)
     {
@@ -3108,7 +3130,6 @@ static void scoreShiftedFragments_(
     const vector<double> & total_loss_template_z1_b_ions, 
     const vector<double> & total_loss_template_z1_y_ions, 
     const boost::math::normal & gaussian_mass_error,
-    const double & mass_error_prior_negatives,  
     const double & fragment_mass_tolerance,
     const bool & fragment_mass_tolerance_unit_ppm,
     vector<AnnotatedHit> & annotated_hits,
@@ -3157,7 +3178,7 @@ static void scoreShiftedFragments_(
     if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { return; }
 
     const double mass_error_ppm = (current_peptide_mass - exp_pc_mass) / exp_pc_mass * 1e6;
-    const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
+    const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
 
     // add peptide hit
     AnnotatedHit ah;
@@ -3440,9 +3461,6 @@ static void scoreShiftedFragments_(
     // true positives: assumed gaussian distribution of mass error
     // with sigma^2 = precursor_mass_tolerance
     boost::math::normal gaussian_mass_error(0.0, sqrt(precursor_mass_tolerance));
-
-    // random: assumed uniform distribution of mass error
-    const double mass_error_prior_negatives = 1.0 / (2.0 * precursor_mass_tolerance);
 
     bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
     IntList precursor_isotopes = getIntList_("precursor:isotopes");
@@ -3831,8 +3849,7 @@ static void scoreShiftedFragments_(
                   if (badTotalLossScore(hyperScore, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
                   const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
-                  const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) 
-                    / mass_error_prior_negatives;
+                  const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
                   
                   // add peptide hit
                   AnnotatedHit ah;
@@ -3859,17 +3876,17 @@ static void scoreShiftedFragments_(
                     ah.sequence_score = ladderScore_(range) / (double)intensity_sum.size();
                   }
 
-                  ah.rank_product = rankProduct_(exp_spectrum, peak_matched);
+                  RankScores rankscores = rankScores_(exp_spectrum, peak_matched);
+                  ah.rank_product = rankscores.rp;
+                  ah.wTop50 = rankscores.wTop50;
 
                   const XLTags longest_tags = getLongestTagWithShift(intensity_sum, vector<double>());
 
-                  // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
-                  if (longest_tags.tag_XLed == 0) continue;
+                  if (longest_tags.tag_unshifted == 0) continue;
 
                   ah.tag_XLed = longest_tags.tag_XLed;
                   ah.tag_unshifted = longest_tags.tag_unshifted;
                   ah.tag_shifted = longest_tags.tag_shifted;
-
 
                   // combined score
                   const double tags = exp_spectrum.getFloatDataArrays()[1][0];
@@ -4030,7 +4047,7 @@ static void scoreShiftedFragments_(
                     }
 
                     const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
-                    const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / mass_error_prior_negatives;
+                    const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
                     
                     // add peptide hit
                     AnnotatedHit ah;
@@ -4070,7 +4087,9 @@ static void scoreShiftedFragments_(
 
                     const XLTags longest_tags = getLongestTagWithShift(intensity_linear, intensity_xls);
 
-                    ah.rank_product = rankProduct_(exp_spectrum, peak_matched);
+                    RankScores rankscores = rankScores_(exp_spectrum, peak_matched);
+                    ah.rank_product = rankscores.rp;
+                    ah.wTop50 = rankscores.wTop50;
 
                     ah.tag_XLed = longest_tags.tag_XLed;
                     ah.tag_unshifted = longest_tags.tag_unshifted;
@@ -4136,7 +4155,6 @@ static void scoreShiftedFragments_(
                   total_loss_template_z1_b_ions, 
                   total_loss_template_z1_y_ions,
                   gaussian_mass_error,
-                  mass_error_prior_negatives, 
                   fragment_mass_tolerance,
                   fragment_mass_tolerance_unit_ppm,
                   annotated_peptides[scan_index],
