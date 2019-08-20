@@ -38,7 +38,9 @@ cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
         void getKeys(libcpp_vector[String] & keys)
         #void getKeys(libcpp_vector[unsigned int] & keys)
         DataValue getMetaValue(String) nogil except +
+        DataValue getMetaValue(String, DataValue) nogil except +
         #DataValue getMetaValue(unsigned int) nogil except +
+        #DataValue getMetaValue(unsigned int, DataValue) nogil except +
         void setMetaValue(String, DataValue) nogil except +
         #void setMetaValue(unsigned int, DataValue) nogil except +
         bool metaValueExists(String) nogil except +
