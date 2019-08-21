@@ -732,6 +732,10 @@ add_test("TOPP_FileMerger_10_out2" ${DIFF} -in1 FileMerger_10_trafo1.tmp -in2 ${
 set_tests_properties("TOPP_FileMerger_10_out2" PROPERTIES DEPENDS "TOPP_FileMerger_10")
 add_test("TOPP_FileMerger_10_out3" ${DIFF} -in1 FileMerger_10_trafo2.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_10_trafo2.trafoXML)
 set_tests_properties("TOPP_FileMerger_10_out3" PROPERTIES DEPENDS "TOPP_FileMerger_10")
+# append_cols
+add_test("TOPP_FileMerger_11" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_8_input1.consensusXML ${DATA_DIR_TOPP}/FileMerger_8_input2.consensusXML -append_method append_cols -out FileMerger_11.tmp)
+add_test("TOPP_FileMerger_11_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "id=" "location=" "href=" -in1 FileMerger_11.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_11_output.consensusXML )
+set_tests_properties("TOPP_FileMerger_11_out1" PROPERTIES DEPENDS "TOPP_FileMerger_11")
 
 #------------------------------------------------------------------------------
 # GNPSExport tests
