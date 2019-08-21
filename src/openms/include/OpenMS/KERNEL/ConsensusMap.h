@@ -142,6 +142,8 @@ public:
         {
           if (experiment_type != "label-free")
           {
+            // TODO There seem to be files in our test data from the Multiplex toolset that do not annotate
+            //  a channel id but only add the "label" attribute with the SILAC modification. Add a fall-back here?
             OPENMS_LOG_WARN << "No channel id annotated in labelled consensusXML. Assuming only a single channel was used." << std::endl;
           }
           return 1;
