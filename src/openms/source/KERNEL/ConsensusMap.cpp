@@ -283,26 +283,20 @@ namespace OpenMS
           pid.setMetaValue("map_index", lhs_map_size + old_index);
         }
       }
-      
-      // we can't directly update the map index of consensus features
-      // so we need to create a temporary one.
-      ConsensusFeature new_cf;
-      new_cf.setCharge(cf.getCharge());
-      new_cf.setRT(cf.getRT());
-      new_cf.setMZ(cf.getMZ());
-      new_cf.setQuality(cf.getQuality());
-      new_cf.setIntensity(cf.getIntensity());
-      new_cf.setWidth(cf.getWidth());
-      new_cf.getPeptideIdentifications() = cf.getPeptideIdentifications();
 
-      // transfer feature intensities
-      Size element_index(0);
-      for (auto it = cf.begin(); it != cf.end(); ++it, ++element_index)
+      // update map indices
+      ConsensusFeature::HandleSetType new_handles;
+      // std::set only provides const iterators, so we copy
+      for (auto handle : cf) // OMS_CODING_TEST_EXCLUDE
       {
-        new_cf.insert(lhs_map_size + it->getMapIndex(), *it, element_index);
+        //since we only add a constant to the map_index, the set order will not change.
+        handle.setMapIndex(lhs_map_size + handle.getMapIndex());
+        new_handles.insert(handle);
       }
-      
-      emplace_back(new_cf);
+      cf.setFeatures(std::move(new_handles));
+      new_handles.clear();
+
+      emplace_back(cf);
     }
 
     // consistency
@@ -310,7 +304,7 @@ namespace OpenMS
     {
       UniqueIdIndexer<ConsensusMap>::updateUniqueIdToIndex();
     }
-    catch (Exception::Postcondition ) // assign new UID's for conflicting entries
+    catch (Exception::Postcondition&) // assign new UID's for conflicting entries
     {
       Size replaced_uids =  UniqueIdIndexer<ConsensusMap>::resolveUniqueIdConflicts();
       OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";

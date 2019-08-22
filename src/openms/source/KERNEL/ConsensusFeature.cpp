@@ -124,6 +124,11 @@ namespace OpenMS
     peptides_.insert(peptides_.end(), ids.begin(), ids.end());
   }
 
+  void ConsensusFeature::setFeatures(HandleSetType h)
+  {
+    handles_ = std::move(h);
+  }
+
   const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const
   {
     return handles_;
