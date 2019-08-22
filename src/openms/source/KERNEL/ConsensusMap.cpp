@@ -286,7 +286,8 @@ namespace OpenMS
 
       // update map indices
       ConsensusFeature::HandleSetType new_handles;
-      for (auto handle : cf)
+      // std::set only provides const iterators, so we copy
+      for (auto handle : cf) // OMS_CODING_TEST_EXCLUDE
       {
         //since we only add a constant to the map_index, the set order will not change.
         handle.setMapIndex(lhs_map_size + handle.getMapIndex());
