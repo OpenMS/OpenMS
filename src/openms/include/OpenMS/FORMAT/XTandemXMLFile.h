@@ -146,6 +146,18 @@ private:
 
     // modifications used by X! Tandem by default
     ModificationDefinitionsSet default_nterm_mods_;
+
+    enum class GroupType
+    {
+      MODEL,
+      PARAMETERS,
+      SUPPORT
+    };
+
+    // current group type
+    GroupType current_group_type_;
+
+
   };
 
 } // namespace OpenMS
