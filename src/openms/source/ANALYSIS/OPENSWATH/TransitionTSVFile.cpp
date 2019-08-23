@@ -97,9 +97,9 @@ namespace OpenMS
     auto tmp = header_dict.find( header_name );
     if (tmp != header_dict.end() && !String(tmp_line[ tmp->second ]).empty())
     {
-      auto str_value = tmp_line[ tmp->second ];
-      if (str_value == "1" || str_value == "TRUE") value = true;
-      else if (str_value == "0" || str_value == "FALSE") value = false;
+      OpenMS::String str_value = tmp_line[ tmp->second ];
+      if (str_value == "1" || str_value.toUpper() == "TRUE") value = true;
+      else if (str_value == "0" || str_value.toUpper() == "FALSE") value = false;
       else return false;
 
       // all went well, we set the value and can return
