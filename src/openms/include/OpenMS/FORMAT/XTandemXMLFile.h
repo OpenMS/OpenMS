@@ -156,8 +156,7 @@ private:
 
     // current group type
     GroupType current_group_type_;
-
-
+    
   };
 
 } // namespace OpenMS
