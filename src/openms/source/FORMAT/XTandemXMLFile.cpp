@@ -192,6 +192,11 @@ namespace OpenMS
 
     if (tag_ == "aa")
     {
+      if (group_type_stack_.empty())
+      {
+        error(LOAD, String("Found an 'aa' element outside of a 'group'! Please check your input file."));
+      }
+      auto& current_group_type_ = group_type_stack_.top();
       // TODO support "aa" entries in the parameter groups (e.g. to read user-specified amino acids)
       //  currently we just ignore them
       if (current_group_type_ == GroupType::MODEL)
@@ -270,13 +275,13 @@ namespace OpenMS
             aa_seq.setNTerminalModification(res_mod->getFullId());
           }
           else if (res_mod->getTermSpecificity() == ResidueModification::C_TERM)
-            {
-              aa_seq.setCTerminalModification(res_mod->getFullId());
-            }
-            else
-            {
-              aa_seq.setModification(mod_pos, res_mod->getFullId());
-            }
+          {
+            aa_seq.setCTerminalModification(res_mod->getFullId());
+          }
+          else
+          {
+            aa_seq.setModification(mod_pos, res_mod->getFullId());
+          }
           peptide_hits_[current_id_].back().setSequence(aa_seq);
         }
       }
@@ -287,7 +292,7 @@ namespace OpenMS
       String type = attributeAsString_(attributes, "type");
       if (type == "model")
       {
-        current_group_type_ = GroupType::MODEL;
+        group_type_stack_.push(GroupType::MODEL);
         Int index = attributes.getIndex(sm_.convert("z").c_str());
         if (index >= 0)
         {
@@ -297,11 +302,11 @@ namespace OpenMS
       }
       else if (type == "parameter")
       {
-        current_group_type_ = GroupType::PARAMETERS;
+        group_type_stack_.push(GroupType::PARAMETERS);
       }
       else
       {
-        current_group_type_ = GroupType::SUPPORT;
+        group_type_stack_.push(GroupType::SUPPORT);
       }
     }
 
@@ -350,6 +355,10 @@ namespace OpenMS
   void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname));
+    if (tag_ == "group")
+    {
+      group_type_stack_.pop();
+    }
   }
 
   void XTandemXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)

@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <stack>
 
 namespace OpenMS
 {
@@ -147,6 +148,7 @@ private:
     // modifications used by X! Tandem by default
     ModificationDefinitionsSet default_nterm_mods_;
 
+    // the possible type attributes of the group tag elements
     enum class GroupType
     {
       MODEL,
@@ -154,8 +156,10 @@ private:
       SUPPORT
     };
 
-    // current group type
-    GroupType current_group_type_;
+    // stack of types of the group elements
+    // they can be nested (e.g. a support group in a model group)
+    // parsing of child elements sometimes depends on the group type
+    std::stack<GroupType> group_type_stack_;
     
   };
 
