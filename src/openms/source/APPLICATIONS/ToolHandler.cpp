@@ -75,7 +75,7 @@ namespace OpenMS
     tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", "File Handling");
     tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", "File Handling");
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", "File Handling");
-    tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", "Deconvolution");
+    tools_map["FLASHDeconvAlgorithm"] = Internal::ToolDescription("FLASHDeconvAlgorithm", "Deconvolution");
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", "File Handling");
     tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", "Signal processing and preprocessing");
     tools_map["IDConflictResolver"] = Internal::ToolDescription("IDConflictResolver", "ID Processing");
@@ -202,7 +202,7 @@ namespace OpenMS
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     util_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", util_category);
     util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);
-    util_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", util_category);
+    util_map["FLASHDeconvAlgorithm"] = Internal::ToolDescription("FLASHDeconvAlgorithm", util_category);
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", util_category);
