@@ -130,8 +130,6 @@ namespace OpenMS
     if (experiment_type != "label-free")
     {
       OPENMS_LOG_WARN << "Merging untested for labelled experiments" << endl;
-
-
     }
 
     // Unfortunately we need a kind of bimap here.

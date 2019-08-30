@@ -214,7 +214,6 @@ namespace OpenMS
     setMZ(mz / size());
     setIntensity(intensity / size());
     setCharge(charge_most_frequent);
-    return;
   }
 
   void ConsensusFeature::computeMonoisotopicConsensus()

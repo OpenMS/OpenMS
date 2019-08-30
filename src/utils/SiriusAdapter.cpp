@@ -124,7 +124,8 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>", "", "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<executable>", "sirius_openms_plugin-4.0.jar", "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("java_executable", "<executable>", "java", "java executable e.g. java", false, false, ListUtils::create<String>("skipexists"));
 
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -157,6 +158,7 @@ protected:
 
     // param SiriusAdapter
     String executable = getStringOption_("executable");
+    String java_executable = getStringOption_("java_executable");
     String in = getStringOption_("in");
     String out_sirius = getStringOption_("out_sirius");
     String out_csifingerid = getStringOption_("out_fingerid");
@@ -209,8 +211,8 @@ protected:
 
     // write msfile and store the compound information in CompoundInfo Object
     vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
-    bool feature_only = (sirius_algo.getFeatureOnly() == "true") ? true : false;
-    bool no_mt_info = (sirius_algo.getNoMasstraceInfoIsotopePattern() == "true") ? true : false;
+    bool feature_only = sirius_algo.getFeatureOnly() == "true";
+    bool no_mt_info = sirius_algo.getNoMasstraceInfoIsotopePattern() == "true";
     int isotope_pattern_iterations = sirius_algo.getIsotopePatternIterations();
     SiriusMSFile::store(spectra,
                         tmp_ms_file,
@@ -234,8 +236,37 @@ protected:
     subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(tmp_ms_file,
                                                          tmp_out_dir,
                                                          executable,
+                                                         java_executable,
                                                          out_csifingerid,
                                                          sirius_algo);
+
+    if (subdirs.empty() && !getFlag_("force"))
+    {
+      //@todo make a function. even better. do all the stuff in a class that inherits from TOPPBase and use the
+      //  functions there
+
+      // clean tmp directory if debug level < 2
+      if (debug_level_ >= 2)
+      {
+        writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
+      }
+      else
+      {
+        if (!tmp_dir.empty())
+        {
+          writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 0);
+          File::removeDir(tmp_dir.toQString());
+        }
+        if (!tmp_ms_file.empty())
+        {
+          writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
+          File::remove(tmp_ms_file); // remove msfile
+        }
+      }
+      OPENMS_LOG_ERROR << "The Sirius output directory is empty. Nothing to read. Run with sirius:quiet false to"
+                          " see possible errors. Use the force flag to continue with empty results.";
+      return EXTERNAL_PROGRAM_ERROR;
+    }
 
     //-------------------------------------------------------------
     // writing output
@@ -294,12 +325,12 @@ protected:
     }
     else
     {
-      if (tmp_dir.empty() == false)
+      if (!tmp_dir.empty())
       {
         writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 0);
         File::removeDir(tmp_dir.toQString());
       }
-      if (tmp_ms_file.empty() == false)
+      if (!tmp_ms_file.empty())
       {
         writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
         File::remove(tmp_ms_file); // remove msfile

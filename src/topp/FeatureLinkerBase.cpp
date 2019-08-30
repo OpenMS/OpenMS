@@ -226,7 +226,7 @@ protected:
              ++it)
         {
           String adduct;
-          //exception: addduct information
+          //exception: adduct information
           if (it->metaValueExists("dc_charge_adducts"))
           {
             adduct = it->getMetaValue("dc_charge_adducts");

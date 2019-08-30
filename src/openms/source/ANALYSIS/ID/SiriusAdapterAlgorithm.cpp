@@ -39,6 +39,7 @@
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDirIterator>
+#include <QStandardPaths>
 
 #include <fstream>
 
@@ -92,6 +93,8 @@ namespace OpenMS
       defaults_.setValidStrings("sirius:no_recalibration", ListUtils::create<String>("true,false"));
       defaults_.setValue("sirius:most_intense_ms2", "false", "SIRIUS uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", ListUtils::create<String>("advanced"));
       defaults_.setValidStrings("sirius:most_intense_ms2", ListUtils::create<String>("true,false"));
+      defaults_.setValue("sirius:quiet", "true", "If enabled, SIRIUS' output to the console will be suppressed.", ListUtils::create<String>("advanced"));
+      defaults_.setValidStrings("sirius:quiet", ListUtils::create<String>("true,false"));
       defaults_.setSectionDescription("sirius", "Parameters for SIRIUS and CSI:FingerID");
 
       defaultsToParam_();
@@ -132,6 +135,7 @@ namespace OpenMS
       ion_tree_ = param_.getValue("sirius:ion_tree");
       no_recalibration_ = param_.getValue("sirius:no_recalibration");
       most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
+      quiet_ = param_.getValue("sirius:quiet").toBool();
     }   
 
     std::pair<String, String> SiriusAdapterAlgorithm::checkSiriusExecutablePath(String& executable)
@@ -246,7 +250,7 @@ namespace OpenMS
                                                            const MSExperiment& spectra,
                                                            const SiriusAdapterAlgorithm& sirius_algo)
     {
-      bool feature_only = (sirius_algo.feature_only_ == "true") ? true : false;
+      bool feature_only = (sirius_algo.feature_only_ == "true");
       // number of features to be processed 
       if (feature_only && !featureinfo.empty())
       {
@@ -275,12 +279,34 @@ namespace OpenMS
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
                                                                          const String& tmp_out_dir,
                                                                          String& executable,
+                                                                         String& java_executable,
                                                                          const String& out_csifingerid,
                                                                          const SiriusAdapterAlgorithm& sirius_algo)
     {
+      QFileInfo exec(executable.toQString());
+      if (!exec.exists())
+      {
+        QString potential_exec = QStandardPaths::findExecutable(executable.toQString());
+        if (!potential_exec.isEmpty())
+        {
+          exec = QFileInfo(potential_exec);
+        }
+        else
+        {
+          throw OpenMS::Exception::FileNotFound(__FILE__,
+                                             __LINE__,
+                                             __FUNCTION__,
+                                             "Error: Sirius executable not found. Please check parameters and your PATH.");
+        }
+      }
+      QString libpath = exec.absoluteDir().absolutePath(); // + "lib" depending on what we use as reference
+
       // assemble SIRIUS parameters
       QStringList process_params;
-      process_params << "-p" << sirius_algo.profile_.toQString()
+      process_params << "-Djava.library.path="+libpath
+                     << "-classpath" << libpath+"/*"
+                     << "de.unijena.bioinf.ms.cli.SiriusCLIApplication"
+                     << "-p" << sirius_algo.profile_.toQString()
                      << "-e" << sirius_algo.elements_.toQString()
                      << "-d" << sirius_algo.database_.toQString()
                      << "-s" << sirius_algo.isotope_.toQString()
@@ -289,9 +315,11 @@ namespace OpenMS
                      << "--ppm-max" << QString::number(sirius_algo.ppm_max_)
                      << "--compound-timeout" << QString::number(sirius_algo.compound_timeout_)
                      << "--tree-timeout" << QString::number(sirius_algo.tree_timeout_)
-                     << "--processors" << QString::number(sirius_algo.cores_)
-                     << "--quiet"
-                     << "--output" << tmp_out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
+                     << "--processors" << QString::number(sirius_algo.cores_);
+      if (sirius_algo.quiet_)
+        process_params << "--quiet";
+
+      process_params << "--output" << tmp_out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
   
       // add flags 
       if (sirius_algo.no_recalibration_ == "true")
@@ -319,20 +347,20 @@ namespace OpenMS
   
       // the actual process
       QProcess qp;
-      std::pair<String, String> exe_wd = SiriusAdapterAlgorithm::checkSiriusExecutablePath(executable);
-      QString exe = exe_wd.first.toQString();
-      QString wd = exe_wd.second.toQString(); 
-      qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
-      qp.start(exe, process_params); // does automatic escaping etc... start
+      //std::pair<String, String> exe_wd = SiriusAdapterAlgorithm::checkSiriusExecutablePath(executable);
+      //QString exe = exe_wd.first.toQString();
+      //QString wd = exe_wd.second.toQString();
+      //qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
+      qp.start(java_executable.toQString(), process_params); // does automatic escaping etc... start
       std::stringstream ss;
-      ss << "COMMAND: " << String(exe);
+      ss << "COMMAND: " << String(java_executable);
       for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
       {
           ss << " " << it->toStdString();
       }
       OPENMS_LOG_DEBUG << ss.str() << std::endl;
-      OPENMS_LOG_WARN << "Executing: " + String(exe) << std::endl;
-      OPENMS_LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
+      OPENMS_LOG_WARN << "Executing: " + String(java_executable) << std::endl;
+      //OPENMS_LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
       const bool success = qp.waitForFinished(-1); // wait till job is finished
   
       if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
@@ -351,6 +379,14 @@ namespace OpenMS
                                       "FATAL: External invocation of Sirius failed!",
                                        "");
       }
+      else if (!sirius_algo.quiet_) //@todo make it depend on debug level instead
+      {
+        OPENMS_LOG_DEBUG << "Standard output and error of Sirius were:" << std::endl;
+        const QString sirius_stdout(qp.readAllStandardOutput());
+        const QString sirius_stderr(qp.readAllStandardError());
+        OPENMS_LOG_DEBUG << String(sirius_stdout) << std::endl;
+        OPENMS_LOG_DEBUG << String(sirius_stderr) << std::endl;
+      }
       qp.close();
       
       // extract path to subfolders (sirius internal folder structure)
@@ -358,7 +394,7 @@ namespace OpenMS
       QDirIterator it(tmp_out_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
       while (it.hasNext())
       {
-        subdirs.push_back(it.next());
+        subdirs.emplace_back(it.next());
       }
       return subdirs;
     }

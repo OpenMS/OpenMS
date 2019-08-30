@@ -460,7 +460,7 @@ namespace OpenMS
                   // store the map index the precursor was mapped to
                   Size map_index = it_handle->getMapIndex();
 
-                  // we use no undesrscore here to be compatible with linkers
+                  // we use no underscore here to be compatible with linkers
                   precursor_empty_id.setMetaValue("map_index", map_index);
                 }
                 map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);

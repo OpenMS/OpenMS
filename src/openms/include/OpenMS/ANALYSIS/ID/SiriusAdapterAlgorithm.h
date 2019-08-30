@@ -129,6 +129,7 @@ namespace OpenMS
       const static std::vector<String> callSiriusQProcess(const String& tmp_ms_file,
                                                           const String& tmp_out_dir,
                                                           String& executable,
+                                                          String& java_executable,
                                                           const String& out_csifingerid,
                                                           const SiriusAdapterAlgorithm& sirius_algo);
 
@@ -167,6 +168,7 @@ namespace OpenMS
       String ion_tree_;
       String no_recalibration_;
       String most_intense_ms2_;
+      bool quiet_;
 
       void updateMembers_() override;
     };
