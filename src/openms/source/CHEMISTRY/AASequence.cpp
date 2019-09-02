@@ -764,7 +764,6 @@ namespace OpenMS
         {
           return true;
         }
-
       }
     }
     return false;
