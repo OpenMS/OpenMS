@@ -563,12 +563,11 @@ namespace OpenMS
     }
     else
     {
-      String ss = s;
       std::vector<String> fields;
-      ss.split(":", fields);
+      s.split(":", fields);
       if (fields.size() != 2)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can not convert to MzTabSpectraRef from '") + s);
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can not convert to MzTabSpectraRef from '") + s + "'");
       }
 
       spec_ref_ = fields[1];
