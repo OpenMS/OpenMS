@@ -190,7 +190,7 @@ protected:
       /// (metabolic) compound name field is empty, it is a peptide.)
       bool isPeptide() const
       {
-        return CompoundName.empty();
+        return CompoundName.empty() || CompoundName == "NA";
       }
     };
 
