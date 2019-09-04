@@ -339,6 +339,7 @@ protected:
       }
     }
     // mztab writer requires single PIs per CF
+    // adds 'feature_id' metavalue to all PIs before moving them to remember the uniqueID of the CF
     IDConflictResolverAlgorithm::resolve(cmap);
 
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
@@ -347,9 +348,9 @@ protected:
     {
       if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
       {
-        OPENMS_LOG_ERROR << "PeptideIdentification in ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString() 
-                         << ", RT" << pep_id.getRT() << ", m/z " << pep_id.getMZ() << " and identifier '" << pep_id.getIdentifier() 
-                         << "' does not appear in any of the given FeatureXMLs. Check input!\n";
+        OPENMS_LOG_ERROR << "A PeptideIdentification in the ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString() 
+                         << ", RT '" << pep_id.getRT() << "', m/z '" << pep_id.getMZ() << "' and identifier '" << pep_id.getIdentifier() 
+                         << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
         incomplete_features = true;
       }
     });
@@ -367,7 +368,7 @@ protected:
       ConsensusXMLFile().store(out_cm, cmap);
     }
 
-    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true);
+    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
 
     MzTabMetaData meta = mztab.getMetaData();
     // Adding TIC information to meta data
