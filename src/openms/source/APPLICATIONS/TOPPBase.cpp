@@ -1651,17 +1651,23 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "Process '" << String(executable) << "' failed to start. Does it exist? Is it executable?" << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
     } 
-
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    
+    bool failed{false};
+    if ((failed = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)) // proper failure (mind extra brackets for assignment)
+        || debug_level_ > 0 // allow to debug external progs which return success even though they failed, eg. MSGF+
+       )
     {
-      writeLog_("FATAL: External invocation of " + String(executable) + " failed. Standard output and error were:");
       const QString external_sout(qp.readAllStandardOutput());
       const QString external_serr(qp.readAllStandardError());
       writeLog_(external_sout);
       writeLog_(external_serr);
-      writeLog_(String(qp.exitCode()));
-      qp.close();
-      return EXTERNAL_PROGRAM_ERROR;
+      writeLog_("Exit Code: " + String(qp.exitCode()));
+      if (failed)
+      {
+        writeLog_("FATAL: External invocation of " + String(executable) + " failed. Standard output and error are above.");
+        qp.close();
+        return EXTERNAL_PROGRAM_ERROR;
+      }
     }
 
     qp.close();

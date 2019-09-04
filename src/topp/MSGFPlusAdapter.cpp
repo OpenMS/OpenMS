@@ -542,6 +542,13 @@ protected:
 
     if (!out.empty())
     {
+      if (!File::exists(mzid_temp))
+      {
+        OPENMS_LOG_ERROR << "Temporary output file '" << mzid_temp << "' was not created by MSGF+. Please set a debug level > 0 and re-run this tool to diagnose the problem." << endl;
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+
+
       if (getFlag_("legacy_conversion"))
       {
         // run TSV converter
