@@ -8,6 +8,7 @@ OpenPepXLLFAlgorithm.h
 OPXLDataStructs.h
 OPXLHelper.h
 OPXLSpectrumProcessingAlgorithms.h
+XFDRAlgorithm.h
 XQuestScores.h
 )
 

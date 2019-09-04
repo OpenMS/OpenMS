@@ -98,20 +98,18 @@ OpenPepXLLFAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spe
 TEST_EQUAL(exit_code, OpenPepXLLFAlgorithm::EXECUTION_OK)
 TEST_EQUAL(unprocessed_spectra.size(), 127)
 TEST_EQUAL(protein_ids.size(), 1)
-TEST_EQUAL(peptide_ids.size(), 6)
+TEST_EQUAL(peptide_ids.size(), 5)
 TEST_EQUAL(spectra.size(), 127)
 TEST_EQUAL(all_top_csms.size(), 5)
 
-for (Size i = 0; i < peptide_ids.size(); i += 20)
+for (Size i = 0; i < peptide_ids.size(); i += 1)
 {
   auto pep_hits = peptide_ids[i].getHits();
   // the first hit is always the alpha chain
-  TEST_EQUAL(pep_hits[0].getMetaValue("xl_chain"), "MS:1002509")
-  if (pep_hits.size() == 2)
+  TEST_EQUAL(pep_hits[0].metaValueExists("xl_target_decoy_alpha"), true)
+  if (pep_hits[0].getMetaValue("xl_type") == "cross-link")
   {
-    // the second hit is always the beta chain, and only a cross-link has beta peptides
-    TEST_EQUAL(pep_hits[1].getMetaValue("xl_chain"), "MS:1002510")
-    TEST_EQUAL(pep_hits[1].getMetaValue("xl_type"), "cross-link")
+    TEST_EQUAL(pep_hits[0].metaValueExists("BetaPepEv:pre"), true)
   }
 }
 

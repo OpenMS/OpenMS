@@ -128,10 +128,10 @@ namespace OpenMS
        * @param c_term_linker True, if the cross-linker can react with the C-terminal of a protein
        * @return A vector of AASeqWithMass containing the peptides, their masses and information about terminal peptides
        */
-      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, 
+      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db,
         EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2,
-        const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
-        const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
+        const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+        const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
         Size max_variable_mods_per_peptide);
 
       /**
@@ -189,21 +189,39 @@ namespace OpenMS
 
       /**
        * @brief adds MetaValues for cross-link positions to PeptideHits
-       * @param peptide_ids The vector of peptide_ids containing XL-MS search results, after mapping of peptides to proteins
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
        */
       static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids);
 
       /**
        * @brief adds xl_target_decoy MetaValue that combines alpha and beta target_decoy info
-       * @param peptide_ids The vector of peptide_ids containing XL-MS search results, after mapping of peptides to proteins
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
        */
       static void addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids);
 
       /**
        * @brief adds accessions_beta MetaValue to alpha peptides for TOPPView visualization and CSV table output
-       * @param peptide_ids The vector of peptide_ids containing XL-MS search results, after mapping of peptides to proteins
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
        */
       static void addBetaAccessions(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief removes beta peptides from cross-link IDs, since all info is already contained in the alpha peptide hits
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits
+       */
+      static void removeBetaPeptideHits(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief adds the list of features that percolator should use for OpenPepXL
+       * @param search_params The search parameters of OpenPepXL
+       */
+      static void addPercolatorFeatureList(ProteinIdentification& prot_id);
+
+      /**
+       * @brief sorts PeptideHits for each PeptideIdentification by score and adds the delta score as a MetaValue
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results without beta PeptideHits
+       */
+      static void computeDeltaScores(std::vector< PeptideIdentification >& peptide_ids);
 
       /**
        * @brief combines all hits to spectrum pairs with the same light spectrum into one ranked list

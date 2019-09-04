@@ -990,7 +990,7 @@ namespace OpenMS
         row.go_terms.fromCellString(cells[protein_go_terms_index]);
       }
 
-        row.coverage.fromCellString(cells[protein_coverage_index]);
+      row.coverage.fromCellString(cells[protein_coverage_index]);
 
       // quantification data
       for (map<Size, Size>::const_iterator it = protein_abundance_assay_indices.begin(); it != protein_abundance_assay_indices.end(); ++it)
@@ -1162,7 +1162,7 @@ namespace OpenMS
       row.charge.fromCellString(cells[peptide_charge_index]);
       row.mass_to_charge.fromCellString(cells[peptide_mass_to_charge_index]);
 
-        // if (peptide_uri_index != 0) // always false
+      // if (peptide_uri_index != 0) // always false
       // {
       //   row.uri.fromCellString(cells[peptide_uri_index]);
       // }
@@ -1325,7 +1325,8 @@ namespace OpenMS
       row.exp_mass_to_charge.fromCellString(cells[psm_exp_mass_to_charge_index]);
       row.calc_mass_to_charge.fromCellString(cells[psm_calc_mass_to_charge_index]);
 
-        // if (psm_uri_index != 0) // always false
+      // always false
+      // if (psm_uri_index != 0)
       // {
       //   row.uri.fromCellString(cells[psm_uri_index]);
       // }
@@ -2165,7 +2166,7 @@ namespace OpenMS
   std::map<Size, MzTabDouble>::const_iterator sv_stdev_it = row.protein_abundance_stdev_study_variable.begin();
   std::map<Size, MzTabDouble>::const_iterator sv_error_it = row.protein_abundance_std_error_study_variable.begin();
 
-    for (; sv_it != row.protein_abundance_study_variable.end()
+  for (; sv_it != row.protein_abundance_study_variable.end()
        && sv_stdev_it != row.protein_abundance_stdev_study_variable.end()
        && sv_error_it != row.protein_abundance_std_error_study_variable.end();
        ++sv_it, ++sv_stdev_it, ++sv_error_it)
@@ -2837,9 +2838,10 @@ namespace OpenMS
 
   void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   {
-  if (!FileHandler::hasValidExtension(filename, FileTypes::MZTAB))
+  if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
   {
-    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MZTAB) + "'");
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
+    + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
   }
 
   StringList out;

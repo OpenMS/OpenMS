@@ -202,6 +202,7 @@ set(format_executables_list
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
+  # MSstatsFile_test
   MzQuantMLFile_test
   #MzQuantMLValidator_test
   MzXMLFile_test
@@ -259,11 +260,11 @@ set(math_executables_list
   BilinearInterpolation_test
   BSpline2d_test
   CubicSpline2d_test
-  CumulativeBinomial_test
   EmgGradientDescent_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
+  GridSearch_test
   Histogram_test
   LinearInterpolation_test
   LinearRegression_test
@@ -424,6 +425,8 @@ set(analysis_executables_list
   AScore_test
   BaseGroupFinder_test
   BaseSuperimposer_test
+  BasicProteinInferenceAlgorithm_test
+  BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
   CompNovoIdentificationBase_test
   CompNovoIdentificationCID_test
@@ -441,6 +444,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
+  ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   DeNovoAlgorithm_test
   DeNovoIdentification_test
@@ -456,7 +460,9 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   HiddenMarkovModel_test
+  IDBoostGraph_test
   IDMapper_test
+  IDMergerAlgorithm_test
   IDRipper_test
   ILPDCWrapper_test
   IncludeExcludeTarget_test
@@ -509,7 +515,6 @@ set(analysis_executables_list
   PoseClusteringShiftSuperimposer_test
   PrecursorIonSelectionPreprocessing_test
   PrecursorIonSelection_test
-  ProteinInference_test
   PrecursorPurity_test
   ProtonDistributionModel_test
   ProteinResolver_test
@@ -531,6 +536,7 @@ set(analysis_executables_list
   TransformationModelLowess_test
   TransformationModelInterpolated_test
   TransformationModelLinear_test
+  XFDRAlgorithm_test
   XQuestScores_test
 )
 

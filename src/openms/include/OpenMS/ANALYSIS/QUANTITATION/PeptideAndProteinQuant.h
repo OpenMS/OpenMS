@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 
 namespace OpenMS
 {
@@ -60,8 +61,8 @@ public:
     /// Quantitative and associated data for a peptide
     struct PeptideData
     {
-      /// mapping: charge -> sample -> abundance
-      std::map<Int, SampleAbundances> abundances;
+      /// mapping: fraction -> charge -> sample -> abundance
+      std::map<Int, std::map<Int, SampleAbundances>> abundances;
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
@@ -103,8 +104,14 @@ public:
     /// Statistics for processing summary
     struct Statistics
     {
-      /// number of samples
+      /// number of samples (or assays in mzTab terms)
       Size n_samples;
+
+      /// number of fractions
+      Size n_fractions;
+
+      /// number of MS files
+      Size n_ms_files;
 
       /// protein statistics
       Size quant_proteins, too_few_peptides;
@@ -133,14 +140,14 @@ public:
 
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
-    void readQuantData(FeatureMap& features);
+    void readQuantData(FeatureMap& features, const ExperimentalDesign& ed);
 
     /**
          @brief Read quantitative data from a consensus map.
 
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
-    void readQuantData(ConsensusMap& consensus);
+    void readQuantData(ConsensusMap& consensus, const ExperimentalDesign& ed);
 
     /**
          @brief Read quantitative data from identification results (for quantification via spectral counting).
@@ -148,7 +155,8 @@ public:
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
     void readQuantData(std::vector<ProteinIdentification>& proteins,
-                       std::vector<PeptideIdentification>& peptides);
+                       std::vector<PeptideIdentification>& peptides,
+                       const ExperimentalDesign& ed);
 
     /**
          @brief Compute peptide abundances.
@@ -180,6 +188,12 @@ public:
     /// Get protein abundance data
     const ProteinQuant& getProteinResults();
 
+    /// Annotate protein quant results as meta data to protein ids
+    static void annotateQuantificationsToProteins(
+      const ProteinQuant& protein_quants, 
+      ProteinIdentification& proteins,
+      const UInt n_samples);
+
 private:
 
     /// Processing statistics for output in the end
@@ -203,9 +217,65 @@ private:
     /**
          @brief Gather quantitative information from a feature.
 
-         Store quantitative information from @p feature in member @p pep_quant_, based on the peptide annotation in @p hit. If @p hit is empty ("ambiguous/no annotation"), nothing is stored.
+         Store quantitative information from @p feature in member @p pep_quant_, based on the peptide annotation in @p hit. 
+         @p fraction, use 0 for first fraction (or if no fractionation was performed)
+         @p sample, use 0 for first sample, 1 for second, ... 
+         If @p hit is empty ("ambiguous/no annotation"), nothing is stored.
     */
-    void quantifyFeature_(const FeatureHandle& feature, const PeptideHit& hit);
+    void quantifyFeature_(const FeatureHandle& feature, 
+      size_t fraction, 
+      size_t sample, 
+      const PeptideHit& hit);
+
+    /**
+     *   @brief Determine fraction and charge state of a peptide with the highest
+     *   number of abundances.
+     *   @param peptide_abundances Const input map fraction -> charge -> SampleAbundances
+     *   @param best Will additionally return the best fraction and charge state
+     *   @return true if at least one abundance was found, false otherwise
+     */ 
+    bool getBest_(
+      const std::map<Int, std::map<Int, SampleAbundances>> & peptide_abundances, 
+      std::pair<size_t, size_t> & best)
+    {
+      size_t best_n_quant(0);
+      double best_abundance(0);
+      best = std::make_pair(0,0);
+
+      for (auto & fa : peptide_abundances)  // for all fractions 
+      {
+        for (auto & ca : fa.second) // for all charge states
+        {
+          const Int & fraction = fa.first;
+          const Int & charge = ca.first;
+
+          double current_abundance = std::accumulate(
+              std::begin(ca.second),
+              std::end(ca.second),
+              0.0,
+              [] (int value, const SampleAbundances::value_type& p)
+              { return value + p.second; }
+          ); // loop over abundances
+
+          if (current_abundance <= 0) { continue; }
+
+          const size_t current_n_quant = ca.second.size();
+          if (current_n_quant > best_n_quant)
+          {           
+            best_abundance = current_abundance;
+            best_n_quant = current_n_quant;
+            best = std::make_pair(fraction, charge);
+          }
+          else if (current_n_quant == best_n_quant 
+            && current_abundance > best_abundance)  // resolve tie by abundance
+          {
+            best_abundance = current_abundance;
+            best = std::make_pair(fraction, charge);
+          }
+        }
+      }
+      return best_abundance > 0.;
+    }
 
     /**
          @brief Order keys (charges/peptides for peptide/protein quantification) according to how many samples they allow to quantify, breaking ties by total abundance.
@@ -238,6 +308,8 @@ private:
         result.push_back(ord_it->second);
       }
     }
+
+
 
     /**
          @brief Normalize peptide abundances across samples by (multiplicative) scaling to equal medians.

@@ -640,7 +640,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
     }
 
-    if (!consensus_map.isMapConsistent(&OPENMS_LOG_WARN))
+    if (!consensus_map.isMapConsistent(&OpenMS_Log_warn))
     {
       // Currently it is possible that FeatureLinkerUnlabeledQT triggers this exception
       // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The ConsensusXML file contains invalid maps or references thereof. No data was written! Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file!");
@@ -683,15 +683,7 @@ namespace OpenMS
 
     setProgress(++progress_);
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-    //add XSLT file if it can be found
-    try
-    {
-      String xslt_file = File::find("XSL/ConsensusXML.xsl");
-      os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
-    }
-    catch (Exception::FileNotFound&)
-    {
-    }
+    os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://www.openms.de/xml-stylesheet/ConsensusXML.xsl\" ?>\n";
 
     setProgress(++progress_);
     os << "<consensusXML version=\"" << version_ << "\"";
@@ -793,6 +785,7 @@ namespace OpenMS
       os << " higher_score_better=\"" << (current_prot_id.isHigherScoreBetter() ? "true" : "false") << "\"";
       os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 
+      //TODO @julianus @timo IMPLEMENT PROTEIN GROUP SUPPORT!!
       // write protein hits
       for (Size j = 0; j < current_prot_id.getHits().size(); ++j)
       {
@@ -917,7 +910,7 @@ namespace OpenMS
 
     parse_(filename, this);
 
-    if (!map.isMapConsistent(&OPENMS_LOG_WARN)) // a warning is printed to OPENMS_LOG_WARN during isMapConsistent()
+    if (!map.isMapConsistent(&OpenMS_Log_warn)) // a warning is printed to LOG_WARN during isMapConsistent()
     {
       // don't throw exception for now, since this would prevent us from reading old files...
       // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");

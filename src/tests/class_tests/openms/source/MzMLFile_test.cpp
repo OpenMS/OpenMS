@@ -990,27 +990,28 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
   {
     //load map
     PeakMap exp_original;
-    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
+    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp_original);
     //store map
     std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
-    file.store(tmp_filename,exp_original);
+    file.store(tmp_filename, exp_original);
+    file.store(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1_test.tmp"), exp_original);
     //load written map
     PeakMap exp;
-    file.load(tmp_filename,exp);
+    file.load(tmp_filename, exp);
     //test if everything worked
-    TEST_EQUAL(exp==exp_original,true)
+    TEST_EQUAL(exp == exp_original, true)
     //NOTE: If it does not work, use this code to find out where the difference is
-    TEST_EQUAL(exp.size()==exp_original.size(),true)
-    TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
-    TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]),true)
-    TEST_EQUAL(exp[0]==exp_original[0],true)
-    TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]),true)
-    TEST_EQUAL(exp[1]==exp_original[1],true)
-    TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]),true)
-    TEST_EQUAL(exp[2]==exp_original[2],true)
-    TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]),true)
-    TEST_EQUAL(exp[3]==exp_original[3],true)
+    TEST_EQUAL(exp.size() == exp_original.size(), true)
+    TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original), true)
+    TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]), true)
+    TEST_EQUAL(exp[0] == exp_original[0], true)
+    TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]), true)
+    TEST_EQUAL(exp[1] == exp_original[1], true)
+    TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]), true)
+    TEST_EQUAL(exp[2] == exp_original[2], true)
+    TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]), true)
+    TEST_EQUAL(exp[3] == exp_original[3], true)
     TEST_EQUAL(exp.getChromatograms().size(), exp_original.getChromatograms().size());
     TEST_EQUAL(exp.getChromatograms() == exp_original.getChromatograms(), true);
   }
@@ -1087,9 +1088,9 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 36584)
+    TEST_EQUAL(out.size(), 36604)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(36584 -99, 36584-1), "</indexList>\n<indexListOffset>36136</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(out.substr(36604 - 99, 36604 - 1), "</indexList>\n<indexListOffset>36156</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
     TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)

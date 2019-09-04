@@ -97,9 +97,9 @@ namespace OpenMS
     auto tmp = header_dict.find( header_name );
     if (tmp != header_dict.end() && !String(tmp_line[ tmp->second ]).empty())
     {
-      auto str_value = tmp_line[ tmp->second ];
-      if (str_value == "1" || str_value == "TRUE") value = true;
-      else if (str_value == "0" || str_value == "FALSE") value = false;
+      OpenMS::String str_value = tmp_line[ tmp->second ];
+      if (str_value == "1" || str_value.toUpper() == "TRUE") value = true;
+      else if (str_value == "0" || str_value.toUpper() == "FALSE") value = false;
       else return false;
 
       // all went well, we set the value and can return
@@ -348,8 +348,13 @@ namespace OpenMS
       //// Proteomics
       extractName(mytransition.GeneName, "GeneName", tmp_line, header_dict);
 
-      !extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
-      !extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
+      String proteins;
+      !extractName(proteins, "ProteinName", tmp_line, header_dict) &&
+      !extractName(proteins, "ProteinId", tmp_line, header_dict); // Spectronaut
+      if (proteins != "NA" && proteins != "")
+      {
+        proteins.split(';', mytransition.ProteinName);
+      }
 
       extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict);
 
@@ -387,9 +392,13 @@ namespace OpenMS
       extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict);
       
       // UniprotId
-      !extractName(mytransition.uniprot_id, "UniprotId", tmp_line, header_dict) &&
-      !extractName(mytransition.uniprot_id, "UniprotID", tmp_line, header_dict);
-      if (mytransition.uniprot_id == "NA") mytransition.uniprot_id = "";
+      String uniprot_ids;
+      !extractName(uniprot_ids, "UniprotId", tmp_line, header_dict) &&
+      !extractName(uniprot_ids, "UniprotID", tmp_line, header_dict);
+      if (uniprot_ids != "NA" && uniprot_ids != "")
+      {
+        uniprot_ids.split(';', mytransition.uniprot_id);
+      }
 
       !extractName<double>(mytransition.CE, "CE", tmp_line, header_dict) &&
       !extractName<double>(mytransition.CE, "CollisionEnergy", tmp_line, header_dict);
@@ -632,13 +641,22 @@ namespace OpenMS
         }
       }
 
-      // check whether we need a new protein
-      if (tr_it->isPeptide() && protein_map.find(tr_it->ProteinName) == protein_map.end())
+      // check whether we need new proteins
+      for (size_t i = 0; i < tr_it->ProteinName.size(); ++i)
       {
-        OpenMS::TargetedExperiment::Protein protein;
-        createProtein_(tr_it, protein);
-        proteins.push_back(protein);
-        protein_map[tr_it->ProteinName] = 0;
+        if (tr_it->isPeptide() && protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
+        {
+          OpenMS::TargetedExperiment::Protein protein;
+          String protein_name = tr_it->ProteinName[i];
+          String uniprot_id = "";
+          if (tr_it->uniprot_id.size() == tr_it->ProteinName.size())
+          {
+            uniprot_id = tr_it->uniprot_id[i];
+          }
+          createProtein_(protein_name, uniprot_id, protein);
+          proteins.push_back(protein);
+          protein_map[tr_it->ProteinName[i]] = 0;
+        }
       }
 
       setProgress(progress++);
@@ -702,15 +720,19 @@ namespace OpenMS
         compound_map[compound.id] = 0;
       }
 
-      // check whether we need a new protein
-      if (tr_it->isPeptide() && protein_map.find(tr_it->ProteinName) == protein_map.end())
+      // check whether we need new proteins
+      for (Size i = 0; i < tr_it->ProteinName.size(); ++i)
       {
-        OpenSwath::LightProtein protein;
-        protein.id = tr_it->ProteinName;
-        protein.sequence = "";
-        exp.proteins.push_back(protein);
-        protein_map[tr_it->ProteinName] = 0;
+        if (tr_it->isPeptide() && protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
+        {
+          OpenSwath::LightProtein protein;
+          protein.id = tr_it->ProteinName[i];
+          protein.sequence = "";
+          exp.proteins.push_back(protein);
+          protein_map[tr_it->ProteinName[i]] = 0;
+        }
       }
+
       setProgress(progress++);
     }
     endProgress();
@@ -956,19 +978,19 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)
+  void TransitionTSVFile::createProtein_(String protein_name, String uniprot_id, OpenMS::TargetedExperiment::Protein& protein)
   {
     // the following attributes will be stored as CV values (CV):
     // - uniprot accession number (if available)
     // the following attributes will be stored as attributes:
     // - id
-    protein.id = tr_it->ProteinName;
+    protein.id = protein_name;
 
-    if (!tr_it->uniprot_id.empty())
+    if (!uniprot_id.empty())
     {
       // accession numbers
       CVTerm acc;
-      OpenMS::DataValue dtype(tr_it->uniprot_id);
+      OpenMS::DataValue dtype(uniprot_id);
       acc.setCVIdentifierRef("MS");
       acc.setAccession("MS:1000885"); // Accession number for a specific protein in a database.
       acc.setName("protein accession");
@@ -1073,9 +1095,7 @@ namespace OpenMS
       }
     }
 
-    std::vector<String> tmp_proteins;
-    tmp_proteins.push_back(tr_it->ProteinName);
-    peptide.protein_refs = tmp_proteins;
+    peptide.protein_refs = tr_it->ProteinName;
 
     // check if the naked peptide sequence is equal to the unmodified AASequence
     if (peptide.sequence != aa_sequence.toUnmodifiedString())
@@ -1211,16 +1231,17 @@ namespace OpenMS
       }
 
       mytransition.PeptideSequence = pep.sequence;
-      mytransition.ProteinName = "NA";
       mytransition.GeneName = "NA";
-      mytransition.uniprot_id = "NA";
       if (!pep.protein_refs.empty())
       {
-        const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(pep.protein_refs[0]);
-        mytransition.ProteinName = prot.id;
-        if (prot.hasCVTerm("MS:1000885"))
+        for (auto & prot_ref : pep.protein_refs)
         {
-          mytransition.uniprot_id = prot.getCVTerms()["MS:1000885"][0].getValue().toString();
+          const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(prot_ref);
+          mytransition.ProteinName.push_back(prot.id);
+          if (prot.hasCVTerm("MS:1000885"))
+          {
+            mytransition.uniprot_id.push_back(prot.getCVTerms()["MS:1000885"][0].getValue().toString());
+          }
         }
       }
 
@@ -1434,8 +1455,8 @@ namespace OpenMS
         + (String)it.SumFormula               + "\t"
         + (String)it.SMILES                   + "\t"
         + (String)it.Adducts                  + "\t"
-        + (String)it.ProteinName              + "\t"
-        + (String)it.uniprot_id               + "\t"
+        + ListUtils::concatenate(it.ProteinName, ";")              + "\t"
+        + ListUtils::concatenate(it.uniprot_id, ";")               + "\t"
         + (String)it.GeneName                 + "\t"
         + (String)it.fragment_type            + "\t"
         + (String)it.fragment_nr              + "\t"

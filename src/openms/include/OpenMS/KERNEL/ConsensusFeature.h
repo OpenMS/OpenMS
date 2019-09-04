@@ -229,6 +229,9 @@ public:
 
     /// Mutable access to a copy of the contained feature handles
     std::vector<FeatureHandle> getFeatureList() const;
+
+    /// Set the feature set to a new one
+    void setFeatures(HandleSetType h);
     //@}
 
     ///@name Accessors
@@ -333,6 +336,8 @@ public:
 private:
     HandleSetType handles_;
     std::vector<Ratio> ratios_;
+
+
   };
 
   ///Print the contents of a ConsensusFeature to a stream

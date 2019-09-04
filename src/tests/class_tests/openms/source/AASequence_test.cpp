@@ -1439,7 +1439,7 @@ START_SECTION([EXTRA] multithreaded example)
   // 5e4 iterations -> 8.55 seconds with omp critical
   // 5e4 iterations -> 8.59 seconds with std::mutex
   // 5e4 iterations -> 3.94 seconds with boost::shared_mutex
-  int nr_iterations (5e4);
+  int nr_iterations(1000);
   int test = 0;
 #pragma omp parallel for reduction (+: test)
   for (int k = 1; k < nr_iterations + 1; k++)

@@ -223,8 +223,13 @@ namespace OpenMS
   }
 
 
-  void IDMapper::annotate(ConsensusMap& map, const vector<PeptideIdentification>& ids, const vector<ProteinIdentification>& protein_ids,
-                          bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra)
+  void IDMapper::annotate(
+    ConsensusMap& map,
+    const vector<PeptideIdentification>& ids,
+    const vector<ProteinIdentification>& protein_ids,
+    bool measure_from_subelements,
+    bool annotate_ids_with_subelements,
+    const PeakMap& spectra)
   {
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);
