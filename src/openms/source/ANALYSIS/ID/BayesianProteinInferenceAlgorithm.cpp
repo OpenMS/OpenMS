@@ -31,6 +31,7 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -41,7 +42,7 @@
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/openms_package_version.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <set>
 
@@ -657,7 +658,7 @@ namespace OpenMS
   {
     proteinIDs.setScoreType("Posterior Probability");
     proteinIDs.setInferenceEngine("Epifany");
-    proteinIDs.setInferenceEngineVersion(OPENMS_PACKAGE_VERSION);
+    proteinIDs.setInferenceEngineVersion(VersionInfo::getVersion());
     proteinIDs.setHigherScoreBetter(true);
   }
 
