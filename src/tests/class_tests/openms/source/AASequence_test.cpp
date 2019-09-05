@@ -265,6 +265,14 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     TEST_EQUAL(seq3.isModified(), true);
     TEST_STRING_EQUAL(seq3.getNTerminalModification()->getFullId(), "Tripalmitate (Protein N-term C)");
 
+    // test Skyline protein N-terminal modification
+    AASequence seq_skyline = AASequence::fromString("M(unimod:1)FENITAAPADPILGLADLFR"); 
+    TEST_EQUAL(seq_skyline.getNTerminalModification() == nullptr, false);
+    TEST_EQUAL(seq_skyline.hasNTerminalModification(), true);
+    TEST_EQUAL(seq_skyline.hasCTerminalModification(), false);
+    TEST_EQUAL(seq_skyline.isModified(), true);
+    TEST_STRING_EQUAL(seq_skyline.getNTerminalModification()->getFullId(), "Acetyl (N-term)");
+
     // test protein C-term modification
     AASequence seq4 = AASequence::fromString("PEPTIDEK.(UniMod:313)"); // <umod:mod title="Lys-loss" full_name="Loss of C-terminal K from Heavy Chain of MAb"
     TEST_REAL_SIMILAR(seq4.getMonoWeight(), double(927.4549330734999 - 128.094963));

@@ -1045,8 +1045,13 @@ namespace OpenMS
     catch(...)  // no internal mod for this residue
     {
       // TODO: get rid of this code path, its deprecated and is only a hack for
-      // C-terminal modifications that don't use the dot notation
-      if (std::distance(mod_end, str.end()) == 1) // potentially a C-terminal mod without explicitly declaring it using dot notation?
+      // C/N-terminal modifications that don't use the dot notation
+      if (std::distance(str_it, str.begin()) == -1)
+      {
+        // old ambiguous notation: Modification might be at first amino acid or at N-terminus
+        aas.n_term_mod_ = terminalResidueHelper(mod_db, 'n', true, str, mod, res);
+      }
+      else if (std::distance(mod_end, str.end()) == 1) // potentially a C-terminal mod without explicitly declaring it using dot notation?
       {
         // old ambiguous notation: Modification might be at last amino acid or at C-terminus
         aas.c_term_mod_ = terminalResidueHelper(mod_db, 'c', true, str, mod, res);
