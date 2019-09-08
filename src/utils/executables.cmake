@@ -20,6 +20,7 @@ ERPairFinder
 FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
 FFEval
+    FLASHDeconv_prev
 FuzzyDiff
 IDDecoyProbability
 IDExtractor
