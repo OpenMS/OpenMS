@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 //#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
 

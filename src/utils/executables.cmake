@@ -66,7 +66,6 @@ SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
-XFDR
 XMLValidator
 )
 

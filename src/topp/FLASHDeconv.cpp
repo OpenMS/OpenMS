@@ -35,6 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <QDirIterator>
 #include <QFileInfo>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -47,7 +48,8 @@ using namespace std;
 // Doxygen docu
 //-------------------------------------------------------------
 /**
-  @page TOPP_FeatureFinderMetabo FeatureFinderMetabo
+  @page TOPP_FLASHDeconv TOPP_FLASHDeconv
+  (Need to be modified)
 
   @brief  @ref
   @code
@@ -64,7 +66,7 @@ class TOPPFLASHDeconv :
 {
 public:
   TOPPFLASHDeconv() :
-      TOPPBase("FLASHDeconvAlgorithm", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
+      TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
               false)
   {
   }
@@ -226,7 +228,7 @@ protected:
       auto begin = clock();
       auto t_start = chrono::high_resolution_clock::now();
 
-      cout << "Processing : " << infile.toStdString() << endl;
+      OPENMS_LOG_INFO << "Processing : " << infile.toStdString() << endl;
 
       mzml.setLogType(log_type_);
       mzml.load(infile, map);
@@ -252,7 +254,7 @@ protected:
       }
 
       param.numOverlappedScans = max(param.minNumOverLappedScans, (int) (.5 + param.RTwindow / rtDelta));
-      cout << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT " << param.RTwindow << " sec)" << endl;
+      OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT " << param.RTwindow << " sec)" << endl;
       if (isOutPathDir)
       {
         std::string outfileName(param.fileName);
@@ -282,7 +284,7 @@ protected:
         //   fsp.open(outfilePath + "m" + outfileName + "peak.m", fstream::out);
       }
 
-      cout << "Running FLASHDeconvAlgorithm ... " << endl;
+      OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
       auto deconv_begin = clock();
       auto deconv_t_start = chrono::high_resolution_clock::now();
       //continue;
@@ -298,29 +300,31 @@ protected:
         findFeatures(peakGroups, map, featureCntr, fsf, averagines, param);
       }
 
+      cout<< "after running" << endl;
+
       if (param.writeSpecTsv)
       {
-        cout << endl << "writing per spec deconvolution results ...";
-        cout.flush();
+        OPENMS_LOG_INFO << endl << "writing per spec deconvolution results ...";
+        OPENMS_LOG_INFO.flush();
 
         for (auto &pg : peakGroups)
         {
           writePeakGroup(pg, param, fs);
         }
 
-        cout << "done" << endl;
+        OPENMS_LOG_INFO << "done" << endl;
 
       }
 
       // cout<<4.5<<endl;
       if (isOutPathDir)
       {
-        cout << "In this run, FLASHDeconvAlgorithm found " << massCntr << " masses in " << qspecCntr
+        OPENMS_LOG_INFO << "In this run, FLASHDeconv found " << massCntr << " masses in " << qspecCntr
              << " MS1 spectra out of "
              << specCntr << endl;
         if (featureCntr > 0)
         {
-          cout << "Mass tracer found " << featureCntr << " features" << endl;
+          OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
         }
 
         //   fsm << "];";
@@ -341,12 +345,12 @@ protected:
       }
       else
       {
-        cout << "So far, FLASHDeconvAlgorithm found " << massCntr << " masses in " << qspecCntr
+        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr << " masses in " << qspecCntr
              << " MS1 spectra out of "
              << specCntr << endl;
         if (featureCntr > 0)
         {
-          cout << "Mass tracer found " << featureCntr << " features" << endl;
+          OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
         }
 
         total_specCntr = specCntr;
@@ -366,10 +370,10 @@ protected:
       elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
       elapsed_wall_secs = chrono::duration<double>(t_end - t_start).count();
 
-      cout << "-- done [took " << elapsed_cpu_secs << " s (CPU), " << elapsed_wall_secs
+      OPENMS_LOG_INFO << "-- done [took " << elapsed_cpu_secs << " s (CPU), " << elapsed_wall_secs
            << " s (Wall)] --"
            << endl;
-      cout << "-- deconv per spectrum (except spec loading, feature finding) [took "
+      OPENMS_LOG_INFO << "-- deconv per spectrum (except spec loading, feature finding) [took "
            << 1000.0 * elapsed_deconv_cpu_secs / specCntr
            << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs / specCntr << " ms (Wall)] --" << endl;
 
@@ -384,18 +388,18 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    cout << "Total elapsed time\n-- done [took " << total_elapsed_cpu_secs << " s (CPU), " << total_elapsed_wall_secs
+    OPENMS_LOG_INFO << "Total elapsed time\n-- done [took " << total_elapsed_cpu_secs << " s (CPU), " << total_elapsed_wall_secs
          << " s (Wall)] --"
          << endl;
 
     if (massCntr < total_massCntr)
     {
-      cout << "In total, FLASHDeconvAlgorithm found " << total_massCntr << " masses in " << total_qspecCntr
+      OPENMS_LOG_INFO << "In total, FLASHDeconv found " << total_massCntr << " masses in " << total_qspecCntr
            << " MS1 spectra out of "
            << total_specCntr << endl;
       if (featureCntr > 0)
       {
-        cout << "Mass tracer found " << total_featureCntr << " features" << endl;
+        OPENMS_LOG_INFO << "Mass tracer found " << total_featureCntr << " features" << endl;
       }
     }
 
@@ -629,7 +633,6 @@ protected:
     vector<MassTrace> m_traces;
     mtdet.run(map, m_traces);  // m_traces : output of this function
 
-
     // cout<<1<<endl;
     double *perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
@@ -645,7 +648,7 @@ protected:
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
       boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
-
+      cout << "where? 1" << endl;
       fill_n(perChargeIntensity, param.chargeRange + param.minCharge + 1, 0);
       fill_n(perChargeMaxIntensity, param.chargeRange + param.minCharge + 1, 0);
       fill_n(perChargeMz, param.chargeRange + param.minCharge + 1, 0);
@@ -659,6 +662,7 @@ protected:
 
       for (auto &p2 : mt)
       {
+        cout << "where? 2" << endl;
         int specIndex = rtSpecMap[(float) p2.getRT()];
         auto &pgMap = peakGroupMap[specIndex];
         auto &pg = pgMap[(float) p2.getMZ()];
@@ -670,7 +674,7 @@ protected:
           max_intensity = pg.intensity;
           massDiff = pg.avgMass - pg.monoisotopicMass;
         }
-
+        cout << "where? 22" << endl;
         for (auto &p : pg.peaks)
         {
           if (p.isotopeIndex < 0 || p.isotopeIndex >= param.maxIsotopeCount || p.charge < 0 ||
@@ -678,16 +682,24 @@ protected:
           {
             continue;
           }
+          cout << "where? 222" << endl;
           charges[p.charge] = true;
+          cout << "p.charge:" << p.charge << "," << p.orgPeak->getIntensity() << endl;
           perChargeIntensity[p.charge] += p.orgPeak->getIntensity();
+          cout << "where? 222-2" << endl;
           perIsotopeIntensity[p.isotopeIndex] += p.orgPeak->getIntensity();
+          cout << "where? 222-3" << endl;
           if (perChargeMaxIntensity[p.charge] > p.orgPeak->getIntensity())
           {
             continue;
           }
+          cout << "where? 2222" << endl;
           perChargeMaxIntensity[p.charge] = p.orgPeak->getIntensity();
           perChargeMz[p.charge] = p.orgPeak->getMZ();
+          cout << "where? 3" << endl;
         }
+        cout << "where? 4" << endl;
+
         /*if (max_intensity > pg.intensity)
         {
           continue;
@@ -695,6 +707,8 @@ protected:
         max_intensity = pg.intensity;
         mass = pg.monoisotopicMass;*/
       }
+      cout << "where? 5" << endl;
+
       // cout<<2<<endl;
       if (massDiff <= 0)
       {
@@ -713,7 +727,7 @@ protected:
                                                                  perIsotopeIntensity,
                                                                  param.maxIsotopeCount,
                                                                  averagines, offset);
-
+      cout << "where? 6" << endl;
       if (isoScore < param.minIsotopeCosine)
       {
         continue;
@@ -725,7 +739,7 @@ protected:
         //avgMass += offset * Constants::C13C12_MASSDIFF_U;
         //p.isotopeIndex -= offset;
       }
-
+      cout << "where? 7" << endl;
       //auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
           << to_string(mass + massDiff) << "\t"
@@ -758,6 +772,7 @@ protected:
           perChargeMz[param.chargeRange + param.minCharge] << "," <<
           perChargeIntensity[param.chargeRange + param.minCharge] << "\n";
   */
+      cout << "where? 8" << endl;
     }
     // cout<<4<<endl;
     delete[] perIsotopeIntensity;
@@ -767,6 +782,7 @@ protected:
 
     delete[] peakGroupMap;
     // cout<<4.1<<endl;
+    cout << "where? 9" << endl;
   }
 
   static PrecalcularedAveragine getPrecalculatedAveragines(Parameter &param)
