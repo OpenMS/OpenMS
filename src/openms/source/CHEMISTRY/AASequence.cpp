@@ -48,6 +48,89 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  const ResidueModification* proteinTerminalResidueHelper( ModificationsDB* mod_db,
+      const char term,
+      const std::string& str,
+      const std::string& mod,
+      const std::string& res)
+  {
+    ResidueModification::TermSpecificity protein_term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;;
+
+    if (term == 'c')
+    {
+      protein_term_spec = ResidueModification::PROTEIN_C_TERM;
+    }
+    else if (term == 'n')
+    {
+      protein_term_spec = ResidueModification::PROTEIN_N_TERM;
+    }
+
+    const ResidueModification* m;
+    try
+    {
+      m = mod_db->getModification(mod, res, protein_term_spec);
+    }
+    catch (...)
+    {
+      // catch and rethrow with some additional information on term
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+          "Cannot convert string to peptide modification. No terminal modification matches to term specificity and origin.");
+    }
+    return m;
+  }
+
+  const ResidueModification* terminalResidueHelper( ModificationsDB* mod_db,
+      const char term,
+      bool protein_term,
+      const std::string& str,
+      const std::string& mod,
+      const std::string& res)
+  {
+
+    ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
+    ResidueModification::TermSpecificity protein_term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;;
+
+    if (term == 'c')
+    {
+      term_spec = ResidueModification::C_TERM;
+      protein_term_spec = ResidueModification::PROTEIN_C_TERM;
+    }
+    else if (term == 'n')
+    {
+      term_spec = ResidueModification::N_TERM;
+      protein_term_spec = ResidueModification::PROTEIN_N_TERM;
+    }
+
+    const ResidueModification* m;
+    try
+    {
+      m = mod_db->getModification(mod, res, term_spec);
+    }
+    catch (...)
+    {
+      if (!protein_term)
+      {
+        // catch and rethrow with some additional information on term
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+            "Cannot convert string to peptide modification. No terminal modification matches to term specificity and origin.");
+      }
+
+      try
+      {
+        m = mod_db->getModification(mod, res, protein_term_spec);
+      }
+      catch (...)
+      {
+        // catch and rethrow with some additional information on term
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+            "Cannot convert string to peptide modification. No terminal modification matches to term specificity and origin.");
+      }
+    }
+    return m;
+  }
+
+
   AASequence::AASequence() :
     n_term_mod_(nullptr),
     c_term_mod_(nullptr)
@@ -202,7 +285,7 @@ namespace OpenMS
 
           if (integer_mass)
           {
-            bs += aa + String("[") + sign + static_cast<int>(std::round(nominal_mass)) + "]"; 
+            bs += aa + String("[") + sign + static_cast<int>(std::round(nominal_mass)) + "]";
           }
           else
           {
@@ -681,7 +764,6 @@ namespace OpenMS
         {
           return true;
         }
-
       }
     }
     return false;
@@ -922,7 +1004,8 @@ namespace OpenMS
     ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     // First search for N or C terminal modifications (start of peptide indicates N-terminal modification as well)
-    if (aas.peptide_.empty() || specificity == ResidueModification::N_TERM) 
+    if (aas.peptide_.empty() || specificity == ResidueModification::N_TERM ||
+                                specificity == ResidueModification::PROTEIN_N_TERM)
     {
       // Advance iterator one or two positions (we may or may not have a dot
       // after the closing bracket) to point to the first AA of the peptide.
@@ -930,37 +1013,27 @@ namespace OpenMS
       ++next_aa;
       if (*next_aa == '.') ++next_aa;
 
-      const ResidueModification* m;
-      try
+      if (specificity == ResidueModification::PROTEIN_N_TERM)
       {
-        m = mod_db->getModification(mod, String(*next_aa), ResidueModification::N_TERM);      
+        aas.n_term_mod_ = proteinTerminalResidueHelper(mod_db, 'n', str, mod, String(*next_aa));
+        return mod_end;
       }
-      catch (...)
+      else
       {
-        // rethrow with some additional information on term
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
-          "Cannot convert string to peptide modification. No N-terminal modification matches to term specificity and origin.");
+        aas.n_term_mod_ = terminalResidueHelper(mod_db, 'n', true, str, mod, String(*next_aa));
+        return mod_end;
       }
-            
-      aas.n_term_mod_ = m;
-      return mod_end;
     }
 
     const String& res = aas.peptide_.back()->getOneLetterCode();
-    if (specificity == ResidueModification::C_TERM) 
+    if (specificity == ResidueModification::PROTEIN_C_TERM)
     {
-      const ResidueModification* m;
-      try
-      {
-        m = mod_db->getModification(mod, res, ResidueModification::C_TERM);
-      }
-      catch (...)
-      {
-        // catch and rethrow with some additional information on term
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
-          "Cannot convert string to peptide modification. No C-terminal modification matches to term specificity and origin.");
-      }
-      aas.c_term_mod_ = m;
+      aas.c_term_mod_ = proteinTerminalResidueHelper(mod_db, 'c', str, mod, res);
+      return mod_end;
+    }
+    else if (specificity == ResidueModification::C_TERM)
+    {
+      aas.c_term_mod_ = terminalResidueHelper(mod_db, 'c', true, str, mod, res);
       return mod_end;
     }
 
@@ -972,12 +1045,16 @@ namespace OpenMS
     catch(...)  // no internal mod for this residue
     {
       // TODO: get rid of this code path, its deprecated and is only a hack for
-      // C-terminal modifications that don't use the dot notation
-      if (std::distance(mod_end, str.end()) == 1) // potentially a C-terminal mod without explicitly declaring it using dot notation?
+      // C/N-terminal modifications that don't use the dot notation
+      if (std::distance(str_it, str.begin()) == -1)
+      {
+        // old ambiguous notation: Modification might be at first amino acid or at N-terminus
+        aas.n_term_mod_ = terminalResidueHelper(mod_db, 'n', true, str, mod, res);
+      }
+      else if (std::distance(mod_end, str.end()) == 1) // potentially a C-terminal mod without explicitly declaring it using dot notation?
       {
         // old ambiguous notation: Modification might be at last amino acid or at C-terminus
-        const ResidueModification* term_mod = mod_db->getModification(mod, res, ResidueModification::C_TERM);
-        aas.c_term_mod_ = term_mod;      
+        aas.c_term_mod_ = terminalResidueHelper(mod_db, 'c', true, str, mod, res);
       }
       else
       {

@@ -131,6 +131,7 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     TEST_STRING_EQUAL(seq3.getCTerminalModification()->getFullId(), "Met->Hse (C-term M)");
 
     // Also test lower-case unimod and equivalence
+    //
     AASequence seq4 = AASequence::fromString("PEPTIDEM(unimod:10)");
     TEST_EQUAL(seq4.hasNTerminalModification(), false);
     TEST_EQUAL(seq4.hasCTerminalModification(), true);
@@ -144,57 +145,57 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
 
   // test square bracket modifications
   {
-  AASequence seq8 = AASequence::fromString("PEPTIDEK[136]");
-  TEST_EQUAL(seq8.hasNTerminalModification(), false);
-  TEST_EQUAL(seq8.hasCTerminalModification(), false);
-  TEST_EQUAL(seq8.isModified(), true);
-  TEST_STRING_EQUAL(seq8[7].getModificationName(), "Label:13C(6)15N(2)");
+    AASequence seq8 = AASequence::fromString("PEPTIDEK[136]");
+    TEST_EQUAL(seq8.hasNTerminalModification(), false);
+    TEST_EQUAL(seq8.hasCTerminalModification(), false);
+    TEST_EQUAL(seq8.isModified(), true);
+    TEST_STRING_EQUAL(seq8[7].getModificationName(), "Label:13C(6)15N(2)");
 
-  AASequence seq9 = AASequence::fromString("PEPS[167]TIDEK");
-  TEST_EQUAL(seq9.isModified(), true);
-  TEST_STRING_EQUAL(seq9[3].getModificationName(), "Phospho");
+    AASequence seq9 = AASequence::fromString("PEPS[167]TIDEK");
+    TEST_EQUAL(seq9.isModified(), true);
+    TEST_STRING_EQUAL(seq9[3].getModificationName(), "Phospho");
 
-  AASequence seq10 = AASequence::fromString("PEPC[160]TIDEK");
-  TEST_EQUAL(seq10.isModified(), true);
-  TEST_STRING_EQUAL(seq10[3].getModificationName(), "Carbamidomethyl");
+    AASequence seq10 = AASequence::fromString("PEPC[160]TIDEK");
+    TEST_EQUAL(seq10.isModified(), true);
+    TEST_STRING_EQUAL(seq10[3].getModificationName(), "Carbamidomethyl");
 
-  AASequence seq11 = AASequence::fromString("PEPM[147]TIDEK");
-  TEST_EQUAL(seq11.isModified(), true);
-  TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation");
+    AASequence seq11 = AASequence::fromString("PEPM[147]TIDEK");
+    TEST_EQUAL(seq11.isModified(), true);
+    TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation");
 
-  AASequence seq12 = AASequence::fromString("PEPT[181]TIDEK");
-  TEST_EQUAL(seq12.isModified(), true);
-  TEST_STRING_EQUAL(seq12[3].getModificationName(), "Phospho");
+    AASequence seq12 = AASequence::fromString("PEPT[181]TIDEK");
+    TEST_EQUAL(seq12.isModified(), true);
+    TEST_STRING_EQUAL(seq12[3].getModificationName(), "Phospho");
 
-  AASequence seq13 = AASequence::fromString("PEPY[243]TIDEK");
-  TEST_EQUAL(seq13.isModified(), true);
-  TEST_STRING_EQUAL(seq13[3].getModificationName(), "Phospho");
+    AASequence seq13 = AASequence::fromString("PEPY[243]TIDEK");
+    TEST_EQUAL(seq13.isModified(), true);
+    TEST_STRING_EQUAL(seq13[3].getModificationName(), "Phospho");
 
-  AASequence seq14 = AASequence::fromString("PEPR[166]TIDEK");
-  TEST_EQUAL(seq14.isModified(), true);
-  TEST_STRING_EQUAL(seq14[3].getModificationName(), "Label:13C(6)15N(4)");
+    AASequence seq14 = AASequence::fromString("PEPR[166]TIDEK");
+    TEST_EQUAL(seq14.isModified(), true);
+    TEST_STRING_EQUAL(seq14[3].getModificationName(), "Label:13C(6)15N(4)");
 
-  // Test modifications of amino acids that can *only occur* N terminally
+    // Test modifications of amino acids that can *only occur* N terminally
 
-  // test case: "Pyro-carbamidomethyl" is only defined as N-terminal
-  AASequence seq15 = AASequence::fromString("C[143]PEPTIDEK");
-  TEST_EQUAL(seq15.isModified(), true);
-  TEST_EQUAL(seq15.hasNTerminalModification(), true)
-  TEST_EQUAL(seq15.hasCTerminalModification(), false)
-  TEST_EQUAL(seq15.getNTerminalModification() == nullptr, false);
-  TEST_STRING_EQUAL(seq15.getNTerminalModification()->getId(), "Pyro-carbamidomethyl");
-  TEST_STRING_EQUAL(seq15.getNTerminalModification()->getFullId(), "Pyro-carbamidomethyl (N-term C)");
-  TEST_STRING_EQUAL(seq15.getNTerminalModificationName(), "Pyro-carbamidomethyl");
+    // test case: "Pyro-carbamidomethyl" is only defined as N-terminal
+    AASequence seq15 = AASequence::fromString("C[143]PEPTIDEK");
+    TEST_EQUAL(seq15.isModified(), true);
+    TEST_EQUAL(seq15.hasNTerminalModification(), true)
+    TEST_EQUAL(seq15.hasCTerminalModification(), false)
+    TEST_EQUAL(seq15.getNTerminalModification() == nullptr, false);
+    TEST_STRING_EQUAL(seq15.getNTerminalModification()->getId(), "Pyro-carbamidomethyl");
+    TEST_STRING_EQUAL(seq15.getNTerminalModification()->getFullId(), "Pyro-carbamidomethyl (N-term C)");
+    TEST_STRING_EQUAL(seq15.getNTerminalModificationName(), "Pyro-carbamidomethyl");
 
-  // test case: "Gln->pyro-Glu" is only defined as N-terminal
-  AASequence seq16 = AASequence::fromString("Q[111]PEPTIDEK");
-  TEST_EQUAL(seq16.isModified(), true);
-  TEST_EQUAL(seq16.hasNTerminalModification(), true)
-  TEST_EQUAL(seq16.hasCTerminalModification(), false)
-  TEST_EQUAL(seq16.getNTerminalModification() == nullptr, false);
-  TEST_STRING_EQUAL(seq16.getNTerminalModification()->getId(), "Gln->pyro-Glu");
-  TEST_STRING_EQUAL(seq16.getNTerminalModification()->getFullId(), "Gln->pyro-Glu (N-term Q)");
-  TEST_STRING_EQUAL(seq16.getNTerminalModificationName(), "Gln->pyro-Glu");
+    // test case: "Gln->pyro-Glu" is only defined as N-terminal
+    AASequence seq16 = AASequence::fromString("Q[111]PEPTIDEK");
+    TEST_EQUAL(seq16.isModified(), true);
+    TEST_EQUAL(seq16.hasNTerminalModification(), true)
+    TEST_EQUAL(seq16.hasCTerminalModification(), false)
+    TEST_EQUAL(seq16.getNTerminalModification() == nullptr, false);
+    TEST_STRING_EQUAL(seq16.getNTerminalModification()->getId(), "Gln->pyro-Glu");
+    TEST_STRING_EQUAL(seq16.getNTerminalModification()->getFullId(), "Gln->pyro-Glu (N-term Q)");
+    TEST_STRING_EQUAL(seq16.getNTerminalModificationName(), "Gln->pyro-Glu");
   }
 
   // invalid test case: "Pyro-carbamidomethyl" is only defined as N-terminal
@@ -233,6 +234,57 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_EQUAL(seq19.hasCTerminalModification(), false);
   TEST_EQUAL(seq19[3].isModified(), true);
   TEST_STRING_EQUAL(seq19[3].getModificationName(), "Oxidation");
+
+  // test peptide N-terminal and peptide C-terminal modifications
+  {
+    // peptide N-terminal
+    AASequence seq1 = AASequence::fromString("(UniMod:28)QPEPTIDEK");
+    TEST_EQUAL(seq1.isModified(), true);
+    TEST_EQUAL(seq1.hasNTerminalModification(), true)
+    TEST_EQUAL(seq1.hasCTerminalModification(), false)
+    TEST_EQUAL(seq1.getNTerminalModification() == nullptr, false);
+    TEST_STRING_EQUAL(seq1.getNTerminalModification()->getFullId(), "Gln->pyro-Glu (N-term Q)");
+
+    // peptide C-terminal
+    AASequence seq2 = AASequence::fromString("PEPTIDEM.(UniMod:10)");
+    TEST_EQUAL(seq2.hasNTerminalModification(), false);
+    TEST_EQUAL(seq2.hasCTerminalModification(), true);
+    TEST_EQUAL(seq2.getCTerminalModification() == nullptr, false);
+    TEST_EQUAL(seq2.isModified(), true);
+    TEST_STRING_EQUAL(seq2.getCTerminalModification()->getFullId(), "Met->Hse (C-term M)");
+    // no terminal dot
+    seq2 = AASequence::fromString("PEPTIDEM(UniMod:10)");
+    TEST_STRING_EQUAL(seq2.getCTerminalModification()->getFullId(), "Met->Hse (C-term M)");
+
+    // test protein N-term modification
+    AASequence seq3 = AASequence::fromString("(UniMod:51)CPEPTIDE"); // <umod:mod title="Tripalmitate" full_name="N-acyl diglyceride cysteine"
+    TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(902.3691545801998 + 788.725777));
+    TEST_EQUAL(seq3.getNTerminalModification() == nullptr, false);
+    TEST_EQUAL(seq3.hasNTerminalModification(), true);
+    TEST_EQUAL(seq3.hasCTerminalModification(), false);
+    TEST_EQUAL(seq3.isModified(), true);
+    TEST_STRING_EQUAL(seq3.getNTerminalModification()->getFullId(), "Tripalmitate (Protein N-term C)");
+
+    // test Skyline protein N-terminal modification
+    AASequence seq_skyline = AASequence::fromString("M(unimod:1)FENITAAPADPILGLADLFR"); 
+    TEST_EQUAL(seq_skyline.getNTerminalModification() == nullptr, false);
+    TEST_EQUAL(seq_skyline.hasNTerminalModification(), true);
+    TEST_EQUAL(seq_skyline.hasCTerminalModification(), false);
+    TEST_EQUAL(seq_skyline.isModified(), true);
+    TEST_STRING_EQUAL(seq_skyline.getNTerminalModification()->getFullId(), "Acetyl (N-term)");
+
+    // test protein C-term modification
+    AASequence seq4 = AASequence::fromString("PEPTIDEK.(UniMod:313)"); // <umod:mod title="Lys-loss" full_name="Loss of C-terminal K from Heavy Chain of MAb"
+    TEST_REAL_SIMILAR(seq4.getMonoWeight(), double(927.4549330734999 - 128.094963));
+    TEST_EQUAL(seq4.getCTerminalModification() == nullptr, false);
+    TEST_EQUAL(seq4.hasCTerminalModification(), true);
+    TEST_EQUAL(seq4.hasNTerminalModification(), false);
+    TEST_EQUAL(seq4.isModified(), true);
+    TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Lys-loss (Protein C-term K)");
+    // no terminal dot
+    seq4 = AASequence::fromString("PEPTIDEK(UniMod:313)");
+    TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Lys-loss (Protein C-term K)");
+  }
 }
 END_SECTION
 
@@ -293,6 +345,7 @@ START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full
 END_SECTION
 
 START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
+{
   TOLERANCE_ABSOLUTE(1e-6)
   TOLERANCE_RELATIVE(1.0 + 1e-6)
 
@@ -331,6 +384,10 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   AASequence seq2 = AASequence::fromString("(NIC)DFPIANGER");
   TEST_REAL_SIMILAR(seq2.getMonoWeight(), double(1122.51));
 
+  // test protein N-term modification
+  AASequence seq2b = AASequence::fromString("(UniMod:51)CPEPTIDE"); // <umod:mod title="Tripalmitate" full_name="N-acyl diglyceride cysteine"
+  TEST_REAL_SIMILAR(seq2b.getMonoWeight(), double(902.3691545801998 + 788.725777));
+
   // test old OpenMS NIC definition
   AASequence seq2a = AASequence::fromString("(MOD:09998)DFPIANGER");
   TEST_EQUAL(seq2 == seq2a, true)
@@ -346,6 +403,7 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 
   TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
+}
 END_SECTION
 
 START_SECTION(const Residue& operator[](Size index) const)
