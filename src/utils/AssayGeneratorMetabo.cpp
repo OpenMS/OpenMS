@@ -280,17 +280,17 @@ protected:
         OPENMS_LOG_WARN << "Warning: Original paths of the mzML files do not correspond to the featureXML files. Please check and provide the corresponding files." << std::endl;
 
         OPENMS_LOG_WARN << "Input MzML: " << std::endl;
-                        for (const auto& it_mzml : in)
+                        for (const String& it_mzml : in)
                             {
                               OPENMS_LOG_WARN << " " << it_mzml << std::endl;
                             }
         OPENMS_LOG_WARN << "Input FeatureXML: " << std::endl;
-                        for (const auto& it_fxml : id)
+                        for (const String& it_fxml : id)
                             {
                               OPENMS_LOG_WARN << " " << it_fxml << std::endl;
                             }
         OPENMS_LOG_WARN << "Original paths: " << std::endl;
-                        for (const auto& it_fpp : featurexml_primary_path)
+                        for (const String& it_fpp : featurexml_primary_path)
                             {
                               OPENMS_LOG_WARN << " " << it_fpp << std::endl;
                             }
