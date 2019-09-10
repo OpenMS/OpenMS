@@ -67,6 +67,8 @@ public:
       @param[out] experiment The variable into which the extracted information will be saved
     */
     void load(const String& filename, MSExperiment& experiment) const;
+
+    double parseDouble(String number) const;
   };
 }
 

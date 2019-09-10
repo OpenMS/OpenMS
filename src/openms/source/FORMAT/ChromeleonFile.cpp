@@ -113,11 +113,11 @@ namespace OpenMS
     while (!ifs.eof())
     {
       TextFile::getLine(ifs, line);
-      double rt, intensity;
-      int ret = std::sscanf(line.c_str(), "%lf\t%*s\t%lf", &rt, &intensity);
+      char rt[128], intensity[128];
+      int ret = std::sscanf(line.c_str(), "%s\t%*s\t%s", rt, intensity);
       if (ret == 2)
       {
-        chromatogram.push_back(ChromatogramPeak(rt, intensity));
+        chromatogram.push_back(ChromatogramPeak(parseDouble(rt), parseDouble(intensity)));
       }
       else if (line.empty())
       {
@@ -130,5 +130,10 @@ namespace OpenMS
     }
     ifs.close();
     experiment.addChromatogram(chromatogram);
+  }
+
+  double ChromeleonFile::parseDouble(String number) const
+  {
+    return number.remove(',').toDouble();
   }
 }
