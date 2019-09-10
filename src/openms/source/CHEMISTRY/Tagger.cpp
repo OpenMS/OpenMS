@@ -46,7 +46,7 @@ namespace OpenMS
      const float delta = Math::ppmToMass(ppm_, m);
      auto left = mass2aa.lower_bound(m - delta);
      //if (left == mass2aa.end()) return ' '; // cannot happen, since we checked boundaries above
-     if (fabs(left->second - m) < delta) return left->second;
+     if (fabs(left->first - m) < delta) return left->second;
      return ' ';
   }               
 
