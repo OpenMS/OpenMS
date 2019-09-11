@@ -825,7 +825,7 @@ namespace OpenMS
         mrmfeature->setOverallQuality(xx_lda_prescore);
         mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
 
-        // Add the DIA / SWATH scores
+        // Add the DIA / SWATH scores, ion mobility scores and SONAR scores
         if (swath_present && su_.use_dia_scores_)
         {
           mrmfeature->addScore("var_isotope_correlation_score", scores.isotope_correlation);
@@ -870,6 +870,16 @@ namespace OpenMS
           double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
           mrmfeature->addScore("main_var_xx_swath_prelim_score", xx_swath_prescore);
           mrmfeature->setOverallQuality(xx_swath_prescore);
+        }
+
+        if (swath_present && su_.use_im_scores)
+        {
+          mrmfeature->addScore("var_im_xcorr_shape", scores.im_xcorr_shape_score);
+          mrmfeature->addScore("var_im_xcorr_coelution", scores.im_xcorr_coelution_score);
+          mrmfeature->addScore("var_im_delta_score", scores.im_delta_score);
+          mrmfeature->addScore("var_im_ms1_delta_score", scores.im_ms1_delta_score);
+          mrmfeature->addScore("im_drift", scores.im_drift);
+          mrmfeature->addScore("im_drift_weighted", scores.im_drift_weighted);
         }
 
         precursor_mz = transition_group_detection.getTransitions()[0].getPrecursorMZ();
