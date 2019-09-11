@@ -60,13 +60,23 @@ namespace OpenMS
     iterateFeatureMap(features, l_f);
     for (auto& f : features)
     {
-      if (!f.metaValueExists("FWHM"))
+      if (f.metaValueExists("FWHM")) // from FF-Centroided
       {
-        continue;
+        for (auto& pi : f.getPeptideIdentifications())
+        {
+          pi.setMetaValue("FWHM", f.getMetaValue("FWHM"));
+        }
       }
-      for (auto& pi : f.getPeptideIdentifications())
+      else if (f.metaValueExists("model_FWHM")) // from FF-Identification
       {
-        pi.setMetaValue("FWHM", f.getMetaValue("FWHM"));
+        for (auto& pi : f.getPeptideIdentifications())
+        {
+          pi.setMetaValue("FWHM", f.getMetaValue("model_FWHM")); // use 'FWHM' as target to make meta value unique for downstream processing
+        }
+      }
+      else
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue 'FWHM' or 'model_FWHM' is missing for a feature in a FeatureMap. Please check your FeatureFinder reports FWHM using these metavalues or add a new mapping here.");
       }
     }
 
