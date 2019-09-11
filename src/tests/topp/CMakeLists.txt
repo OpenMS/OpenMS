@@ -2322,6 +2322,14 @@ add_test("TOPP_MzTabExporter_3" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_
 add_test("TOPP_MzTabExporter_3_out" ${DIFF} -in1 MzTabExporter_3_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_3_output.mzTab -whitelist "MTD\turi[1]" "MTD\tsoftware")
 set_tests_properties("TOPP_MzTabExporter_3_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_3")
 
+#------------------------------------------------------------------------------
+# QualityControl tests
+add_test("TOPP_QualityControl_1" ${TOPP_BIN_PATH}/QualityControl -test -in_raw ${DATA_DIR_TOPP}/QualityControl_1_in1.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in2.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in3.mzML.gz -in_postFDR ${DATA_DIR_TOPP}/QualityControl_1_in1.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in2.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in3.featureXML -in_trafo ${DATA_DIR_TOPP}/QualityControl_1_in1.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in2.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in3.trafoXML  -in_contaminants ${DATA_DIR_TOPP}/QualityControl_1.fasta -in_cm ${DATA_DIR_TOPP}/QualityControl_1_in.consensusXML -out_cm QualityControl_1_out.consensusXML.tmp -out QualityControl_1_out.mzTab.tmp)
+add_test("TOPP_QualityControl_1_out_consXML" ${DIFF} -in1 QualityControl_1_out.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/QualityControl_1_out.consensusXML -whitelist "href=")
+add_test("TOPP_QualityControl_1_out_mzTab" ${DIFF} -in1 QualityControl_1_out.mzTab.tmp -in2 ${DATA_DIR_TOPP}/QualityControl_1_out.mzTab -whitelist "MS:1000752")
+set_tests_properties("TOPP_QualityControl_1_out_consXML" PROPERTIES DEPENDS "TOPP_QualityControl_1")
+set_tests_properties("TOPP_QualityControl_1_out_mzTab" PROPERTIES DEPENDS "TOPP_QualityControl_1")
+
 ## Tests for TOPPAS/ExecutePipeline are in ./src/tests/TOPPAS/...
 
 #------------------------------------------------------------------------------
