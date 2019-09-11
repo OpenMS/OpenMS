@@ -256,8 +256,8 @@ namespace OpenMS
     if (ms1spectrum->getDriftTimeArray() == nullptr)
     {
       OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+      return;
     }
-
 
     double eps = 1e-5; // eps for two grid cells to be considered equal
 
@@ -356,6 +356,7 @@ namespace OpenMS
     if (spectrum->getDriftTimeArray() == nullptr)
     {
       OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+      return;
     }
 
     double drift_width = fabs(drift_upper - drift_lower);
@@ -388,6 +389,7 @@ namespace OpenMS
     if (spectrum->getDriftTimeArray() == nullptr)
     {
       OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+      return;
     }
 
     double eps = 1e-5; // eps for two grid cells to be considered equal

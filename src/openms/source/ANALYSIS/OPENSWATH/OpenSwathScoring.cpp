@@ -213,8 +213,6 @@ namespace OpenMS
 
       calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, scores, drift_lower, drift_upper);
 
-      // OpenSwath::SpectrumPtr ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_, drift_lower, drift_upper);
-
       if (drift_upper > 0 && su_.use_im_scores)
       {
         double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
