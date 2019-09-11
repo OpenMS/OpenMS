@@ -792,6 +792,7 @@ namespace OpenMS
   {
     // the following attributes will be stored as meta values (userParam):
     // - annotation (as by SpectraST)
+    // - label type (e.g. "heavy" or "light")
     // the following attributes will be stored as CV values (CV):
     // - collision energy
     // - library intensity (product ion intensity)
@@ -967,6 +968,8 @@ namespace OpenMS
     {
       rm_trans.setMetaValue("annotation", tr_it->Annotation);
     }
+
+    rm_trans.setMetaValue("LabelType", tr_it->label_type);
 
     rm_trans.setDetectingTransition(tr_it->detecting_transition);
     rm_trans.setIdentifyingTransition(tr_it->identifying_transition);
