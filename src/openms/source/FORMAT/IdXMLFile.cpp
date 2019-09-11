@@ -97,7 +97,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void IdXMLFile::store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id)
+  void IdXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
     {
@@ -108,6 +108,9 @@ namespace OpenMS
           filename,
           "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::IDXML) + "'");
     }
+
+    //set filename for the handler. Just in case (e.g. when fatalError function is used).
+    file_ = filename;
 
     //open stream
     std::ofstream os(filename.c_str());
@@ -263,9 +266,9 @@ namespace OpenMS
       // add ProteinGroup info to metavalues (hack)
       MetaInfoInterface meta = protein_ids[i];
       addProteinGroups_(meta, protein_ids[i].getProteinGroups(),
-                        "protein_group", accession_to_id);
+                        "protein_group", accession_to_id, STORE);
       addProteinGroups_(meta, protein_ids[i].getIndistinguishableProteins(),
-                        "indistinguishable_proteins", accession_to_id);
+                        "indistinguishable_proteins", accession_to_id, STORE);
       writeUserParam_("UserParam", os, meta, 3);
 
       os << "\t\t</ProteinIdentification>\n";
@@ -652,7 +655,7 @@ namespace OpenMS
         accession_string.trim();
         std::vector<String> accessions;
         accession_string.split(' ', accessions);
-        if (accession_string != "" && accessions.empty())
+        if (!accession_string.empty() && accessions.empty())
         {
           accessions.push_back(accession_string);
         }
@@ -799,7 +802,7 @@ namespace OpenMS
         String value = (String)attributeAsString_(attributes, "value");
 
         // TODO: check if we are parsing a peptide hit
-        if (name == Constants::FRAGMENT_ANNOTATION_USERPARAM)
+        if (name == Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM)
         {
           std::vector<PeptideHit::PeakAnnotation> annotations;
           parseFragmentAnnotation_(value, annotations);
@@ -903,14 +906,15 @@ namespace OpenMS
 
   void IdXMLFile::addProteinGroups_(
     MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>&
-    groups, const String& group_name, const std::unordered_map<string, UInt>& accession_to_id)
+    groups, const String& group_name, const std::unordered_map<string, UInt>& accession_to_id,
+    XMLHandler::ActionMode mode)
   {
     for (Size g = 0; g < groups.size(); ++g)
     {
       String name = group_name + "_" + String(g);
       if (meta.metaValueExists(name))
       {
-        warning(LOAD, String("Metavalue '") + name + "' already exists. Overwriting...");
+        warning(mode, String("Metavalue '") + name + "' already exists. Overwriting...");
       }
       String accessions;
       for (StringList::const_iterator acc_it = groups[g].accessions.begin();
@@ -925,7 +929,7 @@ namespace OpenMS
         }
         else
         {
-          fatalError(LOAD, String("Invalid protein reference '") + *acc_it + "'");
+          fatalError(mode, String("Invalid protein reference '") + *acc_it + "'");
         }
       }
       String value = String(groups[g].probability) + "," + accessions;

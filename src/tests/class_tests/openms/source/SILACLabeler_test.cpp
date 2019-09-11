@@ -202,13 +202,13 @@ START_SECTION((void setUpHook(SimTypes::FeatureMapSimVector & )))
   SimTypes::FeatureMapSim fm1,fm2,fm3,fm4;
 
   feature_maps.push_back(fm1);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument&, labeler.setUpHook(feature_maps),"1 channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(feature_maps),"1 channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!")
   feature_maps.push_back(fm2);
   labeler.setUpHook(feature_maps);
   feature_maps.push_back(fm3);
   labeler.setUpHook(feature_maps);
   feature_maps.push_back(fm4);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument&, labeler.setUpHook(feature_maps),"4 channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(feature_maps),"4 channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!")
 }
 END_SECTION
 

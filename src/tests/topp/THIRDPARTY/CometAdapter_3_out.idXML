@@ -14,6 +14,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_2" accession="sp|P84103|SRSF3_HUMAN" score="0.0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/builder/jenkins/ws/openms_pr_ci/c797036f/source/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="633.705382698566723" RT="1821.299999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=6304" >
 			<PeptideHit score="107.0" sequence=".(Acetyl)VLLGHTKLVETYKDIK" charge="3" aa_before="-" aa_after="K" protein_refs="PH_0" >

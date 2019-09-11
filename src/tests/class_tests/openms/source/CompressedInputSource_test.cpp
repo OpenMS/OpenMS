@@ -85,7 +85,7 @@ START_SECTION(virtual xercesc::BinInputStream* makeStream() const)
   header[2] = '\0';
   String bz = String(header);
   CompressedInputSource source(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist"), bz);
-  TEST_EXCEPTION(Exception::FileNotFound&,source.makeStream())
+  TEST_EXCEPTION(Exception::FileNotFound,source.makeStream())
 END_SECTION
 
 /////////////////////////////////////////////////////////////

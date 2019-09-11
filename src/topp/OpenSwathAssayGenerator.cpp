@@ -84,8 +84,10 @@ using namespace OpenMS;
   step, the transitions will be filtered to improve sensitivity for detection
   of peptides.
 
-  Optionally, theoretical identification transitions can be generated when
-  the TraML will be used for IPF scoring in OpenSWATH.
+  Optionally, theoretical identification transitions can be generated when the
+  TraML will be used for IPF scoring in OpenSWATH, see @ref OpenMS::MRMAssay
+  "MRMAssay" for more information on the algorithm. This is recommended if
+  post-translational modifications are scored with OpenSWATH.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathAssayGenerator.cli

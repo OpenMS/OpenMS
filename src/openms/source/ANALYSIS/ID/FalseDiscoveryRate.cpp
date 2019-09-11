@@ -33,8 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-
+#include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <algorithm>
+#include <numeric>
 
 // #define FALSE_DISCOVERY_RATE_DEBUG
 // #undef  FALSE_DISCOVERY_RATE_DEBUG
@@ -58,7 +61,10 @@ namespace OpenMS
     defaults_.setValidStrings("add_decoy_peptides", ListUtils::create<String>("true,false"));
     defaults_.setValue("add_decoy_proteins", "false", "If 'true' decoy proteins will be written to output file, too. The q-value is set to the closest target score.");
     defaults_.setValidStrings("add_decoy_proteins", ListUtils::create<String>("true,false"));
+    defaults_.setValue("conservative", "true", "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.");
+    defaults_.setValidStrings("conservative", ListUtils::create<String>("true,false"));
     defaultsToParam_();
+
   }
 
   void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids) const
@@ -127,7 +133,7 @@ namespace OpenMS
       {
         if (!treat_runs_separately && iit != identifiers.begin())
         {
-          continue;
+          continue; //only take the first run
         }
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
@@ -498,8 +504,6 @@ namespace OpenMS
       }
       it->setHits(std::move(new_hits));
     }
-
-    return;
   }
 
   void FalseDiscoveryRate::apply(vector<ProteinIdentification>& fwd_ids, vector<ProteinIdentification>& rev_ids) const
@@ -552,8 +556,76 @@ namespace OpenMS
       }
       it->setHits(hits);
     }
+  }
 
-    return;
+  IdentificationData::ScoreTypeRef FalseDiscoveryRate::applyToQueryMatches(
+      IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref)
+  const
+  {
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+    bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
+    vector<double> target_scores, decoy_scores;
+    map<IdentificationData::IdentifiedMoleculeRef, bool> molecule_to_decoy;
+    map<IdentificationData::QueryMatchRef, double> match_to_score;
+    if (use_all_hits)
+    {
+      for (auto it = id_data.getMoleculeQueryMatches().begin();
+           it != id_data.getMoleculeQueryMatches().end(); ++it)
+      {
+        handleQueryMatch_(it, score_ref, target_scores, decoy_scores,
+                          molecule_to_decoy, match_to_score);
+      }
+    }
+    else
+    {
+      vector<IdentificationData::QueryMatchRef> best_matches =
+          id_data.getBestMatchPerQuery(score_ref);
+      for (auto match_ref : best_matches) // NOTE: performs copy, should not be necessary?
+      {
+        handleQueryMatch_(match_ref, score_ref, target_scores, decoy_scores,
+                          molecule_to_decoy, match_to_score);
+      }
+    }
+
+    map<double, double> score_to_fdr;
+    bool higher_better = score_ref->higher_better;
+    bool use_qvalue = !param_.getValue("no_qvalues").toBool();
+    calculateFDRs_(score_to_fdr, target_scores, decoy_scores, use_qvalue,
+                   higher_better);
+
+    IdentificationData::ScoreType fdr_score;
+    fdr_score.higher_better = false;
+    if (use_qvalue)
+    {
+      fdr_score.name = "q-value";
+      fdr_score.cv_term = CVTerm("MS:1002354", "PSM-level q-value", "MS");
+    }
+    else
+    {
+      fdr_score.name = "FDR";
+      fdr_score.cv_term = CVTerm("MS:1002355", "PSM-level FDRScore", "MS");
+    }
+    IdentificationData::ScoreTypeRef fdr_ref =
+        id_data.registerScoreType(fdr_score);
+    for (IdentificationData::MoleculeQueryMatches::iterator it =
+        id_data.getMoleculeQueryMatches().begin(); it !=
+                                                   id_data.getMoleculeQueryMatches().end(); ++it)
+    {
+      if (!include_decoys)
+      {
+        auto pos = molecule_to_decoy.find(it->identified_molecule_ref);
+        if ((pos != molecule_to_decoy.end()) && pos->second) continue;
+      }
+      auto pos = match_to_score.find(it);
+      if (pos == match_to_score.end()) continue;
+      double fdr = score_to_fdr.at(pos->second);
+      // @TODO: find a more efficient way to add a score
+      // IdentificationData::MoleculeQueryMatch copy(*it);
+      // copy.scores.push_back(make_pair(fdr_ref, fdr));
+      // id_data.registerMoleculeQueryMatch(copy);
+      id_data.addScore(it, fdr_ref, fdr);
+    }
+    return fdr_ref;
   }
 
 
@@ -601,77 +673,6 @@ namespace OpenMS
     {
       target_scores.push_back(score.first);
     }
-  }
-
-
-  IdentificationData::ScoreTypeRef FalseDiscoveryRate::applyToQueryMatches(
-    IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref)
-    const
-  {
-    bool use_all_hits = param_.getValue("use_all_hits").toBool();
-    bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
-    vector<double> target_scores, decoy_scores;
-    map<IdentificationData::IdentifiedMoleculeRef, bool> molecule_to_decoy;
-    map<IdentificationData::QueryMatchRef, double> match_to_score;
-    if (use_all_hits)
-    {
-      for (auto it = id_data.getMoleculeQueryMatches().begin();
-           it != id_data.getMoleculeQueryMatches().end(); ++it)
-      {
-        handleQueryMatch_(it, score_ref, target_scores, decoy_scores,
-                          molecule_to_decoy, match_to_score);
-      }
-    }
-    else
-    {
-      vector<IdentificationData::QueryMatchRef> best_matches =
-        id_data.getBestMatchPerQuery(score_ref);
-      for (auto match_ref : best_matches) // NOTE: performs copy, should not be necessary?
-      {
-        handleQueryMatch_(match_ref, score_ref, target_scores, decoy_scores,
-                          molecule_to_decoy, match_to_score);
-      }
-    }
-
-    map<double, double> score_to_fdr;
-    bool higher_better = score_ref->higher_better;
-    bool use_qvalue = !param_.getValue("no_qvalues").toBool();
-    calculateFDRs_(score_to_fdr, target_scores, decoy_scores, use_qvalue,
-                   higher_better);
-
-    IdentificationData::ScoreType fdr_score;
-    fdr_score.higher_better = false;
-    if (use_qvalue)
-    {
-      fdr_score.name = "q-value";
-      fdr_score.cv_term = CVTerm("MS:1002354", "PSM-level q-value", "MS");
-    }
-    else
-    {
-      fdr_score.name = "FDR";
-      fdr_score.cv_term = CVTerm("MS:1002355", "PSM-level FDRScore", "MS");
-    }
-    IdentificationData::ScoreTypeRef fdr_ref =
-      id_data.registerScoreType(fdr_score);
-    for (IdentificationData::MoleculeQueryMatches::iterator it =
-           id_data.getMoleculeQueryMatches().begin(); it !=
-           id_data.getMoleculeQueryMatches().end(); ++it)
-    {
-      if (!include_decoys)
-      {
-        auto pos = molecule_to_decoy.find(it->identified_molecule_ref);
-        if ((pos != molecule_to_decoy.end()) && pos->second) continue;
-      }
-      auto pos = match_to_score.find(it);
-      if (pos == match_to_score.end()) continue;
-      double fdr = score_to_fdr.at(pos->second);
-      // @TODO: find a more efficient way to add a score
-      // IdentificationData::MoleculeQueryMatch copy(*it);
-      // copy.scores.push_back(make_pair(fdr_ref, fdr));
-      // id_data.registerMoleculeQueryMatch(copy);
-      id_data.addScore(it, fdr_ref, fdr);
-    }
-    return fdr_ref;
   }
 
 
@@ -801,7 +802,7 @@ namespace OpenMS
       // corner cases
       if (k == 0)
       {
-        if (target_scores.size() != 0)
+        if (!target_scores.empty())
         {
           score_to_fdr[ds] = score_to_fdr[target_scores[0]];
           continue;
@@ -812,6 +813,7 @@ namespace OpenMS
           continue;
         }
       }
+
       if (k == target_scores.size()) { score_to_fdr[ds] = score_to_fdr[target_scores.back()]; continue; }
 
       if (fabs(target_scores[k] - ds) < fabs(target_scores[k - 1] - ds))
@@ -823,7 +825,582 @@ namespace OpenMS
         score_to_fdr[ds] = score_to_fdr[target_scores[k - 1]];
       }
     }
+  }
 
+  //TODO does not support "by run" and/or "by charge"
+  //TODO could be done for a percentage of FalsePos instead of a number
+  //TODO can be templated for proteins
+  double FalseDiscoveryRate::rocN(const vector<PeptideIdentification>& ids, Size fp_cutoff) const
+  {
+    bool higher_score_better(ids.begin()->isHigherScoreBetter());
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits);
+
+    if (scores_labels.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
+    }
+
+    if (higher_score_better)
+    { // decreasing
+      std::sort(scores_labels.rbegin(), scores_labels.rend());
+    }
+    else
+    { // increasing
+      std::sort(scores_labels.begin(), scores_labels.end());
+    }
+    // if fp_cutoff is zero do the full AUC.
+    return rocN_(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
+  }
+
+  double FalseDiscoveryRate::rocN(const vector<PeptideIdentification>& ids, Size fp_cutoff, const String& identifier) const
+  {
+    bool higher_score_better(ids.begin()->isHigherScoreBetter());
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, identifier);
+
+    if (scores_labels.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
+    }
+
+    if (higher_score_better)
+    { // decreasing
+      std::sort(scores_labels.rbegin(), scores_labels.rend());
+    }
+    else
+    { // increasing
+      std::sort(scores_labels.begin(), scores_labels.end());
+    }
+    // if fp_cutoff is zero do the full AUC.
+    return rocN_(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
+  }
+
+  double FalseDiscoveryRate::rocN(const ConsensusMap& ids, Size fp_cutoff) const
+  {
+    bool higher_score_better(ids[0].getPeptideIdentifications().begin()->isHigherScoreBetter());
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, ids, use_all_hits);
+
+    if (scores_labels.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
+    }
+
+    if (higher_score_better)
+    { // decreasing
+      std::sort(scores_labels.rbegin(), scores_labels.rend());
+    }
+    else
+    { // increasing
+      std::sort(scores_labels.begin(), scores_labels.end());
+    }
+    // if fp_cutoff is zero do the full AUC.
+    return rocN_(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
+  }
+
+  double FalseDiscoveryRate::rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier) const
+  {
+    bool higher_score_better(ids[0].getPeptideIdentifications().begin()->isHigherScoreBetter());
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, ids, use_all_hits, identifier);
+
+    if (scores_labels.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
+    }
+
+    if (higher_score_better)
+    { // decreasing
+      std::sort(scores_labels.rbegin(), scores_labels.rend());
+    }
+    else
+    { // increasing
+      std::sort(scores_labels.begin(), scores_labels.end());
+    }
+    // if fp_cutoff is zero do the full AUC.
+    return rocN_(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
+  }
+
+  //TODO implement per charge estimation
+  void FalseDiscoveryRate::applyBasic(ConsensusMap & cmap, bool include_unassigned_peptides)
+  {
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    const string& score_type = q_value ? "q-value" : "FDR";
+    bool all_hits = param_.getValue("use_all_hits").toBool();
+
+    bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
+    bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
+
+    //TODO this assumes all used search engine scores have the same score orientation
+    // include the determination of orientation in the getScores methods instead
+    bool higher_score_better = cmap.begin()->getPeptideIdentifications().begin()->isHigherScoreBetter();
+
+    bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
+    ScoreToTgtDecLabelPairs scores_labels;
+
+    //Warning: this assumes that there are no dangling identifier references in the PeptideIDs
+    // because this disables checking
+    if (cmap.getProteinIdentifications().size() == 1)
+    {
+      treat_runs_separately = false;
+    }
+
+    if (treat_runs_separately)
+    {
+      for (const auto& protID : cmap.getProteinIdentifications())
+      {
+        if (split_charge_variants)
+        {
+          pair<int, int> chargeRange = protID.getSearchParameters().getChargeRange();
+          for (int c = chargeRange.first; c <= chargeRange.second; ++c)
+          {
+            if (c == 0) continue;
+            IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, all_hits, c, protID.getIdentifier());
+            map<double, double> scores_to_fdr;
+            calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
+            IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, c,  protID.getIdentifier());
+          }
+        }
+        else
+        {
+          IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, all_hits, protID.getIdentifier());
+          map<double, double> scores_to_fdr;
+          calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
+          IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, protID.getIdentifier());
+        }
+      }
+    }
+    else
+    {
+      IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, all_hits);
+      map<double, double> scores_to_fdr;
+      calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
+      IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides);
+    }
+  }
+
+  //TODO Add another overload that iterates over a vector. to be consistent with old interface
+  //TODO Make it return a double for the AUC
+  void FalseDiscoveryRate::applyBasic(ProteinIdentification & id, bool groups_too)
+  {
+    bool add_decoy_proteins = param_.getValue("add_decoy_proteins").toBool();
+
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    //TODO Check naming conventions. Ontology? Make class member?
+    const string& score_type = q_value ? "q-value" : "FDR";
+    bool higher_score_better(id.isHigherScoreBetter());
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    scores_labels.reserve(id.getHits().size());
+    std::map<double,double> scores_to_FDR;
+
+    IDScoreGetterSetter::getScores_(scores_labels, id);
+    if (scores_labels.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
+    }
+    calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+    if (!scores_labels.empty())
+    {
+      if (!add_decoy_proteins)
+      {
+        IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false, add_decoy_proteins);
+      }
+      else
+      {
+        IDScoreGetterSetter::setScores_(scores_to_FDR, id, score_type, false);
+      }
+    }
+    else
+    {
+     OPENMS_LOG_WARN << "Warning: No scores could be extracted for proteins. No FDR calculation performed.";
+    }
+
+    // TODO this could be a separate function.. And it could actually be sped up.
+    //  We could store the number of decoys/targets in the group, or we only update the
+    //  scores of proteins that are actually in groups (rest stays the same)
+    if (groups_too)
+    {
+      scores_to_FDR.clear();
+      scores_labels.clear();
+      scores_labels.reserve(id.getHits().size());
+      // Prepare lookup map for decoy proteins (since there is no direct way back from group to protein)
+      unordered_set<string> decoy_accs;
+      for (const auto& prot : id.getHits())
+      {
+        if (!prot.metaValueExists("target_decoy") || prot.getMetaValue("target_decoy") == "decoy")
+        {
+          decoy_accs.insert(prot.getAccession());
+        }
+      }
+      IDScoreGetterSetter::getScores_(scores_labels, id.getIndistinguishableProteins(), decoy_accs);
+      calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+      if (!scores_labels.empty())
+        IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
+    }
+    scores_to_FDR.clear();
+  }
+
+
+  void FalseDiscoveryRate::applyBasic(std::vector<PeptideIdentification> & ids)
+  {
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    //TODO Check naming conventions. Ontology?
+    const string& score_type = q_value ? "q-value" : "FDR";
+
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+
+    //TODO this assumes all runs have the same ordering! Otherwise do it per identifier.
+    bool higher_score_better(ids.begin()->isHigherScoreBetter());
+
+    //TODO not yet implemented
+    //bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    std::map<double,double> scores_to_FDR;
+
+    std::vector<int> charges = {0};
+    std::vector<String> identifiers = {""};
+    // if charge states or separate runs: look ahead for possible values and add them to the vecs above
+
+    for (const String& identifier : identifiers)
+    {
+      for (const int& charge : charges)
+      {
+        //TODO setScores also should have a filter mechanism!!
+        IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, charge, identifier);
+        if (scores_labels.empty())
+        {
+         OPENMS_LOG_ERROR << "No scores for run " << identifier << " and charge " << charge << std::endl;
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
+        }
+        calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+        if (!scores_labels.empty())
+          IDScoreGetterSetter::setScores_(scores_to_FDR, ids, score_type, false);
+        scores_to_FDR.clear();
+      }
+    }
+  }
+
+  //TODO could be implemented for PeptideIDs, too
+  //TODO iterate over the vector. to be consistent with old interface
+  void FalseDiscoveryRate::applyEstimated(std::vector<ProteinIdentification> &ids) const
+  {
+    //Note: this is actually unused because I think with that approach you will always get q-values.
+    //bool q_value = !param_.getValue("no_qvalues").toBool();
+    bool higher_score_better(ids.begin()->isHigherScoreBetter());
+
+    //TODO not yet supported (if ever)
+    //bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
+    if (ids.size() > 1)
+    {
+     OPENMS_LOG_WARN << "More than one set of ProteinIdentifications found. Only using the first one for FDR calculation.\n";
+    }
+
+    if (ids[0].getScoreType() != "Posterior Probability" && ids[0].getScoreType() != "Posterior Error Probability")
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Proteins in ProteinIdentification do not have a posterior (error) probability assigned. Please run an inference first.", ids[0].getScoreType());
+    }
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    std::map<double,double> scores_to_FDR;
+    //TODO actually we do not need the labels for estimated FDR and it currently fails if we do not have TD annotations
+    //TODO maybe separate getScores and getScoresAndLabels
+    IDScoreGetterSetter::getScores_(scores_labels, ids[0]);
+    calculateEstimatedQVal_(scores_to_FDR, scores_labels, higher_score_better);
+    if (!scores_labels.empty())
+      IDScoreGetterSetter::setScores_(scores_to_FDR, ids[0], "Estimated Q-Values", false);
+  }
+
+
+  //TODO remove?
+  double FalseDiscoveryRate::applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff, UInt fpCutoff, double diffWeight)
+  {
+    //TODO not yet supported (if ever)
+    //bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
+    if (ids.size() > 1)
+    {
+     OPENMS_LOG_WARN << "More than one set of ProteinIdentifications found. Only using the first one for calculation.\n";
+    }
+
+    if (ids[0].getScoreType() != "Posterior Probability")
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Proteins in ProteinIdentification do not have a posterior probability assigned. Please run an inference first.", ids[0].getScoreType());
+    }
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    IDScoreGetterSetter::getScores_(scores_labels, ids[0]);
+    std::sort(scores_labels.rbegin(), scores_labels.rend());
+    return diffEstimatedEmpirical_(scores_labels, pepCutoff) * diffWeight + rocN_(scores_labels, fpCutoff) * (1 - diffWeight);
+  }
+
+  double FalseDiscoveryRate::applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff, UInt fpCutoff, double diffWeight)
+  {
+    if (ids.getScoreType() != "Posterior Probability")
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Proteins in ProteinIdentification do not have a posterior probability assigned. Please run an inference first.", ids.getScoreType());
+    }
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    IDScoreGetterSetter::getScores_(scores_labels, ids);
+    std::sort(scores_labels.rbegin(), scores_labels.rend());
+    double diff = diffEstimatedEmpirical_(scores_labels, pepCutoff);
+    double auc = rocN_(scores_labels, fpCutoff);
+   OPENMS_LOG_INFO << "Evaluation of protein probabilities: Difference estimated vs. T-D FDR = " << diff << " and roc" << fpCutoff << " = " << auc << std::endl;
+    // we want the score to get higher the lesser the difference. Subtract from one.
+    // Then convex combination with the AUC.
+    return (1.0 - diff) * (1.0 - diffWeight) + auc * diffWeight;
+  }
+
+  //TODO the following two methods assume sortedness. Add precondition and/or doxygen comment
+  double FalseDiscoveryRate::diffEstimatedEmpirical_(const ScoreToTgtDecLabelPairs& scores_labels, double pepCutoff) const
+  {
+    bool conservative = param_.getValue("conservative").toBool();
+    if (scores_labels.empty())
+    {
+     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      return 1.0;
+    }
+
+    double diffArea = 0.0;
+    double est = 0.0, estPrev = 0.0, emp = 0.0, empPrev = 0.0;
+    double pepSum = 0.0;
+    UInt truePos = 0u, falsePos = 0u; //, truePosPrev = 0u, falsePosPrev = 0u;
+
+    auto pit = scores_labels.cbegin();
+    for (; pit != scores_labels.end()-1; ++pit)
+    {
+      pit->second ? truePos++ : falsePos++;
+      pepSum += (1 - pit->first);
+
+      //Look ahead. Running variables have already been incremented
+      if ((pit+1)->first != pit->first)
+      {
+        est = pepSum / (truePos + falsePos);
+        if (conservative)
+        {
+          emp = static_cast<double>(falsePos) / (truePos);
+        }
+        else
+        {
+          emp = static_cast<double>(falsePos) / (truePos+falsePos);
+        }
+
+        diffArea += trapezoidal_area_xEqy(estPrev, est, empPrev, emp);
+
+        //truePosPrev = truePos;
+        //falsePosPrev = falsePos;
+        estPrev = est;
+        empPrev = emp;
+      }
+    }
+
+    //Last item. Always add areas there
+    pit->second ? truePos++ : falsePos++;
+    pepSum += (1 - pit->first);
+    est = pepSum / (truePos + falsePos);
+    emp = static_cast<double>(falsePos) / (truePos + falsePos);
+    diffArea += trapezoidal_area_xEqy(estPrev, est, empPrev, emp);
+
+    //scale by max PEP value achievable (= width); height = empFDR can be 1.0
+    diffArea /= std::min(est, pepCutoff);
+
+    return diffArea;
+  }
+
+  double FalseDiscoveryRate::rocN_(const ScoreToTgtDecLabelPairs& scores_labels, Size fpCutoff) const
+  {
+    if (scores_labels.empty())
+    {
+     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      return 0.0;
+    }
+
+    double rocN = 0.0;
+    UInt truePos = 0u, falsePos = 0u, truePosPrev = 0u, falsePosPrev = 0u;
+
+    auto pit = scores_labels.cbegin();
+    for (; pit != scores_labels.cend()-1; ++pit)
+    {
+      pit->second ? truePos++ : falsePos++;
+
+      //Look ahead. Running variables have already been incremented
+      if ((pit+1)->first != pit->first)
+      {
+        rocN += trapezoidal_area(falsePos, falsePosPrev, truePos, truePosPrev);
+        if (falsePos >= fpCutoff) return rocN / (falsePos * truePos); //if with the last batch, you have >= N FPs, return scaled
+        truePosPrev = truePos;
+        falsePosPrev = falsePos;
+      }
+    }
+
+    //Last item if not returned. Always add areas there
+    pit->second ? truePos++ : falsePos++;
+    rocN += trapezoidal_area(falsePos, falsePosPrev, truePos, truePosPrev);
+
+    if (falsePos == 0) return 1;
+    return rocN / (falsePos * truePos);
+  }
+
+  /// x2 has to be bigger than x1,
+  /// handles possible intersections
+  double FalseDiscoveryRate::trapezoidal_area_xEqy(double x1, double x2, double y1, double y2) const
+  {
+    double height = x2 - x1;
+    double b1 = y1 - x1;
+    double b2 = y2 - x2;
+
+    if (std::signbit(b1) == std::signbit(b2))
+    {
+      return (std::fabs(b1) + std::fabs(b2)) * height / 2.0;
+    }
+    else
+    {
+      // it is intersecting the x=y line. Add the area of the resulting triangles
+      return (b1*b1 + b2*b2) * height / (2.0 * (std::fabs(b1)+std::fabs(b2)));
+    }
+  }
+
+  /// assumes a flat base
+  double FalseDiscoveryRate::trapezoidal_area(double x1, double x2, double y1, double y2) const
+  {
+    double base = fabs(x1 - x2);
+    double avgHeight = (y1+y2)/2.0;
+    return base * avgHeight;
+  }
+
+
+  // Actually this does not need the bool entries in the scores_labels, but leads to less code
+  // Assumes P(E)Probabilities as scores
+  void FalseDiscoveryRate::calculateEstimatedQVal_(std::map<double, double> &scores_to_FDR,
+                                                   ScoreToTgtDecLabelPairs &scores_labels,
+                                                   bool higher_score_better) const
+  {
+    if (scores_labels.empty())
+    {
+     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      return;
+    }
+
+    if (higher_score_better)
+    { // decreasing
+      std::sort(scores_labels.rbegin(), scores_labels.rend());
+    }
+    else
+    { // increasing
+      std::sort(scores_labels.begin(), scores_labels.end());
+    }
+
+    //TODO I think we can just do it "in-place" to save space
+    std::vector<double> estimatedFDR;
+    estimatedFDR.reserve(scores_labels.size());
+
+    // Basically a running average
+    double sum = 0.0;
+
+    for (size_t j = 0; j < scores_labels.size(); ++j)
+    {
+      sum += scores_labels[j].first;
+      estimatedFDR[j] = sum / (j+1.0);
+    }
+
+    if (higher_score_better) // Transform to PEP
+    {
+      std::transform(estimatedFDR.begin(), estimatedFDR.end(), estimatedFDR.begin(), [&](double d) { return 1 - d; });
+    }
+
+    // In case of multiple equal scores, this will add the _last_ fdr that it finds. Since fdrs are decreasing
+    // in either way in estimatedFDR, this adds the minimal FDR to the map for this score.
+    std::transform(scores_labels.begin(), scores_labels.end(), estimatedFDR.begin(), std::inserter(scores_to_FDR, scores_to_FDR.begin()), [&](std::pair<double,bool> sl, double fdr){return make_pair(sl.first, fdr);});
+  }
+
+  void FalseDiscoveryRate::calculateFDRBasic_(
+      std::map<double,double>& scores_to_FDR,
+      ScoreToTgtDecLabelPairs& scores_labels,
+      bool qvalue,
+      bool higher_score_better) const
+  {
+    //TODO put in separate function to avoid ifs in iteration
+    bool conservative = param_.getValue("conservative").toBool();
+    if (scores_labels.empty())
+    {
+     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      return;
+    }
+
+    if (higher_score_better)
+    { // decreasing
+      std::sort(scores_labels.rbegin(), scores_labels.rend());
+    }
+    else
+    { // increasing
+      std::sort(scores_labels.begin(), scores_labels.end());
+    }
+
+    //uniquify scores and add decoy proportions
+    size_t decoys = 0;
+    double last_score = scores_labels[0].first;
+
+    size_t j = 0;
+    for (; j < scores_labels.size(); ++j)
+    {
+      //TODO think about double comparison here, but an equal should actually be fine here.
+      if (scores_labels[j].first != last_score)
+      {
+        #ifdef FALSE_DISCOVERY_RATE_DEBUG
+        std::cerr << "Recording score: " << last_score << " with " << decoys << " decoys at index+1 = " << (j+1) << " -> fdr: " << decoys/(j+1.0) << std::endl;
+        #endif
+        //we are using the conservative formula (Decoy + 1) / (Tgts)
+        if (conservative)
+        {
+          scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0-decoys);
+        }
+        else
+        {
+          scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0);
+        }
+
+        last_score = scores_labels[j].first;
+      }
+
+      if (!scores_labels[j].second)
+      {
+        decoys++;
+      }
+    }
+
+    // in case there is only one score and generally to include the last score, I guess we need to do this
+    if (conservative)
+    {
+      scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0-decoys);
+    }
+    else
+    {
+      scores_to_FDR[last_score] = (decoys+1.0)/(j+1.0);
+    }
+
+    if (qvalue) //apply a cumulative minimum on the map (from low to high fdrs)
+    {
+      double cummin = 1.0;
+
+      for (auto&& rit = scores_to_FDR.begin(); rit != scores_to_FDR.end(); ++rit)
+      {
+        #ifdef FALSE_DISCOVERY_RATE_DEBUG
+        std::cerr << "Comparing " << rit->second << " to " << cummin << std::endl;
+        #endif
+        cummin = std::min(rit->second, cummin);
+        rit->second = cummin;
+      }
+    }
   }
 
 } // namespace OpenMS

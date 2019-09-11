@@ -73,9 +73,6 @@
 
 #ifdef _OPENMP
   #include <omp.h>
-  #define NUMBER_OF_THREADS (omp_get_num_threads())
-#else
-  #define NUMBER_OF_THREADS (1)
 #endif
 
 
@@ -89,7 +86,7 @@ using namespace std;
 /**
     @page TOPP_SimpleSearchEngine SimpleSearchEngine
 
-    @brief Identifies peptides in MS/MS spectra. 
+    @brief Identifies peptides in MS/MS spectra.
 
 <CENTER>
     <table>
@@ -105,7 +102,7 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em This search engine is mainly for educational/benchmarking/prototyping use cases. 
+    @em This search engine is mainly for educational/benchmarking/prototyping use cases.
     It lacks behind in speed and/or quality of results when compared to state-of-the-art search engines.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -144,10 +141,9 @@ class SimpleSearchEngine :
       setValidFormats_("out", ListUtils::create<String>("idXML"));
 
       // put search algorithm parameters at Search: subtree of parameters
-      Param sse_defaults = SimpleSearchEngineAlgorithm().getDefaults();
-      Param combined;
-      combined.insert("", sse_defaults);
-      registerFullParam_(sse_defaults);
+      Param search_algo_params_with_subsection;
+      search_algo_params_with_subsection.insert("Search:", SimpleSearchEngineAlgorithm().getDefaults());
+      registerFullParam_(search_algo_params_with_subsection);
     }
 
     ExitCodes main_(int, const char**) override
@@ -163,9 +159,22 @@ class SimpleSearchEngine :
       vector<PeptideIdentification> peptide_ids;
 
       SimpleSearchEngineAlgorithm sse;
-      sse.setParameters(getParam_().copy("", true));
-      sse.search(in, database, protein_ids, peptide_ids);
+      sse.setParameters(getParam_().copy("Search:", true));
+      //TODO ??? Why not use the TOPPBase ExitCodes?
+      // same for OpenPepXL etc. Otherwise please write a proper mapping.
+      SimpleSearchEngineAlgorithm::ExitCodes e = sse.search(in, database, protein_ids, peptide_ids);
+      if (e != SimpleSearchEngineAlgorithm::ExitCodes::EXECUTION_OK)
+      {
+        return TOPPBase::ExitCodes::INTERNAL_ERROR;
+      }
 
+      // MS path already set in algorithm. Overwrite here so we get something testable
+      if (getFlag_("test"))
+      {
+        // if test mode set, add file without path so we can compare it
+        protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in)});
+      }   
+    
       IdXMLFile().store(out, protein_ids, peptide_ids);
 
       return EXECUTION_OK;

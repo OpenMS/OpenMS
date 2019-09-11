@@ -143,6 +143,7 @@ START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<
 	++j;
 	}
 }
+
 {
 	vector<double> score_vector;
 	score_vector.push_back(-0.39);
@@ -206,35 +207,11 @@ START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<
 
 END_SECTION
 
-START_SECTION((void fillDensities(std::vector<double>& x_scores,std::vector<double>& incorrect_density,std::vector<double>& correct_density)))
+START_SECTION((void fillLogDensities(std::vector<double>& x_scores,std::vector<double>& incorrect_density,std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((double computeMaxLikelihood(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double one_minus_sum_post(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_post(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_pos_x0(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_neg_x0(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_pos_sigma(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density, double positive_mean)))
-NOT_TESTABLE
-//tested in fit
-END_SECTION
-START_SECTION((double sum_neg_sigma(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density, double positive_mean)))
+START_SECTION((double computeLogLikelihood(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
@@ -283,6 +260,75 @@ String gauss = ptr->getGaussGnuplotFormula(ptr->getCorrectlyAssignedFitResult())
 	TEST_EQUAL(gauss.hasSubstring(") ** 2)"), true)
 END_SECTION
 
+    START_SECTION(fitWithGumbel)
+        {
+          // ------- This code was used for the test file: ------------
+          // Use actual Gaussian data to see if fitting works
+          //random_device device_random_;
+          //default_random_engine generator_(device_random_());
+
+          // Gaussian mean and SD, mixture of 2.
+          //normal_distribution<> distribution_1_(1.5, 0.5);
+          //normal_distribution<> distribution_2_(3.5, 1.0);
+          // ----------------------------------------------------------
+
+          vector<double> rand_score_vector;
+
+          CsvFile gauss_mix (OPENMS_GET_TEST_DATA_PATH("GumbelGaussMix_2_1D.csv"));
+          StringList gauss_mix_strings;
+          gauss_mix.getRow(0, gauss_mix_strings);
+
+          // Load mixture of Gumbel and Gaussian (1D) from provided csv
+          for (StringList::const_iterator it = gauss_mix_strings.begin(); it != gauss_mix_strings.end(); ++it)
+          {
+            if(!it->empty())
+            {
+              rand_score_vector.push_back(it->toDouble());
+            }
+          }
+
+          TEST_EQUAL(rand_score_vector.size(),2000)
+
+          // Class expects sorted scores
+          sort(rand_score_vector.begin(), rand_score_vector.end());
+
+          vector<double> probabilities;
+          Param param;
+          param.setValue("number_of_bins", 10);
+          param.setValue("incorrectly_assigned","Gumbel");
+          ptr->setParameters(param);
+          ptr->fitGumbelGauss(rand_score_vector);
+          double smallest = ptr->getSmallestScore();
+
+          TOLERANCE_ABSOLUTE(0.5)
+          TEST_REAL_SIMILAR(ptr->getCorrectlyAssignedFitResult().x0 , 8.-smallest)
+          TEST_REAL_SIMILAR(ptr->getCorrectlyAssignedFitResult().sigma, 3.5)
+          TEST_REAL_SIMILAR(ptr->getIncorrectlyAssignedGumbelFitResult().a, 2.-smallest)
+          TEST_REAL_SIMILAR(ptr->getIncorrectlyAssignedGumbelFitResult().b, .6)
+          TEST_REAL_SIMILAR(ptr->getNegativePrior(), 0.6)
+          TOLERANCE_ABSOLUTE(0.001)
+          /*while(i < rand_score_vector.size() && j < rand_score_vector.size())
+          {
+            cout<<"i: "<<rand_score_vector[i] << ", j: "<<rand_score_vector[j]<<endl;
+            cout<<"pi:"<<probabilities[i] <<", j: "<<probabilities[j]<<endl;
+            if(rand_score_vector[i] <= rand_score_vector[j])
+            {
+              TEST_EQUAL(probabilities[i] >= probabilities[j],true)
+              TEST_REAL_SIMILAR(ptr->computeProbability(rand_score_vector[i]), probabilities[i])
+              TEST_REAL_SIMILAR(ptr->computeProbability(rand_score_vector[j]), probabilities[j])
+            }
+            else
+            {
+              TEST_EQUAL(probabilities[i] >= probabilities[j],true)
+              TEST_REAL_SIMILAR(ptr->computeProbability(rand_score_vector[i]), probabilities[i])
+              TEST_REAL_SIMILAR(ptr->computeProbability(rand_score_vector[j]), probabilities[j])
+            }
+            ++i;
+            ++j;
+          }*/
+        }
+    END_SECTION
+
 START_SECTION((const String getBothGnuplotFormula(const GaussFitter::GaussFitResult& incorrect, const GaussFitter::GaussFitResult& correct) const))
 NOT_TESTABLE
 delete ptr;
@@ -300,6 +346,9 @@ START_SECTION((void	plotTargetDecoyEstimation(std::vector<double> &target,std::v
 NOT_TESTABLE
 //not yet tested
 END_SECTION
+
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

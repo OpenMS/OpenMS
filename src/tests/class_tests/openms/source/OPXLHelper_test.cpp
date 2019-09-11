@@ -46,6 +46,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <QStringList>
 
 using namespace OpenMS;
@@ -195,6 +196,11 @@ END_SECTION
 std::vector< PeptideIdentification > peptide_ids;
 std::vector< ProteinIdentification > protein_ids;
 IdXMLFile id_file;
+
+// this is an old test file, that can not be easily reproduced anymore,
+// since it represents an intermediate state of the data structures and is not written out
+// in this form anymore
+// But it is very useful to test the functions that change the old structure to the new one
 id_file.load(OPENMS_GET_TEST_DATA_PATH("OPXLHelper_test.idXML"), protein_ids, peptide_ids);
 
 for (auto& id : peptide_ids)  //OMS_CODING_TEST_EXCLUDE
@@ -219,6 +225,12 @@ START_SECTION(static void addProteinPositionMetaValues(std::vector< PeptideIdent
       TEST_EQUAL(hit.metaValueExists("XL_Protein_position_beta"), false)
       TEST_EQUAL(hit.metaValueExists("xl_target_decoy"), false)
       TEST_EQUAL(hit.metaValueExists("accessions_beta"), false)
+      TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS1_PROT), false)
+      TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS2_PROT), false)
+      TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA), false)
+      TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA), false)
+      TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS), false)
+      TEST_EQUAL(hit.metaValueExists(Constants::UserParam::TARGET_DECOY), true)
     }
   }
 
@@ -228,20 +240,19 @@ START_SECTION(static void addProteinPositionMetaValues(std::vector< PeptideIdent
   // check, that they were added to every PeptideHit
   for (const auto& id : peptide_ids)
   {
-    for (const auto& hit : id.getHits())
-    {
-      TEST_EQUAL(hit.metaValueExists("XL_Protein_position_alpha"), true)
-      TEST_EQUAL(hit.metaValueExists("XL_Protein_position_beta"), true)
-      TEST_EQUAL(hit.metaValueExists("xl_target_decoy"), false)
-      TEST_EQUAL(hit.metaValueExists("accessions_beta"), false)
-    }
+    const PeptideHit& hit = id.getHits()[0];
+    TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS1_PROT), true)
+    TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS2_PROT), true)
+    TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA), false)
+    TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA), false)
+    TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS), false)
   }
 
   // a few example values
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue("XL_Protein_position_alpha"), "1539")
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue("XL_Protein_position_beta"), "182")
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("XL_Protein_position_alpha"), "1539")
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("XL_Protein_position_beta"), "182")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1_PROT), "1539")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT), "182")
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1_PROT), "1539")
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT), "182")
 
 
 END_SECTION
@@ -253,15 +264,16 @@ START_SECTION(static void addXLTargetDecoyMV(std::vector< PeptideIdentification 
   // check, that they were added to every PeptideHit
   for (const auto& id : peptide_ids)
   {
-    for (const auto& hit : id.getHits())
-    {
-      TEST_EQUAL(hit.metaValueExists("xl_target_decoy"), true)
-    }
+      const PeptideHit& hit = id.getHits()[0];
+      TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA), true)
+      TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA), true)
   }
 
   // a few example values
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue("xl_target_decoy"), "target")
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("xl_target_decoy"), "target")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA), "target")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA), "-")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA), "target")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA), "target")
 
 END_SECTION
 
@@ -274,35 +286,59 @@ START_SECTION(static void addBetaAccessions(std::vector< PeptideIdentification >
   {
     for (const auto& hit : id.getHits())
     {
-      TEST_EQUAL(hit.metaValueExists("accessions_beta"), true)
+      TEST_EQUAL(hit.metaValueExists(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS), true)
     }
   }
 
   // a few example values
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue("accessions_beta"), "-")
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("accessions_beta"), "Protein1")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS), "-")
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS), "Protein1")
 
 END_SECTION
 
 START_SECTION(static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits))
 
+  std::vector< PeptideIdentification > pep_ids = peptide_ids;
   // all hits are to separate spectra, so everything should be rank 1
-  for (const auto& id : peptide_ids)
+  for (const auto& id : pep_ids)
   {
     for (const auto& hit : id.getHits())
     {
-      TEST_EQUAL(hit.getMetaValue("xl_rank"), 1)
+      TEST_EQUAL(hit.getMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK), 1)
     }
   }
 
   // artificially assign one of the hits to the spectrum of another
-  peptide_ids[1].getHits()[0].setMetaValue("spectrum_index", peptide_ids[0].getHits()[0].getMetaValue("spectrum_index"));
-  peptide_ids[1].getHits()[1].setMetaValue("spectrum_index", peptide_ids[0].getHits()[0].getMetaValue("spectrum_index"));
+  pep_ids[1].getHits()[0].setMetaValue("spectrum_index", pep_ids[0].getHits()[0].getMetaValue("spectrum_index"));
+  pep_ids[1].getHits()[1].setMetaValue("spectrum_index", pep_ids[0].getHits()[0].getMetaValue("spectrum_index"));
 
-  peptide_ids = OPXLHelper::combineTopRanksFromPairs(peptide_ids, 5);
+  pep_ids = OPXLHelper::combineTopRanksFromPairs(pep_ids, 5);
 
   // there is one rank 2 now (in peptide_ids[2] now, because the order is not preserved)
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getMetaValue("xl_rank"), 2)
+  TEST_EQUAL(pep_ids[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK), 2)
+
+END_SECTION
+
+START_SECTION(static void removeBetaPeptideHits(std::vector< PeptideIdentification > & peptide_ids))
+
+  OPXLHelper::removeBetaPeptideHits(peptide_ids);
+
+  TEST_EQUAL(peptide_ids.size(), 3)
+  for (const auto& id : peptide_ids)
+  {
+    TEST_EQUAL(id.getHits().size(), 1)
+  }
+
+  // a few example values
+  // mono-link
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1_PROT), "2078")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT), "-")
+  // cross-link
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1_PROT), "1539")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT), "182")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_PRE), "K")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_END), "189")
+
 
 END_SECTION
 

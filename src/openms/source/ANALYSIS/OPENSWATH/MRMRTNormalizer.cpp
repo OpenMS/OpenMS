@@ -56,25 +56,25 @@ namespace OpenMS
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
-          boost::lexical_cast<std::string>(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
+          String(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
     }
 
     if (pairs.size() < 30)
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
-          boost::lexical_cast<std::string>(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
+          String(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
 
-    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC<Math::RansacModelLinear>().ransac(pairs, n, k, t, d);
+    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC<Math::RansacModelLinear>::ransac(pairs, n, k, t, d);
     double bestrsq = Math::RansacModelLinear::rm_rsq_impl(new_pairs.begin(), new_pairs.end());
 
     if (bestrsq < rsq_limit)
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
-          boost::lexical_cast<std::string>(bestrsq) + " is below limit of " +
-          boost::lexical_cast<std::string>(rsq_limit) +
+          String(bestrsq) + " is below limit of " +
+          String(rsq_limit) +
           ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
@@ -82,8 +82,8 @@ namespace OpenMS
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: number of data points: " +
-          boost::lexical_cast<std::string>(new_pairs.size()) +
-          " is below limit of " + boost::lexical_cast<std::string>(d) +
+          String(new_pairs.size()) +
+          " is below limit of " + String(d) +
           ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
@@ -176,7 +176,7 @@ namespace OpenMS
         {
           double intercept = lin_reg.getIntercept();
           double slope = (double)lin_reg.getSlope();
-          residuals.push_back(abs(it->second - (intercept + it->first * slope)));
+          residuals.push_back(fabs(it->second - (intercept + it->first * slope)));
           OPENMS_LOG_DEBUG << " RT Normalization residual is " << residuals.back() << std::endl;
         }
 
@@ -222,14 +222,14 @@ namespace OpenMS
       // If the rsq is below the limit, this is an indication that something went wrong!
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
-          boost::lexical_cast<std::string>(rsq) + " is below limit of " +
-          boost::lexical_cast<std::string>(rsq_limit) +
+          String(rsq) + " is below limit of " +
+          String(rsq_limit) +
           ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
     for (Size i = 0; i < x.size(); i++)
     {
-      pairs_corrected.push_back(std::make_pair(x[i], y[i]));
+      pairs_corrected.emplace_back(x[i], y[i]);
     }
 
 #ifdef DEBUG_MRMRTNORMALIZER
@@ -250,14 +250,8 @@ namespace OpenMS
     double prob = MRMRTNormalizer::chauvenet_probability(residuals, pos);
 
     OPENMS_LOG_DEBUG << " Chauvinet testing " << prob << " < " << criterion << std::endl;
-    if (prob < criterion)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return prob < criterion;
+
   }
 
   double MRMRTNormalizer::chauvenet_probability(const std::vector<double>& residuals, int pos)

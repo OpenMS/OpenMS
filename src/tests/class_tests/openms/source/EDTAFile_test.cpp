@@ -90,9 +90,9 @@ START_SECTION(void load(const String &filename, ConsensusMap &consensus_map))
   f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_3.edta"), fm);
   TEST_EQUAL(fm.size(),3)
 
-  TEST_EXCEPTION(Exception::ParseError&, f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_2.edta"), fm));
+  TEST_EXCEPTION(Exception::ParseError, f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_2.edta"), fm));
   
-  TEST_EXCEPTION(Exception::FileNotFound&, f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_3_doesnotexist.edta"), fm));
+  TEST_EXCEPTION(Exception::FileNotFound, f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_3_doesnotexist.edta"), fm));
       
 }
 END_SECTION

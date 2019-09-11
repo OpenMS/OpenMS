@@ -81,15 +81,13 @@ public:
       {
         defaults_.setValue("rt_tolerance", 10.0, "Maximal RT distance (in [s]) for two spectra's precursors.");
         defaults_.setValue("mz_tolerance", 1.0, "Maximal m/z distance (in Da) for two spectra's precursors.");
-        defaultsToParam_();
+        defaultsToParam_(); // calls updateMembers_
       }
 
       void updateMembers_() override
       {
         rt_max_ = (double) param_.getValue("rt_tolerance");
         mz_max_ = (double) param_.getValue("mz_tolerance");
-
-        return;
       }
 
       double getSimilarity(const double d_rt, const double d_mz) const
@@ -199,8 +197,6 @@ public:
       }
 
       exp.sortSpectra();
-
-      return;
     }
 
     /// merges spectra with similar precursors (must have MS2 level)
@@ -299,8 +295,6 @@ public:
       mergeSpectra_(exp, spectra_to_merge, 2);
 
       exp.sortSpectra();
-
-      return;
     }
 
     /**
@@ -310,7 +304,7 @@ public:
      * @param average_type    averaging type to be used ("gaussian" or "tophat")
      */
     template <typename MapType>
-    void average(MapType& exp, String average_type)
+    void average(MapType& exp, const String& average_type)
     {
       // MS level to be averaged
       int ms_level = param_.getValue("average_gaussian:ms_level");
@@ -335,7 +329,7 @@ public:
       bool unit(param_.getValue("average_tophat:rt_unit") == "scans"); // true if RT unit is 'scans', false if RT unit is 'seconds'
       double range(param_.getValue("average_tophat:rt_range")); // range of spectra to be averaged over
       double range_seconds = range / 2; // max. +/- <range_seconds> seconds from master spectrum
-      int range_scans = range;
+      int range_scans = static_cast<int>(range); // in case of unit scans, the param is used as integer
       if ((range_scans % 2) == 0)
       {
         ++range_scans;
@@ -463,6 +457,10 @@ public:
       {
         type = SpectrumSettings::CENTROID;
       }
+      else
+      {
+        throw Exception::InvalidParameter(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION, "Spectrum type has to be one of automatic, profile or centroid.");
+      }
 
       // generate new spectra
       if (type == SpectrumSettings::CENTROID)
@@ -475,8 +473,6 @@ public:
       }
 
       exp.sortSpectra();
-
-      return;
     }
 
     // @}

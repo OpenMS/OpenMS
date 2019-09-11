@@ -65,7 +65,7 @@ END_SECTION
 START_SECTION((void load(const String& filename, Param& param)))
 	Param p2;
   ParamXMLFile paramFile;
-	TEST_EXCEPTION(Exception::FileNotFound&, paramFile.load("FileDoesNotExist.xml",p2))
+	TEST_EXCEPTION(Exception::FileNotFound, paramFile.load("FileDoesNotExist.xml",p2))
 END_SECTION
 
 Param p;
@@ -91,7 +91,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 
 	//exception
 	Param p300;
-	TEST_EXCEPTION(Exception::UnableToCreateFile&, paramFile.store("/does/not/exist/FileDoesNotExist.xml",p300))
+	TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store("/does/not/exist/FileDoesNotExist.xml",p300))
 
 	String filename;
 	NEW_TMP_FILE(filename);
@@ -264,6 +264,10 @@ START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) c
   p.addTag("file_parameter", "input file");
   p.setValidStrings("file_parameter", ListUtils::create<String>("*.mzML,*.mzXML"));
   p.setValue("advanced_parameter", "", "This is an advanced parameter.", ListUtils::create<String>("advanced"));
+  p.setValue("flag", "false", "This is a flag i.e. in a command line input it does not need a value.");
+  p.setValidStrings("flag",{"true","false"});
+  p.setValue("noflagJustTrueFalse", "true", "This is not a flag but has a boolean meaning.");
+  p.setValidStrings("noflagJustTrueFalse", {"true","false"});
 
   String filename;
   NEW_TMP_FILE(filename)

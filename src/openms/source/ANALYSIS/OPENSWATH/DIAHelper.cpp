@@ -49,6 +49,23 @@ namespace OpenMS
 {
   namespace DIAHelpers
   {
+
+    void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm)
+    {
+      OPENMS_PRECONDITION(mz_extract_window > 0, "MZ extraction window needst to be larger than zero.");
+
+      if (mz_extraction_ppm)
+      {
+        left -= left * mz_extract_window / 2e6;
+        right += right * mz_extract_window / 2e6;
+      }
+      else
+      {
+        left -= mz_extract_window / 2.0;
+        right += mz_extract_window / 2.0;
+      }
+    }
+
     // for SWATH -- get the theoretical b and y series masses for a sequence
     void getBYSeries(const AASequence& a, //
                      std::vector<double>& bseries, //

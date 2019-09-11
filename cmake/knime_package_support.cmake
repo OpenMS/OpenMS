@@ -142,6 +142,14 @@ add_custom_target(
   DEPENDS create_ctds
 )
 
+# remove out_type parameters
+foreach(TOOL ${CTD_executables})
+  add_custom_command(
+    TARGET  final_ctds POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=${TOOL} -DPARAM=out_type -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  )
+endforeach()
+
 # create final target that collects all sub-calls
 add_custom_target(
   prepare_knime_descriptors

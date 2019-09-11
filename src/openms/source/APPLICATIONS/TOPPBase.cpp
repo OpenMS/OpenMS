@@ -136,8 +136,10 @@ namespace OpenMS
     //delete log file if empty
     StringList log_files;
     DataValue topplog = getParam_("log");
+
     if (!topplog.isEmpty() && !(topplog.toString().empty()))
       log_files.push_back(topplog.toString());
+    
     for (Size i = 0; i < log_files.size(); ++i)
     {
       if (File::empty(log_files[i]))
@@ -352,7 +354,7 @@ namespace OpenMS
       // note the copy(getIniLocation_(),..) as we want the param tree without instance
       // information
       param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
-      if (!param_.update(finalParam, false, false, true, true, OPENMS_LOG_WARN))
+      if (!param_.update(finalParam, false, false, true, true, OpenMS_Log_warn))
       {
         OPENMS_LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
         return ILLEGAL_PARAMETERS;
@@ -423,7 +425,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     debug_level_ = getParamAsInt_("debug", 0);
     writeDebug_(String("Debug level (after ini file): ") + String(debug_level_), 1);
-    if (debug_level_ > 0) Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+    if (debug_level_ > 0) OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
 
     //-------------------------------------------------------------
     //progress logging
@@ -539,10 +541,12 @@ namespace OpenMS
   {
     // show advanced options?
     bool verbose = getFlag_("-helphelp");
+    String docurl = getDocumentationURL();
 
     // common output
     cerr << "\n"
          << ConsoleUtils::breakString(tool_name_ + " -- " + tool_description_, 0, 10) << "\n"
+         << ConsoleUtils::breakString(String("Full documentation: ") + docurl, 0, 10) << "\n"
          << "Version: " << verboseVersion_ << "\n"
          << "To cite OpenMS:\n  " << cite_openms_.toString() << "\n";
     if (!citations_.empty())
@@ -756,7 +760,8 @@ namespace OpenMS
       cerr << "\n"
            << ConsoleUtils::breakString("You can write an example INI file using the '-write_ini' option.", 0, 10) << "\n"
            << ConsoleUtils::breakString("Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.", 0, 10) << "\n"
-           << ConsoleUtils::breakString("Have a look at the OpenMS documentation for more information.", 0, 10) << "\n";
+           << ConsoleUtils::breakString("For more information, please consult the online documentation for this tool:", 0, 10) << "\n"
+           << ConsoleUtils::breakString("  - " + docurl, 0, 10) << "\n";
     }
     cerr << endl;
   }
@@ -767,7 +772,9 @@ namespace OpenMS
     bool advanced = entry.tags.count("advanced");
     // special case for flags:
     if ((entry.value.valueType() == DataValue::STRING_VALUE) &&
-        (entry.value == "false") && (entry.valid_strings.size() == 2) &&
+        /*entry.tags.count("flag") && */ // This would avoid autoconversion from true/false String Params when they default to false
+        (entry.value == "false") && // This is the current default
+        (entry.valid_strings.size() == 2) &&
         (entry.valid_strings[0] == "true") && (entry.valid_strings[1] == "false"))
     {
       return ParameterInformation(name, ParameterInformation::FLAG, "", "", entry.description, false, advanced);
@@ -1651,23 +1658,37 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "Process '" << String(executable) << "' failed to start. Does it exist? Is it executable?" << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
     } 
-    
-    bool failed{false};
-    if ((failed = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)) // proper failure (mind extra brackets for assignment)
-        || debug_level_ > 0 // allow to debug external progs which return success even though they failed, eg. MSGF+
-       )
+
+    bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
+    if (debug_level_ >= 10 || any_failure)
     {
+      if (any_failure)
+      {
+        writeLog_("FATAL ERROR: External invocation of " + String(executable) + " failed. Standard output and error were:");
+      }
+      else
+      {
+        writeLog_("DEBUG: External invocation of " + String(executable) + " returned the following standard output/error and exit code:");
+      }
       const QString external_sout(qp.readAllStandardOutput());
       const QString external_serr(qp.readAllStandardError());
-      writeLog_(external_sout);
-      writeLog_(external_serr);
-      writeLog_("Exit Code: " + String(qp.exitCode()));
-      if (failed)
+      writeLog_("Standard output: " + external_sout);
+      writeLog_("Standard error: " + external_serr);
+      writeLog_("Exit code: " + String(qp.exitCode()));
+      if (any_failure)
       {
-        writeLog_("FATAL: External invocation of " + String(executable) + " failed. Standard output and error are above.");
         qp.close();
         return EXTERNAL_PROGRAM_ERROR;
       }
+    }
+
+    if (debug_level_ >= 10)
+    {
+      const QString external_sout(qp.readAllStandardOutput());
+      const QString external_serr(qp.readAllStandardError());
+      writeDebug_("DEBUG: Printing standard output and error of " + String(executable), 10);
+      writeDebug_(external_sout, 10);
+      writeDebug_(external_serr, 10);
     }
 
     qp.close();
@@ -1825,7 +1846,7 @@ namespace OpenMS
       String log_destination = "";
       if (param_cmdline_.exists("log"))
         log_destination = param_cmdline_.getValue("log");
-      if (log_destination != "")
+      if (!log_destination.empty())
       {
         log_.open(log_destination.c_str(), ofstream::out | ofstream::app);
         if (debug_level_ >= 1)
@@ -1835,7 +1856,6 @@ namespace OpenMS
         }
       }
     }
-    return;
   }
 
   void TOPPBase::checkParam_(const Param& param, const String& filename, const String& location) const
@@ -2071,6 +2091,7 @@ namespace OpenMS
         tags.push_back("input file");
       if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
         tags.push_back("output file");
+
       switch (it->type)
       {
       case ParameterInformation::STRING:
@@ -2311,6 +2332,24 @@ namespace OpenMS
     map.getDataProcessing().push_back(dp);
   }
 
+  String TOPPBase::getDocumentationURL() const
+  {
+    if (official_) // we use a different URL for the TOPP (official) and UTILS (unofficial) tools
+    {
+      return String("http://www.openms.de/documentation/TOPP_") + tool_name_ + ".html";
+    }
+    else if (ToolHandler::getUtilList().count(tool_name_))
+    {
+      return String("http://www.openms.de/documentation/UTILS_") + tool_name_ + ".html";
+    }
+    else
+    {
+      // TODO: Fix tests first
+      // throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A tool either needs to be an official tool or registered as util (TOPP tool not registered)");
+      return "";
+    }
+  }
+
   bool TOPPBase::writeCTD_()
   {
     //store ini-file content in ini_file_str
@@ -2343,15 +2382,14 @@ namespace OpenMS
       String ini_file_str(ss->str());
 
       //
-      QString docurl = "", category = "";
+      QString docurl = getDocumentationURL().toQString();
+      QString category = "";
       if (official_) // we can only get the docurl/category from registered/official tools
       {
-        docurl = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/TOPP_" + tool_name_.toQString() + ".html";
         category = ToolHandler::getCategory(tool_name_).toQString();
       }
       else if (ToolHandler::getUtilList().count(tool_name_))
       {
-        docurl = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/UTILS_" + tool_name_.toQString() + ".html";
         category = ToolHandler::getCategory(tool_name_).toQString();
       }
 

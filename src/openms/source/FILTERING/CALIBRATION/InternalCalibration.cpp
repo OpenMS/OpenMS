@@ -230,6 +230,9 @@ namespace OpenMS
       pid.sort();
       int q = pid.getHits()[0].getCharge();
       double mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, q) / q;
+
+      // Only use ID if precursor m/z and theoretical mass don't deviate too much.
+      // as they may occur due to isotopic peak misassignments
       if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) continue;
 
       const double weight = 1.0;
@@ -365,7 +368,7 @@ namespace OpenMS
         }
         tms_new.swap(tms);
         // consistency check: all models must be valid at this point
-        for (Size i = 0; i < tms.size(); ++i) if (!MZTrafoModel::isValidModel(tms[i])) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(i));
+        for (Size j = 0; j < tms.size(); ++j) if (!MZTrafoModel::isValidModel(tms[i])) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(i));
       }
     }
     endProgress();
@@ -494,7 +497,7 @@ namespace OpenMS
     }
     if (post_ppm_MAD < fabs(MAD_ppm_after))
     {
-      OPENMS_LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << " ppm) not reached (median = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
+      OPENMS_LOG_INFO << "Post calibration MAD threshold (" << post_ppm_MAD << " ppm) not reached (MAD = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
       return false;
     }
 

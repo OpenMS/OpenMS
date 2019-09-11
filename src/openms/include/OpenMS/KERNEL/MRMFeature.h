@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
 
 namespace OpenMS
 {
@@ -55,8 +56,6 @@ public:
     //@{
     /// Feature list type
     typedef std::vector<Feature> FeatureListType;
-    /// Peak group score type
-    typedef std::map<String, double> PGScoresType;
     //@}
 
     ///@name Constructors and Destructor
@@ -76,11 +75,12 @@ public:
 
     ///@name Accessors
     //@{
-    /// get all peakgroup scores
-    const PGScoresType & getScores() const;
 
-    /// get a single peakgroup score
-    double getScore(const String & score_name);
+    /// get all peakgroup scores
+    const OpenSwath_Scores & getScores() const;
+
+    /// get all peakgroup scores
+    OpenSwath_Scores & getScores();
 
     /// get a specified feature
     Feature & getFeature(const String& key);
@@ -89,7 +89,7 @@ public:
     const Feature & getFeature(const String& key) const;
 
     /// set all peakgroup scores
-    void setScores(const PGScoresType & scores);
+    void setScores(const OpenSwath_Scores & scores);
 
     /// set a single peakgroup score
     void addScore(const String & score_name, double score);
@@ -124,7 +124,7 @@ protected:
     FeatureListType precursor_features_;
 
     /// peak group scores
-    PGScoresType pg_scores_;
+    OpenSwath_Scores pg_scores_;
 
     /// map native ids to the features
     std::map<String, int> feature_map_;

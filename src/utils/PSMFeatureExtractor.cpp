@@ -114,7 +114,9 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
     registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
-    setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));    
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
+    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML"));
     registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     // setValidStrings_("extra", ?);
     // TODO: add this MHC feature back in with TopPerc::hasMHCEnd_()
@@ -275,8 +277,19 @@ protected:
     }
     
     // Storing the PeptideHits with calculated q-value, pep and svm score
-    FileTypes::Type out_type = FileHandler::getType(out);
-    
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      FileHandler fh;
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Fatal error: Could not determine output file type! Set 'out_type' parameter to desired file type.");
+      return PARSE_ERROR;
+    }
     OPENMS_LOG_INFO << "writing output file: " << out << endl;
     
     if (out_type == FileTypes::IDXML)

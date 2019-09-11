@@ -38,6 +38,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 
 #include <sys/stat.h>
@@ -282,6 +284,15 @@ namespace OpenMS
         OPENMS_LOG_ERROR << "XERCES error parsing file: " << message << flush << endl;
         XMLString::release(&message);
       }
+      if (xl_ms_search_)
+      {
+        OPXLHelper::addProteinPositionMetaValues(*this->pep_id_);
+        OPXLHelper::addBetaAccessions(*this->pep_id_);
+        OPXLHelper::addXLTargetDecoyMV(*this->pep_id_);
+        OPXLHelper::removeBetaPeptideHits(*this->pep_id_);
+        OPXLHelper::computeDeltaScores(*this->pep_id_);
+        OPXLHelper::addPercolatorFeatureList((*this->pro_id_)[0]);
+      }
     }
 
     void MzIdentMLDOMHandler::writeMzIdentMLFile(const std::string& mzid_file)
@@ -349,7 +360,7 @@ namespace OpenMS
                 String pepevref = String("OpenMS") + String(UniqueIdGenerator::getUniqueId());
                 pv_db_map_.insert(make_pair(pepevref, pev->getProteinAccession()));
                 pepevs.push_back(pepevref);
-                bool idec = (String(ph->getMetaValue("target_decoy"))).hasSubstring("decoy");
+                bool idec = (String(ph->getMetaValue(Constants::UserParam::TARGET_DECOY))).hasSubstring("decoy");
                 PeptideEvidence temp_struct = {pev->getStart(), pev->getEnd(), pev->getAABefore(), pev->getAAAfter(), idec}; //TODO @ mths : completely switch to PeptideEvidence
                 pe_ev_map_.insert(make_pair(pepevref, temp_struct)); // TODO @ mths : double check start & end & chars for before & after
               }
@@ -1444,6 +1455,10 @@ namespace OpenMS
           {
             wTIC = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
+          else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1003024")) // OpenPepXL:score
+          {
+            score = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
+          }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1000894")) // retention time
           {
             double RT = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
@@ -1684,7 +1699,7 @@ namespace OpenMS
       vector<String> spectrumIDs;
       spectrumID.split(",", spectrumIDs);
 
-      if (alpha.size() == beta.size()) // if a beta exists at all, it must be cross-link. But they should also each have the mase number of SIIs in the mzid
+      if (alpha.size() == beta.size()) // if a beta exists at all, it must be cross-link. But they should also each have the same number of SIIs in the mzid
       {
         xl_type = "cross-link";
       }
@@ -1708,8 +1723,8 @@ namespace OpenMS
       PeptideIdentification current_pep_id;
       current_pep_id.setRT(RT_light);
       current_pep_id.setMZ(MZ_light);
-      current_pep_id.setMetaValue("spectrum_reference", spectrumID);
-      current_pep_id.setScoreType("OpenXQuest:combined score");
+      current_pep_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumID);
+      current_pep_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
       current_pep_id.setHigherScoreBetter(true);
 
       vector<PeptideHit> phs;
@@ -1718,24 +1733,24 @@ namespace OpenMS
       ph_alpha.setCharge(charge);
       ph_alpha.setScore(score);
       ph_alpha.setRank(rank);
-      ph_alpha.setMetaValue("spectrum_reference", spectrumIDs[0]);
+      ph_alpha.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumIDs[0]);
       ph_alpha.setMetaValue("xl_chain", "MS:1002509"); // donor
 
       if (labeled)
       {
-        ph_alpha.setMetaValue("spec_heavy_RT", RT_heavy);
-        ph_alpha.setMetaValue("spec_heavy_MZ", MZ_heavy);
-        ph_alpha.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT, RT_heavy);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ, MZ_heavy);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF, spectrumIDs[1]);
       }
 
-      ph_alpha.setMetaValue("xl_type", xl_type);
-      ph_alpha.setMetaValue("xl_rank", rank);
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, xl_type);
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK, rank);
 
-      ph_alpha.setMetaValue("OpenXQuest:xcorr xlink",xcorrx);
-      ph_alpha.setMetaValue("OpenXQuest:xcorr common", xcorrc);
-      ph_alpha.setMetaValue("OpenXQuest:match-odds", matchodds);
-      ph_alpha.setMetaValue("OpenXQuest:intsum", intsum);
-      ph_alpha.setMetaValue("OpenXQuest:wTIC", wTIC);
+      ph_alpha.setMetaValue("OpenPepXL:xcorr xlink",xcorrx);
+      ph_alpha.setMetaValue("OpenPepXL:xcorr common", xcorrc);
+      ph_alpha.setMetaValue("OpenPepXL:match-odds", matchodds);
+      ph_alpha.setMetaValue("OpenPepXL:intsum", intsum);
+      ph_alpha.setMetaValue("OpenPepXL:wTIC", wTIC);
 
       vector<String> userParamNames_alpha = userParamNameLists[alpha[0]];
       vector<String> userParamValues_alpha = userParamValueLists[alpha[0]];
@@ -1746,6 +1761,10 @@ namespace OpenMS
         if (userParamUnits_alpha[i] == "xsd:double")
         {
           ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toDouble());
+        }
+        else if (userParamUnits_alpha[i] == "xsd:integer")
+        {
+          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toInt());
         }
         else
         {
@@ -1758,34 +1777,34 @@ namespace OpenMS
       if (xl_type == "loop-link")
       {
         Size pos2 = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[alpha[0]]));
-        ph_alpha.setMetaValue("xl_pos2", pos2);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, pos2);
       }
 
       if (xl_type != "mono-link")
       {
-        ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
-        ph_alpha.setMetaValue("xl_mass",DataValue(xl_mass_map_.at(peptides[alpha[0]])));
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, xl_mod_map_.at(peptides[alpha[0]]));
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS,DataValue(xl_mass_map_.at(peptides[alpha[0]])));
       }
       else if ( xl_mod_map_.find(peptides[alpha[0]]) != xl_mod_map_.end() )
       {
-        ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, xl_mod_map_.at(peptides[alpha[0]]));
       }
 
       // correction for terminal modifications
       if (alpha_pos == -1)
       {
-        ph_alpha.setMetaValue("xl_pos", ++alpha_pos);
-        ph_alpha.setMetaValue("xl_term_spec", "N_TERM");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, ++alpha_pos);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, "N_TERM");
       }
       else if (alpha_pos == static_cast<SignedSize>(ph_alpha.getSequence().size()))
       {
-        ph_alpha.setMetaValue("xl_pos", --alpha_pos);
-        ph_alpha.setMetaValue("xl_term_spec", "C_TERM");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, --alpha_pos);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, "C_TERM");
       }
       else
       {
-        ph_alpha.setMetaValue("xl_pos", alpha_pos);
-        ph_alpha.setMetaValue("xl_term_spec", "ANYWHERE");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, alpha_pos);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, "ANYWHERE");
       }
 
       if (xl_type == "cross-link")
@@ -1793,68 +1812,38 @@ namespace OpenMS
         PeptideHit ph_beta;
         SignedSize beta_pos = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[beta[0]]));
 
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, (*pep_map_.find(peptides[beta[0]])).second.toString());
         ph_beta.setSequence((*pep_map_.find(peptides[beta[0]])).second);
         ph_beta.setCharge(charge);
         ph_beta.setScore(score);
         ph_beta.setRank(rank);
-        ph_beta.setMetaValue("spectrum_reference", spectrumIDs[0]);
+        ph_beta.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumIDs[0]);
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
-        ph_beta.setMetaValue("xl_type", xl_type);
-        ph_beta.setMetaValue("xl_rank", rank);
-
-        if (labeled)
-        {
-          ph_beta.setMetaValue("spec_heavy_RT", RT_heavy);
-          ph_beta.setMetaValue("spec_heavy_MZ", MZ_heavy);
-          ph_beta.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
-        }
-
-        ph_beta.setMetaValue("OpenXQuest:xcorr xlink", xcorrx);
-        ph_beta.setMetaValue("OpenXQuest:xcorr common", xcorrc);
-        ph_beta.setMetaValue("OpenXQuest:match-odds", matchodds);
-        ph_beta.setMetaValue("OpenXQuest:intsum", intsum);
-        ph_beta.setMetaValue("OpenXQuest:wTIC", wTIC);
-
-        vector<String> userParamNames_beta = userParamNameLists[beta[0]];
-        vector<String> userParamValues_beta = userParamValueLists[beta[0]];
-        vector<String> userParamUnits_beta = userParamUnitLists[beta[0]];
-
-        for (Size i = 0; i < userParamNames_beta.size(); ++i)
-        {
-          if (userParamUnits_beta[i] == "xsd:double")
-          {
-            ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i].toDouble());
-          }
-          else
-          {
-            ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i]);
-          }
-        }
 
         // correction for terminal modifications
         if (beta_pos == -1)
         {
-          ph_beta.setMetaValue("xl_pos2", ++beta_pos);
-          ph_beta.setMetaValue("xl_term_spec", "N_TERM");
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, ++beta_pos);
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, "N_TERM");
         }
         else if (beta_pos == static_cast<SignedSize>(ph_beta.getSequence().size()))
         {
-          ph_beta.setMetaValue("xl_pos2", --beta_pos);
-          ph_beta.setMetaValue("xl_term_spec", "C_TERM");
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, --beta_pos);
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, "C_TERM");
         }
         else
         {
-          ph_beta.setMetaValue("xl_pos2", beta_pos);
-          ph_beta.setMetaValue("xl_term_spec", "ANYWHERE");
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, beta_pos);
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, "ANYWHERE");
         }
-        ph_alpha.setMetaValue("xl_pos2", ph_beta.getMetaValue("xl_pos2"));
-        ph_beta.setMetaValue("xl_pos", ph_alpha.getMetaValue("xl_pos"));
-
         phs.push_back(ph_alpha);
         phs.push_back(ph_beta);
       }
       else
       {
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, "ANYWHERE");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, "-");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, "-");
         phs.push_back(ph_alpha);
       }
 
@@ -1909,8 +1898,6 @@ namespace OpenMS
 
             if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
             {
-//              phs[pep].setMetaValue("start", pv.start);
-//              phs[pep].setMetaValue("end", pv.stop);
               pev.setStart(pv.start);
               pev.setEnd(pv.stop);
             }
@@ -1918,38 +1905,38 @@ namespace OpenMS
             idec = pv.idec;
             if (idec)
             {
-              if (phs[pep].metaValueExists("target_decoy"))
+              if (phs[pep].metaValueExists(Constants::UserParam::TARGET_DECOY))
               {
-                if (phs[pep].getMetaValue("target_decoy") != "decoy")
+                if (phs[pep].getMetaValue(Constants::UserParam::TARGET_DECOY) != "decoy")
                 {
-                  phs[pep].setMetaValue("target_decoy", "target+decoy");
+                  phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "target+decoy");
                 }
                 else
                 {
-                  phs[pep].setMetaValue("target_decoy", "decoy");
+                  phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
                 }
               }
               else
               {
-                phs[pep].setMetaValue("target_decoy", "decoy");
+                phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
               }
             }
             else
             {
-              if (phs[pep].metaValueExists("target_decoy"))
+              if (phs[pep].metaValueExists(Constants::UserParam::TARGET_DECOY))
               {
-                if (phs[pep].getMetaValue("target_decoy") != "target")
+                if (phs[pep].getMetaValue(Constants::UserParam::TARGET_DECOY) != "target")
                 {
-                  phs[pep].setMetaValue("target_decoy", "target+decoy");
+                  phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "target+decoy");
                 }
                 else
                 {
-                  phs[pep].setMetaValue("target_decoy", "target");
+                  phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "target");
                 }
               }
               else
               {
-                phs[pep].setMetaValue("target_decoy", "target");
+                phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "target");
               }
             }
           }
@@ -2116,38 +2103,38 @@ namespace OpenMS
             idec = pv.idec;
             if (idec)
             {
-              if (hit.metaValueExists("target_decoy"))
+              if (hit.metaValueExists(Constants::UserParam::TARGET_DECOY))
               {
-                if (hit.getMetaValue("target_decoy") != "decoy")
+                if (hit.getMetaValue(Constants::UserParam::TARGET_DECOY) != "decoy")
                 {
-                  hit.setMetaValue("target_decoy", "target+decoy");
+                  hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "target+decoy");
                 }
                 else
                 {
-                  hit.setMetaValue("target_decoy", "decoy");
+                  hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
                 }
               }
               else
               {
-                hit.setMetaValue("target_decoy", "decoy");
+                hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
               }
             }
             else
             {
-              if (hit.metaValueExists("target_decoy"))
+              if (hit.metaValueExists(Constants::UserParam::TARGET_DECOY))
               {
-                if (hit.getMetaValue("target_decoy") != "target")
+                if (hit.getMetaValue(Constants::UserParam::TARGET_DECOY) != "target")
                 {
-                  hit.setMetaValue("target_decoy", "target+decoy");
+                  hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "target+decoy");
                 }
                 else
                 {
-                  hit.setMetaValue("target_decoy", "target");
+                  hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "target");
                 }
               }
               else
               {
-                hit.setMetaValue("target_decoy", "target");
+                hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "target");
               }
             }
           }
@@ -2468,7 +2455,7 @@ namespace OpenMS
                         const String & cvvalue = cv.getValue();
                         if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                         {
-                          aas.setModification(index - 1, cvvalue); 
+                          aas.setModification(index - 1, cvvalue);
                         }
                         else
                         {
@@ -2572,18 +2559,22 @@ namespace OpenMS
                     {
                       // n-terminal
                       String residue_name = ".[+" + mod + "]";
+                      String residue_id = ".n[" + mod + "]";
 
                       // Check if it already exists, if not create new modification, transfer
                       // ownership to ModDB
-                      if (!mod_db->has(residue_name))
+                      if (!mod_db->has(residue_id))
                       {
                         ResidueModification * new_mod = new ResidueModification();
-                        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
+                        new_mod->setMonoMass(mass_delta + Residue::getInternalToNTerm().getMonoWeight());
                         new_mod->setTermSpecificity(ResidueModification::N_TERM);
                         mod_db->addModification(new_mod);
                       }
-                      aas.setNTerminalModification(residue_name);
+
+                      aas.setNTerminalModification(residue_id);
                       cvp = cvp->getNextElementSibling();
                       continue;
                     }
@@ -2591,18 +2582,21 @@ namespace OpenMS
                     {
                       // c-terminal
                       String residue_name = ".[" + mod + "]";
+                      String residue_id = ".c[" + mod + "]";
 
                       // Check if it already exists, if not create new modification, transfer
                       // ownership to ModDB
                       if (!mod_db->has(residue_name))
                       {
                         ResidueModification * new_mod = new ResidueModification();
-                        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
+                        new_mod->setMonoMass(mass_delta + Residue::getInternalToCTerm().getMonoWeight());
                         new_mod->setTermSpecificity(ResidueModification::C_TERM);
                         mod_db->addModification(new_mod);
                       }
-                      aas.setCTerminalModification(residue_name);
+                      aas.setCTerminalModification(residue_id);
                       cvp = cvp->getNextElementSibling();
                       continue;
                     }
@@ -2610,14 +2604,19 @@ namespace OpenMS
                     {
                       // internal modification
                       const Residue& residue = aas[index-1];
-                      // String residue_name = residue.getOneLetterCode() + "[" + mod + "]";
-                      String residue_name = "[" + mod + "]";
+                      String residue_name = residue.getOneLetterCode() + "[" + mod + "]"; // e.g. N[12345.6]
+                      String modification_name = "[" + mod + "]";
 
                       if (!mod_db->has(residue_name))
                       {
                         // create new modification
                         ResidueModification * new_mod = new ResidueModification();
                         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullName(modification_name); // display name
+
+                        // We will set origin to make sure the same modifcation will be used
+                        // for the same AA
+                        new_mod->setOrigin(residue.getOneLetterCode()[0]);
 
                         // We cannot set origin if we want to use the same modification name
                         // also at other AA (and since we have no information here, it is safer

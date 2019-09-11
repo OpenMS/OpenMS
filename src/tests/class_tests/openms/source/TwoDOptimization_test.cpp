@@ -110,7 +110,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	  PeakMap::const_iterator last1 = exp_in.end();
 	  PeakMap exp_out;
 		TwoDOptimization opt1;
-		TEST_EXCEPTION(Exception::IllegalArgument&, opt1.optimize(first1,last1,exp_out));
+		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
   }
 
   //******************************************************************
@@ -123,7 +123,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	  PeakMap exp_out;
 	  exp_out.resize(1);
 		TwoDOptimization opt1;
-		TEST_EXCEPTION(Exception::IllegalArgument&, opt1.optimize(first1,last1,exp_out));
+		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
   }
   
   //******************************************************************

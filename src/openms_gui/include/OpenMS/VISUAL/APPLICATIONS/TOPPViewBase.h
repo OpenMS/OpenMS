@@ -242,7 +242,6 @@ public:
     /// returns a pointer to the active SpectrumCanvas (0 if none is active)
     SpectrumCanvas* getActiveCanvas() const;
 
-
     /// returns a pointer to the SpectraIdentificationViewWidget
     SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
 
@@ -442,7 +441,7 @@ protected:
     //@}
 
     /// Layer management widget
-    QListWidget* layer_manager_;
+    QListWidget* layers_view_;
 
     ///@name Filter widgets
     //@{

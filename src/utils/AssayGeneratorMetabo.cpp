@@ -271,18 +271,29 @@ protected:
       FeatureMap feature_map;
       fxml.load(id[file_counter], feature_map);
 
-      // need featureXML with Sourcefile have a look additional to ams
-      StringList mzml_primary_path;
+      // check if featureXML corresponds to mzML
       StringList featurexml_primary_path;
-      spectra.getPrimaryMSRunPath(mzml_primary_path);
       feature_map.getPrimaryMSRunPath(featurexml_primary_path);
 
-      if (mzml_primary_path != featurexml_primary_path)
+      if (in != featurexml_primary_path)
       {
-        throw Exception::MissingInformation(__FILE__,
-                                            __LINE__,
-                                            OPENMS_PRETTY_FUNCTION,
-                                            "Path of the original input file do not match in the .mzML and .featureXML files. \n Please check and provide the corresponding files.");
+        OPENMS_LOG_WARN << "Warning: Original paths of the mzML files do not correspond to the featureXML files. Please check and provide the corresponding files." << std::endl;
+
+        OPENMS_LOG_WARN << "Input MzML: " << std::endl;
+                        for (const String& it_mzml : in)
+                            {
+                              OPENMS_LOG_WARN << " " << it_mzml << std::endl;
+                            }
+        OPENMS_LOG_WARN << "Input FeatureXML: " << std::endl;
+                        for (const String& it_fxml : id)
+                            {
+                              OPENMS_LOG_WARN << " " << it_fxml << std::endl;
+                            }
+        OPENMS_LOG_WARN << "Original paths: " << std::endl;
+                        for (const String& it_fpp : featurexml_primary_path)
+                            {
+                              OPENMS_LOG_WARN << " " << it_fpp << std::endl;
+                            }
       }
 
       // determine type of spectral data (profile or centroided)

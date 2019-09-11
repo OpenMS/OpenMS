@@ -34,6 +34,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
+#include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/CONCEPT/Macros.h>
+
 // scoring
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
@@ -49,10 +52,53 @@
 namespace OpenMS
 {
 
+  void sortSpectrumByMZ(OpenSwath::Spectrum& spec)
+  {
+    //sort index list
+    std::vector<std::pair<double, Size> > sorted_indices;
+    sorted_indices.reserve(spec.getMZArray()->data.size());
+    auto mz_it = spec.getMZArray()->data.begin();
+    for (Size i = 0; i < spec.getMZArray()->data.size(); ++i)
+    {
+      sorted_indices.emplace_back(*mz_it, i);
+      ++mz_it;
+    }
+    std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<double, Size> >());
+
+    // extract list of indices
+    std::vector<Size> select_indices;
+    select_indices.reserve(sorted_indices.size());
+    for (const auto& sidx : sorted_indices)
+    {
+      select_indices.push_back(sidx.second);
+    }
+
+    for (auto& da : spec.getDataArrays() )
+    {
+      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
+      tmp->description = da->description;
+      tmp->data.reserve(select_indices.size());
+      for (Size i = 0; i < select_indices.size(); ++i)
+      {
+        tmp->data.push_back( da->data[ select_indices[i] ] );
+      }
+      da = tmp;
+    }
+
+    OPENMS_POSTCONDITION( std::adjacent_find(spec.getMZArray()->data.begin(),
+           spec.getMZArray()->data.end(), std::greater<double>()) == spec.getMZArray()->data.end(),
+           "Postcondition violated: m/z vector needs to be sorted!" )
+  }
+}
+
+namespace OpenMS
+{
+
   /// Constructor
   OpenSwathScoring::OpenSwathScoring() :
     rt_normalization_factor_(1.0),
     add_up_spectra_(1),
+    spectra_addition_method_("simple"),
     spacing_for_spectra_resampling_(0.005)
   {
   }
@@ -63,11 +109,14 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
-    int add_up_spectra, double spacing_for_spectra_resampling,
-    const OpenSwath_Scores_Usage & su)
+                                    int add_up_spectra,
+                                    double spacing_for_spectra_resampling,
+                                    const OpenSwath_Scores_Usage& su,
+                                    const std::string& spectrum_addition_method)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
+    this->spectra_addition_method_ = spectrum_addition_method;
     this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
     this->su_ = su;
   }
@@ -480,14 +529,15 @@ namespace OpenMS
     return output;
   }
 
+
   OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
                                                             double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
+    OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
     if (indices.empty() )
     {
-      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-      return sptr;
+      return added_spec;
     }
     int closest_idx = boost::numeric_cast<int>(indices[0]);
     if (indices[0] != 0 &&
@@ -499,12 +549,11 @@ namespace OpenMS
 
     if (nr_spectra_to_add == 1)
     {
-      OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
+      added_spec = swath_map->getSpectrumById(closest_idx);
       if (drift_upper > 0) 
       {
-        spectrum_ = filterByDrift(spectrum_, drift_lower, drift_upper);
+        added_spec = filterByDrift(added_spec, drift_lower, drift_upper);
       }
-      return spectrum_;
     }
     else
     {
@@ -522,15 +571,52 @@ namespace OpenMS
           all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
         }
       }
+
+      // Filter all spectra by drift time before further processing
       if (drift_upper > 0) 
       {
-        std::vector<OpenSwath::SpectrumPtr> tmp;
-        for (const auto& s: all_spectra) tmp.push_back( filterByDrift(s, drift_lower, drift_upper) );
-        all_spectra.swap(tmp);
+        for (auto& s: all_spectra) s = filterByDrift(s, drift_lower, drift_upper);
       }
-      OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
-      return spectrum_;
+
+      // add up all spectra
+      if (spectra_addition_method_ == "simple")
+      {
+        // Ensure that we have the same number of data arrays as in the input spectrum
+        if (!all_spectra.empty() && all_spectra[0]->getDataArrays().size() > 2)
+        {
+          for (Size k = 2; k < all_spectra[0]->getDataArrays().size(); k++)
+          {
+            OpenSwath::BinaryDataArrayPtr tmp (new OpenSwath::BinaryDataArray());
+            tmp->description = all_spectra[0]->getDataArrays()[k]->description;
+            added_spec->getDataArrays().push_back(tmp);
+          }
+        }
+
+        // Simply add up data and sort in the end
+        for (const auto& s : all_spectra)
+        {
+          for (Size k = 0; k < s->getDataArrays().size(); k++)
+          {
+            auto& v1 = added_spec->getDataArrays()[k]->data;
+            auto& v2 = s->getDataArrays()[k]->data;
+
+            v1.reserve( v1.size() + v2.size() ); 
+            v1.insert( v1.end(), v2.begin(), v2.end() );
+          }
+        }
+        sortSpectrumByMZ(*added_spec);
+      }
+      else
+      {
+        added_spec = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
+      }
     }
+
+    OPENMS_POSTCONDITION( std::adjacent_find(added_spec->getMZArray()->data.begin(),
+           added_spec->getMZArray()->data.end(), std::greater<double>()) == added_spec->getMZArray()->data.end(),
+           "Postcondition violated: m/z vector needs to be sorted!" )
+
+    return added_spec;
   }
 
 }

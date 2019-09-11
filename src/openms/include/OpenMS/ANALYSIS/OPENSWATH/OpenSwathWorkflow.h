@@ -149,13 +149,13 @@ protected:
      * @param ms1only If true, will only score on MS1 level and ignore MS2 level
      *
     */
-    void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
+    void MS1Extraction_(const OpenSwath::SpectrumAccessPtr ms1_map,
+                        const std::vector< OpenSwath::SwathMap > & swath_maps,
                         std::vector< MSChromatogram >& ms1_chromatograms,
                         Interfaces::IMSDataConsumer * chromConsumer,
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp,
                         const TransformationDescription& trafo_inverse,
-                        bool load_into_memory,
                         bool ms1only = false,
                         int ms1_isotopes = 0);
 

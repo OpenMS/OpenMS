@@ -86,9 +86,9 @@ START_SECTION((template < typename FeatureMapType > void load(const String &file
 
   
 
-  TEST_EXCEPTION(Exception::ParseError&, f.load(OPENMS_GET_TEST_DATA_PATH("KroenikFile_test_2.krf"), fm));
+  TEST_EXCEPTION(Exception::ParseError, f.load(OPENMS_GET_TEST_DATA_PATH("KroenikFile_test_2.krf"), fm));
   
-  TEST_EXCEPTION(Exception::FileNotFound&, f.load(OPENMS_GET_TEST_DATA_PATH("KroenikFile_test_2_doesnotexist.edta"), fm));
+  TEST_EXCEPTION(Exception::FileNotFound, f.load(OPENMS_GET_TEST_DATA_PATH("KroenikFile_test_2_doesnotexist.edta"), fm));
 }
 END_SECTION
 
@@ -96,7 +96,7 @@ START_SECTION((template < typename SpectrumType > void store(const String &filen
 {
   KroenikFile f;
   MSSpectrum spec;
-  TEST_EXCEPTION(Exception::NotImplemented&, f.store("bla", spec))
+  TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", spec))
 }
 END_SECTION
 

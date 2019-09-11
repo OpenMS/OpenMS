@@ -182,7 +182,7 @@ protected:
     Map<String, std::set<const ResidueModification*> > modification_names_;
 
     /// Helper function to check if a residue matches the origin for a modification
-    bool residuesMatch_(const String& residue, char origin) const;
+    bool residuesMatch_(const String& residue, const ResidueModification* origin) const;
 
 private:
 

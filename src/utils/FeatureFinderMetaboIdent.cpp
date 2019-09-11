@@ -142,7 +142,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -272,22 +272,24 @@ protected:
       vector<String> parts = ListUtils::create<String>(line, '\t'); // split
       if (parts.size() < 7)
       {
-        OPENMS_LOG_ERROR << "Error: Expected 7 tab-separated fields, found only "
-                  << parts.size() << " in line " << line_count
-                  << " - skipping this line." << endl;
+        OPENMS_LOG_ERROR
+          << "Error: Expected 7 tab-separated fields, found only "
+          << parts.size() << " in line " << line_count
+          << " - skipping this line." << endl;
         continue;
       }
       String name = parts[0];
       if (name.empty())
       {
-        OPENMS_LOG_ERROR << "Error: Empty name field in input line " << line_count
-                  << " - skipping this line." << endl;
+        OPENMS_LOG_ERROR << "Error: Empty name field in input line "
+                         << line_count << " - skipping this line." << endl;
         continue;
       }
       if (!names.insert(name).second) // @TODO: is this check necessary?
       {
-        OPENMS_LOG_ERROR << "Error: Duplicate name '" << name << "' in input line "
-                  << line_count << " - skipping this line." << endl;
+        OPENMS_LOG_ERROR << "Error: Duplicate name '" << name
+                         << "' in input line " << line_count
+                         << " - skipping this line." << endl;
         continue;
       }
       String formula = parts[1];
@@ -316,14 +318,14 @@ protected:
   {
     if ((mass <= 0) && formula.empty())
     {
-      OPENMS_LOG_ERROR << "Error: No mass or sum formula given for target '" << name
-                << "' - skipping this target." << endl;
+      OPENMS_LOG_ERROR << "Error: No mass or sum formula given for target '"
+                       << name << "' - skipping this target." << endl;
       return;
     }
     if (rts.empty())
     {
-      OPENMS_LOG_ERROR << "Error: No retention time (RT) given for target '" << name
-                << "' - skipping this target." << endl;
+      OPENMS_LOG_ERROR << "Error: No retention time (RT) given for target '"
+                       << name << "' - skipping this target." << endl;
       return;
     }
     // @TODO: detect entries with same RT and m/z ("collisions")
@@ -344,8 +346,8 @@ protected:
       if (formula.empty())
       {
         OPENMS_LOG_ERROR << "Error: No sum formula given for target '" << name
-                  << "'; cannot calculate isotope distribution"
-                  << " - using estimation method for peptides." << endl;
+                         << "'; cannot calculate isotope distribution"
+                         << " - using estimation method for peptides." << endl;
         iso_dist = iso_gen_.estimateFromPeptideWeight(mass);
       }
       else
@@ -378,7 +380,7 @@ protected:
       if (*z_it == 0)
       {
         OPENMS_LOG_ERROR << "Error: Invalid charge 0 for target '" << name
-                  << "' - skipping this charge." << endl;
+                         << "' - skipping this charge." << endl;
         continue;
       }
       target.setChargeState(*z_it);
@@ -621,7 +623,8 @@ protected:
            ++it)
       {
         if (it != group.begin()) msg += ", ";
-        msg += String((*it)->getMetaValue("PeptideRef")) + " (RT " + String(float((*it)->getRT())) + ")";
+        msg += String((*it)->getMetaValue("PeptideRef")) + " (RT " +
+          String(float((*it)->getRT())) + ")";
       }
       OPENMS_LOG_DEBUG << msg << endl;
     }
@@ -664,11 +667,12 @@ protected:
           }
           else
           {
-            OPENMS_LOG_WARN << "Warning: cannot decide between equally good feature candidates; picking the first one of "
-                     << best_feature->getMetaValue("PeptideRef") << " (RT "
-                     << float(best_feature->getRT()) << ") and "
-                     << (*it)->getMetaValue("PeptideRef") << " (RT "
-                     << float((*it)->getRT()) << ")." << endl;
+            OPENMS_LOG_WARN
+              << "Warning: cannot decide between equally good feature candidates; picking the first one of "
+              << best_feature->getMetaValue("PeptideRef") << " (RT "
+              << float(best_feature->getRT()) << ") and "
+              << (*it)->getMetaValue("PeptideRef") << " (RT "
+              << float((*it)->getRT()) << ")." << endl;
           }
         }
       }
@@ -785,8 +789,9 @@ protected:
       {
         if (best_rt_dist <= 0.0)
         {
-          OPENMS_LOG_WARN << "Warning: overlapping feature candidates for assay '"
-                   << ref << "'" << endl;
+          OPENMS_LOG_WARN
+            << "Warning: overlapping feature candidates for assay '" << ref
+            << "'" << endl;
         }
         rt_dist = 0.0;
       }
@@ -870,7 +875,7 @@ protected:
   }
 
   /// Main function
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     FeatureMap features;
 
@@ -901,8 +906,8 @@ protected:
     {
       // calculate RT window based on other parameters:
       rt_window_ = 4 * peak_width;
-      OPENMS_LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
-               << endl;
+      OPENMS_LOG_INFO << "RT window size calculated as " << rt_window_
+                      << " seconds." << endl;
     }
 
     //-------------------------------------------------------------
@@ -964,12 +969,12 @@ protected:
               << " chromatogram(s)." << endl;
 
     OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    Log_info.remove(cout); // suppress status output from OpenSWATH
+    OpenMS_Log_info.remove(cout); // suppress status output from OpenSWATH
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    Log_info.insert(cout);
-    OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
-             << endl;
+    OpenMS_Log_info.insert(cout);
+    OPENMS_LOG_INFO << "Found " << features.size()
+                    << " feature candidates in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
 
     // complete feature annotation:

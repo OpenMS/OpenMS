@@ -140,7 +140,7 @@ protected:
     PeptideIndexing indexer;
     Param param = getParam_().copy("", true);
     Param param_pi = indexer.getParameters();
-    param_pi.update(param, false, Log_debug); // suppress param. update message
+    param_pi.update(param, false, OpenMS_Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
     indexer.setLogType(this->log_type_);
     String db_name = getStringOption_("fasta");

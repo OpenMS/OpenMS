@@ -34,7 +34,6 @@
 
 #pragma once
 
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -497,7 +496,7 @@ public:
     }
 
     // create view on string
-    StringView(const std::string& s) : begin_(s.data()), size_(s.size()) 
+    StringView(const std::string& s) : begin_(s.data()), size_(s.size())
     {
     }
 
@@ -526,12 +525,6 @@ public:
       return false;
     }
 
-    /// boost hash
-    std::size_t hash_value(String const& s) const
-    {
-      return std::hash<std::string>()(static_cast<std::string>(s));
-    }
-
     /// create view that references a substring of the original string
     inline StringView substr(Size start, Size length) const
     {
@@ -547,7 +540,7 @@ public:
     inline Size size() const
     {
       return size_;
-    }   
+    }
 
     /// create String object from view
     inline String getString() const
@@ -560,7 +553,9 @@ public:
       const char* begin_;
       Size size_;
   };
-} // namespace OPENMS
+	
+  OPENMS_DLLAPI ::size_t hash_value(OpenMS::String const& s);
+} // namespace OpenMS
 
 namespace std
 {
@@ -572,4 +567,3 @@ namespace std
     }
   };
 } // namespace std
-

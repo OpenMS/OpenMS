@@ -93,6 +93,8 @@ namespace OpenMS
     defaults_.setMinFloat("quantification_cutoff", 0.0);
     defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("write_convex_hull", ListUtils::create<String>("true,false"));
+    defaults_.setValue("spectrum_addition_method", "simple", "For spectrum addition, either use simple concatenation or use peak resampling", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("spectrum_addition_method", {"simple", "resample"});
     defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer)", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("add_up_spectra", 1);
     defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", ListUtils::create<String>("advanced"));
@@ -312,7 +314,7 @@ namespace OpenMS
                                                                  const unsigned int sn_bin_count_,
                                                                  const double det_intensity_ratio_score,
                                                                  const double det_mi_ratio_score,
-                                                                 bool write_log_messages,
+                                                                 bool write_log_messages_,
                                                                  const std::vector<OpenSwath::SwathMap>& swath_maps)
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
@@ -342,7 +344,7 @@ namespace OpenMS
     {
       OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
             trgr_ident.getChromatogram(trgr_ident.getTransitions()[i].getNativeID()),
-            sn_win_len_, sn_bin_count_, write_log_messages));
+            sn_win_len_, sn_bin_count_, write_log_messages_));
       if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) 
             && (idmrmfeature.getFeature(trgr_ident.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
       {
@@ -502,14 +504,11 @@ namespace OpenMS
       drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
     }
 
-    double sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
-    unsigned int sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
-    bool write_log_messages = (bool)param_.getValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages").toBool();
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
     for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
       OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
-            transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
+            transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages_));
       signal_noise_estimators.push_back(snptr);
     }
 
@@ -520,7 +519,7 @@ namespace OpenMS
       for (Size k = 0; k < transition_group_detection.getPrecursorChromatograms().size(); k++)
       {
         OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
-              transition_group_detection.getPrecursorChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
+              transition_group_detection.getPrecursorChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages_));
         ms1_signal_noise_estimators.push_back(snptr);
       }
     }
@@ -533,7 +532,7 @@ namespace OpenMS
     expected_rt = newtr.apply(expected_rt);
 
     OpenSwathScoring scorer;
-    scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
+    scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_, spectrum_addition_method_);
 
     ProteaseDigestion pd;
     pd.setEnzyme("Trypsin");
@@ -570,7 +569,7 @@ namespace OpenMS
         // Call the scoring for MS1 only
         ///////////////////////////////////
 
-        OpenSwath_Scores scores;
+        OpenSwath_Scores& scores = mrmfeature->getScores();
         precursor_mz = mrmfeature->getMZ();
 
         // S/N scores
@@ -663,7 +662,7 @@ namespace OpenMS
           precursor_ids.push_back(precursor_id);
         }
 
-        OpenSwath_Scores scores;
+        OpenSwath_Scores& scores = mrmfeature->getScores();
         scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
                                               signal_noise_estimators, scores);
 
@@ -706,7 +705,7 @@ namespace OpenMS
                                                            sn_bin_count_,
                                                            det_intensity_ratio_score,
                                                            det_mi_ratio_score,
-                                                           write_log_messages,
+                                                           write_log_messages_,
                                                            swath_maps);
 
           mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
@@ -738,7 +737,7 @@ namespace OpenMS
                                                            sn_bin_count_,
                                                            det_intensity_ratio_score,
                                                            det_mi_ratio_score,
-                                                           write_log_messages,
+                                                           write_log_messages_,
                                                            swath_maps);
 
           mrmfeature->setMetaValue("id_decoy_transition_names", idscores.ind_transition_names);
@@ -933,9 +932,9 @@ namespace OpenMS
         pep_hit_.setCharge(pep->getChargeState());
       }
       pep_hit_.setScore(xx_lda_prescore);
-      if (swath_present)
+      if (swath_present && mrmfeature->metaValueExists("xx_swath_prelim_score"))
       {
-        pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
+        pep_hit_.setScore(mrmfeature->getMetaValue("xx_swath_prelim_score"));
       }
 
       if (pep->isPeptide())
@@ -994,6 +993,7 @@ namespace OpenMS
       mrmfeature->setMetaValue("peak_apices_sum", total_peak_apices);
       mrmfeature->setMetaValue("ms1_area_intensity", ms1_total_intensity);
       mrmfeature->setMetaValue("ms1_apex_intensity", ms1_total_peak_apices);
+      mrmfeature->setMetaValue("xx_swath_prelim_score", 0.0);
       feature_list.push_back((*mrmfeature));
 
       delete imrmfeature;
@@ -1021,10 +1021,15 @@ namespace OpenMS
     quantification_cutoff_ = (double)param_.getValue("quantification_cutoff");
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
     add_up_spectra_ = param_.getValue("add_up_spectra");
+    spectrum_addition_method_ = param_.getValue("spectrum_addition_method");
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
     uis_threshold_sn_ = param_.getValue("uis_threshold_sn");
     uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
     scoring_model_ = param_.getValue("scoring_model");
+
+    sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
+    sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
+    write_log_messages_ = (bool)param_.getValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages").toBool();
 
     // set SONAR values
     Param p = sonarscoring_.getDefaults();
@@ -1079,7 +1084,7 @@ namespace OpenMS
       const TransitionType* transition = &transition_exp.getTransitions()[i];
       if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
       {
-        std::cerr << "Error: Transition " + transition->getNativeID() + " from group " +
+        OPENMS_LOG_DEBUG << "Error: Transition " + transition->getNativeID() + " from group " +
           transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
         if (strict_)
         {

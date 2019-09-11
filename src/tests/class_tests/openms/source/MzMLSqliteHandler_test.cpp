@@ -273,13 +273,13 @@ START_SECTION( void readSpectra(std::vector<MSSpectrum> & exp, const std::vector
   {
     std::vector<MSSpectrum> exp;
     std::vector<int> indices = {0, 1, 2};
-    TEST_EXCEPTION(Exception::IllegalArgument&, handler.readSpectra(exp, indices, false));
+    TEST_EXCEPTION(Exception::IllegalArgument, handler.readSpectra(exp, indices, false));
   }
 
   {
     std::vector<MSSpectrum> exp;
     std::vector<int> indices = {5};
-    TEST_EXCEPTION(Exception::IllegalArgument&, handler.readSpectra(exp, indices, false));
+    TEST_EXCEPTION(Exception::IllegalArgument, handler.readSpectra(exp, indices, false));
   }
 }
 END_SECTION
@@ -304,13 +304,13 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
   {
     std::vector<MSChromatogram> exp;
     std::vector<int> indices = {0, 1};
-    TEST_EXCEPTION(Exception::IllegalArgument&, handler.readChromatograms(exp, indices, false));
+    TEST_EXCEPTION(Exception::IllegalArgument, handler.readChromatograms(exp, indices, false));
   }
 
   {
     std::vector<MSChromatogram> exp;
     std::vector<int> indices = {5};
-    TEST_EXCEPTION(Exception::IllegalArgument&, handler.readChromatograms(exp, indices, false));
+    TEST_EXCEPTION(Exception::IllegalArgument, handler.readChromatograms(exp, indices, false));
   }
 
   {
@@ -450,7 +450,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
   {
     MzMLSqliteHandler handler(tmp_filename);
     // writing without creating the tables / indices won't work
-    TEST_EXCEPTION(Exception::IllegalArgument&, handler.writeExperiment(exp_orig));
+    TEST_EXCEPTION(Exception::IllegalArgument, handler.writeExperiment(exp_orig));
 
     // now it will work
     handler.createTables();
@@ -523,7 +523,7 @@ START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
   {
     MzMLSqliteHandler handler(tmp_filename);
     // writing without creating the tables / indices won't work
-    TEST_EXCEPTION(Exception::IllegalArgument&, handler.writeSpectra(exp_orig.getSpectra()));
+    TEST_EXCEPTION(Exception::IllegalArgument, handler.writeSpectra(exp_orig.getSpectra()));
 
     // now it will work
     handler.createTables();
@@ -572,7 +572,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
     MzMLSqliteHandler handler(tmp_filename);
     handler.setConfig(true, false, 0.0001);
     // writing without creating the tables / indices won't work
-    TEST_EXCEPTION(Exception::IllegalArgument&, handler.writeChromatograms(exp_orig.getChromatograms()));
+    TEST_EXCEPTION(Exception::IllegalArgument, handler.writeChromatograms(exp_orig.getChromatograms()));
 
     // now it will work
     handler.createTables();
@@ -608,7 +608,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
     MzMLSqliteHandler handler(tmp_filename);
     handler.setConfig(true, true, 0.0001);
     // writing without creating the tables / indices won't work
-    TEST_EXCEPTION(Exception::IllegalArgument&, handler.writeChromatograms(exp_orig.getChromatograms()));
+    TEST_EXCEPTION(Exception::IllegalArgument, handler.writeChromatograms(exp_orig.getChromatograms()));
 
     // now it will work
     handler.createTables();

@@ -79,7 +79,7 @@ START_SECTION((virtual void group(const std::vector< FeatureMap > &maps, Consens
 	ConsensusMap out;
 
 	//test exception (no input)
-	TEST_EXCEPTION(Exception::IllegalArgument&, fga.group(in,out));
+	TEST_EXCEPTION(Exception::IllegalArgument, fga.group(in,out));
 
 	//real test
 	in.resize(1);
@@ -149,7 +149,7 @@ START_SECTION((virtual void group(const std::vector< FeatureMap > &maps, Consens
 
 
 	//test exception (no file name set in out)
-	TEST_EXCEPTION(Exception::IllegalArgument&, fga.group(in,out));
+	TEST_EXCEPTION(Exception::IllegalArgument, fga.group(in,out));
 
 	out.getColumnHeaders()[5].label = "light";
 	out.getColumnHeaders()[5].filename = "filename";

@@ -72,6 +72,10 @@ namespace OpenMS
       spectrum.push_back(peak1d);
     }
 
+    spectrum.getFloatDataArrays() = current_chrom.getFloatDataArrays();
+    spectrum.getIntegerDataArrays() = current_chrom.getIntegerDataArrays();
+    spectrum.getStringDataArrays() = current_chrom.getStringDataArrays();
+
     // Add at least one data point to the chromatogram, otherwise
     // "addLayer" will fail and a segfault occurs later
     if (current_chrom.empty()) 
