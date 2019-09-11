@@ -41,6 +41,7 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h>
 
 // auxiliary
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -96,9 +97,10 @@ namespace OpenMS
   /// Constructor
   OpenSwathScoring::OpenSwathScoring() :
     rt_normalization_factor_(1.0),
+    spacing_for_spectra_resampling_(0.005),
     add_up_spectra_(1),
     spectra_addition_method_("simple"),
-    spacing_for_spectra_resampling_(0.005)
+    im_drift_extra_pcnt_(0.0)
   {
   }
 
@@ -108,13 +110,16 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
-    int add_up_spectra, double spacing_for_spectra_resampling,
-    const OpenSwath_Scores_Usage & su,
-    const std::string& spectrum_addition_method)
+                                    int add_up_spectra,
+                                    double spacing_for_spectra_resampling,
+                                    const double drift_extra,
+                                    const OpenSwath_Scores_Usage & su,
+                                    const std::string& spectrum_addition_method)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
     this->spectra_addition_method_ = spectrum_addition_method;
+    this->im_drift_extra_pcnt_ = drift_extra;
     this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
     this->su_ = su;
   }
@@ -127,8 +132,9 @@ namespace OpenMS
                                             const CompoundType& compound,
                                             OpenSwath_Scores& scores,
                                             std::vector<double>& masserror_ppm,
-                                            double drift_lower,
-                                            double drift_upper)
+                                            const double drift_lower,
+                                            const double drift_upper,
+                                            const double drift_target)
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
@@ -158,6 +164,23 @@ namespace OpenMS
 
     // find spectrum that is closest to the apex of the peak using binary search
     OpenSwath::SpectrumPtr spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper);
+
+    // calculate drift extraction width for current spectrum (with some extra for cross-correlation)
+    double drift_width = fabs(drift_upper - drift_lower);
+    double drift_lower_used = drift_lower - drift_width * im_drift_extra_pcnt_;
+    double drift_upper_used = drift_upper + drift_width * im_drift_extra_pcnt_;
+
+    // score drift time dimension
+    if (drift_upper > 0 && su_.use_im_scores)
+    {
+      double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
+      bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
+      auto drift_spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower_used, drift_upper_used);
+      IonMobilityScoring::driftScoring(drift_spectrum, transitions, scores,
+                                       drift_lower, drift_upper, drift_target,
+                                       dia_extract_window_, dia_extraction_ppm_,
+                                       false, im_drift_extra_pcnt_);
+    }
 
     // Mass deviation score
     diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
@@ -189,6 +212,21 @@ namespace OpenMS
       double rt = imrmfeature->getRT();
 
       calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, scores, drift_lower, drift_upper);
+
+      // OpenSwath::SpectrumPtr ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_, drift_lower, drift_upper);
+
+      if (drift_upper > 0 && su_.use_im_scores)
+      {
+        double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
+        bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
+        IonMobilityScoring::driftScoringMS1( fetchSpectrumSwath(ms1_map, imrmfeature->getRT(), add_up_spectra_, drift_lower_used, drift_upper_used),
+            transitions, scores, drift_lower, drift_upper, drift_target, dia_extract_window_, dia_extraction_ppm_, false, im_drift_extra_pcnt_);
+
+        IonMobilityScoring::driftScoringMS1Contrast(
+            fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower_used, drift_upper_used),
+            fetchSpectrumSwath(ms1_map, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper),
+            transitions, scores, drift_lower, drift_upper, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_);
+      }
     }
 
   }

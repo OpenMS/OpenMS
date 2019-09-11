@@ -62,9 +62,10 @@ namespace OpenMS
     typedef OpenSwath::LightTransition TransitionType;
 
     double rt_normalization_factor_;
+    double spacing_for_spectra_resampling_;
     int add_up_spectra_;
     std::string spectra_addition_method_;
-    double spacing_for_spectra_resampling_;
+    double im_drift_extra_pcnt_;
     OpenSwath_Scores_Usage su_;
 
   public:
@@ -89,6 +90,7 @@ namespace OpenMS
     void initialize(double rt_normalization_factor,
                     int add_up_spectra,
                     double spacing_for_spectra_resampling,
+                    const double drift_extra,
                     const OpenSwath_Scores_Usage & su,
                     const std::string& spectrum_addition_method);
 
@@ -186,8 +188,9 @@ namespace OpenMS
                             const CompoundType& compound,
                             OpenSwath_Scores& scores,
                             std::vector<double>& mzerror_ppm,
-                            double drift_lower,
-                            double drift_upper);
+                            const double drift_lower,
+                            const double drift_upper,
+                            const double drift_target);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
