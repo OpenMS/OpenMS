@@ -381,10 +381,10 @@ protected:
       tic.setAccession("MS:1000285");
       tic.setName("TIC_" + String(i + 1));
       String value("[");
-      value += String(tics[i][0].getRT()) + ", " + String(tics[i][0].getIntensity());
+      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
       for (Size j = 1; j < tics[i].size(); ++j)
       {
-        value += ", " + String(tics[i][j].getRT()) + ", " + String(tics[i][j].getIntensity());
+        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
       }
       value += "]";
       tic.setValue(value);
