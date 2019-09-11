@@ -117,7 +117,7 @@ namespace OpenMS
       int ret = std::sscanf(line.c_str(), "%128s\t%*s\t%128s", rt, intensity);
       if (ret == 2)
       {
-        chromatogram.push_back(ChromatogramPeak(parseDouble(rt), parseDouble(intensity)));
+        chromatogram.push_back(ChromatogramPeak(removeCommasAndParseDouble(rt), removeCommasAndParseDouble(intensity)));
       }
       else if (line.empty())
       {
@@ -132,7 +132,7 @@ namespace OpenMS
     experiment.addChromatogram(chromatogram);
   }
 
-  double ChromeleonFile::parseDouble(String number) const
+  double ChromeleonFile::removeCommasAndParseDouble(String number) const
   {
     return number.remove(',').toDouble();
   }

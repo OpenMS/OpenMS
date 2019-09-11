@@ -68,7 +68,7 @@ public:
     */
     void load(const String& filename, MSExperiment& experiment) const;
 
-    double parseDouble(String number) const;
+    double removeCommasAndParseDouble(String number) const;
   };
 }
 
