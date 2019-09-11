@@ -68,6 +68,13 @@ public:
     */
     void load(const String& filename, MSExperiment& experiment) const;
 
+    /**
+      @brief Remove commas from the string (used as thousands separators) and
+      parse its value
+
+      @param[in] number A string representing a floating-point number
+      @return The value converted to `double`
+    */
     double removeCommasAndParseDouble(String number) const;
   };
 }
