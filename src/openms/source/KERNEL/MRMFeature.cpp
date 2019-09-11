@@ -147,5 +147,29 @@ namespace OpenMS
     return precursor_features_.at(precursor_feature_map_.at(key));
   }
 
+  void MRMFeature::IDScoresAsMetaValue(bool decoy, const OpenSwath_Ind_Scores& idscores)
+  {
+    String id = "id_target";
+    if (decoy) id = "id_decoy";
+
+    this->setMetaValue(id + "transition_names", idscores.ind_transition_names);
+    this->setMetaValue(id + "num_transitions", idscores.ind_num_transitions);
+    this->setMetaValue(id + "area_intensity", idscores.ind_area_intensity);
+    this->setMetaValue(id + "total_area_intensity", idscores.ind_total_area_intensity);
+    this->setMetaValue(id + "intensity_score", idscores.ind_intensity_score);
+    this->setMetaValue(id + "intensity_ratio_score", idscores.ind_intensity_ratio);
+    this->setMetaValue(id + "apex_intensity", idscores.ind_apex_intensity);
+    this->setMetaValue(id + "total_mi", idscores.ind_total_mi);
+    this->setMetaValue(id + "transition_names", idscores.ind_transition_names);
+    this->setMetaValue(id + "ind_log_intensity", idscores.ind_log_intensity);
+    this->setMetaValue(id + "ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
+    this->setMetaValue(id + "ind_xcorr_shape", idscores.ind_xcorr_shape_score);
+    this->setMetaValue(id + "ind_log_sn_score", idscores.ind_log_sn_score);
+    this->setMetaValue(id + "ind_isotope_correlation", idscores.ind_isotope_correlation);
+    this->setMetaValue(id + "ind_isotope_overlap", idscores.ind_isotope_overlap);
+    this->setMetaValue(id + "ind_massdev_score", idscores.ind_massdev_score);
+    this->setMetaValue(id + "ind_mi_score", idscores.ind_mi_score);
+    this->setMetaValue(id + "ind_mi_ratio_score", idscores.ind_mi_ratio);
+  }
 }
 

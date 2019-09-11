@@ -115,6 +115,7 @@ public:
     /// get a specified precursor feature (const)
     const Feature & getPrecursorFeature(String key) const;
 
+    void IDScoresAsMetaValue(bool decoy, const OpenSwath_Ind_Scores& idscores);
     //@}
 
 protected:
