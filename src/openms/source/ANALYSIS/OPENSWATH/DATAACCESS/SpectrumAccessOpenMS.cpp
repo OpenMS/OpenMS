@@ -168,8 +168,8 @@ namespace OpenMS
     // beginning of the RT domain. Then we add this spectrum and try to add
     // further spectra as long as they are below RT + deltaRT.
     std::vector<std::size_t> result;
-    auto spectrum = ms_experiment_.RTBegin(RT - deltaRT);
-    if (spectrum == ms_experiment_.end()) return result;
+    auto spectrum = ms_experiment_->RTBegin(RT - deltaRT);
+    if (spectrum == ms_experiment_->end()) return result;
 
     result.push_back(std::distance(ms_experiment_->begin(), spectrum));
     spectrum++;
