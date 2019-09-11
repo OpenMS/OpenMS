@@ -46,17 +46,17 @@ namespace OpenMS
 
   void QCBase::SpectraMap::calculateMap(const MSExperiment& exp)
   {
-    map_to_index_.clear();
+    nativeid_to_index_.clear();
     for (Size i = 0; i < exp.size(); ++i)
     {
-      map_to_index_[exp[i].getNativeID()] = i;
+      nativeid_to_index_[exp[i].getNativeID()] = i;
     }
   }
 
   UInt64 QCBase::SpectraMap::at(const String& identifier) const
   {
-    const auto& it = map_to_index_.find(identifier);
-    if (it == map_to_index_.end())
+    const auto& it = nativeid_to_index_.find(identifier);
+    if (it == nativeid_to_index_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No spectrum with identifier '") + identifier + "' in MSExperiment!");
     }
@@ -65,16 +65,16 @@ namespace OpenMS
 
   void QCBase::SpectraMap::clear()
   {
-    map_to_index_.clear();
+    nativeid_to_index_.clear();
   }
 
   bool QCBase::SpectraMap::empty() const
   {
-    return map_to_index_.empty();
+    return nativeid_to_index_.empty();
   }
   
   Size QCBase::SpectraMap::size() const
   {
-    return map_to_index_.size();
+    return nativeid_to_index_.size();
   }
 } //namespace OpenMS

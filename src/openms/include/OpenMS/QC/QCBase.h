@@ -41,33 +41,33 @@
 
 namespace OpenMS
 {
+  class MSExperiment;
+
   /**
    * @brief This class serves as an abstract base class for all QC classes.
    *
    * It contains the important feature of encoding the input requirements
    * for a certain QC.
    */
-  class MSExperiment;
   class OPENMS_DLLAPI QCBase
   {
   public:
     /**
      * @brief Enum to encode a file type as a bit.
      */
-    //POSTFDRFEAT = PREALIGNFEAT
-      enum class Requires :
-          UInt64
-      {
-          FAIL,         //< default, does not encode for anything
-          RAWMZML,      //< mzML file is required
-          POSTFDRFEAT,  //< Features with FDR-filtered pepIDs
-          PREFDRFEAT,   //< Features with unfiltered pepIDs
-          CONTAMINANTS, //< Contaminant Database
-          TRAFOALIGN,   //< transformationXMLs for RT-alignment
-          SIZE_OF_REQUIRES
-       };
+    enum class Requires 
+      : UInt64 // 64 bit unsigned type for bitwise and/or operations (see below)
+    {
+      FAIL,         //< default, does not encode for anything
+      RAWMZML,      //< mzML file is required
+      POSTFDRFEAT,  //< Features with FDR-filtered pepIDs
+      PREFDRFEAT,   //< Features with unfiltered pepIDs
+      CONTAMINANTS, //< Contaminant Database
+      TRAFOALIGN,   //< transformationXMLs for RT-alignment
+      SIZE_OF_REQUIRES
+    };
     /// strings corresponding to enum Requires
-      static const std::string names_of_requires[];
+    static const std::string names_of_requires[];
 
     /**
      * @brief Map to find a spectrum via its NativeID
@@ -101,14 +101,20 @@ namespace OpenMS
       Size size() const;
 
     private:
-      std::map<String,UInt64> map_to_index_;
+      std::map<String, UInt64> nativeid_to_index_; //< nativeID to index
     };
+
+
     /**
-     * @brief Storing a status as a UInt64
-     *
-     * Only allows assignment and bit operations with itself and an object
-     * of type Requires, i.e. not with any numeric types.
-     */
+     @brief Storing a status of available/needed inputs (i.e. a set of Requires) as UInt64
+    
+     Conversion from a Requires enum is computed as `pow(2, r)`.
+     Multiple Requires attributes can be computed by bitwise 'or'.
+
+     Only allows assignment and bit operations with itself and an object
+     of type Requires, i.e. not with any numeric types.
+
+    **/
     class Status
     {
     public:
@@ -130,14 +136,14 @@ namespace OpenMS
         value_ = stat.value_;
       }
 
-      // Assignment
+      /// Assignment
       Status& operator=(const Requires& req)
       {
         value_ = getPow_(req);
         return *this;
       }
 
-      /// Destructor
+      /// Destructor (default)
       ~Status() = default;
 
       // Equal
@@ -210,7 +216,7 @@ namespace OpenMS
       }
 
     private:
-
+      /// computes pow(2, r)
       UInt64 getPow_(const Requires& r) const
       {
         return UInt64(1) << UInt64 (r);

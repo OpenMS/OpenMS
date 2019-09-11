@@ -42,7 +42,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therfore have a entry in the featureMap)
+  // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therefor have a entry in the featureMap)
   // MS2 spectra without mate are returned as vector of unassignedPeptideIdentifications (with empty sequence but some metavalue)
   std::vector<PeptideIdentification> TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
   {
