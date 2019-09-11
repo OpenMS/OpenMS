@@ -75,6 +75,7 @@ namespace OpenMS
 
     for (auto& da : spec.getDataArrays() )
     {
+      if (da->data.empty()) continue;
       OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
       tmp->description = da->description;
       tmp->data.reserve(select_indices.size());
