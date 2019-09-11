@@ -105,11 +105,11 @@ namespace OpenMS
                   "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
     }
 
-    String select_annotation = "NULL AS Annotation, ";
+    String select_annotation = "'' AS Annotation, ";
     bool annotation_exists = SqliteConnector::columnExists(db, "TRANSITION", "ANNOTATION");
     if (annotation_exists) select_annotation = "TRANSITION.ANNOTATION AS Annotation, ";
 
-    String select_adducts = "NULL AS Adducts, ";
+    String select_adducts = "'' AS Adducts, ";
     bool adducts_exists = SqliteConnector::columnExists(db, "COMPOUND", "ADDUCTS");
     if (adducts_exists) select_adducts = "COMPOUND.ADDUCTS AS Adducts, ";
 
