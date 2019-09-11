@@ -114,7 +114,7 @@ namespace OpenMS
     {
       TextFile::getLine(ifs, line);
       char rt[128], intensity[128];
-      int ret = std::sscanf(line.c_str(), "%128s\t%*s\t%128s", rt, intensity);
+      int ret = std::sscanf(line.c_str(), "%127s\t%*s\t%127s", rt, intensity);
       if (ret == 2)
       {
         chromatogram.push_back(ChromatogramPeak(removeCommasAndParseDouble(rt), removeCommasAndParseDouble(intensity)));
