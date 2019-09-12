@@ -149,8 +149,8 @@ namespace OpenMS
 
   void MRMFeature::IDScoresAsMetaValue(bool decoy, const OpenSwath_Ind_Scores& idscores)
   {
-    String id = "id_target";
-    if (decoy) id = "id_decoy";
+    String id = "id_target_";
+    if (decoy) id = "id_decoy_";
 
     this->setMetaValue(id + "transition_names", idscores.ind_transition_names);
     this->setMetaValue(id + "num_transitions", idscores.ind_num_transitions);
