@@ -75,7 +75,7 @@ public:
       @param[in] number A string representing a floating-point number
       @return The value converted to `double`
     */
-    double removeCommasAndParseDouble(String number) const;
+    double removeCommasAndParseDouble(String& number) const;
   };
 }
 
