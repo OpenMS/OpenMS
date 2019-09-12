@@ -44,9 +44,11 @@ namespace OpenMS
   class FeatureMap;
   class MSExperiment;
   /**
-   * @brief This class is a metric for the QualityControl-ToppTool.
-   *
-   * This class computes the MS2 Identification Rate given a FeatureMap and an MSExperiment.
+   @brief This class is a metric for the QualityControl-ToppTool.
+   
+   This class computes the MS2 Identification Rate (as #identified PSMs divided by total number of MS2 scans) given a FeatureMap and an MSExperiment.
+   Only pep-ids with FDR metavalue 'target_decoy' equal to 'target' are counted, unless force_fdr flag is set (assumes all pep-ids are target peptides)
+
    */
   class OPENMS_DLLAPI Ms2IdentificationRate : public QCBase
   {
@@ -79,13 +81,13 @@ namespace OpenMS
      * stores results as a struct in a vector
      * Only pep-ids with FDR metavalue annotation as 'target' are counted, unless force_fdr flag is set (assumes all pep-ids are target peptides)
      *
-     * @param feature_map Input featuremap with target/decoy annotation
+     * @param feature_map Input FeatureMap with target/decoy annotation
      * @param exp MSExperiment for counting number of MS2 spectra
-     * @param force_fdr bool for forceflag
+     * @param force_fdr Count all(!) PepIDs towards number of identified MS2 spectra (ignore target/decoy information if any)
      * @exception Exception::MissingInformation is thrown if the FeatureXML is empty
      * @exception Exception::MissingInformation is thrown if the mzML is empty
-     * @exception Exception::MissingInformation is thrown if the experiment doesn't contain ms2 spectra
-     * @exception Exception::Precondition is thrown if there are more identifications than ms2 spectra
+     * @exception Exception::MissingInformation is thrown if the experiment doesn't contain MS2 spectra
+     * @exception Exception::Precondition is thrown if there are more identifications than MS2 spectra
      */
     void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
 

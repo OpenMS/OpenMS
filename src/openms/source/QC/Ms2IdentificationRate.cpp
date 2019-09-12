@@ -32,97 +32,86 @@
 // $Authors: Patricia Scheil, Swenja Wagner$
 // --------------------------------------------------------------------------
 
-#include <algorithm>
-
-
+#include <OpenMS/QC/Ms2IdentificationRate.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-//#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/Ms2IdentificationRate.h>
 
-
-
+#include <algorithm>
 
 namespace OpenMS
 {
   //computes number of peptide identifications, number of ms2 spectra and ratio
   //data is stored in vector of structs
-  //void Ms2IdentificationRate::compute(FeatureMap const & feature_map, MSExperiment const & exp, std::string file, bool force_fdr)
   void Ms2IdentificationRate::compute(const FeatureMap& feature_map,const MSExperiment& exp, bool force_fdr)
   {
-    //checks if data exists
+    if (exp.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSExperiment is empty");
+    }
 
-      if (exp.empty())
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSExperiment is empty");
-      }
-
-
-    //counts ms2 spectra
+    // counts ms2 spectra
     UInt64 ms2_level_counter{};
-
-
-      for (auto const& spec : exp.getSpectra())
+    for (auto const& spec : exp.getSpectra())
+    {
+      if (spec.getMSLevel() == 2)
       {
-        if (spec.getMSLevel() == 2)
-        {
-          ++ ms2_level_counter;
-        }
+        ++ ms2_level_counter;
       }
+    }
 
-      if (ms2_level_counter == 0)
+    if (ms2_level_counter == 0)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS2 spectra found");
+    }
+
+    //counts peptideIdentifications
+    UInt64 peptide_identification_counter{};
+
+    auto lam = [force_fdr, &peptide_identification_counter](const PeptideIdentification& pep_id)
+    {
+      if (pep_id.getHits().empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS2 spectra found");
+        return;
       }
-
-      //counts peptideIdentifications
-      UInt64 peptide_identification_counter{};
-
-      auto lam = [force_fdr, &peptide_identification_counter](const PeptideIdentification& pep_id)
+      if (force_fdr)
       {
-        if (pep_id.getHits().empty())
-        {
-          return;
-        }
-        if (force_fdr)
-        {
-          ++ peptide_identification_counter;
-          return;
-        }
-        if (!(pep_id.getHits()[0].metaValueExists("target_decoy")))
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr");
-        }
-        if (pep_id.getHits()[0].getMetaValue("target_decoy") == "target")
-        {
-          ++ peptide_identification_counter;
-          return;
-        }
-      };
-
-      //iterates through all PeptideIdentifications in FeatureMap, applies lambda function lam to all of them
-      QCBase::iterateFeatureMap(feature_map, lam);
-
-      if (ms2_level_counter < peptide_identification_counter)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than MS2 spectra. Please check your data.");
+        ++peptide_identification_counter;
+        return;
       }
+      if (!(pep_id.getHits()[0].metaValueExists("target_decoy")))
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr");
+      }
+      if (pep_id.getHits()[0].getMetaValue("target_decoy") == "target")
+      {
+        ++peptide_identification_counter;
+        return;
+      }
+    };
 
-      //computes ratio
-      double ratio = (double) peptide_identification_counter / ms2_level_counter;
+    //iterates through all PeptideIdentifications in FeatureMap, applies lambda function lam to all of them
+    QCBase::iterateFeatureMap(feature_map, lam);
 
-      // struct that is made to store results
-      IdentificationRateData id_rate_data;
+    if (ms2_level_counter < peptide_identification_counter)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than MS2 spectra. Please check your data.");
+    }
 
-      //store results
-      id_rate_data.num_peptide_identification = peptide_identification_counter;
-      id_rate_data.num_ms2_spectra = ms2_level_counter;
-      id_rate_data.identification_rate = ratio;
+    //computes ratio
+    double ratio = (double) peptide_identification_counter / ms2_level_counter;
 
-      rate_result_.push_back(id_rate_data);
+    // struct that is made to store results
+    IdentificationRateData id_rate_data;
+
+    //store results
+    id_rate_data.num_peptide_identification = peptide_identification_counter;
+    id_rate_data.num_ms2_spectra = ms2_level_counter;
+    id_rate_data.identification_rate = ratio;
+
+    rate_result_.push_back(id_rate_data);
   }
 
   

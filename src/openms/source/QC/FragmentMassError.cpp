@@ -101,9 +101,9 @@ namespace OpenMS
     // set changed parameters
     theo_gen.setParameters(theo_gen_settings);
 
-    // generate a-, b- and y-ion spectrum of peptide seq with charge
+    // generate b/y or c/z-ion spectrum of peptide seq
     PeakSpectrum theo_spectrum;
-    theo_gen.getSpectrum(theo_spectrum, seq, 1, charge);
+    theo_gen.getSpectrum(theo_spectrum, seq, 1, charge <= 2 ? 1 : 2);
 
     return theo_spectrum;
   }
@@ -160,12 +160,8 @@ namespace OpenMS
       // sequence
       const AASequence& seq = pep_id.getHits()[0].getSequence();
 
-      // charge
+      // charge: re-calulated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
       Int charge = static_cast<Int>(round(seq.getMonoWeight() / pep_id.getMZ()));
-
-      // if computed charge and the given charge in PeptideHits is not equal programm is terminated
-      assert(charge == pep_id.getHits()[0].getCharge());
-
 
       //-----------------------------------------------------------------------
       // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICTION

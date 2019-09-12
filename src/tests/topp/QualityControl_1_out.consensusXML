@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:///C:/Program Files/OpenMS-2.4.0/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
 <consensusXML version="1.7" id="cm_81993539041665547" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2019-09-11T15:48:13">
 		<software name="FeatureLinkerUnlabeledQT" version="2.4.0-disabled-20190529" />
@@ -357,8 +357,8 @@
 			<UserParam type="float" name="XTandem_score" value="21.800000000000001"/>
 			<UserParam type="float" name="mz_raw" value="468.567718505859034"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-165.052283137551768, 348.487434817163432, -9.877077420540644]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[-0.028903782999009, 0.090882973229668, -0.006848088586253]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-165.052283137551768, -9.877077420540644]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[-0.028903782999009, -0.006848088586253]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="468.228509434404316"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="724.451981500368106"/>
@@ -462,8 +462,8 @@
 			<UserParam type="float" name="XTandem_score" value="39.0"/>
 			<UserParam type="float" name="mz_raw" value="541.284019884821987"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[255.152830161149438, 1.114697794597653, 0.517844787551102, -1.794266854772652, -2.824136792642287, -5.850010302999619, 2.429494909913787, -0.493536886930985, -0.922235142312145, -2.533940525186821]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[0.02807791902751, 1.639863191940094e-04, 1.134493276424564e-04, -4.452661313507633e-04, -8.984940510572415e-04, -0.002955998750281, 0.001473113842735, -3.273961754075572e-04, -7.049702511494615e-04, -0.002188015272395]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.114697794597653, 0.517844787551102, -1.794266854772652, -2.824136792642287, -5.850010302999619, 2.429494909913787, -0.493536886930985, -0.922235142312145, -2.533940525186821]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[1.639863191940094e-04, 1.134493276424564e-04, -4.452661313507633e-04, -8.984940510572415e-04, -0.002955998750281, 0.001473113842735, -3.273961754075572e-04, -7.049702511494615e-04, -0.002188015272395]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="541.281534607770936"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.591468380408586"/>
@@ -672,8 +672,8 @@
 			<UserParam type="float" name="XTandem_score" value="23.100000000000001"/>
 			<UserParam type="float" name="mz_raw" value="488.766273856454973"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[0.610054499065088, -0.415959892042634, -0.4159598921558, -0.384113477179218, 6.001420142342735, 2.562791194791538]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[8.97468285074865e-05, -1.044684321414024e-04, -1.044684321698242e-04, -1.006914105232681e-04, 0.003536751948332, 0.001861555358005]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[0.610054499065088, -0.415959892042634, -0.384113477179218, 6.001420142342735, 2.562791194791538]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[8.97468285074865e-05, -1.044684321414024e-04, -1.006914105232681e-04, 0.003536751948332, 0.001861555358005]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="488.764168567321008"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.307372081173826"/>
@@ -742,8 +742,8 @@
 			<UserParam type="float" name="XTandem_score" value="33.200000000000003"/>
 			<UserParam type="float" name="mz_raw" value="471.561553955078011"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.226725302406334, -0.911370063672415, 0.669048492171285, -588.544903057041893, -0.502949022698618, -1.66350251372991, -2.268653480947124, -2.067584733480212]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[-3.970389755636461e-05, -1.850685009969766e-04, 1.646903455139182e-04, -0.180367304123649, -1.927375993204805e-04, -8.255947066686531e-04, -0.00145957782297, -0.001613597648543]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.226725302406334, -0.911370063672415, 0.669048492171285, -0.502949022698618, -1.66350251372991, -2.268653480947124, -2.067584733480212]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[-3.970389755636461e-05, -1.850685009969766e-04, 1.646903455139182e-04, -1.927375993204805e-04, -8.255947066686531e-04, -0.00145957782297, -0.001613597648543]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="471.560370413137719"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="2.509841824188678"/>
@@ -812,8 +812,8 @@
 			<UserParam type="float" name="XTandem_score" value="52.299999999999997"/>
 			<UserParam type="float" name="mz_raw" value="544.584594726562955"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[0.75788233800827, -1094.274542280233618, 0.54871655954604, 1.702595272600084, -1.109329083652627, -1.083494901225878, 2.392833983290205, -1.331449906813121, 3.320301934404311, 1.235730890891267, 0.182793240843017, 1.559384857306067, -1.980644239538352, -74.22752600001219, -4.168154896299568]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[1.327195614635457e-04, -0.228439636768655, 1.257209970617623e-04, 4.702000023257824e-04, -4.31807118445704e-04, -5.810632511611402e-04, 0.001453223617318, -8.311740951967295e-04, 0.00230546904595, 9.308822338880418e-04, 1.481221968333557e-04, 0.001371378062004, -0.001858606888732, -0.07485681779076, -0.004274097103462]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[0.75788233800827, 0.54871655954604, 1.702595272600084, -1.109329083652627, -1.083494901225878, 2.392833983290205, -1.331449906813121, 3.320301934404311, 1.235730890891267, 0.182793240843017, 1.559384857306067, -1.980644239538352, -74.22752600001219, -4.168154896299568]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[1.327195614635457e-04, 1.257209970617623e-04, 4.702000023257824e-04, -4.31807118445704e-04, -5.810632511611402e-04, 0.001453223617318, -8.311740951967295e-04, 0.00230546904595, 9.308822338880418e-04, 1.481221968333557e-04, 0.001371378062004, -0.001858606888732, -0.07485681779076, -0.004274097103462]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="544.5825128372378"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.822908881719145"/>
@@ -1022,8 +1022,8 @@
 			<UserParam type="float" name="XTandem_score" value="49.5"/>
 			<UserParam type="float" name="mz_raw" value="544.584175751879002"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.616720169075411, 3.922420932156905, 0.219886797576635, -67.809913635983378, -0.124059216477019, 2.796147950778288, 2.255030770599095, 0.876489400674831, 3.224009549139678, 2.722721952694823, 4.027394682065178, 3.76703409036409, 4.580985569231864]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[2.83118343162414e-04, 8.986983569343465e-04, 6.072539633805718e-05, -0.025757257177474, -4.829013641938218e-05, 0.001499535269772, 0.001369532527747, 5.471593642596417e-04, 0.002238607923687, 0.002051040005767, 0.003263504411166, 0.003534928368595, 0.00469742071482]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.616720169075411, 3.922420932156905, 0.219886797576635, -0.124059216477019, 2.796147950778288, 2.255030770599095, 0.876489400674831, 3.224009549139678, 2.722721952694823, 4.027394682065178, 3.76703409036409, 4.580985569231864]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[2.83118343162414e-04, 8.986983569343465e-04, 6.072539633805718e-05, -4.829013641938218e-05, 0.001499535269772, 0.001369532527747, 5.471593642596417e-04, 0.002238607923687, 0.002051040005767, 0.003263504411166, 0.003534928368595, 0.00469742071482]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="544.5825128372378"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.053558647224686"/>
@@ -1267,8 +1267,8 @@
 			<UserParam type="float" name="XTandem_score" value="64.599999999999994"/>
 			<UserParam type="float" name="mz_raw" value="554.778153217910017"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1840.829902101662583, 5.672499952541944, 41.988624464036548, 5.239206856039483, 185.323298797450036, 3.561512174474361, 2.134074689604447, 47.22099789043223, -936.160779827163879, 6.32618348699932, -669.404987253364766, -3.444466166136233, 0.475473085525153, -2.260748394004138, -7.093514114246357, 2.986137495507605, 1.341231716261139, -6.022583604535041, -3.016965331490491, -5.437188888115269, -17.425578187210178]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[0.270313585103906, 8.344973788894094e-04, 0.007184527280685, 8.964953806582798e-04, 0.04171977433333, 8.339096771408094e-04, 5.765869015021963e-04, 0.013039781833129, -0.270919479180634, 0.002202699672011, -0.233236228553039, -0.001640414406666, 2.602185528530754e-04, -0.001397867232981, -0.005358295010524, 0.0024677935819, 0.001203693378898, -0.005573743192826, -0.003054619030536, -0.005891290766613, -0.022507117156465]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[5.672499952541944, 5.239206856039483, 3.561512174474361, 2.134074689604447, 6.32618348699932, -3.444466166136233, 0.475473085525153, -2.260748394004138, -7.093514114246357, 2.986137495507605, 1.341231716261139, -6.022583604535041, -3.016965331490491, -5.437188888115269, -17.425578187210178]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[8.344973788894094e-04, 8.964953806582798e-04, 8.339096771408094e-04, 5.765869015021963e-04, 0.002202699672011, -0.001640414406666, 2.602185528530754e-04, -0.001397867232981, -0.005358295010524, 0.0024677935819, 0.001203693378898, -0.005573743192826, -0.003054619030536, -0.005891290766613, -0.022507117156465]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="554.775530881121199"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.726842917265882"/>
@@ -1882,8 +1882,8 @@
 			<UserParam type="float" name="XTandem_score" value="25.699999999999999"/>
 			<UserParam type="float" name="mz_raw" value="594.325008398299019"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.624896186283575, 0.49577419668522, 206.380079549544348, 1.148227462006538, 2.210493479438445, -4.147834279510506, -1.137392151908626, -0.568472726133981]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[2.552665677910682e-04, 1.770790724435756e-04, 0.093233510115851, 6.916486352110951e-04, 0.001523901092355, -0.003154142525091, -9.457055149368898e-04, -5.130497111167642e-04]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.624896186283575, 0.49577419668522, 1.148227462006538, 2.210493479438445, -4.147834279510506, -1.137392151908626, -0.568472726133981]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[2.552665677910682e-04, 1.770790724435756e-04, 6.916486352110951e-04, 0.001523901092355, -0.003154142525091, -9.457055149368898e-04, -5.130497111167642e-04]"/>
 			<UserParam type="int" name="missed_cleavages" value="1"/>
 			<UserParam type="float" name="mz_ref" value="594.322579838470915"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.086265456654906"/>
@@ -1956,8 +1956,8 @@
 			<UserParam type="float" name="XTandem_score" value="22.699999999999999"/>
 			<UserParam type="float" name="mz_raw" value="488.765472412108977"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-1.370691631085897, -1.768369516110959, -1.768369516224125, -0.741742240065004, 2.650975828362611, -2.072809350726759]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[-2.016462905203298e-04, -4.441264514412069e-04, -4.441264514696286e-04, -1.944401246873895e-04, 0.001262487758652, -0.001505643284872]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-1.370691631085897, -1.768369516110959, -0.741742240065004, 2.650975828362611, -2.072809350726759]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[-2.016462905203298e-04, -4.441264514412069e-04, -1.944401246873895e-04, 0.001262487758652, -0.001505643284872]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="488.764168567321008"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="2.66763578801465"/>
@@ -1993,8 +1993,8 @@
 			<UserParam type="float" name="XTandem_score" value="22.5"/>
 			<UserParam type="float" name="mz_raw" value="488.766813795649"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.948662237812469, 1.243798518316901, 1.243798518203734, 1.541327219768732, 1.65952623919275, 7.502443497572267]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[4.337859725467297e-04, 3.123803126072744e-04, 3.123803125788527e-04, 4.040431306293613e-04, 6.442432960511724e-04, 0.005449610533788]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.948662237812469, 1.243798518316901, 1.541327219768732, 1.65952623919275, 7.502443497572267]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[4.337859725467297e-04, 3.123803126072744e-04, 4.040431306293613e-04, 6.442432960511724e-04, 0.005449610533788]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="488.764168567321008"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="5.41207498034495"/>
@@ -2030,8 +2030,8 @@
 			<UserParam type="float" name="XTandem_score" value="52.600000000000001"/>
 			<UserParam type="float" name="mz_raw" value="452.878797497482026"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[212.985425068579957, 0.177341574853738, 0.283033488474721, -0.771246606555769, -2.412037954933474, -1.439831484206468, -0.416565237677573, -1.941571643375107, 4.856196212269181, -8.359062927951511, -2.046216786504471, -1.774682816966424, 2.056496514983461]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[0.031326216816524, 2.608921650448792e-05, 6.089154734922886e-05, -2.021743919158325e-04, -8.495147802705105e-04, -5.891907971999899e-04, -2.275558741757777e-04, -0.001076129491025, 0.003274657686006, -0.006188389524141, -0.001643865594929, -0.001439903239543, 0.001888676512181]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[0.177341574853738, 0.283033488474721, -0.771246606555769, -2.412037954933474, -1.439831484206468, -0.416565237677573, -1.941571643375107, 4.856196212269181, -8.359062927951511, -2.046216786504471, -1.774682816966424, 2.056496514983461]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[2.608921650448792e-05, 6.089154734922886e-05, -2.021743919158325e-04, -8.495147802705105e-04, -5.891907971999899e-04, -2.275558741757777e-04, -0.001076129491025, 0.003274657686006, -0.006188389524141, -0.001643865594929, -0.001439903239543, 0.001888676512181]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="452.877476703937703"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="2.916447852377523"/>
@@ -2067,8 +2067,8 @@
 			<UserParam type="float" name="XTandem_score" value="42.0"/>
 			<UserParam type="float" name="mz_raw" value="452.878641668709975"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[214.033615359413091, 1.225308849819064, 0.229630651623007, 2.291595925173106, 1.82706982292633, 91.422853431952703, 2.050677704882157, -0.95721325194709, 4.884920173023203, -0.088135211458411, 2.006623334268028]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[0.031480386221801, 1.80258621782059e-04, 6.019532139589501e-05, 8.07095346431197e-04, 7.476518865701109e-04, 0.038323995452913, 0.00112021771281, -6.454734519820704e-04, 0.003924389761323, -8.094295446881006e-05, 0.002017513723331]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.225308849819064, 0.229630651623007, 2.291595925173106, 1.82706982292633, 2.050677704882157, -0.95721325194709, 4.884920173023203, -0.088135211458411, 2.006623334268028]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[1.80258621782059e-04, 6.019532139589501e-05, 8.07095346431197e-04, 7.476518865701109e-04, 0.00112021771281, -6.454734519820704e-04, 0.003924389761323, -8.094295446881006e-05, 0.002017513723331]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="452.877476703937703"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="2.572361912874714"/>
@@ -2178,8 +2178,8 @@
 			<UserParam type="float" name="XTandem_score" value="37.700000000000003"/>
 			<UserParam type="float" name="mz_raw" value="544.584571340338016"/>
 			<UserParam type="int" name="is_contaminant" value="0"/>
-			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.493637402376606, 0.124871003291229, 1.756592552621025, -755.012000508146343, 2.139720123377107, 0.44916706701712, 0.71958538649042, -1.799755678775303, -2.261325086404432, -1.576927894878295, -0.039478903482686]"/>
-			<UserParam type="floatList" name="fragment_mass_error_da" value="[2.615642179364386e-04, 2.861023011746511e-05, 4.851122492937066e-04, -0.221835067784184, 8.328875483130105e-04, 2.40882053049063e-04, 4.370209072703801e-04, -0.001123519773614, -0.00157016292269, -0.001187907636108, -3.199079947080463e-05]"/>
+			<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.493637402376606, 0.124871003291229, 1.756592552621025, 2.139720123377107, 0.44916706701712, 0.71958538649042, -1.799755678775303, -2.261325086404432, -1.576927894878295, -0.039478903482686]"/>
+			<UserParam type="floatList" name="fragment_mass_error_da" value="[2.615642179364386e-04, 2.861023011746511e-05, 4.851122492937066e-04, 8.328875483130105e-04, 2.40882053049063e-04, 4.370209072703801e-04, -0.001123519773614, -0.00157016292269, -0.001187907636108, -3.199079947080463e-05]"/>
 			<UserParam type="int" name="missed_cleavages" value="0"/>
 			<UserParam type="float" name="mz_ref" value="544.5825128372378"/>
 			<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.77996548124717"/>
@@ -6550,8 +6550,8 @@
 					<UserParam type="float" name="XTandem_score" value="24.300000000000001"/>
 					<UserParam type="float" name="mz_raw" value="470.909454345703068"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[214.440927347881058, 1.0467444178291, -0.644907149031396, 13.721664735240694, 1.777041144871322, -3.242385624287787, 0.358310835334971]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.03669358856672, 1.833047864181481e-04, -1.587478074327464e-04, 0.004535081582276, 6.64994821761411e-04, -0.001580010330997, 2.108108860738867e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[214.440927347881058, 1.0467444178291, -0.644907149031396, 1.777041144871322, -3.242385624287787, 0.358310835334971]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.03669358856672, 1.833047864181481e-04, -1.587478074327464e-04, 6.64994821761411e-04, -0.001580010330997, 2.108108860738867e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="470.907658810270959"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.812924675392222"/>
@@ -6595,8 +6595,8 @@
 					<UserParam type="float" name="XTandem_score" value="34.899999999999999"/>
 					<UserParam type="float" name="mz_raw" value="469.228942944333028"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.665520836125359, -60.006314554014011, -1.406719942874976, 0.144838869119082, 4.508293143521104, -0.00367777696522, -1.052628051690398]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[-1.631403376904927e-04, -0.023772998761615, -5.939267019243744e-04, 7.144088829136308e-05, 0.002805449923244, -2.549889586589416e-06, -8.48847334623315e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.665520836125359, -1.406719942874976, 0.144838869119082, 4.508293143521104, -0.00367777696522, -1.052628051690398]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[-1.631403376904927e-04, -5.939267019243744e-04, 7.144088829136308e-05, 0.002805449923244, -2.549889586589416e-06, -8.48847334623315e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="469.227715781370989"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="2.615282347495423"/>
@@ -6685,8 +6685,8 @@
 					<UserParam type="float" name="XTandem_score" value="66.099999999999994"/>
 					<UserParam type="float" name="mz_raw" value="594.324656327186972"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.236876861402162, 0.381828962142624, -627.365087702976098, -0.232098966419684, 0.49349182870897, 143.912622030079689, -0.702189721822098, -0.622741764440359, -2.801452124865263, -0.662658309525149, -0.018919999052857, -0.551395512097876, -0.355036104625664, -0.96588693257379, -2.805172113578691, 0.579164900525362]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[1.819604244133188e-04, 5.998424359177079e-05, -0.130901374614069, -6.641274001140118e-05, 1.762638634090763e-04, 0.059901871236832, -2.923201632256678e-04, -2.666667278390378e-04, -0.001398628031268, -3.991602104633785e-04, -1.304333511598088e-05, -4.192983411712703e-04, -2.952012650894176e-04, -8.71718182679615e-04, -0.002893669696959, 6.304612281837763e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.236876861402162, 0.381828962142624, -0.232098966419684, 0.49349182870897, -0.702189721822098, -0.622741764440359, -2.801452124865263, -0.662658309525149, -0.018919999052857, -0.551395512097876, -0.355036104625664, -0.96588693257379, -2.805172113578691, 0.579164900525362]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[1.819604244133188e-04, 5.998424359177079e-05, -6.641274001140118e-05, 1.762638634090763e-04, -2.923201632256678e-04, -2.666667278390378e-04, -0.001398628031268, -3.991602104633785e-04, -1.304333511598088e-05, -4.192983411712703e-04, -2.952012650894176e-04, -8.71718182679615e-04, -0.002893669696959, 6.304612281837763e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="1"/>
 					<UserParam type="float" name="mz_ref" value="594.322579838470915"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.493874852644945"/>
@@ -6730,8 +6730,8 @@
 					<UserParam type="float" name="XTandem_score" value="21.800000000000001"/>
 					<UserParam type="float" name="mz_raw" value="503.242507814000987"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[0.187252261118019, 352.932508763281305, 1.352418697097486, 0.563284106973502, -0.580572441548437]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[3.279141989764867e-05, 0.073272469692654, 4.072531903602794e-04, 3.336154520638956e-04, -4.09508279972215e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[0.187252261118019, 1.352418697097486, 0.563284106973502, -0.580572441548437]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[3.279141989764867e-05, 4.072531903602794e-04, 3.336154520638956e-04, -4.09508279972215e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="503.241057987570969"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="2.880978026348722"/>
@@ -6775,8 +6775,8 @@
 					<UserParam type="float" name="XTandem_score" value="39.100000000000001"/>
 					<UserParam type="float" name="mz_raw" value="488.765960579927025"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.370012483784645, 3.270401253254304, 3.270401253141137, 1.222727332869118, 3.599761054262602, 0.074079799335166, 1.234622920982742, 0.990727911907926, 4.595237365452857, 3.977260234432882, 1.871442355536136, -1.065552484155355]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[3.486591841692643e-04, 8.21362102300327e-04, 8.213621022719053e-04, 3.205254362228516e-04, 0.001357709973263, 2.875845706284963e-05, 5.879707795202194e-04, 4.966451946302186e-04, 0.002708061478756, 0.002845286583465, 0.001359374712706, -8.848513332395669e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.370012483784645, 3.270401253254304, 1.222727332869118, 3.599761054262602, 0.074079799335166, 1.234622920982742, 0.990727911907926, 4.595237365452857, 3.977260234432882, 1.871442355536136, -1.065552484155355]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[3.486591841692643e-04, 8.21362102300327e-04, 3.205254362228516e-04, 0.001357709973263, 2.875845706284963e-05, 5.879707795202194e-04, 4.966451946302186e-04, 0.002708061478756, 0.002845286583465, 0.001359374712706, -8.848513332395669e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="488.764168567321008"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.666415668870277"/>
@@ -6820,8 +6820,8 @@
 					<UserParam type="float" name="XTandem_score" value="53.299999999999997"/>
 					<UserParam type="float" name="mz_raw" value="452.878514108589002"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[212.818149674429492, 0.010101770679164, 1.460270790523974, 0.409295381306437, 1.090824692092122, 0.738127974618346, -1.004506459946615, -0.608561045148487, 3.621985260344321, -1.795463381020984, -2.133038461754999, -0.50765111449234, 1.214394942776461, -1.893968855034786]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.031301613699839, 1.486099819203446e-06, 3.141612268677818e-04, 1.072925885523546e-04, 3.841862010176556e-04, 3.020479928181885e-04, -5.487288062795415e-04, -3.372991617425214e-04, 0.002442397578875, -0.001329219180889, -0.001713615372068, -4.118868325804215e-04, 0.001115294476904, -0.001904247843299]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[0.010101770679164, 1.460270790523974, 0.409295381306437, 1.090824692092122, 0.738127974618346, -1.004506459946615, -0.608561045148487, 3.621985260344321, -1.795463381020984, -2.133038461754999, -0.50765111449234, 1.214394942776461, -1.893968855034786]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[1.486099819203446e-06, 3.141612268677818e-04, 1.072925885523546e-04, 3.841862010176556e-04, 3.020479928181885e-04, -5.487288062795415e-04, -3.372991617425214e-04, 0.002442397578875, -0.001329219180889, -0.001713615372068, -4.118868325804215e-04, 0.001115294476904, -0.001904247843299]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="452.877476703937703"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="2.290696059449874"/>
@@ -6910,8 +6910,8 @@
 					<UserParam type="float" name="XTandem_score" value="46.700000000000003"/>
 					<UserParam type="float" name="mz_raw" value="544.584749791274021"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-1.069895212651791, -1167.832446459208995, 0.407085633031838, -0.207906007346585, 0.022492154514299, 0.090134227829392, 0.498936088598424, 0.547024096984901, -0.922320883853746, 0.822298817524994, -0.00939178701951, 1.016011724114125, -0.282111425685783]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[-1.8735892936661e-04, -0.243795509781194, 9.327076207910068e-05, -5.741670184988834e-05, 8.755086810197099e-06, 4.463625350581424e-05, 2.675724873597574e-04, 3.322204308915389e-04, -5.757702352866545e-04, 5.70967492649288e-04, -7.074879931678879e-06, 8.233011674292356e-04, -2.647291364610283e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-1.069895212651791, 0.407085633031838, -0.207906007346585, 0.022492154514299, 0.090134227829392, 0.498936088598424, 0.547024096984901, -0.922320883853746, 0.822298817524994, -0.00939178701951, 1.016011724114125, -0.282111425685783]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[-1.8735892936661e-04, 9.327076207910068e-05, -5.741670184988834e-05, 8.755086810197099e-06, 4.463625350581424e-05, 2.675724873597574e-04, 3.322204308915389e-04, -5.757702352866545e-04, 5.70967492649288e-04, -7.074879931678879e-06, 8.233011674292356e-04, -2.647291364610283e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="544.5825128372378"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.10764940755482"/>
@@ -7045,8 +7045,8 @@
 					<UserParam type="float" name="XTandem_score" value="64.099999999999994"/>
 					<UserParam type="float" name="mz_raw" value="566.276438949810995"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[60.732816872874651, -0.047090020077396, 0.025310627442491, 0.028137333676147, 2.191657042960237, -1.95856011632312, 1.053253659848191, 102.738017793911837, 2.126769684289337, -0.715391846926608, -0.358145920296898, 0.297298596793685, 0.594635105895164, -0.780024911229831, 1.52433876019038, -2.435528704912616, 1.049429060622324, 1.138386542650742, -0.287464664487939]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.006137981767438, -8.246355008623141e-06, 5.090558687470548e-06, 7.65787035561516e-06, 6.009246744156371e-04, -7.270741144793647e-04, 4.331466489020386e-04, 0.05221522870653, 0.001081011106578, -3.993901617604934e-04, -2.253879584941387e-04, 2.212929433653699e-04, 4.84855268496176e-04, -6.883186127879526e-04, 0.001418259715024, -0.002439052696332, 0.001121310371218, 0.001255065003988, -3.419468703214079e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[60.732816872874651, -0.047090020077396, 0.025310627442491, 0.028137333676147, 2.191657042960237, -1.95856011632312, 1.053253659848191, 2.126769684289337, -0.715391846926608, -0.358145920296898, 0.297298596793685, 0.594635105895164, -0.780024911229831, 1.52433876019038, -2.435528704912616, 1.049429060622324, 1.138386542650742, -0.287464664487939]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.006137981767438, -8.246355008623141e-06, 5.090558687470548e-06, 7.65787035561516e-06, 6.009246744156371e-04, -7.270741144793647e-04, 4.331466489020386e-04, 0.001081011106578, -3.993901617604934e-04, -2.253879584941387e-04, 2.212929433653699e-04, 4.84855268496176e-04, -6.883186127879526e-04, 0.001418259715024, -0.002439052696332, 0.001121310371218, 0.001255065003988, -3.419468703214079e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="566.273901911671032"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.480231441706574"/>
@@ -7089,8 +7089,8 @@
 					<UserParam type="float" name="XTandem_score" value="33.700000000000003"/>
 					<UserParam type="float" name="mz_raw" value="556.298326330168948"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.088333819919829, 929.258033769403028, -109.796359694521584, 1.297453889174854, 3.776838968088607, 3.478771541847082, 3.803233086198458, 1.052292445197413, 0.649247065956453]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[-1.546892605119865e-05, 0.193875225767556, -0.027027040081322, 4.231592625956182e-04, 0.001572153014877, 0.001527980690128, 0.002070176494385, 7.085745536414834e-04, 5.105982984332513e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.088333819919829, -109.796359694521584, 1.297453889174854, 3.776838968088607, 3.478771541847082, 3.803233086198458, 1.052292445197413, 0.649247065956453]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[-1.546892605119865e-05, -0.027027040081322, 4.231592625956182e-04, 0.001572153014877, 0.001527980690128, 0.002070176494385, 7.085745536414834e-04, 5.105982984332513e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="556.296364710870989"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.526212685171654"/>
@@ -7177,8 +7177,8 @@
 					<UserParam type="float" name="XTandem_score" value="21.800000000000001"/>
 					<UserParam type="float" name="mz_raw" value="470.472320556641023"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.866813604110302, -325.128585743059546, 120.46446407993993]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[-1.517954907228614e-04, -0.188343628963708, 0.090749401037215]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.866813604110302, 120.46446407993993]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[-1.517954907228614e-04, 0.090749401037215]"/>
 					<UserParam type="int" name="missed_cleavages" value="1"/>
 					<UserParam type="float" name="mz_ref" value="470.470091586621095"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.737750730149585"/>
@@ -7221,8 +7221,8 @@
 					<UserParam type="float" name="XTandem_score" value="22.0"/>
 					<UserParam type="float" name="mz_raw" value="485.220245361328011"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[92.624172995186925, -9.792800247843379, -648.49909548126459, 183.471155554949235]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.009451933402005, -0.001910360917094, -0.19876135077692, 0.061117379700477]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[92.624172995186925, -9.792800247843379, 183.471155554949235]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.009451933402005, -0.001910360917094, 0.061117379700477]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="484.886767318204363"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="687.744161318398938"/>
@@ -7397,8 +7397,8 @@
 					<UserParam type="float" name="XTandem_score" value="31.199999999999999"/>
 					<UserParam type="float" name="mz_raw" value="585.300903320312955"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.596431926298459, 316.988766056997918, -1190.676940903626019, 1.183796716571461, 69.504733376439404, 3.122147646414017, 3.094756335553135, -0.920562474142248, 2.715162341743621, 4.293616360215442, 4.939632965577665]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[-9.487825548148976e-05, 0.054862474797517, -0.248366201645979, 2.724076459230673e-04, 0.030110268490148, 0.001352640890104, 0.001764937801113, -5.903903638682095e-04, 0.002048374449714, 0.003544198820123, 0.004645649106919]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-0.596431926298459, 1.183796716571461, 3.122147646414017, 3.094756335553135, -0.920562474142248, 2.715162341743621, 4.293616360215442, 4.939632965577665]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[-9.487825548148976e-05, 2.724076459230673e-04, 0.001352640890104, 0.001764937801113, -5.903903638682095e-04, 0.002048374449714, 0.003544198820123, 0.004645649106919]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="585.299104742770851"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.072920371020095"/>
@@ -7441,8 +7441,8 @@
 					<UserParam type="float" name="XTandem_score" value="27.600000000000001"/>
 					<UserParam type="float" name="mz_raw" value="522.790466308593977"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-2.038795757421335, 2.158966435157295, -2.191499464339949, -785.039333540890425, 2.3909584593107, -0.818682194176208, 2.42399188977588]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[-2.999329625197333e-04, 3.996861204882407e-04, -5.613867075453527e-04, -0.29729279633932, 0.001475999195691, -5.881191831349497e-04, 0.001913523712233]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-2.038795757421335, 2.158966435157295, -2.191499464339949, 2.3909584593107, -0.818682194176208, 2.42399188977588]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[-2.999329625197333e-04, 3.996861204882407e-04, -5.613867075453527e-04, 0.001475999195691, -5.881191831349497e-04, 0.001913523712233]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="522.787841194921043"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="5.021374764443889"/>
@@ -7573,8 +7573,8 @@
 					<UserParam type="float" name="XTandem_score" value="23.300000000000001"/>
 					<UserParam type="float" name="mz_raw" value="541.283287182651975"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[256.556787615489782, 1.048131875670148, 3.63709712754093, -1.651552728136593, -7.990570594015176]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.028232415466746, 2.296245118884599e-04, 0.002412730883293, -0.001262471454538, -0.006899724094183]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[1.048131875670148, 3.63709712754093, -1.651552728136593, -7.990570594015176]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[2.296245118884599e-04, 0.002412730883293, -0.001262471454538, -0.006899724094183]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="541.281534607770936"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.237824993066678"/>
@@ -7749,8 +7749,8 @@
 					<UserParam type="float" name="XTandem_score" value="23.600000000000001"/>
 					<UserParam type="float" name="mz_raw" value="476.756941761307019"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.114586591862322, -0.51052497496693, 515.852069912472416, 1.150889605992094, -1.025201733819925, -5.385359745850602]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[5.163092386908374e-04, -1.282184766466798e-04, 0.20825078300004, 6.862305233426014e-04, -7.200610227755533e-04, -0.003820078055924]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.114586591862322, -0.51052497496693, 1.150889605992094, -1.025201733819925, -5.385359745850602]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[5.163092386908374e-04, -1.282184766466798e-04, 6.862305233426014e-04, -7.200610227755533e-04, -0.003820078055924]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="476.755288932321037"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.466828841445114"/>
@@ -7925,8 +7925,8 @@
 					<UserParam type="float" name="XTandem_score" value="21.399999999999999"/>
 					<UserParam type="float" name="mz_raw" value="542.931213378906023"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.791441558823041, 142.654787076259169, -0.845576554996485, 87.168351618471604, 5.172470701828379, 0.793020138487678]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[4.106567974702102e-04, 0.031115665143005, -1.844624570424003e-04, 0.047267640613427, 0.004191824294708, 7.791096576283962e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.791441558823041, -0.845576554996485, 87.168351618471604, 5.172470701828379, 0.793020138487678]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[4.106567974702102e-04, -1.844624570424003e-04, 0.047267640613427, 0.004191824294708, 7.791096576283962e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="1"/>
 					<UserParam type="float" name="mz_ref" value="542.928788937870991"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.465486237661029"/>
@@ -8101,8 +8101,8 @@
 					<UserParam type="float" name="XTandem_score" value="22.399999999999999"/>
 					<UserParam type="float" name="mz_raw" value="524.261077574121032"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.025316025821626, 3.410186765720097, 2.320025980724721, -85.925193838229845, 17.678770361273113, 0.743695995704724]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[2.897852646412957e-04, 9.279940010742394e-04, 6.592857667442331e-04, -0.033399166263962, 0.011726300745295, 4.933007453473692e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.025316025821626, 3.410186765720097, 2.320025980724721, 17.678770361273113, 0.743695995704724]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[2.897852646412957e-04, 9.279940010742394e-04, 6.592857667442331e-04, 0.011726300745295, 4.933007453473692e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="524.258916583271002"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.121991599328913"/>
@@ -8145,8 +8145,8 @@
 					<UserParam type="float" name="XTandem_score" value="25.800000000000001"/>
 					<UserParam type="float" name="mz_raw" value="486.998083453989978"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.464482387002851, 290.1284423961676, 674.548660255855907, 2.250427326618279, 14.350180309401242, 1.234229960101391, 1.027182197572619, 3.174869252729347, -0.446958026891092, 5.961841956424117]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[4.315775750853845e-04, 0.060017359286491, 0.140734079282396, 9.367664695787425e-04, 0.006145028384367, 5.285283843363686e-04, 5.5602325039672e-04, 0.001731269505399, -2.754786930836417e-04, 0.004491653018476]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[2.464482387002851, 674.548660255855907, 2.250427326618279, 14.350180309401242, 1.234229960101391, 1.027182197572619, 3.174869252729347, -0.446958026891092, 5.961841956424117]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[4.315775750853845e-04, 0.140734079282396, 9.367664695787425e-04, 0.006145028384367, 5.285283843363686e-04, 5.5602325039672e-04, 0.001731269505399, -2.754786930836417e-04, 0.004491653018476]"/>
 					<UserParam type="int" name="missed_cleavages" value="1"/>
 					<UserParam type="float" name="mz_ref" value="486.996325245546188"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="3.610311521144531"/>
@@ -8233,8 +8233,8 @@
 					<UserParam type="float" name="XTandem_score" value="36.299999999999997"/>
 					<UserParam type="float" name="mz_raw" value="495.893768310546989"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[97.091587058612049, 4.504590939917608, 2.849954503968444, 2.970411596028147, -2.10127344956312, 0.434868042745428, -0.165922250597181, -1.569702895155643, -3.870002780367201]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.012629146702579, 6.626830081586377e-04, 7.840940205028346e-04, 9.331092488764625e-04, -8.346429676180378e-04, 2.188413019439395e-04, -9.993572211897117e-05, -9.84615058541749e-04, -0.002926901082446]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[4.504590939917608, 2.849954503968444, 2.970411596028147, -2.10127344956312, 0.434868042745428, -0.165922250597181, -1.569702895155643, -3.870002780367201]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[6.626830081586377e-04, 7.840940205028346e-04, 9.331092488764625e-04, -8.346429676180378e-04, 2.188413019439395e-04, -9.993572211897117e-05, -9.84615058541749e-04, -0.002926901082446]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="495.891674778370998"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.221753020811237"/>
@@ -8321,8 +8321,8 @@
 					<UserParam type="float" name="XTandem_score" value="25.5"/>
 					<UserParam type="float" name="mz_raw" value="594.593740827922034"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[-26.697978117931932, 428.931212216140409, 2.671915603498634, 1.025637231108273, 0.74244474120269, 1.075667307704314, 0.051188580550343, 3.536971236907007, -6.131699537537191]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[-0.002724760939969, 0.143118870816181, 0.001405982954907, 5.520615376326532e-04, 4.947062022893078e-04, 7.241857500730475e-04, 4.071351133916323e-05, 0.003372262644007, -0.006195798917133]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[428.931212216140409, 2.671915603498634, 1.025637231108273, 0.74244474120269, 1.075667307704314, 0.051188580550343, 3.536971236907007, -6.131699537537191]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.143118870816181, 0.001405982954907, 5.520615376326532e-04, 4.947062022893078e-04, 7.241857500730475e-04, 4.071351133916323e-05, 0.003372262644007, -0.006195798917133]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="594.59090247770439"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.773618644039585"/>
@@ -8453,8 +8453,8 @@
 					<UserParam type="float" name="XTandem_score" value="31.300000000000001"/>
 					<UserParam type="float" name="mz_raw" value="469.572631835938012"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[5.223600378653026, 249.709176682870037, 190.555422477745964, 2.761201878392123, 0.874398583662762, 2.035756221544278, -0.038463741024303, -1.315049808569087, -0.454486039479015]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[8.938249125378661e-04, 0.043221200034907, 0.039759889785756, 6.686248113965121e-04, 2.651298189562112e-04, 8.474812041185942e-04, -2.043674430751707e-05, -0.001019706834313, -4.042453425654458e-04]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[5.223600378653026, 190.555422477745964, 2.761201878392123, 0.874398583662762, 2.035756221544278, -0.038463741024303, -1.315049808569087, -0.454486039479015]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[8.938249125378661e-04, 0.039759889785756, 6.686248113965121e-04, 2.651298189562112e-04, 8.474812041185942e-04, -2.043674430751707e-05, -0.001019706834313, -4.042453425654458e-04]"/>
 					<UserParam type="int" name="missed_cleavages" value="1"/>
 					<UserParam type="float" name="mz_ref" value="469.235730350104348"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="717.979181982361865"/>
@@ -8585,8 +8585,8 @@
 					<UserParam type="float" name="XTandem_score" value="25.199999999999999"/>
 					<UserParam type="float" name="mz_raw" value="574.586375485975054"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[5.180875603673995, 2.957316510829397, 3.191601146640034, -240.968109164287739, 2.671925055518596, 3.408088642542584, -10.075923850703171, -5.216596053126183]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[9.072695108898188e-04, 6.804109509630507e-04, 9.260299777906766e-04, -0.074734368117788, 9.220922727877223e-04, 0.001428631536271, -0.006945569168693, -0.004143706718878]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[5.180875603673995, 2.957316510829397, 3.191601146640034, 2.671925055518596, 3.408088642542584, -10.075923850703171, -5.216596053126183]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[9.072695108898188e-04, 6.804109509630507e-04, 9.260299777906766e-04, 9.220922727877223e-04, 0.001428631536271, -0.006945569168693, -0.004143706718878]"/>
 					<UserParam type="int" name="missed_cleavages" value="0"/>
 					<UserParam type="float" name="mz_ref" value="574.583570239304436"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="4.882225695124221"/>
@@ -8629,8 +8629,8 @@
 					<UserParam type="float" name="XTandem_score" value="42.5"/>
 					<UserParam type="float" name="mz_raw" value="581.271128049516051"/>
 					<UserParam type="int" name="is_contaminant" value="0"/>
-					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[7.846275146639085, 2.906357929507246, -491.018847730718733, 434.992711655548874, 1.411178812404145, -0.688077952581736, -2.011021664715218, -5.993680035809363, -3.17501855643426, -5.929728734764926, -1.360195832826469]"/>
-					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.001012686208185, 7.472956346532556e-04, -0.149665869021703, 0.17973485702413, 6.09991229168827e-04, -3.765736789773655e-04, -0.001428522772017, -0.004947026036348, -0.002896905210378, -0.00600950396381, -0.001515939773299]"/>
+					<UserParam type="floatList" name="fragment_mass_error_ppm" value="[7.846275146639085, 2.906357929507246, 434.992711655548874, 1.411178812404145, -0.688077952581736, -2.011021664715218, -5.993680035809363, -3.17501855643426, -5.929728734764926, -1.360195832826469]"/>
+					<UserParam type="floatList" name="fragment_mass_error_da" value="[0.001012686208185, 7.472956346532556e-04, 0.17973485702413, 6.09991229168827e-04, -3.765736789773655e-04, -0.001428522772017, -0.004947026036348, -0.002896905210378, -0.00600950396381, -0.001515939773299]"/>
 					<UserParam type="int" name="missed_cleavages" value="1"/>
 					<UserParam type="float" name="mz_ref" value="581.267359324371"/>
 					<UserParam type="float" name="uncalibrated_mz_error_ppm" value="6.483634569522703"/>

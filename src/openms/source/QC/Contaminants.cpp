@@ -115,7 +115,7 @@ namespace OpenMS
           continue;
         }
 
-        // the one existing peptideidentification has atleast one getHits entry
+        // the one existing peptideidentification has at least one getHits entry
         PeptideHit& pep_hit = id.getHits()[0];
         String key = (pep_hit.getSequence().toUnmodifiedString());
         this->compare_(key, pep_hit, total, cont, sum_total, sum_cont, f.getIntensity());

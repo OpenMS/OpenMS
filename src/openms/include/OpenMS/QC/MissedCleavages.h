@@ -62,8 +62,8 @@ namespace OpenMS
     /**
      * @brief Counts the number of MissedCleavages per PeptideIdentification.
      *
-     * The result is a key/value map: missed_cleavages --> counts
-     * Additionally the first PeptideHit in each PeptideIdentification of the FeattureMap is annotated with metavalue 'missed_cleavages'.
+     * The result is a key/value map: #missed_cleavages --> counts
+     * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
      * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParamter therein) within the FeatureMap itself.
      *
      * @param fmap FeatureMap with Peptide and ProteinIdentifications
@@ -73,7 +73,7 @@ namespace OpenMS
     /// returns the name of the metric
     const String& getName() const override;
     
-    /// returns the result
+    /// returns the result as maps of #missed_cleavages --> counts; one map for each call to compute(...)
     const std::vector<std::map<UInt32, UInt32>>& getResults() const;
 
     /**
