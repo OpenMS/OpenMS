@@ -102,7 +102,6 @@ namespace OpenMS
      * @return Status for RAWMZML and POSTFDRFEAT
      */
     QCBase::Status requires() const override;
-
   };
 
 } // namespace OpenMS

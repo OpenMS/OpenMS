@@ -45,7 +45,6 @@ namespace OpenMS
   class OPENMS_DLLAPI FragmentMassError : public QCBase
   {
   public:
-
     enum class ToleranceUnit
     {
       PPM,
@@ -55,8 +54,6 @@ namespace OpenMS
     };
     /// strings corresponding to enum ToleranceUnit
     static const std::string names_of_toleranceUnit[];
-
-
 
     /// Default constructor
     FragmentMassError() = default;
