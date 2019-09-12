@@ -97,9 +97,9 @@ namespace OpenMS
     auto tmp = header_dict.find( header_name );
     if (tmp != header_dict.end() && !String(tmp_line[ tmp->second ]).empty())
     {
-      auto str_value = tmp_line[ tmp->second ];
-      if (str_value == "1" || str_value == "TRUE") value = true;
-      else if (str_value == "0" || str_value == "FALSE") value = false;
+      OpenMS::String str_value = tmp_line[ tmp->second ];
+      if (str_value == "1" || str_value.toUpper() == "TRUE") value = true;
+      else if (str_value == "0" || str_value.toUpper() == "FALSE") value = false;
       else return false;
 
       // all went well, we set the value and can return
@@ -1068,8 +1068,9 @@ namespace OpenMS
       peptide.setDriftTime(tr_it->drift_time);
     }
 
-    // Try to parse full UniMod string including modifications. If we fail, we
-    // can force reading and only parse the "naked" sequence.
+    // Try to parse full UniMod string including modifications. If the string
+    // is not parseable (e.g. contains invalid modifications), we can force
+    // reading and only parse the "naked" sequence.
     // Note: If the user did not provide a modified sequence string, we will
     // fall back to the "naked" sequence by default.
     std::vector<TargetedExperiment::Peptide::Modification> mods;
@@ -1083,6 +1084,7 @@ namespace OpenMS
     {
       if (force_invalid_mods_)
       {
+        // fallback: parse the "naked" peptide sequence which should always work
         OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << std::endl;
         aa_sequence = AASequence::fromString(tr_it->PeptideSequence);
       }
@@ -1115,7 +1117,6 @@ namespace OpenMS
     // In TraML, the modification the AA starts with residue 1 but the
     // OpenMS objects start with zero -> we start counting with zero here
     // and the TraML handler will add 1 when storing the file.
-    if (std::string::npos == tr_it->FullPeptideName.find("["))
     {
       if (aa_sequence.hasNTerminalModification())
       {
@@ -1135,12 +1136,6 @@ namespace OpenMS
           addModification_(mods, i, rmod);
         }
       }
-    }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Error, could not parse modifications on " + tr_it->FullPeptideName +
-                                       ". Please use unimod / freetext identifiers like PEPT(Phosphorylation)IDE(UniMod:27)A.");
     }
 
     peptide.mods = mods;
@@ -1195,13 +1190,14 @@ namespace OpenMS
   }
 
   void TransitionTSVFile::addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
-                                           int location, const ResidueModification& rmod)
+                                           int location,
+                                           const ResidueModification& rmod)
   {
     TargetedExperiment::Peptide::Modification mod;
     mod.location = location;
     mod.mono_mass_delta = rmod.getDiffMonoMass();
     mod.avg_mass_delta = rmod.getDiffAverageMass();
-    mod.unimod_id = rmod.getUniModRecordId();
+    mod.unimod_id = rmod.getUniModRecordId(); // NOTE: will be -1 if not found in UniMod (e.g. user-defined modifications)
     mods.push_back(mod);
   }
 

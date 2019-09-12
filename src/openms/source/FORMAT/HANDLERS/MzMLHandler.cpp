@@ -166,7 +166,7 @@ namespace OpenMS
             }
             catch (...)
             {
-#pragma omp critical(HandleException)
+#pragma omp atomic
               ++errCount;
             }
           }
@@ -685,6 +685,7 @@ namespace OpenMS
       constexpr XMLCh s_sample_ref[] = { 's','a','m','p','l','e','R','e','f' , 0};
       constexpr XMLCh s_software_ref[] = { 's','o','f','t','w','a','r','e','R','e','f' , 0};
       constexpr XMLCh s_source_file_ref[] = { 's','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr XMLCh s_spectrum_ref[] = { 's','p','e','c','t','r','u','m','R','e','f' , 0};
       constexpr XMLCh s_default_instrument_configuration_ref[] = { 'd','e','f','a','u','l','t','I','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
       constexpr XMLCh s_instrument_configuration_ref[] = { 'i','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
       constexpr XMLCh s_default_data_processing_ref[] = { 'd','e','f','a','u','l','t','D','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
@@ -1112,6 +1113,13 @@ namespace OpenMS
           if (optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
           {
             spec_.getPrecursors().back().setMetaValue("external_spectrum_id", external_spectrum_id);
+          }
+
+          //spectrum_ref => meta data
+          String spectrum_ref;
+          if (optionalAttributeAsString_(spectrum_ref, attributes, s_spectrum_ref))
+          {
+            spec_.getPrecursors().back().setMetaValue("spectrum_ref",  spectrum_ref);
           }
           //reset selected ion count
           selected_ion_count_ = 0;
@@ -3706,7 +3714,17 @@ namespace OpenMS
 
     void MzMLHandler::writePrecursor_(std::ostream& os, const Precursor& precursor, const Internal::MzMLValidator& validator)
     {
-      os << "\t\t\t\t\t<precursor>\n";
+      // optional attributes
+      String external_spectrum_id =
+          precursor.metaValueExists("external_spectrum_id") ?
+          " externalSpectrumID=\"" + precursor.getMetaValue("external_spectrum_id").toString() + "\"" :
+          "";
+      String spectrum_ref =
+          precursor.metaValueExists("spectrum_ref") ?
+          " spectrumRef=\"" + precursor.getMetaValue("spectrum_ref").toString() + "\"":
+          "";
+
+      os << "\t\t\t\t\t<precursor" + external_spectrum_id + spectrum_ref + ">\n";
       //--------------------------------------------------------------------------------------------
       //isolation window (optional)
       //--------------------------------------------------------------------------------------------
@@ -3855,7 +3873,7 @@ namespace OpenMS
       // as "precursor" has no own user param its userParam is stored here;
       // don't write out parameters that are used internally to distinguish
       // between precursor m/z values from different sources:
-      writeUserParam_(os, precursor, 7, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator, {"isolation window target m/z", "selected ion m/z"});
+      writeUserParam_(os, precursor, 7, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator, {"isolation window target m/z", "selected ion m/z", "external_spectrum_id", "spectrum_ref"});
       os << "\t\t\t\t\t\t</activation>\n";
       os << "\t\t\t\t\t</precursor>\n";
 

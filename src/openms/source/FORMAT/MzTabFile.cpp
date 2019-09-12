@@ -2838,9 +2838,10 @@ namespace OpenMS
 
   void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   {
-  if (!FileHandler::hasValidExtension(filename, FileTypes::MZTAB))
+  if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
   {
-    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MZTAB) + "'");
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
+    + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
   }
 
   StringList out;

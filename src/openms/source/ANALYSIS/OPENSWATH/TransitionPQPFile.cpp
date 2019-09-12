@@ -105,6 +105,14 @@ namespace OpenMS
                   "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
     }
 
+    String select_annotation = "'' AS Annotation, ";
+    bool annotation_exists = SqliteConnector::columnExists(db, "TRANSITION", "ANNOTATION");
+    if (annotation_exists) select_annotation = "TRANSITION.ANNOTATION AS Annotation, ";
+
+    String select_adducts = "'' AS Adducts, ";
+    bool adducts_exists = SqliteConnector::columnExists(db, "COMPOUND", "ADDUCTS");
+    if (adducts_exists) select_adducts = "COMPOUND.ADDUCTS AS Adducts, ";
+
     // Get peptides
     select_sql = "SELECT " \
                   "PRECURSOR.PRECURSOR_MZ AS precursor, " \
@@ -117,7 +125,7 @@ namespace OpenMS
                   "TRANSITION.DECOY AS decoy, " \
                   "PEPTIDE.UNMODIFIED_SEQUENCE AS PeptideSequence, " \
                   "PROTEIN_AGGREGATED.PROTEIN_ACCESSION AS ProteinName, " \
-                  "NULL AS Annotation, " \
+                  + select_annotation + \
                   "PEPTIDE.MODIFIED_SEQUENCE AS FullPeptideName, " \
                   "NULL AS CompoundName, " \
                   "NULL AS SMILES, " \
@@ -169,12 +177,12 @@ namespace OpenMS
                   "TRANSITION.DECOY AS decoy, " \
                   "NULL AS PeptideSequence, " \
                   "NULL AS ProteinName, " \
-                  "TRANSITION.ANNOTATION AS Annotation, " \
+                  + select_annotation + \
                   "NULL AS FullPeptideName, " \
                   "COMPOUND.COMPOUND_NAME AS CompoundName, " \
                   "COMPOUND.SMILES AS SMILES, " \
                   "COMPOUND.SUM_FORMULA AS SumFormula, " \
-                  "COMPOUND.ADDUCTS AS Adducts, " \
+                  + select_adducts + \
                   "PRECURSOR.CHARGE AS precursor_charge, " \
                   "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
                   "NULL AS label_type, " \

@@ -370,7 +370,7 @@ protected:
     setValidFormats_("peptide_out", ListUtils::create<String>("csv"));
 
     registerOutputFile_("mztab", "<file>", "", "Output file (mzTab)", false);
-    setValidFormats_("mztab", ListUtils::create<String>("tsv"));
+    setValidFormats_("mztab", ListUtils::create<String>("mzTab"));
 
     // algorithm parameters:
     addEmptyLine_();
@@ -843,7 +843,7 @@ protected:
         const bool report_unmapped(true);
         const bool report_unidentified_features(false);
         const bool report_subfeatures(false);
-        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, report_unidentified_features, report_unmapped, report_subfeatures);
+        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, true, report_unidentified_features, report_unmapped, report_subfeatures);
         MzTabFile().store(mztab, m);
       }
     }

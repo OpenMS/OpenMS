@@ -174,6 +174,45 @@ START_SECTION(load_with_new_raw_data_header)
 }
 END_SECTION
 
+START_SECTION(load_file_with_comma_thousands_separator)
+{
+  String input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_commas.txt");
+  MSExperiment experiment;
+  ChromeleonFile cf;
+  cf.load(input_filepath, experiment);
+  TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "RID_Signal")
+  TEST_EQUAL(experiment.getMetaValue("mzml_id"), "S2")
+  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "SUGARS_MP.M")
+  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getSoftware().getName(), "SUGARS_CAL")
+  TEST_EQUAL(experiment.getMetaValue("injection_date"), "12/06/2019")
+  TEST_EQUAL(experiment.getMetaValue("injection_time"), "11:49:36 PM")
+  TEST_EQUAL(experiment.getMetaValue("detector"), "LCSystem")
+  TEST_EQUAL(experiment.getMetaValue("signal_quantity"), "")
+  TEST_EQUAL(experiment.getMetaValue("signal_unit"), "nRIU")
+  TEST_EQUAL(experiment.getMetaValue("signal_info"), "")
+  const vector<MSChromatogram> chromatograms = experiment.getChromatograms();
+  TEST_EQUAL(chromatograms.size(), 1);
+  TEST_EQUAL(chromatograms[0].size(), 8);
+  const MSChromatogram& c = chromatograms[0];
+  TEST_REAL_SIMILAR(c[0].getRT(), 0.0)
+  TEST_REAL_SIMILAR(c[1].getRT(), 8.300000)
+  TEST_REAL_SIMILAR(c[2].getRT(), 8.513709)
+  TEST_REAL_SIMILAR(c[3].getRT(), 8.520924)
+  TEST_REAL_SIMILAR(c[4].getRT(), 9.855700)
+  TEST_REAL_SIMILAR(c[5].getRT(), 9.884560)
+  TEST_REAL_SIMILAR(c[6].getRT(), 9.898991)
+  TEST_REAL_SIMILAR(c[7].getRT(), 9.920635)
+  TEST_REAL_SIMILAR(c[0].getIntensity(), 1.4)
+  TEST_REAL_SIMILAR(c[1].getIntensity(), 1.6)
+  TEST_REAL_SIMILAR(c[2].getIntensity(), -18.980000)
+  TEST_REAL_SIMILAR(c[3].getIntensity(), -1234567.890000)
+  TEST_REAL_SIMILAR(c[4].getIntensity(), 1946.610000)
+  TEST_REAL_SIMILAR(c[5].getIntensity(), 2067.450000)
+  TEST_REAL_SIMILAR(c[6].getIntensity(), 2345678.900000)
+  TEST_REAL_SIMILAR(c[7].getIntensity(), 2028.580000)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

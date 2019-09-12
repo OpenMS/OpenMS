@@ -1540,7 +1540,8 @@ protected:
 
     MzTab m = MzTab::exportConsensusMapToMzTab(
       consensus, 
-      String("null"),   
+      String("null"),
+      true,
       report_unidentified_features, 
       report_unmapped,
       "Export from ProteomicsLFQ workflow in OpenMS.");

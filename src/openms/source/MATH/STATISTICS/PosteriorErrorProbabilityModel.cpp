@@ -993,7 +993,7 @@ namespace OpenMS
     {
       String engine(search_engine);
       unable_to_fit_data = false;
-      data_might_not_be_well_fit = true;
+      data_might_not_be_well_fit = false;
 
       engine.toUpper();
       for (ProteinIdentification & prot : protein_ids)

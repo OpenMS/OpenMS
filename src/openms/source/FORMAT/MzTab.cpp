@@ -563,12 +563,11 @@ namespace OpenMS
     }
     else
     {
-      String ss = s;
       std::vector<String> fields;
-      ss.split(":", fields);
+      s.split(":", fields);
       if (fields.size() != 2)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can not convert to MzTabSpectraRef from '") + s);
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can not convert to MzTabSpectraRef from '") + s + "'");
       }
 
       spec_ref_ = fields[1];
@@ -2691,6 +2690,7 @@ Not sure how to handle these:
   MzTab MzTab::exportConsensusMapToMzTab(
     const ConsensusMap& consensus_map,
     const String& filename,
+    const bool first_run_inference_only,
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
     const bool export_subfeatures,
@@ -2720,13 +2720,16 @@ Not sure how to handle these:
     // In this case, the first run is only for inference, get peptide info from the rest of the runs.
     map<pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
     map<String, size_t> idrun_2_run_index;
-    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, true,
+    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only,
                                                map_run_fileidx_2_msfileidx,
                                                idrun_2_run_index);
 
     // determine number of samples
     ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);
-    Size n_study_variables = ed.getNumberOfSamples();
+
+    Size n_assays = ed.getNumberOfSamples();
+    // TODO for now every assay is a study variable since we do not aggregate across e.g. replicates.
+    Size n_study_variables = n_assays;
 
     // collect variable and fixed modifications from different runs
     vector<String> var_mods, fixed_mods;
@@ -2786,6 +2789,8 @@ Not sure how to handle these:
     // condense consecutive unique MS runs to get the different MS files
     auto it = std::unique(ms_runs.begin(), ms_runs.end());
     ms_runs.resize(std::distance(ms_runs.begin(), it));
+    // TODO according to the mzTab standard an MS run can or should be multiple files, when they are coming from
+    //  a pre-fractionated sample -> this sounds more like our fraction groups ?!
 
     // set run meta data
     Size run_index{1};
@@ -2805,8 +2810,8 @@ Not sure how to handle these:
     }
 
     // assay index (and sample index) must be unique numbers 1..n
-    // fraction_group + label define the quant. values of an assay
-    auto pl2fg = ed.getPathLabelToFractionGroupMapping(false);
+    // fraction_group + label define the quant. values of an assay (which currently corresponds to our Sample ID)
+    auto path_label_to_assay = ed.getPathLabelToSampleMapping(false);
 
     // assay meta data
     for (auto const & c : consensus_map.getColumnHeaders())
@@ -2815,38 +2820,31 @@ Not sure how to handle these:
 
       MzTabAssayMetaData assay;
       MzTabParameter quantification_reagent;
+      Size label = c.second.getLabelAsUInt(experiment_type);
+      auto pl = make_pair(c.second.filename, label);
+      assay_index = path_label_to_assay[pl];
+
       if (experiment_type == "label-free")
       {
         quantification_reagent.fromCellString("[MS,MS:1002038,unlabeled sample,]");
-        auto pl = make_pair(c.second.filename, 1); // TODO: only label-free here -> adapt to multiplexed
-        assay_index = pl2fg[pl];
       }
       else if (experiment_type == "labeled_MS1")
       {
         // TODO: check if there are appropriate CV terms
         quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS1 labeled sample," + c.second.label + "]");
-        Size label{1};
-        if (c.second.metaValueExists("channel_id"))
-        {
-          label = static_cast<unsigned int>(c.second.getMetaValue("channel_id")) + 1;
-        }
-        assay_index = label;
       }
       else if (experiment_type == "labeled_MS2")
       {
         // TODO: check if there are appropriate CV terms
         quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS2 labeled sample," + c.second.label + "]");
-        Size label{1};
-        if (c.second.metaValueExists("channel_id"))
-        {
-          label = static_cast<unsigned int>(c.second.getMetaValue("channel_id")) + 1;
-        }
-        assay_index = label;
       }
-
+      
       // look up run index by filename
+      //TODO again, check if we rather want fraction groups instead of individual files.
       auto md_it = find_if(meta_data.ms_run.begin(), meta_data.ms_run.end(),
-        [&c] (const pair<Size, MzTabMSRunMetaData>& m) { return m.second.location.toCellString().hasSuffix(c.second.filename); } );
+        [&c] (const pair<Size, MzTabMSRunMetaData>& m) {
+          return m.second.location.toCellString().hasSuffix(c.second.filename);
+        } );
       Size curr_run_index = md_it->first;
 
       meta_data.assay[assay_index].quantification_reagent = quantification_reagent;
@@ -2854,6 +2852,8 @@ Not sure how to handle these:
 
       // study variable meta data
       MzTabString sv_description;
+      // TODO how would we represent study variables? = Collection of sample rows that are equal except for replicate
+      //  columns?
       meta_data.study_variable[assay_index].description.fromCellString("no description given");
       IntList al;
       al.push_back(assay_index);
@@ -2911,30 +2911,30 @@ Not sure how to handle these:
       opt_global_modified_sequence.first = String("opt_global_modified_sequence");
       row.opt_.push_back(opt_global_modified_sequence);
 
-	  // Defines how to consume user value keys for the upcoming keys
+	    // Defines how to consume user value keys for the upcoming keys
       const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
       {
-	    return [f,&row](const String &user_value_key)
-		{
-		  MzTabOptionalColumnEntry opt_entry;
-          opt_entry.first = "opt_global_" + user_value_key;
-          f(user_value_key, opt_entry);
+        return [f,&row](const String &user_value_key)
+          {
+            MzTabOptionalColumnEntry opt_entry;
+            opt_entry.first = "opt_global_" + user_value_key;
+            f(user_value_key, opt_entry);
 
-          // Use default column_header for target decoy
-          row.opt_.push_back(opt_entry);
-        };
+            // Use default column_header for target decoy
+            row.opt_.push_back(opt_entry);
+          };
       };
 
 			// create opt_ columns for consensus map user values
       for_each(consensus_feature_user_value_keys.begin(), consensus_feature_user_value_keys.end(),
-						addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
-						  {
-							if (c.metaValueExists(key))
-							{
-							  opt_entry.second = MzTabString(c.getMetaValue(key).toString());
-							}
-						  })
-	  );
+        addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
+          {
+            if (c.metaValueExists(key))
+            {
+              opt_entry.second = MzTabString(c.getMetaValue(key).toString());
+            }
+          })
+	    );
 
       // create opt_ columns for psm (PeptideHit) user values
       for_each(peptide_hit_user_value_keys.begin(), peptide_hit_user_value_keys.end(),
@@ -2968,35 +2968,16 @@ Not sure how to handle these:
       ConsensusFeature::HandleSetType fs = c.getFeatures();
       for (auto fit = fs.begin(); fit != fs.end(); ++fit)
       {
-        Size study_variable{1};
+        UInt study_variable{1};
         const int index = fit->getMapIndex();
         const ConsensusMap::ColumnHeader& ch = consensus_map.getColumnHeaders().at(index);
 
-        if (experiment_type == "label-free")
-        {
-          // convert from column index to study variable index
-          auto pl = make_pair(ch.filename, 1);
-          study_variable = pl2fg[pl];
-        }
-        else if (experiment_type == "labeled_MS1")
-        {
-          Size label{1};
-          if (ch.metaValueExists("channel_id"))
-          {
-            label = static_cast<unsigned int>(ch.getMetaValue("channel_id")) + 1;
-          }
-          study_variable = label;
-        }
-        else if (experiment_type == "labeled_MS2")
-        {
-          Size label{1};
-          if (ch.metaValueExists("channel_id"))
-          {
-            label = static_cast<unsigned int>(ch.getMetaValue("channel_id")) + 1;
-          }
-          study_variable = label;
-        }
+        UInt label = ch.getLabelAsUInt(experiment_type);
+        // convert from column index to study variable index
+        auto pl = make_pair(ch.filename, label);
+        study_variable = path_label_to_assay[pl]; // for now, a study_variable is one assay
 
+        //TODO implement aggregation in case we generalize study_variable to include multiple assays.
         row.peptide_abundance_stdev_study_variable[study_variable];
         row.peptide_abundance_std_error_study_variable[study_variable];
         row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
@@ -3088,6 +3069,9 @@ Not sure how to handle these:
           prot_ids[spec_run_index].getPrimaryMSRunPath(filenames);
           size_t msfile_index(0);
           size_t map_index(0);
+          //TODO synchronize information from ID structures and quant structures somehow.
+          // e.g. this part of the code now parses the ID information.
+          // This is done because in IsobaricLabelling there is only one ID Run for the different labels
           if (filenames.size() <= 1) //either none or only one file for this run
           {
             msfile_index = map_run_fileidx_2_msfileidx[{spec_run_index, 0}];
@@ -3107,7 +3091,20 @@ Not sure how to handle these:
           }
 
           double curr_score = pep.getHits()[0].getScore();
-          row.search_engine_score_ms_run[1].at(msfile_index) = MzTabDouble(curr_score);
+          auto sit = row.search_engine_score_ms_run[1].find(msfile_index);
+          if (sit == row.search_engine_score_ms_run[1].end())
+          {
+            String ref = "";
+            if (pep.metaValueExists("spectrum_reference"))
+            {
+              ref = pep.getMetaValue("spectrum_reference");
+            }
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                "PSM " + ref + " does not map to an MS file registered in the quantitative metadata. "
+                                                "Check your merging and filtering steps and/or report the issue, please.");
+          }
+          sit->second = MzTabDouble(curr_score);
+
           //TODO assumes same scores & score types
           if ((pep.isHigherScoreBetter() && curr_score > best_score)
           || (!pep.isHigherScoreBetter() && curr_score < best_score))

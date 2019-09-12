@@ -512,18 +512,51 @@ namespace OpenMS
   @brief Returns the precursor spectrum of the scan pointed to by @p iterator
 
   If there is no precursor scan the past-the-end iterator is returned.
+  This assumes that precursors occur somewhere before the current spectrum
+  but not necessarily the first one from the last MS level (we double-check with
+  the annotated precursorList.
   */
   MSExperiment::ConstIterator MSExperiment::getPrecursorSpectrum(ConstIterator iterator) const
   {
+    // if we are after the end or at the beginning where we can't go "up"
     if (iterator == spectra_.end() || iterator == spectra_.begin())
     {
       return spectra_.end();
     }
     UInt ms_level = iterator->getMSLevel();
+
+    if (ms_level == 1) // assumes there is not level 0
+    {
+      return spectra_.end();
+    }
+
+    if (!iterator->getPrecursors().empty())
+    {
+      //TODO warn about taking first with the blocking LOG_WARN in such a central class?
+      //if (iterator->getPrecursors().size() > 1) ...
+
+      const auto precursor = iterator->getPrecursors()[0];
+      if (precursor.metaValueExists("spectrum_ref"))
+      {
+        String ref = precursor.getMetaValue("spectrum_ref");
+        auto tmp_spec_iter = iterator; // such that we can reiterate later
+        do
+        {
+          --tmp_spec_iter;
+          if ((ms_level - tmp_spec_iter->getMSLevel() == 1) && (tmp_spec_iter->getNativeID() == ref))
+          {
+            return tmp_spec_iter;
+          }
+        } while (tmp_spec_iter != spectra_.begin());
+      }
+    }
+
+    // if no precursor annotation was found or it did not have a spectrum reference,
+    // just
     do
     {
       --iterator;
-      if (iterator->getMSLevel() < ms_level)
+      if (ms_level - iterator->getMSLevel() == 1)
       {
         return iterator;
       }

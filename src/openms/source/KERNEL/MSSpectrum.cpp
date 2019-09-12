@@ -264,6 +264,8 @@ namespace OpenMS
 
   void MSSpectrum::sortByPosition()
   {
+    if (isSorted()) return;
+
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
@@ -292,6 +294,9 @@ namespace OpenMS
 
   void MSSpectrum::sortByIntensity(bool reverse)
   {
+    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()))) return;
+    else if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess())) return;
+
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       if (reverse)
@@ -335,13 +340,7 @@ namespace OpenMS
 
   bool MSSpectrum::isSorted() const
   {
-    if (this->size() < 2) return true;
-
-    for (Size i = 1; i < this->size(); ++i)
-    {
-      if (this->operator[](i - 1).getMZ() > this->operator[](i).getMZ()) return false;
-    }
-    return true;
+    return std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
   }
 
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
