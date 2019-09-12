@@ -324,7 +324,8 @@ namespace OpenMS
 
   void SwathMapMassCorrection::correctMZ(
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
-    std::vector< OpenSwath::SwathMap > & swath_maps)
+    std::vector< OpenSwath::SwathMap > & swath_maps,
+    const OpenSwath::LightTargetedExperiment& targeted_exp)
   {
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
@@ -346,7 +347,7 @@ namespace OpenMS
     {
       std::cout.precision(16);
       os.open(debug_mz_file_);
-      os << "mz" << "\t" << "theo_mz" << "\t" << "diff_ppm" << "\t" << "log_intensity" << "\t" << "RT" << std::endl;
+      os << "mz" << "\t" << "theo_mz" << "\t" << "drift_time" << "\t" << "diff_ppm" << "\t" << "log_intensity" << "\t" << "RT" << std::endl;
       os.precision(writtenDigits(double()));
     }
 
@@ -356,11 +357,21 @@ namespace OpenMS
     std::vector<double> theo_mz;
     std::vector<double> delta_ppm;
 
-    for (auto trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
+    std::map<std::string, double> pep_im_map;
+    for (const auto& cmp : targeted_exp.getCompounds())
     {
+      pep_im_map[cmp.id] = cmp.drift_time;
+    }
 
+    for (auto & trgroup_it : transition_group_map)
+    {
       // we need at least one feature to find the best one
-      auto transition_group = trgroup_it->second;
+      auto transition_group = trgroup_it.second;
+
+      const auto& tr = transition_group->getTransitions()[0];
+      auto pepref = tr.getPeptideRef();
+      double drift_target = pep_im_map[pepref];
+
       if (transition_group->getFeatures().size() == 0)
       {
         continue;
@@ -408,7 +419,7 @@ namespace OpenMS
 
         if (!debug_mz_file_.empty())
         {
-          os << mz << "\t" << tr.product_mz << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << std::endl;
+          os << mz << "\t" << tr.product_mz << "\t" << drift_target << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << std::endl;
         }
         OPENMS_LOG_DEBUG << mz << "\t" << tr.product_mz << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << std::endl;
       }

@@ -279,7 +279,7 @@ namespace OpenMS
     // 8. Correct m/z deviations using SwathMapMassCorrection
     SwathMapMassCorrection mc;
     mc.setParameters(calibration_param);
-    mc.correctMZ(trgrmap_final, swath_maps);
+    mc.correctMZ(trgrmap_final, swath_maps, targeted_exp);
     mc.correctIM(trgrmap_final, swath_maps, im_trafo, targeted_exp);
 
     // 9. store RT transformation, using the selected model
