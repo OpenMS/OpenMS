@@ -66,11 +66,48 @@ namespace OpenMS
 
       // for statistics
       accumulator_ppm += ppm_diff;
-      ++ counter_ppm;
-
+      ++counter_ppm;
       ++mi;
     }
   }
+
+
+  PeakSpectrum getTheoSpec_(const Precursor::ActivationMethod& fm, const AASequence& seq, const int charge)
+  {
+    // initialize a TheoreticalSpectrumGenerator
+    TheoreticalSpectrumGenerator theo_gen;
+
+    // get current parameters (default)
+    // default with b and y ions
+    Param theo_gen_settings = theo_gen.getParameters();
+
+    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
+    {
+      theo_gen_settings.setValue("add_b_ions", "true");
+      theo_gen_settings.setValue("add_y_ions", "true");
+    }
+    else if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
+    {
+      theo_gen_settings.setValue("add_c_ions", "true");
+      theo_gen_settings.setValue("add_z_ions", "true");
+      theo_gen_settings.setValue("add_b_ions", "false");
+      theo_gen_settings.setValue("add_y_ions", "false");
+    }
+    else
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
+    }
+
+    // set changed parameters
+    theo_gen.setParameters(theo_gen_settings);
+
+    // generate a-, b- and y-ion spectrum of peptide seq with charge
+    PeakSpectrum theo_spectrum;
+    theo_gen.getSpectrum(theo_spectrum, seq, 1, charge);
+
+    return theo_spectrum;
+  }
+
 
   void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
@@ -144,59 +181,19 @@ namespace OpenMS
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching spectrum of the mzML is not an MS2 Spectrum.");
       }
-
-
-      //---------------------------------------------------------------------
-      // CREATE THEORETICAL SPECTRUM
-      //---------------------------------------------------------------------
-
-      // theoretical peak spectrum
-      PeakSpectrum theo_spectrum;
-
-      // initialize a TheoreticalSpectrumGenerator
-      TheoreticalSpectrumGenerator theo_gen;
-
-      // get current parameters (default)
-      // default with b and y ions
-      Param theo_gen_settings = theo_gen.getParameters();
-
-
       if (exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No fragmentation method given.");
       }
 
-      Precursor::ActivationMethod fm = (*exp_spectrum.getPrecursors()[0].getActivationMethods().begin());
-
-      if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
-      {
-        theo_gen_settings.setValue("add_b_ions", "true");
-        theo_gen_settings.setValue("add_y_ions", "true");
-      }
-
-      else if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
-      {
-        theo_gen_settings.setValue("add_c_ions", "true");
-        theo_gen_settings.setValue("add_z_ions", "true");
-        theo_gen_settings.setValue("add_b_ions", "false");
-        theo_gen_settings.setValue("add_y_ions", "false");
-      }
-
-      else
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
-      }
-
-      // set changed parameters
-      theo_gen.setParameters(theo_gen_settings);
-
-      // generate a-, b- and y-ion spectrum of peptide seq with charge
-      theo_gen.getSpectrum(theo_spectrum, seq, 1, charge);
+      //---------------------------------------------------------------------
+      // CREATE THEORETICAL SPECTRUM
+      //---------------------------------------------------------------------
+      PeakSpectrum theo_spectrum = getTheoSpec_((*exp_spectrum.getPrecursors()[0].getActivationMethods().begin()), seq, charge);
 
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
       //-----------------------------------------------------------------------
-
       if (exp_spectrum.empty() || theo_spectrum.empty())
       {
         OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
@@ -227,11 +224,8 @@ namespace OpenMS
       //-----------------------------------------------------------------------
       // WRITE PPM ERROR IN PEPTIDEHIT
       //-----------------------------------------------------------------------
-
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_ppm", ppms);
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
-
-
     };
 
     auto lamVar = [&result](const PeptideIdentification& pep_id)

@@ -68,7 +68,6 @@ namespace OpenMS
   class OPENMS_DLLAPI TopNoverRT : public QCBase
   {
   public:
-
     struct ScanEvent
     {
       ScanEvent(const UInt32 sen, const bool ms2_present)
@@ -101,7 +100,6 @@ namespace OpenMS
     Status requires() const override;
 
   private:
-
     /// name of the metric
     const String name_ = "TopNoverRT";
     

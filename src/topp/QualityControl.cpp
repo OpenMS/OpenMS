@@ -78,7 +78,7 @@ struct Mapping
 
   Mapping() = default;
 
-  Mapping(const std::vector<ProteinIdentification>& prot_ids)
+  explicit Mapping(const std::vector<ProteinIdentification>& prot_ids)
   {
     create(prot_ids);
   }
@@ -141,7 +141,6 @@ protected:
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:force_no_fdr", "Forces the metric to run if FDR is missing (accepts all pep_ids as target hits).", false);
     //TODO get ProteinQuantifier output for PRT section
-
   }
 
   // function tests if a metric has the required input files
@@ -159,6 +158,42 @@ protected:
     }
     return false;
   }
+
+  /// append QC data for given metrics to mzTab's MTD section
+  void addMetaDataMetrics_(MzTabMetaData& meta, const TIC& qc_tic, const Ms2IdentificationRate& qc_ms2ir)
+  {
+    // Adding TIC information to meta data
+    const auto& tics = qc_tic.getResults();
+    for (Size i = 0; i < tics.size(); ++i)
+    {
+      MzTabParameter tic;
+      tic.setCVLabel("total ion current");
+      tic.setAccession("MS:1000285");
+      tic.setName("TIC_" + String(i + 1));
+      String value("[");
+      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
+      for (Size j = 1; j < tics[i].size(); ++j)
+      {
+        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
+      }
+      value += "]";
+      tic.setValue(value);
+      meta.custom[meta.custom.size()] = tic;
+    }
+    // Adding MS2_ID_Rate to meta data
+    const auto& ms2_irs = qc_ms2ir.getResults();
+    for (Size i = 0; i < ms2_irs.size(); ++i)
+    {
+      MzTabParameter ms2_ir;
+      ms2_ir.setCVLabel("MS2 identification rate");
+      ms2_ir.setAccession("null");
+      ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
+      ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
+      meta.custom[meta.custom.size()] = ms2_ir;
+    }
+  }
+
+
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
@@ -370,39 +405,9 @@ protected:
     }
 
     MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
-
     MzTabMetaData meta = mztab.getMetaData();
-    // Adding TIC information to meta data
-    const auto& tics = qc_tic.getResults();
-    for (Size i = 0; i < tics.size(); ++i)
-    {
-      MzTabParameter tic;
-      tic.setCVLabel("total ion current");
-      tic.setAccession("MS:1000285");
-      tic.setName("TIC_" + String(i + 1));
-      String value("[");
-      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
-      for (Size j = 1; j < tics[i].size(); ++j)
-      {
-        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
-      }
-      value += "]";
-      tic.setValue(value);
-      meta.custom[meta.custom.size()] = tic;
-    }
-    // Adding MS2_ID_Rate to meta data
-    const auto& ms2_irs = qc_ms2ir.getResults();
-    for (Size i = 0; i < ms2_irs.size(); ++i)
-    {
-      MzTabParameter ms2_ir;
-      ms2_ir.setCVLabel("MS2 identification rate");
-      ms2_ir.setAccession("null");
-      ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
-      ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
-      meta.custom[meta.custom.size()] = ms2_ir;
-    }
+    addMetaDataMetrics_(meta, qc_tic, qc_ms2ir);
     mztab.setMetaData(meta);
-
 
     MzTabFile mztab_out;
     mztab_out.store(getStringOption_("out"), mztab);
@@ -410,7 +415,6 @@ protected:
   }
 
 private:
-
   StringList updateFileStatus_(QCBase::Status& status, UInt64& number_exps, const String& port, const QCBase::Requires& req) const
   {
     // since files are optional, leave function if none are provided by the user
@@ -507,7 +511,6 @@ private:
       to.setMetaValue(key, from.getMetaValue(key));
     }
   }
-
 };
 
 // the actual main function needed to create an executable

@@ -160,7 +160,6 @@ START_SECTION((compute(FeatureMap& features, TransformationDescription& trafo)))
   processing_method.setProcessingActions(dp);
   fmap.setDataProcessing({ processing_method });
   TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, rtA.compute(fmap, td), "Metric RTAlignment received a featureXML AFTER map alignment, but needs a featureXML BEFORE map alignment!");
-
 }
 END_SECTION
 

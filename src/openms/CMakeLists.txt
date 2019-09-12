@@ -93,7 +93,7 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
                           ${SQLite_LIBRARY}
-                          #${HDF5_CXX_LIBRARIES}
+                          ${HDF5_CXX_LIBRARIES}
                           ${GLPK_LIBRARIES}
                           ${CMAKE_DL_LIBS}
                           ${Qt5Core_LIBRARIES}

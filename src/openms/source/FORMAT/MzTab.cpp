@@ -2571,19 +2571,6 @@ Not sure how to handle these:
       set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
       addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
 
-      // meta data on peptide identifications
-      vector<String> pid_keys;
-      it->getKeys(pid_keys);
-      for (String & s : pid_keys)
-      {
-        if (s.has(' '))
-        {
-          s.substitute(' ', '_');
-        }
-      }
-      set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
-      addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), *it);
-
       // TODO Think about if the uniqueness can be determined by # of peptide evidences
       // b/c this would only differ when evidences come from different DBs
       const set<String>& accessions = best_ph.extractProteinAccessionsSet();

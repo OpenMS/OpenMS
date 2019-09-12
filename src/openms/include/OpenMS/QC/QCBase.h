@@ -118,7 +118,6 @@ namespace OpenMS
     class Status
     {
     public:
-
       /// stream output for Status
       friend std::ostream& operator<<(std::ostream& os, const Status& stat);
 

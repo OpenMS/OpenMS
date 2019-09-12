@@ -83,7 +83,6 @@ namespace OpenMS
       const String& getName() const override;
 
     private:
-
       /// calculate the m/z values and m/z errors and add them to the PeptideIdentification
       void addMzMetaValues_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 

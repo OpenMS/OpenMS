@@ -179,7 +179,7 @@ public:
       if (!peaks_in_window.empty()) // last window is not empty
       {
         // Note that the last window might be much smaller than windowsize.
-        // Therefor the number of peaks copied from this window should be adapted accordingly.
+        // Therefore the number of peaks copied from this window should be adapted accordingly.
         // Otherwise a lot of noise peaks are copied from each end of a spectrum.
 
         double last_window_size = peaks_in_window.back().getMZ() - window_start;

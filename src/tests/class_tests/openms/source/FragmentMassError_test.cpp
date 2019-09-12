@@ -66,7 +66,6 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Pr
   ms_spec.setNativeID(id);
 
   return ms_spec;
-
 }
 
 // create a PeptideIdentifiaction with a PeptideHit (sequence, charge), rt and mz
@@ -269,7 +268,6 @@ START_TEST(FragmentMassError, "$Id$")
 
     TEST_REAL_SIMILAR(result_excp[0].average_ppm, 0)
     TEST_REAL_SIMILAR(result_excp[0].variance_ppm, 0)
-
   }
   END_SECTION
 

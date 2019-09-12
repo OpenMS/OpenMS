@@ -212,7 +212,6 @@ START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & 
 
   //no ms2 spectra
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_ms1.compute(fmap, ms1_exp), "No MS2 spectra found")
-
 }
 END_SECTION
 

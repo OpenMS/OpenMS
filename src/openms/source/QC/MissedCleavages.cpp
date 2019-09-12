@@ -44,13 +44,12 @@
 
 namespace OpenMS
 {
-  typedef std::map<UInt32, UInt32> mapU32;
+  typedef std::map<UInt32, UInt32> MapU32;
   //counts the number of MissedCleavages per PeptideIdentification.
   //stores the result as a vector of maps and additionally in the FeatureMap
   void MissedCleavages::compute(FeatureMap& fmap)
   {
-
-    mapU32 result{};
+    MapU32 result{};
 
     // if the FeatureMap is empty, result is 0
     if (fmap.empty())
@@ -116,7 +115,7 @@ namespace OpenMS
   }
   
 
-  const std::vector<mapU32>& MissedCleavages::getResults() const
+  const std::vector<MapU32>& MissedCleavages::getResults() const
   {
     return mc_result_;
   }

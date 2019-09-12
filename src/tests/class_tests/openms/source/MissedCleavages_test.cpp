@@ -206,7 +206,6 @@ START_TEST(MissedCleavages, "$Id$")
 
     TEST_EQUAL(result_3[0].size(),1)
     TEST_EQUAL(result_3[0][3], 1)
-
   }
   END_SECTION
   
