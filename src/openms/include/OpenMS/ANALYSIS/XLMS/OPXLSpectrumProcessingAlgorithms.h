@@ -116,26 +116,6 @@ namespace OpenMS
                   const std::vector< SimpleTSGXLMS::SimplePeak >& theo_spectrum,
                   const PeakSpectrum& exp_spectrum,
                   const DataArrays::IntegerDataArray& exp_charges);
-
-      /**
-       * @brief Deisotopes a spectrum and stores the determined charges in an IntegerDataArray
-
-          If keep_only_deisotoped is false, the peaks that could not be deisotoped are assigned the charge 0.
-          If an isotopic pattern contains more peaks than max_isopeaks, the rest are ignored for the current pattern.
-
-       * @param old_spectrum The spectrum to be deisotoped
-       * @param min_charge Minimal charge to consider for the isotope patterns
-       * @param max_charge Maximal charge to consider for the isotope patterns
-       * @param fragment_tolerance The mass tolerance for matching peaks of an isotope pattern
-       * @param fragment_tolerance_unit_ppm True, if the given tolerance is in ppm, false if it is in Da
-       * @param keep_only_deisotoped True if the peaks that could not be deisotoped should be discarded
-       * @param min_isopeaks The minimal number of consecutive peaks in an isotopic pattern, before it gets acknowledged as an isotopic pattern
-       * @param max_isopeaks The maximal number of consecutive peaks in an isotopic pattern.
-       * @param make_single_charged If true, all peaks with charges larger than 1 are replaced with peaks with their corresponding single charged MZ
-       * @return A PeakSpectrum annotated with charges
-       */
-      static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false);
-
   };
 
 }
