@@ -64,6 +64,9 @@ class OPENMS_DLLAPI Deisotoper
    * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
    * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
    * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
+   * @param [annotate_iso_peak_count] Annotate the number of isotopic peaks in a pattern for each monoisotopic peak in the IntegerDataArray: "iso_peak_count"
+   * @param [use_averagine] Use a simple averagine model that expects heavier isotopes to have less intensity. If false, no intensity checks are applied.
+   * @param [add_up_intensity] Sum up the total intensity of each isotopic pattern into the intensity of the reported monoisotopic peak
    *        Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
    */
   static void deisotopeAndSingleCharge(MSSpectrum& spectrum,
@@ -75,8 +78,10 @@ class OPENMS_DLLAPI Deisotoper
             unsigned int min_isopeaks = 3,
             unsigned int max_isopeaks = 10,
             bool make_single_charged = true,
-            bool annotate_charge = false);
+            bool annotate_charge = false,
+            bool annotate_iso_peak_count = false,
+            bool use_averagine = true,
+            bool add_up_intensity = false);
 };
 
 }
-
