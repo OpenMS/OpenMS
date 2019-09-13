@@ -139,7 +139,7 @@ find_package(SQLITE 3.15.0 REQUIRED)
 if(MSVC)
   set(HDF5_USE_STATIC_LIBRARIES ON)
 endif()
-#find_package(HDF5 COMPONENTS C CXX HL REQUIRED)
+find_package(HDF5 COMPONENTS C CXX HL REQUIRED)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
