@@ -222,7 +222,8 @@ namespace OpenMS
 
     }
 
-    for (auto k : im_chrom) 
+    res.reserve(res.size() + im_chrom.size());
+    for (const auto& k : im_chrom)
     {
       res.push_back(std::make_pair( k.first / IM_IDX_MULT, k.second ) );
     }
@@ -294,7 +295,6 @@ namespace OpenMS
 
     // Step 3: Align the IonMobilogram vectors to the grid
     std::vector< std::vector< double > > aligned_mobilograms;
-    std::vector<double> delta_im;
     for (const auto & mobilogram : mobilograms) 
     {
       std::vector< double > arrInt, arrIM;
@@ -453,7 +453,6 @@ namespace OpenMS
     // Step 2: Align the IonMobilogram vectors to the grid
     std::vector<double> im_grid = computeGrid(mobilograms, eps);
     std::vector< std::vector< double > > aligned_mobilograms;
-    std::vector<double> delta_im;
     for (const auto & mobilogram : mobilograms) 
     {
       std::vector< double > arrInt, arrIM;

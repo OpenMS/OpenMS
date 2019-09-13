@@ -222,7 +222,7 @@ namespace OpenMS
         if (sp->getDriftTimeArray() == nullptr)
         {
           OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << pepref << " at RT " << bestRT  << std::endl;
-          for (auto m : used_maps) OPENMS_LOG_DEBUG << " -- Used maps " << m.lower << " to " << m.upper << " MS1 : " << m.ms1 << true << std::endl;
+          for (const auto& m : used_maps) OPENMS_LOG_DEBUG << " -- Used maps " << m.lower << " to " << m.upper << " MS1 : " << m.ms1 << true << std::endl;
           continue;
         }
 
@@ -268,7 +268,7 @@ namespace OpenMS
         if (sp_ms1->getDriftTimeArray() == nullptr)
         {
           OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << pepref << " at RT " << bestRT  << std::endl;
-          for (auto m : used_maps) OPENMS_LOG_DEBUG << " -- Used maps " << m.lower << " to " << m.upper << " MS1 : " << m.ms1 << true << std::endl;
+          for (const auto& m : used_maps) OPENMS_LOG_DEBUG << " -- Used maps " << m.lower << " to " << m.upper << " MS1 : " << m.ms1 << true << std::endl;
           continue;
         }
 
