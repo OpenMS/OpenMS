@@ -35,27 +35,32 @@
 //##############################################################################
 
 /**
-        @page TOPP_example_qualitycontrol Qualitycontrol
+        @page TOPP_example_qualitycontrol Quality Control
 
-        @section TOPP_example_qualitycontrol_section Qualitycontrol
+        @section TOPP_example_qualitycontrol_section Quality Control
 
-        @b Goal: Check the quality of the data.
+        @b Goal: Check the quality of the data (currently, on label-free workflow data is supported).
 
         The QualityControl TOPP tool is able to check the quality of different aspects if enough data is provided.
         Depending on the given data this tool executes different metrics that have access to all of their required
-        files (see section 'Metrics'). They will then add new metavalues to the data and write all possiblbe
-        information into the mzTab output file.
+        files (see section 'Metrics'). They will then add new metavalues to the data and write all possible
+        information into the mzTab output file. This mzTab file can then be processed using your custom scripts or
+        via the R package (see <a href="https://github.com/cbielow/PTXQC/" target="blank_">PTXQC</a>).
 
         @section TOPP_example_qualitycontrol_section2 Workflow
 
         @image html TOPP_qualitycontrol.png
         @image latex TOPP_qualitycontrol.png "" width=10cm
+        
+        An example workflow can be found in OpenMS/share/OpenMS/examples/TOPPAS/QualityControl.toppas.
 
 
         @section  TOPP_example_qualitycontrol_section3 Metrics
         This Table shows what each of the included metrics does, what they need to be executed and what they add to
         the data or what they return.
+        
         @subsection TOPP_example_qualitycontrol_section3_subsection Input Data
+        
         PostFDR FeatureXML: A FeatureXML after FDR filtering. <br>
         Contaminants Fasta file: A Fasta file containing contaminant proteins. <br>
         Raw mzML file: An unchanged mzML file. <br>
@@ -406,6 +411,7 @@
 	- @b -write_ini &lt;file&gt; Writes an example INI file
 	- @b -no_progress Disables progress logging to command line
 	- @b --help Shows a help page for the command line and INI file options
+  - @b --helphelp Shows a detailed (including advanced parameters) help page for the command line and INI file options
 
 	<HR>
 	@section TOPP_parameters TOPP INI files
@@ -655,8 +661,8 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	@section TOPP_example_signalprocessing_parameters Finding the right parameters for the 
 	NoiseFilters, the BaselineFilter and the PeakPickers
 
-	Finding the right parameters is not trivial. The default parameters	will not work on most datasets.
-	In order to find good parameters, we propose the	following procedure:
+	Finding the right parameters is not trivial. The default parameters will not work on most datasets.
+	In order to find good parameters, we propose the following procedure:
 	-# Load the data in TOPPView
 	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
 	-# Experiment with the parameters until you have found the proper settings
