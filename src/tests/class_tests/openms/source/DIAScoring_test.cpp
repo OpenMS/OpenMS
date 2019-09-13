@@ -482,56 +482,6 @@ START_SECTION( void score_with_isotopes(SpectrumType spectrum, const std::vector
 }
 END_SECTION
 
-START_SECTION(testIntegrateWindows_test)
-{
-	OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
-	OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
-
-	mass->data.push_back(100.);
-	mass->data.push_back(101.);
-	mass->data.push_back(102.);
-	mass->data.push_back(103.);
-	mass->data.push_back(104.);
-	mass->data.push_back(105.);
-	mass->data.push_back(106.);
-
-	OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-
-	spec->setMZArray( mass);
-	spec->setIntensityArray( intensity);
-	double mz, intens;
-	DIAHelpers::integrateWindow(spec, 101., 103., mz, intens);
-	// std::cout << "mz : " << mz << " int : " << intens << std::endl;
-	TEST_REAL_SIMILAR (mz, 101.5);
-	TEST_REAL_SIMILAR (intens, 2)
-
-	std::vector<double> windows, intInt, intMz;
-	windows.push_back(101.);
-	windows.push_back(103.);
-	windows.push_back(105.);
-	DIAHelpers::integrateWindows(spec, windows, 2, intInt, intMz);
-	TEST_EQUAL (intInt.size(), intMz.size() )
-	TEST_EQUAL (intInt.size(), 3)
-	TEST_REAL_SIMILAR (intInt[0], 2)
-	TEST_REAL_SIMILAR (intMz[0], 100.5);
-
-	// std::cout << "print Int" << std::endl;
-	// std::copy(intInt.begin(), intInt.end(),
-	// 		std::ostream_iterator<double>(std::cout, " "));
-	// std::cout << std::endl << "print mz" << intMz.size() << std::endl;
-	// std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
-	// std::copy(intMz.begin(), intMz.end(),
-	// 		std::ostream_iterator<double>(std::cout, " "));
-}
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
