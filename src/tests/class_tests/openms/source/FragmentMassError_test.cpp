@@ -135,14 +135,14 @@ START_TEST(FragmentMassError, "$Id$")
     MSExperiment exp;
 
     // create b- and y-ion spectrum of peptide sequence HIMALAYA with charge 1
-    // shift every peak by 0.001 mz
+    // shift every peak by 5 ppm
     PeakSpectrum ms_spec_2_himalaya = createMSSpectrum(2, 3.7, "XTandem::1");
     TheoreticalSpectrumGenerator theo_gen_hi;
     theo_gen_hi.getSpectrum(ms_spec_2_himalaya, AASequence::fromString("HIMALAYA"), 1, 1);
-    for(Peak1D& peak : ms_spec_2_himalaya) peak.setMZ(peak.getMZ() + 0.001);
+    for(Peak1D& peak : ms_spec_2_himalaya) peak.setMZ(Math::ppmToMass(peak.getMZ(), 5.0) + peak.getMZ());
 
     // create c- and z-ion spectrum of peptide sequence ALABAMA with charge 2
-    // shift every peak by 0.001 mz
+    // shift every peak by 5 ppm
     PeakSpectrum ms_spec_2_alabama = createMSSpectrum(2, 2, "XTandem::2", Precursor::ActivationMethod::ECD);
     TheoreticalSpectrumGenerator theo_gen_al;
     Param theo_gen_settings_al = theo_gen_al.getParameters();
@@ -152,7 +152,7 @@ START_TEST(FragmentMassError, "$Id$")
     theo_gen_settings_al.setValue("add_y_ions", "false");
     theo_gen_al.setParameters(theo_gen_settings_al);
     theo_gen_al.getSpectrum(ms_spec_2_alabama, AASequence::fromString("ALABAMA"), 2, 2);
-    for(Peak1D& peak : ms_spec_2_alabama) peak.setMZ(peak.getMZ() + 0.001);
+    for(Peak1D& peak : ms_spec_2_alabama) peak.setMZ(Math::ppmToMass(peak.getMZ(), 5.0) + peak.getMZ());
     
     // empty MSSpectrum
     MSSpectrum ms_spec_empty;
@@ -167,34 +167,31 @@ START_TEST(FragmentMassError, "$Id$")
     // test with valid input - default parameter
     //--------------------------------------------------------------------
     frag_ma_err.compute(fmap, exp, spectra_map);
-    std::vector<FragmentMassError::FMEStatistics> result;
-    result = frag_ma_err.getResults();
+    std::vector<FragmentMassError::FMEStatistics> result = frag_ma_err.getResults();
 
-    TEST_REAL_SIMILAR(result[0].average_ppm, 5.6856486461329)
-    TEST_REAL_SIMILAR(result[0].variance_ppm, 28.4513876232475)
+    TEST_REAL_SIMILAR(result[0].average_ppm, 5.0)
+    TEST_REAL_SIMILAR(result[0].variance_ppm, 0.0)  // offset is constant, i.e. no variance
 
     //--------------------------------------------------------------------
     // test with valid input - ToleranceUnit PPM
     //--------------------------------------------------------------------
 
     FragmentMassError frag_ma_err_ppm;
-    frag_ma_err_ppm.compute(fmap, exp, spectra_map, FragmentMassError::ToleranceUnit::PPM, 20);
-    std::vector<FragmentMassError::FMEStatistics> result_ppm;
-    result_ppm = frag_ma_err_ppm.getResults();
+    frag_ma_err_ppm.compute(fmap, exp, spectra_map, FragmentMassError::ToleranceUnit::PPM, 6);
+    std::vector<FragmentMassError::FMEStatistics> result_ppm = frag_ma_err_ppm.getResults();
 
-    TEST_REAL_SIMILAR(result_ppm[0].average_ppm, 4.75832898811882)
-    TEST_REAL_SIMILAR(result_ppm[0].variance_ppm, 9.05028252108777)
+    TEST_REAL_SIMILAR(result_ppm[0].average_ppm, 5.0)
+    TEST_REAL_SIMILAR(result_ppm[0].variance_ppm, 0.0) // offset is constant, i.e. no variance
 
     //--------------------------------------------------------------------
     // test with valid input and flags
     //--------------------------------------------------------------------
     FragmentMassError frag_ma_err_flag_da;
     frag_ma_err_flag_da.compute(fmap, exp, spectra_map, FragmentMassError::ToleranceUnit::DA, 1);
-    std::vector<FragmentMassError::FMEStatistics> result_flag_da;
-    result_flag_da = frag_ma_err_flag_da.getResults();
+    std::vector<FragmentMassError::FMEStatistics> result_flag_da = frag_ma_err_flag_da.getResults();
 
-    TEST_REAL_SIMILAR(result_flag_da[0].average_ppm, 5.685647)
-    TEST_REAL_SIMILAR(result_flag_da[0].variance_ppm, 28.45137)
+    TEST_REAL_SIMILAR(result_flag_da[0].average_ppm, 5.0)
+    TEST_REAL_SIMILAR(result_flag_da[0].variance_ppm, 0.0)  // offset is constant, i.e. no variance
 
     //--------------------------------------------------------------------
     // test with missing toleranceUnit and toleranceValue in featureMap
