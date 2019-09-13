@@ -487,7 +487,7 @@ private:
 
       const auto range = customID_to_pepID.equal_range(UID);
 
-      for (auto it_pep = range.first; it_pep != range.second; ++it_pep)
+      for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
       {
         // copy all MetaValues that are at PepID level
         copyMetaValues_(f_pep_id, *(it_pep->second));
