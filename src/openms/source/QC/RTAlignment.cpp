@@ -57,7 +57,7 @@ namespace OpenMS
 
     // if featureMap after map alignment was handed, return Exception
     auto vdp = features.getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
-    if (all_of(vdp.begin(), vdp.end(), [](const DataProcessing& dp){
+    if (any_of(vdp.begin(), vdp.end(), [](const DataProcessing& dp){
           return (find(dp.getProcessingActions().begin(), dp.getProcessingActions().end(), DataProcessing::ProcessingAction::ALIGNMENT) != dp.getProcessingActions().end());
         }))
     {

@@ -74,10 +74,10 @@ START_TEST(SpectraMap, "$Id$")
     QCBase::SpectraMap spec_map;
     spec_map.calculateMap(exp);
     ABORT_IF(spec_map.size() != 3);
-    TEST_EQUAL(spec_map.at("XTandem::0"),0);
-    TEST_EQUAL(spec_map.at("XTandem::1"),1);
-    TEST_EQUAL(spec_map.at("XTandem::2"),2);
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, spec_map.at("XTandem::15"), "No spectrum with given identifier in MSExperiment!");
+    TEST_EQUAL(spec_map.at("XTandem::0"), 0);
+    TEST_EQUAL(spec_map.at("XTandem::1"), 1);
+    TEST_EQUAL(spec_map.at("XTandem::2"), 2);
+    TEST_EXCEPTION(Exception::ElementNotFound, spec_map.at("XTandem::15"));
   END_SECTION
 
   START_SECTION(QCBase::SpectraMap::SpectraMap(const MSExperiment& exp))

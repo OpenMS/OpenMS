@@ -56,7 +56,7 @@ namespace OpenMS
     TIC() = default;
 
     /// Destructor
-    ~TIC() = default;
+    virtual ~TIC() = default;
     void clear();
 
     /**

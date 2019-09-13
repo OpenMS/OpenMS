@@ -112,14 +112,8 @@ START_SECTION((compute(FeatureMap& features, TransformationDescription& trafo)))
   //Transformation
   TransformationDescription td;
   td.fitModel("identity", Param());
-  vector<pair<double, double> > pairs;
-  pairs.push_back(make_pair(0.0, 1.0));
-  pairs.push_back(make_pair(0.25, 1.5));
-  pairs.push_back(make_pair(0.5, 2.0));
-  pairs.push_back(make_pair(1.0, 3.0));
-  td.setDataPoints(pairs);
-  Param params;
-  td.fitModel("linear", params);
+  td.setDataPoints(vector<pair<double, double> > { { 0.0, 1.0 } , { 0.25, 1.5 }, { 0.5, 2.0 }, { 1.0, 3.0 } });
+  td.fitModel("linear");
   RTAlignment rtA;
   rtA.compute(fmap, td);
   //test features
