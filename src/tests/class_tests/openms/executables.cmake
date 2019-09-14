@@ -656,6 +656,7 @@ if(NOT DISABLE_OPENSWATH)
     SpectrumHelpers_test
     StatsHelpers_test
     SwathQC_test
+    IonMobilityScoring_test
     CachedMzML_test
     CachedMzMLHandler_test
     HDF5_test
