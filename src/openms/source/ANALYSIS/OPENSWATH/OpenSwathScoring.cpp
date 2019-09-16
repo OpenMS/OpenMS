@@ -75,6 +75,7 @@ namespace OpenMS
 
     for (auto& da : spec.getDataArrays() )
     {
+      if (da->data.empty()) continue;
       OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
       tmp->description = da->description;
       tmp->data.reserve(select_indices.size());
@@ -535,6 +536,9 @@ namespace OpenMS
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
     OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
+    added_spec->getDataArrays().push_back( OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray) );
+    added_spec->getDataArrays().back()->description = "Ion Mobility";
+
     if (indices.empty() )
     {
       return added_spec;
