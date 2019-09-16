@@ -100,6 +100,15 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 
   std::vector<size_t> extensions;
 
+  bool has_precursor_data(false);
+  double precursor_mass(0);
+  if (old_spectrum.getPrecursors().size() == 1)
+  {
+    has_precursor_data = true;
+    int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
+    precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS * precursor_charge);
+  }
+
   for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
   {
     const double current_mz = old_spectrum[current_peak].getMZ();
@@ -110,7 +119,15 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 
     for (int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
     {
-      // TODO stop looking for charges q with m/q < precursor_mass/q
+      // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
+      if (has_precursor_data)
+      {
+        double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS * q);
+        if (current_theo_mass > precursor_mass)
+        {
+          continue;
+        }
+      }
 
       // try to extend isotopes from mono-isotopic peak
       // if extension larger then min_isopeaks possible:
