@@ -3495,45 +3495,76 @@ static void scoreXLIons_(
   {
     // calculate longest consecutive unshifted / shifted sequence and longest sequence spanning unshifted + shifted residues
     XLTags tags;             
-    vector<int> runL(intL.size(), 0);
+    vector<int> prefixRunL(intL.size(), 0);
     size_t run(0);
     for (int l = 0; l != intL.size(); ++l)
     {
       if (intL[l] == 0) { run = 0; continue; }
       ++run;
-      runL[l] = run;
+      prefixRunL[l] = run;
       if (run > tags.tag_unshifted) tags.tag_unshifted = run;
     }
     // tags.tag_unshifted contains longest run
-    // runL[i] now contains current run length e.g.: 000123400100
+    // prefixRunL[i] now contains current run length e.g.: 000123400100 for prefix ions
+
+    vector<int> suffixRunL(intL.size(), 0);
+    run = 0;
+    for (int l = (int)intL.size() - 1; l >= 0; --l)
+    {
+      if (intL[l] == 0) { run = 0; continue; }
+      ++run;
+      suffixRunL[l] = run;
+    }
+    // suffixRunL[i] now contains current run length e.g.: 000432100100 for suffix ions
 
     if (!intXL.empty())
     {
-      vector<int> runX(intXL.size(), 0);
+      // for XL we calculate the runs in reverse order so we can later quickly calculate the maximum run
+      // through non-cross-linked and cross-linked ions
+
+      vector<int> prefixRunX(intXL.size(), 0);
       run = 0;
       for (int x = (int)intXL.size() - 1; x >= 0; --x) // note the reverse order
       {
         if (intXL[x] == 0) { run = 0; continue; }
         ++run;
-        runX[x] = run;
+        prefixRunX[x] = run;
         if (run > tags.tag_shifted) tags.tag_shifted = run;
       }
       // tags.tag_shifted contains longest run
-      // runX[i] now contains the longest run in X starting at position i e.g.: 00003210000
+      // prefixRunX[i] now contains the longest run in X starting at position i e.g.: 00003210000 for prefix ions
     
+      vector<int> suffixRunX(intXL.size(), 0);
+      run = 0;
+      for (int x = 0; x != (int)intXL.size(); ++x)
+      {
+        if (intXL[x] == 0) { run = 0; continue; }
+        ++run;
+        suffixRunX[x] = run;
+      }
+      // suffixRunX[i] now contains the longest run in X starting at position i e.g.: 00001230000 for suffix ions
+
       size_t maximum_tag_length(0);
-      // calculate maximum tag that spans linear intensities and at least one XLed amino acid    
+
+      // calculate maximum tag that spans linear intensities and at least one XLed amino acid for prefix ions
       for (Size i = 0; i < intXL.size() - 1; ++i)
       {
-        if (runX[i + 1] == 0 || runL[i] == 0) continue; // must have one cross-linked amino acid next to non-cross-linked amino acid
-        const size_t tag_length = runL[i] + runX[i + 1]; // tag length if cross-link is introduced at amino acid i+1
+        if (prefixRunX[i + 1] == 0 || prefixRunL[i] == 0) continue; // must have one cross-linked amino acid next to non-cross-linked amino acid
+        const size_t tag_length = prefixRunL[i] + prefixRunX[i + 1]; // tag length if cross-link is introduced at amino acid i+1
+        if (tag_length > maximum_tag_length) maximum_tag_length = tag_length; 
+      }
+
+      // same for suffix ions
+      for (Size i = 1; i <= intXL.size() - 1; ++i)
+      {
+        if (suffixRunX[i] == 0 || suffixRunL[i + 1] == 0) continue; // must have one cross-linked amino acid next to non-cross-linked amino acid
+        const size_t tag_length = suffixRunX[i] + suffixRunL[i + 1]; // tag length with cross-linked part and non-cross-linked
         if (tag_length > maximum_tag_length) maximum_tag_length = tag_length; 
       }
       tags.tag_XLed = maximum_tag_length;
     }
     return tags;
   }
-
 
   ExitCodes main_(int, const char**) override
   {
@@ -3886,7 +3917,6 @@ static void scoreXLIons_(
 
             if (low_it == up_it) { continue; } // no matching precursor in data
 
-
             // add peaks for b- and y- ions with charge 1 (sorted by m/z)
             // total / complete loss spectra are generated for fast and (slow) full scoring
             if (total_loss_template_z1_b_ions.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
@@ -3912,6 +3942,11 @@ static void scoreXLIons_(
                 for (auto & l = low_it; l != up_it; ++l)
                 {
                   const Size & scan_index = l->second.first;
+                  const PeakSpectrum & exp_spectrum = spectra[scan_index];
+
+                  // require at least one mass tag
+                  if (exp_spectrum.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
+
                   // count candidate for spectrum
 #ifdef _OPENMP
                   omp_set_lock(&(annotated_peptides_lock[scan_index]));
@@ -3922,7 +3957,6 @@ static void scoreXLIons_(
 #endif
                   //const double exp_pc_mass = l->first;
                   const int & isotope_error = l->second.second;
-                  const PeakSpectrum & exp_spectrum = spectra[scan_index];
                   const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
                   float hyperScore(0), 
@@ -4076,6 +4110,9 @@ static void scoreXLIons_(
                   for (auto & l = low_it; l != up_it; ++l)
                   {
                     const Size & scan_index = l->second.first;
+                    const PeakSpectrum & exp_spectrum = spectra[scan_index];
+                    // require at least one mass tag
+                    if (exp_spectrum.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
 #ifdef _OPENMP
                     omp_set_lock(&(annotated_peptides_lock[scan_index]));
                     omp_set_lock(&(annotated_XLs_lock[scan_index]));
@@ -4085,7 +4122,6 @@ static void scoreXLIons_(
                     omp_unset_lock(&(annotated_peptides_lock[scan_index]));
 #endif
                     const int & isotope_error = l->second.second;
-                    const PeakSpectrum & exp_spectrum = spectra[scan_index];
                     float tlss_MIC(0), 
                       tlss_err(1.0), 
                       tlss_Morph(0),
@@ -4440,14 +4476,20 @@ static void scoreXLIons_(
     sd = sqrt(1.0/(double)i * sd);
     cout << "mean ppm error: " << mean << " sd: " << sd << " 3*sd: " << 3*sd << endl;
 
-    // as we are dealing with a very large search space, filter out all identifications with mass error > 3 *sd
-    peptide_ids.erase(
-    std::remove_if(peptide_ids.begin(), peptide_ids.end(),
-        [&sd, &mean](const PeptideIdentification & pi) 
-      { 
-       return fabs((double)pi.getHits()[0].getMetaValue(OpenMS::Constants::PRECURSOR_ERROR_PPM_USERPARAM)) - fabs(mean) > 3*sd; 
-      }),  
-    peptide_ids.end());
+    // as we are dealing with a very large search space, filter out all identifications with mass error > 5 *sd
+    
+    for (size_t index = 0; index != peptide_ids.size(); ++index)
+    {
+      vector<PeptideHit>& phs = peptide_ids[index].getHits();
+      if (phs.empty()) continue;
+      phs.erase(
+        std::remove_if(phs.begin(), phs.end(),
+          [&sd, &mean](const PeptideHit & ph) 
+        { 
+         return fabs((double)ph.getMetaValue(OpenMS::Constants::PRECURSOR_ERROR_PPM_USERPARAM)) - fabs(mean) > 5*sd; 
+        }),  
+      phs.end());
+    }
 
     map_index2ppm.clear(); 
 
