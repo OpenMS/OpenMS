@@ -66,11 +66,13 @@ END_SECTION
 
 OpenSwath::LightTransition mock_tr1;
 mock_tr1.product_mz = 500.2;
+mock_tr1.precursor_mz = 700.2;
 mock_tr1.fragment_charge = 1;
 mock_tr1.transition_name = "group1";
 
 OpenSwath::LightTransition mock_tr2;
 mock_tr2.product_mz = 600.5;
+mock_tr2.precursor_mz = 700.2;
 mock_tr2.fragment_charge = 1;
 mock_tr2.transition_name = "group2";
 
@@ -173,7 +175,47 @@ OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
   spec->getDataArrays().push_back( ion_mobility );
 }
 
-START_SECTION(([EXTRA] 
+OpenSwath::SpectrumPtr ms1spec(new OpenSwath::Spectrum());
+{
+  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+
+  mass->data.push_back(700.2);
+  mass->data.push_back(700.3);
+  mass->data.push_back(700.4);
+  mass->data.push_back(700.5);
+  mass->data.push_back(700.6);
+  mass->data.push_back(700.7);
+  mass->data.push_back(700.8);
+  mass->data.push_back(700.9);
+
+  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
+  intensity->data.push_back(10);
+  intensity->data.push_back(20);
+  intensity->data.push_back(30);
+  intensity->data.push_back(40);
+  intensity->data.push_back(40);
+  intensity->data.push_back(30);
+  intensity->data.push_back(20);
+  intensity->data.push_back(10);
+
+  OpenSwath::BinaryDataArrayPtr ion_mobility(new OpenSwath::BinaryDataArray);
+  ion_mobility->data.push_back(0.2); // shifted by one
+  ion_mobility->data.push_back(0.3);
+  ion_mobility->data.push_back(0.4); // 40
+  ion_mobility->data.push_back(0.5); // 40
+  ion_mobility->data.push_back(0.6);
+  ion_mobility->data.push_back(0.7);
+  ion_mobility->data.push_back(0.8);
+  ion_mobility->data.push_back(0.9);
+
+  ion_mobility->description = "Ion Mobility";
+
+  ms1spec->setMZArray( mass);
+  ms1spec->setIntensityArray( intensity);
+  ms1spec->getDataArrays().push_back( ion_mobility );
+}
+
+START_SECTION(([EXTRA]
     static void driftScoring(OpenSwath::SpectrumPtr spectrum,
                              const std::vector<TransitionType> & transitions,
                              OpenSwath_Scores & scores,
@@ -296,6 +338,180 @@ START_SECTION(([EXTRA]
 }
 END_SECTION
 
+START_SECTION([EXTRA]
+    static void driftScoringMS1(OpenSwath::SpectrumPtr spectrum,
+                                const std::vector<TransitionType> & transitions,
+                                OpenSwath_Scores & scores,
+                                const double drift_lower,
+                                const double drift_upper,
+                                const double drift_target,
+                                const double dia_extract_window_,
+                                const bool dia_extraction_ppm_,
+                                const bool use_spline,
+                                const double drift_extra))
+{
+  OpenSwath_Scores scores;
+
+  double drift_lower = 0.5;
+  double drift_upper = 1.5;
+  double drift_target = 1.0;
+  double im_drift_extra_pcnt_ = 0.25;
+
+  double dia_extract_window_ = 0.3;
+  bool dia_extraction_ppm_ = false;
+  OpenSwath::SpectrumPtr drift_spectrum(new OpenSwath::Spectrum());
+  OpenSwath::BinaryDataArrayPtr ion_mobility(new OpenSwath::BinaryDataArray);
+  drift_spectrum->getDataArrays().push_back( ion_mobility );
+
+  IonMobilityScoring::driftScoringMS1(drift_spectrum, transitions, scores,
+                                   drift_lower, drift_upper, drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   false, im_drift_extra_pcnt_);
+
+  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
+  drift_spectrum->setMZArray( mass);
+  drift_spectrum->setIntensityArray( intensity);
+
+  IonMobilityScoring::driftScoringMS1(drift_spectrum, transitions, scores,
+                                   drift_lower, drift_upper, drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   false, im_drift_extra_pcnt_);
+
+  drift_spectrum = ms1spec;
+
+  TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), 8)
+  TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getIntensityArray()->data.size())
+  TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getDriftTimeArray()->data.size())
+
+  IonMobilityScoring::driftScoringMS1(drift_spectrum, transitions, scores,
+                                   drift_lower, drift_upper, drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   false, im_drift_extra_pcnt_);
+
+  TEST_REAL_SIMILAR(scores.im_ms1_delta_score, 0.7)
+}
+END_SECTION
+
+START_SECTION(([EXTRA]
+    static void driftScoringMS1Contrast(OpenSwath::SpectrumPtr spectrum, OpenSwath::SpectrumPtr ms1spectrum, 
+                             const std::vector<TransitionType> & transitions,
+                             OpenSwath_Scores & scores,
+                             const double drift_lower,
+                             const double drift_upper,
+                             const double drift_target,
+                             const double dia_extraction_window_,
+                             const bool dia_extraction_ppm_,
+                             const bool use_spline,
+                             const double drift_extra) ))
+{
+  OpenSwath_Scores scores;
+
+  double drift_lower = 0.5;
+  double drift_upper = 1.5;
+  double drift_target = 1.0;
+  double im_drift_extra_pcnt_ = 0.25;
+
+  double dia_extract_window_ = 0.3;
+  bool dia_extraction_ppm_ = false;
+
+  OpenSwath::SpectrumPtr drift_spectrum(new OpenSwath::Spectrum());
+  OpenSwath::SpectrumPtr drift_spectrum_ms1(new OpenSwath::Spectrum());
+  OpenSwath::BinaryDataArrayPtr ion_mobility(new OpenSwath::BinaryDataArray);
+
+  drift_spectrum_ms1->getDataArrays().push_back( ion_mobility );
+  drift_spectrum->getDataArrays().push_back( ion_mobility );
+
+  IonMobilityScoring::driftScoringMS1Contrast(drift_spectrum, drift_spectrum_ms1, transitions, scores,
+                                   drift_lower, drift_upper, // drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   im_drift_extra_pcnt_);
+
+  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
+  drift_spectrum->setMZArray( mass);
+  drift_spectrum->setIntensityArray( intensity);
+  drift_spectrum_ms1->setMZArray( mass);
+  drift_spectrum_ms1->setIntensityArray( intensity);
+
+  IonMobilityScoring::driftScoring(drift_spectrum, transitions, scores,
+                                   drift_lower, drift_upper, drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   false, im_drift_extra_pcnt_);
+
+  drift_spectrum = spec;
+  drift_spectrum_ms1 = ms1spec;
+
+  TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), 24)
+  TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getIntensityArray()->data.size())
+  TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getDriftTimeArray()->data.size())
+
+  IonMobilityScoring::driftScoringMS1Contrast(drift_spectrum, drift_spectrum_ms1, transitions, scores,
+                                   drift_lower, drift_upper, // drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   im_drift_extra_pcnt_);
+
+  TEST_REAL_SIMILAR(scores.im_ms1_contrast_coelution, 5.62132034355964)
+  TEST_REAL_SIMILAR(scores.im_ms1_contrast_shape, 0.50991093654836)
+  TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_coelution, 2)
+  TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_shape, 0.56486260935015)
+
+  dia_extract_window_ = 0.1;
+  IonMobilityScoring::driftScoringMS1Contrast(drift_spectrum, drift_spectrum_ms1, transitions, scores,
+                                   drift_lower, drift_upper, // drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   im_drift_extra_pcnt_);
+
+  TEST_REAL_SIMILAR(scores.im_ms1_contrast_coelution, 6)
+  TEST_REAL_SIMILAR(scores.im_ms1_contrast_shape, 0)
+  TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_coelution, 6)
+  TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_shape, 0)
+
+  // deal with exactly one entry in mobilogram
+  dia_extract_window_ = 0.3;
+  drift_lower = 1.0;
+  drift_upper = 1.1;
+  drift_target = 1.05;
+  IonMobilityScoring::driftScoringMS1Contrast(drift_spectrum, drift_spectrum_ms1, transitions, scores,
+                                   drift_lower, drift_upper, // drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   im_drift_extra_pcnt_);
+
+  TEST_REAL_SIMILAR(scores.im_ms1_contrast_coelution, 1)
+  TEST_REAL_SIMILAR(scores.im_ms1_contrast_shape, 0)
+  TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_coelution, 1)
+  TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_shape, 0)
+
+  // deal with one zero transitions
+  dia_extract_window_ = 0.3;
+  drift_lower = 1.0;
+  drift_upper = 1.3;
+  drift_target = 1.1;
+  IonMobilityScoring::driftScoringMS1Contrast(drift_spectrum, drift_spectrum_ms1, transitions, scores,
+                                   drift_lower, drift_upper, // drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   im_drift_extra_pcnt_);
+
+  TEST_REAL_SIMILAR(scores.im_ms1_contrast_coelution, 3)
+  TEST_REAL_SIMILAR(scores.im_ms1_contrast_shape, 0)
+  TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_coelution, 3)
+  TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_shape, 0)
+
+  // deal with all-zero transitions
+  drift_lower = 2.5;
+  drift_upper = 3.5;
+  drift_target = 3.0;
+  IonMobilityScoring::driftScoringMS1Contrast(drift_spectrum, drift_spectrum_ms1, transitions, scores,
+                                   drift_lower, drift_upper, // drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   im_drift_extra_pcnt_);
+
+  TEST_REAL_SIMILAR(scores.im_ms1_contrast_coelution, 0)
+  TEST_EQUAL(std::isnan(scores.im_ms1_contrast_shape), true)
+  TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_coelution, 0)
+  TEST_EQUAL(std::isnan(scores.im_ms1_sum_contrast_shape), true)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
