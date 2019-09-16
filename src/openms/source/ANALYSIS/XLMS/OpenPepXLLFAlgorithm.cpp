@@ -797,7 +797,7 @@ using namespace OpenMS;
 #endif
 
           DataArrays::IntegerDataArray num_iso_peaks_array;
-          auto num_iso_peaks_array_it = getDataArrayByName(spectrum.getIntegerDataArrays(), "NumIsoPeaks");
+          auto num_iso_peaks_array_it = getDataArrayByName(spectrum.getIntegerDataArrays(), "iso_peak_count");
           num_iso_peaks_array = *num_iso_peaks_array_it;
 
           OPXLHelper::isoPeakMeans(csm, num_iso_peaks_array, matched_spec_linear_alpha, matched_spec_linear_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta);

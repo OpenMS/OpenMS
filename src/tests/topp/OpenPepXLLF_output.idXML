@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/media/sachsenb/Samsung_T5/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="3,4,5,6,7" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
-				<UserParam type="string" name="input_mzML" value="/media/sachsenb/Samsung_T5/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
+	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="3,4,5,6,7" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
 				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXLLF_output.spec.xml.tmp"/>
 				<UserParam type="int" name="decoy_prefix" value="1"/>
@@ -22,7 +22,7 @@
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="OMS:precursor_mz_error_ppm,OpenPepXL:score,precursor_correction,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 	</SearchParameters>
-	<IdentificationRun date="2019-08-09T14:41:03" search_engine="OpenPepXL" search_engine_version="2.4.0-develop-2019-08-09" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-09-13T11:33:01" search_engine="OpenPepXL" search_engine_version="2.4.0-fix-consolidate-deisotoping-2019-09-11" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -104,16 +104,16 @@
 				<UserParam type="int" name="precursor_correction" value="0"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.176896726659988"/>
 				<UserParam type="float" name="OpenPepXL:score" value="0.297929420845218"/>
-				<UserParam type="float" name="OpenPepXL:xquest_score" value="11.778473206138731"/>
+				<UserParam type="float" name="OpenPepXL:xquest_score" value="11.780884517157436"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.028880866425993"/>
 				<UserParam type="float" name="OpenPepXL:xcorr common" value="0.09375"/>
 				<UserParam type="float" name="OpenPepXL:match-odds" value="4.55479986024013"/>
 				<UserParam type="float" name="OpenPepXL:intsum" value="0.352051093708724"/>
 				<UserParam type="float" name="OpenPepXL:intsum_alpha" value="0.291632137370909"/>
 				<UserParam type="float" name="OpenPepXL:intsum_beta" value="0.064682415317429"/>
-				<UserParam type="float" name="OpenPepXL:total_current" value="9.093288301082794"/>
-				<UserParam type="float" name="OpenPepXL:wTIC" value="0.039184345738374"/>
-				<UserParam type="float" name="OpenPepXL:TIC" value="0.038715487956849"/>
+				<UserParam type="float" name="OpenPepXL:total_current" value="8.859554039838258"/>
+				<UserParam type="float" name="OpenPepXL:wTIC" value="0.040218113810934"/>
+				<UserParam type="float" name="OpenPepXL:TIC" value="0.039736886543688"/>
 				<UserParam type="float" name="OpenPepXL:prescore" value="0.0"/>
 				<UserParam type="float" name="OpenPepXL:log_occupancy" value="6.751120222449919"/>
 				<UserParam type="float" name="OpenPepXL:log_occupancy_alpha" value="7.585991863537671"/>
@@ -168,16 +168,16 @@
 				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.403713911646945"/>
 				<UserParam type="float" name="OpenPepXL:score" value="0.302434381264498"/>
-				<UserParam type="float" name="OpenPepXL:xquest_score" value="12.468556042040005"/>
+				<UserParam type="float" name="OpenPepXL:xquest_score" value="12.470080764631712"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.020547945205479"/>
 				<UserParam type="float" name="OpenPepXL:xcorr common" value="0.038461538461538"/>
 				<UserParam type="float" name="OpenPepXL:match-odds" value="4.819783318199935"/>
 				<UserParam type="float" name="OpenPepXL:intsum" value="1.015823943540454"/>
 				<UserParam type="float" name="OpenPepXL:intsum_alpha" value="1.015823943540454"/>
 				<UserParam type="float" name="OpenPepXL:intsum_beta" value="0.0"/>
-				<UserParam type="float" name="OpenPepXL:total_current" value="13.864739185548388"/>
-				<UserParam type="float" name="OpenPepXL:wTIC" value="0.073266718540171"/>
-				<UserParam type="float" name="OpenPepXL:TIC" value="0.073266718540171"/>
+				<UserParam type="float" name="OpenPepXL:total_current" value="13.784242740250193"/>
+				<UserParam type="float" name="OpenPepXL:wTIC" value="0.073694577401356"/>
+				<UserParam type="float" name="OpenPepXL:TIC" value="0.073694577401356"/>
 				<UserParam type="float" name="OpenPepXL:prescore" value="0.0"/>
 				<UserParam type="float" name="OpenPepXL:log_occupancy" value="7.168593749044248"/>
 				<UserParam type="float" name="OpenPepXL:log_occupancy_alpha" value="7.168593749044248"/>
