@@ -54,7 +54,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
                       bool make_single_charged,
                       bool annotate_charge,
                       bool annotate_iso_peak_count,
-                      bool use_averagine,
+                      bool use_decreasing_model,
                       bool add_up_intensity)
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
@@ -135,7 +135,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
           {
             // Possible improvement: include proper averagine model filtering. for now start at the second peak to test hypothesis
             // Note: this is a common approach used in several other search engines
-            if (use_averagine && (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity()))
+            if (use_decreasing_model && (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity()))
             {
               has_min_isopeaks = (i >= min_isopeaks);
               break;
