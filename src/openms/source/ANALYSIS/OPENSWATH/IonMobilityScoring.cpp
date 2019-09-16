@@ -192,7 +192,7 @@ namespace OpenMS
       itType mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
 
       // also advance intensity and ion mobility iterator now
-      std::iterator_traits< itType >::difference_type iterator_pos = std::distance((itType)spectrum->getMZArray()->data.begin(), mz_it);
+      auto iterator_pos = std::distance((itType)spectrum->getMZArray()->data.begin(), mz_it);
       std::advance(int_it, iterator_pos);
       std::advance(im_it, iterator_pos);
 

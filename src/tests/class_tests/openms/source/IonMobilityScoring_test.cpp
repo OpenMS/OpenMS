@@ -244,22 +244,39 @@ START_SECTION(([EXTRA]
   TEST_REAL_SIMILAR(scores.im_xcorr_shape_score, 0.833513903989399)
   TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 0.910683602522959)
 
-  // deal with one zero transitions
+  // deal with exactly one entry in mobilogram
+  dia_extract_window_ = 0.3;
   drift_lower = 1.0;
   drift_upper = 1.1;
-  drift_target = 1.3;
+  drift_target = 1.05;
   IonMobilityScoring::driftScoring(drift_spectrum, transitions, scores,
                                    drift_lower, drift_upper, drift_target,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
-  TEST_REAL_SIMILAR(scores.im_drift, -1)
-  TEST_REAL_SIMILAR(scores.im_drift_weighted, -1)
-  TEST_EQUAL(std::isnan(scores.im_delta_score), true)
+  TEST_REAL_SIMILAR(scores.im_drift, 1.1)
+  TEST_REAL_SIMILAR(scores.im_drift_weighted, 1.1)
+  TEST_REAL_SIMILAR(scores.im_delta_score, 0.05)
 
-  TEST_EQUAL(std::isnan(scores.im_xcorr_shape_score), true)
-  TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 0)
+  TEST_REAL_SIMILAR(scores.im_xcorr_shape_score, 0.0) // higher is better
+  TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 1.) // lower is better
 
+  // deal with one zero transitions
+  dia_extract_window_ = 0.3;
+  drift_lower = 1.0;
+  drift_upper = 1.3;
+  drift_target = 1.1;
+  IonMobilityScoring::driftScoring(drift_spectrum, transitions, scores,
+                                   drift_lower, drift_upper, drift_target,
+                                   dia_extract_window_, dia_extraction_ppm_,
+                                   false, im_drift_extra_pcnt_);
+
+  TEST_REAL_SIMILAR(scores.im_drift, 1.16666666666667)
+  TEST_REAL_SIMILAR(scores.im_drift_weighted, 1.16666666666667)
+  TEST_REAL_SIMILAR(scores.im_delta_score, 0.0666666666666667)
+
+  TEST_REAL_SIMILAR(scores.im_xcorr_shape_score, 1.0/3)
+  TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 3.73205080756888)
 
   // deal with all-zero transitions
   drift_lower = 2.5;
