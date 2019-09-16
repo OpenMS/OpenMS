@@ -18,7 +18,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[file://SimpleSearchEngine_1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" >
-			<PeptideHit score="20.34238715336474" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
+			<PeptideHit score="19.242297264229173" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
