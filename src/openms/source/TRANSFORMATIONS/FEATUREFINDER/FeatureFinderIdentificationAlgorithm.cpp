@@ -350,7 +350,12 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Creating assay library..." << endl;
     PeptideRefRTMap ref_rt_map;
     createAssayLibrary_(peptide_map_, ref_rt_map);
-    // TraMLFile().store("debug.traml", library_);
+
+    if (debug_level_ >= 666)
+    {
+      cout << "Writing debug.traml file." << endl; 
+      TraMLFile().store("debug.traml", library_);
+    }
 
     //-------------------------------------------------------------
     // run feature detection
@@ -627,6 +632,7 @@ namespace OpenMS
       {
         current_accessions.insert("not_available");
       }
+
       peptide.protein_refs = vector<String>(current_accessions.begin(),
                                             current_accessions.end());
 
@@ -753,14 +759,13 @@ namespace OpenMS
           }
         }
       }
-
-      // add proteins to library:
-      for (String const &acc : protein_accessions)
-      {
-        TargetedExperiment::Protein protein;
-        protein.id = acc;
-        library_.addProtein(protein);
-      }
+    }
+    // add proteins to library:
+    for (String const &acc : protein_accessions)
+    {
+      TargetedExperiment::Protein protein;
+      protein.id = acc;
+      library_.addProtein(protein);
     }
   }
 
@@ -1147,6 +1152,7 @@ namespace OpenMS
     if (peptide.getHits().empty()) return;
     peptide.sort();
     PeptideHit& hit = peptide.getHits()[0];
+    if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") { return; }
     peptide.getHits().resize(1);
     Int charge = hit.getCharge();
     double rt = peptide.getRT();
