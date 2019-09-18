@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <functional>
 #include <fstream>
