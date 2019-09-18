@@ -1,4 +1,5 @@
 \documentclass[a4paper]{article}
+\usepackage{ifthen}
 \usepackage{geometry}
 \geometry{
   includeheadfoot,
