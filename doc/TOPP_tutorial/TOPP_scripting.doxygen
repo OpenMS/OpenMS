@@ -72,7 +72,7 @@
         <TR>
             <TH colspan="2">
                 <b><br>Contaminants</b>
-                </TH>
+            </TH>
         </TR>
         <TR>
             <TD>
@@ -334,18 +334,20 @@
                    <b> Changes in files:</b> <br>
                    Metavalues: <br>
                    <ul>
-                   <li>'ScanEventNumber' set to the calculated value</li>
-                   <li>'identified' set to '+' or '-'</li>
+                    <li>'ScanEventNumber' set to the calculated value</li>
+                    <li>'identified' set to '+' or '-'</li>
+                   </ul>
                    If provided:
-                   <li>'FWHM' set to RT peak width for all assigned PIs</li>
-                   <li>'ion_injection_time'set to injection time from MS2 spectrum</li>
-                   <li>'activation_method'set to activation method from MS2 spectrum</li>
-                   <li>'total_ion_count'set to summed intensity from MS2 spectrum</li>
-                   <li>'base_peak_intensity'set to highest intensity from MS2 spectrum</li>
+                   <ul>
+                     <li>'FWHM' set to RT peak width for all assigned PIs</li>
+                     <li>'ion_injection_time'set to injection time from MS2 spectrum</li>
+                     <li>'activation_method'set to activation method from MS2 spectrum</li>
+                     <li>'total_ion_count'set to summed intensity from MS2 spectrum</li>
+                     <li>'base_peak_intensity'set to highest intensity from MS2 spectrum</li>
                    </ul>
                    Additionally: <br>
                    <ul>
-                   <li>Adds empty PeptideIdentifications</li>
+                    <li>Adds empty PeptideIdentifications</li>
                    </ul>
                    <b> Other Output:</b> <br>
                    No additional output.
