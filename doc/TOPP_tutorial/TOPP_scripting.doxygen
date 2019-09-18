@@ -70,9 +70,9 @@
         <TABLE border=1>
 
         <TR>
-            <TH colspan="2">
+            <TH>
                 <b><br>Contaminants</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
             <TD>
@@ -110,9 +110,9 @@
         </TR>
 
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>FragmentMassError</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
              <TD>
@@ -144,9 +144,9 @@
              </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>MissedCleavages</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -178,9 +178,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>MS2IdentificationRate</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -211,9 +211,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>MzCalibration</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -246,9 +246,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>RTAlignment</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -278,9 +278,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>TIC</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -308,9 +308,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>TopNoverRT</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
