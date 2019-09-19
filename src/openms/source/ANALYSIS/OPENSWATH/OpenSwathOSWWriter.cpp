@@ -178,8 +178,8 @@ namespace OpenMS
     {
       score = feature.getMetaValue(score_name).toString();
     }
-    if (score == "nan") score = "NULL";
-    if (score == "-nan") score = "NULL";
+    if (score.toLower() == "nan") score = "NULL";
+    if (score.toLower() == "-nan") score = "NULL";
 
     return score;
   }
