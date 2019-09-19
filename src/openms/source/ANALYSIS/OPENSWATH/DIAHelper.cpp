@@ -89,9 +89,6 @@ namespace OpenMS
           integratedWindowsIntensity.push_back(0.);
           integratedWindowsMZ.push_back(*beg);
         }
-        else
-        {
-        }
       }
     }
 
@@ -115,19 +112,15 @@ namespace OpenMS
 
       // get the weighted average for noncentroided data.
       // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
-      typedef std::vector<double>::const_iterator itType;
+      auto mz_arr_end = spectrum->getMZArray()->data.end();
+      auto int_it = spectrum->getIntensityArray()->data.begin();
+      auto im_it = spectrum->getDriftTimeArray()->data.begin();
 
-      itType mz_arr_end = spectrum->getMZArray()->data.end();
-      itType int_it = spectrum->getIntensityArray()->data.begin();
-      itType im_it = spectrum->getDriftTimeArray()->data.begin();
-
-      // this assumes that the spectra are sorted!
-      itType mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(),
-          spectrum->getMZArray()->data.end(), mz_start);
-      itType mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
+      auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
+      auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
 
       // also advance intensity and ion mobility iterator now
-      std::iterator_traits< itType >::difference_type iterator_pos = std::distance((itType)spectrum->getMZArray()->data.begin(), mz_it);
+      auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
       std::advance(int_it, iterator_pos);
       std::advance(im_it, iterator_pos);
 
@@ -171,18 +164,14 @@ namespace OpenMS
       {
         // get the weighted average for noncentroided data.
         // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
-        typedef std::vector<double>::const_iterator itType;
+        auto mz_arr_end = spectrum->getMZArray()->data.end();
+        auto int_it = spectrum->getIntensityArray()->data.begin();
 
-        itType mz_arr_end = spectrum->getMZArray()->data.end();
-        itType int_it = spectrum->getIntensityArray()->data.begin();
-
-        // this assumes that the spectra are sorted!
-        itType mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(),
-          spectrum->getMZArray()->data.end(), mz_start);
-        itType mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
+        auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
+        auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
 
         // also advance intensity iterator now
-        std::iterator_traits< itType >::difference_type iterator_pos = std::distance((itType)spectrum->getMZArray()->data.begin(), mz_it);
+        auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
         std::advance(int_it, iterator_pos);
 
         for (; mz_it != mz_it_end; ++mz_it, ++int_it)
