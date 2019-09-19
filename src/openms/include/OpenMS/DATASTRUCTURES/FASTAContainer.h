@@ -333,18 +333,26 @@ private:
   int cache_count_ = 0;
 };
 
-
+/**
+  @brief Helper class for calculcations on decoy proteins
+*/
 class DecoyHelper
 {
 public:
   struct Result
   {
-    bool success;
-    bool has_decoys;
-    String name;
-    bool is_prefix;
+    bool success; //< did >=40% of proteins have the *same* prefix or suffix
+    String name; //< on success, what was the decoy string?
+    bool is_prefix; //< on success, was it a prefix or suffix
   };
 
+  /**
+    @brief Heuristic to determine the decoy string given a set of protein names
+
+    Tested decoy strings are "decoy", "dec", "reverse", "rev", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo" and "random".
+    Both prefix and suffix is tested and if one of the candidates above is found in at least 40% of all proteins,
+    it is returned as the winner (see DecoyHelper::Result).
+  */
   template<typename T>
   static Result findDecoyString(FASTAContainer<T>& proteins)
   {
@@ -356,9 +364,6 @@ public:
     DecoyStringToAffixCount decoy_count;
     // map case insensitive strings back to original case (as used in fasta)
     CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
-
-    // assume that it contains decoys for now
-    bool contains_decoys = true;
 
     // setup prefix- and suffix regex strings
     const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
@@ -427,14 +432,14 @@ public:
     // return default values
     if (all_prefix_occur + all_suffix_occur < 0.4 * all_proteins_count)
     {
-      contains_decoys = false;
-      return {false, contains_decoys, "DECOY_", true};
+      OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
+      return {false, "?", true};
     }
 
     if (all_prefix_occur == all_suffix_occur)
     {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string!" << std::endl;
-      return { false, contains_decoys, "?", true };
+      OPENMS_LOG_ERROR << "Unable to determine decoy string (prefix and suffix occur equally often)!" << std::endl;
+      return {false, "?", true};
     }
 
     // Decoy prefix occurred at least 80% of all prefixes + observed in at least 40% of all proteins -> set it as prefix decoy
@@ -453,7 +458,7 @@ public:
           OPENMS_LOG_WARN << "Using most frequent decoy prefix (" << (int)(freq_prefix * 100) << "%)" << std::endl;
         }
 
-        return { true, contains_decoys,  decoy_case_sensitive[case_insensitive_decoy_string], true };
+        return { true, decoy_case_sensitive[case_insensitive_decoy_string], true};
       }
     }
 
@@ -473,12 +478,12 @@ public:
           OPENMS_LOG_WARN << "Using most frequent decoy suffix (" << (int)(freq_suffix * 100) << "%)" << std::endl;
         }
 
-        return { true, contains_decoys, decoy_case_sensitive[case_insensitive_decoy_string], false };
+        return { true, decoy_case_sensitive[case_insensitive_decoy_string], false};
       }
     }
 
     OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
-    return { false, contains_decoys, "?", true };
+    return {false, "?", true};
   }
   
 private:

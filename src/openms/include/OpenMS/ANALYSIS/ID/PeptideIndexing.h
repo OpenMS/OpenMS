@@ -194,21 +194,14 @@ public:
       {
         auto r = DecoyHelper::findDecoyString(proteins);
         proteins.reset();
-
-        if (!r.success && r.has_decoys)
+        if (!r.success)
         {
+          OPENMS_LOG_WARN << "Unable to determine decoy string automatically, not enough decoys were detected! Using default " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "'\n"
+                          << "If you think that this is incorrect, please provide a decoy_string and its position manually!" << std::endl;
           return DECOYSTRING_EMPTY;
         }
-        else if (!r.success && !r.has_decoys)
-        {
-          OPENMS_LOG_WARN << "Unable to determine decoy string automatically, not enough decoys were detected! Using default " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "\n"
-                          << "If you think that this is false, please provide a decoy_string and its position manually!" << std::endl;
-        }
-        else
-        {
-          prefix_ = r.is_prefix;
-          decoy_string_ = r.name;
-        }
+        prefix_ = r.is_prefix;
+        decoy_string_ = r.name;
         // decoy string and position was extracted successfully
         OPENMS_LOG_INFO << "Using " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "'" << std::endl;
       }
