@@ -54,7 +54,16 @@
 namespace OpenMS
 {
 
-  typedef std::pair<double, double> MobilityPeak;
+  struct MobilityPeak
+  {
+    double im;
+    double intensity;
+    MobilityPeak ();
+    MobilityPeak (double im_, double int_) :
+      im(im_),
+      intensity(int_)
+    {}
+  };
   typedef std::vector< MobilityPeak > IonMobilogram;
 
   std::vector<double> computeGrid(const std::vector< IonMobilogram >& mobilograms, double eps)
@@ -66,7 +75,7 @@ namespace OpenMS
       std::vector< double > mobilityValues;
       for (const auto & im_profile : mobilograms) 
       {
-        for (const auto & k : im_profile) mobilityValues.push_back(k.first);
+        for (const auto & k : im_profile) mobilityValues.push_back(k.im);
       }
 
       // sort all extracted values
@@ -121,10 +130,10 @@ namespace OpenMS
       // In each iteration, the IM value of pr_it should be equal to or
       // larger than the master container. If it is equal, we add the current
       // data point, if it is larger we add zero and advance the counter k.
-      if (pr_it != profile.end() && fabs(pr_it->first - im_grid[k] ) < 1e-4 ) 
+      if (pr_it != profile.end() && fabs(pr_it->im - im_grid[k] ) < 1e-4 ) 
       {
-        al_int_values.push_back(pr_it->second);
-        al_im_values.push_back(pr_it->first);
+        al_int_values.push_back(pr_it->intensity);
+        al_im_values.push_back(pr_it->im);
         ++pr_it;
       }
       else
@@ -135,16 +144,16 @@ namespace OpenMS
       // OPENMS_LOG_DEBUG << "grid position " << im_grid[k] << " profile position " << pr_it->first << std::endl;
 
       // check that we did not advance past 
-      if (pr_it != profile.end() && (im_grid[k] - pr_it->first) > 1e-3)
+      if (pr_it != profile.end() && (im_grid[k] - pr_it->im) > 1e-3)
       {
-        std::cout << " This should never happen, pr_it has advanced past the master container: " << im_grid[k]  << "  / " <<  pr_it->first  << std::endl;
+        std::cout << " This should never happen, pr_it has advanced past the master container: " << im_grid[k]  << "  / " <<  pr_it->im  << std::endl;
         throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
 
       // collect maxima
-      if (pr_it != profile.end() && pr_it->second > max_int)
+      if (pr_it != profile.end() && pr_it->intensity > max_int)
       {
-        max_int = pr_it->second;
+        max_int = pr_it->intensity;
         max_peak_idx = k;
       }
     }
@@ -225,7 +234,7 @@ namespace OpenMS
     res.reserve(res.size() + im_chrom.size());
     for (const auto& k : im_chrom)
     {
-      res.push_back(std::make_pair( k.first / IM_IDX_MULT, k.second ) );
+      res.emplace_back(k.first / IM_IDX_MULT, k.second );
     }
 
   }
