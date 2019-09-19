@@ -167,10 +167,7 @@ namespace OpenMS
     {
       // we need at least one feature to find the best one
       auto transition_group = transition_group_map.at(trgr_ids[k]);
-      if (transition_group->getFeatures().size() == 0)
-      {
-        continue;
-      }
+      if (transition_group->getFeatures().empty()) continue;
 
       // Find the feature with the highest score
       double bestRT;
@@ -211,12 +208,12 @@ namespace OpenMS
         if (ms1_im_) {continue;}
         double intensity(0), im(0), left(tr.product_mz), right(tr.product_mz);
 
-        auto pepref = tr.getPeptideRef();
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
+        auto pepref = tr.getPeptideRef();
         double drift_target = pep_im_map[pepref];
-        double drift_lower_used = drift_target - im_extraction_win;
-        double drift_upper_used = drift_target + im_extraction_win;
+        double drift_left(drift_target), drift_right(drift_target);
+        DIAHelpers::adjustExtractionWindow(drift_right, drift_left, im_extraction_win, false);
 
         // Check that the spectrum really has a drift time array
         if (sp->getDriftTimeArray() == nullptr)
@@ -227,7 +224,7 @@ namespace OpenMS
         }
 
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp, left, right, im, intensity, drift_lower_used, drift_upper_used);
+        DIAHelpers::integrateDriftSpectrum(sp, left, right, im, intensity, drift_left, drift_right);
 
         // skip empty windows
         if (im <= 0)
@@ -257,12 +254,12 @@ namespace OpenMS
         const auto& tr = transition_group->getTransitions()[0];
         double intensity(0), im(0), left(tr.precursor_mz), right(tr.precursor_mz);
 
-        auto pepref = tr.getPeptideRef();
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
+        auto pepref = tr.getPeptideRef();
         double drift_target = pep_im_map[pepref];
-        double drift_lower_used = drift_target - im_extraction_win;
-        double drift_upper_used = drift_target + im_extraction_win;
+        double drift_left(drift_target), drift_right(drift_target);
+        DIAHelpers::adjustExtractionWindow(drift_right, drift_left, im_extraction_win, false);
 
         // Check that the spectrum really has a drift time array
         if (sp_ms1->getDriftTimeArray() == nullptr)
@@ -273,7 +270,7 @@ namespace OpenMS
         }
 
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp_ms1, left, right, im, intensity, drift_lower_used, drift_upper_used);
+        DIAHelpers::integrateDriftSpectrum(sp, left, right, im, intensity, drift_left, drift_right);
 
         // skip empty windows
         if (im <= 0)
@@ -372,10 +369,7 @@ namespace OpenMS
       auto pepref = tr.getPeptideRef();
       double drift_target = pep_im_map[pepref];
 
-      if (transition_group->getFeatures().size() == 0)
-      {
-        continue;
-      }
+      if (transition_group->getFeatures().empty()) continue;
 
       // Find the feature with the highest score
       double bestRT;
