@@ -35,9 +35,11 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <functional>
 #include <fstream>
