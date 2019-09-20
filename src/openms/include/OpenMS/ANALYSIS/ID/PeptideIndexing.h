@@ -133,8 +133,7 @@ public:
       DATABASE_EMPTY,
       PEPTIDE_IDS_EMPTY,
       ILLEGAL_PARAMETERS,
-      UNEXPECTED_RESULT,
-      DECOYSTRING_EMPTY,
+      UNEXPECTED_RESULT
     };
 
     /// Default constructor
@@ -196,9 +195,10 @@ public:
         proteins.reset();
         if (!r.success)
         {
-          OPENMS_LOG_WARN << "Unable to determine decoy string automatically, not enough decoys were detected! Using default " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "'\n"
+          r.is_prefix = true;
+          r.name = "DECOY_";
+          OPENMS_LOG_WARN << "Unable to determine decoy string automatically (not enough decoys were detected)! Using default " << (r.is_prefix ? "prefix" : "suffix") << " decoy string '" << r.name << "'\n"
                           << "If you think that this is incorrect, please provide a decoy_string and its position manually!" << std::endl;
-          return DECOYSTRING_EMPTY;
         }
         prefix_ = r.is_prefix;
         decoy_string_ = r.name;
