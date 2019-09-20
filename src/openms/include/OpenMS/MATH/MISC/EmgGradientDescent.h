@@ -116,8 +116,53 @@ public:
       const double right_pos = 0.0
     ) const;
 
+    /**
+      @brief The implementation of the gradient descent algorithm for the EMG peak model
+
+      @param[in] xs Positions
+      @param[in] ys Intensities
+      @param[out] best_h `h` (amplitude) parameter
+      @param[out] best_mu `mu` (mean) parameter
+      @param[out] best_sigma `sigma` (standard deviation) parameter
+      @param[out] best_tau `tau` (exponent relaxation time) parameter
+
+      @return The number of iterations necessary to reach the best values for the parameters
+    */
+    UInt estimateEmgParameters(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      double& best_h,
+      double& best_mu,
+      double& best_sigma,
+      double& best_tau
+    ) const;
+
+    /**
+      @brief Compute the EMG function on a set of points
+
+      If class parameter `compute_additional_points` is `"true"`, the algorithm
+      will detect which side of the peak is cutoff and add points to it.
+
+      @param[in] xs Positions
+      @param[in] h Amplitude
+      @param[in] mu Mean
+      @param[in] sigma Standard deviation
+      @param[in] tau Exponent relaxation time
+      @param[out] out_xs The output positions
+      @param[out] out_ys The output intensities
+    */
+    void applyEstimatedParameters(
+      const std::vector<double>& xs,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau,
+      std::vector<double>& out_xs,
+      std::vector<double>& out_ys
+    ) const;
+
 protected:
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       @brief Given a peak, extract a training set to be used with the gradient descent algorithm
@@ -181,27 +226,6 @@ protected:
     ) const;
 
 private:
-    /**
-      @brief The implementation of the gradient descent algorithm for the EMG peak model
-
-      @param[in] xs Positions
-      @param[in] ys Intensities
-      @param[out] best_h `h` (amplitude) parameter
-      @param[out] best_mu `mu` (mean) parameter
-      @param[out] best_sigma `sigma` (standard deviation) parameter
-      @param[out] best_tau `tau` (exponent relaxation time) parameter
-
-      @return The number of iterations necessary to reach the best values for the parameters
-    */
-    UInt emg_gradient_descent(
-      const std::vector<double>& xs,
-      const std::vector<double>& ys,
-      double& best_h,
-      double& best_mu,
-      double& best_sigma,
-      double& best_tau
-    ) const;
-
     /**
       @brief Apply the iRprop+ algorithm for gradient descent
 
@@ -377,30 +401,6 @@ private:
     ) const;
 
     /**
-      @brief Compute the EMG function on a set of points
-
-      If class parameter `compute_additional_points` is `"true"`, the algorithm
-      will detect which side of the peak is cutoff and add points to it.
-
-      @param[in] xs Positions
-      @param[in] h Amplitude
-      @param[in] mu Mean
-      @param[in] sigma Standard deviation
-      @param[in] tau Exponent relaxation time
-      @param[out] out_xs The output positions
-      @param[out] out_ys The output intensities
-    */
-    void emg_vector(
-      const std::vector<double>& xs,
-      const double h,
-      const double mu,
-      const double sigma,
-      const double tau,
-      std::vector<double>& out_xs,
-      std::vector<double>& out_ys
-    ) const;
-
-    /**
       @brief Compute the EMG function on a single point
 
       @param[in] x Position
@@ -506,7 +506,7 @@ public:
       return emg_gd_.compute_z(x, mu, sigma, tau);
     }
 
-    void emg_vector(
+    void applyEstimatedParameters(
       const std::vector<double>& xs,
       const double h,
       const double mu,
@@ -516,7 +516,7 @@ public:
       std::vector<double>& out_ys
     ) const
     {
-      emg_gd_.emg_vector(xs, h, mu, sigma, tau, out_xs, out_ys);
+      emg_gd_.applyEstimatedParameters(xs, h, mu, sigma, tau, out_xs, out_ys);
     }
 
     double emg_point(
