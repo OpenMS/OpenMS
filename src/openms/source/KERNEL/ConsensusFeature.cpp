@@ -124,6 +124,11 @@ namespace OpenMS
     peptides_.insert(peptides_.end(), ids.begin(), ids.end());
   }
 
+  void ConsensusFeature::setFeatures(HandleSetType h)
+  {
+    handles_ = std::move(h);
+  }
+
   const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const
   {
     return handles_;
@@ -279,7 +284,7 @@ namespace OpenMS
     {
       Int q = it->getCharge();
       if (q == 0)
-        LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
+        OPENMS_LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
       double adduct_mass;
       Size index = fm.uniqueIdToIndex(it->getUniqueId());
       if (index > fm.size())

@@ -91,7 +91,7 @@ using namespace std;
  Most filtering options should be straight-forward - see the documentation of the different parameters.
  For some filters that warrent further discussion, see below.
 
- <b>Score filters</b> (@p score:pep, @p score:prot, @p thresh:pep, @p thresh:prot):
+ <b>Score filters</b> (@p score:pep, @p score:prot):
 
  Peptide or protein hits with scores at least as good as the given cut-off are retained by the filter; hits with worse scores are removed.
  Whether scores should be higher or lower than the cut-off depends on the type/orientation of the score.
@@ -99,9 +99,6 @@ using namespace std;
  The score that was most recently set by a processing step is considered for filtering.
  For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
  @ref UTILS_IDScoreSwitcher is useful to switch to a particular score before filtering.
-
- An example to illustrate the significance threshold filters (@p thresh:pep, @p thresh:prot):
- Assume a peptide hit has a score of 30, the significance threshold is 40, and higher scores are better. Then the hit will be kept if the cut-off value is set to 0.75 or lower, and removed for higher cut-offs.
 
  <b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
 
@@ -149,16 +146,15 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    registerTOPPSubsection_("precursor", "Filtering by precursor RT or m/z");
+    registerTOPPSubsection_("precursor", "Filtering by precursor attributes (RT, m/z, charge, length)");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
     registerStringOption_("precursor:mz", "[min]:[max]", ":", "Mass-to-charge range to extract.", false);
+    registerStringOption_("precursor:length", "[min]:[max]", ":", "Keep only peptide hits with a sequence length in this range.", false);
+    registerStringOption_("precursor:charge", "[min]:[max]", ":", "Keep only peptide hits with charge states in this range.", false);
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept.", false);
     registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
-    registerTOPPSubsection_("thresh", "Filtering by significance threshold");
-    registerDoubleOption_("thresh:pep", "<fraction>", 0.0, "Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.", false, true);
-    registerDoubleOption_("thresh:prot", "<fraction>", 0.0, "Keep a protein hit only if its score is above this fraction of the protein significance threshold. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false, true);
 
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
@@ -168,8 +164,8 @@ protected:
     registerStringList_("whitelist:protein_accessions", "<accessions>", vector<String>(), "All peptides that do not reference at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
     registerInputFile_("whitelist:peptides", "<file>", "", "Only peptides with the same sequence and modification assignment as any peptide in this file are kept. Use with 'whitelist:ignore_modifications' to only compare by sequence.\n", false);
     setValidFormats_("whitelist:peptides", ListUtils::create<String>("idXML"));
-    registerFlag_("whitelist:ignore_modifications", "Compare whitelisted peptides by sequence only.", false);
-    registerStringList_("whitelist:modifications", "<selection>", vector<String>(), "Keep only peptides with sequences that contain (any of) the selected modification(s)", false);
+    registerFlag_("whitelist:ignore_modifications", "Compare whitelisted peptides by sequence only.", true);
+    registerStringList_("whitelist:modifications", "<selection>", vector<String>(), "Keep only peptides with sequences that contain (any of) the selected modification(s)", false, true);
     setValidStrings_("whitelist:modifications", all_mods);
 
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only peptides/proteins NOT present in a given set can pass)");
@@ -180,29 +176,29 @@ protected:
     registerStringList_("blacklist:protein_accessions", "<accessions>", vector<String>(), "All peptides that reference at least one of the provided protein accession are removed.\nOnly proteins not in the provided list are retained.", false);
     registerInputFile_("blacklist:peptides", "<file>", "", "Peptides with the same sequence and modification assignment as any peptide in this file are filtered out. Use with 'blacklist:ignore_modifications' to only compare by sequence.\n", false);
     setValidFormats_("blacklist:peptides", ListUtils::create<String>("idXML"));
-    registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.", false);
-    registerStringList_("blacklist:modifications", "<selection>", vector<String>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false);
+    registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.", true);
+    registerStringList_("blacklist:modifications", "<selection>", vector<String>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false, true);
     setValidStrings_("blacklist:modifications", all_mods);
 
     registerTOPPSubsection_("in_silico_digestion", "This filter option removes peptide hits which are not in the list of in silico peptides generated by the rules specified below");
     registerInputFile_("in_silico_digestion:fasta", "<file>", "", "fasta protein sequence database.", false);
     setValidFormats_("in_silico_digestion:fasta", ListUtils::create<String>("fasta"));
-    registerStringOption_("in_silico_digestion:enzyme", "<enzyme>", "Trypsin", "enzyme used for the digestion of the sample",false);
+    registerStringOption_("in_silico_digestion:enzyme", "<enzyme>", "Trypsin", "enzyme used for the digestion of the sample",false, true);
     setValidStrings_("in_silico_digestion:enzyme", all_enzymes);
-    registerStringOption_("in_silico_digestion:specificity", "<specificity>", specificity[EnzymaticDigestion::SPEC_FULL], "Specificity of the filter", false);
+    registerStringOption_("in_silico_digestion:specificity", "<specificity>", specificity[EnzymaticDigestion::SPEC_FULL], "Specificity of the filter", false, true);
     setValidStrings_("in_silico_digestion:specificity", specificity);
-    registerIntOption_("in_silico_digestion:missed_cleavages", "<integer>", -1, 
+    registerIntOption_("in_silico_digestion:missed_cleavages", "<integer>", -1,
                        "range of allowed missed cleavages in the peptide sequences\n"
-                       "By default missed cleavages are ignored", false);
+                       "By default missed cleavages are ignored", false, true);
     setMinInt_("in_silico_digestion:missed_cleavages", -1);
-    registerFlag_("in_silico_digestion:methionine_cleavage", "Allow methionine cleavage at the N-terminus of the protein.", false);
+    registerFlag_("in_silico_digestion:methionine_cleavage", "Allow methionine cleavage at the N-terminus of the protein.", true);
 
     registerTOPPSubsection_("missed_cleavages", "This filter option removes peptide hits which do not confirm with the allowed missed cleavages specified below.");
     registerStringOption_("missed_cleavages:number_of_missed_cleavages", "[min]:[max]", ":",
                           "range of allowed missed cleavages in the peptide sequences.\n"
                           "For example: 0:1 -> peptides with two or more missed cleavages will be removed,\n"
                           "0:0 -> peptides with any missed cleavages will be removed", false);
-    registerStringOption_("missed_cleavages:enzyme", "<enzyme>", "Trypsin", "enzyme used for the digestion of the sample", false);
+    registerStringOption_("missed_cleavages:enzyme", "<enzyme>", "Trypsin", "enzyme used for the digestion of the sample", false, true);
     setValidStrings_("missed_cleavages:enzyme", all_enzymes);
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
@@ -214,8 +210,8 @@ protected:
     setMaxFloat_("rt:p_value_1st_dim", 1);
 
     registerTOPPSubsection_("mz", "Filtering by mass error");
-    registerDoubleOption_("mz:error", "<float>", -1, "Filtering by deviation to theoretical mass (disabled for negative values).", false);
-    registerStringOption_("mz:unit", "<String>", "ppm", "Absolute or relative error.", false);
+    registerDoubleOption_("mz:error", "<float>", -1, "Filtering by deviation to theoretical mass (disabled for negative values).", false, true);
+    registerStringOption_("mz:unit", "<String>", "ppm", "Absolute or relative error.", false, true);
     setValidStrings_("mz:unit", ListUtils::create<String>("Da,ppm"));
 
     registerTOPPSubsection_("best", "Filtering best hits per spectrum (for peptides) or from proteins");
@@ -227,19 +223,16 @@ protected:
                                  "Similar to n_peptide_hits=1, but if there are ties between two or more highest scoring hits, none are kept.");
     registerStringOption_("best:n_to_m_peptide_hits", "[min]:[max]", ":", "Peptide hit rank range to extracts", false, true);
 
-    registerStringOption_("length", "[min]:[max]", ":", "Keep only peptide hits with a sequence length in this range.", false);
-
-    registerStringOption_("charge", "[min]:[max]", ":", "Keep only peptide hits with charge states in this range.", false);
 
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (as defined in the 'SearchParameters' section of the input file).", false);
 
-    registerFlag_("unique", "If a peptide hit occurs more than once per peptide ID, only one instance is kept.");
-    registerFlag_("unique_per_protein", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
+    registerFlag_("remove_duplicate_psm", "Removes duplicated PSMs per spectrum and retains the one with the higher score.", true);
+    registerFlag_("remove_shared_peptides", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the IDs.");
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs. Usually used in combination with 'score:prot' or 'thresh:prot'.");
 
-    registerStringList_("remove_peptide_hits_by_metavalue", "<name> 'lt|eq|gt|ne' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt|ne' <value>; the first is the name of meta value, followed by the comparison operator (equal, less, greater, not equal) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+    registerStringList_("remove_peptide_hits_by_metavalue", "<name> 'lt|eq|gt|ne' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt|ne' <value>; the first is the name of meta value, followed by the comparison operator (equal, less, greater, not equal) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false, true);
   }
 
 
@@ -266,9 +259,9 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt"))
+    if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt" || meta_info[1] == "ne"))
     {
-      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid second argument. Expected one of 'lt', 'eq', 'gt' or 'ne'. Got '" + meta_info[1] + "'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -278,43 +271,36 @@ protected:
     double rt_high = numeric_limits<double>::infinity(), rt_low = -rt_high;
     if (parseRange_(getStringOption_("precursor:rt"), rt_low, rt_high))
     {
-      LOG_INFO << "Filtering peptide IDs by precursor RT..." << endl;
+      OPENMS_LOG_INFO << "Filtering peptide IDs by precursor RT..." << endl;
       IDFilter::filterPeptidesByRT(peptides, rt_low, rt_high);
     }
 
     double mz_high = numeric_limits<double>::infinity(), mz_low = -mz_high;
     if (parseRange_(getStringOption_("precursor:mz"), mz_low, mz_high))
     {
-      LOG_INFO << "Filtering peptide IDs by precursor m/z...";
+      OPENMS_LOG_INFO << "Filtering peptide IDs by precursor m/z...";
       IDFilter::filterPeptidesByMZ(peptides, mz_low, mz_high);
     }
 
 
     // Filtering peptide hits according to set criteria
 
-    if (getFlag_("unique"))
+    if (getFlag_("remove_duplicate_psm"))
     {
-      LOG_INFO << "Removing duplicate peptide hits..." << endl;
+      OPENMS_LOG_INFO << "Removing duplicated psms..." << endl;
       IDFilter::removeDuplicatePeptideHits(peptides);
     }
 
-    if (getFlag_("unique_per_protein"))
+    if (getFlag_("remove_shared_peptides"))
     {
-      LOG_INFO << "Filtering peptides by unique match to a protein..." << endl;
+      OPENMS_LOG_INFO << "Filtering peptides by unique match to a protein..." << endl;
       IDFilter::keepUniquePeptidesPerProtein(peptides);
-    }
-
-    double peptide_significance = getDoubleOption_("thresh:pep");
-    if (peptide_significance > 0)
-    {
-      LOG_INFO << "Filtering by peptide significance threshold..." << endl;
-      IDFilter::filterHitsBySignificance(peptides, peptide_significance);
     }
 
     double pred_rt_pv = getDoubleOption_("rt:p_value");
     if (pred_rt_pv > 0)
     {
-      LOG_INFO << "Filtering by RT prediction p-value..." << endl;
+      OPENMS_LOG_INFO << "Filtering by RT prediction p-value..." << endl;
       IDFilter::filterPeptidesByRTPredictPValue(
         peptides, "predicted_RT_p_value", pred_rt_pv);
     }
@@ -322,7 +308,7 @@ protected:
     double pred_rt_pv_1d = getDoubleOption_("rt:p_value_1st_dim");
     if (pred_rt_pv_1d > 0)
     {
-      LOG_INFO << "Filtering by RT prediction p-value (first dim.)..." << endl;
+      OPENMS_LOG_INFO << "Filtering by RT prediction p-value (first dim.)..." << endl;
       IDFilter::filterPeptidesByRTPredictPValue(
         peptides, "predicted_RT_p_value_first_dim", pred_rt_pv_1d);
     }
@@ -330,7 +316,7 @@ protected:
     String whitelist_fasta = getStringOption_("whitelist:proteins").trim();
     if (!whitelist_fasta.empty())
     {
-      LOG_INFO << "Filtering by protein whitelisting (FASTA input)..." << endl;
+      OPENMS_LOG_INFO << "Filtering by protein whitelisting (FASTA input)..." << endl;
       // load protein accessions from FASTA file:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(whitelist_fasta, fasta);
@@ -348,7 +334,7 @@ protected:
       getStringList_("whitelist:protein_accessions");
     if (!whitelist_accessions.empty())
     {
-      LOG_INFO << "Filtering by protein whitelisting (accessions input)..."
+      OPENMS_LOG_INFO << "Filtering by protein whitelisting (accessions input)..."
                << endl;
       set<String> accessions(whitelist_accessions.begin(),
                              whitelist_accessions.end());
@@ -359,7 +345,7 @@ protected:
     String whitelist_peptides = getStringOption_("whitelist:peptides").trim();
     if (!whitelist_peptides.empty())
     {
-      LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
+      OPENMS_LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
       vector<PeptideIdentification> inclusion_peptides;
       vector<ProteinIdentification> inclusion_proteins; // ignored
       IdXMLFile().load(whitelist_peptides, inclusion_proteins,
@@ -372,7 +358,7 @@ protected:
     vector<String> whitelist_mods = getStringList_("whitelist:modifications");
     if (!whitelist_mods.empty())
     {
-      LOG_INFO << "Filtering peptide IDs by modification whitelisting..."
+      OPENMS_LOG_INFO << "Filtering peptide IDs by modification whitelisting..."
                << endl;
       set<String> good_mods(whitelist_mods.begin(), whitelist_mods.end());
       IDFilter::keepPeptidesWithMatchingModifications(peptides, good_mods);
@@ -381,7 +367,7 @@ protected:
     String blacklist_fasta = getStringOption_("blacklist:proteins").trim();
     if (!blacklist_fasta.empty())
     {
-      LOG_INFO << "Filtering by protein blacklisting (FASTA input)..." << endl;
+      OPENMS_LOG_INFO << "Filtering by protein blacklisting (FASTA input)..." << endl;
       // load protein accessions from FASTA file:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(blacklist_fasta, fasta);
@@ -399,7 +385,7 @@ protected:
       getStringList_("blacklist:protein_accessions");
     if (!blacklist_accessions.empty())
     {
-      LOG_INFO << "Filtering by protein blacklisting (accessions input)..."
+      OPENMS_LOG_INFO << "Filtering by protein blacklisting (accessions input)..."
                << endl;
       set<String> accessions(blacklist_accessions.begin(),
                              blacklist_accessions.end());
@@ -410,7 +396,7 @@ protected:
     String blacklist_peptides = getStringOption_("blacklist:peptides").trim();
     if (!blacklist_peptides.empty())
     {
-      LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
+      OPENMS_LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
       vector<PeptideIdentification> exclusion_peptides;
       vector<ProteinIdentification> exclusion_proteins; // ignored
       IdXMLFile().load(blacklist_peptides, exclusion_proteins,
@@ -423,7 +409,7 @@ protected:
     vector<String> blacklist_mods = getStringList_("blacklist:modifications");
     if (!blacklist_mods.empty())
     {
-      LOG_INFO << "Filtering peptide IDs by modification blacklisting..."
+      OPENMS_LOG_INFO << "Filtering peptide IDs by modification blacklisting..."
                << endl;
       set<String> bad_mods(blacklist_mods.begin(), blacklist_mods.end());
       IDFilter::removePeptidesWithMatchingModifications(peptides, bad_mods);
@@ -432,18 +418,18 @@ protected:
 
     if (getFlag_("best:strict"))
     {
-      LOG_INFO << "Filtering by best peptide hits..." << endl;
+      OPENMS_LOG_INFO << "Filtering by best peptide hits..." << endl;
       IDFilter::keepBestPeptideHits(peptides, true);
     }
 
 
     Int min_length = 0, max_length = 0;
-    if (parseRange_(getStringOption_("length"), min_length, max_length))
+    if (parseRange_(getStringOption_("precursor:length"), min_length, max_length))
     {
-      LOG_INFO << "Filtering by peptide length..." << endl;
+      OPENMS_LOG_INFO << "Filtering by peptide length..." << endl;
       if ((min_length < 0) || (max_length < 0))
       {
-        LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'length'" << endl;
+        OPENMS_LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'precursor:length'" << endl;
         return ILLEGAL_PARAMETERS;
       }
       IDFilter::filterPeptidesByLength(peptides, Size(min_length),
@@ -455,7 +441,7 @@ protected:
     String protein_fasta = getStringOption_("in_silico_digestion:fasta").trim();
     if (!protein_fasta.empty())
     {
-      LOG_INFO << "Filtering peptides by digested protein (FASTA input)..." << endl;
+      OPENMS_LOG_INFO << "Filtering peptides by digested protein (FASTA input)..." << endl;
       // load protein accessions from FASTA file:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(protein_fasta, fasta);
@@ -481,7 +467,7 @@ protected:
         ignore_missed_cleavages = false;
         if (digestion.getSpecificity() == EnzymaticDigestion::SPEC_FULL)
         {
-          LOG_WARN << "Specificity not full, missed_cleavages option is redundant" << endl;
+          OPENMS_LOG_WARN << "Specificity not full, missed_cleavages option is redundant" << endl;
         }
         digestion.setMissedCleavages(missed_cleavages);
       }
@@ -516,7 +502,7 @@ protected:
         digestion.setEnzyme(enzyme);
       }
 
-      LOG_INFO << "Filtering peptide hits by their missed cleavages count with enzyme " << digestion.getEnzymeName() << "..." << endl;
+      OPENMS_LOG_INFO << "Filtering peptide hits by their missed cleavages count with enzyme " << digestion.getEnzymeName() << "..." << endl;
 
       // Build the digest filter function
       IDFilter::PeptideDigestionFilter filter(digestion, min_cleavages, max_cleavages);
@@ -532,7 +518,7 @@ protected:
 
     if (getFlag_("var_mods"))
     {
-      LOG_INFO << "Filtering for variable modifications..." << endl;
+      OPENMS_LOG_INFO << "Filtering for variable modifications..." << endl;
       // gather possible variable modifications from search parameters:
       set<String> var_mods;
       for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
@@ -554,22 +540,22 @@ protected:
     // @TODO: what if 0 is a reasonable cut-off for some score?
     if (pep_score != 0)
     {
-      LOG_INFO << "Filtering by peptide score..." << endl;
+      OPENMS_LOG_INFO << "Filtering by peptide score..." << endl;
       IDFilter::filterHitsByScore(peptides, pep_score);
     }
 
     Int min_charge = numeric_limits<Int>::min(), max_charge =
       numeric_limits<Int>::max();
-    if (parseRange_(getStringOption_("charge"), min_charge, max_charge))
+    if (parseRange_(getStringOption_("precursor:charge"), min_charge, max_charge))
     {
-      LOG_INFO << "Filtering by peptide charge..." << endl;
+      OPENMS_LOG_INFO << "Filtering by peptide charge..." << endl;
       IDFilter::filterPeptidesByCharge(peptides, min_charge, max_charge);
     }
 
     Size best_n_pep = getIntOption_("best:n_peptide_hits");
     if (best_n_pep > 0)
     {
-      LOG_INFO << "Filtering by best n peptide hits..." << endl;
+      OPENMS_LOG_INFO << "Filtering by best n peptide hits..." << endl;
       IDFilter::keepNBestHits(peptides, best_n_pep);
     }
 
@@ -577,10 +563,10 @@ protected:
     if (parseRange_(getStringOption_("best:n_to_m_peptide_hits"), min_rank,
                     max_rank))
     {
-      LOG_INFO << "Filtering by peptide hit ranks..." << endl;
+      OPENMS_LOG_INFO << "Filtering by peptide hit ranks..." << endl;
       if ((min_rank < 0) || (max_rank < 0))
       {
-        LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'best:n_to_m_peptide_hits'" << endl;
+        OPENMS_LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'best:n_to_m_peptide_hits'" << endl;
         return ILLEGAL_PARAMETERS;
       }
       IDFilter::filterHitsByRank(peptides, Size(min_rank), Size(max_rank));
@@ -589,39 +575,31 @@ protected:
     double mz_error = getDoubleOption_("mz:error");
     if (mz_error > 0)
     {
-      LOG_INFO << "Filtering by mass error..." << endl;
+      OPENMS_LOG_INFO << "Filtering by mass error..." << endl;
       bool unit_ppm = (getStringOption_("mz:unit") == "ppm");
       IDFilter::filterPeptidesByMZError(peptides, mz_error, unit_ppm);
     }
 
 
     // Filtering protein identifications according to set criteria
-
-    double protein_significance = getDoubleOption_("thresh:prot");
-    if (protein_significance > 0)
-    {
-      LOG_INFO << "Filtering by protein significance threshold..." << endl;
-      IDFilter::filterHitsBySignificance(proteins, protein_significance);
-    }
-
     double prot_score = getDoubleOption_("score:prot");
     // @TODO: what if 0 is a reasonable cut-off for some score?
     if (prot_score != 0)
     {
-      LOG_INFO << "Filtering by protein score..." << endl;
+      OPENMS_LOG_INFO << "Filtering by protein score..." << endl;
       IDFilter::filterHitsByScore(proteins, prot_score);
     }
 
     Size best_n_prot = getIntOption_("best:n_protein_hits");
     if (best_n_prot > 0)
     {
-      LOG_INFO << "Filtering by best n protein hits..." << endl;
+      OPENMS_LOG_INFO << "Filtering by best n protein hits..." << endl;
       IDFilter::keepNBestHits(proteins, best_n_prot);
     }
 
     if (getFlag_("remove_decoys"))
     {
-      LOG_INFO << "Removing decoy hits..." << endl;
+      OPENMS_LOG_INFO << "Removing decoy hits..." << endl;
       IDFilter::removeDecoyHits(peptides);
       IDFilter::removeDecoyHits(proteins);
     }
@@ -632,7 +610,7 @@ protected:
     {
       auto checkMVs = [this, &meta_info](PeptideHit& ph)->bool
       {
-        if (!ph.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test 
+        if (!ph.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test
         DataValue v_data = ph.getMetaValue(meta_info[0]);
         DataValue v_user;
         switch (v_data.valueType())
@@ -653,7 +631,7 @@ protected:
         else if (meta_info[1] == "eq")
         {
           return !(v_data == v_user);
-        } 
+        }
         else if (meta_info[1] == "gt")
         {
           return !(v_data > v_user);
@@ -661,7 +639,7 @@ protected:
         else if (meta_info[1] == "ne")
         {
           return (v_data == v_user);
-        }         
+        }
         else
         {
           writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
@@ -680,7 +658,7 @@ protected:
 
     if (!getFlag_("keep_unreferenced_protein_hits"))
     {
-      LOG_INFO << "Removing unreferenced protein hits..." << endl;
+      OPENMS_LOG_INFO << "Removing unreferenced protein hits..." << endl;
       IDFilter::removeUnreferencedProteins(proteins, peptides);
     }
 
@@ -690,7 +668,7 @@ protected:
     // remove non-existant protein references from peptides (and optionally:
     // remove peptides with no proteins):
     bool rm_pep = getFlag_("delete_unreferenced_peptide_hits");
-    if (rm_pep) LOG_INFO << "Removing peptide hits without protein references..." << endl;
+    if (rm_pep) OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
     IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
 
     IDFilter::removeEmptyIdentifications(peptides);
@@ -704,19 +682,19 @@ protected:
                                                  prot_it->getHits());
       if (!valid)
       {
-        LOG_WARN << "Warning: While updating protein groups, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
+        OPENMS_LOG_WARN << "Warning: While updating protein groups, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
       }
 
       valid = IDFilter::updateProteinGroups(
         prot_it->getIndistinguishableProteins(), prot_it->getHits());
       if (!valid)
       {
-        LOG_WARN << "Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
+        OPENMS_LOG_WARN << "Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
       }
     }
 
     // some stats
-    LOG_INFO << "Before filtering:\n"
+    OPENMS_LOG_INFO << "Before filtering:\n"
              << n_prot_ids << " protein identification(s) with "
              << n_prot_hits << " protein hit(s),\n"
              << n_pep_ids << " peptide identification(s) with "

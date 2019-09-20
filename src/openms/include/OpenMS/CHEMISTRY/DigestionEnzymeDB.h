@@ -232,13 +232,13 @@ namespace OpenMS
         const String& value = it->second;
         if (!enzy_ptr->setValueFromFile(key, value))
         {
-          LOG_ERROR << "Error while parsing enzymes file: unknown key '" << key << "' with value '" << value << "'" << std::endl;
+          OPENMS_LOG_ERROR << "Error while parsing enzymes file: unknown key '" << key << "' with value '" << value << "'" << std::endl;
         }
       }
       return enzy_ptr;
     }
 
-    // add to internal data; also update indices for search by name and regex
+    /// add to internal data; also update indices for search by name and regex
     void addEnzyme_(const DigestionEnzymeType* enzyme)
     {
       // add to internal storage
@@ -259,11 +259,11 @@ namespace OpenMS
       return;
     }
 
-    Map<String, const DigestionEnzymeType*> enzyme_names_; // index by names
+    Map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
 
-    Map<String, const DigestionEnzymeType*> enzyme_regex_; // index by regex
+    Map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
 
-    std::set<const DigestionEnzymeType*> const_enzymes_; // set of enzymes
+    std::set<const DigestionEnzymeType*> const_enzymes_; ///< set of enzymes
 
   };
 }

@@ -61,7 +61,7 @@ namespace OpenMS
 
   Details on the FileSection:
 
-  To unambigously map a single quantitative value we need to define:
+  To unambiguously map a single quantitative value we need to define:
     a. the label (e.g., label = 2 in the case of a heavy peptide in a light/heavy experiment)
     b. which spectra file did produce the result (e.g., path = "/data/SILAC_file.mzML")  
     c. which fraction the file corresponds to (e.g., fraction = 1)
@@ -118,6 +118,10 @@ namespace OpenMS
       // Get set of all samples that are present in the sample section
       std::set< unsigned > getSamples() const;
 
+      // Add a sample as the last row
+      void addSample(unsigned sample, const std::vector<String>& content = {});
+
+      // TODO should it include the Sample ID column or not??
       // Get set of all factors (column names) that were defined for the sample section
       std::set< String > getFactors() const;
 
@@ -128,7 +132,10 @@ namespace OpenMS
       bool hasFactor(const String &factor) const;
 
       // Returns value of factor for given sample and factor name
-      String getFactorValue(unsigned sample, const String &factor);
+      String getFactorValue(unsigned sample, const String &factor) const;
+
+      // Returns column index of factor
+      Size getFactorColIdx( const String &factor) const;
 
     private:
 
@@ -161,21 +168,51 @@ namespace OpenMS
 
     void setSampleSection(const SampleSection& sample_section);
 
+    /// returns a map from a sample section row to sample id to cluster
+    /// duplicate sample rows (e.g. to find all fractions of the same "sample")
+    std::map<std::vector<String>, std::set<unsigned>> getUniqueSampleRowToSampleMapping() const;
+
+    /// uses getUniqueSampleRowToSampleMapping to get the reversed map
+    /// mapping sample ID to a real unique sample
+    std::map<unsigned, unsigned> getSampleToPrefractionationMapping() const;
+
     /// return fraction index to file paths (ordered by fraction_group)
+    //TODO this probably needs a basename parameter to be fully compatible with the other mappings!! Implicit full path.
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
+
+    /// return vector of filepath/label combinations that share the same conditions after removing
+    /// replicate columns in the sample section (e.g. for merging across replicates)
+    //TODO this probably needs a basename parameter to be fully compatible with the other mappings!! Implicit full path.
+    std::vector<std::vector<std::pair<String, unsigned>>> getConditionToPathLabelVector() const;
+
+    /// return a condition (unique combination of sample section values except replicate) to Sample index mapping
+    std::map<std::vector<String>, std::set<unsigned>> getConditionToSampleMapping() const;
 
    /*
     *   The (Path, Label) tuples in the experimental design have to be unique, so we can map them
     *   uniquely to the sample number, fraction number, and fraction_group number
     */
+
+    /// return <file_path, label> to prefractionation mapping (a prefractionation group is a unique combination of
+    /// all columns in the sample section, except for replicates.
+    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToPrefractionationMapping(bool use_basename_only) const;
+
+    /// return <file_path, label> to condition mapping (a condition is a unique combination of all columns in the
+    /// sample section, except for replicates.
+    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToConditionMapping(bool use_basename_only) const;
+
+    /// return Sample index to condition mapping (a condition is a unique combination of all columns in the
+    /// sample section, except for replicates. Numbering of conditions is alphabetical due to map.
+    std::map<unsigned, unsigned> getSampleToConditionMapping() const;
+
     /// return <file_path, label> to sample mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const;
+    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool use_basename_only) const;
 
     /// return <file_path, label> to fraction mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool) const;
+    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool use_basename_only) const;
 
     /// return <file_path, label> to fraction_group mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool) const;
+    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool use_basename_only) const;
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const;
@@ -210,7 +247,8 @@ namespace OpenMS
     static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
 
     /// Extract experimental design from identifications
-    static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
+    static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification>& proteins);
+    //TODO create another overload here, that takes two enums outerVec and innerVec with entries Replicate, Fraction, Sample
 
     private:
     // MS filename column, optionally trims to basename

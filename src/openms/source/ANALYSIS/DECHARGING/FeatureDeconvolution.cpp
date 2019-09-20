@@ -252,7 +252,7 @@ namespace OpenMS
     {
       if (rt_diff_max != rt_diff_max_local)
       {
-        LOG_WARN << "Parameters 'retention_max_diff' and 'retention_max_diff_local' are unequal, but no RT shift of adducts has been defined. Setting parameters to minimum of the two." << std::endl;
+        OPENMS_LOG_WARN << "Parameters 'retention_max_diff' and 'retention_max_diff_local' are unequal, but no RT shift of adducts has been defined. Setting parameters to minimum of the two." << std::endl;
         param_.setValue("retention_max_diff", std::min(rt_diff_max, rt_diff_max_local));
         param_.setValue("retention_max_diff_local", std::min(rt_diff_max, rt_diff_max_local));
       }
@@ -261,7 +261,7 @@ namespace OpenMS
     {
       if (rt_diff_max < rt_diff_max_local)
       {
-        LOG_WARN << "Parameters 'retention_max_diff' is smaller than 'retention_max_diff_local'. This does not make sense! Setting 'retention_max_diff_local' to 'retention_max_diff'." << std::endl;
+        OPENMS_LOG_WARN << "Parameters 'retention_max_diff' is smaller than 'retention_max_diff_local'. This does not make sense! Setting 'retention_max_diff_local' to 'retention_max_diff'." << std::endl;
         param_.setValue("retention_max_diff_local", rt_diff_max);
       }
     }
@@ -358,7 +358,7 @@ namespace OpenMS
 
 
     // create mass difference list
-    LOG_INFO << "Generating Masses with threshold: " << thresh_logp << " ...\n";
+    OPENMS_LOG_INFO << "Generating Masses with threshold: " << thresh_logp << " ...\n";
     
     //make it proof for charge 1..3 and charge -3..-1
     if ((q_min * q_max) < 0)
@@ -378,7 +378,7 @@ namespace OpenMS
     }
     MassExplainer me(potential_adducts_, small, large, q_span, thresh_logp, max_neutrals);
     me.compute();
-    LOG_INFO << "done\n";
+    OPENMS_LOG_INFO << "done\n";
 
     // holds query results for a mass difference
     MassExplainer::CompomerIterator md_s, md_e;
@@ -509,7 +509,7 @@ namespace OpenMS
                   if (((q1 - left_charges) % default_adduct.getCharge() != 0) ||
                       ((q2 - right_charges) % default_adduct.getCharge() != 0))
                   {
-                    LOG_WARN << "Cannot add enough default adduct (" << default_adduct.getFormula() << ") to exactly fit feature charge! Next...)\n";
+                    OPENMS_LOG_WARN << "Cannot add enough default adduct (" << default_adduct.getFormula() << ") to exactly fit feature charge! Next...)\n";
                     continue;
                   }
 
@@ -575,7 +575,7 @@ namespace OpenMS
       } // RT-window
     } // RT sweep line
 
-    LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit + cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
+    OPENMS_LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit + cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
 
     inferMoreEdges_(feature_relation, feature_adducts);
 
@@ -592,12 +592,12 @@ namespace OpenMS
 
     if (feature_relation.empty())
     {
-      LOG_INFO << "Found NO putative edges. The output generated will be trivial (only singleton clusters and no pairings). "
+      OPENMS_LOG_INFO << "Found NO putative edges. The output generated will be trivial (only singleton clusters and no pairings). "
                << "Your parameters might need revision or the input was ill-formed." << std::endl;
     }
     else
     {
-      LOG_INFO << "Found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
+      OPENMS_LOG_INFO << "Found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
                << " and avg hit-size of " << (1.0 * overallHits / feature_relation.size())
                << std::endl;
 
@@ -609,7 +609,7 @@ namespace OpenMS
       ILPDCWrapper lp_wrapper;
       // compute best solution (this will REORDER elements on feature_relation[] !) - do not rely on order afterwards!
       double ilp_score = lp_wrapper.compute(fm_out, feature_relation, this->verbose_level_);
-      LOG_INFO << "ILP score is: " << ilp_score << std::endl;
+      OPENMS_LOG_INFO << "ILP score is: " << ilp_score << std::endl;
     }
 
     // prepare output consensusMaps
@@ -686,7 +686,7 @@ namespace OpenMS
           double rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
           if (verbose_level_ > 2)
           {
-            LOG_WARN << "Conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity()
+            OPENMS_LOG_WARN << "Conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity()
                      << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx)
                      << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:"
                      << feature_relation[i].getEdgeScore() << " f#:" << fm_out[f_idx_v[f_idx]].getUniqueId() << " " << feature_relation[i].getCompomer().getAdductsAsString((UInt)f_idx)
@@ -713,7 +713,10 @@ namespace OpenMS
       }
 
     }
-    LOG_INFO << "Agreeing charges: " << agreeing_fcharge << "/" << (aedges * 2) << std::endl;
+
+    {
+      OPENMS_LOG_INFO << "Agreeing charges: " << agreeing_fcharge << "/" << (aedges * 2) << std::endl;
+    }
 
 #ifdef DC_DEVEL
     out_dead.store("ILP_dead_edges.txt"); // TODO disable
@@ -1013,7 +1016,7 @@ namespace OpenMS
       ++singletons_count;
     }
 
-    LOG_INFO << "Single features without charge ladder: " << singletons_count << " of " << fm_out.size() << "\n";
+    OPENMS_LOG_INFO << "Single features without charge ladder: " << singletons_count << " of " << fm_out.size() << "\n";
 
 
     // fill the header
@@ -1165,7 +1168,7 @@ namespace OpenMS
       }
     } // edge for
 
-    LOG_INFO << "Inferring edges raised edge count from " << edges_size << " to " << edges.size() << "\n";
+    OPENMS_LOG_INFO << "Inferring edges raised edge count from " << edges_size << " to " << edges.size() << "\n";
   }
 
   void FeatureDeconvolution::printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation)
@@ -1278,8 +1281,8 @@ namespace OpenMS
     // if more than 5% of charge ladder have only gapped, report
     if (ladders_with_odd < ladders_total * 0.95)
     {
-      LOG_WARN << ".\n..\nWarning: a significant portion of your decharged molecules have gapped, even-numbered charge ladders (" << ladders_total - ladders_with_odd << " of " << ladders_total << ")";
-      LOG_WARN <<"This might indicate a too low charge interval being tested.\n..\n.\n";
+      OPENMS_LOG_WARN << ".\n..\nWarning: a significant portion of your decharged molecules have gapped, even-numbered charge ladders (" << ladders_total - ladders_with_odd << " of " << ladders_total << ")";
+      OPENMS_LOG_WARN <<"This might indicate a too low charge interval being tested.\n..\n.\n";
     }
 
   }

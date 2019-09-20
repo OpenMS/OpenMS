@@ -213,7 +213,7 @@ protected:
 
     // add modified ribos from database
     vector<String> all_mods;
-    for (auto r : *RibonucleotideDB::getInstance())
+    for (const auto& r : *RibonucleotideDB::getInstance())
     {
       if (r->isModified())
       {
@@ -259,7 +259,8 @@ protected:
     Size isotope;
     String adduct;
 
-    PrecursorInfo(Size scan_index, Int charge, Size isotope, const String& adduct):
+    PrecursorInfo(Size scan_index, Int charge, Size isotope,
+                  const String& adduct):
       scan_index(scan_index), charge(charge), isotope(isotope), adduct(adduct)
     {
     }
@@ -273,8 +274,7 @@ protected:
     NASequence sequence;
     double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
-    Int charge;
-    String adduct;
+    const PrecursorInfo* precursor_ref; // precursor information
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
@@ -349,7 +349,7 @@ protected:
     // determine charge of adduct (by number of '+' or '-')
     Int pos_charge = parts[1].size() - parts[1].remove('+').size();
     Int neg_charge = parts[1].size() - parts[1].remove('-').size();
-    LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
+    OPENMS_LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
     if (pos_charge > 0 && neg_charge > 0)
     {
       String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
@@ -600,12 +600,17 @@ protected:
           }
           if (inferred_charge == 0)
           {
-            LOG_ERROR << "Error: unable to determine charge state for spectrum '" << spec.getNativeID() << "' based on precursor m/z values " << mz1 << " and " << mz2 << endl;
+            OPENMS_LOG_ERROR
+              << "Error: unable to determine charge state for spectrum '"
+              << spec.getNativeID() << "' based on precursor m/z values "
+              << mz1 << " and " << mz2 << endl;
           }
           else
           {
             ++n_inferred_charge;
-            LOG_DEBUG << "Inferred charge state " << inferred_charge << " for spectrum '" << spec.getNativeID() << "'" << endl;
+            OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge
+                             << " for spectrum '" << spec.getNativeID() << "'"
+                             << endl;
             // keep only precursor with highest charge, set inferred charge:
             Precursor prec = spec.getPrecursors()[precursors.begin()->second];
             prec.setCharge(abs(inferred_charge));
@@ -629,20 +634,27 @@ protected:
 
     if (n_zero_charge)
     {
-      LOG_WARN << "Warning: no charge state information available for " << n_zero_charge << " out of " << exp.size() << " spectra." << endl;
+      OPENMS_LOG_WARN << "Warning: no charge state information available for "
+                      << n_zero_charge << " out of " << exp.size()
+                      << " spectra." << endl;
       if (n_inferred_charge)
       {
-        LOG_INFO << "Inferred charge states for " << n_inferred_charge << " spectra." << endl;
+        OPENMS_LOG_INFO << "Inferred charge states for " << n_inferred_charge
+                        << " spectra." << endl;
       }
       if (n_zero_charge - n_inferred_charge > 0)
       {
-        LOG_INFO << "Spectra without charge information will be " << (include_unknown_charge ? "included in the processing" : "skipped") << " (see parameter 'precursor:include_unknown_charge')" << endl;
+        OPENMS_LOG_INFO
+          << "Spectra without charge information will be "
+          << (include_unknown_charge ? "included in the processing" : "skipped")
+          << " (see parameter 'precursor:include_unknown_charge')" << endl;
       }
     }
   }
 
 
-  void insertSpectrumPrecursorMass_(multimap<double, PrecursorInfo>& precursor_mass_map, Size scan_index, double mz, Int charge, Size isotope, double adduct_mass, const String& adduct, bool negative_mode)
+  double calculatePrecursorMass_(double mz, Int charge, Int isotope,
+                                 double adduct_mass, bool negative_mode)
   {
     // we want to calculate the unadducted (!) precursor mass at neutral charge:
     double mass = mz * charge - adduct_mass;
@@ -656,13 +668,9 @@ protected:
       mass -= Constants::PROTON_MASS_U * charge;
     }
     // correct for precursor not being the monoisotopic peak:
-    if (isotope > 0)
-    {
-      mass -= isotope * Constants::C13C12_MASSDIFF_U;
-    }
+    mass -= isotope * Constants::C13C12_MASSDIFF_U;
 
-    PrecursorInfo info(scan_index, charge, isotope, adduct);
-    precursor_mass_map.insert(make_pair(mass, info));
+    return mass;
   }
 
 
@@ -748,6 +756,8 @@ protected:
                                           spectrum.getRT(),
                                           spectrum.getPrecursors()[0].getMZ());
       query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
+      query.setMetaValue("precursor_intensity",
+                         spectrum.getPrecursors()[0].getIntensity());
       IdentificationData::DataQueryRef query_ref;
 #pragma omp critical (id_data_access)
       query_ref = id_data.registerDataQuery(query);
@@ -762,7 +772,7 @@ protected:
       {
         double score = pair.first;
         const AnnotatedHit& hit = pair.second;
-        LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
+        OPENMS_LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
 
         // transfer parent matches from unmodified oligo:
         IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
@@ -771,7 +781,7 @@ protected:
 #pragma omp critical (id_data_access)
         oligo_ref = id_data.registerIdentifiedOligo(oligo);
 
-        Int charge = hit.charge;
+        Int charge = hit.precursor_ref->charge;
         if ((charge > 0) && negative_mode) charge = -charge;
         IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
                                                      charge);
@@ -779,9 +789,13 @@ protected:
         match.peak_annotations[id_data.getCurrentProcessingStep()] =
           hit.annotations;
         // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
-        match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
+        match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
-        if (!hit.adduct.empty()) match.setMetaValue("adduct", hit.adduct);
+        match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
+        if (!hit.precursor_ref->adduct.empty())
+        {
+          match.setMetaValue("adduct", hit.precursor_ref->adduct);
+        }
 #pragma omp critical (id_data_access)
         id_data.registerMoleculeQueryMatch(match);
       }
@@ -834,7 +848,7 @@ protected:
     fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
     fdr.setParameters(fdr_params);
     IdentificationData::ScoreTypeRef fdr_ref =
-      fdr.applyToQueryMatches(id_data, score_ref);
+    fdr.applyToQueryMatches(id_data, score_ref);
     double fdr_cutoff = getDoubleOption_("fdr:cutoff");
     if (remove_decoys) // remove references to decoys from shared oligos
     {
@@ -843,22 +857,30 @@ protected:
     if (fdr_cutoff < 1.0)
     {
       IDFilter::filterQueryMatchesByScore(id_data, fdr_ref, fdr_cutoff);
-      LOG_INFO << "Search hits after FDR filtering: "
-               << id_data.getMoleculeQueryMatches().size() << endl;
+      OPENMS_LOG_INFO << "Search hits after FDR filtering: "
+                      << id_data.getMoleculeQueryMatches().size()
+                      << "\nIdentified spectra after FDR filtering: "
+                      << id_data.getDataQueries().size() << endl;
     }
   }
 
 
   void generateLFQInput_(IdentificationData& id_data, const String& out_file)
   {
-    // mapping: (oligo, adduct) -> charge -> RTs
-    map<pair<NASequence, String>, map<Int, vector<double>>> rt_info;
+    using AdductedOligo = pair<NASequence, String>; // oligo, adduct
+    using PrecursorPair = pair<double, double>; // precursor intensity, RT
+    // mapping: charge -> list of precursors
+    using PrecursorsByCharge = map<Int, vector<PrecursorPair>>;
+    map<AdductedOligo, PrecursorsByCharge> rt_info;
     for (const IdentificationData::MoleculeQueryMatch& match :
            id_data.getMoleculeQueryMatches())
     {
       auto key = make_pair(match.getIdentifiedOligoRef()->sequence,
                            match.getMetaValue("adduct"));
-      rt_info[key][match.charge].push_back(match.data_query_ref->rt);
+      double rt = match.data_query_ref->rt;
+      double prec_int =
+        match.data_query_ref->getMetaValue("precursor_intensity");
+      rt_info[key][match.charge].push_back(make_pair(prec_int, rt));
     }
 
     SVOutStream tsv(out_file);
@@ -877,19 +899,26 @@ protected:
       // @TODO: use charge-specific RTs?
       vector<Int> charges;
       vector<double> rts;
-      for (const auto& pair : entry.second)
+      for (const auto& charge_pair : entry.second)
       {
-        charges.push_back(pair.first);
-        rts.insert(rts.end(), pair.second.begin(), pair.second.end());
+        charges.push_back(charge_pair.first);
+        // use intensity-weighted mean of precursor RTs as "apex" RT:
+        double weighted_rt = 0.0, total_weight = 0.0;
+        for (const auto& rt_pair : charge_pair.second)
+        {
+          weighted_rt += rt_pair.first * rt_pair.second;
+          total_weight += rt_pair.first;
+        }
+        rts.push_back(weighted_rt / total_weight);
       }
       tsv << name << ef << 0 << ListUtils::concatenate(charges, ",");
-      // @TODO: do something more sophisticated for the RT?
+      // overall target RT is median over all charge states:
       tsv << Math::median(rts.begin(), rts.end(), false) << 0 << 0 << endl;
     }
   }
 
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
@@ -913,14 +942,14 @@ protected:
     // @TODO: allow zero to mean "any charge state in the data"?
     if ((min_charge == 0) || (max_charge == 0))
     {
-      LOG_ERROR << "Error: invalid charge state 0" << endl;
+      OPENMS_LOG_ERROR << "Error: invalid charge state 0" << endl;
       return ILLEGAL_PARAMETERS;
     }
     // charges can be positive or negative, depending on data acquisition mode:
     if (((min_charge < 0) && (max_charge > 0)) ||
         ((min_charge > 0) && (max_charge < 0)))
     {
-      LOG_ERROR << "Error: mixing positive and negative charges is not allowed"
+      OPENMS_LOG_ERROR << "Error: mixing positive and negative charges is not allowed"
                 << endl;
       return ILLEGAL_PARAMETERS;
     }
@@ -973,12 +1002,13 @@ protected:
         EmpiricalFormula ef = parseAdduct_(adduct);
         double mass = use_avg_mass ? ef.getAverageWeight() : ef.getMonoWeight();
         adduct_masses[mass] = adduct;
-        LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass << endl;
+        OPENMS_LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass
+                         << endl;
       }
     }
 
     // load MS2 map
-    PeakMap spectra;
+    MSExperiment spectra;
     MzMLFile f;
     f.setLogType(log_type_);
 
@@ -996,7 +1026,8 @@ protected:
                        single_charge_spectra, negative_mode, min_charge,
                        max_charge, include_unknown_charge);
     progresslogger.endProgress();
-    LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
+    OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra()
+                     << endl;
 
     // build multimap of precursor mass to scan index (and other information):
     multimap<double, PrecursorInfo> precursor_mass_map;
@@ -1049,15 +1080,18 @@ protected:
         precursor_charge = abs(precursor_charge); // adjust for neg. mode
 
         // calculate precursor mass (optionally corrected for adducts and peak
-        // misassignment) and map it to MS scan index:
+        // misassignment) and map it to MS scan index etc.:
         for (const auto& adduct_pair : adduct_masses)
         {
           for (Int isotope_number : precursor_isotopes)
           {
-            insertSpectrumPrecursorMass_(precursor_mass_map, scan_index,
-                                         precursor_mz, precursor_charge,
-                                         isotope_number, adduct_pair.first,
-                                         adduct_pair.second, negative_mode);
+            double precursor_mass =
+              calculatePrecursorMass_(precursor_mz, precursor_charge,
+                                      isotope_number, adduct_pair.first,
+                                      negative_mode);
+            PrecursorInfo info(scan_index, precursor_charge, isotope_number,
+                               adduct_pair.second);
+            precursor_mass_map.insert(make_pair(precursor_mass, info));
           }
         }
       }
@@ -1070,7 +1104,7 @@ protected:
     set<String> selected_ions(temp.begin(), temp.end());
     if (resolve_ambiguous_mods_ && !selected_ions.count("a-B"))
     {
-      LOG_WARN << "Warning: option 'modifications:resolve_ambiguities' requires a-B ions in parameter 'fragment:ions' - disabling the option." << endl;
+      OPENMS_LOG_WARN << "Warning: option 'modifications:resolve_ambiguities' requires a-B ions in parameter 'fragment:ions' - disabling the option." << endl;
       resolve_ambiguous_mods_ = false;
     }
     for (const auto& code : fragment_ion_codes_)
@@ -1116,7 +1150,7 @@ protected:
     registerIDMetaData_(id_data, in_mzml, primary_files, search_param);
     String decoy_pattern = getStringOption_("fdr:decoy_pattern");
 
-    LOG_INFO << "Performing in-silico digestion..." << endl;
+    OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;
     IdentificationDataConverter::importSequences(
       id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
     digestor.digest(id_data, min_oligo_length, max_oligo_length);
@@ -1183,7 +1217,7 @@ protected:
 
         // collect all relevant charge states for theoret. spectrum generation:
         set<Int> precursor_charges;
-        for (auto prec_it = low_it; prec_it != up_it; ++prec_it)
+        for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
         {
           precursor_charges.insert(prec_it->second.charge * base_charge);
         }
@@ -1191,8 +1225,8 @@ protected:
         for (const NASequence* seq_ptr : pair.second)
         {
           const NASequence& candidate = *seq_ptr;
-          LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
-                    << float(candidate_mass) << " Da)" << endl;
+          OPENMS_LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
+                           << float(candidate_mass) << " Da)" << endl;
 
           // pre-generate spectra:
           map<Int, MSSpectrum> theo_spectra_by_charge;
@@ -1200,10 +1234,10 @@ protected:
                                                 candidate, precursor_charges,
                                                 base_charge);
 
-          for (auto prec_it = low_it; prec_it != up_it; ++prec_it)
+          for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
           {
-            LOG_DEBUG << "Matching precursor mass: " << float(prec_it->first)
-                      << endl;
+            OPENMS_LOG_DEBUG << "Matching precursor mass: "
+                             << float(prec_it->first) << endl;
 
             Size charge = prec_it->second.charge;
             // look up theoretical spectrum for this charge:
@@ -1235,7 +1269,7 @@ protected:
 #pragma omp atomic
             ++hit_counter;
 
-            LOG_DEBUG << "Score: " << score << endl;
+            OPENMS_LOG_DEBUG << "Score: " << score << endl;
 
 #pragma omp critical (annotated_hits_access)
             {
@@ -1270,8 +1304,7 @@ protected:
                 ah.precursor_error_ppm =
                   (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
                 ah.annotations = annotations;
-                ah.charge = charge;
-                ah.adduct = prec_it->second.adduct;
+                ah.precursor_ref = &(prec_it->second);
               }
             }
           }
@@ -1280,10 +1313,11 @@ protected:
     }
     progresslogger.endProgress();
 
-    LOG_INFO << "Undigested nucleic acids: " << fasta_db.size() << endl;
-    LOG_INFO << "Oligonucleotides: " << id_data.getIdentifiedOligos().size()
-             << endl;
-    LOG_INFO << "Search hits: " << hit_counter << endl;
+    OPENMS_LOG_INFO << "Undigested nucleic acids: " << fasta_db.size()
+                    << "\nOligonucleotides: "
+                    << id_data.getIdentifiedOligos().size()
+                    << "\nSearch hits (spectrum matches): " << hit_counter
+                    << endl;
 
     if (!exp_ms2_out.empty())
     {
@@ -1297,23 +1331,25 @@ protected:
     progresslogger.startProgress(0, 1, "post-processing search hits...");
     postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
     progresslogger.endProgress();
+    OPENMS_LOG_INFO << "Identified spectra: " << id_data.getDataQueries().size()
+                    << endl;
 
     // FDR:
     if (!decoy_pattern.empty())
     {
-      LOG_INFO << "Performing FDR calculations..." << endl;
+      OPENMS_LOG_INFO << "Performing FDR calculations..." << endl;
       calculateAndFilterFDR_(id_data, report_top_hits == 1);
     }
     id_data.calculateCoverages();
 
     // store results
     MzTab results = IdentificationDataConverter::exportMzTab(id_data);
-    LOG_DEBUG << "Nucleic acid rows: "
-              << results.getNucleicAcidSectionRows().size()
-              << "\nOligonucleotide rows: "
-              << results.getOligonucleotideSectionRows().size()
-              << "\nOligo-spectrum match rows: "
-              << results.getOSMSectionRows().size() << endl;
+    OPENMS_LOG_DEBUG << "Nucleic acid rows: "
+                     << results.getNucleicAcidSectionRows().size()
+                     << "\nOligonucleotide rows: "
+                     << results.getOligonucleotideSectionRows().size()
+                     << "\nOligo-spectrum match rows: "
+                     << results.getOSMSectionRows().size() << endl;
 
     MzTabFile().store(out, results);
 

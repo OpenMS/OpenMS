@@ -62,6 +62,7 @@ export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Comet:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Sirius:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/SpectraST:$PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/ThermoRawFileParser:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Percolator:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/MaRaCluster:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/crux:$PATH
@@ -84,7 +85,12 @@ export PYTHON_EXE=`which python`
 
 # set os dependent folder for preinstalled libraries
 export OS_PREFIX_PATH=/usr
-ctest -V -S tools/travis/cibuild.cmake
+timeout 60m ctest -V -S tools/travis/cibuild.cmake
+
+if [ $? -ne 0 ]; then
+    echo "Killed build prematurely to store whatever was already built in the cache. Please restart the travis job."
+    exit -1
+fi
 
 # tell the user where he can find the results
 echo "Please check the build results at: http://cdash.openms.de/index.php?project=OpenMS&date="$(date +"%y-%m-%d")"#Continuous"

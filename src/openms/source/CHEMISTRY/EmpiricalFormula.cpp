@@ -98,7 +98,7 @@ namespace OpenMS
     {
       UInt non_trace_isotopes = 0;
       const auto& distr = element.first->getIsotopeDistribution();
-      for (auto isotope : distr)
+      for (const auto& isotope : distr)
       {
         if (isotope.getIntensity() != 0)
         {

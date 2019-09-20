@@ -124,7 +124,7 @@ namespace OpenMS
 
         if (!modification_names_.has(mod_name))
         {
-          LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
+          OPENMS_LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
           found = false; 
         }
       }
@@ -134,7 +134,7 @@ namespace OpenMS
         const set<const ResidueModification*>& temp = modification_names_[mod_name];
         for (const auto& it : temp)
         {
-          if (residuesMatch_(residue, it->getOrigin()) &&
+          if (residuesMatch_(residue, it) &&
                (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
                (term_spec == it->getTermSpecificity())))
           {
@@ -166,12 +166,12 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one of:";
+      OPENMS_LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one of:";
       for (auto it = mods.begin(); it != mods.end(); ++it)
       {
-        LOG_WARN << " " << (*it)->getFullId();
+        OPENMS_LOG_WARN << " " << (*it)->getFullId();
       }
-      LOG_WARN << "\n";
+      OPENMS_LOG_WARN << "\n";
     }
     return *mods.begin();
   }
@@ -237,7 +237,7 @@ namespace OpenMS
       for (auto const & m : mods_)
       {
         if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
-            residuesMatch_(residue, m->getOrigin()) &&
+            residuesMatch_(residue, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
@@ -261,7 +261,7 @@ namespace OpenMS
         // first matching UniMod entry)
         double mass_error = fabs(m->getDiffMonoMass() - mass);
         if ((mass_error < min_error) &&
-            residuesMatch_(residue, m->getOrigin()) &&
+            residuesMatch_(residue, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
@@ -302,7 +302,7 @@ namespace OpenMS
   {
     if (has(new_mod->getFullId()))
     {
-      LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
+      OPENMS_LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
       return;
     }
 
@@ -645,10 +645,28 @@ namespace OpenMS
     });
   }
 
-
-  bool ModificationsDB::residuesMatch_(const String& residue, char origin) const
+  bool ModificationsDB::residuesMatch_(const String& residue, const ResidueModification* curr_mod) const
   {
-    return (residue.empty() || (origin == residue[0]) || (residue == "X") || (origin == 'X') || (residue == "."));
+
+    // residues match if they are equal or they match everything (X/.)
+    bool matching =  (
+             residue.empty() ||
+             (curr_mod->getOrigin() == residue[0]) ||
+             (residue == "X") ||
+             (curr_mod->getOrigin() == 'X') ||
+             (residue == ".") );
+
+    // residues do NOT match if the modification is user-defined and has origin
+    // X (which here means an actual input AA X and it does *not* mean "match
+    // all AA") while the current residue is not X. Make sure we dont match things like
+    // PEPN[400] and PEPX[400] since these have very different masses.
+    bool non_matching_user_defined =  (
+         curr_mod->isUserDefined() &&
+         curr_mod->getOrigin() == 'X' &&
+         !residue.empty() &&
+         String(curr_mod->getOrigin()) != residue );
+
+    return matching && !non_matching_user_defined;
   }
 
 } // namespace OpenMS

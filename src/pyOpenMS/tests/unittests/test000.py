@@ -207,13 +207,14 @@ def testAASequence():
     assert seq.toString() == "PEPTIDESEKUEM(Oxidation)CER"
     assert seq.toUnmodifiedString() == "PEPTIDESEKUEMCER"
     assert seq.toBracketString() == "PEPTIDESEKUEM[147]CER"
-    assert seq.toBracketString(True, []) == "PEPTIDESEKUEM[147]CER"
-    print( seq.toBracketString(False, []) )
-    assert seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
-           seq.toBracketString(False, []) == "PEPTIDESEKUEM[147.035400017100017]CER"
-    print( seq.toBracketString(False) )
+    assert seq.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
+
     assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
            seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
+
+    assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
+           seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
+
     assert seq.toUniModString() == "PEPTIDESEKUEM(UniMod:35)CER"
     assert seq.isModified()
     assert not seq.hasCTerminalModification()
@@ -227,6 +228,7 @@ def testAASequence():
     assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
 
+    
 @report
 def testElement():
     """
@@ -1723,15 +1725,10 @@ def testPosteriorErrorProbabilityModel():
     model.fit(scores)
     model.fit(scores, scores)
 
-    model.fillDensities(scores, scores, scores)
+    model.fillLogDensities(scores, scores, scores)
 
-    assert model.computeMaxLikelihood is not None
-    assert model.one_minus_sum_post is not None
-    assert model.sum_post is not None
-    assert model.sum_pos_x0 is not None
-    assert model.sum_neg_x0 is not None
-    assert model.sum_pos_sigma is not None
-    assert model.sum_neg_sigma is not None
+    assert model.computeLogLikelihood is not None
+    assert model.pos_neg_mean_weighted_posteriors is not None
 
     GaussFitResult = model.getCorrectlyAssignedFitResult()
     GaussFitResult = model.getIncorrectlyAssignedFitResult()
@@ -3336,11 +3333,31 @@ def testMRMFeature():
       MRMFeature.getScore
      """
     mrmfeature = pyopenms.MRMFeature()
+    f = pyopenms.Feature()
 
-    mrmfeature.addScore("testscore", 6)
-    assert mrmfeature.getScore("testscore") == 6.0
-    mrmfeature.addScore("testscore", 7)
-    assert mrmfeature.getScore("testscore") == 7.0
+    fs = mrmfeature.getFeatures()
+    assert len(fs) == 0
+
+    mrmfeature.addFeature(f, "myFeature")
+    fs = mrmfeature.getFeatures()
+    assert len(fs) == 1
+    assert mrmfeature.getFeature("myFeature") is not None
+    slist = []
+    mrmfeature.getFeatureIDs(slist)
+    assert len(slist) == 1
+
+    mrmfeature.addPrecursorFeature(f, "myFeature_Pr0")
+    slist = []
+    mrmfeature.getPrecursorFeatureIDs(slist)
+    assert len(slist) == 1
+    assert mrmfeature.getPrecursorFeature("myFeature_Pr0") is not None
+
+    s = mrmfeature.getScores()
+    assert abs(s.yseries_score - 0.0) < 1e-4
+    s.yseries_score = 4.0
+    mrmfeature.setScores(s)
+    s2 = mrmfeature.getScores()
+    assert abs(s2.yseries_score - 4.0) < 1e-4
 
 @report
 def testConfidenceScoring():
@@ -3738,13 +3755,24 @@ def testBase64():
     b = pyopenms.Base64()
     out = pyopenms.String()
     inp =  [1.0, 2.0, 3.0]
-    b.encode(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
+    b.encode64(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
     res = out.toString()
     assert len(res) != 0
     assert res != ""
 
     convBack = []
-    b.decode(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
+    b.decode64(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
+    assert convBack == inp, convBack
+
+    # For 32 bit
+    out = pyopenms.String()
+    b.encode32(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
+    res = out.toString()
+    assert len(res) != 0
+    assert res != ""
+
+    convBack = []
+    b.decode32(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
     assert convBack == inp, convBack
 
 @report

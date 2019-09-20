@@ -8,6 +8,8 @@ from ProteinHit cimport *
 from DigestionEnzymeProtein cimport *
 from PeptideIdentification cimport *
 from DateTime cimport *
+from MSExperiment cimport *
+
 
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
 
@@ -82,6 +84,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void setIdentifier(String id_) nogil except +
 
         void setPrimaryMSRunPath(StringList& s) nogil except +
+        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except +
         void getPrimaryMSRunPath(StringList& toFill) nogil except +
 
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::ProteinIdentification":

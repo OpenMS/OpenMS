@@ -262,7 +262,7 @@ namespace OpenMS
     // list of CV accession with native id format "file=NUMBER"
     std::vector<String> file = {"MS:1000773","MS:1000775"};
     // expected number of subgroups
-    auto subgroups = {1};
+    vector<int> subgroups = {1};
     
     // "scan=NUMBER" 
     if (std::find(scan.begin(), scan.end(), native_id_type_accession) != scan.end())
@@ -297,7 +297,7 @@ namespace OpenMS
     }
     else
     {
-      LOG_WARN << "native_id: " << native_id << " accession: " << native_id_type_accession << " Could not extract scan number - no valid native_id_type_accession was provided" << std::endl;
+      OPENMS_LOG_WARN << "native_id: " << native_id << " accession: " << native_id_type_accession << " Could not extract scan number - no valid native_id_type_accession was provided" << std::endl;
     }
 
     if (!regexp.empty()) 
@@ -315,7 +315,7 @@ namespace OpenMS
         }
         catch (Exception::ConversionError&)
         {
-          LOG_WARN << "Value could not be converted to int" << std::endl;
+          OPENMS_LOG_WARN << "Value: '" << String(matches[0]) << "' could not be converted to int in string. Native ID='" << native_id << "'" << std::endl;
           return -1;
         }
       }
@@ -335,7 +335,8 @@ namespace OpenMS
         }
         catch (Exception::ConversionError&)
         {
-          LOG_WARN << "Value could not be converted to int" << std::endl;
+          OPENMS_LOG_WARN << "Value: '" << String(matches[0]) << "' could not be converted to int in string. Native ID='" 
+            << native_id << "' accession='" << native_id_type_accession << "'" << std::endl;
           return -1;
         }
       }

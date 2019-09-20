@@ -39,10 +39,15 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-using namespace OpenMS;
+
 using namespace std;
+using namespace OpenMS;
+
+namespace OpenMS
+{
 
    const std::string PrecursorCorrection::csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
+
 
    void PrecursorCorrection::getPrecursors(const MSExperiment & exp,
                                            vector<Precursor> & precursors,
@@ -120,7 +125,7 @@ using namespace std;
         if (rt_it == exp.end() 
         || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
+          OPENMS_LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
           continue;          
         }
 
@@ -141,7 +146,7 @@ using namespace std;
           // sanity check: do we really have the same precursor in the original and the picked spectrum
           if (fabs(exp[precursor_spectrum_idx].getPrecursors()[0].getMZ() - mz) > 0.0001)
           {
-            LOG_WARN << "Error: index is referencing different precursors in original and picked spectrum." << endl;
+            OPENMS_LOG_WARN << "Error: index is referencing different precursors in original and picked spectrum." << endl;
           }
 
           // cout << mz << " -> " << nearest_peak_mz << endl;
@@ -192,7 +197,7 @@ using namespace std;
         if (rt_it == exp.end() 
         || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
+          OPENMS_LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
           continue;
         }
 
@@ -202,7 +207,7 @@ using namespace std;
         MSSpectrum::ConstIterator right = rt_it->MZEnd(tolerance_window.second);
 
         // no MS1 precursor peak in +- tolerance window found
-        if  (left == right || left > right)
+        if  (left == right)
         {
           count_error_highest_intenstiy += 1;
           continue;
@@ -213,8 +218,9 @@ using namespace std;
         // find peak (index) with highest intensity to expected position
         Size highest_peak_idx = max_intensity_it - rt_it->begin();
 
-        // get actual position of highest intensity peak
+        // get actual position and intensity of highest intensity peak
         double highest_peak_mz = (*rt_it)[highest_peak_idx].getMZ();
+        double highest_peak_int = (*rt_it)[highest_peak_idx].getIntensity();
 
         // cout << mz << " -> " << nearest_peak_mz << endl;
         double delta_mz = highest_peak_mz - mz;
@@ -224,13 +230,14 @@ using namespace std;
         // correct entries
         Precursor corrected_prec = precursors[i];
         corrected_prec.setMZ(highest_peak_mz);
+        corrected_prec.setIntensity(highest_peak_int);
         exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
         corrected_precursors.insert(precursor_spectrum_idx);
       }
 
       if (count_error_highest_intenstiy != 0)
       {
-        LOG_INFO << "Correction to the highest intensity peak failed " 
+        OPENMS_LOG_INFO << "Correction to the highest intensity peak failed " 
            << count_error_highest_intenstiy 
            << " times because of missing peaks in the MS1. No changes were applied in these cases." 
            << std::endl;
@@ -238,7 +245,6 @@ using namespace std;
 
       return corrected_precursors;
     }
-
 
     set<Size> PrecursorCorrection::correctToNearestFeature(const FeatureMap& features,
                                                            MSExperiment & exp,
@@ -317,7 +323,7 @@ using namespace std;
 
       if (debug_level > 0)
       {
-        LOG_INFO << "Number of precursors with compatible features: " << scan_idx_to_feature_idx.size() << endl;
+        OPENMS_LOG_INFO << "Number of precursors with compatible features: " << scan_idx_to_feature_idx.size() << endl;
       }
 
       if (!all_matching_features)
@@ -397,7 +403,7 @@ using namespace std;
     {
       if (feature.getConvexHulls().empty())
       {
-        LOG_WARN << "HighResPrecursorMassCorrector warning: at least one feature has no convex hull - omitting feature for matching" << std::endl;
+        OPENMS_LOG_WARN << "HighResPrecursorMassCorrector warning: at least one feature has no convex hull - omitting feature for matching" << std::endl;
       }
 
       // get bounding box and extend by retention time tolerance
@@ -432,7 +438,7 @@ using namespace std;
       {
         if (debug_level > 1)
         {
-          LOG_INFO << "trace: " << (int)(trace + 0.5) << " feature_rt:" << feature.getRT() << " feature_mz:" << feature.getMZ() << " precursor_mz:" << pc_mz << endl;
+          OPENMS_LOG_INFO << "trace: " << (int)(trace + 0.5) << " feature_rt:" << feature.getRT() << " feature_mz:" << feature.getMZ() << " precursor_mz:" << pc_mz << endl;
         }
         return true;
       }
@@ -441,4 +447,5 @@ using namespace std;
         return false;
       }
     }
+}
 

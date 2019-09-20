@@ -53,7 +53,7 @@ namespace OpenMS
 
       The transition lists can be either comma- or tab-separated plain
       text files (CSV or TSV format).  Modifications should be provided in
-      UniMod format<sup>1</sup>, but can also be provided in TPP format.
+      UniMod format<sup>1</sup>, but can also be provided in TPP format. See also TransitionPQPFile.
 
       The following columns are required:
 
@@ -81,7 +81,7 @@ namespace OpenMS
         <table>
           <tr> <td BGCOLOR="#EBEBEB">TransitionGroupId**</td> <td>free text; synomys: TransitionGroupName, transition_group_id</td><td> designates the transition group [e.g. peptide] to which this transition belongs</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">TransitionId**</td> <td>free text; synonyms: TransitionName, transition_name </td> <td> needs to be unique for each transition [in this file]</td> </tr>
-          <tr> <td BGCOLOR="#EBEBEB">Decoy</td> <td>1: decoy, 0: target; synomys: decoy, isDecoy </td> <td> determines whether the transition is a decoy transition or not</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">Decoy</td> <td>1: decoy, 0: target; synomys: decoy, IsDecoy </td> <td> determines whether the transition is a decoy transition or not</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">PeptideGroupLabel</td> <td>free text </td> <td> designates to which peptide label group (as defined in MS:1000893) the peptide belongs to<sup>2</sup></td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">DetectingTransition</td> <td> 0 or 1; synonyms: detecting_transition</td> <td>1: use transition to detect peak group, 0: don't use transition for detection</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">IdentifyingTransition</td> <td> 0 or 1; synonyms: identifying_transition</td> <td>1: use transition for peptidoform inference using IPF, 0: don't use transition for identification</td> </tr>
@@ -163,7 +163,7 @@ protected:
       String group_id = ""; ///< Transition group identifier (grouping transitions of the same analyte)
       bool decoy = false; ///< Whether the transition is a decoy transition
       String PeptideSequence; ///< Peptide sequence (only AA sequence)
-      String ProteinName; ///< Protein identifier
+      std::vector<String> ProteinName; ///< List of protein identifiers
       String GeneName; ///< Gene identifier
       String Annotation; ///< Fragment ion annotation
       String FullPeptideName; ///< Full peptide sequence with UniMod modifications
@@ -180,7 +180,7 @@ protected:
       double drift_time = -1; ///< Ion mobility drift time
       int fragment_modification = 0; ///< Fragment modification
       String fragment_type; ///< Fragment type (e.g. "y" for a y7 ion)
-      String uniprot_id; ///< UniProt identifier of associated protein
+      std::vector<String> uniprot_id; ///< List of UniProt identifiers of associated proteins
       bool detecting_transition = true; ///< Whether to use transition to detect peak group,
       bool identifying_transition = false; ///< Whether to use transition for peptidoform inference using IPF
       bool quantifying_transition = true; ///< Whether to use transition to quantify peak group
@@ -301,7 +301,7 @@ private:
                            OpenMS::ReactionMonitoringTransition& rm_trans);
 
     /// Populate a new TargetedExperiment::Protein object from a row in the csv
-    void createProtein_(std::vector<TSVTransition>::iterator& tr_it,
+    void createProtein_(String protein_name, String uniprot_id,
                         OpenMS::TargetedExperiment::Protein& protein);
 
     /// Helper function to assign retention times to compounds and peptides

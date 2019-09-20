@@ -66,8 +66,8 @@ namespace OpenMS
 
     Changing any of the parameters will invalidate the S/N values (which will invoke a recomputation on the next request).
 
-    @note If more than 20 percent of windows have less than <i>min_required_elements</i> of elements, a warning is issued to <i>LOG_WARN</i> and noise estimates in those windows are set to the constant <i>noise_for_empty_window</i>.
-    @note If more than 1 percent of median estimations had to rely on the last(=rightmost) bin (which gives an unreliable result), a warning is issued to <i>LOG_WARN</i>.  In this case you should increase <i>max_intensity</i> (and optionally the <i>bin_count</i>). 
+    @note If more than 20 percent of windows have less than <i>min_required_elements</i> of elements, a warning is issued to <i>OPENMS_LOG_WARN</i> and noise estimates in those windows are set to the constant <i>noise_for_empty_window</i>.
+    @note If more than 1 percent of median estimations had to rely on the last(=rightmost) bin (which gives an unreliable result), a warning is issued to <i>OPENMS_LOG_WARN</i>.  In this case you should increase <i>max_intensity</i> (and optionally the <i>bin_count</i>). 
     @note You can disable logging this error by setting <i>write_log_messages</i> and read out the values 
 
 
@@ -388,7 +388,7 @@ protected:
       // warn if percentage of sparse windows is above 20%
       if (sparse_window_percent_ > 20 && write_log_messages_)
       {
-        LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
+        OPENMS_LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
                  << sparse_window_percent_
                  << "% of all windows were sparse. You should consider increasing 'win_len' or decreasing 'min_required_elements'"
                  << std::endl;
@@ -397,7 +397,7 @@ protected:
       // warn if percentage of possibly wrong median estimates is above 1%
       if (histogram_oob_percent_ > 1 && write_log_messages_)
       {
-        LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
+        OPENMS_LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
                  << histogram_oob_percent_
                  << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. "
                  << "You should consider increasing 'max_intensity' (and maybe 'bin_count' with it, to keep bin width reasonable)"

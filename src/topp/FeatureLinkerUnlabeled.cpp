@@ -325,12 +325,12 @@ protected:
       ++num_consfeat_of_size[cmit->size()];
     }
 
-    LOG_INFO << "Number of consensus features:" << endl;
+    OPENMS_LOG_INFO << "Number of consensus features:" << endl;
     for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
     {
-      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
+      OPENMS_LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
     }
-    LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
+    OPENMS_LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
 
     delete algorithm;
 

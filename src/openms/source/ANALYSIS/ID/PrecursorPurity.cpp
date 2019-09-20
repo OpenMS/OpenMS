@@ -64,7 +64,7 @@ namespace OpenMS
     }
 
     // std::cout << "Isolation window peaks: " << isolated_window.size();
-    // for (auto peak : isolated_window)
+    // for (const auto& peak : isolated_window)
     // {
     //   std::cout << " | " << peak.getMZ();
     // }
@@ -74,7 +74,7 @@ namespace OpenMS
     double total_intensity(0);
     double target_intensity(0);
     Size target_peak_count(0);
-    for (auto peak : isolated_window)
+    for (const auto& peak : isolated_window)
     {
       total_intensity += peak.getIntensity();
     }
@@ -124,7 +124,7 @@ namespace OpenMS
 
     // // std::cout << "noise peaks: ";
     // double noise_intensity(0);
-    // for (auto peak : isolated_window)
+    // for (const auto& peak : isolated_window)
     // {
     //   noise_intensity += peak.getIntensity();
     //   // std::cout << peak.getMZ() << " | ";
@@ -172,7 +172,7 @@ namespace OpenMS
     // if there is no MS1 before the first MS2, the spectra datastructure is not suitable for this function
     if (spectra[0].getMSLevel() == 2)
     {
-      LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Will be skipped!\n";
+      OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Will be skipped!\n";
       return purityscores;
     }
 

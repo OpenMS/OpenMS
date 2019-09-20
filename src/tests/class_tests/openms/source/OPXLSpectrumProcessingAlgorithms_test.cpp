@@ -41,6 +41,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 
 using namespace OpenMS;
 
@@ -110,9 +111,9 @@ START_SECTION(static void getSpectrumAlignmentFastCharge(
     p.setMZ(p.getMZ() + 0.00001);
   }
 
-  auto theo_2_it = getDataArrayByName(theo_spec_2.getIntegerDataArrays(), "Charges");
+  auto theo_2_it = getDataArrayByName(theo_spec_2.getIntegerDataArrays(), "charge");
   DataArrays::IntegerDataArray theo_2_charges = *theo_2_it;
-  auto exp_3_it = getDataArrayByName(exp_spec_3.getIntegerDataArrays(), "Charges");
+  auto exp_3_it = getDataArrayByName(exp_spec_3.getIntegerDataArrays(), "charge");
   DataArrays::IntegerDataArray exp_3_charges = *exp_3_it;
   DataArrays::IntegerDataArray dummy_charges;
 
@@ -128,46 +129,6 @@ START_SECTION(static void getSpectrumAlignmentFastCharge(
     TEST_REAL_SIMILAR(theo_spec_2[alignment2[i].first].getMZ(), exp_spec_3[alignment2[i].second].getMZ())
     TEST_REAL_SIMILAR((theo_spec_2[alignment2[i].first].getMZ() - exp_spec_3[alignment2[i].second].getMZ()) / theo_spec_2[alignment2[i].first].getMZ() / 1e-6, ppm_error_array[i])
   }
-
-END_SECTION
-
-START_SECTION(static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false))
-
-  Param param = specGen.getParameters();
-  param.setValue("add_isotopes", "true");
-  // TODO more than 2 not possible yet, update test after that is implemented
-  param.setValue("max_isotope", 3);
-  param.setValue("add_a_ions", "false");
-  param.setValue("add_losses", "false");
-  param.setValue("add_precursor_peaks", "false");
-  param.setValue("add_k_linked_ions", "false");
-  specGen.setParameters(param);
-
-  PeakSpectrum theo_spec_3;
-  AASequence peptide2 = AASequence::fromString("PEPTIDEVIDER");
-  specGen.getLinearIonSpectrum(theo_spec_3, peptide2, 3, true, 5);
-
-  PeakSpectrum deisotoped_spec = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(theo_spec_3, 1, 5, 50, true, true, 2);
-  std::vector<int> charge_counts(5, 0);
-
-  // since only two isotopic peaks are possible, the deisotoped spectrum must be half the size
-  TEST_EQUAL(deisotoped_spec.size(), theo_spec_3.size() / 2)
-  auto deiso_charges_it = getDataArrayByName(deisotoped_spec.getIntegerDataArrays(), "Charges");
-  DataArrays::IntegerDataArray deiso_charges = *deiso_charges_it;
-  auto deiso_iso_it = getDataArrayByName(deisotoped_spec.getIntegerDataArrays(), "NumIsoPeaks");
-  DataArrays::IntegerDataArray deiso_iso = *deiso_iso_it;
-
-  for (Size i = 0; i < deisotoped_spec.size(); ++i)
-  {
-    charge_counts[deiso_charges[i]-1]++;
-    TEST_EQUAL(deiso_iso[i], 2)
-  }
-  // 55 peaks, 11 for each charge from 1 to 5
-  TEST_EQUAL(charge_counts[0], 11)
-  TEST_EQUAL(charge_counts[1], 11)
-  TEST_EQUAL(charge_counts[2], 11)
-  TEST_EQUAL(charge_counts[3], 11)
-  TEST_EQUAL(charge_counts[4], 11)
 
 END_SECTION
 

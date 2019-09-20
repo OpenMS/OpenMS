@@ -45,9 +45,6 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) nogil except +
         void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) nogil except +
 
-        void filterHitsBySignificance(libcpp_vector[PeptideIdentification]& ids, double threshold_fraction) nogil except +
-        void filterHitsBySignificance(libcpp_vector[ProteinIdentification]& ids, double threshold_fraction) nogil except +
-
         void keepNBestHits(libcpp_vector[PeptideIdentification]& ids, Size n) nogil except +
         void keepNBestHits(libcpp_vector[ProteinIdentification]& ids, Size n) nogil except +
 
@@ -90,8 +87,6 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void removeDuplicatePeptideHits(libcpp_vector[PeptideIdentification]& peptides) nogil except +
 
         void filterHitsByScore(MSExperiment& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
-
-        void filterHitsBySignificance(MSExperiment& experiment, double peptide_threshold_fraction, double protein_threshold_fraction) nogil except +
 
         void keepNBestHits(MSExperiment& experiment, Size n) nogil except +
 

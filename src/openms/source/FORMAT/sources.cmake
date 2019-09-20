@@ -25,6 +25,7 @@ FileHandler.cpp
 FileTypes.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
+HDF5Connector.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
 IndexedMzMLFileLoader.cpp

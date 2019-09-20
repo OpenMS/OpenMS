@@ -194,7 +194,11 @@ protected:
     registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
     setValidFormats_("candidates_in", ListUtils::create<String>("featureXML"));
 
-    registerFullParam_(FeatureFinderIdentificationAlgorithm().getDefaults());
+    Param algo_with_subsection;
+    Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
+    subsection.remove("candidates_out");
+    algo_with_subsection.insert("", subsection);
+    registerFullParam_(algo_with_subsection);
   }
 
   ExitCodes main_(int, const char**) override
@@ -211,7 +215,7 @@ protected:
 
     FeatureFinderIdentificationAlgorithm ffid_algo;
     ffid_algo.getProgressLogger().setLogType(log_type_);
-    ffid_algo.setParameters(getParam_());
+    ffid_algo.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
 
     if (candidates_in.empty())
     {
@@ -224,11 +228,14 @@ protected:
       //-------------------------------------------------------------
       // load input
       //-------------------------------------------------------------
-      LOG_INFO << "Loading input data..." << endl;
+      OPENMS_LOG_INFO << "Loading input data..." << endl;
       MzMLFile mzml;
       mzml.setLogType(log_type_);
       mzml.getOptions().addMSLevel(1);
       mzml.load(in, ffid_algo.getMSData());
+
+      // annotate mzML file
+      features.setPrimaryMSRunPath({in}, ffid_algo.getMSData());
 
       vector<PeptideIdentification> peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
@@ -268,11 +275,6 @@ protected:
         ffid_algo.getChromatograms().clear(true);
       }
 
-      // annotate mzML file
-      StringList feature_msfile_ref;
-      feature_msfile_ref.push_back("file://" + in);
-      features.setPrimaryMSRunPath(feature_msfile_ref);
-
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
     }
     else
@@ -280,9 +282,9 @@ protected:
       //-------------------------------------------------------------
       // load feature candidates
       //-------------------------------------------------------------
-      LOG_INFO << "Reading feature candidates from a previous run..." << endl;
+      OPENMS_LOG_INFO << "Reading feature candidates from a previous run..." << endl;
       FeatureXMLFile().load(candidates_in, features);
-      LOG_INFO << "Found " << features.size() << " feature candidates in total."
+      OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
                << endl;
       ffid_algo.runOnCandidates(features);
     }
@@ -291,7 +293,7 @@ protected:
     // write output
     //-------------------------------------------------------------
 
-    LOG_INFO << "Writing final results..." << endl;
+    OPENMS_LOG_INFO << "Writing final results..." << endl;
     FeatureXMLFile().store(out, features);
 
 

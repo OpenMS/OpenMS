@@ -542,6 +542,13 @@ protected:
 
     if (!out.empty())
     {
+      if (!File::exists(mzid_temp))
+      {
+        OPENMS_LOG_ERROR << "Temporary output file '" << mzid_temp << "' was not created by MSGF+. Please set a debug level > 10 and re-run this tool to diagnose the problem." << endl;
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+
+
       if (getFlag_("legacy_conversion"))
       {
         // run TSV converter
@@ -699,7 +706,7 @@ protected:
             double score = elements[12].toDouble();
             UInt rank = 0; // set to 0 at the moment
             Int charge = elements[7].toInt();
-            PeptideHit hit(score, rank, charge, seq);
+            PeptideHit hit(score, rank, charge, std::move(seq));
             hit.addPeptideEvidence(evidence);
             pep_ident.insertHit(hit);
           }

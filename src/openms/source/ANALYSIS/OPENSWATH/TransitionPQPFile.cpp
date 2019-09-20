@@ -101,10 +101,17 @@ namespace OpenMS
     {
       select_gene = ", GENE.GENE_NAME AS gene_name ";
       select_gene_null = ", 'NA' AS gene_name ";
-      join_gene = "LEFT JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
-                  "LEFT JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
+      join_gene = "INNER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
+                  "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
     }
 
+    String select_annotation = "'' AS Annotation, ";
+    bool annotation_exists = SqliteConnector::columnExists(db, "TRANSITION", "ANNOTATION");
+    if (annotation_exists) select_annotation = "TRANSITION.ANNOTATION AS Annotation, ";
+
+    String select_adducts = "'' AS Adducts, ";
+    bool adducts_exists = SqliteConnector::columnExists(db, "COMPOUND", "ADDUCTS");
+    if (adducts_exists) select_adducts = "COMPOUND.ADDUCTS AS Adducts, ";
 
     // Get peptides
     select_sql = "SELECT " \
@@ -118,7 +125,7 @@ namespace OpenMS
                   "TRANSITION.DECOY AS decoy, " \
                   "PEPTIDE.UNMODIFIED_SEQUENCE AS PeptideSequence, " \
                   "PROTEIN_AGGREGATED.PROTEIN_ACCESSION AS ProteinName, " \
-                  "NULL AS Annotation, " \
+                  + select_annotation + \
                   "PEPTIDE.MODIFIED_SEQUENCE AS FullPeptideName, " \
                   "NULL AS CompoundName, " \
                   "NULL AS SMILES, " \
@@ -170,12 +177,12 @@ namespace OpenMS
                   "TRANSITION.DECOY AS decoy, " \
                   "NULL AS PeptideSequence, " \
                   "NULL AS ProteinName, " \
-                  "TRANSITION.ANNOTATION AS Annotation, " \
+                  + select_annotation + \
                   "NULL AS FullPeptideName, " \
                   "COMPOUND.COMPOUND_NAME AS CompoundName, " \
                   "COMPOUND.SMILES AS SMILES, " \
                   "COMPOUND.SUM_FORMULA AS SumFormula, " \
-                  "COMPOUND.ADDUCTS AS Adducts, " \
+                  + select_adducts + \
                   "PRECURSOR.CHARGE AS precursor_charge, " \
                   "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
                   "NULL AS label_type, " \
@@ -219,7 +226,10 @@ namespace OpenMS
       Sql::extractValue<std::string>(&mytransition.group_id, stmt, 6);
       Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 7);
       Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
-      Sql::extractValue<std::string>(&mytransition.ProteinName, stmt, 9);
+      if (sqlite3_column_type( stmt, 9 ) != SQLITE_NULL)
+      {
+        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 9 ))).split(';', mytransition.ProteinName);
+      }
       Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
       Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
       Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
@@ -234,7 +244,10 @@ namespace OpenMS
       Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 21);
       Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 22);
       Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
-      Sql::extractValue<std::string>(&mytransition.uniprot_id, stmt, 24);
+      if (sqlite3_column_type( stmt, 24 ) != SQLITE_NULL)
+      {
+        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 24 ))).split(';', mytransition.uniprot_id);
+      }
       Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
       Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);

@@ -90,7 +90,6 @@ namespace OpenMS
 
   MSSpectrum CachedmzML::getSpectrum(Size id)
   {
-    // OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
     OPENMS_PRECONDITION(id < getNrSpectra(), "Id cannot be larger than number of spectra");
 
     if ( !ifs_.seekg(spectra_index_[id]) )
@@ -108,7 +107,6 @@ namespace OpenMS
 
   MSChromatogram CachedmzML::getChromatogram(Size id)
   {
-    // OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
     OPENMS_PRECONDITION(id < getNrChromatograms(), "Id cannot be larger than number of chromatograms");
 
     if ( !ifs_.seekg(chrom_index_[id]) )

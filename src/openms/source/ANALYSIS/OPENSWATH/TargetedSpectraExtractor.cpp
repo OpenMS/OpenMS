@@ -168,7 +168,7 @@ namespace OpenMS
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
-        LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
       const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
@@ -177,7 +177,7 @@ namespace OpenMS
       const double mz_left_lim = spectrum_mz ? spectrum_mz - mz_tolerance : std::numeric_limits<double>::min();
       const double mz_right_lim = spectrum_mz ? spectrum_mz + mz_tolerance : std::numeric_limits<double>::max();
 
-      LOG_DEBUG << "annotateSpectra(): [" << i << "] (RT: " << spectrum_rt << ") (MZ: " << spectrum_mz << ")" << std::endl;
+      OPENMS_LOG_DEBUG << "annotateSpectra(): [" << i << "] (RT: " << spectrum_rt << ") (MZ: " << spectrum_mz << ")" << std::endl;
 
       for (Size j = 0; j < transitions.size(); ++j)
       {
@@ -191,8 +191,8 @@ namespace OpenMS
         if (target_rt >= rt_left_lim && target_rt <= rt_right_lim &&
             target_mz >= mz_left_lim && target_mz <= mz_right_lim)
         {
-          LOG_DEBUG << "annotateSpectra(): [" << j << "][" << transitions[j].getPeptideRef() << "]";
-          LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl << std::endl;
+          OPENMS_LOG_DEBUG << "annotateSpectra(): [" << j << "][" << transitions[j].getPeptideRef() << "]";
+          OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl << std::endl;
           MSSpectrum annotated_spectrum = spectrum;
           annotated_spectrum.setName(transitions[j].getPeptideRef());
           annotated_spectra.push_back(annotated_spectrum);
@@ -207,7 +207,7 @@ namespace OpenMS
         }
       }
     }
-    LOG_DEBUG << "annotateSpectra(): (input size: " << spectra.size() << ") (annotated spectra: " << annotated_spectra.size() << ")\n" << std::endl;
+    OPENMS_LOG_DEBUG << "annotateSpectra(): (input size: " << spectra.size() << ") (annotated spectra: " << annotated_spectra.size() << ")\n" << std::endl;
   }
 
   void TargetedSpectraExtractor::annotateSpectra(
@@ -286,7 +286,7 @@ namespace OpenMS
       picked_spectrum.clear(true);
     }
 
-    LOG_DEBUG << "pickSpectrum(): " << spectrum.getName() << " (input size: " <<
+    OPENMS_LOG_DEBUG << "pickSpectrum(): " << spectrum.getName() << " (input size: " <<
       spectrum.size() << ") (picked: " << picked_spectrum.size() << ")\n" << std::endl;
   }
 
@@ -353,7 +353,7 @@ namespace OpenMS
       if (compute_features)
       {
         // The intensity of a feature is (proportional to) its total ion count
-        // http://ftp.mi.fu-berlin.de/pub/OpenMS/develop-documentation/html/classOpenMS_1_1Feature.html
+        // http://www.openms.de/documentation/classOpenMS_1_1Feature.html
         features[i].setIntensity(score);
         features[i].setMetaValue("log10_total_tic", log10_total_tic);
         features[i].setMetaValue("inverse_avgFWHM", inverse_avgFWHM);
@@ -569,7 +569,7 @@ namespace OpenMS
       {
         warn_msg += std::to_string(idx) + " ";
       }
-      LOG_WARN << std:: endl << warn_msg << std::endl;
+      OPENMS_LOG_WARN << std:: endl << warn_msg << std::endl;
     }
   }
 
@@ -601,7 +601,7 @@ namespace OpenMS
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
-        LOG_WARN << "untargetedMatching(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+        OPENMS_LOG_WARN << "untargetedMatching(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
       Feature feature;

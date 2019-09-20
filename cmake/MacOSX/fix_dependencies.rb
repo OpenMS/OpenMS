@@ -70,7 +70,7 @@ def fixable(name, path)
     return false
   else
     filename = "#{path}/#{name}"
-    debug "#{filename}"
+    debug filename.to_s
     `otool -L #{filename} 2> /dev/null`
     return ($? >> 8) == 0
   end
@@ -132,7 +132,7 @@ def handleDependencies(otool_out, targetPath, currentLib)
       else
         _, libname = handleDyLib(fix_lib, $lib_dir)
       end
-      
+
       # fix loading of this library
       fixLoadPath(fix_lib, libname, currentLib)
     end
@@ -149,7 +149,7 @@ def copyLib(lib, targetPath)
   libBasename=File.basename(lib)
   # new path
   newPath="#{targetPath}/#{libBasename}"
-  
+
   if not File.exist?(newPath)
     debug "Copy #{libBasename} from #{lib} to #{targetPath}"
     `cp #{lib} #{targetPath}`
@@ -157,7 +157,7 @@ def copyLib(lib, targetPath)
   else
     debug "#{libBasename} exists in #{targetPath}"
   end
-    
+
   return newPath, libBasename
 end
 
@@ -166,7 +166,7 @@ def getFrameworkName(frameworkPath)
   # get framework path (name of dir containing .framework)
   frameworkDir=frameworkPath.gsub(/(.*\.framework).*/,'\1')
   frameworkName=frameworkDir.gsub(/(.*\/)([^\/]*\.framework)/,'\2')
-  return frameworkName  
+  return frameworkName
 end
 
 ###############################################################################
@@ -182,12 +182,12 @@ def copyFramework(frameworkPath, targetPath)
   frameworkName=frameworkDir.gsub(/(.*\/)([^\/]*\.framework)/,'\2')
 
   # the actual lib name
-  internFrameworkDir=frameworkPath.gsub(/(.*\.framework)\/(.*)/,'\2')  
+  internFrameworkDir=frameworkPath.gsub(/(.*\.framework)\/(.*)/,'\2')
   libname=frameworkName+'/'+internFrameworkDir
   # the new path
   newFrameworkPath="#{targetPath}/#{libname}"
 
-  if not File.exists?(targetPath + frameworkName)
+  if not File.exist?(targetPath + frameworkName)
     debug "Copy fw #{frameworkName} from #{frameworkDir} to #{targetPath}"
     `cp -r #{frameworkDir} #{targetPath}`
     # adjust rights
@@ -195,7 +195,7 @@ def copyFramework(frameworkPath, targetPath)
   else
     debug "fw #{frameworkName} already exists in #{targetPath}"
   end
-    
+
   return newFrameworkPath, libname
 end
 
@@ -211,23 +211,23 @@ def handleFramework(frameworkPath, targetPath)
     otool_out=`otool -L #{frameworkPath}`.strip.split(/\n/)
     # strips first two lines
     id, otool_out = extractInstallName(otool_out)
-    
+
     # update the install_name (-id)
     fixId(newFrameWorkPath,libname)
     debug "Handle FW #{frameworkPath} -> #{id}"
 
     # check the actual dependencies (lines 3++)
     handleDependencies(otool_out, targetPath, newFrameWorkPath)
-  
+
     # mark as processed
     $handledLibraries.add(libname)
   else
     debug "Already fixed #{libname}"
   end
-  
+
   # update ids of dependencies
   $currentIndent-=1
-  
+
   return newFrameWorkPath, libname
 end
 
@@ -243,42 +243,42 @@ def handleDyLib(dylibPath, targetPath)
     otool_out=`otool -L #{dylibPath}`.strip.split(/\n/)
     # strips first two lines
     id, otool_out = extractInstallName(otool_out)
-  
+
     # update install_name (-id) of current DyLib
     fixId(newDyLibPath,libname)
     debug "Handle DYLIB #{dylibPath} --> #{id}"
 
     # check the actual dependencies (lines 3++)
     handleDependencies(otool_out, targetPath, newDyLibPath)
-  
+
     # mark as processed
     $handledLibraries.add(libname)
   else
     debug "Already fixed #{libname}"
   end
-  
+
   # readjust
   $currentIndent-=1
-  
+
   return newDyLibPath,libname
 end
 
 ###############################################################################
 def handleBinary(binaryPath)
   $currentIndent+=1
-  
+
   debug "Fixing binary #{binaryPath}"
-  
+
   # no copy, no id change; juts run otool
   otool_out=`otool -L #{binaryPath}`.strip.split(/\n/)
 
   # remove 1st line containing the binary name
-  otool_out.delete_at(0) 
+  otool_out.delete_at(0)
 
-  # handle all referenced libraries and copy them if necessary to 
+  # handle all referenced libraries and copy them if necessary to
   # the lib ref path
   handleDependencies(otool_out, $lib_dir, binaryPath)
-  
+
   # readjust
   $currentIndent-=1
 end
@@ -305,11 +305,11 @@ usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STO
   specify the install-name-tool manually
 -l, --lib-path:
   the target path where the handled libraries should be stored and possibly already libraries exist
--b, --bin-path: 
+-b, --bin-path:
   the path were all the binaries that should be handled are located
--p, --plugin-path: 
+-p, --plugin-path:
   the path were optional plugin libraries like from QT5 are located
--e, --path-prefix: 
+-e, --path-prefix:
   the prefix that is added to the new install_name (default: @executable_path/)
 -v, --verbose:
   increase verbosity
@@ -318,7 +318,7 @@ usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STO
 opts.each do |opt, arg|
   case opt
     when '--help'
-      puts "#{usage}"
+      puts usage.to_s
     when '--install-name-tool'
       $install_name_tool = arg
       puts "Use #{install_name_tool} to fix binaries in #{bin}"
@@ -337,7 +337,7 @@ end
 
 if $lib_dir.nil?
   puts "Please provide at least a lib path"
-  puts "#{usage}"
+  puts usage.to_s
   exit 1
 elsif !$bin_dir.nil?
   $executableId = $executableId + $lib_dir.relative_path_from($bin_dir).to_s
@@ -385,4 +385,4 @@ if !$plugin_dir.nil?
     handleDyLib($plugin_dir + content, File.dirname($plugin_dir + content))
   end
 end
-  
+
