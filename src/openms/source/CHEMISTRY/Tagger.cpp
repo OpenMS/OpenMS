@@ -35,66 +35,143 @@
 #include <OpenMS/CHEMISTRY/Tagger.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/MATH/MiSC/MathFunctions.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
-  char Tagger::getAAByMass_(float m) const
+  std::string Tagger::getAAByMass_(float m) const
   {
      // fast check for border cases
-     if (m < min_gap_ || m > max_gap_) return ' ';
+     if (m < min_gap_ || m > max_gap_) return " ";
      const float delta = Math::ppmToMass(ppm_, m);
      auto left = mass2aa.lower_bound(m - delta);
-     //if (left == mass2aa.end()) return ' '; // cannot happen, since we checked boundaries above
-     if (fabs(left->first - m) < delta) return left->second;
-     return ' ';
-  }               
+     //if (left == mass2aa.end()) return " "; // cannot happen, since we checked boundaries above
 
-  void Tagger::getTag_(std::string & tag, const std::vector<float>& mzs, const size_t i, std::set<std::string>& tags) const 
+     // Check for multiple charges, prioritize lower charges (returns with the lowest charge with a match).
+     // This assumes both fragments had the same charge,
+     // but ignores whether ions in the longer sequence all have the same charge.
+     // This could lead to inconsistencies where an ion is considered to have different charges when compared to its left and right neighbors in the sequence (TODO?).
+     // This looks at the difference between two charged ions, so the proton mass is the same on both ions and can be ignored here.
+     for (size_t charge = min_charge_; charge <= max_charge_; ++charge)
+     {
+       double charged_m = m / charge;
+       if (fabs(left->first - charged_m) < delta) return left->second;
+     }
+     return " ";
+  }
+
+  void Tagger::getTag_(StringList & tag, const std::vector<float>& mzs, const size_t i, std::set<std::string>& tags) const
   {
     const size_t N = mzs.size();
     size_t j = i + 1;
     // recurse for all peaks in distance < max_gap
-    while (j < N) 
+    while (j < N)
     {
       if (tag.size() == max_tag_length_) { return; } // maximum tag size reached? - continue with next parent
 
       const float gap = mzs[j] - mzs[i];
       //cout << i << "\t" << j << "\t" << mzs[i] << "\t" << mzs[j] << "\t" << gap << endl;
       if (gap > max_gap_) { return; } // already too far away - continue with next parent
-      const char aa = getAAByMass_(gap);
-      if (aa == ' ') { ++j; continue; } // can't extend tag
-      tag += aa;
+      const std::string aa = getAAByMass_(gap);
+      if (aa == " ") { ++j; continue; } // can't extend tag
+      tag.push_back(aa);
       getTag_(tag, mzs, j, tags);
-      if (tag.size() >= min_tag_length_) tags.insert(tag);
-      tag.pop_back();  // remove last char
+      // each tag is build as a StringList, so that push_back(), pop_back() and size() work as intended even with modified residues, e.g. "M(Oxidation)"
+      // and then the tag is reported as a string by collapsing it here using concatenate()
+      if (tag.size() >= min_tag_length_) tags.insert(ListUtils::concatenate(tag));
+
+      // if aa is "L", then also add "I" as an alternative residue and extend the tag again
+      // this will add redundancy, (and redundant runtime) but we avoid dealing with J and ambigous matching to I and L later on
+      // TODO would it be more efficient to only generate tags with L and after they are finished make copies with L exchanged for I?
+      // TODO Then we would need to generate all possible combinations, if multiple L are in the tag
+      if (aa == "L")
+      {
+        tag.pop_back();
+        tag.push_back("I");
+        getTag_(tag, mzs, j, tags);
+      }
+      if (tag.size() >= min_tag_length_) tags.insert(ListUtils::concatenate(tag));
+      tag.pop_back();  // remove last string
       ++j;
-    }         
+    }
   }
 
-  Tagger::Tagger(size_t min_tag_length, float ppm, size_t max_tag_length)
+  Tagger::Tagger(size_t min_tag_length, float ppm, size_t max_tag_length, size_t min_charge, size_t max_charge, StringList fixedModNames, StringList varModNames)
   {
     ppm_ = ppm;
     min_tag_length_ = min_tag_length;
     max_tag_length_ = max_tag_length;
+    min_charge_ = min_charge;
+    max_charge_ = max_charge;
+
     const std::set<const Residue*> aas = ResidueDB::getInstance()->getResidues();
+
     for (const auto& r : aas)
     {
-      const char letter = r->getOneLetterCode()[0]; 
+      std::string letter;
+      letter += r->getOneLetterCode()[0];
+
+      // skip non-standard residues, could be made into a parameter (TODO?)
+      // "I" is skipped here and handled explicitly as an alternative to "L" in getTag_
+      if (letter == "B" || letter == "X" || letter == "Z" || letter == "O" || letter == "J" || letter == "I")
+      {
+        continue;
+      }
       const float mass = r->getMonoWeight(Residue::Internal);
       mass2aa[mass] = letter;
-      //cout << "Mass: " << mass << "\t" << letter << endl; 
+      std::cout << "TEST TAGGER added residue: " << letter << " | mass: " << mass << std::endl;
     }
+
+    // for fixed modifications, replace the unmodified residue with the modified one
+    for (String mod : fixedModNames)
+    {
+      const ResidueModification* rm = ModificationsDB::getInstance()->getModification(mod);
+      std::cout << "TEST TAGGER rm.getOrigin(): " << rm->getOrigin() << " | rm.getName(): " << rm->getName() << " | rm.getId(): " << rm->getId() << std::endl;
+      Residue r = *(ResidueDB::getInstance()->getResidue(rm->getOrigin()));
+      std::cout << "TEST TAGGER unmodified residue mass: " << r.getMonoWeight(Residue::Internal) << std::endl;
+      r.setModification(rm->getId());
+      std::cout << "TEST TAGGER modified residue mass: " << r.getMonoWeight(Residue::Internal) << std::endl;
+
+      for (std::map<float, std::string>::iterator it = mass2aa.begin(); it != mass2aa.end(); ++it)
+      {
+        if (it->second == std::string(1, rm->getOrigin()))
+        {
+          std::cout << "TEST TAGGER removed residue: " << it->second << std::endl;
+          mass2aa.erase(it);
+        }
+      }
+      const std::string name = rm->getOrigin() + std::string("(") + rm->getId() + std::string(")");
+      const float mass = r.getMonoWeight(Residue::Internal);
+      std::cout << "TEST TAGGER added residue: " << name << " | mass: " << mass << std::endl;
+      mass2aa[mass] = name;
+    }
+
+    // for variable modifications, add the modified residue to the list
+    for (String mod : varModNames)
+    {
+      const ResidueModification* rm = ModificationsDB::getInstance()->getModification(mod);
+      std::cout << "TEST TAGGER rm.getOrigin(): " << rm->getOrigin() << " | rm.getName(): " << rm->getName() << " | rm.getId(): " << rm->getId() << std::endl;
+      Residue r = *(ResidueDB::getInstance()->getResidue(rm->getOrigin()));
+      std::cout << "TEST TAGGER unmodified residue mass: " << r.getMonoWeight(Residue::Internal) << std::endl;
+      r.setModification(rm->getId());
+      std::cout << "TEST TAGGER modified residue mass: " << r.getMonoWeight(Residue::Internal) << std::endl;
+      const std::string name = rm->getOrigin() + std::string("(") + rm->getId() + std::string(")");
+      const float mass = r.getMonoWeight(Residue::Internal);
+      std::cout << "TEST TAGGER added residue: " << name << " | mass: " << mass << std::endl;
+      mass2aa[mass] = name;
+    }
+
     min_gap_ = mass2aa.begin()->first - Math::ppmToMass(ppm, mass2aa.begin()->first);
     max_gap_ = mass2aa.rbegin()->first + Math::ppmToMass(ppm, mass2aa.rbegin()->first);
   }
 
-  void Tagger::getTag(const std::vector<float>& mzs, std::set<std::string>& tags) const 
+  void Tagger::getTag(const std::vector<float>& mzs, std::set<std::string>& tags) const
   {
     // start peak
-    std::string tag;
+    StringList tag;
     if (min_tag_length_ > mzs.size()) return; // avoid segfault
-    
+
     for (size_t i = 0; i < mzs.size() - min_tag_length_; ++i)
     {
       getTag_(tag, mzs, i, tags);
@@ -110,7 +187,14 @@ namespace OpenMS
     std::vector<float> mzs;
     mzs.reserve(N);
     for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
-    getTag(mzs, tags); 
+    getTag(mzs, tags);
+  }
+  void Tagger::setMinCharge(size_t min_charge)
+  {
+    min_charge_ = min_charge;
+  }
+  void Tagger::setMaxCharge(size_t max_charge)
+  {
+    max_charge_ = max_charge;
   }
 }
-
