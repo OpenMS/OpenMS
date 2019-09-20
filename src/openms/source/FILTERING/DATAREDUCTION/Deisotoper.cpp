@@ -55,6 +55,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
                       bool annotate_charge,
                       bool annotate_iso_peak_count,
                       bool use_decreasing_model,
+                      unsigned int start_intensity_check,
                       bool add_up_intensity)
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
@@ -119,16 +120,6 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 
     for (int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
     {
-      // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
-      if (has_precursor_data)
-      {
-        double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS * q);
-        if (current_theo_mass > precursor_mass)
-        {
-          continue;
-        }
-      }
-
       // try to extend isotopes from mono-isotopic peak
       // if extension larger then min_isopeaks possible:
       //   - save charge q in mono_isotopic_peak[]
@@ -137,6 +128,17 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
       {
         bool has_min_isopeaks = true;
         const double tolerance_dalton = fragment_unit_ppm ? Math::ppmToMass(fragment_tolerance, current_mz) : fragment_tolerance;
+
+        // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
+        if (has_precursor_data)
+        {
+          double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS * q);
+          if (current_theo_mass > (precursor_mass + tolerance_dalton))
+          {
+            continue;
+          }
+        }
+
         extensions.clear();
         extensions.push_back(current_peak);
         for (unsigned int i = 1; i < max_isopeaks; ++i)
@@ -150,9 +152,12 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
           }
           else
           {
-            // Possible improvement: include proper averagine model filtering. for now start at the second peak to test hypothesis
+            // Possible improvement: include proper averagine model filtering
+            // for now start at the peak with i = start_intensity_check to test hypothesis
+            // if start_intensity_check = 0 or 1, start checking by comparing monoisotopic and second isotopic peak
+            // if start_intensity_check = 2, start checking by comparing second isotopic peak with the third, etc.
             // Note: this is a common approach used in several other search engines
-            if (use_decreasing_model && (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity()))
+            if (use_decreasing_model && (i >= start_intensity_check) && (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity()))
             {
               has_min_isopeaks = (i >= min_isopeaks);
               break;
