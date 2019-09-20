@@ -272,6 +272,14 @@ namespace OpenMS
        */
       static void isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta);
 
+      /**
+       * @brief Filters the list of candidates for cases that include at least one of the tags in at least one of the two sequences
+
+       * @param candidates The list of candidates as enumerated by e.g. collectPrecursorCandidates
+       * @param tags The list of tags for the current spectrum produced by the Tagger
+       */
+      static void filterCandidatesByTags(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, std::set<std::string>& tags);
+
     private:
 
       // helper function for enumerateCrossLinksAndMasses

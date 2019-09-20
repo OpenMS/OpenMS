@@ -1367,4 +1367,41 @@ namespace OpenMS
     }
   }
 
+  void OPXLHelper::filterCandidatesByTags(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, std::set<std::string>& tags)
+  {
+    std::vector <OPXLDataStructs::ProteinProteinCrossLink> filtered_candidates;
+    std::vector<bool> selection(candidates.size(), false);
+    
+    // brute force string comparisons for now
+    for (Size i = 0; i < candidates.size(); ++i)
+    {
+      bool candidate_added(false);
+      OPXLDataStructs::ProteinProteinCrossLink candidate = candidates[i];
+      String alpha = candidate.alpha->toUnmodifiedString();
+      String beta;
+      if (candidate.beta)
+      {
+        beta = candidate.beta->toUnmodifiedString();
+      }
+      for (std::string tag : tags)
+      {
+        if (candidate_added) continue;
+
+        if (alpha.hasSubstring(tag) || beta.hasSubstring(tag))
+        {
+          filtered_candidates.push_back(candidate);
+          candidate_added = true;
+          continue;
+        }
+        std::reverse(tag.begin(), tag.end());
+        if (alpha.hasSubstring(tag) || beta.hasSubstring(tag))
+        {
+          filtered_candidates.push_back(candidate);
+          candidate_added = true;
+        }
+      }
+    }
+    candidates = filtered_candidates;
+  }
+
 }
