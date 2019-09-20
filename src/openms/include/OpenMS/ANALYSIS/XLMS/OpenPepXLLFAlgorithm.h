@@ -167,6 +167,8 @@ private:
 
     Int number_top_hits_;
     String deisotope_mode_;
+    bool use_sequence_tags_;
+    Size sequence_tag_min_length_;
 
     String add_y_ions_;
     String add_b_ions_;
