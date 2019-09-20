@@ -162,7 +162,7 @@ namespace OpenMS
       mass2aa[mass] = name;
     }
 
-    min_gap_ = mass2aa.begin()->first - Math::ppmToMass(ppm, mass2aa.begin()->first);
+    min_gap_ = (mass2aa.begin()->first - Math::ppmToMass(ppm, mass2aa.begin()->first)) / max_charge_;
     max_gap_ = mass2aa.rbegin()->first + Math::ppmToMass(ppm, mass2aa.rbegin()->first);
   }
 
@@ -196,5 +196,6 @@ namespace OpenMS
   void Tagger::setMaxCharge(size_t max_charge)
   {
     max_charge_ = max_charge;
+    min_gap_ = (mass2aa.begin()->first - Math::ppmToMass(ppm_, mass2aa.begin()->first)) / max_charge_;
   }
 }
