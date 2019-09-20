@@ -148,9 +148,9 @@ private:
     const String& sequence_unmodified_str = peptide_hit_sequence.toUnmodifiedString();
     if (sequence_comparison_method == "substring") 
     {
-      for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
+      for (const String & s : whitelist)
       {
-        if (sequence_str.hasSubstring(*seq_it) || sequence_unmodified_str.hasSubstring(*seq_it))
+        if (sequence_str.hasSubstring(s) || sequence_unmodified_str.hasSubstring(s))
         {
           return true;
         }
@@ -158,9 +158,9 @@ private:
     } 
     else if (sequence_comparison_method == "exact")
     {
-      for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
+      for (const String & s : whitelist)
       {
-       if (sequence_str == *seq_it || sequence_unmodified_str ==  *seq_it)
+       if (sequence_str == s || sequence_unmodified_str == s)
        {
          return true;
        }
@@ -316,6 +316,7 @@ protected:
     registerFlag_("peak_options:sort_peaks", "Sorts the peaks according to m/z");
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file");
+    registerFlag_("peak_options:remove_empty", "Removes spectra and chromatograms without peaks.");
     registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
@@ -677,6 +678,19 @@ protected:
       if (remove_chromatograms)
       {
         exp.setChromatograms(vector<MSChromatogram >());
+      }
+
+      bool remove_empty = getFlag_("peak_options:remove_empty");
+      if (remove_empty)
+      {
+        auto& spectra = exp.getSpectra();
+        spectra.erase(
+          remove_if(spectra.begin(), spectra.end(), [](const MSSpectrum & s){ return s.empty();} )
+          ,spectra.end());
+        auto& chroms = exp.getChromatograms();
+        chroms.erase(
+          remove_if(chroms.begin(), chroms.end(), [](const MSChromatogram & c){ return c.empty();} )
+          ,chroms.end());
       }
 
       //-------------------------------------------------------------
