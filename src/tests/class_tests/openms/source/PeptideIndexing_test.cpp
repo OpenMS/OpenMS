@@ -272,7 +272,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   PeptideIndexing pi_7;
   Param p_7 = pi_7.getParameters();
   std::vector<FASTAFile::FASTAEntry> proteins_7 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "rev_Protein1" << "reverse_Protein");
-  PeptideIndexing::ExitCodes r_7 = pi_7.run(proteins_7, prot_ids_2, pep_ids_2);
+  pi_7.run(proteins_7, prot_ids_2, pep_ids_2);
   TEST_STRING_EQUAL(pi_7.getDecoyString(), "DECOY_");
   TEST_EQUAL(pi_7.isPrefix(), true);
 }
