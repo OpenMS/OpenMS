@@ -94,7 +94,7 @@ namespace OpenMS
       identifiers.insert(it->getIdentifier());
       it->sort();
 
-      if (!use_all_hits)
+      if (!use_all_hits && it->getHits().size() > 1)
       {
         it->getHits().resize(1);
       }
