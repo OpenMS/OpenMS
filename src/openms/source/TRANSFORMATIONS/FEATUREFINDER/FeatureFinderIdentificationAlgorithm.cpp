@@ -363,18 +363,20 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
     ChromatogramExtractor extractor;
     // extractor.setLogType(ProgressLogger::NONE);
-    vector<OpenSwath::ChromatogramPtr> chrom_temp;
-    vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-    extractor.prepare_coordinates(chrom_temp, coords, library_,
-                                  numeric_limits<double>::quiet_NaN(), false);
+    {
+      vector<OpenSwath::ChromatogramPtr> chrom_temp;
+      vector<ChromatogramExtractor::ExtractionCoordinates> coords;
+      extractor.prepare_coordinates(chrom_temp, coords, library_,
+          numeric_limits<double>::quiet_NaN(), false);
 
-    boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
-    OpenSwath::SpectrumAccessPtr spec_temp =
-      SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
-    extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
-                                   mz_window_ppm_, "tophat");
-    extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
-                                  chrom_data_.getChromatograms(), false);
+      boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
+      OpenSwath::SpectrumAccessPtr spec_temp =
+        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
+      extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+          mz_window_ppm_, "tophat");
+      extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+          chrom_data_.getChromatograms(), false);
+    }
 
     OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
               << " chromatogram(s)." << endl;

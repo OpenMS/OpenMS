@@ -884,7 +884,6 @@ protected:
       StringList feature_msfile_ref;
       feature_msfile_ref.push_back(mz_file);
       fm.setPrimaryMSRunPath(feature_msfile_ref);
-      feature_maps.push_back(fm);
 
       FeatureFinderIdentificationAlgorithm ffi;
       ffi.getMSData().swap(ms_centroided);
@@ -899,12 +898,21 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
+      FeatureMap tmp = fm;
       ffi.run(peptide_ids, 
         protein_ids, 
         ext_peptide_ids, 
         ext_protein_ids, 
-        feature_maps.back(), 
+        tmp,
         seeds);
+
+      for (auto & f : tmp)
+      {
+        f.clearMetaInfo();
+        f.setSubordinates({});
+        f.setConvexHulls({});
+      }
+      feature_maps.push_back(tmp);
       
       if (debug_level_ > 666)
       {
