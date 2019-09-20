@@ -90,6 +90,8 @@ PeakMap spectra;
 OpenPepXLLFAlgorithm search_algorithm;
 Param algo_param = search_algorithm.getParameters();
 algo_param.setValue("modifications:fixed", ListUtils::create<String>("Carbamidomethyl (C)"));
+algo_param.setValue("modifications:variable", ListUtils::create<String>("Oxidation (M)"));
+algo_param.setValue("algorithm:use_sequence_tags", "true");
 search_algorithm.setParameters(algo_param);
 
 // run algorithm
@@ -98,9 +100,14 @@ OpenPepXLLFAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spe
 TEST_EQUAL(exit_code, OpenPepXLLFAlgorithm::EXECUTION_OK)
 TEST_EQUAL(unprocessed_spectra.size(), 127)
 TEST_EQUAL(protein_ids.size(), 1)
-TEST_EQUAL(peptide_ids.size(), 5)
+TEST_EQUAL(peptide_ids.size(), 1)
 TEST_EQUAL(spectra.size(), 127)
-TEST_EQUAL(all_top_csms.size(), 5)
+TEST_EQUAL(all_top_csms.size(), 1)
+
+TEST_EQUAL(peptide_ids[0].getHits().size(), 1)
+TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(), 0.0904041)
+TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence().toString(), "IVEGLK(Xlink:DSS)FPNEFDELEIQGK")
+TEST_EQUAL(peptide_ids[0].getHits()[0].getMetaValue("sequence_beta"), "-")
 
 for (Size i = 0; i < peptide_ids.size(); i += 1)
 {
