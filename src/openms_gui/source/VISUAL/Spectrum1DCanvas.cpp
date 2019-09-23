@@ -1068,7 +1068,6 @@ namespace OpenMS
     Deisotoper::deisotopeAndSingleCharge(spec, 
       100,    // tolerance
       true,   // ppm 
-      "none", // no isotope model
       1, 6,   // min / max charge 
       false,  // keep only deisotoped
       3, 10,  // min / max isopeaks
@@ -1200,6 +1199,7 @@ namespace OpenMS
     }
 
     // sort spectra in ascending order of position (ensure that we sort all spectra as well as the currently
+    // TODO: check why this is need since we load data already sorted! 
     for (Size i = 0; i < getCurrentLayer_().getPeakData()->size(); ++i)
     {
       (*getCurrentLayer_().getPeakDataMuteable())[i].sortByPosition();

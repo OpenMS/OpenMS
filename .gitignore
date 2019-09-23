@@ -24,4 +24,6 @@ src/openms/.DS_Store
 contrib-build
 openms-build
 *.swp
+cmake-build-debug
+cmake-build-release
 

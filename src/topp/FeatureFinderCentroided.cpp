@@ -215,10 +215,17 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
-    features.setPrimaryMSRunPath(ms_runs);
 
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      features.setPrimaryMSRunPath({"file://" + File::basename(in)}, exp);
+    }
+    else
+    {
+      features.setPrimaryMSRunPath({in}, exp);
+    }    
+    
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);

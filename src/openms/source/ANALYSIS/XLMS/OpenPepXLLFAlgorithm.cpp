@@ -71,7 +71,7 @@ using namespace OpenMS;
   OpenPepXLLFAlgorithm::OpenPepXLLFAlgorithm()
     : DefaultParamHandler("OpenPepXLLFAlgorithm")
   {
-    defaults_.setValue("decoy_string", "decoy", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     StringList bool_strings = ListUtils::create<String>("true,false");
     defaults_.setValue("decoy_prefix", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
     defaults_.setValidStrings("decoy_prefix", bool_strings);
@@ -246,9 +246,8 @@ using namespace OpenMS;
     digestor.setEnzyme(enzyme_name_);
     digestor.setMissedCleavages(missed_cleavages_);
 
-    StringList ms_runs;
-    unprocessed_spectra.getPrimaryMSRunPath(ms_runs);
-    protein_ids[0].setPrimaryMSRunPath(ms_runs);
+    // TODO: this should probably be set in the tool where the input filename is available
+    protein_ids[0].setPrimaryMSRunPath({}, unprocessed_spectra);
 
     ProteinIdentification::SearchParameters search_params = protein_ids[0].getSearchParameters();
     String searched_charges((String(min_precursor_charge_)));
@@ -798,7 +797,7 @@ using namespace OpenMS;
 #endif
 
           DataArrays::IntegerDataArray num_iso_peaks_array;
-          auto num_iso_peaks_array_it = getDataArrayByName(spectrum.getIntegerDataArrays(), "NumIsoPeaks");
+          auto num_iso_peaks_array_it = getDataArrayByName(spectrum.getIntegerDataArrays(), "iso_peak_count");
           num_iso_peaks_array = *num_iso_peaks_array_it;
 
           OPXLHelper::isoPeakMeans(csm, num_iso_peaks_array, matched_spec_linear_alpha, matched_spec_linear_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta);
@@ -999,5 +998,8 @@ using namespace OpenMS;
     OPXLHelper::addProteinPositionMetaValues(peptide_ids);
     OPXLHelper::addBetaAccessions(peptide_ids);
     OPXLHelper::addXLTargetDecoyMV(peptide_ids);
+    OPXLHelper::removeBetaPeptideHits(peptide_ids);
+    OPXLHelper::computeDeltaScores(peptide_ids);
+    OPXLHelper::addPercolatorFeatureList(protein_ids[0]);
     return OpenPepXLLFAlgorithm::ExitCodes::EXECUTION_OK;
   }

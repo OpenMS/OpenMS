@@ -29,13 +29,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -456,13 +457,18 @@ namespace OpenMS
     bool meta_present = false;
     for (Size i = 0; i < spectra_.size(); ++i)
     {
-      if (spectra_[i].getFloatDataArrays().size() != 0 || spectra_[i].getIntegerDataArrays().size() != 0 || spectra_[i].getStringDataArrays().size() != 0)
+      if (spectra_[i].getFloatDataArrays().size() != 0 
+        || spectra_[i].getIntegerDataArrays().size() != 0 
+        || spectra_[i].getStringDataArrays().size() != 0)
       {
         meta_present = true;
       }
       spectra_[i].getStringDataArrays().clear();
+      spectra_[i].getStringDataArrays().shrink_to_fit();
       spectra_[i].getIntegerDataArrays().clear();
+      spectra_[i].getIntegerDataArrays().shrink_to_fit();
       spectra_[i].getFloatDataArrays().clear();
+      spectra_[i].getFloatDataArrays().shrink_to_fit();
     }
     return meta_present;
   }
@@ -507,18 +513,51 @@ namespace OpenMS
   @brief Returns the precursor spectrum of the scan pointed to by @p iterator
 
   If there is no precursor scan the past-the-end iterator is returned.
+  This assumes that precursors occur somewhere before the current spectrum
+  but not necessarily the first one from the last MS level (we double-check with
+  the annotated precursorList.
   */
   MSExperiment::ConstIterator MSExperiment::getPrecursorSpectrum(ConstIterator iterator) const
   {
+    // if we are after the end or at the beginning where we can't go "up"
     if (iterator == spectra_.end() || iterator == spectra_.begin())
     {
       return spectra_.end();
     }
     UInt ms_level = iterator->getMSLevel();
+
+    if (ms_level == 1) // assumes there is not level 0
+    {
+      return spectra_.end();
+    }
+
+    if (!iterator->getPrecursors().empty())
+    {
+      //TODO warn about taking first with the blocking LOG_WARN in such a central class?
+      //if (iterator->getPrecursors().size() > 1) ...
+
+      const auto precursor = iterator->getPrecursors()[0];
+      if (precursor.metaValueExists("spectrum_ref"))
+      {
+        String ref = precursor.getMetaValue("spectrum_ref");
+        auto tmp_spec_iter = iterator; // such that we can reiterate later
+        do
+        {
+          --tmp_spec_iter;
+          if ((ms_level - tmp_spec_iter->getMSLevel() == 1) && (tmp_spec_iter->getNativeID() == ref))
+          {
+            return tmp_spec_iter;
+          }
+        } while (tmp_spec_iter != spectra_.begin());
+      }
+    }
+
+    // if no precursor annotation was found or it did not have a spectrum reference,
+    // just
     do
     {
       --iterator;
-      if (iterator->getMSLevel() < ms_level)
+      if (ms_level - iterator->getMSLevel() == 1)
       {
         return iterator;
       }
@@ -629,7 +668,7 @@ namespace OpenMS
   //@}
 
   /// returns the total ion chromatogram (TIC)
-  const MSChromatogram MSExperiment::getTIC() const
+  const MSChromatogram MSExperiment::getTIC(float rt_bin_size) const
   {
     // The TIC is (re)calculated from the MS1 spectra. Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
     MSChromatogram TIC;
@@ -649,6 +688,14 @@ namespace OpenMS
         peak.setIntensity(totalIntensity);
         TIC.push_back(peak);
       }
+    }
+    if (rt_bin_size > 0)
+    {
+      LinearResamplerAlign lra;
+      Param param = lra.getParameters();
+      param.setValue("spacing", rt_bin_size);
+      lra.setParameters(param);
+      lra.raster(TIC);
     }
     return TIC;
   }

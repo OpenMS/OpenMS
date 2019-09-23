@@ -81,10 +81,10 @@ public:
    */
   struct PeakAnnotation
   {
-    String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
-    int charge;
-    double mz;
-    double intensity;
+    String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
+    int charge = 0;
+    double mz = -1.;
+    double intensity = 0.;
 
     bool operator<(const PeptideHit::PeakAnnotation& other) const
     {

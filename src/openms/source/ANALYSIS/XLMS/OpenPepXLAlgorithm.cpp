@@ -71,7 +71,7 @@ using namespace OpenMS;
   OpenPepXLAlgorithm::OpenPepXLAlgorithm()
     : DefaultParamHandler("OpenPepXLAlgorithm")
   {
-    defaults_.setValue("decoy_string", "decoy", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     StringList bool_strings = ListUtils::create<String>("true,false");
     defaults_.setValue("decoy_prefix", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
     defaults_.setValidStrings("decoy_prefix", bool_strings);
@@ -297,9 +297,8 @@ using namespace OpenMS;
     preprocessed_pair_spectra = OpenPepXLAlgorithm::preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift_, fragment_mass_tolerance_, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, deisotope);
     progresslogger.endProgress();
 
-    StringList ms_runs;
-    spectra.getPrimaryMSRunPath(ms_runs);
-    protein_ids[0].setPrimaryMSRunPath(ms_runs);
+    // TODO: this should probably be set in the tool where the input filename is available
+    protein_ids[0].setPrimaryMSRunPath({}, spectra);
 
     ProteinIdentification::SearchParameters search_params = protein_ids[0].getSearchParameters();
     String searched_charges((String(min_precursor_charge_)));
@@ -671,15 +670,15 @@ using namespace OpenMS;
           DataArrays::IntegerDataArray theo_charges_beta;
           DataArrays::IntegerDataArray exp_charges;
 
-          auto theo_alpha_it = getDataArrayByName(theoretical_spec_linear_alpha.getIntegerDataArrays(), "Charges");
+          auto theo_alpha_it = getDataArrayByName(theoretical_spec_linear_alpha.getIntegerDataArrays(), "charge");
           theo_charges_alpha = *theo_alpha_it;
           if (theoretical_spec_linear_beta.size() > 0)
           {
-            auto theo_beta_it = getDataArrayByName(theoretical_spec_linear_beta.getIntegerDataArrays(), "Charges");
+            auto theo_beta_it = getDataArrayByName(theoretical_spec_linear_beta.getIntegerDataArrays(), "charge");
             theo_charges_beta = *theo_beta_it;
           }
 
-          auto exp_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "Charges");
+          auto exp_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "charge");
           if (exp_it != linear_peaks.getIntegerDataArrays().end())
           {
             if (!exp_it->empty())
@@ -697,15 +696,15 @@ using namespace OpenMS;
           DataArrays::IntegerDataArray theo_charges_beta;
           DataArrays::IntegerDataArray exp_charges;
 
-          auto theo_alpha_it = getDataArrayByName(theoretical_spec_xlinks_alpha.getIntegerDataArrays(), "Charges");
+          auto theo_alpha_it = getDataArrayByName(theoretical_spec_xlinks_alpha.getIntegerDataArrays(), "charge");
           theo_charges_alpha = *theo_alpha_it;
           if (theoretical_spec_xlinks_beta.size() > 0)
           {
-            auto theo_beta_it = getDataArrayByName(theoretical_spec_xlinks_beta.getIntegerDataArrays(), "Charges");
+            auto theo_beta_it = getDataArrayByName(theoretical_spec_xlinks_beta.getIntegerDataArrays(), "charge");
             theo_charges_beta = *theo_beta_it;
           }
 
-          auto exp_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "Charges");
+          auto exp_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "charge");
           exp_charges = *exp_it;
 
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_alpha, xlink_peaks, theo_charges_alpha, exp_charges, ppm_error_array_xlinks_alpha);
@@ -875,11 +874,11 @@ using namespace OpenMS;
           // num_iso_peaks array from deisotoping
           if (deisotope)
           {
-            auto num_iso_peaks_array_it = getDataArrayByName(all_peaks.getIntegerDataArrays(), "NumIsoPeaks");
+            auto num_iso_peaks_array_it = getDataArrayByName(all_peaks.getIntegerDataArrays(), "iso_peak_count");
             DataArrays::IntegerDataArray num_iso_peaks_array = *num_iso_peaks_array_it;
-            auto num_iso_peaks_array_linear_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "NumIsoPeaks");
+            auto num_iso_peaks_array_linear_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "iso_peak_count");
             DataArrays::IntegerDataArray num_iso_peaks_array_linear = *num_iso_peaks_array_linear_it;
-            auto num_iso_peaks_array_xlinks_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "NumIsoPeaks");
+            auto num_iso_peaks_array_xlinks_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "iso_peak_count");
             DataArrays::IntegerDataArray num_iso_peaks_array_xlinks = *num_iso_peaks_array_xlinks_it;
 
             csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
@@ -1119,6 +1118,9 @@ using namespace OpenMS;
     OPXLHelper::addProteinPositionMetaValues(peptide_ids);
     OPXLHelper::addBetaAccessions(peptide_ids);
     OPXLHelper::addXLTargetDecoyMV(peptide_ids);
+    OPXLHelper::removeBetaPeptideHits(peptide_ids);
+    OPXLHelper::computeDeltaScores(peptide_ids);
+    OPXLHelper::addPercolatorFeatureList(protein_ids[0]);
     return OpenPepXLAlgorithm::ExitCodes::EXECUTION_OK;
   }
 
@@ -1153,7 +1155,7 @@ using namespace OpenMS;
       PeakSpectrum::IntegerDataArray spectrum_heavy_charges;
       PeakSpectrum::IntegerDataArray spectrum_light_iso_peaks;
 
-      auto spectrum_heavy_charges_it = getDataArrayByName(spectrum_heavy.getIntegerDataArrays(), "Charges");
+      auto spectrum_heavy_charges_it = getDataArrayByName(spectrum_heavy.getIntegerDataArrays(), "charge");
       if (spectrum_heavy_charges_it != spectrum_heavy.getIntegerDataArrays().end())
       {
         if (!spectrum_heavy_charges_it->empty())
@@ -1161,7 +1163,7 @@ using namespace OpenMS;
           spectrum_heavy_charges = *spectrum_heavy_charges_it;
         }
       }
-      auto spectrum_light_iso_peaks_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "NumIsoPeaks");
+      auto spectrum_light_iso_peaks_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "iso_peak_count");
       if (spectrum_light_iso_peaks_it != spectrum_light.getIntegerDataArrays().end())
       {
         if (!spectrum_light_iso_peaks_it->empty())
@@ -1173,13 +1175,13 @@ using namespace OpenMS;
       if (deisotope)
       {
         xlink_peaks.getIntegerDataArrays().resize(2);
-        xlink_peaks.getIntegerDataArrays()[0].setName("Charges");
-        xlink_peaks.getIntegerDataArrays()[1].setName("NumIsoPeaks");
+        xlink_peaks.getIntegerDataArrays()[0].setName("charge");
+        xlink_peaks.getIntegerDataArrays()[1].setName("iso_peak_count");
       }
       else
       {
         xlink_peaks.getIntegerDataArrays().resize(1);
-        xlink_peaks.getIntegerDataArrays()[0].setName("Charges");
+        xlink_peaks.getIntegerDataArrays()[0].setName("charge");
       }
 
       // keep track of matched peaks
@@ -1190,7 +1192,7 @@ using namespace OpenMS;
       {
         PeakSpectrum spectrum_heavy_to_light;
         PeakSpectrum::IntegerDataArray spectrum_heavy_to_light_charges;
-        spectrum_heavy_to_light_charges.setName("Charges");
+        spectrum_heavy_to_light_charges.setName("charge");
         double mass_shift = cross_link_mass_iso_shift / charge;
 
         // transform heavy spectrum
@@ -1262,15 +1264,15 @@ using namespace OpenMS;
 
       PeakSpectrum::IntegerDataArray spectrum_light_charges;
 
-      auto spectrum_light_charges_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "Charges");
+      auto spectrum_light_charges_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "charge");
       if (spectrum_light_charges_it != spectrum_light.getIntegerDataArrays().end())
       {
         if (!spectrum_light_charges_it->empty())
         {
           spectrum_light_charges = *spectrum_light_charges_it;
           linear_peaks.getIntegerDataArrays().resize(2);
-          linear_peaks.getIntegerDataArrays()[0].setName("Charges");
-          linear_peaks.getIntegerDataArrays()[1].setName("NumIsoPeaks");
+          linear_peaks.getIntegerDataArrays()[0].setName("charge");
+          linear_peaks.getIntegerDataArrays()[1].setName("iso_peak_count");
         }
       }
 

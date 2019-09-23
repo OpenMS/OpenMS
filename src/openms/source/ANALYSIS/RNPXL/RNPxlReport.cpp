@@ -54,7 +54,7 @@ namespace OpenMS
     {
       sl << accessions << RNA << peptide << String(charge) << String(score)
          << best_localization_score  << localization_scores << best_localization
-         << String::number(peptide_weight, 4) << String::number(RNA_weight, 4) 
+         << String::number(peptide_weight, 4) << String::number(RNA_weight, 4)
          << String::number(peptide_weight + RNA_weight, 4);
     }
 
@@ -236,7 +236,7 @@ namespace OpenMS
           }
 
           ph.setMetaValue("NuXL:Da difference", (double)absolute_difference);
-          ph.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, (double)ppm_difference);
+          ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, (double)ppm_difference);
           ph.setMetaValue("NuXL:z1 mass", (double)weight_z1);
           ph.setMetaValue("NuXL:z2 mass", (double)weight_z2);
           ph.setMetaValue("NuXL:z3 mass", (double)weight_z3);
@@ -247,19 +247,19 @@ namespace OpenMS
 /*
           // In the last annotation step we add the oligo as delta mass modification
           // to get the proper theoretical mass annotated in the PeptideHit
-          // Try to add it to the C- then N-terminus. 
+          // Try to add it to the C- then N-terminus.
           // If already modified search for an unmodified amino acid and add it there
           if (rna_weight > 0)
           {
             AASequence aa = ph.getSequence();
             const String seq = ph.getSequence().toString();
 
-            if (!aa.hasCTerminalModification()) 
+            if (!aa.hasCTerminalModification())
             {
               aa = AASequence::fromString(seq + ".[" + String(rna_weight + Residue::getInternalToCTerm().getMonoWeight()) + "]");
               ph.setSequence(aa);
             }
-            else if (!aa.hasNTerminalModification()) 
+            else if (!aa.hasNTerminalModification())
             {
               aa = AASequence::fromString("[" + String(rna_weight + Residue::getInternalToNTerm().getMonoWeight()) + "]." + seq);
               ph.setSequence(aa);

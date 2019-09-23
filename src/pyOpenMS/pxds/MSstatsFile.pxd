@@ -5,6 +5,7 @@ from ConsensusMap cimport *
 from ExperimentalDesign cimport *
 from StringList cimport *
 
+
 cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
 
     cdef cppclass MSstatsFile:

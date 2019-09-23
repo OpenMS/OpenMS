@@ -69,4 +69,3 @@ source_group("Source Files\\VISUAL" FILES ${sources})
 QT5_ADD_RESOURCES(qt_resource_file source/VISUAL/ICONS/resources.qrc)
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${qt_resource_file})
 set_property(SOURCE ${qt_resource_file} PROPERTY SKIP_AUTOGEN ON)
-

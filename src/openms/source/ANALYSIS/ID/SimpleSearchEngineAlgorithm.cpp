@@ -193,9 +193,7 @@ namespace OpenMS
 
     NLargest nlargest_filter = NLargest(400);
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+#pragma omp parallel for default(none) shared(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // sort by mz
@@ -204,7 +202,6 @@ namespace OpenMS
       // deisotope
       Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
         fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
-        "decreasing", // model
         1, 3,   // min / max charge 
         false,  // keep only deisotoped
         3, 10,  // min / max isopeaks 
@@ -225,8 +222,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       std::vector<ProteinIdentification>& protein_ids, 
       std::vector<PeptideIdentification>& peptide_ids, 
       Size top_hits,
-      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
-      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
       Size max_variable_mods_per_peptide,
       const StringList& modifications_fixed,
       const StringList& modifications_variable,
@@ -241,9 +238,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       const String& database_name)
   {
     // remove all but top n scoring
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+#pragma omp parallel for default(none) shared(annotated_hits, top_hits)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       // sort and keeps n best elements according to score
@@ -253,9 +248,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotated_hits.shrink_to_fit();
     }
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+#pragma omp parallel for default(none) shared(annotated_hits, exp, fixed_modifications, variable_modifications, peptide_ids, max_variable_mods_per_peptide)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
@@ -293,9 +286,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         pi.setHits(phs);
         pi.assignRanks();
 
-#ifdef _OPENMP
 #pragma omp critical (peptide_ids_access)
-#endif
         {
           //clang-tidy: seems to be a false-positive in combination with omp
           peptide_ids.push_back(std::move(pi));
@@ -431,11 +422,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     set<StringView> processed_petides;
 
-    std::atomic<Size> count_proteins(0), count_peptides(0);
+    Size count_proteins(0), count_peptides(0);
 
-    #pragma omp parallel for schedule(static)
-    for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
-    {
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, spectrum_generator, multimap_mass_2_scan_index, fixed_modifications, variable_modifications, fasta_db, digestor, processed_petides, count_proteins, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, count_peptides, peptide_motif_regex, spectra, annotated_hits_lock)
+      for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
+      {
+
+#pragma omp atomic
       ++count_proteins;
 
       IF_MASTERTHREAD
@@ -580,9 +573,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     endProgress();
 
     // add meta data on spectra file
-    StringList ms_runs;
-    spectra.getPrimaryMSRunPath(ms_runs);
-    protein_ids[0].setPrimaryMSRunPath(ms_runs);
+    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
 
     // reindex peptides to proteins
     PeptideIndexing indexer;
@@ -621,5 +612,5 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     return ExitCodes::EXECUTION_OK;
   }
 
-} // namespace
+} // namespace OpenMS
 

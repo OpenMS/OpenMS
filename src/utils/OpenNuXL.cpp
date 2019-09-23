@@ -1762,12 +1762,13 @@ static void scoreXLIons_(
       // deisotope
       Deisotoper::deisotopeAndSingleCharge(spec, 
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
-                                         "none",
                                          1, 3, 
                                          false, 
                                          2, 10, 
                                          single_charge_spectra, 
-                                         annotate_charge);
+                                         annotate_charge,
+                                         false, // no iso peak count annotation
+                                         false); // no isotope model
 
       if (annotate_charge)
       { 
@@ -2886,7 +2887,8 @@ static void scoreXLIons_(
       ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[1][0]);
       // proportion of longest amino acid tag to identified sequence size
 //      ph.setMetaValue("NuXL:aminoacid_max_tag", (double)spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] / (double)s.size());
-      ph.setMetaValue("NuXL:aminoacid_max_tag", (double)spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] / ((double)s.size()*ah.ladder_score));
+      ph.setMetaValue("NuXL:aminoacid_max_tag", spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0]);
+      ph.setMetaValue("NuXL:aminoacid_id_to_max_tag_ratio", (ah.ladder_score * s.size()) / (double)spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0]);
       ph.setMetaValue("nr_candidates", nr_candidates[scan_index]);
       ph.setMetaValue("NuXL:rank_product", ah.rank_product);
       ph.setMetaValue("NuXL:wTop50", ah.wTop50);
@@ -3047,6 +3049,7 @@ static void scoreXLIons_(
        << "NuXL:tag_unshifted"
        << "NuXL:tag_shifted"
        << "NuXL:aminoacid_max_tag"
+       << "NuXL:aminoacid_id_to_max_tag_ratio"
        << "nr_candidates"
        << "NuXL:rank_product"
        << "NuXL:wTop50";
@@ -3491,7 +3494,7 @@ static void scoreXLIons_(
     size_t tag_XLed = 0;  // tag that contains the transition from unshifted to shifted
   };
 
-  XLTags getLongestTagWithShift(const vector<double>& intL, const vector<double>& intXL)
+  XLTags getLongestLadderWithShift(const vector<double>& intL, const vector<double>& intXL)
   {
     // calculate longest consecutive unshifted / shifted sequence and longest sequence spanning unshifted + shifted residues
     XLTags tags;             
@@ -3549,13 +3552,13 @@ static void scoreXLIons_(
       // calculate maximum tag that spans linear intensities and at least one XLed amino acid for prefix ions
       for (Size i = 0; i < intXL.size() - 1; ++i)
       {
-        if (prefixRunX[i + 1] == 0 || prefixRunL[i] == 0) continue; // must have one cross-linked amino acid next to non-cross-linked amino acid
+        if ( prefixRunL[i] == 0 || prefixRunX[i + 1] == 0) continue; // must have one cross-linked amino acid next to non-cross-linked amino acid
         const size_t tag_length = prefixRunL[i] + prefixRunX[i + 1]; // tag length if cross-link is introduced at amino acid i+1
         if (tag_length > maximum_tag_length) maximum_tag_length = tag_length; 
       }
 
       // same for suffix ions
-      for (Size i = 1; i <= intXL.size() - 1; ++i)
+      for (Size i = 0; i < intXL.size() - 1; ++i)
       {
         if (suffixRunX[i] == 0 || suffixRunL[i + 1] == 0) continue; // must have one cross-linked amino acid next to non-cross-linked amino acid
         const size_t tag_length = suffixRunX[i] + suffixRunL[i + 1]; // tag length with cross-linked part and non-cross-linked
@@ -4030,7 +4033,7 @@ static void scoreXLIons_(
                   ah.rank_product = rankscores.rp;
                   ah.wTop50 = rankscores.wTop50;
 
-                  const XLTags longest_tags = getLongestTagWithShift(intensity_linear, vector<double>());
+                  const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, vector<double>());
 
                   if (longest_tags.tag_unshifted == 0) continue;
 
@@ -4257,7 +4260,7 @@ static void scoreXLIons_(
                       ah.sequence_score = ladderScore_(range) / (double)intensity_linear.size();
                     }
 
-                    const XLTags longest_tags = getLongestTagWithShift(intensity_linear, intensity_xls);
+                    const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, intensity_xls);
 
                     RankScores rankscores = rankScores_(exp_spectrum, peak_matched);
                     ah.rank_product = rankscores.rp;
@@ -4461,7 +4464,7 @@ static void scoreXLIons_(
        if (peptide_ids[index].getHits()[0].getMetaValue("target_decoy") == "target"
         && (double)peptide_ids[index].getHits()[0].getMetaValue("NuXL:total_loss_score") > 15.0) // not too bad score
        {
-         double ppm_error = peptide_ids[index].getHits()[0].getMetaValue(OpenMS::Constants::PRECURSOR_ERROR_PPM_USERPARAM);
+         double ppm_error = peptide_ids[index].getHits()[0].getMetaValue(OpenMS::Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
          map_index2ppm[peptide_ids[index].getHits()[0].getScore()] = ppm_error; 
          mean += ppm_error;
          ++i;
@@ -4474,23 +4477,23 @@ static void scoreXLIons_(
        sd += pow(m.second - mean, 2.0);
     }
     sd = sqrt(1.0/(double)i * sd);
-    cout << "mean ppm error: " << mean << " sd: " << sd << " 3*sd: " << 3*sd << endl;
+    cout << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << endl;
 
     // as we are dealing with a very large search space, filter out all identifications with mass error > 5 *sd
-    
     for (size_t index = 0; index != peptide_ids.size(); ++index)
     {
       vector<PeptideHit>& phs = peptide_ids[index].getHits();
       if (phs.empty()) continue;
-      phs.erase(
-        std::remove_if(phs.begin(), phs.end(),
+      
+      auto new_end = std::remove_if(phs.begin(), phs.end(),
           [&sd, &mean](const PeptideHit & ph) 
         { 
-         return fabs((double)ph.getMetaValue(OpenMS::Constants::PRECURSOR_ERROR_PPM_USERPARAM)) - fabs(mean) > 5*sd; 
-        }),  
-      phs.end());
+         return fabs((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM)) - fabs(mean) > 5.0*sd; 
+        });
+      phs.erase(new_end, phs.end());
     }
-
+    IDFilter::removeEmptyIdentifications(peptide_ids);
+ 
     map_index2ppm.clear(); 
 
     if (generate_decoys) 
