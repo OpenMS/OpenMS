@@ -541,6 +541,7 @@ set(analysis_executables_list
   SimpleSVM_test
   StablePairFinder_test
   PercolatorFeatureSetHelper_test
+  Tagger_test
   TransformationDescription_test
   TransformationModel_test
   TransformationModelBSpline_test
