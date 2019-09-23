@@ -417,6 +417,7 @@ using namespace OpenMS;
 
       if (use_sequence_tags_)
       {
+        // TODO some spectra have 0 candidates before filtering but many long sequence tags. Check for at least 10 candidates before using tagger?
         tagger.setMaxCharge(precursor_charge);
         std::set<std::string> tags;
         tagger.getTag(spectrum, tags);
