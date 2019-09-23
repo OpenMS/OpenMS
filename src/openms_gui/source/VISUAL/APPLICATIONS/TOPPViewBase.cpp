@@ -1239,13 +1239,15 @@ namespace OpenMS
         bool parsing_success = false;
         if (type == FileTypes::MZML)
         {
-          MzMLFile f;
-          on_disc_peaks->openFile(filename);
 
+          // Load index only and check success (is it indexed?)
+          MzMLFile f;
           Internal::IndexedMzMLHandler indexed_mzml_file_;
           indexed_mzml_file_.openFile(filename);
           if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
           {
+            // If it has an index, now load index and meta data
+            on_disc_peaks->openFile(filename, false);
             OPENMS_LOG_INFO << "INFO: will use cached MS2 spectra" << std::endl;
             if (cache_ms1_on_disc)
             {

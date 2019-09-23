@@ -71,7 +71,7 @@ using namespace OpenMS;
   OpenPepXLAlgorithm::OpenPepXLAlgorithm()
     : DefaultParamHandler("OpenPepXLAlgorithm")
   {
-    defaults_.setValue("decoy_string", "decoy", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     StringList bool_strings = ListUtils::create<String>("true,false");
     defaults_.setValue("decoy_prefix", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
     defaults_.setValidStrings("decoy_prefix", bool_strings);
@@ -297,9 +297,8 @@ using namespace OpenMS;
     preprocessed_pair_spectra = OpenPepXLAlgorithm::preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift_, fragment_mass_tolerance_, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, deisotope);
     progresslogger.endProgress();
 
-    StringList ms_runs;
-    spectra.getPrimaryMSRunPath(ms_runs);
-    protein_ids[0].setPrimaryMSRunPath(ms_runs);
+    // TODO: this should probably be set in the tool where the input filename is available
+    protein_ids[0].setPrimaryMSRunPath({}, spectra);
 
     ProteinIdentification::SearchParameters search_params = protein_ids[0].getSearchParameters();
     String searched_charges((String(min_precursor_charge_)));
@@ -1119,6 +1118,9 @@ using namespace OpenMS;
     OPXLHelper::addProteinPositionMetaValues(peptide_ids);
     OPXLHelper::addBetaAccessions(peptide_ids);
     OPXLHelper::addXLTargetDecoyMV(peptide_ids);
+    OPXLHelper::removeBetaPeptideHits(peptide_ids);
+    OPXLHelper::computeDeltaScores(peptide_ids);
+    OPXLHelper::addPercolatorFeatureList(protein_ids[0]);
     return OpenPepXLAlgorithm::ExitCodes::EXECUTION_OK;
   }
 

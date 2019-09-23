@@ -19,6 +19,7 @@
 				<UserParam type="float" name="q-value" value="0.0"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="0"/>
+			<UserParam type="float" name="precursor_intensity" value="3.688524e06"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

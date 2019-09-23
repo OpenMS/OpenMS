@@ -326,7 +326,7 @@ namespace OpenMS
         pair<vector<PeptideHit>, IdentificationData::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
-    const String& ppm_error_name = Constants::PRECURSOR_ERROR_PPM_USERPARAM;
+    const String& ppm_error_name = Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
 
     for (const IdentificationData::MoleculeQueryMatch& query_match :
            id_data.getMoleculeQueryMatches())

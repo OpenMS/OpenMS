@@ -105,7 +105,6 @@ namespace OpenMS
                   "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
     }
 
-
     // Get peptides
     select_sql = "SELECT " \
                   "PRECURSOR.PRECURSOR_MZ AS precursor, " \
@@ -219,7 +218,10 @@ namespace OpenMS
       Sql::extractValue<std::string>(&mytransition.group_id, stmt, 6);
       Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 7);
       Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
-      Sql::extractValue<std::string>(&mytransition.ProteinName, stmt, 9);
+      if (sqlite3_column_type( stmt, 9 ) != SQLITE_NULL)
+      {
+        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 9 ))).split(';', mytransition.ProteinName);
+      }
       Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
       Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
       Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
@@ -234,7 +236,10 @@ namespace OpenMS
       Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 21);
       Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 22);
       Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
-      Sql::extractValue<std::string>(&mytransition.uniprot_id, stmt, 24);
+      if (sqlite3_column_type( stmt, 24 ) != SQLITE_NULL)
+      {
+        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 24 ))).split(';', mytransition.uniprot_id);
+      }
       Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
       Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);

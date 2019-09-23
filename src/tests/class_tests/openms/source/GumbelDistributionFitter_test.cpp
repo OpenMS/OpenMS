@@ -34,9 +34,10 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-
+#include <OpenMS/FORMAT/CsvFile.h>
 ///////////////////////////
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
+#include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -178,6 +179,33 @@ p->b = 2.2;
 GumbelDistributionFitter::GumbelDistributionFitResult obj = *p;
 TEST_REAL_SIMILAR(obj.a, 3.0)
 TEST_REAL_SIMILAR(obj.b, 2.2)
+END_SECTION
+
+START_SECTION(MLE)
+        vector<double> rand_score_vector;
+
+        CsvFile gumbeldata (OPENMS_GET_TEST_DATA_PATH("Gumbel_1D.csv"));
+        StringList gumbeldata_strings;
+        gumbeldata.getRow(0, gumbeldata_strings);
+
+        // Load mixture of Gumbel and Gaussian (1D) from provided csv
+        for (StringList::const_iterator it = gumbeldata_strings.begin(); it != gumbeldata_strings.end(); ++it)
+        {
+          if(!it->empty())
+          {
+            rand_score_vector.push_back(it->toDouble());
+          }
+        }
+        vector<double> w (rand_score_vector.size(),1.0);
+
+        TEST_EQUAL(rand_score_vector.size(),1200)
+
+        GumbelMaxLikelihoodFitter gmlf({4.0,2.0});
+
+        auto res = gmlf.fitWeighted(rand_score_vector, w);
+        TEST_REAL_SIMILAR(res.a, 2)
+        TEST_REAL_SIMILAR(res.b, 0.6)
+
 END_SECTION
 
 

@@ -49,9 +49,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
-#ifdef _OPENMP
-#endif
-
 #define BUFFER_LENGTH 32768
 
 using namespace std;
@@ -315,10 +312,9 @@ namespace OpenMS
     int LogStreamBuf::sync()
     {
       int ret = 0;
-      #pragma omp critical (LOGSTREAM)
-      {
+
         ret = syncLF_();
-      }
+      
       return ret;
     }
 
@@ -550,16 +546,6 @@ namespace OpenMS
 
   }   // namespace Logger
 
-
-  template <typename T>
-  Logger::LogStream& operator<<(Logger::LogStream& mylog, const T& v)
-  {
-    #pragma omp critical (LOGSTREAM)
-    {
-      static_cast<std::ostream &>(mylog) << v;
-    };
-    return mylog;
-  }
 
   // global StreamHandler
   OPENMS_DLLAPI StreamHandler STREAM_HANDLER;

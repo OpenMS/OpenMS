@@ -54,7 +54,7 @@ namespace OpenMS
 {
 /**
       @brief Data model of MzTab files.
-      
+
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO
@@ -939,7 +939,7 @@ public:
     static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromVariableModifications(const std::vector<String>& mods);
 
     static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const std::vector<String>& mods);
- 
+
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename);
 
     /**
@@ -949,12 +949,12 @@ public:
       *
       * @param[IN] prot_ids Data structure containing protein identifications
       * @param[IN] peptide_ids Data structure containing peptide identifications
-      * @param[IN] filename Input idXML file name 
-      * @param[IN] first_run_inference_only Is all protein inference information stored in the first run? 
+      * @param[IN] filename Input idXML file name
+      * @param[IN] first_run_inference_only Is all protein inference information stored in the first run?
       * @param[OUT] map_run_fileidx_2_msfileidx Mapping from (run index, input file index) to experimental design file index. The experimental design file index is either given, or a simplified version created from the input file index on the fly.
       * @param[OUT] idrun_2_run_index Mapping from protein identification identifier (search engine + date) to run index, i.e. for storing file origins from different runs
       *
-      * @return mzTab object 
+      * @return mzTab object
     */
     static MzTab exportIdentificationsToMzTab(
         const std::vector<ProteinIdentification>& prot_ids,
@@ -964,7 +964,7 @@ public:
         std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
         std::map<String, size_t>& idrun_2_run_index);
 
-    /// Generate MzTab style list of PTMs from AASequence object. 
+    /// Generate MzTab style list of PTMs from AASequence object.
     /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
     /// In contrast, all modifications are reported in the PSM section (see standard document for details).
     static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
@@ -973,16 +973,17 @@ public:
 		 * @brief export linked peptide features aka consensus map
 		 *
 		 * @param consensus_map		data structure of the linked peptide features
-		 * @param filename		input consensusXML file name 
+		 * @param filename		input consensusXML file name
 		 * @param export_unidentified_features		Should not identified peptide features be exported?
 		 * @param export_unassigned_ids		Should unassigned identifications be exported?
 		 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
 		 *
-		 * @return mzTab object 
+		 * @return mzTab object
 		 */
     static MzTab exportConsensusMapToMzTab(
-      const ConsensusMap & consensus_map, 
+      const ConsensusMap & consensus_map,
       const String & filename,
+      const bool first_run_inference_only,
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
       const bool export_subfeatures,
@@ -1012,6 +1013,7 @@ public:
       return names;
     }
 
+    static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
 
     MzTabMetaData meta_data_;
     MzTabProteinSectionRows protein_data_;

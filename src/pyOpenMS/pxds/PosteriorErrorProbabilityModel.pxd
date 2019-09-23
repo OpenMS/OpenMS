@@ -1,5 +1,6 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp cimport bool
+from libcpp.pair cimport pair as libcpp_pair
 
 from Types cimport *
 from DefaultParamHandler cimport *
@@ -29,24 +30,15 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         bool fit(libcpp_vector[double] & search_engine_scores) nogil except +
         bool fit(libcpp_vector[double] & search_engine_scores, libcpp_vector[double] & probabilities) nogil except +
 
-        #Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorreclty assigned seqeuences.
+        #Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
         void fillDensities(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
-        #computes the Maximum Likelihood with a log-likelihood funciotn.
-        double computeMaxLikelihood(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
+        void fillLogDensities(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
 
-        #sums (1 - posterior porbabilities)
-        double one_minus_sum_post(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
-        #sums  posterior porbabilities
-        double sum_post(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
-        #helper function for the EM algorithm (for fitting)
-        double sum_pos_x0(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
-        #helper function for the EM algorithm (for fitting)
-        double sum_neg_x0(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
-        #helper function for the EM algorithm (for fitting)
-        double sum_pos_sigma(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density, double positive_mean) nogil except +
-        #helper function for the EM algorithm (for fitting)
-        double sum_neg_sigma(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density, double positive_mean) nogil except +
+        #computes the Maximum Likelihood with a log-likelihood function.
+        double computeLogLikelihood(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
 
+        libcpp_pair[ double, double ] pos_neg_mean_weighted_posteriors(libcpp_vector[double] &x_scores,
+                                                                 libcpp_vector[double] &incorrect_posteriors);
         #returns estimated parameters for correctly assigned sequences. Fit should be used before.
         GaussFitResult getCorrectlyAssignedFitResult() nogil except +
 

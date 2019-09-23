@@ -152,12 +152,95 @@ namespace OpenMS
     // Calories per Joule
     const double CAL_PER_JOULE = (1 / 4.184);
 
-    // User parameter name for precursor mz error in ppm
-    const std::string PRECURSOR_ERROR_PPM_USERPARAM = "OMS:precursor_mz_error_ppm";
+    namespace UserParam
+    {
+      // User parameter name for precursor mz error in ppm
+      const std::string PRECURSOR_ERROR_PPM_USERPARAM = "OMS:precursor_mz_error_ppm";
 
-    // User parameter name for precursor mz error in ppm
-    const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
+      // User parameter name for monoisotopic peak misassignment correction of a precursor (usually an integer x with the correction being x times C13C12_MASSDIFF_U)
+      const std::string PRECURSOR_ASSIGNMENT_CORRECTION = "precursor_correction";
 
+      // User parameter name for precursor mz error in ppm
+      const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
 
+      // User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
+      const std::string SPECTRUM_REFERENCE = "spectrum_reference";
+
+      // User parameter name for target/decoy annotation of a PeptideHit, e.g. as annotated by PeptideIndexer. One of: target, decoy, target+decoy
+      const std::string TARGET_DECOY = "target_decoy";
+
+      // User parameter name for a delta score: a score ratio between a rank x hit and the rank x+1 hit
+      const std::string DELTA_SCORE = "delta_score";
+
+      // Cross-Linking Mass Spectrometry user parameters
+      // Name of OpenPepXL main score (MzIdentML CV term)
+      const std::string OPENPEPXL_SCORE = "OpenPepXL:score";
+
+      // User parameter name for the sequence of the second peptide in a cross-link
+      const std::string OPENPEPXL_BETA_SEQUENCE = "sequence_beta";
+
+      // User parameter name for the protein accessions of the second peptide in a cross-link
+      const std::string OPENPEPXL_BETA_ACCESSIONS = "accessions_beta";
+
+      // User parameter name for the 1st position of cross-link (alpha peptide position in a real cross-link, 1st of two positions in a loop-link, modified position in a mono-link)
+      const std::string OPENPEPXL_XL_POS1 = "xl_pos1";
+
+      // User parameter name for the 2nd position of cross-link (beta peptide position in a real cross-link, 2nd of two positions in a loop-link, "-" in a mono-link)
+      const std::string OPENPEPXL_XL_POS2 = "xl_pos2";
+
+      // User parameter name for the 1st cross-link position on the protein
+      const std::string OPENPEPXL_XL_POS1_PROT = "xl_pos1_protein";
+
+      // User parameter name for the 1st cross-link position on the protein
+      const std::string OPENPEPXL_XL_POS2_PROT = "xl_pos2_protein";
+
+      // User parameter name for the cross-link type, one of: cross-link, loop-link, mono-link
+      const std::string OPENPEPXL_XL_TYPE = "xl_type";
+
+      // User parameter name for the cross-link rank (ranks of PeptideHits across different PeptideIdentifications)
+      const std::string OPENPEPXL_XL_RANK = "xl_rank";
+
+      // User parameter name for the name of a cross-link
+      const std::string OPENPEPXL_XL_MOD = "xl_mod";
+
+      // User parameter name for the mass of a cross-link
+      const std::string OPENPEPXL_XL_MASS = "xl_mass";
+
+      // User parameter name for the terminal specificity of a cross-link on the alpha peptide (to distinguish a link to the first or last residue side chain from a terminal link)
+      const std::string OPENPEPXL_XL_TERM_SPEC_ALPHA = "xl_term_spec_alpha";
+
+      // User parameter name for the terminal specificity of a cross-link on the beta peptide (to distinguish a link to the first or last residue side chain from a terminal link)
+      const std::string OPENPEPXL_XL_TERM_SPEC_BETA = "xl_term_spec_beta";
+
+      // User parameter name for the RT of the heavy spectrum precursor in a labeled cross-linking experiment
+      const std::string OPENPEPXL_HEAVY_SPEC_RT = "spec_heavy_RT";
+
+      // User parameter name for the m/z of the heavy spectrum precursor in a labeled cross-linking experiment
+      const std::string OPENPEPXL_HEAVY_SPEC_MZ = "spec_heavy_MZ";
+
+      // User parameter name for the spectrum reference of the heavy spectrum in a labeled cross-linking experiment
+      const std::string OPENPEPXL_HEAVY_SPEC_REF = "spectrum_reference_heavy";
+
+      // User parameter name for target/decoy annotation of alpha peptides
+      const std::string OPENPEPXL_TARGET_DECOY_ALPHA = "xl_target_decoy_alpha";
+
+      // User parameter name for target/decoy annotation of beta peptides
+      const std::string OPENPEPXL_TARGET_DECOY_BETA = "xl_target_decoy_beta";
+
+      // User parameter name for PeptideEvidence info for the beta/acceptor peptide: pre
+      const std::string OPENPEPXL_BETA_PEPEV_PRE = "BetaPepEv:pre";
+
+      // User parameter name for PeptideEvidence info for the beta/acceptor peptide: post
+      const std::string OPENPEPXL_BETA_PEPEV_POST = "BetaPepEv:post";
+
+      // User parameter name for PeptideEvidence info for the beta/acceptor peptide: start
+      const std::string OPENPEPXL_BETA_PEPEV_START = "BetaPepEv:start";
+
+      // User parameter name for PeptideEvidence info for the beta/acceptor peptide: end
+      const std::string OPENPEPXL_BETA_PEPEV_END = "BetaPepEv:end";
+
+      // User parameter name for XL-MS FDR values
+      const std::string XFDR_FDR = "XFDR:FDR";
+    }
   }
 }

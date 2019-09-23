@@ -374,6 +374,8 @@ private:
     */
     String getSubsection_(const String& name) const;
 
+    String getDocumentationURL() const;
+
     /// Returns the default parameters
     Param getDefaultParameters_() const;
 

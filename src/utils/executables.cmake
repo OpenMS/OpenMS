@@ -10,15 +10,16 @@ ClusterMassTracesByPrecursor
 CVInspector
 DatabaseFilter
 DBsearchDeconvMass
+DBsearchDeconvMass_masslist
 DecoyDatabase
 DeMeanderize
 Digestor
 DigestorMotif
+Epifany
 ERPairFinder
 FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
 FFEval
-FLASHDeconv
 FuzzyDiff
 IDDecoyProbability
 IDExtractor
@@ -41,8 +42,6 @@ MzMLSplitter
 NovorAdapter
 NucleicAcidSearchEngine
 OpenMSInfo
-OpenPepXL
-OpenPepXLLF
 PeakPickerIterative
 PSMFeatureExtractor
 QCCalculator
@@ -52,6 +51,7 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
+ProteomicsLFQ
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
@@ -66,7 +66,6 @@ SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
-XFDR
 XMLValidator
 )
 

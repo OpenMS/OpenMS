@@ -602,8 +602,6 @@ protected:
       feature_finder_param.remove("EMGScoring:deltaAbsError");
 
       // remove these parameters
-      feature_finder_param.remove("add_up_spectra");
-      feature_finder_param.remove("spacing_for_spectra_resampling");
       feature_finder_param.remove("EMGScoring:statistics:mean");
       feature_finder_param.remove("EMGScoring:statistics:variance");
       return feature_finder_param;

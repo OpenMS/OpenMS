@@ -50,7 +50,6 @@ START_TEST(ChromeleonFile, "$Id$")
 
 ChromeleonFile* ptr = 0;
 ChromeleonFile* null_ptr = 0;
-const String input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
 
 START_SECTION(ChromeleonFile())
 {
@@ -65,12 +64,12 @@ START_SECTION(~ChromeleonFile())
 }
 END_SECTION
 
-ptr = new ChromeleonFile();
-
 START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 {
+  String input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
   MSExperiment experiment;
-  ptr->load(input_filepath, experiment);
+  ChromeleonFile cf;
+  cf.load(input_filepath, experiment);
   TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "UV_VIS_2")
   TEST_EQUAL(experiment.getMetaValue("mzml_id"), "20171013_C61_ISO_P1_GA1")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "HM_metode_ZorBax_0,02%_Acetic_acid_ver6")
@@ -122,7 +121,58 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 }
 END_SECTION
 
-delete ptr;
+START_SECTION(load_with_new_raw_data_header)
+{
+  String input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_new_header.txt");
+  MSExperiment experiment;
+  ChromeleonFile cf;
+  cf.load(input_filepath, experiment);
+  TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "RID_Signal")
+  TEST_EQUAL(experiment.getMetaValue("mzml_id"), "S1")
+  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "SUGARS_MP.M")
+  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getSoftware().getName(), "SUGARS_CAL")
+  TEST_EQUAL(experiment.getMetaValue("injection_date"), "13/06/2019")
+  TEST_EQUAL(experiment.getMetaValue("injection_time"), "12:11:41 AM")
+  TEST_EQUAL(experiment.getMetaValue("detector"), "LCSystem")
+  TEST_EQUAL(experiment.getMetaValue("signal_quantity"), "")
+  TEST_EQUAL(experiment.getMetaValue("signal_unit"), "nRIU")
+  TEST_EQUAL(experiment.getMetaValue("signal_info"), "")
+  const vector<MSChromatogram> chromatograms = experiment.getChromatograms();
+  TEST_EQUAL(chromatograms.size(), 1);
+  TEST_EQUAL(chromatograms[0].size(), 10);
+  const MSChromatogram& c = chromatograms[0];
+  TEST_REAL_SIMILAR(c[0].getRT(), 0.0)
+  TEST_REAL_SIMILAR(c[0].getIntensity(), 5.060000)
+  TEST_REAL_SIMILAR(c[2].getRT(), 0.014430)
+  TEST_REAL_SIMILAR(c[2].getIntensity(), 5.450000)
+  TEST_REAL_SIMILAR(c[4].getRT(), 0.028860)
+  TEST_REAL_SIMILAR(c[4].getIntensity(), 5.580000)
+  TEST_REAL_SIMILAR(c[6].getRT(), 0.043290)
+  TEST_REAL_SIMILAR(c[6].getIntensity(), 5.380000)
+  TEST_REAL_SIMILAR(c[9].getRT(), 0.064935)
+  TEST_REAL_SIMILAR(c[9].getIntensity(), 4.930000)
+
+  MzMLFile mzml;
+  const String output_filepath = File::getTemporaryFile();
+  mzml.store(output_filepath, experiment);
+  MSExperiment read_exp;
+  mzml.load(output_filepath, read_exp);
+  TEST_EQUAL(read_exp.getChromatograms().size(), 1);
+  const MSChromatogram& c1 = experiment.getChromatograms()[0];
+  const MSChromatogram& c2 = read_exp.getChromatograms()[0];
+  TEST_EQUAL(c1.size(), c2.size())
+  TEST_REAL_SIMILAR(c1[0].getRT(), c2[0].getRT())
+  TEST_REAL_SIMILAR(c1[0].getIntensity(), c2[0].getIntensity())
+  TEST_REAL_SIMILAR(c1[2].getRT(), c2[2].getRT())
+  TEST_REAL_SIMILAR(c1[2].getIntensity(), c2[2].getIntensity())
+  TEST_REAL_SIMILAR(c1[4].getRT(), c2[4].getRT())
+  TEST_REAL_SIMILAR(c1[4].getIntensity(), c2[4].getIntensity())
+  TEST_REAL_SIMILAR(c1[6].getRT(), c2[6].getRT())
+  TEST_REAL_SIMILAR(c1[6].getIntensity(), c2[6].getIntensity())
+  TEST_REAL_SIMILAR(c1[9].getRT(), c2[9].getRT())
+  TEST_REAL_SIMILAR(c1[9].getIntensity(), c2[9].getIntensity())
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

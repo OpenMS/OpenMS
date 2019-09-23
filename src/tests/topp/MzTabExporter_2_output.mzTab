@@ -2,10 +2,19 @@ MTD	mzTab-version	1.0.0
 MTD	mzTab-mode	Summary
 MTD	mzTab-type	Identification
 MTD	description	OpenMS export from idXML
-MTD	protein_search_engine_score[1]	null
+MTD	protein_search_engine_score[1]	[, , one-peptide-rule, ]
 MTD	peptide_search_engine_score[1]	[, , MS-GF+, Release (v2017.08.23)]
 MTD	psm_search_engine_score[1]	[, , MS-GF+, Release (v2017.08.23)]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.4.0-fix-mzTabTargetDecoy-2019-05-08]
+MTD	software[1]	[, , MS-GF+, Release (v2017.08.23)]
+MTD	software[1]-setting[1]	db:D:\data\proteome-databases-OpenMS\uniprot_Escherichia-coli_June-2017_canonical-without-isoforms_reviewed_plus_shuffled.fasta
+MTD	software[1]-setting[2]	null
+MTD	software[1]-setting[3]	null
+MTD	software[1]-setting[4]	fragment_mass_tolerance:0.0
+MTD	software[1]-setting[5]	fragment_mass_tolerance_unit:Da
+MTD	software[1]-setting[6]	precursor_mass_tolerance:10.0
+MTD	software[1]-setting[7]	precursor_mass_tolerance_unit:ppm
+MTD	software[1]-setting[8]	enzyme:Trypsin
+MTD	software[2]	[MS, MS:1000752, TOPP software, 2.4.0-feature-proteomic-lfq-2019-07-09]
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:6, Carboxymethyl, ]
 MTD	fixed_mod[1]-site	C
 MTD	fixed_mod[1]-position	Anywhere

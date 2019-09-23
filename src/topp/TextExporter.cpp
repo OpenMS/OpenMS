@@ -236,7 +236,15 @@ namespace OpenMS
   {
     bool old = out.modifyStrings(false);
     out << "#PROTEIN" << "score" << "rank" << "accession" << "protein_description" << "coverage"
-        << "sequence" << nl;
+        << "sequence";
+    out.modifyStrings(old);
+  }
+
+  // write the header for protein data
+  void writeProteinGroupHeader(SVOutStream& out)
+  {
+    bool old = out.modifyStrings(false);
+    out << "#PROTEINGROUP" << "score" << "accessions" << nl;
     out.modifyStrings(old);
   }
 
@@ -276,6 +284,19 @@ namespace OpenMS
   {    
     out << hit.getScore() << hit.getRank() << hit.getAccession() << hit.getDescription()
         << hit.getCoverage() << hit.getSequence();
+    return out;
+  }
+
+  // stream output operator for a ProteinGroup
+  SVOutStream& operator<<(SVOutStream& out, const ProteinIdentification::ProteinGroup& grp)
+  {
+    out << grp.probability;
+    String grpaccs = grp.accessions[0];
+    for (Size s = 1; s < grp.accessions.size(); s++)
+    {
+      grpaccs += "," + grp.accessions[s];
+    }
+    out << grpaccs;
     return out;
   }
 
@@ -319,8 +340,15 @@ namespace OpenMS
     return out;
   }
 
+  void writeProteinHit(SVOutStream& out, const ProteinHit& phit, const StringList& protein_hit_meta_keys)
+  {
+    out << "PROTEIN" << phit;
+    writeMetaValues(out, phit, protein_hit_meta_keys);
+    out << nl;
+  }
+
   // write a protein identification to the output stream
-  void writeProteinId(SVOutStream& out, const ProteinIdentification& pid)
+  void writeProteinId(SVOutStream& out, const ProteinIdentification& pid, const StringList& protein_hit_meta_keys)
   {
     // protein id header
     out << "RUN" << pid.getIdentifier() << pid.getScoreType();
@@ -336,7 +364,17 @@ namespace OpenMS
     for (vector<ProteinHit>::const_iterator hit_it = pid.getHits().begin();
          hit_it != pid.getHits().end(); ++hit_it)
     {
-      out << "PROTEIN" << *hit_it << nl;
+      writeProteinHit(out, *hit_it, protein_hit_meta_keys);
+    }
+  }
+
+  // write a protein identification to the output stream
+  void writeProteinGroups(SVOutStream& out, const vector<ProteinIdentification::ProteinGroup>& pgroups)
+  {
+    for (vector<ProteinIdentification::ProteinGroup>::const_iterator grp_it = pgroups.begin();
+         grp_it != pgroups.end(); ++grp_it)
+    {
+      out << "PROTEINGROUP" << *grp_it << nl;
     }
   }
 
@@ -493,13 +531,17 @@ protected:
       registerTOPPSubsection_("id", "Options for idXML input files");
       registerFlag_("id:proteins_only", "Set this flag if you want only protein information from an idXML file");
       registerFlag_("id:peptides_only", "Set this flag if you want only peptide information from an idXML file");
+      registerFlag_("id:protein_groups", "Set this flag if you want to also write indist. group information from an idXML file");
       registerFlag_("id:first_dim_rt", "If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
-      registerIntOption_("id:add_metavalues", "<min_frequency>", -1, "Add columns for meta values which occur with a certain frequency (0-100%). Set to -1 to omit meta values (default).", false);
+      registerIntOption_("id:add_metavalues", "<min_frequency>", -1, "Add columns for meta values of PeptideID (=spectrum) entries which occur with a certain frequency (0-100%). Set to -1 to omit meta values (default).", false);
       setMinInt_("id:add_metavalues", -1);
       setMaxInt_("id:add_metavalues", 100);
-      registerIntOption_("id:add_hit_metavalues", "<min_frequency>", -1, "Add columns for meta values which occur with a certain frequency (0-100%). Set to -1 to omit meta values (default).", false);
+      registerIntOption_("id:add_hit_metavalues", "<min_frequency>", -1, "Add columns for meta values of PeptideHit (=PSM) entries which occur with a certain frequency (0-100%). Set to -1 to omit meta values (default).", false);
       setMinInt_("id:add_hit_metavalues", -1);
       setMaxInt_("id:add_hit_metavalues", 100);
+      registerIntOption_("id:add_protein_hit_metavalues", "<min_frequency>", -1, "Add columns for meta values on protein level which occur with a certain frequency (0-100%). Set to -1 to omit meta values (default).", false);
+      setMinInt_("id:add_protein_hit_metavalues", -1);
+      setMaxInt_("id:add_protein_hit_metavalues", 100);
       addEmptyLine_();
 
       registerTOPPSubsection_("consensus", "Options for consensusXML input files");
@@ -527,6 +569,7 @@ protected:
       int add_feature_metavalues = getIntOption_("feature:add_metavalues");
       int add_id_metavalues = getIntOption_("id:add_metavalues");
       int add_hit_metavalues = getIntOption_("id:add_hit_metavalues");
+      int add_protein_hit_metavalues = getIntOption_("id:add_protein_hit_metavalues");
 
       // separator etc.
       String sep = getStringOption_("separator");
@@ -564,6 +607,7 @@ protected:
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
+        StringList protein_hit_meta_keys;
 
         vector<PeptideIdentification> pids;
         if (add_id_metavalues >= 0 || add_hit_metavalues >= 0)
@@ -605,6 +649,14 @@ protected:
 
         vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
 
+        if (add_protein_hit_metavalues >= 0)
+        {
+          //TODO also iterate over all protein ID runs.
+          if (prot_ids.size() == 1)
+            protein_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, StringList>(prot_ids[0].getHits().begin(), prot_ids[0].getHits().end(), add_id_metavalues);
+
+        }
+
         // text output
         ofstream outstr(out.c_str());
         SVOutStream output(outstr, sep, replacement, quoting_method);
@@ -619,6 +671,8 @@ protected:
         {
           writeRunHeader(output);
           writeProteinHeader(output);
+          writeMetaValuesHeader(output, protein_hit_meta_keys);
+          output << nl;
           writePeptideHeader(output, "UNASSIGNEDPEPTIDE");
           writeMetaValuesHeader(output, peptide_id_meta_keys);
           writeMetaValuesHeader(output, peptide_hit_meta_keys);
@@ -648,7 +702,7 @@ protected:
           for (vector<ProteinIdentification>::const_iterator it =
                  prot_ids.begin(); it != prot_ids.end(); ++it)
           {
-            writeProteinId(output, *it);
+            writeProteinId(output, *it, protein_hit_meta_keys);
           }
           for (vector<PeptideIdentification>::const_iterator pit =
                  feature_map.getUnassignedPeptideIdentifications().begin();
@@ -717,6 +771,7 @@ protected:
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
+        StringList protein_hit_meta_keys;
 
         vector<PeptideIdentification> pids;
         if (add_id_metavalues >= 0 || add_hit_metavalues >= 0)
@@ -747,8 +802,15 @@ protected:
             }
 
             // siehe oben / analog machen
-              peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
+            peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
           }
+        }
+        if (add_protein_hit_metavalues >= 0)
+        {
+          const vector<ProteinIdentification>& prot_ids = consensus_map.getProteinIdentifications();
+          //TODO also iterate over all protein ID runs.
+          if (prot_ids.size() == 1)
+            protein_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, StringList>(prot_ids[0].getHits().begin(), prot_ids[0].getHits().end(), add_id_metavalues);
         }
 
         if (sorting_method == "none")
@@ -1057,6 +1119,8 @@ protected:
           {
             writeRunHeader(output);
             writeProteinHeader(output);
+            writeMetaValuesHeader(output, protein_hit_meta_keys);
+            output << nl;
             writePeptideHeader(output, "UNASSIGNEDPEPTIDE");
             writeMetaValuesHeader(output, peptide_id_meta_keys);
             writeMetaValuesHeader(output, peptide_hit_meta_keys);
@@ -1074,8 +1138,8 @@ protected:
           if (!no_ids)
           {
             writePeptideHeader(output, "PEPTIDE");
-      writeMetaValuesHeader(output, peptide_id_meta_keys);
-      writeMetaValuesHeader(output, peptide_hit_meta_keys);
+            writeMetaValuesHeader(output, peptide_id_meta_keys);
+            writeMetaValuesHeader(output, peptide_hit_meta_keys);
             output << nl;
           }
           output.modifyStrings(true);
@@ -1107,7 +1171,7 @@ protected:
                    consensus_map.getProteinIdentifications().begin(); it !=
                  consensus_map.getProteinIdentifications().end(); ++it)
             {
-              writeProteinId(output, *it);
+              writeProteinId(output, *it, protein_hit_meta_keys);
             }
 
             // unassigned peptides
@@ -1158,6 +1222,7 @@ protected:
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
+        StringList protein_hit_meta_keys;
 
         if (add_id_metavalues >= 0) 
         {
@@ -1177,8 +1242,14 @@ protected:
             const vector<PeptideHit>& hits = pep_ids[i].getHits();
             temp_hits.insert(temp_hits.end(), hits.begin(), hits.end());  
           }
-
           peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
+        }
+
+        if (add_protein_hit_metavalues >= 0)
+        {
+          //TODO also iterate over all protein ID runs.
+          if (prot_ids.size() == 1)
+            protein_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, StringList>(prot_ids[0].getHits().begin(), prot_ids[0].getHits().end(), add_id_metavalues);
         }
 
         ofstream txt_out(out.c_str());
@@ -1186,6 +1257,7 @@ protected:
 
         bool proteins_only = getFlag_("id:proteins_only");
         bool peptides_only = getFlag_("id:peptides_only");
+        bool groups = getFlag_("id:protein_groups");
         if (proteins_only && peptides_only)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'id:proteins_only' and 'id:peptides_only' cannot be used together");
@@ -1195,7 +1267,13 @@ protected:
         if (!peptides_only)
         {
           writeRunHeader(output);
+          if (groups)
+          {
+            writeProteinGroupHeader(output);
+          }
           writeProteinHeader(output);
+          writeMetaValuesHeader(output, protein_hit_meta_keys);
+          output << nl;
         }
         if (!proteins_only)
         {
@@ -1210,7 +1288,15 @@ protected:
         {
           String actual_id = it->getIdentifier();
 
-          if (!peptides_only) writeProteinId(output, *it);
+
+          if (!peptides_only)
+          {
+            if (groups)
+            {
+              writeProteinGroups(output, it->getIndistinguishableProteins());
+            }
+            writeProteinId(output, *it, protein_hit_meta_keys);
+          }
 
           if (!proteins_only)
           {
@@ -1329,7 +1415,6 @@ protected:
 
       return EXECUTION_OK;
     }
-
   };
 }
 
