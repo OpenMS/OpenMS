@@ -100,6 +100,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   {
     PeptideIndexing indexer;
     Param p = indexer.getParameters();
+    p.setValue("decoy_string", "DECOY_");
     indexer.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "AAAKEEEKTTTK");
     std::vector<ProteinIdentification> prot_ids;
@@ -119,6 +120,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   std::vector<ProteinIdentification> prot_ids;
   std::vector<PeptideIdentification> pep_ids = toPepVec(QStringList() << "MLTEAEK"); // requires 1 ambAA
   p.setValue("aaa_max", 0);
+  p.setValue("decoy_string", "DECOY_");
   pi.setParameters(p);
   r = pi.run(proteins, prot_ids, pep_ids);
   TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 0); // no hit or one hit!
@@ -175,7 +177,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     }
   }
 
-  // empty FASTA (proteins --> FAIL
+  // empty FASTA (proteins) --> FAIL
   proteins = toFASTAVec(QStringList());
   pep_ids = toPepVec(QStringList() << "SOME" << "PEPTIDES");
   r = pi.run(proteins, prot_ids, pep_ids);
@@ -270,8 +272,9 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   PeptideIndexing pi_7;
   Param p_7 = pi_7.getParameters();
   std::vector<FASTAFile::FASTAEntry> proteins_7 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "rev_Protein1" << "reverse_Protein");
-  PeptideIndexing::ExitCodes r_7 = pi_7.run(proteins_7, prot_ids_2, pep_ids_2);
-  TEST_EQUAL(r_7, PeptideIndexing::DECOYSTRING_EMPTY);
+  pi_7.run(proteins_7, prot_ids_2, pep_ids_2);
+  TEST_STRING_EQUAL(pi_7.getDecoyString(), "DECOY_");
+  TEST_EQUAL(pi_7.isPrefix(), true);
 }
 END_SECTION
 
