@@ -648,7 +648,6 @@ protected:
     mtdet.run(map, m_traces);  // m_traces : output of this function
 
 
-    // cout<<1<<endl;
     double *perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMz = new double[param.chargeRange + param.minCharge + 1];
