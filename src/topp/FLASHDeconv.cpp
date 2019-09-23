@@ -295,12 +295,14 @@ protected:
 
       //writeAnnotatedSpectra(peakGroups,map,fsm);//
 
+
+
       if (!peakGroups.empty() && specCntr > 0 && map.size() > 1)
       {
-        findFeatures(peakGroups, map, featureCntr, fsf, averagines, param);
+        findFeatures(peakGroups, featureCntr, fsf, averagines, param);
       }
 
-      cout<< "after running" << endl;
+      //cout<< "after running" << endl;
 
       if (param.writeSpecTsv)
       {
@@ -562,19 +564,23 @@ protected:
   }
 
   void findFeatures(vector<PeakGroup> &peakGroups,
-                    MSExperiment &map,
+                    //MSExperiment &prevMap,
                     int &featureCntr,
                     fstream &fsf,
                     PrecalcularedAveragine &averagines,
                     Parameter &param)
   {
+
+    MSExperiment map;
     boost::unordered_map<float, PeakGroup> *peakGroupMap;
+   // boost::unordered_map<float, MSSpectrum> rtOrignalSpecMap;
     boost::unordered_map<float, int> rtSpecMap;
 
-    for (auto it = map.begin(); it != map.end(); ++it)
+    /*for (auto it = map.begin(); it != map.end(); ++it)
     {
+      rtOrignalSpecMap[it->getRT()] = *it;
       it->clear(false);
-    }
+    }*/
 
     int maxSpecIndex = 0;
     for (auto &pg : peakGroups)
@@ -585,8 +591,13 @@ protected:
 
       rtSpecMap[spec->getRT()] = pg.specIndex;
       maxSpecIndex = max(maxSpecIndex, pg.specIndex);
+      //cout<<spec->getRT();
+      MSSpectrum massSpec;
+      massSpec.setRT(spec->getRT());
+      massSpec.push_back(tp);
+      map.addSpectrum(massSpec);
+      //cout<<" " <<rtOrignalSpecMap[spec->getRT()].size()<<endl;
 
-      spec->push_back(tp);
     }
     peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
 
@@ -602,7 +613,9 @@ protected:
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       it->sortByPosition();
+      // cout<<it->size()<<endl;
     }
+
 
     Param common_param = getParam_().copy("algorithm:common:", true);
     writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
@@ -631,13 +644,16 @@ protected:
     mtdet.setParameters(mtd_param);
 
     vector<MassTrace> m_traces;
+
     mtdet.run(map, m_traces);  // m_traces : output of this function
+
 
     // cout<<1<<endl;
     double *perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMz = new double[param.chargeRange + param.minCharge + 1];
     double *perIsotopeIntensity = new double[param.maxIsotopeCount];
+
 
     for (auto &mt : m_traces)
     {
@@ -648,7 +664,7 @@ protected:
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
       boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
-      cout << "where? 1" << endl;
+      //cout << "where? 1" << endl;
       fill_n(perChargeIntensity, param.chargeRange + param.minCharge + 1, 0);
       fill_n(perChargeMaxIntensity, param.chargeRange + param.minCharge + 1, 0);
       fill_n(perChargeMz, param.chargeRange + param.minCharge + 1, 0);
@@ -662,7 +678,7 @@ protected:
 
       for (auto &p2 : mt)
       {
-        cout << "where? 2" << endl;
+       // cout << "where? 2" << endl;
         int specIndex = rtSpecMap[(float) p2.getRT()];
         auto &pgMap = peakGroupMap[specIndex];
         auto &pg = pgMap[(float) p2.getMZ()];
@@ -674,7 +690,7 @@ protected:
           max_intensity = pg.intensity;
           massDiff = pg.avgMass - pg.monoisotopicMass;
         }
-        cout << "where? 22" << endl;
+        //cout << "where? 22" << endl;
         for (auto &p : pg.peaks)
         {
           if (p.isotopeIndex < 0 || p.isotopeIndex >= param.maxIsotopeCount || p.charge < 0 ||
@@ -682,23 +698,23 @@ protected:
           {
             continue;
           }
-          cout << "where? 222" << endl;
+          //cout << "where? 222" << endl;
           charges[p.charge] = true;
-          cout << "p.charge:" << p.charge << "," << p.orgPeak->getIntensity() << endl;
+         // cout << "p.charge:" << p.charge << "," << p.orgPeak << endl;
           perChargeIntensity[p.charge] += p.orgPeak->getIntensity();
-          cout << "where? 222-2" << endl;
+          //cout << "where? 222-2" << endl;
           perIsotopeIntensity[p.isotopeIndex] += p.orgPeak->getIntensity();
-          cout << "where? 222-3" << endl;
+         // cout << "where? 222-3" << endl;
           if (perChargeMaxIntensity[p.charge] > p.orgPeak->getIntensity())
           {
             continue;
           }
-          cout << "where? 2222" << endl;
+         // cout << "where? 2222" << endl;
           perChargeMaxIntensity[p.charge] = p.orgPeak->getIntensity();
           perChargeMz[p.charge] = p.orgPeak->getMZ();
-          cout << "where? 3" << endl;
+         // cout << "where? 3" << endl;
         }
-        cout << "where? 4" << endl;
+       // cout << "where? 4" << endl;
 
         /*if (max_intensity > pg.intensity)
         {
@@ -707,7 +723,7 @@ protected:
         max_intensity = pg.intensity;
         mass = pg.monoisotopicMass;*/
       }
-      cout << "where? 5" << endl;
+     // cout << "where? 5" << endl;
 
       // cout<<2<<endl;
       if (massDiff <= 0)
@@ -727,7 +743,7 @@ protected:
                                                                  perIsotopeIntensity,
                                                                  param.maxIsotopeCount,
                                                                  averagines, offset);
-      cout << "where? 6" << endl;
+      //cout << "where? 6" << endl;
       if (isoScore < param.minIsotopeCosine)
       {
         continue;
@@ -739,7 +755,7 @@ protected:
         //avgMass += offset * Constants::C13C12_MASSDIFF_U;
         //p.isotopeIndex -= offset;
       }
-      cout << "where? 7" << endl;
+    //  cout << "where? 7" << endl;
       //auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
           << to_string(mass + massDiff) << "\t"
@@ -772,7 +788,7 @@ protected:
           perChargeMz[param.chargeRange + param.minCharge] << "," <<
           perChargeIntensity[param.chargeRange + param.minCharge] << "\n";
   */
-      cout << "where? 8" << endl;
+    //  cout << "where? 8" << endl;
     }
     // cout<<4<<endl;
     delete[] perIsotopeIntensity;
@@ -782,7 +798,7 @@ protected:
 
     delete[] peakGroupMap;
     // cout<<4.1<<endl;
-    cout << "where? 9" << endl;
+   // cout << "where? 9" << endl;
   }
 
   static PrecalcularedAveragine getPrecalculatedAveragines(Parameter &param)

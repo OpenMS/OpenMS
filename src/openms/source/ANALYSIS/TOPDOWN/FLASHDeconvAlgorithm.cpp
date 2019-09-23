@@ -184,6 +184,7 @@ namespace OpenMS
         pg.specIndex = qspecCntr;
         pg.massCntr = (int) peakGroups.size();
         allPeakGroups.push_back(pg);
+
       }
     }
 
