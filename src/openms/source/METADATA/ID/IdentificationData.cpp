@@ -267,6 +267,12 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
+    if ((parent.coverage < 0.0) || (parent.coverage > 1.0))
+    {
+      String msg = "parent molecule coverage must be between 0 and 1";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
 
     return insertIntoMultiIndex_(parent_molecules_, parent,
                                  parent_molecule_lookup_);
