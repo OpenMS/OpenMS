@@ -63,14 +63,21 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   std::set<std::string> tags;
 
   TEST_EQUAL(spec.size(), 888);
-  for (int i = 0; i < 1000; i++)
-  {
-    tags.clear();
-    tagger.getTag(spec, tags);
-  }
-  TEST_EQUAL(tags.size(), 983);
+  tagger.getTag(spec, tags);
+  TEST_EQUAL(tags.size(), 11002);
 
+  // runtime benchmark, research tags many times in the same spectrum
+  // for (int i = 0; i < 30; i++)
+  // {
+  //   tags.clear();
+  //   tagger.getTag(spec, tags);
+  // }
 
+  // write out found tags if necessary
+  // for (const std::string& tag : tags)
+  // {
+  //   std::cout << "TEST TAG: " << tag << std::endl;
+  // }
 
 END_SECTION
 
