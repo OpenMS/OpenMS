@@ -101,8 +101,8 @@ namespace OpenMS
       }
 
       // Execute SQL select statement
-      conn.executePreparedStatement(&stmt, select_sql);
-      sqlite3_step( stmt );
+      conn.prepareStatement(&stmt, select_sql);
+      sqlite3_step(stmt);
 
       int cols = sqlite3_column_count(stmt);
 

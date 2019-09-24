@@ -81,9 +81,9 @@ namespace OpenMS
     db = conn.getDB();
 
     // Count transitions
-    SqliteConnector::executePreparedStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
+    SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
     sqlite3_step( cntstmt );
-    int num_transitions = sqlite3_column_int( cntstmt, 0 );
+    int num_transitions = sqlite3_column_int(cntstmt, 0);
     sqlite3_finalize(cntstmt);
 
     String select_drift_time = "";
@@ -206,13 +206,13 @@ namespace OpenMS
 
 
     // Execute SQL select statement
-    SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-    sqlite3_step( stmt );
+    SqliteConnector::prepareStatement(db, &stmt, select_sql);
+    sqlite3_step(stmt);
 
     Size progress = 0;
     startProgress(0, num_transitions, "reading PQP file");
     // Convert SQLite data to TSVTransition data structure
-    while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+    while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
     {
       setProgress(progress++);
       TSVTransition mytransition;
