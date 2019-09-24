@@ -60,6 +60,11 @@ namespace OpenMS
   {
   }
 
+  String::String(const unsigned char* s) :
+    string(reinterpret_cast<const char*>(s))
+  {
+  }
+
   String::String(const QString& s) :
     string(s.toStdString())
   {
