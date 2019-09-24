@@ -415,18 +415,17 @@ using namespace OpenMS;
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > top_csms_spectrum;
       vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_);
 
-      if (use_sequence_tags_)
+      if (use_sequence_tags_ && cross_link_candidates.size() > 0)
       {
-        // TODO some spectra have 0 candidates before filtering but many long sequence tags. Check for at least 10 candidates before using tagger?
         tagger.setMaxCharge(precursor_charge);
         std::set<std::string> tags;
         tagger.getTag(spectrum, tags);
         std::cout << "TEST TAG NEW SPECTRUM: " << scan_index << std::endl;
+        std::cout << "TEST TAG number of candidates before sequence tag filtering: " << cross_link_candidates.size() << std::endl;
         for (std::string tag : tags)
         {
           std::cout << "TEST TAG: " << tag << std::endl;
         }
-        std::cout << "TEST TAG number of candidates before sequence tag filtering: " << cross_link_candidates.size() << std::endl;
         OPXLHelper::filterCandidatesByTags(cross_link_candidates, tags);
       }
 
