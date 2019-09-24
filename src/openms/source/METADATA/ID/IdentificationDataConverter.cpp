@@ -101,7 +101,8 @@ namespace OpenMS
         IdentificationData::ParentMolecule parent(hit.getAccession());
         parent.sequence = hit.getSequence();
         parent.description = hit.getDescription();
-        parent.coverage = hit.getCoverage() / 100.0; // we don't want percents
+        // coverage comes in percents, -1 for missing; we want 0 to 1:
+        parent.coverage = max(hit.getCoverage(), 0.0) / 100.0;
         static_cast<MetaInfoInterface&>(parent) = hit;
         IdentificationData::AppliedProcessingStep applied(step_ref);
         applied.scores[prot_score_ref] = hit.getScore();
