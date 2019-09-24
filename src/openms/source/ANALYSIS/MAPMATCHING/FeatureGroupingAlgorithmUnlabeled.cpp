@@ -101,6 +101,9 @@ namespace OpenMS
 
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later)
+    auto& newIDs = out.getUnassignedPeptideIdentifications();
+    Size map_idx = 0;
+
     for (std::vector<FeatureMap>::const_iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it)
     {
@@ -110,11 +113,19 @@ namespace OpenMS
         map_it->getProteinIdentifications().begin(),
         map_it->getProteinIdentifications().end());
 
-      // add unassigned peptide identifications to result map
-      out.getUnassignedPeptideIdentifications().insert(
-        out.getUnassignedPeptideIdentifications().end(),
-        map_it->getUnassignedPeptideIdentifications().begin(),
-        map_it->getUnassignedPeptideIdentifications().end());
+      for (const PeptideIdentification& pepID : map_it->getUnassignedPeptideIdentifications())
+      {
+        auto newPepID = pepID;
+        // Note: during linking of _consensus_Maps we have the problem that old identifications
+        // should already have a map_index associated. Since we group the consensusFeatures only anyway
+        // (without keeping the subfeatures) the method for now is to "re"-index based on the input file/map index.
+        // Subfeatures have to be transferred in postprocessing if required
+        // (see FeatureGroupingAlgorithm::transferSubelements), which also takes care of a re-re-indexing
+        // if the old map_index of the IDs was saved.
+        newPepID.setMetaValue("map_index", map_idx);
+        newIDs.push_back(newPepID);
+      }
+      map_idx++;
     }
 
     // canonical ordering for checking the results, and the ids have no real meaning anyway

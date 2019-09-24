@@ -81,7 +81,7 @@ namespace OpenMS
     // accumulate file descriptions from the input maps:
     // cout << "Updating file descriptions..." << endl;
     out.getColumnHeaders().clear();
-    // mapping: (map index, original id) -> new id
+    // mapping: (input file index / map index assigned by the linkers, old map index) -> new map index
     map<pair<Size, UInt64>, Size> mapid_table;
     for (Size i = 0; i < maps.size(); ++i)
     {
@@ -129,6 +129,27 @@ namespace OpenMS
         }
       }
       *cons_it = adjusted;
+
+      for (auto& id : cons_it->getPeptideIdentifications())
+      {
+        Size file_index = id.getMetaValue("map_index");
+        // TODO check for existence, since the actual saving of the old map_index
+        //  happens in the FeatureLinkerBase class, not here.
+        Size old_map_index = id.getMetaValue("old_map_index");
+        Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
+        id.setMetaValue("map_index", new_idx);
+        id.removeMetaValue("old_map_index");
+      }
+    }
+    for (auto& id : out.getUnassignedPeptideIdentifications())
+    {
+      Size file_index = id.getMetaValue("map_index");
+      // TODO check for existence, since the actual saving of the old map_index
+      //  happens in the FeatureLinkerBase class, not here.
+      Size old_map_index = id.getMetaValue("old_map_index");
+      Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
+      id.setMetaValue("map_index", new_idx);
+      id.removeMetaValue("old_map_index");
     }
   }
 
@@ -136,4 +157,4 @@ namespace OpenMS
   {
   }
 
-}
+} //namespace OpenMS

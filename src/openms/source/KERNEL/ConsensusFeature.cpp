@@ -65,7 +65,7 @@ namespace OpenMS
   }
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature& element) :
-    BaseFeature(element), handles_(), ratios_()
+    BaseFeature(element, map_index), handles_(), ratios_()
   {
     insert(FeatureHandle(map_index, element));
   }
@@ -88,6 +88,7 @@ namespace OpenMS
   void ConsensusFeature::insert(const ConsensusFeature& cf)
   {
     handles_.insert(cf.handles_.begin(), cf.handles_.end());
+    peptides_.insert(peptides_.end(), cf.getPeptideIdentifications().begin(), cf.getPeptideIdentifications().end());
   }
 
   void ConsensusFeature::insert(const FeatureHandle& handle)
