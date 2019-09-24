@@ -34,36 +34,29 @@
 
 #pragma once
 
-#include <OpenMS/config.h>
-#include <boost/range/algorithm.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
-#include <iostream>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 
 namespace OpenMS
 {
   class IdentificationData;
   /**
-      @brief This class supports reading and writing of PQP files. 
+      @brief This class supports reading and writing of OMS files.
 
-      The PQP files are SQLite databases consisting of several tables representing the data contained in TraML files.
-
-      This class can convert TraML and PQP files into each other
-
-      @htmlinclude OpenMS_TransitionPQPFile.parameters
-
+      OMS files are SQLite databases consisting of several tables.
   */
   class OPENMS_DLLAPI OMSFile
   {
 
-public:
+  public:
 
-    /** @brief Write out an IdentificationData object to SQL based OMS file
+    /** @brief Write out an IdentificationData object to SQL-based OMS file
      *
      * @param filename The output file
      * @param id_data The IdentificationData object
      *
     */
-    void store(const char* filename, IdentificationData& id_data);
+    static void store(const String& filename, const IdentificationData& id_data);
 
     /** @brief Read in a OMS file and construct an IdentificationData
      *
@@ -71,8 +64,21 @@ public:
      * @param id_data The IdentificationData object
      *
     */
-    void load(const char* filename, IdentificationData& id_data);
+    static void load(const String& filename, IdentificationData& id_data);
 
+  protected:
+
+    static void storeVersionAndDate_(SqliteConnector& con);
+
+    static void storeParentMolecules_(const IdentificationData& id_data,
+                                      SqliteConnector& con);
+
+    static String getMoleculeTypeAbbrev_(IdentificationData::MoleculeType molecule_type);
+
+    static IdentificationData::MoleculeType getMoleculeTypeFromAbbrev_(const String& abbrev);
+
+    static void loadParentMolecules_(SqliteConnector& con,
+                                     IdentificationData& id_data);
   };
 } // namespace OpenMS
 

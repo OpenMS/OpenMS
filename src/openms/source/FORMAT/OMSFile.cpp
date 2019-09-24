@@ -29,21 +29,24 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
-// $Authors: Julianus Pfeuffer, Oliver Alka $
+// $Authors: Julianus Pfeuffer, Oliver Alka, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/OMSFile.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <sqlite3.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
+
+using namespace std;
 
 namespace OpenMS
 {
-
   namespace Sql = Internal::SqliteHelper;
 
-  static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
+  int version_number = 1;
+
+  static int callback(void* /* NotUsed */, int argc, char** argv, char** azColName)
   {
     int i;
     for (i = 0; i < argc; i++)
@@ -54,102 +57,158 @@ namespace OpenMS
     return 0;
   }
 
-  void OMSFile::store(const char* filename, IdentificationData& id_data)
+
+  void OMSFile::storeVersionAndDate_(SqliteConnector& con)
   {
+    String sql_create = "CREATE TABLE version ("    \
+      "OMSFile INT NOT NULL, "                      \
+      "date TEXT NOT NULL, "                        \
+      "OpenMS TEXT, "                               \
+      "build_date TEXT);";
+    con.executeStatement(sql_create);
+    stringstream sql_insert;
+    sql_insert << "INSERT INTO version VALUES ("
+               << version_number << ", "
+               << "datetime('now'), '"
+               << VersionInfo::getVersion() << "', '"
+               // this uses a non-standard date/time format:
+               << VersionInfo::getTime() << "');";
+    con.executeStatement(sql_insert);
+  }
 
-    // delete file if present
-    remove(filename);
 
-    // Open database
-    SqliteConnector conn(filename);
-    //db = conn.getDB();
+  String OMSFile::getMoleculeTypeAbbrev_(IdentificationData::MoleculeType molecule_type)
+  {
+    switch (molecule_type)
+    {
+    case IdentificationData::MoleculeType::PROTEIN:
+      return "PRO";
+    case IdentificationData::MoleculeType::COMPOUND:
+      return "COM";
+    case IdentificationData::MoleculeType::RNA:
+      return "RNA";
+    default:
+      return "";
+    }
+  }
 
-    // Create SQL structure
-    const char* create_sql =
-      "CREATE TABLE VERSION(" \
-      "ID INT NOT NULL);" \
 
-      // New datastructure
+  void OMSFile::storeParentMolecules_(const IdentificationData& id_data,
+                                      SqliteConnector& con)
+  {
+    if (id_data.getParentMolecules().empty()) return;
+    String sql_create = "CREATE TABLE ID_ParentMolecule ("              \
+      "id INTEGER PRIMARY KEY NOT NULL, "                               \
+      "accession TEXT UNIQUE NOT NULL, "                                \
+      "molecule_type TEXT NOT NULL CHECK (molecule_type IN ('PRO', 'COM', 'RNA')), " \
+      "sequence TEXT, "                                                 \
+      "description TEXT, "                                              \
+      "coverage REAL, "                                    \
+      "is_decoy NUMERIC NOT NULL CHECK (is_decoy in (0, 1)) DEFAULT 0);";
+    con.executeStatement(sql_create);
+    for (const IdentificationData::ParentMolecule& parent :
+           id_data.getParentMolecules())
+    {
+      stringstream sql_insert;
+      sql_insert << "INSERT INTO ID_ParentMolecule VALUES ("
+                 // use address as primary key:
+                 << Int64(&parent) << ", '"
+                 << parent.accession << "', '"
+                 << getMoleculeTypeAbbrev_(parent.molecule_type) << "', '"
+                 << parent.sequence << "', '"
+                 << parent.description << "', "
+                 << parent.coverage << ", "
+                 << int(parent.is_decoy) << ");";
+      con.executeStatement(sql_insert);
+    }
+  }
+
+
+  void OMSFile::store(const String& filename, const IdentificationData& id_data)
+  {
+    // delete output file if present:
+    File::remove(filename);
+
+    // open database:
+    SqliteConnector con(filename.c_str());
+    // generally, create tables only if we have data to write - no empty ones!
+
+    storeVersionAndDate_(con);
+
+    storeParentMolecules_(id_data, con);
+
+/*
 
       // IdentifiedCompound
       "CREATE TABLE IDENTIFIEDCOMPOUND(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "IDENTIFIER TEXT NOT NULL," \
-      "FORMULA TEXT NOT NULL," \
-      "NAME TEXT NOT NULL," \
-      "SMILE TEXT NOT NULL," \
-      "INCHI TEXT NOT NULL);" \
+      "id INT PRIMARY KEY NOT NULL," \
+      "identifier TEXT UNIQUE NOT NULL," \
+      "formula TEXT DEFAULT NULL," \
+      "name TEXT DEFAULT NULL," \
+      "smile TEXT DEFAULT NULL," \
+      "inchi TEXT DEFAULT NULL);" \
 
       // IdentifiedSequence
       "CREATE TABLE IDENTIFIEDSEQUENCE(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "SEQUENCE TEXT NOT NULL," \
-      "SEQTYPE TEXT NOT NULL);" \
-
-      // ParentMolecule
-      "CREATE TABLE PARENTMOLECULE(" \
-      "ID INT NOT NULL," \
-      "ACCESSION TEXT NOT NULL," \
-      "SEQUENCE TEXT NOT NULL," \
-      "DECOY BIT NOT NULL," \
-      "GROUPID INT NOT NULL," \
-      "MOLECULETYPE TEXT NOT NULL," \
-      "COVERAGE TEXT NOT NULL);" \
+      "id INT PRIMARY KEY NOT NULL," \
+      "sequence TEXT NOT NULL," \
+      "seq_type TEXT NOT NULL CHECK (seq_type IN ('PRO', 'RNA'))," \
+      "UNIQUE(sequence, seq_type));" \
 
       // ParentMoleculeGroup
-      "CREATE TABLE PARENTMOLECULEGROUPS(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "SCORETYPE INT NOT NULL," \
-      "SCOREVALUE REAL NOT NULL);" \
+      "CREATE TABLE PARENTMOLECULEGROUP(" \
+      "id INT PRIMARY KEY NOT NULL," \
+      "scoretype INT NOT NULL," \
+      "scorevalue REAL NOT NULL);" \
 
       // ParentMoleculeGrouping
       "CREATE TABLE PARENTMOLECULEGROUPING(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "LABEL TEXT NOT NULL);" \
+      "id INT PRIMARY KEY NOT NULL," \
+      "label TEXT NOT NULL);" \
 
       // Scores
       "CREATE TABLE SCORES(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "SCORENAME TEXT NOT NULL," \
-      "CVTERM TEXT NOT NULL);" \
+      "id INT PRIMARY KEY NOT NULL," \
+      "scorename TEXT NOT NULL," \
+      "cvterm TEXT NOT NULL);" \
 
       // AppliedProcessingSteps
       "CREATE TABLE APPLIEDPROCESSINGSTEPS(" \
-      "ID INT NOT NULL," \
-      "DATEPROCESSINGSTEP INT NOT NULL);" \
+      "id INT PRIMARY KEY NOT NULL," \
+      "dateprocessingstep INT NOT NULL);" \
 
       // DataProcessingStep
       "CREATE TABLE DATAPROCESSINGSTEP(" \
-      "ID INT NOT NULL," \
-      "SOFTWARE TEXT NOT NULL," \
-      "INPUTFILE TEXT NOT NULL," \
-      "DATATIME TEXT NOT NULL," \
-      "ACTIONS TEXT NOT NULL," \
-      "DBSEARCHPARAM INT NULL);" \
+      "id INT PRIMARY KEY NOT NULL," \
+      "software TEXT NOT NULL," \
+      "inputfile TEXT NOT NULL," \
+      "datetime TEXT NOT NULL," \
+      "actions TEXT NOT NULL," \
+      "dbsearchparam INT NULL);" \
 
       // DBSearchParam
       "CREATE TABLE DBSEARCHPARAM(" \
-      "ID INT NOT NULL," \
-      "MOLECULETYPE TEXT NOT NULL," \
-      "MASSTYPE TEXT NOT NULL," \
-      "DATABASE TEXT NOT NULL," \
-      "DBVERSION TEXT NOT NULL," \
-      "TAXONOMY TEXT," \
-      "CHARGES TEXT NOT NULL," \
-      "FIXED_MODIFICATIONS TEXT NOT NULL," \
-      "VARIABLE_MODIFICATIONS TEYT NOT NULL," \
-      "PRECURSORMASSTOLERANCE INT NOT NULL," \
-      "FRAGMENTMASSTOLERANCE INT NOT NULL," \
-      "PRECURSORRMASSTOLERANCEPPM BIT NOT NULL," \
-      "FRAGMENTMASSTOLERANCEPPM BIT NOT NULL," \
-      "DIGESTION_ENYZME TEXT NOT NULL," \
-      "MISSED_CLEAVAGES INT NOT NULL," \
-      "MIN_LENGTH INT NOT NULL," \
-      "MAX_LENGTH INT NOT NULL);" \
+      "id INT PRIMARY KEY NOT NULL," \
+      "moleculetype TEXT NOT NULL," \
+      "masstype TEXT NOT NULL," \
+      "database TEXT NOT NULL," \
+      "dbversion TEXT NOT NULL," \
+      "taxonomy TEXT," \
+      "charges TEXT NOT NULL," \
+      "fixedmods TEXT NOT NULL," \
+      "variablemods TEXT NOT NULL," \
+      "precursormasstolerance INT NOT NULL," \
+      "fragmentmasstolerance INT NOT NULL," \
+      "precursorrmasstoleranceppm BIT NOT NULL," \
+      "fragmentmasstoleranceppm BIT NOT NULL," \
+      "digestionenyzme TEXT NOT NULL," \
+      "missedcleavages INT NOT NULL," \
+      "minlength INT NOT NULL," \
+      "maxlength INT NOT NULL);" \
 
       // ProcessingSoftware
       "CREATE TABLE PROCESSINGSOFTWARE(" \
-      "ID INT NOT NULL," \
+      "ID INT PRIMARY KEY NOT NULL," \
       "NAME TEXT NOT NULL," \
       "VERSION TEXT NOT NULL);" \
 
@@ -290,7 +349,6 @@ namespace OpenMS
       "OBJECT TEXT NOT NULL," \
       "OBJECTREFERENCE INT NOT NULL);" ;
 
-
       // TODO: add MetaInfo Tables
       // TODO: how would the ref work best
 
@@ -300,12 +358,54 @@ namespace OpenMS
     // Prepare insert statements
 
     // Index maps (memory map)
-
+    */
   }
 
-  void OMSFile::load(const char* filename, IdentificationData& id_data)
-  {
 
+  IdentificationData::MoleculeType OMSFile::getMoleculeTypeFromAbbrev_(const String& abbrev)
+  {
+    if (abbrev == "PRO") return IdentificationData::MoleculeType::PROTEIN;
+    if (abbrev == "COM") return IdentificationData::MoleculeType::COMPOUND;
+    if (abbrev == "RNA") return IdentificationData::MoleculeType::RNA;
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "invalid abbreviation for a molecule type",
+                                  abbrev);
+  }
+
+
+  void OMSFile::loadParentMolecules_(SqliteConnector& con,
+                                     IdentificationData& id_data)
+  {
+    if (!con.tableExists("ID_ParentMolecule")) return;
+
+    sqlite3_stmt* result;
+    con.prepareStatement(&result, "SELECT * FROM ID_ParentMolecule;");
+    sqlite3_step(result);
+    while (sqlite3_column_type(result, 0) != SQLITE_NULL)
+    {
+      String accession = sqlite3_column_text(result, 1);
+      String mt_abbrev = sqlite3_column_text(result, 2);
+      IdentificationData::MoleculeType molecule_type =
+        getMoleculeTypeFromAbbrev_(mt_abbrev);
+      String sequence = sqlite3_column_text(result, 3);
+      String description = sqlite3_column_text(result, 4);
+      double coverage = sqlite3_column_double(result, 5);
+      bool is_decoy = sqlite3_column_int(result, 6);
+      IdentificationData::ParentMolecule parent(accession, molecule_type,
+                                                sequence, description, coverage,
+                                                is_decoy);
+      id_data.registerParentMolecule(parent);
+      sqlite3_step(result);
+    }
+    sqlite3_finalize(result);
+  }
+
+
+  void OMSFile::load(const String& filename, IdentificationData& id_data)
+  {
+    SqliteConnector con(filename.c_str());
+
+    loadParentMolecules_(con, id_data);
   }
 
 
