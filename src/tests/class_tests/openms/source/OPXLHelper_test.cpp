@@ -41,12 +41,14 @@
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CHEMISTRY/Tagger.h>
 #include <QStringList>
 
 using namespace OpenMS;
@@ -483,6 +485,41 @@ START_SECTION(static void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpe
   TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_linear_beta, 0)
   TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_xlinks_alpha, 0)
   TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_xlinks_beta, 2.25)
+END_SECTION
+
+START_SECTION(static void filterCandidatesByTags(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, std::set<std::string>& tags))
+
+  // list of candidates
+  IntList precursor_correction_steps;
+  precursor_correction_steps.push_back(2);
+  precursor_correction_steps.push_back(1);
+  double precursor_mass = 10668.85060;
+  String cross_link_name = "MyLinker";
+  precursor_mass_tolerance = 10;
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps, precursor_mass, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, cross_link_name);
+
+  // set of tags
+  std::set<std::string> tags;
+  tags.insert("DE");
+  tags.insert("BP");
+  tags.insert("FDA");
+  tags.insert("CIA");
+  tags.insert("FTC");
+
+  TEST_EQUAL(spectrum_candidates.size(), 1050);
+
+  // filter candidates
+  OPXLHelper::filterCandidatesByTags(spectrum_candidates, tags);
+  TEST_EQUAL(spectrum_candidates.size(), 210);
+
+  // runtime benchmark: search those 210 candidates that do not contain the tags many times
+  // for (int i = 0; i < 50000; ++i)
+  // {
+  //   OPXLHelper::filterCandidatesByTags(spectrum_candidates, tags);
+  // }
+  // TEST_EQUAL(spectrum_candidates.size(), 210);
+
+
 END_SECTION
 
 END_TEST
