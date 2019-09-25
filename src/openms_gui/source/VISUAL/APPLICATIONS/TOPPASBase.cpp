@@ -1324,7 +1324,7 @@ namespace OpenMS
     tv->setPos(x, y);
     tv->setZValue(z_value_);
     z_value_ += 0.000001;
-    scene->topoSort();
+    scene->topoSort(false);
     scene->setChanged(true);
   }
 
