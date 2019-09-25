@@ -120,23 +120,23 @@ namespace OpenMS
 
         for (int i = 0; i < cols; i++)
         {
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "FEATURE_ID")
+          if (OpenMS::String(sqlite3_column_name(stmt, i)) == "FEATURE_ID")
           {
-            psm_id = OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )));
+            psm_id = OpenMS::String(sqlite3_column_text(stmt, i));
           }
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "GROUP_ID")
+          if (OpenMS::String(sqlite3_column_name(stmt, i)) == "GROUP_ID")
           {
             if (std::find(group_id_index.begin(), group_id_index.end(),
-                  OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) != group_id_index.end())
+                  OpenMS::String(sqlite3_column_text(stmt, i))) != group_id_index.end())
             {
               scan_id = std::find(group_id_index.begin(), group_id_index.end(),
-                          OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+                          OpenMS::String(sqlite3_column_text(stmt, i))) - group_id_index.begin();
             }
             else
             {
-              group_id_index.push_back(OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i ))));
+              group_id_index.push_back(OpenMS::String(sqlite3_column_text(stmt, i)));
               scan_id = std::find(group_id_index.begin(), group_id_index.end(),
-                          OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+                          OpenMS::String(sqlite3_column_text(stmt, i))) - group_id_index.begin();
             }
           }
           if (OpenMS::String(sqlite3_column_name( stmt, i )) == "DECOY")
@@ -152,7 +152,7 @@ namespace OpenMS
           }
           if (OpenMS::String(sqlite3_column_name( stmt, i )) == "MODIFIED_SEQUENCE")
           {
-            peptide = OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )));
+            peptide = OpenMS::String(sqlite3_column_text(stmt, i));
           }
           if (OpenMS::String(sqlite3_column_name( stmt, i )).substr(0,4) == "VAR_")
           {

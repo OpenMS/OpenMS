@@ -228,7 +228,7 @@ namespace OpenMS
       Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
       if (sqlite3_column_type( stmt, 9 ) != SQLITE_NULL)
       {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 9 ))).split(';', mytransition.ProteinName);
+        String(sqlite3_column_text(stmt, 9)).split(';', mytransition.ProteinName);
       }
       Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
       Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
@@ -246,14 +246,14 @@ namespace OpenMS
       Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
       if (sqlite3_column_type( stmt, 24 ) != SQLITE_NULL)
       {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 24 ))).split(';', mytransition.uniprot_id);
+        String(sqlite3_column_text(stmt, 24)).split(';', mytransition.uniprot_id);
       }
       Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
       Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
       if (sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
       {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 28 ))).split('|', mytransition.peptidoforms);
+        String(sqlite3_column_text(stmt, 28)).split('|', mytransition.peptidoforms);
       }
       // optional attributes only present in newer file versions
       if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);

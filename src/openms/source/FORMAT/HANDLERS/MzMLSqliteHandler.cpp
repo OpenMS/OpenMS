@@ -98,10 +98,10 @@ namespace OpenMS
      *
      * It is designed to work with containers of type MSSpectrum and
      * MSChromatogram to provide a single function for both use-cases.
-     * 
+     *
      */
     template<class ContainerT>
-    void populateContainer_sub_(sqlite3_stmt *stmt, std::vector<ContainerT >& containers)
+    void populateContainer_sub_(sqlite3_stmt *stmt, std::vector<ContainerT>& containers)
     {
       // perform first step
       sqlite3_step(stmt);
@@ -603,7 +603,7 @@ namespace OpenMS
         OpenMS::Precursor precursor;
         OpenMS::Product product;
 
-        chrom.setNativeID(String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1))));
+        chrom.setNativeID(String(sqlite3_column_text(stmt, 1)));
         if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 2));
         if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) precursor.setDriftTime(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 4));
@@ -611,7 +611,7 @@ namespace OpenMS
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
         if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
         {
-          precursor.setMetaValue("peptide_sequence", String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7))));
+          precursor.setMetaValue("peptide_sequence", String(sqlite3_column_text(stmt, 7)));
         }
         // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
         if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 9));
@@ -686,7 +686,7 @@ namespace OpenMS
         OpenMS::Precursor precursor;
         OpenMS::Product product;
 
-        spec.setNativeID(String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1))));
+        spec.setNativeID(String(sqlite3_column_text(stmt, 1)));
         if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) spec.setMSLevel(sqlite3_column_int(stmt, 2));
         if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) spec.setRT(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 4));
@@ -696,7 +696,7 @@ namespace OpenMS
         if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
         if (sqlite3_column_type(stmt, 9) != SQLITE_NULL)
         {
-          precursor.setMetaValue("peptide_sequence", String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9))));
+          precursor.setMetaValue("peptide_sequence", String(sqlite3_column_text(stmt, 9)));
         }
         // if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 10));
         if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 11));
