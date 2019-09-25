@@ -452,7 +452,14 @@ namespace OpenMS
       hit.setAccession(parent.accession);
       hit.setSequence(parent.sequence);
       hit.setDescription(parent.description);
-      hit.setCoverage(parent.coverage * 100.0); // convert to percents
+      if (parent.coverage > 0.0)
+      {
+        hit.setCoverage(parent.coverage * 100.0); // convert to percents
+      }
+      else // zero coverage means coverage is unknown
+      {
+        hit.setCoverage(ProteinHit::COVERAGE_UNKNOWN);
+      }
       static_cast<MetaInfoInterface&>(hit) = parent;
       if (!parent.metaValueExists("target_decoy"))
       {
