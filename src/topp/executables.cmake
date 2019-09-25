@@ -49,6 +49,7 @@ LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
+MapAlignerTree
 MapNormalizer
 MapRTTransformer
 MapStatistics

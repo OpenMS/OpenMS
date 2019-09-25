@@ -92,6 +92,7 @@ namespace OpenMS
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", "Map Alignment");
     tools_map["MapAlignerPoseClustering"] = Internal::ToolDescription("MapAlignerPoseClustering", "Map Alignment");
     tools_map["MapAlignerSpectrum"] = Internal::ToolDescription("MapAlignerSpectrum", "Map Alignment");
+    tools_map["MapAlignerTree"] = Internal::ToolDescription("MapAlignerTree", "Map Alignment");
     tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", "Signal processing and preprocessing");
     tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", "Map Alignment");
     tools_map["MapStatistics"] = Internal::ToolDescription("MapStatistics", "File Handling");
