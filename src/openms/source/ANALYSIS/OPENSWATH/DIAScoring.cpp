@@ -194,7 +194,7 @@ namespace OpenMS
       }
       else
       {
-        ppm_score = std::fabs(mz - precursor_mz) * 1000000 / precursor_mz;
+        ppm_score = Math::getPPMAbs(mz, precursor_mz);
         return true;
       }
     }
@@ -243,7 +243,7 @@ namespace OpenMS
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      double ppmdiff = std::fabs(bseries[it] - mz) * 1000000 / bseries[it];
+      double ppmdiff = Math::getPPMAbs(mz, bseries[it]);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         bseries_score++;
@@ -256,7 +256,7 @@ namespace OpenMS
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      double ppmdiff = std::fabs(yseries[it] - mz) * 1000000 / yseries[it];
+      double ppmdiff = Math::getPPMAbs(mz, bseries[it]);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         yseries_score++;
