@@ -112,53 +112,42 @@ public:
     typedef EdgeContainer::iterator EdgeIterator;
     /// A const iterator for in/out edges
     typedef EdgeContainer::const_iterator ConstEdgeIterator;
-	/// A class which interfaces with QStringList for holding filenames
-	/// Incoming filenames are checked, and an exception is thrown if they are too long
-	/// to avoid issues with common filesystems (due to filesystem limits).
-	class TOPPASFilenames
-	{
-	  public:
-		TOPPASFilenames()
-		{
-		}
+	  /// A class which interfaces with QStringList for holding filenames
+	  /// Incoming filenames are checked, and an exception is thrown if they are too long
+	  /// to avoid issues with common filesystems (due to filesystem limits).
+	  class TOPPASFilenames
+	  {
+	    public:
+		  TOPPASFilenames() = default;
 	  
-		int size() const;
-		const QStringList& get() const;
-		const QString& operator[](int i) const;
+		  int size() const;
+		  const QStringList& get() const;
+		  const QString& operator[](int i) const;
 
-		///@name Setters; their all use check_() and can throw!
-		//@{
-		void set(const QStringList& filenames);
-		void set(const QString& filename, int i);
-		void push_back(const QString& filename);
-		void append(const QStringList& filenames);
-		//@}
+		  ///@name Setters; their all use check_() and can throw!
+		  //@{
+		  void set(const QStringList& filenames);
+		  void set(const QString& filename, int i);
+		  void push_back(const QString& filename);
+		  void append(const QStringList& filenames);
+		  //@}
 
-	  private:
-		/*
-		@brief Check length of filename and throw Exception::FileNotWritable() if too long
+	    private:
+		  /*
+		  @brief Check length of filename and throw Exception::FileNotWritable() if too long
 		
-		@param filename Full path to file (using relative paths will circumvent the effectiveness)
-		@throw Exception::FileNotWritable() if too long (>=255 chars)
-		*/
-		void check_(const QString& filename);
-		QStringList filenames_;   ///< filenames passed from upstream node in this round
-	};
-	/// Info for one edge and round, to be passed to next node
+		  @param filename Full path to file (using relative paths will circumvent the effectiveness)
+		  @throw Exception::FileNotWritable() if too long (>=255 chars)
+		  */
+		  void check_(const QString& filename);
+		  QStringList filenames_;   ///< filenames passed from upstream node in this round
+	  };
+	  /// Info for one edge and round, to be passed to next node
     struct VertexRoundPackage
     {
-      VertexRoundPackage() :
-        filenames(),
-        edge(nullptr)
-      {
-      }
-
-	  TOPPASFilenames filenames; ///< filenames passed from upstream node in this round
-      TOPPASEdge* edge;  ///< edge that connects the upstream node to the current one
+      TOPPASFilenames filenames; ///< filenames passed from upstream node in this round
+      TOPPASEdge* edge = nullptr; ///< edge that connects the upstream node to the current one
     };
-
-	
-
 
     /// all infos to process one round for a vertex (from all incoming vertices)
     /// indexing via "parameter_index" of adjacent edge (could later be param_name) -> filenames
@@ -234,10 +223,6 @@ public:
     DFS_COLOR getDFSColor();
     /// Sets the DFS color of this node
     void setDFSColor(DFS_COLOR color);
-    /// Returns the DFS parent of this node
-    TOPPASVertex * getDFSParent();
-    /// Sets the DFS parent of this node
-    void setDFSParent(TOPPASVertex * parent);
     /// Checks if all tools in the subtree below this node are finished
     TOPPASVertex::SUBSTREESTATUS getSubtreeStatus() const;
     /// Returns whether the vertex has been marked already (during topological sort)
@@ -329,8 +314,6 @@ protected:
     QColor brush_color_;
     /// The DFS color of this node
     DFS_COLOR dfs_color_;
-    /// The DFS parent of this node
-    TOPPASVertex * dfs_parent_;
     /// "marked" flag for topological sort
     bool topo_sort_marked_;
     /// The number in a topological sort of the entire graph
