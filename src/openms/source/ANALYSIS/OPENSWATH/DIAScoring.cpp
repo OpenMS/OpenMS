@@ -256,7 +256,7 @@ namespace OpenMS
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      double ppmdiff = Math::getPPMAbs(mz, bseries[it]);
+      double ppmdiff = Math::getPPMAbs(mz, yseries[it]);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         yseries_score++;
