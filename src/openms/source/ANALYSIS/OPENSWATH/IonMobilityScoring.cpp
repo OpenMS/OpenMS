@@ -71,30 +71,29 @@ namespace OpenMS
     // Extract all ion mobility values across all transitions and produce a
     // grid of all permitted ion mobility values
     std::vector<double> im_grid;
+    std::vector< double > mobilityValues;
+    for (const auto & im_profile : mobilograms) 
     {
-      std::vector< double > mobilityValues;
-      for (const auto & im_profile : mobilograms) 
-      {
-        for (const auto & k : im_profile) mobilityValues.push_back(k.im);
-      }
+      mobilityValues.reserve(mobilityValues.size() + im_profile.size());
+      for (const auto & k : im_profile) mobilityValues.push_back(k.im);
+    }
 
-      // sort all extracted values
-      std::sort(mobilityValues.begin(), mobilityValues.end());
+    // sort all extracted values
+    std::sort(mobilityValues.begin(), mobilityValues.end());
 
-      // Reduce mobility values to grid (consider equal if closer than eps)
-      // 
-      // In some cases there are not enough datapoints available (one of the
-      // transitions has no datapoints)
-      if (!mobilityValues.empty())
+    // Reduce mobility values to grid (consider equal if closer than eps)
+    // 
+    // In some cases there are not enough datapoints available (one of the
+    // transitions has no datapoints)
+    if (!mobilityValues.empty())
+    {
+      im_grid.push_back( mobilityValues[0] );
+      for (Size k = 1; k < mobilityValues.size(); k++) 
       {
-        im_grid.push_back( mobilityValues[0] );
-        for (Size k = 1; k < mobilityValues.size(); k++) 
+        double diff = fabs(mobilityValues[k] - mobilityValues[k-1]);
+        if (diff > eps)
         {
-          double diff = fabs(mobilityValues[k] - mobilityValues[k-1]);
-          if (diff > eps)
-          {
-            im_grid.push_back( mobilityValues[k] );
-          }
+          im_grid.push_back( mobilityValues[k] );
         }
       }
     }
@@ -330,14 +329,13 @@ namespace OpenMS
         fragment_values[k] += aligned_mobilograms[i][k];
       }
     }
-    {
-      OpenSwath::MRMScoring mrmscore_;
-      mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, {fragment_values});
-      OPENMS_LOG_DEBUG << "Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastCoelutionScore() << " / shape  precursor " << 
-        mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
-      scores.im_ms1_sum_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
-      scores.im_ms1_sum_contrast_shape = mrmscore_.calcXcorrPrecursorContrastShapeScore();
-    }
+
+    OpenSwath::MRMScoring mrmscore_;
+    mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, {fragment_values});
+    OPENMS_LOG_DEBUG << "Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastCoelutionScore() << " / shape  precursor " << 
+      mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
+    scores.im_ms1_sum_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
+    scores.im_ms1_sum_contrast_shape = mrmscore_.calcXcorrPrecursorContrastShapeScore();
 
   }
 
