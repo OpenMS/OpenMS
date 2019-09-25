@@ -82,6 +82,7 @@ namespace OpenMS
   PeakPickerHiRes::~PeakPickerHiRes()
   {
   }
+
   void PeakPickerHiRes::pick(const MSSpectrum& input, MSSpectrum& output) const
   {
     std::vector<PeakBoundary> boundaries;
@@ -387,22 +388,21 @@ namespace OpenMS
 
     MSSpectrum input_spectrum;
     MSSpectrum output_spectrum;
-    for (MSChromatogram::const_iterator it = input.begin(); it != input.end(); ++it)
+    for (const auto& it : input)
     {
-      Peak1D p;
-      p.setMZ(it->getRT());
-      p.setIntensity(it->getIntensity());
-      input_spectrum.push_back(p);
+      input_spectrum.emplace_back(it.getRT(), it.getIntensity());
     }
 
     pick(input_spectrum, output_spectrum, boundaries, false); // no spacing checks!
 
-    for (MSSpectrum::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
+    for (const auto& it : output_spectrum)
     {
       ChromatogramPeak p;
-      p.setRT(it->getMZ());
-      p.setIntensity(it->getIntensity());
+      p.setRT(it.getMZ());
+      p.setIntensity(it.getIntensity());
       output.push_back(p);
+      // TODO:
+      // output.emplace_back(it.getMZ(), it.getIntensity()); // no emplace back
     }
 
     // copy float data arrays (for FWHM)
