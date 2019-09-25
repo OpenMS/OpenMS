@@ -68,10 +68,11 @@ namespace OpenMS
       @brief Integrate intensities in a spectrum from start to end
     */
     OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr spectrum, //!< [in] Spectrum
-                                        const std::vector<double>& windowsCenter, //!< [in] center location
+                                        const std::vector<double>& windows_center, //!< [in] center location
                                         double width,
-                                        std::vector<double>& integratedWindowsIntensity,
-                                        std::vector<double>& integratedWindowsMZ, bool remZero = false);
+                                        std::vector<double>& integrated_windows_intensity,
+                                        std::vector<double>& integrated_windows_mz,
+                                        bool remove_zero = false);
 
     /**
       @brief Integrate intensity in an ion mobility spectrum from start to end

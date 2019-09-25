@@ -370,7 +370,6 @@ protected:
    * @param cp_irt Parameter set for the chromatogram extraction
    * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
    * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
-   * @param mz_correction_function If correction in m/z is desired, which function should be used
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
    * @param sonar Whether the data is SONAR data
    * @param load_into_memory Whether to cache the current SWATH map in memory

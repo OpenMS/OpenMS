@@ -67,7 +67,8 @@ namespace OpenMS
     }
 
     void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
-                          const std::vector<double> & windowsCenter, double width,
+                          const std::vector<double> & windowsCenter,
+                          double width,
                           std::vector<double> & integratedWindowsIntensity,
                           std::vector<double> & integratedWindowsMZ,
                           bool remZero)
