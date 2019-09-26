@@ -35,7 +35,9 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/IdentificationData.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
+
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlError>
 
 namespace OpenMS
 {
@@ -68,17 +70,21 @@ namespace OpenMS
 
   protected:
 
-    static void storeVersionAndDate_(SqliteConnector& con);
+    static void raiseDBError_(const QSqlError& error, QSqlDatabase& db,
+                              int line, const char* function,
+                              const String& context);
+
+    static void storeVersionAndDate_(QSqlDatabase& db);
 
     static void storeParentMolecules_(const IdentificationData& id_data,
-                                      SqliteConnector& con);
+                                      QSqlDatabase& db);
 
     static String getMoleculeTypeAbbrev_(IdentificationData::MoleculeType molecule_type);
 
     static IdentificationData::MoleculeType getMoleculeTypeFromAbbrev_(const String& abbrev);
 
-    static void loadParentMolecules_(SqliteConnector& con,
-                                     IdentificationData& id_data);
+    static void loadParentMolecules_(IdentificationData& id_data,
+                                     QSqlDatabase& db);
   };
 } // namespace OpenMS
 

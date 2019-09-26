@@ -36,44 +36,56 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
-#include <sqlite3.h>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlQueryModel>
+#include <QtSql/QSqlRecord>
 
 using namespace std;
 
 namespace OpenMS
 {
-  namespace Sql = Internal::SqliteHelper;
-
   int version_number = 1;
 
-  static int callback(void* /* NotUsed */, int argc, char** argv, char** azColName)
+  void OMSFile::raiseDBError_(const QSqlError& error, QSqlDatabase& db,
+                               int line, const char* function,
+                               const String& context)
   {
-    int i;
-    for (i = 0; i < argc; i++)
-    {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-    printf("\n");
-    return 0;
+    // clean-up:
+    db.close();
+    QSqlDatabase::removeDatabase(db.connectionName());
+
+    String msg = context + ": " + error.text();
+    throw Exception::FailedAPICall(__FILE__, line, function, msg);
   }
 
 
-  void OMSFile::storeVersionAndDate_(SqliteConnector& con)
+  void OMSFile::storeVersionAndDate_(QSqlDatabase& db)
   {
-    String sql_create = "CREATE TABLE version ("    \
-      "OMSFile INT NOT NULL, "                      \
-      "date TEXT NOT NULL, "                        \
-      "OpenMS TEXT, "                               \
-      "build_date TEXT);";
-    con.executeStatement(sql_create);
-    stringstream sql_insert;
-    sql_insert << "INSERT INTO version VALUES ("
-               << version_number << ", "
-               << "datetime('now'), '"
-               << VersionInfo::getVersion() << "', '"
-               // this uses a non-standard date/time format:
-               << VersionInfo::getTime() << "');";
-    con.executeStatement(sql_insert);
+    QSqlQuery query(db);
+    QString sql_create =
+      "CREATE TABLE version ("                           \
+      "OMSFile INT NOT NULL, "                           \
+      "date TEXT NOT NULL, "                             \
+      "OpenMS TEXT, "                                    \
+      "build_date TEXT)";
+    if (!query.exec(sql_create))
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error creating database table");
+    }
+    query.prepare("INSERT INTO version VALUES ("  \
+                  ":format_version, "             \
+                  "datetime('now'), "             \
+                  ":openms_version, "             \
+                  ":build_date)");
+    query.bindValue(":format_version", version_number);
+    query.bindValue(":openms_version", VersionInfo::getVersion().toQString());
+    query.bindValue(":build_date", VersionInfo::getTime().toQString());
+    if (!query.exec())
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error updating database");
+    }
   }
 
 
@@ -94,32 +106,49 @@ namespace OpenMS
 
 
   void OMSFile::storeParentMolecules_(const IdentificationData& id_data,
-                                      SqliteConnector& con)
+                                      QSqlDatabase& db)
   {
     if (id_data.getParentMolecules().empty()) return;
-    String sql_create = "CREATE TABLE ID_ParentMolecule ("              \
+
+    QSqlQuery query(db);
+    QString sql_create =
+      "CREATE TABLE ID_ParentMolecule ("                                \
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "accession TEXT UNIQUE NOT NULL, "                                \
       "molecule_type TEXT NOT NULL CHECK (molecule_type IN ('PRO', 'COM', 'RNA')), " \
       "sequence TEXT, "                                                 \
       "description TEXT, "                                              \
-      "coverage REAL, "                                    \
-      "is_decoy NUMERIC NOT NULL CHECK (is_decoy in (0, 1)) DEFAULT 0);";
-    con.executeStatement(sql_create);
+      "coverage REAL, "                                                 \
+      "is_decoy NUMERIC NOT NULL CHECK (is_decoy in (0, 1)) DEFAULT 0)";
+    if (!query.exec(sql_create))
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error creating database table");
+    }
+    query.prepare("INSERT INTO ID_ParentMolecule VALUES ("  \
+                  ":id, "                                   \
+                  ":accession, "                            \
+                  ":molecule_type, "                        \
+                  ":sequence, "                             \
+                  ":description, "                          \
+                  ":coverage, "                             \
+                  ":is_decoy)");
     for (const IdentificationData::ParentMolecule& parent :
            id_data.getParentMolecules())
     {
-      stringstream sql_insert;
-      sql_insert << "INSERT INTO ID_ParentMolecule VALUES ("
-                 // use address as primary key:
-                 << Int64(&parent) << ", '"
-                 << parent.accession << "', '"
-                 << getMoleculeTypeAbbrev_(parent.molecule_type) << "', '"
-                 << parent.sequence << "', '"
-                 << parent.description << "', "
-                 << parent.coverage << ", "
-                 << int(parent.is_decoy) << ");";
-      con.executeStatement(sql_insert);
+      query.bindValue(":id", qint64(&parent)); // use address as primary key
+      query.bindValue(":accession", parent.accession.toQString());
+      query.bindValue(":molecule_type",
+                      getMoleculeTypeAbbrev_(parent.molecule_type).toQString());
+      query.bindValue(":sequence", parent.sequence.toQString());
+      query.bindValue(":description", parent.description.toQString());
+      query.bindValue(":coverage", parent.coverage);
+      query.bindValue(":is_decoy", int(parent.is_decoy));
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error updating database");
+      }
     }
   }
 
@@ -130,12 +159,24 @@ namespace OpenMS
     File::remove(filename);
 
     // open database:
-    SqliteConnector con(filename.c_str());
-    // generally, create tables only if we have data to write - no empty ones!
+    QString connection = "store_" + filename.toQString();
+    { // extra scope to avoid warning from "QSqlDatabase::removeDatabase"
+      QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connection);
+      db.setDatabaseName(filename.toQString());
+      if (!db.open())
+      {
+        raiseDBError_(db.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error opening SQLite database");
+      }
+      // generally, create tables only if we have data to write - no empty ones!
 
-    storeVersionAndDate_(con);
+      storeVersionAndDate_(db);
 
-    storeParentMolecules_(id_data, con);
+      storeParentMolecules_(id_data, db);
+    }
+
+    QSqlDatabase::removeDatabase(connection);
+  }
 
 /*
 
@@ -359,7 +400,6 @@ namespace OpenMS
 
     // Index maps (memory map)
     */
-  }
 
 
   IdentificationData::MoleculeType OMSFile::getMoleculeTypeFromAbbrev_(const String& abbrev)
@@ -373,41 +413,53 @@ namespace OpenMS
   }
 
 
-  void OMSFile::loadParentMolecules_(SqliteConnector& con,
-                                     IdentificationData& id_data)
+  void OMSFile::loadParentMolecules_(IdentificationData& id_data,
+                                     QSqlDatabase& db)
   {
-    if (!con.tableExists("ID_ParentMolecule")) return;
+    // check if there's data to read, abort if not:
+    if (!db.tables(QSql::Tables).contains("ID_ParentMolecule")) return;
 
-    sqlite3_stmt* result;
-    con.prepareStatement(&result, "SELECT * FROM ID_ParentMolecule;");
-    sqlite3_step(result);
-    while (sqlite3_column_type(result, 0) != SQLITE_NULL)
+    QSqlQueryModel model;
+    model.setQuery("SELECT * FROM ID_ParentMolecule", db);
+    if (model.lastError().isValid())
     {
-      String accession = sqlite3_column_text(result, 1);
-      String mt_abbrev = sqlite3_column_text(result, 2);
-      IdentificationData::MoleculeType molecule_type =
-        getMoleculeTypeFromAbbrev_(mt_abbrev);
-      String sequence = sqlite3_column_text(result, 3);
-      String description = sqlite3_column_text(result, 4);
-      double coverage = sqlite3_column_double(result, 5);
-      bool is_decoy = sqlite3_column_int(result, 6);
-      IdentificationData::ParentMolecule parent(accession, molecule_type,
-                                                sequence, description, coverage,
-                                                is_decoy);
-      id_data.registerParentMolecule(parent);
-      sqlite3_step(result);
+      raiseDBError_(model.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                     "error reading from database");
     }
-    sqlite3_finalize(result);
+    for (int i = 0; i < model.rowCount(); ++i)
+    {
+      const QSqlRecord& row = model.record(i);
+      String accession = row.value("accession").toString();
+      IdentificationData::ParentMolecule parent(accession);
+      parent.molecule_type =
+        getMoleculeTypeFromAbbrev_(row.value("molecule_type").toString());
+      parent.sequence = row.value("sequence").toString();
+      parent.description = row.value("description").toString();
+      parent.coverage = row.value("coverage").toDouble();
+      parent.is_decoy = row.value("is_decoy").toInt();
+      id_data.registerParentMolecule(parent);
+    }
   }
 
 
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
-    SqliteConnector con(filename.c_str());
+    // open database:
+    QString connection = "load_" + filename.toQString();
+    { // extra scope to avoid warning from "QSqlDatabase::removeDatabase"
+      QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connection);
+      db.setDatabaseName(filename.toQString());
+      if (!db.open())
+      {
+        raiseDBError_(db.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error opening SQLite database");
+      }
 
-    loadParentMolecules_(con, id_data);
+      loadParentMolecules_(id_data, db);
+    }
+
+    QSqlDatabase::removeDatabase(connection);
   }
-
 
   /*
         // ParentMolecule table
