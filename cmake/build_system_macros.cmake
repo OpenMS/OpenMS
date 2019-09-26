@@ -50,6 +50,8 @@ macro(find_boost)
 
   # help boost finding it's packages
   set(Boost_ADDITIONAL_VERSIONS
+    "1.71.1" "1.71.0" "1.71"
+    "1.70.1" "1.70.0" "1.70"
     "1.69.1" "1.69.0" "1.69"
     "1.68.1" "1.68.0" "1.68"
     "1.67.1" "1.67.0" "1.67"
