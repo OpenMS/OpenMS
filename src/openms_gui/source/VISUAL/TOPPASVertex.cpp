@@ -117,7 +117,6 @@ namespace OpenMS
     pen_color_(),
     brush_color_(),
     dfs_color_(DFS_WHITE),
-    dfs_parent_(nullptr),
     topo_sort_marked_(false),
     topo_nr_(0),
     round_total_(-1),
@@ -140,7 +139,6 @@ namespace OpenMS
     pen_color_(rhs.pen_color_),
     brush_color_(rhs.brush_color_),
     dfs_color_(rhs.dfs_color_),
-    dfs_parent_(rhs.dfs_parent_),
     topo_sort_marked_(rhs.topo_sort_marked_),
     topo_nr_(rhs.topo_nr_),
     round_total_(rhs.round_total_),
@@ -167,7 +165,6 @@ namespace OpenMS
     pen_color_ = rhs.pen_color_;
     brush_color_ = rhs.brush_color_;
     dfs_color_ = rhs.dfs_color_;
-    dfs_parent_ = rhs.dfs_parent_;
     topo_sort_marked_ = rhs.topo_sort_marked_;
     topo_nr_ = rhs.topo_nr_;
 
@@ -462,16 +459,6 @@ namespace OpenMS
   void TOPPASVertex::setDFSColor(DFS_COLOR color)
   {
     dfs_color_ = color;
-  }
-
-  TOPPASVertex * TOPPASVertex::getDFSParent()
-  {
-    return dfs_parent_;
-  }
-
-  void TOPPASVertex::setDFSParent(TOPPASVertex* parent)
-  {
-    dfs_parent_ = parent;
   }
 
   Size TOPPASVertex::incomingEdgesCount()

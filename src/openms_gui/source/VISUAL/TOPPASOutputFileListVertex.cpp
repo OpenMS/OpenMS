@@ -401,7 +401,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-      files_total_ = 0;
+    files_total_ = 0;
     files_written_ = 0;
 
     TOPPASVertex::reset();
