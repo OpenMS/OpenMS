@@ -338,9 +338,7 @@ using namespace OpenMS;
     specGenParams_mainscore.setValue("add_k_linked_ions", "true");
     specGen_mainscore.setParameters(specGenParams_mainscore);
 
-    Tagger tagger = Tagger(sequence_tag_min_length_, fragment_mass_tolerance_, 50, 1, max_precursor_charge_, fixedModNames_, varModNames_);
-    // TODO for release version, there is no need to generate tags longer than the minimum. Would be a waste of runtime if they are not used further
-    // tagger = Tagger(sequence_tag_min_length_, fragment_mass_tolerance_, sequence_tag_min_length_, 1, max_precursor_charge_, fixedModNames_, varModNames_);
+    Tagger tagger = Tagger(sequence_tag_min_length_, fragment_mass_tolerance_, sequence_tag_min_length_, 1, max_precursor_charge_, fixedModNames_, varModNames_);
 
 #ifdef DEBUG_OPENPEPXLLFALGO
     OPENMS_LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
@@ -349,6 +347,9 @@ using namespace OpenMS;
     search_params = protein_ids[0].getSearchParameters();
     search_params.setMetaValue("MS:1001029", peptide_masses.size()); // number of sequences searched = MS:1001029
     protein_ids[0].setSearchParameters(search_params);
+
+    Size all_candidates_count(0);
+    Size filtered_candidates_count(0);
 
     // Collect precursor MZs for filtering enumerated peptide pairs
     vector< double > spectrum_precursors;
@@ -415,18 +416,28 @@ using namespace OpenMS;
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > top_csms_spectrum;
       vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_);
 
+      all_candidates_count += cross_link_candidates.size();
       if (use_sequence_tags_ && cross_link_candidates.size() > 0)
       {
         tagger.setMaxCharge(precursor_charge);
-        std::set<std::string> tags;
+        std::vector<std::string> tags;
         tagger.getTag(spectrum, tags);
-        std::cout << "TEST TAG NEW SPECTRUM: " << scan_index << std::endl;
-        std::cout << "TEST TAG number of candidates before sequence tag filtering: " << cross_link_candidates.size() << std::endl;
-        for (std::string tag : tags)
+
+        if (tags.size() > 0)
         {
-          std::cout << "TEST TAG: " << tag << std::endl;
+          // std::cout << "TEST TAG NEW SPECTRUM: " << scan_index << std::endl;
+          // std::cout << "TEST TAG number of candidates before sequence tag filtering: " << cross_link_candidates.size() << std::endl;
+          // std::cout << "TEST TAG number of tags: " << tags.size() << std::endl;
+          for (std::string tag : tags)
+          {
+            // std::cout << "TEST TAG: " << tag << std::endl;
+          }
+          OPXLHelper::filterCandidatesByTagTrie(cross_link_candidates, tags);
+        } else
+        {
+          cross_link_candidates.clear();
         }
-        OPXLHelper::filterCandidatesByTags(cross_link_candidates, tags);
+        filtered_candidates_count += cross_link_candidates.size();
       }
 
 #ifdef DEBUG_OPENPEPXLLFALGO
@@ -441,6 +452,11 @@ using namespace OpenMS;
         spectrum_counter++;
         cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum index: " << scan_index << "\t| at: " << DateTime::now().getTime() << endl;
         cout << "Number of peaks: " << spectrum.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
+      }
+
+      if (cross_link_candidates.size() < 1)
+      {
+        continue;
       }
 
       // lists for one spectrum, to determine best match to the spectrum
@@ -1001,6 +1017,12 @@ using namespace OpenMS;
 #pragma omp critical (LOG_DEBUG_access)
       OPENMS_LOG_DEBUG << "Next Spectrum ##################################" << endl;
 #endif
+    }
+
+    std::cout << std::endl << "Total number of potential candidates searched: " << all_candidates_count << std::endl;
+    if (filtered_candidates_count > 0)
+    {
+      std::cout << "Total number of candidates searched after sequence tag filtering: " << filtered_candidates_count << std::endl << std::endl;
     }
 
     // end of matching / scoring
