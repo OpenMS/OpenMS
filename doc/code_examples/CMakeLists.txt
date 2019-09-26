@@ -50,7 +50,7 @@ include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
 # QT dependencies
-find_package(Qt5 COMPONENTS Core Network OpenGL Svg REQUIRED)
+find_package(Qt5 COMPONENTS Core Network OpenGL Svg Sql REQUIRED)
 if (NOT Qt5Network_FOUND)
   message(STATUS "QtNetwork module not found!")
   message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
