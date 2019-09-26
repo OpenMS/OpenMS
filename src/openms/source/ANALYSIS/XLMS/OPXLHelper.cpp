@@ -39,6 +39,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 
 // turn on additional debug output
 // #define DEBUG_OPXLHELPER
@@ -1367,7 +1368,7 @@ namespace OpenMS
     }
   }
 
-  void OPXLHelper::filterCandidatesByTags(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, std::set<std::string>& tags)
+  void OPXLHelper::filterCandidatesByTags(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, std::vector<std::string>& tags)
   {
     std::vector <OPXLDataStructs::ProteinProteinCrossLink> filtered_candidates;
 
@@ -1393,6 +1394,65 @@ namespace OpenMS
         }
       }
     }
+    candidates = filtered_candidates;
+  }
+
+  void OPXLHelper::filterCandidatesByTagTrie(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, std::vector<std::string>& tags)
+  {
+    std::vector <OPXLDataStructs::ProteinProteinCrossLink> filtered_candidates;
+
+    // prepare trie
+    AhoCorasickAmbiguous::PeptideDB tag_DB;
+    for (const std::string& tag : tags)
+    {
+      appendValue(tag_DB, tag.c_str());
+    }
+    AhoCorasickAmbiguous::FuzzyACPattern pattern;
+    // make trie from: set of tags, max. ambiguous, max. mismatches, and the pattern that will contain the trie
+    AhoCorasickAmbiguous::initPattern(tag_DB, 0, 0, pattern);
+
+    // init algorithm
+    AhoCorasickAmbiguous fuzzyAC;
+
+    for (const OPXLDataStructs::ProteinProteinCrossLink& candidate : candidates)
+    {
+      String alpha = candidate.alpha->toUnmodifiedString();
+
+      fuzzyAC.setProtein(alpha);
+      if (fuzzyAC.findNext(pattern))
+      {
+        filtered_candidates.push_back(candidate);
+        continue;
+      }
+
+      alpha.reverse();
+      fuzzyAC.setProtein(alpha);
+      if (fuzzyAC.findNext(pattern))
+      {
+        filtered_candidates.push_back(candidate);
+        continue;
+      }
+
+      if (candidate.beta)
+      {
+        String beta = candidate.beta->toUnmodifiedString();
+        fuzzyAC.setProtein(beta);
+        if (fuzzyAC.findNext(pattern))
+        {
+          filtered_candidates.push_back(candidate);
+          continue;
+        }
+
+        beta.reverse();
+        fuzzyAC.setProtein(beta);
+        if (fuzzyAC.findNext(pattern))
+        {
+          filtered_candidates.push_back(candidate);
+          continue;
+        }
+      }
+    }
+
     candidates = filtered_candidates;
   }
 
