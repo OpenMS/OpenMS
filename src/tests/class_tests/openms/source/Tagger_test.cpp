@@ -60,14 +60,14 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   PeakSpectrum spec;
   tsg.getSpectrum(spec, test_sequence, 1, 5);
   Tagger tagger = Tagger(2, 10, 5, 1, 5);
-  std::set<std::string> tags;
+  std::vector<std::string> tags;
 
   TEST_EQUAL(spec.size(), 888);
   tagger.getTag(spec, tags);
   TEST_EQUAL(tags.size(), 11002);
 
-  // runtime benchmark, research tags many times in the same spectrum
-  // for (int i = 0; i < 30; i++)
+  // // runtime benchmark, research tags many times in the same spectrum
+  // for (int i = 0; i < 50; i++)
   // {
   //   tags.clear();
   //   tagger.getTag(spec, tags);

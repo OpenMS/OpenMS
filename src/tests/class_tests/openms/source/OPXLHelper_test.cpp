@@ -501,7 +501,7 @@ START_SECTION(static void filterCandidatesByTags(std::vector <OPXLDataStructs::P
   // set of tags
   std::set<std::string> tags;
   tags.insert("DE");
-  tags.insert("BP");
+  tags.insert("PP");
   tags.insert("FDA");
   tags.insert("CIA");
   tags.insert("FTC");
@@ -509,10 +509,11 @@ START_SECTION(static void filterCandidatesByTags(std::vector <OPXLDataStructs::P
   TEST_EQUAL(spectrum_candidates.size(), 1050);
 
   // filter candidates
-  OPXLHelper::filterCandidatesByTags(spectrum_candidates, tags);
+  OPXLHelper::filterCandidatesByTagTrie(spectrum_candidates, tags);
   TEST_EQUAL(spectrum_candidates.size(), 210);
+  std::cout << std::endl;
 
-  // runtime benchmark: search those 210 candidates that do not contain the tags many times
+  // // runtime benchmark: search those 210 candidates that do not contain the tags many times
   // for (int i = 0; i < 50000; ++i)
   // {
   //   OPXLHelper::filterCandidatesByTags(spectrum_candidates, tags);
