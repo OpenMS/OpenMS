@@ -70,11 +70,18 @@ namespace OpenMS
 
   protected:
 
+    static bool tableExists_(QSqlDatabase& db, const String& name);
+
     static void raiseDBError_(const QSqlError& error, QSqlDatabase& db,
                               int line, const char* function,
                               const String& context);
 
     static void storeVersionAndDate_(QSqlDatabase& db);
+
+    static int storeCVTerm_(const CVTerm& cv_term, QSqlDatabase& db);
+
+    static void storeScoreTypes_(const IdentificationData& id_data,
+                                 QSqlDatabase& db);
 
     static void storeParentMolecules_(const IdentificationData& id_data,
                                       QSqlDatabase& db);

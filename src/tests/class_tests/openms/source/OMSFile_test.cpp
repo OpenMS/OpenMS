@@ -99,6 +99,7 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   OMSFile::load(oms_path, out);
 
   TEST_EQUAL(ids.getParentMolecules().size(), out.getParentMolecules().size());
+  TEST_EQUAL(ids.getScoreTypes().size(), out.getScoreTypes().size());
 }
 END_SECTION
 

@@ -59,6 +59,12 @@ namespace OpenMS
   }
 
 
+  bool OMSFile::tableExists_(QSqlDatabase& db, const String& name)
+  {
+    return db.tables(QSql::Tables).contains(name.toQString());
+  }
+
+
   void OMSFile::storeVersionAndDate_(QSqlDatabase& db)
   {
     QSqlQuery query(db);
@@ -101,6 +107,96 @@ namespace OpenMS
       return "RNA";
     default:
       return "";
+    }
+  }
+
+
+  int OMSFile::storeCVTerm_(const CVTerm& cv_term, QSqlDatabase& db)
+  {
+    // this assumes the "CVTerm" table exists already!
+    QSqlQuery query(db);
+    query.prepare("INSERT OR IGNORE INTO CVTerm VALUES ("   \
+                  "NULL, "                                  \
+                  ":accession, "                            \
+                  ":name, "                                 \
+                  ":cv_identifier_ref)");
+    if (!cv_term.getAccession().empty()) // use NULL for empty accessions
+    {
+      query.bindValue(":accession", cv_term.getAccession().toQString());
+    }
+    query.bindValue(":name", cv_term.getName().toQString());
+    query.bindValue(":cv_identifier_ref",
+                    cv_term.getCVIdentifierRef().toQString());
+    if (!query.exec())
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error updating database");
+    }
+    if (query.lastInsertId().isValid()) return query.lastInsertId().toInt();
+    // else: insert has failed, record must already exist - get the key:
+    query.prepare("SELECT id FROM CVTerm "                          \
+                  "WHERE accession = :accession AND name = :name");
+    if (!cv_term.getAccession().empty()) // use NULL for empty accessions
+    {
+      query.bindValue(":accession", cv_term.getAccession().toQString());
+    }
+    query.bindValue(":name", cv_term.getName().toQString());
+    if (!query.exec() || !query.next())
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error querying database");
+    }
+    return query.value(0).toInt();
+  }
+
+
+  void OMSFile::storeScoreTypes_(const IdentificationData& id_data,
+                                 QSqlDatabase& db)
+  {
+    if (id_data.getScoreTypes().empty()) return;
+
+    QSqlQuery query(db);
+    QString sql_create =
+      "CREATE TABLE CVTerm ("                               \
+      "id INTEGER PRIMARY KEY NOT NULL, "                   \
+      "accession TEXT UNIQUE, "                             \
+      "name TEXT NOT NULL, "                                \
+      "cv_identifier_ref TEXT, "                            \
+      // does this constrain "name" if "accession" is NULL?
+      "UNIQUE (accession, name))";
+    // @TODO: add support for unit and value
+    if (!query.exec(sql_create))
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error creating database table");
+    }
+    sql_create =
+      "CREATE TABLE ID_ScoreType ("                                     \
+      "id INTEGER PRIMARY KEY NOT NULL, "                               \
+      "cv_term_id INTEGER NOT NULL, "                                   \
+      "higher_better NUMERIC NOT NULL CHECK (higher_better in (0, 1)), " \
+      "FOREIGN KEY (cv_term_id) REFERENCES CVTerm (id))";
+    if (!query.exec(sql_create))
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error creating database table");
+    }
+    query.prepare("INSERT INTO ID_ScoreType VALUES ("  \
+                  ":id, "                                   \
+                  ":cv_term_id, "                           \
+                  ":higher_better)");
+    for (const IdentificationData::ScoreType& score_type :
+           id_data.getScoreTypes())
+    {
+      int cv_id = storeCVTerm_(score_type.cv_term, db);
+      query.bindValue(":id", qint64(&score_type)); // use address as primary key
+      query.bindValue(":cv_term_id", cv_id);
+      query.bindValue(":higher_better", int(score_type.higher_better));
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error updating database");
+      }
     }
   }
 
@@ -171,6 +267,8 @@ namespace OpenMS
       // generally, create tables only if we have data to write - no empty ones!
 
       storeVersionAndDate_(db);
+
+      storeScoreTypes_(id_data, db);
 
       storeParentMolecules_(id_data, db);
     }
@@ -416,8 +514,7 @@ namespace OpenMS
   void OMSFile::loadParentMolecules_(IdentificationData& id_data,
                                      QSqlDatabase& db)
   {
-    // check if there's data to read, abort if not:
-    if (!db.tables(QSql::Tables).contains("ID_ParentMolecule")) return;
+    if (!tableExists_(db, "ID_ParentMolecule")) return;
 
     QSqlQueryModel model;
     model.setQuery("SELECT * FROM ID_ParentMolecule", db);
