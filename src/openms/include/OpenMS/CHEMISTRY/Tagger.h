@@ -61,10 +61,11 @@ namespace OpenMS
       Tagger(size_t min_tag_length, double ppm, size_t max_tag_length = 65535, size_t min_charge = 1, size_t max_charge = 1, StringList fixed_mods = StringList(), StringList var_mods = StringList());
 
       // generate tags from mass vector @p mzs using the standard residues in ResidueDB
-      void getTag(const std::vector<double>& mzs, std::set<std::string>& tags) const;
-      void getTag(const MSSpectrum& spec, std::set<std::string>& tags) const;
+      void getTag(const std::vector<double>& mzs, std::vector<std::string>& tags) const;
+      void getTag(const MSSpectrum& spec, std::vector<std::string>& tags) const;
       void setMinCharge(size_t min_charge);
       void setMaxCharge(size_t max_charge);
+
     private:
       double min_gap_; // will be set to smallest residue mass in ResidueDB
       double max_gap_; // will be set to highest residue mass in ResidueDB
@@ -75,6 +76,6 @@ namespace OpenMS
       size_t max_charge_; // < maximal fragment charge
       std::map<double, char> mass2aa;
       char getAAByMass_(double m) const;
-      void getTag_(std::string& tag, const std::vector<double>& mzs, const size_t i, std::set<std::string>& tags) const;
+      void getTag_(std::string& tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags) const;
   };
 }
