@@ -47,6 +47,14 @@ macro(find_boost)
   set(Boost_USE_STATIC_RUNTIME OFF)
   add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost tends to guess wrong lib names)
   set(Boost_COMPILER "")
+  ## since boost 1.70 they provide CMake config files which only define imported targets and do not fill
+  ## Boost_LIBRARIES anymore
+  ## Try to avoid that until we changed our build system to use imported targets
+  set(Boost_NO_BOOST_CMAKE ON)
+  ## since boost 1.66 they add an architecture tag if you build with layout=versioned and since 1.69 even when you
+  ## build with layout=tagged (which we do in the contrib)
+  set(Boost_ARCHITECTURE "-x64")
+
 
   # help boost finding it's packages
   set(Boost_ADDITIONAL_VERSIONS
