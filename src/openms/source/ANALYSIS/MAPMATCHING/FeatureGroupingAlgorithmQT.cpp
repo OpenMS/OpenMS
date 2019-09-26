@@ -70,41 +70,7 @@ namespace OpenMS
 
     cluster_finder.run(maps, out);
 
-    StringList ms_run_locations;
-
-    // add protein IDs and unassigned peptide IDs to the result map here,
-    // to keep the same order as the input maps (useful for output later):
-    auto& newIDs = out.getUnassignedPeptideIdentifications();
-    Size map_idx = 0;
-
-    for (typename vector<MapType>::const_iterator map_it = maps.begin();
-         map_it != maps.end(); ++map_it)
-    {      
-      // add protein identifications to result map:
-      out.getProteinIdentifications().insert(
-        out.getProteinIdentifications().end(),
-        map_it->getProteinIdentifications().begin(),
-        map_it->getProteinIdentifications().end());
-
-      for (const PeptideIdentification& pepID : map_it->getUnassignedPeptideIdentifications())
-      {
-        auto newPepID = pepID;
-        // Note: during linking of _consensus_Maps we have the problem that old identifications
-        // should already have a map_index associated. Since we group the consensusFeatures only anyway
-        // (without keeping the subfeatures) the method for now is to "re"-index based on the input file/map index.
-        // Subfeatures have to be transferred in postprocessing if required
-        // (see FeatureGroupingAlgorithm::transferSubelements), which also takes care of a re-re-indexing
-        // if the old map_index of the IDs was saved.
-        newPepID.setMetaValue("map_index", map_idx);
-        newIDs.push_back(newPepID);
-      }
-      map_idx++;
-    }
-
-    // canonical ordering for checking the results:
-    out.sortByQuality();
-    out.sortByMaps();
-    out.sortBySize();
+    postprocess_(maps, out);
   }
 
   void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,
