@@ -1463,24 +1463,24 @@ namespace OpenMS
   void TOPPASScene::topoSort(bool resort_all)
   {
     UInt topo_counter {1};
-    for (auto it : vertices_)
+    for (TOPPASVertex* tv : vertices_)
     {
-      if (resort_all) it->setTopoSortMarked(false);
-      else if (it->isTopoSortMarked()) ++topo_counter; // count number of existing/sorted vertices to get correct offset for new vertices
+      if (resort_all) tv->setTopoSortMarked(false);
+      else if (tv->isTopoSortMarked()) ++topo_counter; // count number of existing/sorted vertices to get correct offset for new vertices
     }
   
     while (true)
     {
       bool some_vertex_not_finished = false;
-      for (auto it : vertices_)
+      for (TOPPASVertex* tv : vertices_)
       {
-        if (it->isTopoSortMarked())
+        if (tv->isTopoSortMarked())
         {
           continue;
         }
         
         bool has_unmarked_predecessors = false;
-        for (TOPPASVertex::ConstEdgeIterator e_it = it->inEdgesBegin(); e_it != it->inEdgesEnd(); ++e_it)
+        for (TOPPASVertex::ConstEdgeIterator e_it = tv->inEdgesBegin(); e_it != tv->inEdgesEnd(); ++e_it)
         {
           TOPPASVertex* v = (*e_it)->getSourceVertex();
           if (!(v->isTopoSortMarked()))
@@ -1496,19 +1496,19 @@ namespace OpenMS
         else
         { // mark this node
           // update name of input node
-          TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(it);
+          TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
           if (iflv)
           {
             //check if key was modified by user. if yes, don't update it
-            QString old_topo_nr = QString::number(it->getTopoNr());
+            QString old_topo_nr = QString::number(tv->getTopoNr());
             if (old_topo_nr == iflv->getKey() || iflv->getKey() == "")
             {
               iflv->setKey(QString::number(topo_counter));
             }
           }
 
-          it->setTopoNr(topo_counter);
-          it->setTopoSortMarked(true);
+          tv->setTopoNr(topo_counter);
+          tv->setTopoSortMarked(true);
 
           ++topo_counter;
         }
