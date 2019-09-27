@@ -68,8 +68,6 @@ public:
     // documented in base class
     QRectF boundingRect() const override;
     // documented in base class
-    QPainterPath shape() const override;
-    // documented in base class
     void reset(bool reset_all_files = false) override;
     /// Called when the parent node has finished execution
     void run() override;

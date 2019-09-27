@@ -33,12 +33,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
+
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+
+#include <QSvgRenderer>
+#include <QtCore/QFileInfo>
 
 #include <iostream>
 
@@ -47,6 +51,11 @@ namespace OpenMS
 #ifdef TOPPAS_DEBUG
   int TOPPASVertex::global_debug_indent_ = 0;
 #endif
+
+  TOPPASVertex::TOPPASFilenames::TOPPASFilenames(const QStringList& filenames)
+  {
+    append(filenames);
+  }
 
   int TOPPASVertex::TOPPASFilenames::size() const
   {
@@ -82,11 +91,32 @@ namespace OpenMS
 
   void TOPPASVertex::TOPPASFilenames::append(const QStringList& filenames)
   {
-    foreach(const QString& fn, filenames)
+    for (const QString& fn : filenames)
     {
       check_(fn);
       push_back(fn);
     }
+  }
+
+  QStringList TOPPASVertex::TOPPASFilenames::getSuffixCounts() const
+  {
+    // display file type(s)
+    Map<QString, Size> suffices;
+    for (const QString& fn : filenames_)
+    {
+      QStringList l = QFileInfo(fn).completeSuffix().split('.');
+      QString suf = ((l.size() > 1 && l[l.size() - 2].size() <= 4) ? l[l.size() - 2] + "." : QString()) + l.back(); // take up to two dots as suffix (the first only if its <=4 chars, e.g. we want ".prot.xml" or ".tar.gz", but not "stupid.filename.with.longdots.mzML")
+      ++suffices[suf];
+    }
+    QStringList text_l;
+    for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
+    {
+      if (suffices.size() > 1)
+        text_l.push_back("." + sit->first + "(" + sit->second + ")");
+      else
+        text_l.push_back("." + sit->first);
+    }
+    return text_l;
   }
 
   void TOPPASVertex::TOPPASFilenames::check_(const QString& filename)
@@ -158,6 +188,47 @@ namespace OpenMS
     setPos(rhs.pos());
 
     return *this;
+  }
+
+  void TOPPASVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/, bool round_shape)
+  {
+    QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+    if (isSelected())
+    {
+      pen.setWidth(2);
+      painter->setBrush(brush_color_.darker(130));
+      pen.setColor(Qt::darkBlue);
+    }
+    else
+    {
+      painter->setBrush(brush_color_);
+    }
+    painter->setPen(pen);
+
+    QPainterPath path;
+    if (round_shape) path.addRoundRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)), 20);
+    else path.addRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)));
+    painter->drawPath(path);
+
+    pen.setColor(pen_color_);
+    painter->setPen(pen);
+
+    // topo sort number
+    painter->drawText(boundingRect().x() + 7, boundingRect().y() + 20, QString::number(topo_nr_));
+    
+    // recycling status
+    if (this->allow_output_recycling_)
+    {
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
+      svg_renderer->render(painter, QRectF(-7, boundingRect().y() + 9.0, 14, 14));
+    }
+  }
+
+  QPainterPath TOPPASVertex::shape() const
+  {
+    QPainterPath shape;
+    shape.addRoundRect(boundingRect(), 20, 20);
+    return shape;
   }
 
   bool TOPPASVertex::isUpstreamFinished() const

@@ -324,47 +324,23 @@ namespace OpenMS
     qSort(io_infos);
   }
 
-  void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
+  void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
   {
-    QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-    if (isSelected())
-    {
-      pen.setWidth(2);
-      painter->setBrush(brush_color_.darker(130));
-      pen.setColor(Qt::darkBlue);
-    }
-    else
-    {
-      painter->setBrush(brush_color_);
-    }
-    painter->setPen(pen);
+    TOPPASVertex::paint(painter, option, widget, false);
 
-    QPainterPath path;
-    path.addRect(-70.0, -60.0, 140.0, 120.0);
-    painter->drawPath(path);
-
-    pen.setColor(pen_color_);
-    painter->setPen(pen);
-
-    QString tmp_str = (type_ == "" ? name_ : name_ + " (" + type_ + ")").toQString();
+    QString draw_str = (type_ == "" ? name_ : name_ + " (" + type_ + ")").toQString();
     for (int i = 0; i < 10; ++i)
     {
-      QString prev_str = tmp_str;
-      tmp_str = toolnameWithWhitespacesForFancyWordWrapping_(painter, tmp_str);
-      if (tmp_str == prev_str)
+      QString prev_str = draw_str;
+      draw_str = toolnameWithWhitespacesForFancyWordWrapping_(painter, draw_str);
+      if (draw_str == prev_str)
       {
         break;
       }
     }
-    QString draw_str = tmp_str;
 
     QRectF text_boundings = painter->boundingRect(QRectF(-65, -35, 130, 70), Qt::AlignCenter | Qt::TextWordWrap, draw_str);
     painter->drawText(text_boundings, Qt::AlignCenter | Qt::TextWordWrap, draw_str);
-
-    //topo sort number
-    qreal x_pos = -64.0;
-    qreal y_pos = -41.0;
-    painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 
     if (status_ != TOOL_READY)
     {
@@ -400,16 +376,8 @@ namespace OpenMS
     painter->setBrush(progress_color);
     painter->drawEllipse(46, -52, 14, 14);
 
-    // recycling status
-    if (this->allow_output_recycling_)
-    {
-      painter->setPen(Qt::green);
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
-      svg_renderer->render(painter, QRectF(-7, -52, 14, 14));
-    }
-
-    //breakpoint set?
-    if (this->breakpoint_set_)
+    // breakpoint set?
+    if (breakpoint_set_)
     {
       QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/stop_sign.svg"), nullptr);
       painter->setOpacity(0.35);
@@ -462,13 +430,6 @@ namespace OpenMS
   QRectF TOPPASToolVertex::boundingRect() const
   {
     return QRectF(-71, -61, 142, 122);
-  }
-
-  QPainterPath TOPPASToolVertex::shape() const
-  {
-    QPainterPath shape;
-    shape.addRect(-71.0, -61.0, 142.0, 122.0);
-    return shape;
   }
 
   String TOPPASToolVertex::getName() const

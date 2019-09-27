@@ -74,8 +74,6 @@ public:
     // documented in base class
     QRectF boundingRect() const override;
     // documented in base class
-    QPainterPath shape() const override;
-    // documented in base class
     void markUnreachable() override;
 
 protected:

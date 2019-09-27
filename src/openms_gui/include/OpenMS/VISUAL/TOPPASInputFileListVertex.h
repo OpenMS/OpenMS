@@ -73,8 +73,6 @@ public:
     void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
     // documented in base class
     QRectF boundingRect() const override;
-    // documented in base class
-    QPainterPath shape() const override;
     /// Checks if the given list of file names is valid
     bool fileNamesValid();
     /// Shows the dialog for editing the files

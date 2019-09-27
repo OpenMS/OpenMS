@@ -81,6 +81,7 @@
 #include <QtWidgets/QGraphicsItem>
 #include <QtCore/QProcess>
 #include <QtWidgets/QMenu>
+#include <QStringList>
 
 namespace OpenMS
 {
@@ -105,13 +106,13 @@ namespace OpenMS
     Q_INTERFACES(QGraphicsItem)
 
 public:
-
     /// The container for in/out edges
     typedef QList<TOPPASEdge *> EdgeContainer;
     /// A mutable iterator for in/out edges
     typedef EdgeContainer::iterator EdgeIterator;
     /// A const iterator for in/out edges
     typedef EdgeContainer::const_iterator ConstEdgeIterator;
+
 	  /// A class which interfaces with QStringList for holding filenames
 	  /// Incoming filenames are checked, and an exception is thrown if they are too long
 	  /// to avoid issues with common filesystems (due to filesystem limits).
@@ -119,7 +120,7 @@ public:
 	  {
 	    public:
 		  TOPPASFilenames() = default;
-	  
+	    TOPPASFilenames(const QStringList& filenames);
 		  int size() const;
 		  const QStringList& get() const;
 		  const QString& operator[](int i) const;
@@ -132,6 +133,8 @@ public:
 		  void append(const QStringList& filenames);
 		  //@}
 
+      QStringList getSuffixCounts() const;
+
 	    private:
 		  /*
 		  @brief Check length of filename and throw Exception::FileNotWritable() if too long
@@ -142,6 +145,7 @@ public:
 		  void check_(const QString& filename);
 		  QStringList filenames_;   ///< filenames passed from upstream node in this round
 	  };
+
 	  /// Info for one edge and round, to be passed to next node
     struct VertexRoundPackage
     {
@@ -183,7 +187,9 @@ public:
     /// Destructor
     ~TOPPASVertex() override = default;
     /// Assignment operator
-    TOPPASVertex & operator=(const TOPPASVertex & rhs);
+    TOPPASVertex& operator=(const TOPPASVertex & rhs);
+    /// base paint method for all derived classes. should be called first in child-class paint
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/, bool round_shape = true);
 
     /// get the round package for this node from upstream
     /// -- indices in 'RoundPackage' mapping are thus referring to incoming edges of this node
@@ -194,11 +200,9 @@ public:
     bool isUpstreamFinished() const;
 
     /// Returns the bounding rectangle of this item
-    QRectF boundingRect() const override = 0;
+    virtual QRectF boundingRect() const override = 0;
     /// Returns a more precise shape
-    QPainterPath shape() const override = 0;
-    /// Paints the item
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override = 0;
+    QPainterPath shape() const final;
     /// Returns begin() iterator of outgoing edges
     ConstEdgeIterator outEdgesBegin() const;
     /// Returns end() iterator of outgoing edges
