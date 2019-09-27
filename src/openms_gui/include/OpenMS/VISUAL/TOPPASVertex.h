@@ -200,7 +200,7 @@ public:
     bool isUpstreamFinished() const;
 
     /// Returns the bounding rectangle of this item
-    virtual QRectF boundingRect() const override = 0;
+    QRectF boundingRect() const override = 0;
     /// Returns a more precise shape
     QPainterPath shape() const final;
     /// Returns begin() iterator of outgoing edges

@@ -112,7 +112,7 @@ namespace OpenMS
     for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
     {
       if (suffices.size() > 1)
-        text_l.push_back("." + sit->first + "(" + sit->second + ")");
+        text_l.push_back("." + sit->first + "(" + String(sit->second).toQString() + ")");
       else
         text_l.push_back("." + sit->first);
     }
