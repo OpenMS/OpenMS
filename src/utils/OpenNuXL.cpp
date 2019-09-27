@@ -546,7 +546,7 @@ protected:
     if (plss_MIC + plss_im_MIC + plss_pc_MIC + marker_ions_score < 0.03) return true;
 
     // if we don't see shifted ladder ions, we need at least some signal in the shifted immonium ions
-    return (plss_Morph < MIN_SHIFTED_IONS + 1.0 && plss_im_MIC < 0.03); 
+    return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03); 
   }
 
   /*
@@ -1640,7 +1640,9 @@ static void scoreXLIons_(
       } 
 
       spec.getFloatDataArrays().resize(2);
-      spec.getFloatDataArrays()[1].push_back((double)match / (double)in_mass_range);
+
+      spec.getFloatDataArrays()[1].resize(1);
+      spec.getFloatDataArrays()[1][0] = (double)match / (double)in_mass_range;
       spec.getFloatDataArrays()[1].setName("nucleotide_mass_tags");
 
       spec.getIntegerDataArrays().resize(3);
@@ -1654,15 +1656,15 @@ static void scoreXLIons_(
       // sort indexes based on comparing intensity values (0 = highest intensity)
       sort(idx.begin(), idx.end(),
         [&spec](size_t i1, size_t i2) { return spec[i1].getIntensity() > spec[i2].getIntensity(); });
-      
-      for (int rank : idx) spec.getIntegerDataArrays()[IA_RANK_INDEX].push_back(rank);
+
+      spec.getIntegerDataArrays()[IA_RANK_INDEX].clear();
+      for (int rank : idx) { spec.getIntegerDataArrays()[IA_RANK_INDEX].push_back(rank); }
       spec.getIntegerDataArrays()[IA_RANK_INDEX].setName("intensity_rank");
 
       OpenNuXLTagger tagger(0.05, 3);
-      spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].push_back(tagger.getLongestTag(spec).size());
+      spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].resize(1);
+      spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] = tagger.getLongestTag(spec).size();
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].setName("longest_tag");
-      //cout << "tag length:" << spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] << endl;
-
     }
 /*
     for (const auto& mra : aa_plus_adduct_mass)
@@ -2885,10 +2887,10 @@ static void scoreXLIons_(
       }
 
       ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[1][0]);
-      // proportion of longest amino acid tag to identified sequence size
-//      ph.setMetaValue("NuXL:aminoacid_max_tag", (double)spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] / (double)s.size());
-      ph.setMetaValue("NuXL:aminoacid_max_tag", spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0]);
-      ph.setMetaValue("NuXL:aminoacid_id_to_max_tag_ratio", (ah.ladder_score * s.size()) / (double)spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0]);
+      int maxtag = spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0];
+      ph.setMetaValue("NuXL:aminoacid_max_tag", maxtag);
+      const double id2maxtag = maxtag == 0 ? 0 : (ah.ladder_score * s.size()) / (double)maxtag; 
+      ph.setMetaValue("NuXL:aminoacid_id_to_max_tag_ratio", id2maxtag);
       ph.setMetaValue("nr_candidates", nr_candidates[scan_index]);
       ph.setMetaValue("NuXL:rank_product", ah.rank_product);
       ph.setMetaValue("NuXL:wTop50", ah.wTop50);
@@ -3589,7 +3591,7 @@ static void scoreXLIons_(
 
     String in_db = getStringOption_("database");
     String out_idxml = getStringOption_("out");
-    String out_csv = getStringOption_("out_tsv");
+    String out_tsv = getStringOption_("out_tsv");
 
     fast_scoring_ = getStringOption_("RNPxl:scoring") == "fast" ? true : false;
 
@@ -4591,6 +4593,23 @@ static void scoreXLIons_(
           IDFilter::keepNBestHits(peptide_ids, 1);
           IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
+	  // annotate RNPxl related information to hits and create report
+          vector<RNPxlReportRow> csv_rows_percolator = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
+
+          // save report
+          if (!out_tsv.empty())
+          {
+            TextFile csv_file;
+            csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
+            for (const RNPxlReportRow r : csv_rows_percolator)
+            {
+              csv_file.addLine(r.getString("\t"));
+            }
+            const String out_percolator_tsv = File::removeExtension(out_tsv) + "_perc.tsv";
+            csv_file.store(out_percolator_tsv);
+          }
+
+
           // split PSMs into XLs and non-XLs but keep only best one of both
           vector<PeptideIdentification> pep_pi;
           vector<PeptideIdentification> xl_pi;
@@ -4654,7 +4673,7 @@ static void scoreXLIons_(
     }
 
     // save report
-    if (!out_csv.empty())
+    if (!out_tsv.empty())
     {
       TextFile csv_file;
       csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
@@ -4662,7 +4681,7 @@ static void scoreXLIons_(
       {
         csv_file.addLine(csv_rows[i].getString("\t"));
       }
-      csv_file.store(out_csv);
+      csv_file.store(out_tsv);
     }
  
  #ifdef _OPENMP
