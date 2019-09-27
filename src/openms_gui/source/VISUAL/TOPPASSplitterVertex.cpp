@@ -43,21 +43,9 @@
 
 namespace OpenMS
 {
-  TOPPASSplitterVertex::TOPPASSplitterVertex() :
-    TOPPASVertex()
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
 
   TOPPASSplitterVertex::TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs) :
     TOPPASVertex(rhs)
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
-  TOPPASSplitterVertex::~TOPPASSplitterVertex()
   {
   }
 

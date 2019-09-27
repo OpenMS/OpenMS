@@ -54,59 +54,33 @@
 
 namespace OpenMS
 {
-
-
   struct NameComponent
   {
     String prefix, suffix;
-    int counter;
-    NameComponent()
-      : counter(-1)
-    {}
+    int counter = -1;
+    NameComponent() = default;
 
     NameComponent(const String& r_prefix, const String& r_suffix)
-      : prefix(r_prefix),
-      suffix(r_suffix),
-      counter(-1)
+    : prefix(r_prefix),
+      suffix(r_suffix)
     {}
 
     String toString() const
     {
-      String s_counter;
-      if (counter != -1) s_counter = String(counter).fillLeft('0', 3) + ".";
-      return (prefix + s_counter + suffix);
+      return (prefix + (counter != -1 ? String(counter).fillLeft('0', 3) + "." : "") + suffix);
     }
-
   };
 
-  TOPPASToolVertex::TOPPASToolVertex() :
-    TOPPASVertex(),
-    name_(),
-    type_(),
-    param_(),
-    status_(TOOL_READY),
-    tool_ready_(true),
-    breakpoint_set_(false)
+  TOPPASToolVertex::TOPPASToolVertex()
+    : TOPPASToolVertex("", "")
   {
-    pen_color_ = Qt::black;
-    brush_color_ = QColor(245, 245, 245);
-    initParam_();
-    connect(this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
-    connect(this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
-    connect(this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
-    connect(this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
   }
 
   TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type) :
-    TOPPASVertex(),
     name_(name),
-    type_(type),
-    param_(),
-    tool_ready_(true),
-    breakpoint_set_(false)
+    type_(type)
   {
-    pen_color_ = Qt::black;
-    brush_color_ = QColor(245, 245, 245);
+    brush_color_ = brush_color_.lighter(130); // make TOPP tools more white compared to all other nodes
     initParam_();
     connect(this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
     connect(this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
@@ -122,16 +96,6 @@ namespace OpenMS
     status_(rhs.status_),
     tool_ready_(rhs.tool_ready_),
     breakpoint_set_(false)
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = QColor(245, 245, 245);
-    connect(this, SIGNAL(toolStarted()), this, SLOT(toolStartedSlot()));
-    connect(this, SIGNAL(toolFinished()), this, SLOT(toolFinishedSlot()));
-    connect(this, SIGNAL(toolFailed()), this, SLOT(toolFailedSlot()));
-    connect(this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
-  }
-
-  TOPPASToolVertex::~TOPPASToolVertex()
   {
   }
 
@@ -151,20 +115,11 @@ namespace OpenMS
 
   bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
   {
-    Param tmp_param;
     // this is the only exception for writing directly to the tmpDir, instead of a subdir of tmpDir, as scene()->getTempDir() might not be available yet
-    QString ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
-    if (type_ != "")
-    {
-      ini_file += type_.toQString() + "_";
-    }
-    ini_file += File::getUniqueName().toQString() + "_tmp.ini";
-    ini_file = QDir::toNativeSeparators(ini_file);
-
+    QString ini_file = File::getTemporaryFile().toQString();
     QString program = File::findExecutable(name_).toQString();
     QStringList arguments;
-    arguments << "-write_ini";
-    arguments << ini_file;
+    arguments << "-write_ini" << ini_file;
 
     if (type_ != "")
     {
@@ -182,8 +137,7 @@ namespace OpenMS
         tool_ready_ = false;
         return false;
       }
-      arguments << "-ini";
-      arguments << old_ini_file;
+      arguments << "-ini" << old_ini_file;
     }
 
     // actually request the INI
@@ -209,8 +163,8 @@ namespace OpenMS
       return false;
     }
 
-    ParamXMLFile paramFile;
-    paramFile.load(String(ini_file).c_str(), tmp_param);
+    Param tmp_param;
+    ParamXMLFile().load(String(ini_file).c_str(), tmp_param);
     // remember the parameters of this tool
     param_ = tmp_param.copy(name_ + ":1:", true); // get first instance (we never use more -- this is a legacy layer in paramXML)
     param_.setValue("no_progress", "true"); // by default, we do not want each tool to report loading/status statistics (would clutter the log window)
@@ -226,8 +180,6 @@ namespace OpenMS
       QFile q_old_ini(old_ini_file);
       changed = q_ini.size() != q_old_ini.size();
     }
-    QFile::remove(ini_file);
-
     setToolTip(param_.getSectionDescription(name_).toQString());
 
     return changed;
@@ -240,9 +192,6 @@ namespace OpenMS
 
   void TOPPASToolVertex::editParam()
   {
-    QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
-    String default_dir = "";
-
     // use a copy for editing
     Param edit_param(param_);
 
@@ -289,6 +238,8 @@ namespace OpenMS
     }
 
     // edit_param no longer contains tool description, take it from the node tooltip
+    QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
+    String default_dir;
     TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_, toolTip(), hidden_entries);
     if (dialog.exec())
     {
@@ -375,7 +326,6 @@ namespace OpenMS
 
   void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
   {
-    //painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
     QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
     if (isSelected())
     {
@@ -1233,9 +1183,7 @@ namespace OpenMS
   void TOPPASToolVertex::createDirs()
   {
     QDir dir;
-    bool ok = dir.mkpath(getFullOutputDirectory().toQString());
-
-    if (!ok)
+    if (!dir.mkpath(getFullOutputDirectory().toQString()))
     {
       OPENMS_LOG_ERROR << "TOPPAS: Could not create path " << getFullOutputDirectory() << std::endl;
     }
@@ -1270,7 +1218,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-      finished_ = false;
+    finished_ = false;
     status_ = TOOL_READY;
     output_files_.clear();
 

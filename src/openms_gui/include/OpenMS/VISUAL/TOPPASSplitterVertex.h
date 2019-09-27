@@ -58,11 +58,11 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASSplitterVertex();
+    TOPPASSplitterVertex() = default;
     /// Copy constructor
     TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs);
     /// Destructor
-    ~TOPPASSplitterVertex() override;
+    ~TOPPASSplitterVertex() override = default;
     /// Assignment operator
     TOPPASSplitterVertex& operator=(const TOPPASSplitterVertex& rhs);
     /// returns "SplitterVertex"

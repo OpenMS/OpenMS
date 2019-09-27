@@ -48,7 +48,7 @@ namespace OpenMS
   int TOPPASVertex::global_debug_indent_ = 0;
 #endif
 
-    int TOPPASVertex::TOPPASFilenames::size() const
+  int TOPPASVertex::TOPPASFilenames::size() const
   {
     return filenames_.size();
   }
@@ -108,22 +108,7 @@ namespace OpenMS
   }
 
 
-  TOPPASVertex::TOPPASVertex() :
-    QObject(),
-    QGraphicsItem(),
-    in_edges_(),
-    out_edges_(),
-    edge_being_created_(false),
-    pen_color_(),
-    brush_color_(),
-    dfs_color_(DFS_WHITE),
-    topo_sort_marked_(false),
-    topo_nr_(0),
-    round_total_(-1),
-    round_counter_(0),
-    finished_(false),
-    reachable_(true),
-    allow_output_recycling_(false)
+  TOPPASVertex::TOPPASVertex()
   {
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setZValue(42);
@@ -153,9 +138,6 @@ namespace OpenMS
     setPos(rhs.pos());
   }
 
-  TOPPASVertex::~TOPPASVertex()
-  {
-  }
 
   TOPPASVertex& TOPPASVertex::operator=(const TOPPASVertex& rhs)
   {
@@ -167,7 +149,6 @@ namespace OpenMS
     dfs_color_ = rhs.dfs_color_;
     topo_sort_marked_ = rhs.topo_sort_marked_;
     topo_nr_ = rhs.topo_nr_;
-
     round_total_ = rhs.round_total_;
     round_counter_ = rhs.round_counter_;
     finished_ = rhs.finished_;

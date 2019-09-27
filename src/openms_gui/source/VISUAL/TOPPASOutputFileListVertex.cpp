@@ -54,23 +54,9 @@
 
 namespace OpenMS
 {
-  TOPPASOutputFileListVertex::TOPPASOutputFileListVertex() :
-    TOPPASVertex(),
-    output_folder_name_()
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
   TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs) :
     TOPPASVertex(rhs),
     output_folder_name_() // leave empty! otherwise we have conflicting output folder names
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
-  TOPPASOutputFileListVertex::~TOPPASOutputFileListVertex()
   {
   }
 

@@ -54,15 +54,15 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASInputFileListVertex();
+    TOPPASInputFileListVertex() = default;
     /// Constructor
-    TOPPASInputFileListVertex(const QStringList & files);
+    TOPPASInputFileListVertex(const QStringList& files);
     /// Copy constructor
-    TOPPASInputFileListVertex(const TOPPASInputFileListVertex & rhs);
+    TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) = default;
     /// Destructor
-    ~TOPPASInputFileListVertex() override;
+    ~TOPPASInputFileListVertex() override = default;
     /// Assignment operator
-    TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs);
+    TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs) = default;
     /// returns "InputVertex"
     String getName() const override;
     /// Sets the list of files

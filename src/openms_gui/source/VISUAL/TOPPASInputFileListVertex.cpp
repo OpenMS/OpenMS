@@ -48,45 +48,9 @@
 
 namespace OpenMS
 {
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex() :
-    TOPPASVertex(),
-    key_()
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files)
   {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files) :
-    TOPPASVertex(),
-    key_()
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
     setFilenames(files);
-  }
-
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) :
-    TOPPASVertex(rhs),
-    key_()
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-    output_files_ = rhs.output_files_; // copy input file paths, too
-  }
-
-  TOPPASInputFileListVertex::~TOPPASInputFileListVertex()
-  {
-
-  }
-
-  TOPPASInputFileListVertex& TOPPASInputFileListVertex::operator=(const TOPPASInputFileListVertex& rhs)
-  {
-    TOPPASVertex::operator=(rhs);
-
-    key_ = rhs.key_;
-    output_files_ = rhs.output_files_; // copy input file paths, too
-
-    return *this;
   }
 
   String TOPPASInputFileListVertex::getName() const

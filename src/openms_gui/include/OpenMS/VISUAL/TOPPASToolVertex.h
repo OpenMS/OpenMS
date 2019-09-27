@@ -140,7 +140,7 @@ public:
     /// Copy constructor
     TOPPASToolVertex(const TOPPASToolVertex& rhs);
     /// Destructor
-    ~TOPPASToolVertex() override;
+    ~TOPPASToolVertex() override = default;
     /// Assignment operator
     TOPPASToolVertex& operator=(const TOPPASToolVertex& rhs);
 
@@ -256,6 +256,9 @@ protected:
     void writeParam_(const Param& param, const QString& ini_file);
     /// Helper method for finding good boundaries for wrapping the tool name. Returns a string with whitespaces at the preferred boundaries.
     QString toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str);
+    /// smart naming of round-based filenames
+    /// when basename is not unique we take the preceding directory name
+    void smartFileNames_(std::vector<QStringList>& filenames);
 
     /// The name of the tool
     String name_;
@@ -266,17 +269,11 @@ protected:
     /// The parameters of the tool
     Param param_;
     /// current status of the tool
-    TOOLSTATUS status_;
+    TOOLSTATUS status_{TOOL_READY};
     /// tool initialization status: if C'tor was successful in finding the TOPP tool, this is set to 'true'
-    bool tool_ready_;
-
+    bool tool_ready_{true};
     /// Breakpoint set?
-    bool breakpoint_set_;
-
-    /// smart naming of round-based filenames
-    /// when basename is not unique we take the preceding directory name
-    void smartFileNames_(std::vector<QStringList>& filenames);
-
+    bool breakpoint_set_{false};
   };
 }
 

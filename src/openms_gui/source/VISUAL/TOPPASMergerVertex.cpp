@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
@@ -43,49 +44,14 @@
 
 namespace OpenMS
 {
-  TOPPASMergerVertex::TOPPASMergerVertex() :
-    TOPPASVertex(),
-    round_based_mode_(true)
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
   TOPPASMergerVertex::TOPPASMergerVertex(bool round_based) :
-    TOPPASVertex(),
     round_based_mode_(round_based)
   {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
-  TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex& rhs) :
-    TOPPASVertex(rhs),
-    round_based_mode_(rhs.round_based_mode_)
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
-  TOPPASMergerVertex::~TOPPASMergerVertex()
-  {
-  }
-
-  TOPPASMergerVertex& TOPPASMergerVertex::operator=(const TOPPASMergerVertex& rhs)
-  {
-    TOPPASVertex::operator=(rhs);
-    round_based_mode_ = rhs.round_based_mode_;
-
-    return *this;
   }
 
   String TOPPASMergerVertex::getName() const
   {
     return "MergerVertex";
-  }
-
-  void TOPPASMergerVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
-  {
   }
 
   void TOPPASMergerVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)

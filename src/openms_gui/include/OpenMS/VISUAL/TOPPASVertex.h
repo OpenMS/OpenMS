@@ -181,7 +181,7 @@ public:
     /// Copy constructor
     TOPPASVertex(const TOPPASVertex & rhs);
     /// Destructor
-    ~TOPPASVertex() override;
+    ~TOPPASVertex() override = default;
     /// Assignment operator
     TOPPASVertex & operator=(const TOPPASVertex & rhs);
 
@@ -307,29 +307,29 @@ protected:
     /// The list of outgoing edges
     EdgeContainer out_edges_;
     /// Indicates whether a new out edge is currently being created
-    bool edge_being_created_;
+    bool edge_being_created_{false};
     /// The color of the pen
-    QColor pen_color_;
+    QColor pen_color_{Qt::black};
     /// The color of the brush
-    QColor brush_color_;
+    QColor brush_color_{ Qt::lightGray};
     /// The DFS color of this node
-    DFS_COLOR dfs_color_;
+    DFS_COLOR dfs_color_{DFS_WHITE};
     /// "marked" flag for topological sort
-    bool topo_sort_marked_;
+    bool topo_sort_marked_{false};
     /// The number in a topological sort of the entire graph
     UInt topo_nr_;
     /// Stores the current output file names for each output parameter
     RoundPackages output_files_;
     /// number of rounds this node will do ('Merge All' nodes will pass everything, thus do only one round)
-    int round_total_;
+    int round_total_{-1};
     /// currently finished number of rounds (TODO: do we need that?)
-    int round_counter_;
+    int round_counter_{0};
     /// Stores whether this node has already been processed during the current pipeline execution
-    bool finished_;
+    bool finished_{false};
     /// Indicates whether this node is reachable (i.e. there is an input node somewhere further upstream)
-    bool reachable_;
+    bool reachable_{true};
     /// shall subsequent tools be allowed to recycle the output of this node to match the number of rounds imposed by other parent nodes?
-    bool allow_output_recycling_;
+    bool allow_output_recycling_{false};
 
 
 #ifdef TOPPAS_DEBUG
