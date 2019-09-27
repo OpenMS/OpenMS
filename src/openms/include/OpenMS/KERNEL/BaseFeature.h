@@ -88,6 +88,9 @@ public:
     /// Copy constructor
     BaseFeature(const BaseFeature& feature);
 
+    /// Copy constructor with a new map_index
+    BaseFeature(const BaseFeature& rhs, UInt64 map_index);
+
     /// Constructor from raw data point
     explicit BaseFeature(const Peak2D& point);
 

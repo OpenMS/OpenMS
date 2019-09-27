@@ -53,6 +53,16 @@ namespace OpenMS
   {
   }
 
+  BaseFeature::BaseFeature(const BaseFeature& rhs, UInt64 map_index) :
+      RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
+      peptides_(rhs.peptides_)
+  {
+    for (auto& pep : this->peptides_)
+    {
+      pep.setMetaValue("map_index", map_index);
+    }
+  }
+
   BaseFeature::BaseFeature(const RichPeak2D& point) :
     RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
   {
