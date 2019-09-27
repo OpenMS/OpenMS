@@ -69,6 +69,9 @@ namespace OpenMS
     static void load(const String& filename, IdentificationData& id_data);
 
   protected:
+
+    using Key = qint64;
+
     // convenience functions:
 
     static bool tableExists_(QSqlDatabase& db, const String& name);
@@ -77,18 +80,26 @@ namespace OpenMS
                               int line, const char* function,
                               const String& context);
 
-    static String getMoleculeTypeAbbrev_(IdentificationData::MoleculeType molecule_type);
-
-    static IdentificationData::MoleculeType getMoleculeTypeFromAbbrev_(const String& abbrev);
-
     // store helper functions:
+
+    static void createTable_(const String& name, const String& definition,
+                             QSqlDatabase& db, bool may_exist = false);
 
     static void storeVersionAndDate_(QSqlDatabase& db);
 
-    static int storeCVTerm_(const CVTerm& cv_term, QSqlDatabase& db);
+    static void createTableDataValue_(QSqlDatabase& db);
+
+    static Key storeDataValue_(const DataValue& value, QSqlDatabase& db);
+
+    static void createTableCVTerm_(QSqlDatabase& db);
+
+    static Key storeCVTerm_(const CVTerm& cv_term, QSqlDatabase& db);
 
     static void storeScoreTypes_(const IdentificationData& id_data,
                                  QSqlDatabase& db);
+
+    static void storeDataProcessingSoftwares_(const IdentificationData& id_data,
+                                              QSqlDatabase& db);
 
     static void storeParentMolecules_(const IdentificationData& id_data,
                                       QSqlDatabase& db);

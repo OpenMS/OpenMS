@@ -59,6 +59,22 @@ namespace OpenMS
   }
 
 
+  void OMSFile::createTable_(const String& name, const String& definition,
+                             QSqlDatabase& db, bool may_exist)
+  {
+    QString sql_create = "CREATE TABLE ";
+    if (may_exist) sql_create += "IF NOT EXISTS ";
+    sql_create += name.toQString() + " (" + definition.toQString() + ")";
+    QSqlQuery query(db);
+    if (!query.exec(sql_create))
+    {
+      String msg = "error creating database table " + name;
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    msg);
+    }
+  }
+
+
   bool OMSFile::tableExists_(QSqlDatabase& db, const String& name)
   {
     return db.tables(QSql::Tables).contains(name.toQString());
@@ -67,18 +83,13 @@ namespace OpenMS
 
   void OMSFile::storeVersionAndDate_(QSqlDatabase& db)
   {
+    createTable_("version",
+                 "OMSFile INT NOT NULL, "                \
+                 "date TEXT NOT NULL, "                  \
+                 "OpenMS TEXT, "                         \
+                 "build_date TEXT", db);
+
     QSqlQuery query(db);
-    QString sql_create =
-      "CREATE TABLE version ("                           \
-      "OMSFile INT NOT NULL, "                           \
-      "date TEXT NOT NULL, "                             \
-      "OpenMS TEXT, "                                    \
-      "build_date TEXT)";
-    if (!query.exec(sql_create))
-    {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error creating database table");
-    }
     query.prepare("INSERT INTO version VALUES ("  \
                   ":format_version, "             \
                   "datetime('now'), "             \
@@ -90,28 +101,149 @@ namespace OpenMS
     if (!query.exec())
     {
       raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error updating database");
+                    "error inserting data");
     }
   }
 
 
-  String OMSFile::getMoleculeTypeAbbrev_(IdentificationData::MoleculeType molecule_type)
+  void OMSFile::createTableDataValue_(QSqlDatabase& db)
   {
-    switch (molecule_type)
+    createTable_("DataValue_DataType",
+                 "id INTEGER PRIMARY KEY NOT NULL, "  \
+                 "data_type TEXT UNIQUE NOT NULL", db);
+    QString sql_insert =
+      "INSERT INTO DataValue_DataType VALUES " \
+      "(1, 'STRING_VALUE'), "                  \
+      "(2, 'INT_VALUE'), "                     \
+      "(3, 'DOUBLE_VALUE'), "                  \
+      "(4, 'STRING_LIST'), "                   \
+      "(5, 'INT_LIST'), "                      \
+      "(6, 'DOUBLE_LIST')";
+    QSqlQuery query(db);
+    if (!query.exec(sql_insert))
     {
-    case IdentificationData::MoleculeType::PROTEIN:
-      return "PRO";
-    case IdentificationData::MoleculeType::COMPOUND:
-      return "COM";
-    case IdentificationData::MoleculeType::RNA:
-      return "RNA";
-    default:
-      return "";
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error inserting data");
+    }
+    createTable_(
+      "DataValue",
+      "id INTEGER PRIMARY KEY NOT NULL, "                               \
+      "data_type_id INTEGER, "                                          \
+      "value TEXT, "                                                    \
+      "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id)", db);
+    // @TODO: add support for units
+  }
+
+
+  OMSFile::Key OMSFile::storeDataValue_(const DataValue& value,
+                                        QSqlDatabase& db)
+  {
+    // this assumes the "DataValue" table exists already!
+    // @TODO: split this up and make several tables for different types?
+    QSqlQuery query(db);
+    query.prepare("INSERT INTO DataValue VALUES (" \
+                  "NULL, "                         \
+                  ":data_type, "                   \
+                  ":value)");
+    if (!value.isEmpty()) // use NULL as the type for empty values
+    {
+      query.bindValue(":data_type", int(value.valueType()) + 1);
+    }
+    query.bindValue(":value", value.toQString());
+    if (!query.exec())
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error inserting data");
+    }
+    return query.lastInsertId().toInt();
+  }
+
+
+  void OMSFile::storeDataProcessingSoftwares_(const IdentificationData& id_data,
+                                              QSqlDatabase& db)
+  {
+    if (id_data.getDataProcessingSoftwares().empty()) return;
+
+    createTable_("ID_DataProcessingSoftware",
+                 "id INTEGER PRIMARY KEY NOT NULL, "  \
+                 "name TEXT NOT NULL, "               \
+                 "version TEXT, "                     \
+                 "UNIQUE (name, version)", db);
+
+    QSqlQuery query(db);
+    query.prepare("INSERT INTO ID_DataProcessingSoftware VALUES ("  \
+                  ":id, "                                           \
+                  ":name, "                                         \
+                  ":version)");
+    bool any_scores = false; // does any software have assigned scores stored?
+    for (const IdentificationData::DataProcessingSoftware& software :
+           id_data.getDataProcessingSoftwares())
+    {
+      if (!software.assigned_scores.empty()) any_scores = true;
+      query.bindValue(":id", Key(&software));
+      query.bindValue(":name", software.getName().toQString());
+      query.bindValue(":version", software.getVersion().toQString());
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+    if (any_scores)
+    {
+      createTable_(
+        "ID_DataProcessingSoftware_AssignedScore",
+        "software_id INTEGER NOT NULL, "                                \
+        "score_type_id INTEGER NOT NULL, "                              \
+        "UNIQUE (software_id, score_type_id), "                         \
+        "FOREIGN KEY (software_id) REFERENCES ID_DataProcessingSoftware (id), " \
+        "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id)", db);
+
+      query.prepare(
+        "INSERT INTO ID_DataProcessingSoftware_AssignedScore VALUES ("  \
+        ":software_id, "                                                \
+        ":score_type_id)");
+      for (const IdentificationData::DataProcessingSoftware& software :
+             id_data.getDataProcessingSoftwares())
+      {
+        query.bindValue(":software_id", Key(&software));
+        for (IdentificationData::ScoreTypeRef score_type_ref :
+               software.assigned_scores)
+        {
+          query.bindValue(":score_type_id", Key(&(*score_type_ref)));
+          if (!query.exec())
+          {
+            raiseDBError_(query.lastError(), db, __LINE__,
+                          OPENMS_PRETTY_FUNCTION, "error inserting data");
+          }
+        }
+      }
     }
   }
 
 
-  int OMSFile::storeCVTerm_(const CVTerm& cv_term, QSqlDatabase& db)
+  // void OMSFile::storeDataProcessingSteps_(const IdentificationData& id_data,
+  //                                         QSqlDatabase& db)
+  // {
+  //   if (id_data.getDataProcessingSteps().empty()) return;
+
+  // }
+
+
+  void OMSFile::createTableCVTerm_(QSqlDatabase& db)
+  {
+    createTable_("CVTerm",
+                 "id INTEGER PRIMARY KEY NOT NULL, "        \
+                 "accession TEXT UNIQUE, "                  \
+                 "name TEXT NOT NULL, "                     \
+                 "cv_identifier_ref TEXT, "                 \
+                 // does this constrain "name" if "accession" is NULL?
+                 "UNIQUE (accession, name)", db);
+    // @TODO: add support for unit and value
+  }
+
+
+  OMSFile::Key OMSFile::storeCVTerm_(const CVTerm& cv_term, QSqlDatabase& db)
   {
     // this assumes the "CVTerm" table exists already!
     QSqlQuery query(db);
@@ -155,32 +287,15 @@ namespace OpenMS
   {
     if (id_data.getScoreTypes().empty()) return;
 
-    QSqlQuery query(db);
-    QString sql_create =
-      "CREATE TABLE CVTerm ("                               \
-      "id INTEGER PRIMARY KEY NOT NULL, "                   \
-      "accession TEXT UNIQUE, "                             \
-      "name TEXT NOT NULL, "                                \
-      "cv_identifier_ref TEXT, "                            \
-      // does this constrain "name" if "accession" is NULL?
-      "UNIQUE (accession, name))";
-    // @TODO: add support for unit and value
-    if (!query.exec(sql_create))
-    {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error creating database table");
-    }
-    sql_create =
-      "CREATE TABLE ID_ScoreType ("                                     \
+    createTableCVTerm_(db);
+    createTable_(
+      "ID_ScoreType",
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "cv_term_id INTEGER NOT NULL, "                                   \
       "higher_better NUMERIC NOT NULL CHECK (higher_better in (0, 1)), " \
-      "FOREIGN KEY (cv_term_id) REFERENCES CVTerm (id))";
-    if (!query.exec(sql_create))
-    {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error creating database table");
-    }
+      "FOREIGN KEY (cv_term_id) REFERENCES CVTerm (id)", db);
+
+    QSqlQuery query(db);
     query.prepare("INSERT INTO ID_ScoreType VALUES ("       \
                   ":id, "                                   \
                   ":cv_term_id, "                           \
@@ -188,14 +303,14 @@ namespace OpenMS
     for (const IdentificationData::ScoreType& score_type :
            id_data.getScoreTypes())
     {
-      int cv_id = storeCVTerm_(score_type.cv_term, db);
-      query.bindValue(":id", qint64(&score_type)); // use address as primary key
+      Key cv_id = storeCVTerm_(score_type.cv_term, db);
+      query.bindValue(":id", Key(&score_type)); // use address as primary key
       query.bindValue(":cv_term_id", cv_id);
       query.bindValue(":higher_better", int(score_type.higher_better));
       if (!query.exec())
       {
         raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error updating database");
+                      "error inserting data");
       }
     }
   }
@@ -206,21 +321,34 @@ namespace OpenMS
   {
     if (id_data.getParentMolecules().empty()) return;
 
+    // table for molecule types (enum MoleculeType):
+    createTable_("ID_MoleculeType",
+                 "id INTEGER PRIMARY KEY NOT NULL, "    \
+                 "molecule_type TEXT UNIQUE NOT NULL", db);
+
+    QString sql_insert =
+      "INSERT INTO ID_MoleculeType VALUES "     \
+      "(1, 'PROTEIN'), "                        \
+      "(2, 'COMPOUND'), "                       \
+      "(3, 'RNA')";
     QSqlQuery query(db);
-    QString sql_create =
-      "CREATE TABLE ID_ParentMolecule ("                                \
+    if (!query.exec(sql_insert))
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error inserting data");
+    }
+
+    createTable_(
+      "ID_ParentMolecule",
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "accession TEXT UNIQUE NOT NULL, "                                \
-      "molecule_type TEXT NOT NULL CHECK (molecule_type IN ('PRO', 'COM', 'RNA')), " \
+      "molecule_type_id INTEGER NOT NULL, "                             \
       "sequence TEXT, "                                                 \
       "description TEXT, "                                              \
       "coverage REAL, "                                                 \
-      "is_decoy NUMERIC NOT NULL CHECK (is_decoy in (0, 1)) DEFAULT 0)";
-    if (!query.exec(sql_create))
-    {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error creating database table");
-    }
+      "is_decoy NUMERIC NOT NULL CHECK (is_decoy in (0, 1)) DEFAULT 0, " \
+      "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)", db);
+
     query.prepare("INSERT INTO ID_ParentMolecule VALUES ("  \
                   ":id, "                                   \
                   ":accession, "                            \
@@ -232,10 +360,9 @@ namespace OpenMS
     for (const IdentificationData::ParentMolecule& parent :
            id_data.getParentMolecules())
     {
-      query.bindValue(":id", qint64(&parent)); // use address as primary key
+      query.bindValue(":id", Key(&parent)); // use address as primary key
       query.bindValue(":accession", parent.accession.toQString());
-      query.bindValue(":molecule_type",
-                      getMoleculeTypeAbbrev_(parent.molecule_type).toQString());
+      query.bindValue(":molecule_type", int(parent.molecule_type) + 1);
       query.bindValue(":sequence", parent.sequence.toQString());
       query.bindValue(":description", parent.description.toQString());
       query.bindValue(":coverage", parent.coverage);
@@ -243,7 +370,7 @@ namespace OpenMS
       if (!query.exec())
       {
         raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error updating database");
+                      "error inserting data");
       }
     }
   }
@@ -270,21 +397,12 @@ namespace OpenMS
 
       storeScoreTypes_(id_data, db);
 
+      storeDataProcessingSoftwares_(id_data, db);
+
       storeParentMolecules_(id_data, db);
     }
 
     QSqlDatabase::removeDatabase(connection);
-  }
-
-
-  IdentificationData::MoleculeType OMSFile::getMoleculeTypeFromAbbrev_(const String& abbrev)
-  {
-    if (abbrev == "PRO") return IdentificationData::MoleculeType::PROTEIN;
-    if (abbrev == "COM") return IdentificationData::MoleculeType::COMPOUND;
-    if (abbrev == "RNA") return IdentificationData::MoleculeType::RNA;
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  "invalid abbreviation for a molecule type",
-                                  abbrev);
   }
 
 
@@ -351,8 +469,9 @@ namespace OpenMS
     {
       String accession = query.value("accession").toString();
       IdentificationData::ParentMolecule parent(accession);
+      int molecule_type_index = query.value("molecule_type_id").toInt() - 1;
       parent.molecule_type =
-        getMoleculeTypeFromAbbrev_(query.value("molecule_type").toString());
+        IdentificationData::MoleculeType(molecule_type_index);
       parent.sequence = query.value("sequence").toString();
       parent.description = query.value("description").toString();
       parent.coverage = query.value("coverage").toDouble();
