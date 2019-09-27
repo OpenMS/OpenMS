@@ -356,7 +356,7 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
 }
 END_SECTION
 
-START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &transitions, SpectrumType spectrum, const std::vector< double > &normalized_library_intensity, double &ppm_score, double &ppm_score_weighted) )
+START_SECTION (void dia_massdiff_score(const std::vector< TransitionType > &transitions, SpectrumType spectrum, const std::vector< double > &normalized_library_intensity, double &ppm_score, double &ppm_score_weighted) )
 {
   OpenSwath::SpectrumPtr sptr = prepareShiftedSpectrum();
 

@@ -57,6 +57,7 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
   return left.first < right.first;
 }
 
+
 void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hull_, double
                              quantification_cutoff_, double& total_intensity, double& total_peak_apices, std::string ms_level)
 {
@@ -103,6 +104,8 @@ namespace OpenMS
     defaults_.setValue("uis_threshold_peak_area", 0, "Peak area threshold to consider identification transition (set to -1 to consider all)");
     defaults_.setValue("scoring_model", "default", "Scoring model to use", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("scoring_model", ListUtils::create<String>("default,single_transition"));
+    defaults_.setValue("im_extra_drift", 0.0, "Extra drift time to extract for IM scoring (as a fraction, e.g. 0.25 means 25\% extra on each side)", ListUtils::create<String>("advanced"));
+    defaults_.setMinFloat("im_extra_drift", 0.0);
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -140,6 +143,8 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_ms1_correlation", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_sonar_scores", "false", "Use the scores for SONAR scans (scanning swath)", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_sonar_scores", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_ion_mobility_scores", "false", "Use the scores for Ion Mobility scans", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_ion_mobility_scores", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_fullscan", "false", "Use the full MS1 scan at the peak apex for scoring (ppm accuracy of precursor and isotopic pattern)", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_ms1_fullscan", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_mi", "false", "Use the MS1 MI score", ListUtils::create<String>("advanced"));
@@ -261,7 +266,8 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFinderScoring::splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection)
+  void MRMFeatureFinderScoring::splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
+                                                                MRMTransitionGroupType& transition_group_detection)
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> detecting_transitions;
@@ -283,7 +289,9 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFinderScoring::splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy)
+  void MRMFeatureFinderScoring::splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
+                                                                     MRMTransitionGroupType& transition_group_identification,
+                                                                     MRMTransitionGroupType& transition_group_identification_decoy)
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> identifying_transitions, identifying_transitions_decoy;
@@ -307,15 +315,12 @@ namespace OpenMS
   }
 
   OpenSwath_Ind_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
-                                                                 OpenSwathScoring& scorer,
-                                                                 const size_t feature_idx,
-                                                                 const std::vector<std::string>& native_ids_detection,
-                                                                 const double sn_win_len_,
-                                                                 const unsigned int sn_bin_count_,
-                                                                 const double det_intensity_ratio_score,
-                                                                 const double det_mi_ratio_score,
-                                                                 bool write_log_messages_,
-                                                                 const std::vector<OpenSwath::SwathMap>& swath_maps)
+                                                                     OpenSwathScoring& scorer,
+                                                                     const size_t feature_idx,
+                                                                     const std::vector<std::string>& native_ids_detection,
+                                                                     const double det_intensity_ratio_score,
+                                                                     const double det_mi_ratio_score,
+                                                                     const std::vector<OpenSwath::SwathMap>& swath_maps)
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
@@ -490,18 +495,20 @@ namespace OpenMS
 
     // get drift time upper/lower offset (this assumes that all chromatograms
     // are derived from the same precursor with the same drift time)
-    double drift_lower(0), drift_upper(0);
+    double drift_lower(0), drift_upper(0), drift_target(0);
     if (!transition_group_detection.getChromatograms().empty())
     {
       auto & prec = transition_group_detection.getChromatograms()[0].getPrecursor();
       drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
       drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
+      drift_target = prec.getDriftTime();
     }
     else if (!transition_group_detection.getPrecursorChromatograms().empty())
     {
       auto & prec = transition_group_detection.getPrecursorChromatograms()[0].getPrecursor();
       drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
       drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
+      drift_target = prec.getDriftTime();
     }
 
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
@@ -532,7 +539,11 @@ namespace OpenMS
     expected_rt = newtr.apply(expected_rt);
 
     OpenSwathScoring scorer;
-    scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_, spectrum_addition_method_);
+    scorer.initialize(rt_normalization_factor_, add_up_spectra_,
+                      spacing_for_spectra_resampling_,
+                      im_extra_drift_,
+                      su_,
+                      spectrum_addition_method_);
 
     ProteaseDigestion pd;
     pd.setEnzyme("Trypsin");
@@ -662,18 +673,24 @@ namespace OpenMS
           precursor_ids.push_back(precursor_id);
         }
 
+        ///////////////////////////////////
+        // Library and chromatographic scores
         OpenSwath_Scores& scores = mrmfeature->getScores();
         scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
                                               signal_noise_estimators, scores);
 
         double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
         scorer.calculateLibraryScores(imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
+
+        ///////////////////////////////////
+        // DIA and SONAR scores
         if (swath_present && su_.use_dia_scores_)
         {
           std::vector<double> masserror_ppm;
           scorer.calculateDIAScores(imrmfeature,
                                     transition_group_detection.getTransitions(),
-                                    swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm, drift_lower, drift_upper);
+                                    swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
+                                    drift_lower, drift_upper, drift_target);
           mrmfeature->setMetaValue("masserror_ppm", masserror_ppm);
         }
         if (sonar_present && su_.use_sonar_scores)
@@ -687,6 +704,8 @@ namespace OpenMS
           det_intensity_ratio_score = mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic");
         }
 
+        ///////////////////////////////////
+        // Mutual Information scores
         double det_mi_ratio_score = 0;
         if (su_.use_mi_score_ && su_.use_total_mi_score_)
         {
@@ -696,67 +715,21 @@ namespace OpenMS
           }
         }
 
+        ///////////////////////////////////
+        // Unique Ion Signature (UIS) scores
         if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
         {
-          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, 
-                                                           scorer, feature_idx,
-                                                           native_ids_detection,
-                                                           sn_win_len_,
-                                                           sn_bin_count_,
-                                                           det_intensity_ratio_score,
-                                                           det_mi_ratio_score,
-                                                           write_log_messages_,
-                                                           swath_maps);
-
-          mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
-          mrmfeature->setMetaValue("id_target_num_transitions", idscores.ind_num_transitions);
-          mrmfeature->setMetaValue("id_target_area_intensity", idscores.ind_area_intensity);
-          mrmfeature->setMetaValue("id_target_total_area_intensity", idscores.ind_total_area_intensity);
-          mrmfeature->setMetaValue("id_target_intensity_score", idscores.ind_intensity_score);
-          mrmfeature->setMetaValue("id_target_intensity_ratio_score", idscores.ind_intensity_ratio);
-          mrmfeature->setMetaValue("id_target_apex_intensity", idscores.ind_apex_intensity);
-          mrmfeature->setMetaValue("id_target_total_mi", idscores.ind_total_mi);
-          mrmfeature->setMetaValue("id_target_ind_log_intensity", idscores.ind_log_intensity);
-          mrmfeature->setMetaValue("id_target_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
-          mrmfeature->setMetaValue("id_target_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
-          mrmfeature->setMetaValue("id_target_ind_log_sn_score", idscores.ind_log_sn_score);
-          mrmfeature->setMetaValue("id_target_ind_isotope_correlation", idscores.ind_isotope_correlation);
-          mrmfeature->setMetaValue("id_target_ind_isotope_overlap", idscores.ind_isotope_overlap);
-          mrmfeature->setMetaValue("id_target_ind_massdev_score", idscores.ind_massdev_score);
-          mrmfeature->setMetaValue("id_target_ind_mi_score", idscores.ind_mi_score);
-          mrmfeature->setMetaValue("id_target_ind_mi_ratio_score", idscores.ind_mi_ratio);
-
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, scorer, feature_idx,
+                                                               native_ids_detection, det_intensity_ratio_score,
+                                                               det_mi_ratio_score, swath_maps);
+          mrmfeature->IDScoresAsMetaValue(false, idscores);
         }
-
         if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
         {
-          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
-                                                           scorer, feature_idx,
-                                                           native_ids_detection,
-                                                           sn_win_len_,
-                                                           sn_bin_count_,
-                                                           det_intensity_ratio_score,
-                                                           det_mi_ratio_score,
-                                                           write_log_messages_,
-                                                           swath_maps);
-
-          mrmfeature->setMetaValue("id_decoy_transition_names", idscores.ind_transition_names);
-          mrmfeature->setMetaValue("id_decoy_num_transitions", idscores.ind_num_transitions);
-          mrmfeature->setMetaValue("id_decoy_area_intensity", idscores.ind_area_intensity);
-          mrmfeature->setMetaValue("id_decoy_total_area_intensity", idscores.ind_total_area_intensity);
-          mrmfeature->setMetaValue("id_decoy_intensity_score", idscores.ind_intensity_score);
-          mrmfeature->setMetaValue("id_decoy_intensity_ratio_score", idscores.ind_intensity_ratio);
-          mrmfeature->setMetaValue("id_decoy_apex_intensity", idscores.ind_apex_intensity);
-          mrmfeature->setMetaValue("id_decoy_total_mi", idscores.ind_total_mi);
-          mrmfeature->setMetaValue("id_decoy_ind_log_intensity", idscores.ind_log_intensity);
-          mrmfeature->setMetaValue("id_decoy_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
-          mrmfeature->setMetaValue("id_decoy_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
-          mrmfeature->setMetaValue("id_decoy_ind_log_sn_score", idscores.ind_log_sn_score);
-          mrmfeature->setMetaValue("id_decoy_ind_isotope_correlation", idscores.ind_isotope_correlation);
-          mrmfeature->setMetaValue("id_decoy_ind_isotope_overlap", idscores.ind_isotope_overlap);
-          mrmfeature->setMetaValue("id_decoy_ind_massdev_score", idscores.ind_massdev_score);
-          mrmfeature->setMetaValue("id_decoy_ind_mi_score", idscores.ind_mi_score);
-          mrmfeature->setMetaValue("id_decoy_ind_mi_ratio_score", idscores.ind_mi_ratio);
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx,
+                                                               native_ids_detection, det_intensity_ratio_score,
+                                                               det_mi_ratio_score, swath_maps);
+          mrmfeature->IDScoresAsMetaValue(true, idscores);
         }
 
         if (su_.use_coelution_score_)
@@ -852,7 +825,7 @@ namespace OpenMS
         mrmfeature->setOverallQuality(xx_lda_prescore);
         mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
 
-        // Add the DIA / SWATH scores
+        // Add the DIA / SWATH scores, ion mobility scores and SONAR scores
         if (swath_present && su_.use_dia_scores_)
         {
           mrmfeature->addScore("var_isotope_correlation_score", scores.isotope_correlation);
@@ -897,6 +870,16 @@ namespace OpenMS
           double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
           mrmfeature->addScore("main_var_xx_swath_prelim_score", xx_swath_prescore);
           mrmfeature->setOverallQuality(xx_swath_prescore);
+        }
+
+        if (swath_present && su_.use_im_scores)
+        {
+          mrmfeature->addScore("var_im_xcorr_shape", scores.im_xcorr_shape_score);
+          mrmfeature->addScore("var_im_xcorr_coelution", scores.im_xcorr_coelution_score);
+          mrmfeature->addScore("var_im_delta_score", scores.im_delta_score);
+          mrmfeature->addScore("var_im_ms1_delta_score", scores.im_ms1_delta_score);
+          mrmfeature->addScore("im_drift", scores.im_drift);
+          mrmfeature->addScore("im_drift_weighted", scores.im_drift_weighted);
         }
 
         precursor_mz = transition_group_detection.getTransitions()[0].getPrecursorMZ();
@@ -957,42 +940,7 @@ namespace OpenMS
       mrmfeature->ensureUniqueId();
 
       mrmfeature->setMetaValue("PrecursorMZ", precursor_mz);
-
-      // Prepare the subordinates for the mrmfeature (process all current
-      // features and then append all precursor subordinate features)
-      std::vector<Feature> allFeatures = mrmfeature->getFeatures();
-      double total_intensity = 0, total_peak_apices = 0;
-      double ms1_total_intensity = 0, ms1_total_peak_apices = 0;
-
-      for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
-      {
-        processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
-      }
-      // Also append data for MS1 precursors
-      std::vector<String> precursors_ids;
-      mrmfeature->getPrecursorFeatureIDs(precursors_ids);
-      for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
-      {
-        Feature curr_feature = mrmfeature->getPrecursorFeature(*id_it);
-        if (pep->getChargeState() != 0)
-        {
-          curr_feature.setCharge(pep->getChargeState());
-        }
-        processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, ms1_total_intensity, ms1_total_peak_apices, "MS1");
-        if (ms1only)
-        {
-          total_intensity += curr_feature.getIntensity();
-          total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
-        }
-        allFeatures.push_back(curr_feature);
-      }
-      mrmfeature->setSubordinates(allFeatures); // add all the subfeatures as subordinates
-
-      // overwrite the reported intensities with those above the m/z cutoff
-      mrmfeature->setIntensity(total_intensity);
-      mrmfeature->setMetaValue("peak_apices_sum", total_peak_apices);
-      mrmfeature->setMetaValue("ms1_area_intensity", ms1_total_intensity);
-      mrmfeature->setMetaValue("ms1_apex_intensity", ms1_total_peak_apices);
+      prepareFeatureOutput_(*mrmfeature, ms1only, pep->getChargeState());
       mrmfeature->setMetaValue("xx_swath_prelim_score", 0.0);
       feature_list.push_back((*mrmfeature));
 
@@ -1013,6 +961,45 @@ namespace OpenMS
     transition_group = transition_group_detection;
   }
 
+  void MRMFeatureFinderScoring::prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge)
+  {
+    // Prepare the subordinates for the mrmfeature (process all current
+    // features and then append all precursor subordinate features)
+    std::vector<Feature> allFeatures = mrmfeature.getFeatures();
+    double total_intensity = 0, total_peak_apices = 0;
+    double ms1_total_intensity = 0, ms1_total_peak_apices = 0;
+
+    for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
+    {
+      processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
+    }
+    // Also append data for MS1 precursors
+    std::vector<String> precursors_ids;
+    mrmfeature.getPrecursorFeatureIDs(precursors_ids);
+    for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
+    {
+      Feature curr_feature = mrmfeature.getPrecursorFeature(*id_it);
+      if (charge != 0)
+      {
+        curr_feature.setCharge(charge);
+      }
+      processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, ms1_total_intensity, ms1_total_peak_apices, "MS1");
+      if (ms1only)
+      {
+        total_intensity += curr_feature.getIntensity();
+        total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
+      }
+      allFeatures.push_back(curr_feature);
+    }
+    mrmfeature.setSubordinates(allFeatures); // add all the subfeatures as subordinates
+
+    // overwrite the reported intensities with those above the m/z cutoff
+    mrmfeature.setIntensity(total_intensity);
+    mrmfeature.setMetaValue("peak_apices_sum", total_peak_apices);
+    mrmfeature.setMetaValue("ms1_area_intensity", ms1_total_intensity);
+    mrmfeature.setMetaValue("ms1_apex_intensity", ms1_total_peak_apices);
+  }
+
   void MRMFeatureFinderScoring::updateMembers_()
   {
     stop_report_after_feature_ = (int)param_.getValue("stop_report_after_feature");
@@ -1023,6 +1010,7 @@ namespace OpenMS
     add_up_spectra_ = param_.getValue("add_up_spectra");
     spectrum_addition_method_ = param_.getValue("spectrum_addition_method");
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
+    im_extra_drift_ = (double)param_.getValue("im_extra_drift");
     uis_threshold_sn_ = param_.getValue("uis_threshold_sn");
     uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
     scoring_model_ = param_.getValue("scoring_model");
@@ -1054,6 +1042,7 @@ namespace OpenMS
 
     su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();
     su_.use_sonar_scores         = param_.getValue("Scores:use_sonar_scores").toBool();
+    su_.use_im_scores            = param_.getValue("Scores:use_ion_mobility_scores").toBool();
     su_.use_ms1_correlation      = param_.getValue("Scores:use_ms1_correlation").toBool();
     su_.use_ms1_fullscan         = param_.getValue("Scores:use_ms1_fullscan").toBool();
     su_.use_ms1_mi               = param_.getValue("Scores:use_ms1_mi").toBool();
