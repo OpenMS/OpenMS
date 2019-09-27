@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Julianus Pfeuffer $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Julianus Pfeuffer, Oliver Alka, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -37,8 +37,8 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <QtSql/QSqlQuery>
+// strangely, this is needed for type conversions in "QSqlQuery::bindValue":
 #include <QtSql/QSqlQueryModel>
-#include <QtSql/QSqlRecord>
 
 using namespace std;
 
@@ -181,7 +181,7 @@ namespace OpenMS
       raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error creating database table");
     }
-    query.prepare("INSERT INTO ID_ScoreType VALUES ("  \
+    query.prepare("INSERT INTO ID_ScoreType VALUES ("       \
                   ":id, "                                   \
                   ":cv_term_id, "                           \
                   ":higher_better)");
@@ -276,229 +276,6 @@ namespace OpenMS
     QSqlDatabase::removeDatabase(connection);
   }
 
-/*
-
-      // IdentifiedCompound
-      "CREATE TABLE IDENTIFIEDCOMPOUND(" \
-      "id INT PRIMARY KEY NOT NULL," \
-      "identifier TEXT UNIQUE NOT NULL," \
-      "formula TEXT DEFAULT NULL," \
-      "name TEXT DEFAULT NULL," \
-      "smile TEXT DEFAULT NULL," \
-      "inchi TEXT DEFAULT NULL);" \
-
-      // IdentifiedSequence
-      "CREATE TABLE IDENTIFIEDSEQUENCE(" \
-      "id INT PRIMARY KEY NOT NULL," \
-      "sequence TEXT NOT NULL," \
-      "seq_type TEXT NOT NULL CHECK (seq_type IN ('PRO', 'RNA'))," \
-      "UNIQUE(sequence, seq_type));" \
-
-      // ParentMoleculeGroup
-      "CREATE TABLE PARENTMOLECULEGROUP(" \
-      "id INT PRIMARY KEY NOT NULL," \
-      "scoretype INT NOT NULL," \
-      "scorevalue REAL NOT NULL);" \
-
-      // ParentMoleculeGrouping
-      "CREATE TABLE PARENTMOLECULEGROUPING(" \
-      "id INT PRIMARY KEY NOT NULL," \
-      "label TEXT NOT NULL);" \
-
-      // Scores
-      "CREATE TABLE SCORES(" \
-      "id INT PRIMARY KEY NOT NULL," \
-      "scorename TEXT NOT NULL," \
-      "cvterm TEXT NOT NULL);" \
-
-      // AppliedProcessingSteps
-      "CREATE TABLE APPLIEDPROCESSINGSTEPS(" \
-      "id INT PRIMARY KEY NOT NULL," \
-      "dateprocessingstep INT NOT NULL);" \
-
-      // DataProcessingStep
-      "CREATE TABLE DATAPROCESSINGSTEP(" \
-      "id INT PRIMARY KEY NOT NULL," \
-      "software TEXT NOT NULL," \
-      "inputfile TEXT NOT NULL," \
-      "datetime TEXT NOT NULL," \
-      "actions TEXT NOT NULL," \
-      "dbsearchparam INT NULL);" \
-
-      // DBSearchParam
-      "CREATE TABLE DBSEARCHPARAM(" \
-      "id INT PRIMARY KEY NOT NULL," \
-      "moleculetype TEXT NOT NULL," \
-      "masstype TEXT NOT NULL," \
-      "database TEXT NOT NULL," \
-      "dbversion TEXT NOT NULL," \
-      "taxonomy TEXT," \
-      "charges TEXT NOT NULL," \
-      "fixedmods TEXT NOT NULL," \
-      "variablemods TEXT NOT NULL," \
-      "precursormasstolerance INT NOT NULL," \
-      "fragmentmasstolerance INT NOT NULL," \
-      "precursorrmasstoleranceppm BIT NOT NULL," \
-      "fragmentmasstoleranceppm BIT NOT NULL," \
-      "digestionenyzme TEXT NOT NULL," \
-      "missedcleavages INT NOT NULL," \
-      "minlength INT NOT NULL," \
-      "maxlength INT NOT NULL);" \
-
-      // ProcessingSoftware
-      "CREATE TABLE PROCESSINGSOFTWARE(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "NAME TEXT NOT NULL," \
-      "VERSION TEXT NOT NULL);" \
-
-      // DataQuery
-      "CREATE TABLE DATAQUERY(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "DATA_ID TEXT NOT NULL," \
-      "INPUT_FILE_REF TEXT," \
-      "RT REAL NOT NULL," \
-      "MZ REAL NOT NULL);" \
-
-      // MoleculeQueryMatch
-      "CREATE TABLE MOLECULEQUERYMATCH(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "IDENTIFIED_MOLECULE_REF TEXT NOT NULL," \
-      "MOLECULETYPE TEXT NOT NULL," \
-      "DATAQUERYREF TEXT NOT NULL," \
-      "CHARGE INT NOT NULL);" \
-
-      // PeakAnnotations
-      "CREATE TABLE PEAKANNOTATIONS(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "ANNOTATIONS TEXT NOT NULL," \
-      "CHARGE INT NOT NULL," \
-      "MZ REAL NOT NULL," \
-      "INTENSITY REAL NOT NULL);" \
-
-      // ParentMoleculeMatch
-      "CREATE TABLE PARENTMOLECULEMATCH(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "START_POS TEXT NOT NULL," \
-      "END_POS TEXT NOT NULL," \
-      "LEFT_NEIGHBOR TEXT NOT NULL," \
-      "RIGHT_NEIGHBOR TEXT NOT NULL);" \
-
-      // Mapping:  Scores AppliedProcessingSteps
-      "CREATE TABLE SCORES_APPLIEDPROCESSINGSTEPS_MAPPING(" \
-      "APSSID INT NOT NULL," \
-      "SCORETYPEID INT NOT NULL," \
-      "SCORE REAL NOT NULL);" \
-
-      // Mapping: ParentMolecule AppliedProcessingStep
-      "CREATE TABLE PARENTMOLECULE_APPLIEDPROCESSINGSTEP_MAPPING(" \
-      "PMID INT NOT NULL," \
-      "APSID INT NOT NULL);" \
-
-      // Mapping: ParentMolecule PrarentMoleculeGrouping
-      "CREATE TABLE PARENTMOLECULE_PARENTMOLECULEGROUP_MAPPING(" \
-      "PMLID INT PRIMARY KEY NOT NULL," \
-      "PMGID INT NOT NULL);" \
-
-      // Mapping: AppliedProcessingStep MoleculeQueryMatch
-      "CREATE TABLE APPLIEDPROCESSINGSTEP_MOLECULEQUERYMATCH_MAPPING(" \
-      "APSID INT PRIMARY KEY NOT NULL," \
-      "MQMID INT NOT NULL," \
-      "SCORE REAL NOT NULL," \
-      "SCORETYPE TEXT NOT NULL);" \
-
-      // Mapping: PeakAnnotation MoleculeQueryMatch
-        // PeakAnnotationID
-        // DataProcessingID
-        // MoleculeQueryMatchID
-      "CREATE TABLE PEAKANNOTATION_MOLECULEQUERYMATCH_MAPPING(" \
-      "PAID INT PRIMARY KEY NOT NULL," \
-      "DPID INT NOT NULL," \
-      "MQMID REAL NOT NULL);" \
-
-      // Mapping: ParentMolecule IdentifiedSequence
-        // ParentMoleculeID
-        // IdentifiedSequenceID
-      "CREATE TABLE PARENTMOLECULE_IDENTIFIEDSEQUENCE_MAPPING(" \
-      "PMID INT PRIMARY KEY NOT NULL," \
-      "ISID INT NOT NULL);" \
-
-      // Mapping: IdentfiedSquence AppliedProcessingStep Score ScoreType
-        // IdentifiedSequenceID
-        // AppliedProcessingStep
-        // Score
-        // ScoreType
-      "CREATE TABLE IDS_APS_SCORE_SCORETYPE_MAPPING(" \
-      "ISID INT PRIMARY KEY NOT NULL," \
-      "APSID INT NOT NULL," \
-      "SCORE REAL NOT NULL," \
-      "SCORETYPE TEXT NOT NULL);" \
-
-      // Mapping: QueryMatchGroup MoleculeQueryMatch
-      // QueryMatchGroupID
-      // MoleculeQueryMatchID
-      "CREATE TABLE QUERYMATCHGROUP_MOLECULEQUERYMATH(" \
-      "QMDID INT PRIMARY KEY NOT NULL," \
-      "MQMID INT NOT NULL);"
-
-      // MetaboInterface STRING
-      "CREATE TABLE METABOINTERFACE_STRING(" \
-      "ID INT NOT NULL," \
-      "METAVALUE TEXT NOT NULL," \
-      "VALUE TEXT NOT NULL," \
-      "OBJECT TEXT NOT NULL," \
-      "OBJECTREFERENCE INT NOT NULL);"
-
-      // MetaboInterface INT
-      "CREATE TABLE METABOINTERFACE_INT(" \
-      "ID INT NOT NULL," \
-      "METAVALUE TEXT NOT NULL," \
-      "VALUE INT NOT NULL," \
-      "OBJECT TEXT NOT NULL," \
-      "OBJECTREFERENCE INT NOT NULL);"
-
-      // MetaboInterface REAL
-      "CREATE TABLE METABOINTERFACE_REAL(" \
-      "ID INT NOT NULL," \
-      "METAVALUE TEXT NOT NULL," \
-      "VALUE REAL NOT NULL," \
-      "OBJECT TEXT NOT NULL," \
-      "OBJECTREFERENCE INT NOT NULL);"
-
-      // MetaboInterface SRINGLIST
-      "CREATE TABLE METABOINTERFACE_STRINGLIST(" \
-      "ID INT NOT NULL," \
-      "METAVALUE TEXT NOT NULL," \
-      "VALUE REAL NOT NULL," \
-      "OBJECT TEXT NOT NULL," \
-      "OBJECTREFERENCE INT NOT NULL);"
-
-      // MetaboInterface INTLIST
-      "CREATE TABLE METABOINTERFACE_INTLIST(" \
-      "ID INT NOT NULL," \
-      "METAVALUE TEXT NOT NULL," \
-      "VALUE REAL NOT NULL," \
-      "OBJECT TEXT NOT NULL," \
-      "OBJECTREFERENCE INT NOT NULL);"
-
-      // MetaboInterface DOUBLELIST
-      "CREATE TABLE METABOINTERFACE_DOUBLELIST(" \
-      "ID INT NOT NULL," \
-      "METAVALUE TEXT NOT NULL," \
-      "VALUE REAL NOT NULL," \
-      "OBJECT TEXT NOT NULL," \
-      "OBJECTREFERENCE INT NOT NULL);" ;
-
-      // TODO: add MetaInfo Tables
-      // TODO: how would the ref work best
-
-    // Execute SQL create statement
-    conn.executeStatement(create_sql);
-
-    // Prepare insert statements
-
-    // Index maps (memory map)
-    */
-
 
   IdentificationData::MoleculeType OMSFile::getMoleculeTypeFromAbbrev_(const String& abbrev)
   {
@@ -511,29 +288,75 @@ namespace OpenMS
   }
 
 
+  // currently not needed:
+  // CVTerm OMSFile::loadCVTerm_(int id, QSqlDatabase& db)
+  // {
+  //   // this assumes that the "CVTerm" table exists!
+  //   QSqlQuery query(db);
+  //   query.setForwardOnly(true);
+  //   QString sql_select = "SELECT * FROM CVTerm WHERE id = " + QString(id);
+  //   if (!query.exec(sql_select) || !query.next())
+  //   {
+  //     raiseDBError_(model.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+  //                   "error reading from database");
+  //   }
+  //   return CVTerm(query.value("accession").toString(),
+  //                 query.value("name").toString(),
+  //                 query.value("cv_identifier_ref").toString());
+  // }
+
+
+  void OMSFile::loadScoreTypes_(IdentificationData& id_data, QSqlDatabase& db)
+  {
+    if (!tableExists_(db, "ID_ScoreType")) return;
+    if (!tableExists_(db, "CVTerm")) // every score type is a CV term
+    {
+      String msg = "required database table 'CVTerm' not found";
+      throw Exception::MissingInformation(__FILE__, __LINE__,
+                                          OPENMS_PRETTY_FUNCTION, msg);
+    }
+    QSqlQuery query(db);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_ScoreType JOIN CVTerm "   \
+                    "ON ID_ScoreType.cv_term_id = CVTerm.id"))
+    {
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    while (query.next())
+    {
+      CVTerm cv_term(query.value("accession").toString(),
+                     query.value("name").toString(),
+                     query.value("cv_identifier_ref").toString());
+      bool higher_better = query.value("higher_better").toInt();
+      IdentificationData::ScoreType score_type(cv_term, higher_better);
+      id_data.registerScoreType(score_type);
+    }
+  }
+
+
   void OMSFile::loadParentMolecules_(IdentificationData& id_data,
                                      QSqlDatabase& db)
   {
     if (!tableExists_(db, "ID_ParentMolecule")) return;
 
-    QSqlQueryModel model;
-    model.setQuery("SELECT * FROM ID_ParentMolecule", db);
-    if (model.lastError().isValid())
+    QSqlQuery query(db);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_ParentMolecule"))
     {
-      raiseDBError_(model.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                     "error reading from database");
+      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
     }
-    for (int i = 0; i < model.rowCount(); ++i)
+    while (query.next())
     {
-      const QSqlRecord& row = model.record(i);
-      String accession = row.value("accession").toString();
+      String accession = query.value("accession").toString();
       IdentificationData::ParentMolecule parent(accession);
       parent.molecule_type =
-        getMoleculeTypeFromAbbrev_(row.value("molecule_type").toString());
-      parent.sequence = row.value("sequence").toString();
-      parent.description = row.value("description").toString();
-      parent.coverage = row.value("coverage").toDouble();
-      parent.is_decoy = row.value("is_decoy").toInt();
+        getMoleculeTypeFromAbbrev_(query.value("molecule_type").toString());
+      parent.sequence = query.value("sequence").toString();
+      parent.description = query.value("description").toString();
+      parent.coverage = query.value("coverage").toDouble();
+      parent.is_decoy = query.value("is_decoy").toInt();
       id_data.registerParentMolecule(parent);
     }
   }
@@ -552,85 +375,12 @@ namespace OpenMS
                       "error opening SQLite database");
       }
 
+      loadScoreTypes_(id_data, db);
+
       loadParentMolecules_(id_data, db);
     }
 
     QSqlDatabase::removeDatabase(connection);
   }
 
-  /*
-        // ParentMolecule table
-        "CREATE TABLE PARENTMOLECULE(" \
-        "ID INT PRIMARY KEY NOT NULL," \
-        "ACCESSION TEXT NOT NULL," \
-        "SEQUENCE TEXT NOT NULL," \
-        "DESCRIPTION TEXT NOT NULL," \
-        "COVERAGE REAL NOT NULL," \
-        "DECOY BIT NOT NULL);" \
-
-        // ParentMoleculeGroup table
-        // TODO Use Mapping table (Molecule to Group)?
-        "CREATE TABLE PARENTMOLECULEGROUP(" \
-        "ID INT PRIMARY KEY NOT NULL," \
-        "SCORETYPEREF INT NOT NULL,"
-        "SCORE REAL NOT NULL);" \
-
-        // ParentMolecule to ParentMoleculeGroup
-        "CREATE TABLE PARENTMOLECULE_PARENTMOLECULEGROUP_MAPPING(" \
-        "PMOLID INT NOT NULL," \
-        "PMOLGRPID INT NOT NULL);" \
-
-        // ParentMoleculeGrouping table
-        "CREATE TABLE PARENTMOLECULEGROUPING(" \
-        "ID INT PRIMARY KEY NOT NULL," \
-        "LABEL TEXT NOT NULL);" \
-
-        // AppliedProcessingStep
-        "CREATE TABLE APPLIEDPROCESSINGSTEP(" \
-        "ID INT PRIMARY KEY NOT NULL," \
-        "PROCESSING_STEP_OPT TEXT);"
-
-        // ScoresForAppliedProcessingStep
-        "CREATE TABLE SCORESFORAPPLIEDPROCESSINGSTEP(" \
-        "APSID INT PRIMARY KEY NOT NULL," \
-        "SCORETYPEREF INT NOT NULL," \
-        "SCORE REAL NOT NULL);";
-
-        // DataProcessingStep
-       "CREATE TABLE DATAPROCESSINGSTEP(" \
-        "ID INT PRIMARY KEY NOT NULL," \
-        "SOFTWARE_REF TEXT NOT NULL," \
-        "INPUT_FILE_REFS TEXT NOT NULL," \ // TODO: vector <InputFileRef>
-        "PRIMARY_FILES REAL NOT NULL," \ // TODO: vector <String>
-        "DATETIME TEXT NOT NULL," \ // TODO: DateTime
-        "ACTIONS REAL NOT NULL);" \ //TODO: std::set< DataProcessing::ProcessingAction >
-
-      // DBSearchParam
-      "CREATE TABLE DBSEARCHPARAM(" \
-        "ID INT PRIMARY KEY NOT NULL," \
-        "MOLECULETYPE TEXT NOT NULL," \
-        "MASSTYPE TEXT NOT NULL," \
-        "DATABASE TEXT NOT NULL," \
-        "DATABASE_VERSION TEXT NOT NULL," \
-        "TAXONOMY TEXT NOT NULL," \
-        "CHARGES TEXT NOT NULL," \ //TODO: set<int>
-      "FIXED_MODS TEXT NOT NULL," \ //TODO: set<String>
-      "VARIABLE_MODS TEXT NOT NULL," \ //TODO: set<String>
-      "PRECURSOR_MASS_TOLERANCE TEXT NOT NULL," \
-        "FRAGMENT_MASS_TOLERANCE TEXT NOT NULL," \
-        "PRECURSOR_TOLERANCE_PPM INT NOT NULL," \ //TODO: bool
-      "FRAGMENT_TOLERANCE_PPM INT NOT NULL," \ //TODO: bool
-      "DIGESTION_ENZYME TEXT NOT NULL," \ //TODO: class DigestionEnzyme
-      "MISSED_CLEAVAGES INT NOT NULL," \
-        "MIN_LENGTH INT NOT NULL, \
-        "MAX_LENGTH INT NOT NULL") \
-
-      // ScoreType
-      "CREATE TABLE SCORETYPE(" \
-        "ID INT PRIMARY KEY NOT NULL," \
-        "CV_TERM TEXT NOT NULL," \ //TODO: CVTerm
-      "NAME TEXT NOT NULL," \
-        "HIGHER_BETTER INT NOT NULL"); //TODO: bool
-      */
 }
-

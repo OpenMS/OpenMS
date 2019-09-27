@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Julianus Pfeuffer $
-// $Authors: Julianus Pfeuffer, Oliver Alka $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Julianus Pfeuffer, Oliver Alka, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -69,12 +69,19 @@ namespace OpenMS
     static void load(const String& filename, IdentificationData& id_data);
 
   protected:
+    // convenience functions:
 
     static bool tableExists_(QSqlDatabase& db, const String& name);
 
     static void raiseDBError_(const QSqlError& error, QSqlDatabase& db,
                               int line, const char* function,
                               const String& context);
+
+    static String getMoleculeTypeAbbrev_(IdentificationData::MoleculeType molecule_type);
+
+    static IdentificationData::MoleculeType getMoleculeTypeFromAbbrev_(const String& abbrev);
+
+    // store helper functions:
 
     static void storeVersionAndDate_(QSqlDatabase& db);
 
@@ -86,9 +93,11 @@ namespace OpenMS
     static void storeParentMolecules_(const IdentificationData& id_data,
                                       QSqlDatabase& db);
 
-    static String getMoleculeTypeAbbrev_(IdentificationData::MoleculeType molecule_type);
+    // load helper functions:
 
-    static IdentificationData::MoleculeType getMoleculeTypeFromAbbrev_(const String& abbrev);
+    // static CVTerm loadCVTerm_(int id, QSqlDatabase& db);
+
+    static void loadScoreTypes_(IdentificationData& id_data, QSqlDatabase& db);
 
     static void loadParentMolecules_(IdentificationData& id_data,
                                      QSqlDatabase& db);
