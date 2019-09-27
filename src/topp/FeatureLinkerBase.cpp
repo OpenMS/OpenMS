@@ -297,11 +297,19 @@ protected:
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
         if (keep_subelements)
         {
-          std::function<void (PeptideIdentification &)> saveOldMapIndex = [](PeptideIdentification& p)
+          std::function<void(PeptideIdentification &)> saveOldMapIndex =
+            [](PeptideIdentification &p)
+            {
+              if (p.metaValueExists("map_index"))
               {
-                //TODO check existence first. but fail if not present
                 p.setMetaValue("old_map_index", p.getMetaValue("map_index"));
-              };
+              }
+              else
+              {
+                OPENMS_LOG_WARN << "Warning: map_index not found in PeptideID. The tool will not be able to assign a"
+                                   "consistent one. Check the settings of previous tools." << std::endl;
+              }
+            };
           maps[i].applyFunctionOnPeptideIDs(saveOldMapIndex, true);
         }
       }

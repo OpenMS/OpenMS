@@ -132,24 +132,40 @@ namespace OpenMS
 
       for (auto& id : cons_it->getPeptideIdentifications())
       {
-        Size file_index = id.getMetaValue("map_index");
-        // TODO check for existence, since the actual saving of the old map_index
-        //  happens in the FeatureLinkerBase class, not here.
-        Size old_map_index = id.getMetaValue("old_map_index");
-        Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
-        id.setMetaValue("map_index", new_idx);
-        id.removeMetaValue("old_map_index");
+        // if old_map_index is not present, there was no map_index in the beginning,
+        // therefore the newly assigned map_index cannot be "corrected"
+        // -> remove the MetaValue to be consistent.
+        if (id.metaValueExists("old_map_index"))
+        {
+          Size old_map_index = id.getMetaValue("old_map_index");
+          Size file_index = id.getMetaValue("map_index");
+          Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
+          id.setMetaValue("map_index", new_idx);
+          id.removeMetaValue("old_map_index");
+        }
+        else
+        {
+          id.removeMetaValue("map_index");
+        }
       }
     }
     for (auto& id : out.getUnassignedPeptideIdentifications())
     {
-      Size file_index = id.getMetaValue("map_index");
-      // TODO check for existence, since the actual saving of the old map_index
-      //  happens in the FeatureLinkerBase class, not here.
-      Size old_map_index = id.getMetaValue("old_map_index");
-      Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
-      id.setMetaValue("map_index", new_idx);
-      id.removeMetaValue("old_map_index");
+      // if old_map_index is not present, there was no map_index in the beginning,
+      // therefore the newly assigned map_index cannot be "corrected"
+      // -> remove the MetaValue to be consistent.
+      if (id.metaValueExists("old_map_index"))
+      {
+        Size old_map_index = id.getMetaValue("old_map_index");
+        Size file_index = id.getMetaValue("map_index");
+        Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
+        id.setMetaValue("map_index", new_idx);
+        id.removeMetaValue("old_map_index");
+      }
+      else
+      {
+        id.removeMetaValue("map_index");
+      }
     }
   }
 
