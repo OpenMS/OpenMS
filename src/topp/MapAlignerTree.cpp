@@ -34,6 +34,7 @@
 
 //#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTree.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -60,11 +61,35 @@ public:
     TOPPMapAlignerBase("MapAlignerTree", "Tree guided correction of retention time distortions between maps.")
   {}
 
-protected:
+private:
+  template <typename MapType, typename FileType>
+  void loadInputMaps_(vector<MapType>& maps, StringList& ins, FileType& input_file)
+  {
+      for (Size i = 0; i < ins.size(); ++i)
+      {
+        input_file.load(ins[i], maps[i]);
+      }
+  }
+
+  template <typename MapType>
+  void build_distance_matrix_(vector<MapType>& maps, vector<size_t>& dist_matrix)
+  {
+      for (Size i = 0; i < maps.size()-1; ++i)
+      {
+          for (Size j = i+1; j < maps.size(); ++j)
+          {
+              // get identified proteins of maps[i] and maps[j], sorted,
+              // get union and intercept amount of proteins
+              // create vectors for both maps containing RTs of identical proteins
+              // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
+              // dist_matrx[i][j] = pearson
+          }
+      }
+  }
+
   void registerOptionsAndFlags_() override
   {
     String formats = "featureXML";
-    // no support for a reference file yet:
     TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_NONE);
     //registerSubsection_("algorithm", "Algorithm parameters section");
     //registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
@@ -91,16 +116,43 @@ protected:
     ExitCodes ret = checkParameters_();
     if (ret != EXECUTION_OK) return ret;
 
-    std::cout << "\nHuhu Jule" << std::endl;
-
+    //-------------------------------------------------------------
+    // parsing parameters
+    //-------------------------------------------------------------
     StringList in_files = getStringList_("in");
     StringList out_files = getStringList_("out");
     StringList out_trafos = getStringList_("trafo_out");
+
+
+    //-------------------------------------------------------------
+    // reading input
+    //-------------------------------------------------------------
+    vector<FeatureMap> feature_maps(in_files.size());
+    FeatureXMLFile fxml_file;
+    loadMaps_(feature_maps, in_files, fxml_file);
+
+    //-------------------------------------------------------------
+    // calculations
+    //-------------------------------------------------------------
+    vector<size_t> dist_matrix;
+    build_distance_matrix_(feature_maps, dist_matrix);
+
+    // SingleLinkage tree = new SingleLinkage(dist_matrix)
+
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
+
 
     return EXECUTION_OK;
   }
 
 };
+
+void same_feature_vecs_(std::vector< ProteinIdentification > vec1, std::vector< ProteinIdentification > vec2)
+{
+
+}
 
 int main(int argc, const char** argv)
 {
