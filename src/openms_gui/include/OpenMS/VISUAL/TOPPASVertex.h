@@ -81,6 +81,7 @@
 #include <QtWidgets/QGraphicsItem>
 #include <QtCore/QProcess>
 #include <QtWidgets/QMenu>
+#include <QStringList>
 
 namespace OpenMS
 {
@@ -105,13 +106,13 @@ namespace OpenMS
     Q_INTERFACES(QGraphicsItem)
 
 public:
-
     /// The container for in/out edges
     typedef QList<TOPPASEdge *> EdgeContainer;
     /// A mutable iterator for in/out edges
     typedef EdgeContainer::iterator EdgeIterator;
     /// A const iterator for in/out edges
     typedef EdgeContainer::const_iterator ConstEdgeIterator;
+
 	  /// A class which interfaces with QStringList for holding filenames
 	  /// Incoming filenames are checked, and an exception is thrown if they are too long
 	  /// to avoid issues with common filesystems (due to filesystem limits).
@@ -119,7 +120,7 @@ public:
 	  {
 	    public:
 		  TOPPASFilenames() = default;
-	  
+	    TOPPASFilenames(const QStringList& filenames);
 		  int size() const;
 		  const QStringList& get() const;
 		  const QString& operator[](int i) const;
@@ -132,6 +133,8 @@ public:
 		  void append(const QStringList& filenames);
 		  //@}
 
+      QStringList getSuffixCounts() const;
+
 	    private:
 		  /*
 		  @brief Check length of filename and throw Exception::FileNotWritable() if too long
@@ -142,6 +145,7 @@ public:
 		  void check_(const QString& filename);
 		  QStringList filenames_;   ///< filenames passed from upstream node in this round
 	  };
+
 	  /// Info for one edge and round, to be passed to next node
     struct VertexRoundPackage
     {
@@ -181,9 +185,11 @@ public:
     /// Copy constructor
     TOPPASVertex(const TOPPASVertex & rhs);
     /// Destructor
-    ~TOPPASVertex() override;
+    ~TOPPASVertex() override = default;
     /// Assignment operator
-    TOPPASVertex & operator=(const TOPPASVertex & rhs);
+    TOPPASVertex& operator=(const TOPPASVertex & rhs);
+    /// base paint method for all derived classes. should be called first in child-class paint
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/, bool round_shape = true);
 
     /// get the round package for this node from upstream
     /// -- indices in 'RoundPackage' mapping are thus referring to incoming edges of this node
@@ -196,9 +202,7 @@ public:
     /// Returns the bounding rectangle of this item
     QRectF boundingRect() const override = 0;
     /// Returns a more precise shape
-    QPainterPath shape() const override = 0;
-    /// Paints the item
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override = 0;
+    QPainterPath shape() const final;
     /// Returns begin() iterator of outgoing edges
     ConstEdgeIterator outEdgesBegin() const;
     /// Returns end() iterator of outgoing edges
@@ -307,29 +311,29 @@ protected:
     /// The list of outgoing edges
     EdgeContainer out_edges_;
     /// Indicates whether a new out edge is currently being created
-    bool edge_being_created_;
+    bool edge_being_created_{false};
     /// The color of the pen
-    QColor pen_color_;
+    QColor pen_color_{Qt::black};
     /// The color of the brush
-    QColor brush_color_;
+    QColor brush_color_{ Qt::lightGray};
     /// The DFS color of this node
-    DFS_COLOR dfs_color_;
+    DFS_COLOR dfs_color_{DFS_WHITE};
     /// "marked" flag for topological sort
-    bool topo_sort_marked_;
+    bool topo_sort_marked_{false};
     /// The number in a topological sort of the entire graph
     UInt topo_nr_;
     /// Stores the current output file names for each output parameter
     RoundPackages output_files_;
     /// number of rounds this node will do ('Merge All' nodes will pass everything, thus do only one round)
-    int round_total_;
+    int round_total_{-1};
     /// currently finished number of rounds (TODO: do we need that?)
-    int round_counter_;
+    int round_counter_{0};
     /// Stores whether this node has already been processed during the current pipeline execution
-    bool finished_;
+    bool finished_{false};
     /// Indicates whether this node is reachable (i.e. there is an input node somewhere further upstream)
-    bool reachable_;
+    bool reachable_{true};
     /// shall subsequent tools be allowed to recycle the output of this node to match the number of rounds imposed by other parent nodes?
-    bool allow_output_recycling_;
+    bool allow_output_recycling_{false};
 
 
 #ifdef TOPPAS_DEBUG
