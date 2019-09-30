@@ -240,14 +240,76 @@ namespace OpenMS
      * @brief Helper for getting scores in ConsensusMaps
      * @todo allow FeatureMap?
      */
-    template<class ...Args>
     static void getPeptideScoresFromMap_(
         ScoreToTgtDecLabelPairs &scores_labels,
-        const ConsensusMap &cmap, bool include_unassigned_peptides, Args &&... args)
+        const ConsensusMap &cmap, bool include_unassigned_peptides)
     {
       std::function<void(const PeptideIdentification &)> f =
           [&](const PeptideIdentification &id) -> void
-          { getScores_(scores_labels, id, std::forward<Args>(args)...); };
+          { getScores_(scores_labels, id); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void getPeptideScoresFromMap_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const ConsensusMap &cmap, bool include_unassigned_peptides, int charge)
+    {
+      std::function<void(const PeptideIdentification &)> f =
+          [&](const PeptideIdentification &id) -> void
+          { getScores_(scores_labels, id, charge); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void getPeptideScoresFromMap_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const ConsensusMap &cmap, bool include_unassigned_peptides, const String &identifier)
+    {
+      std::function<void(const PeptideIdentification &)> f =
+          [&](const PeptideIdentification &id) -> void
+          { getScores_(scores_labels, id, identifier); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void getPeptideScoresFromMap_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const ConsensusMap &cmap, bool include_unassigned_peptides, int charge, const String &identifier)
+    {
+      std::function<void(const PeptideIdentification &)> f =
+          [&](const PeptideIdentification &id) -> void
+          { getScores_(scores_labels, id, charge, identifier); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void getPeptideScoresFromMap_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits)
+    {
+      std::function<void(const PeptideIdentification &)> f =
+          [&](const PeptideIdentification &id) -> void
+          { getScores_(scores_labels, id, all_hits); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void getPeptideScoresFromMap_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits, int charge)
+    {
+      std::function<void(const PeptideIdentification &)> f =
+          [&](const PeptideIdentification &id) -> void
+          { getScores_(scores_labels, id, all_hits, charge); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void getPeptideScoresFromMap_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits, const String &identifier)
+    {
+      std::function<void(const PeptideIdentification &)> f =
+          [&](const PeptideIdentification &id) -> void
+          { getScores_(scores_labels, id, all_hits, identifier); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void getPeptideScoresFromMap_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits, int charge, const String &identifier)
+    {
+      std::function<void(const PeptideIdentification &)> f =
+          [&](const PeptideIdentification &id) -> void
+          { getScores_(scores_labels, id, all_hits, charge, identifier); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
     }
 

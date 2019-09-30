@@ -2656,3 +2656,9 @@ set_tests_properties("UTILS_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "
 add_test("UTILS_RNAMassCalculator_1" ${TOPP_BIN_PATH}/RNAMassCalculator -test -in_seq "AUCGGC" -charge -1 -2 -out RNAMassCalculator.tmp)
 add_test("UTILS_RNAMassCalculator_1_out" ${DIFF} -in1 RNAMassCalculator.tmp -in2 ${DATA_DIR_TOPP}/RNAMassCalculator_1.txt)
 set_tests_properties("UTILS_RNAMassCalculator_1_out" PROPERTIES DEPENDS "UTILS_RNAMassCalculator_1")
+
+#------------------------------------------------------------------------------
+# EPIFANY:
+add_test("UTILS_Epifany_1" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out Epifany_1_out.tmp)
+add_test("UTILS_Epifany_1_out" ${DIFF} -in1 Epifany_1_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_1_out.idXML)
+set_tests_properties("UTILS_Epifany_1_out" PROPERTIES DEPENDS "UTILS_Epifany_1")

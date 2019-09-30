@@ -1244,19 +1244,19 @@ public:
                 (!higher_score_better && (hit.getScore() < p->getScore()))
                 )
             {
-              p->setMetaValue("bestForItsPep", 0);
-              hit.setMetaValue("bestForItsPep", 1);
+              p->setMetaValue("best_per_peptide", 0);
+              hit.setMetaValue("best_per_peptide", 1);
               p = &hit;
             }
             else //note that this was def. not the best
             {
               // TODO if it is only about filtering, we can omit writing this metavalue (absence = false)
-              hit.setMetaValue("bestForItsPep", 0);
+              hit.setMetaValue("best_per_peptide", 0);
             }
           }
           else //newly inserted -> first for that sequence (and optionally charge)
           {
-            hit.setMetaValue("bestForItsPep", 1);
+            hit.setMetaValue("best_per_peptide", 1);
           }
         }
     }
