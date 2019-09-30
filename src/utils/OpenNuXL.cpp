@@ -83,6 +83,9 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
 #include <boost/regex.hpp>
 #include <boost/math/distributions/binomial.hpp>
 #include <boost/math/distributions/normal.hpp>
@@ -3055,75 +3058,6 @@ static void scoreXLIons_(
        << "nr_candidates"
        << "NuXL:rank_product"
        << "NuXL:wTop50";
-#ifdef OPENNUXL_SEPARATE_FEATURES
-    for (auto & pi : peptide_ids)
-    {
-      for (auto & ph : pi.getHits())
-      {
-        if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
-        {
-          ph.setMetaValue("XL_NuXL:mass_error_p",    0.0);
-          ph.setMetaValue("XL_NuXL:err",             0.0);               
-          ph.setMetaValue("XL_NuXL:total_loss_score",0.0);       
-          ph.setMetaValue("XL_NuXL:modds",           0.0);       
-          ph.setMetaValue("XL_NuXL:immonium_score",  0.0);        
-          ph.setMetaValue("XL_NuXL:precursor_score", 0.0);        
-          ph.setMetaValue("XL_NuXL:MIC",             0.0);        
-          ph.setMetaValue("XL_NuXL:Morph",           0.0);      
-          ph.setMetaValue("XL_NuXL:total_MIC",       0.0);       
-          ph.setMetaValue("XL_NuXL:ladder_score",    0.0);        
-          ph.setMetaValue("XL_NuXL:sequence_score",  0.0);        
-          ph.setMetaValue("XL_NuXL:total_Morph",     0.0);        
-          ph.setMetaValue("XL_NuXL:total_HS",        0.0);        
-        }
-        else  // XL
-        {
-          ph.setMetaValue("XL_NuXL:mass_error_p",     static_cast<double>(ph.getMetaValue("NuXL:mass_error_p")));
-          ph.setMetaValue("XL_NuXL:err",              static_cast<double>(ph.getMetaValue("NuXL:err")));               
-          ph.setMetaValue("XL_NuXL:total_loss_score", static_cast<double>(ph.getMetaValue("NuXL:total_loss_score")));
-          ph.setMetaValue("XL_NuXL:modds",            static_cast<double>(ph.getMetaValue( "NuXL:modds")));
-          ph.setMetaValue("XL_NuXL:immonium_score",   static_cast<double>(ph.getMetaValue("NuXL:immonium_score")));
-          ph.setMetaValue("XL_NuXL:precursor_score",  static_cast<double>(ph.getMetaValue("NuXL:precursor_score")));
-          ph.setMetaValue("XL_NuXL:MIC",              static_cast<double>(ph.getMetaValue("NuXL:MIC")));
-          ph.setMetaValue("XL_NuXL:Morph",            static_cast<double>(ph.getMetaValue("NuXL:Morph")));
-          ph.setMetaValue("XL_NuXL:total_MIC",        static_cast<double>(ph.getMetaValue( "NuXL:total_MIC")));
-          ph.setMetaValue("XL_NuXL:ladder_score",     static_cast<double>(ph.getMetaValue("NuXL:ladder_score")));
-          ph.setMetaValue("XL_NuXL:sequence_score",   static_cast<double>(ph.getMetaValue("NuXL:sequence_score")));
-          ph.setMetaValue("XL_NuXL:total_Morph",      static_cast<double>(ph.getMetaValue("NuXL:total_Morph")));
-          ph.setMetaValue("XL_NuXL:total_HS",         static_cast<double>(ph.getMetaValue("NuXL:total_HS")));
-
-          ph.setMetaValue("NuXL:mass_error_p",    0.0);
-          ph.setMetaValue("NuXL:err",             0.0);               
-          ph.setMetaValue("NuXL:total_loss_score",0.0);       
-          ph.setMetaValue("NuXL:modds",           0.0);       
-          ph.setMetaValue("NuXL:immonium_score",  0.0);        
-          ph.setMetaValue("NuXL:precursor_score", 0.0);        
-          ph.setMetaValue("NuXL:MIC",             0.0);        
-          ph.setMetaValue("NuXL:Morph",           0.0);      
-          ph.setMetaValue("NuXL:total_MIC",       0.0);       
-          ph.setMetaValue("NuXL:ladder_score",    0.0);        
-          ph.setMetaValue("NuXL:sequence_score",  0.0);        
-          ph.setMetaValue("NuXL:total_Morph",     0.0);        
-          ph.setMetaValue("NuXL:total_HS",        0.0);        
-        }
-      }
-    }
-
-    feature_set
-       << "XL_NuXL:mass_error_p"
-       << "XL_NuXL:err"
-       << "XL_NuXL:total_loss_score"
-       << "XL_NuXL:modds"
-       << "XL_NuXL:immonium_score"
-       << "XL_NuXL:precursor_score"
-       << "XL_NuXL:MIC"
-       << "XL_NuXL:Morph"
-       << "XL_NuXL:total_MIC"
-       << "XL_NuXL:ladder_score"
-       << "XL_NuXL:sequence_score"
-       << "XL_NuXL:total_Morph"
-       << "XL_NuXL:total_HS";
-#endif
 
     feature_set
        << "NuXL:marker_ions_score"
@@ -3145,6 +3079,41 @@ static void scoreXLIons_(
        << "NuXL:NA_MASS_z0"
        << "NuXL:NA_length"   
        << "nucleotide_mass_tags";
+
+#ifdef OPENNUXL_SEPARATE_FEATURES
+    for (auto & pi : peptide_ids)
+    {
+      for (auto & ph : pi.getHits())
+      {
+        if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
+        {
+          // fill XL related feature columns with zeros
+          for (auto s : feature_set)
+          {
+            if (s.hasPrefix("NuXL") ph.setMetaValue("XL_" + s, 0.0);
+          }
+        }
+        else  // XL
+        {
+          // fill linear peptide releated feature columns with zero (after copying them over)
+          for (auto s : feature_set)
+          {
+            if (s.hasPrefix("NuXL") 
+            { 
+              ph.setMetaValue("XL_" + s, static_cast<double>(ph.getMetaValue(s)));
+              ph.setMetaValue(s, 0.0);
+            }
+          }
+        }
+      }
+    }
+
+    // we duplicated the feature set
+    auto XL_columns = feature_set;
+    for (auto s : feature_set) { if (s.hasPrefix("NuXL") XL_columns.push_back("XL_" + s); }
+    feature_set = XL_columns;
+#endif
+
 #ifdef DANGEROUS_FEAUTURES
     feature_set
        << "CountSequenceIsTop"
@@ -4499,7 +4468,87 @@ static void scoreXLIons_(
     map_index2ppm.clear(); 
 
     if (generate_decoys) 
-    { 
+    {
+    // calculate tail median score of decoys for specific meta value
+    auto metaMedian = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
+    {
+      vector<double> decoy_XL_scores;
+      for (const auto & pi : peptide_ids)
+      {
+        for (const auto & ph : pi.getHits())
+        {
+           const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+           if (!is_XL || ph.getMetaValue("target_decoy") != "decoy") continue;
+           double score = ph.getMetaValue(name);
+           decoy_XL_scores.push_back(score); 
+        }
+      }
+      std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
+      decoy_XL_scores.resize(1000);
+      return Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
+    };
+
+  /*
+      // calibrate scores by tail of decoy distribution
+      vector<double> decoy_XL_scores;
+      vector<double> decoy_peptide_scores;
+      for (const auto & pi : peptide_ids)
+      {
+        for (const auto & ph : pi.getHits())
+        {
+           const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+           if (ph.getMetaValue("target_decoy") != "decoy") continue;
+           double score = ph.getScore();
+           if (is_XL) { decoy_XL_scores.push_back(score); }
+           else { decoy_peptide_scores.push_back(score); }
+        }
+      }
+      std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
+      std::sort(decoy_peptide_scores.begin(), decoy_peptide_scores.end(), greater<double>());
+      decoy_XL_scores.resize(1000);
+      decoy_peptide_scores.resize(1000);
+      double mxl = Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
+      double mpep = Math::median(decoy_peptide_scores.begin(), decoy_peptide_scores.end());
+      double diff = mpep - mxl; 
+      cout << "Difference between medians of decoy distributions (tails pep-XL): " << diff << endl;
+      for (auto & pi : peptide_ids)
+      {
+        for (auto & ph : pi.getHits())
+        {
+           const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+           double score = ph.getScore();
+           //if (is_XL) { ph.setScore(score + diff); }  // equalize medians of tails
+           if (!is_XL) 
+           { 
+             ph.setMetaValue();   // impute missing with medians
+           }
+        }
+        pi.assignRanks();
+      }
+*/      
+      map<String, double> medians;
+      for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
+      {
+        medians[mn] = metaMedian(peptide_ids, mn);
+      }
+
+      for (auto & pi : peptide_ids)
+      {
+        for (auto & ph : pi.getHits())
+        {
+           const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+           double score = ph.getScore();
+           //if (is_XL) { ph.setScore(score + diff); }  // equalize medians of tails
+           if (!is_XL) 
+           { 
+             for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
+             {
+               ph.setMetaValue(mn,  medians[mn]);   // impute missing with medians
+             }
+           }
+        }
+        pi.assignRanks();
+      }
       fdr.apply(peptide_ids); 
   
       // write ProteinIdentifications and PeptideIdentifications to IdXML
