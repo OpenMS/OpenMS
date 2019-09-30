@@ -106,6 +106,8 @@
 #endif
 
 //#define DEBUG_OpenNuXL 1
+//#define OPENNUXL_SEPARATE_FEATURES 1
+#define DANGEROUS_FEAUTURES
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -3090,7 +3092,7 @@ static void scoreXLIons_(
           // fill XL related feature columns with zeros
           for (auto s : feature_set)
           {
-            if (s.hasPrefix("NuXL") ph.setMetaValue("XL_" + s, 0.0);
+            if (s.hasPrefix("NuXL")) ph.setMetaValue("XL_" + s, 0.0);
           }
         }
         else  // XL
@@ -3098,7 +3100,7 @@ static void scoreXLIons_(
           // fill linear peptide releated feature columns with zero (after copying them over)
           for (auto s : feature_set)
           {
-            if (s.hasPrefix("NuXL") 
+            if (s.hasPrefix("NuXL"))
             { 
               ph.setMetaValue("XL_" + s, static_cast<double>(ph.getMetaValue(s)));
               ph.setMetaValue(s, 0.0);
@@ -3110,7 +3112,7 @@ static void scoreXLIons_(
 
     // we duplicated the feature set
     auto XL_columns = feature_set;
-    for (auto s : feature_set) { if (s.hasPrefix("NuXL") XL_columns.push_back("XL_" + s); }
+    for (auto s : feature_set) { if (s.hasPrefix("NuXL")) XL_columns.push_back("XL_" + s); }
     feature_set = XL_columns;
 #endif
 
