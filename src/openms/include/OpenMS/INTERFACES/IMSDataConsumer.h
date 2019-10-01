@@ -60,6 +60,8 @@ namespace Interfaces
       occur if the ExperimentalSettings and the size of the experiment are not
       set before consuming any spectra.
 
+      Implementations in OpenMS can be found in OpenMS/FORMAT/DATAACCESS
+
       @note The member functions setExpectedSize and setExperimentalSettings
       are expected to be called before consuming starts.
 
