@@ -767,7 +767,7 @@ namespace OpenMS
   }
 
   void OpenSwathWorkflowBase::MS1Extraction_(const OpenSwath::SpectrumAccessPtr ms1_map,
-                                             const std::vector< OpenSwath::SwathMap > & swath_maps,
+                                             const std::vector< OpenSwath::SwathMap > & /* swath_maps */,
                                              std::vector< MSChromatogram >& ms1_chromatograms,
                                              Interfaces::IMSDataConsumer* chromConsumer,
                                              const ChromExtractParams& cp,
