@@ -35,10 +35,11 @@
 //#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTree.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
+using namespace Math;
 using namespace std;
 
 //-------------------------------------------------------------
@@ -90,23 +91,55 @@ private:
       }
   }
 
-  template <typename MapType>
   void build_distance_matrix_(Size maps_amount, vector<SeqAndRT>& maps_peptides, vector<size_t>& dist_matrix)
   {
-      /*
-      for (Size i = 0; i < maps_amount.size()-1; ++i)
+      for (Size i = 0; i < maps_amount-1; ++i)
       {
-          for (Size j = i+1; j < maps_amount.size(); ++j)
+          for (Size j = 1; j < maps_amount; ++j)
           {
-              // get identified proteins of maps[i] and maps[j], sorted,
-              // getRetentionTimes_(maps[i], maps_rts[i]);
+              // get identified proteins of maps[i] and maps[j], sorted, -> done with getPeptideSequences()
+
+              // create vectors for both maps containing RTs of identical proteins and
               // get union and intercept amount of proteins
-              // create vectors for both maps containing RTs of identical proteins
+              SeqAndRT::iterator pep1_it = maps_peptides[i].begin();
+              SeqAndRT::iterator pep2_it = maps_peptides[j].begin();
+              vector<double> intercept_rts1;
+              vector<double> intercept_rts2;
+              std::cout << "peptide sizes to combine: " << maps_peptides[i].size() << " " << maps_peptides[j].size() << "\n";
+              while (pep1_it != maps_peptides[i].end() && pep2_it != maps_peptides[j].end())
+              {
+                  if (pep1_it->first < pep2_it->first)
+                  {
+                      ++pep1_it;
+                  }
+                  else if (pep2_it->first < pep1_it->first)
+                  {
+                      ++pep2_it;
+                  }
+                  else
+                  {
+                      //intercept_peps1[pep1_it->first] = pep1_it->second; //if second DoubleList, then pushback of both possible
+                      //intercept_peps2[pep2_it->first] = pep2_it->second;
+                      intercept_rts1.push_back(pep1_it->second);
+                      intercept_rts2.push_back(pep2_it->second);
+                      ++pep1_it;
+                      ++pep2_it;
+                  }
+              }
+              std::cout << "intercept size: " << intercept_rts1.size() << "\n";
+              unsigned int intercept_size = intercept_rts1.size();
+              SeqAndRT union_map_tmp;
+              union_map_tmp.insert(maps_peptides[i].begin(), maps_peptides[i].end());
+              union_map_tmp.insert(maps_peptides[j].begin(), maps_peptides[j].end());
+              unsigned int union_size = union_map_tmp.size();
+
               // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
-              // dist_matrx[i][j] = pearson
+              double pearson_val = pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(), intercept_rts2.begin(), intercept_rts2.end());
+              std::cout << pearson_val*union_size/intercept_size << std::endl;
+
+              dist_matrix[i*j+j] = pearson_val*union_size/intercept_size;
           }
       }
-      */
   }
 
   void registerOptionsAndFlags_() override
