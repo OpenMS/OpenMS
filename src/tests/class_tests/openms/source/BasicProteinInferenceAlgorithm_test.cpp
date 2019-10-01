@@ -55,7 +55,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       bpia.run(peps, prots);
       TEST_EQUAL(prots[0].getHits()[0].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[1].getScore(), 0.6)
-      TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<float>::infinity())
+      TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())
       TEST_EQUAL(prots[0].getHits()[3].getScore(), 0.8)
       TEST_EQUAL(prots[0].getHits()[4].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[5].getScore(), 0.9)
@@ -81,11 +81,11 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       p.setValue("min_peptides_per_protein", 0);
       bpia.setParameters(p);
       bpia.run(peps, prots);
-      TEST_EQUAL(prots[0].getHits()[0].getScore(), -std::numeric_limits<float>::infinity())
-      TEST_EQUAL(prots[0].getHits()[1].getScore(), -std::numeric_limits<float>::infinity())
-      TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<float>::infinity())
+      TEST_EQUAL(prots[0].getHits()[0].getScore(), -std::numeric_limits<double>::infinity())
+      TEST_EQUAL(prots[0].getHits()[1].getScore(), -std::numeric_limits<double>::infinity())
+      TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())
       TEST_EQUAL(prots[0].getHits()[3].getScore(), 0.8)
-      TEST_EQUAL(prots[0].getHits()[4].getScore(), -std::numeric_limits<float>::infinity())
+      TEST_EQUAL(prots[0].getHits()[4].getScore(), -std::numeric_limits<double>::infinity())
       TEST_EQUAL(prots[0].getHits()[5].getScore(), 0.9)
 
       TEST_EQUAL(prots[0].getHits()[0].getMetaValue("nr_found_peptides"), 0)
