@@ -35,6 +35,8 @@
 //#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTree.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -62,6 +64,10 @@ public:
   {}
 
 private:
+
+  /// Type to store retention times given for individual peptide sequence
+  typedef std::map<String, double> SeqAndRT;
+
   template <typename MapType, typename FileType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FileType& input_file)
   {
@@ -71,20 +77,36 @@ private:
       }
   }
 
-  template <typename MapType>
-  void build_distance_matrix_(vector<MapType>& maps, vector<size_t>& dist_matrix)
+  void getPeptideSequences_(vector<PeptideIdentification>& peptides, SeqAndRT& peptide_rts)
   {
-      for (Size i = 0; i < maps.size()-1; ++i)
+      for (std::vector<PeptideIdentification>::iterator pep_it =
+        peptides.begin(); pep_it != peptides.end(); ++pep_it)
       {
-          for (Size j = i+1; j < maps.size(); ++j)
+        if (!pep_it->getHits().empty())
+        {
+          const String& sequence = pep_it->getHits()[0].getSequence().toString();
+          peptide_rts[sequence] = pep_it->getRT();
+        }
+      }
+  }
+
+  template <typename MapType>
+  void build_distance_matrix_(Size maps_amount, vector<SeqAndRT>& maps_peptides, vector<size_t>& dist_matrix)
+  {
+      /*
+      for (Size i = 0; i < maps_amount.size()-1; ++i)
+      {
+          for (Size j = i+1; j < maps_amount.size(); ++j)
           {
               // get identified proteins of maps[i] and maps[j], sorted,
+              // getRetentionTimes_(maps[i], maps_rts[i]);
               // get union and intercept amount of proteins
               // create vectors for both maps containing RTs of identical proteins
               // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
               // dist_matrx[i][j] = pearson
           }
       }
+      */
   }
 
   void registerOptionsAndFlags_() override
@@ -129,13 +151,41 @@ private:
     //-------------------------------------------------------------
     vector<FeatureMap> feature_maps(in_files.size());
     FeatureXMLFile fxml_file;
-    loadMaps_(feature_maps, in_files, fxml_file);
+    loadInputMaps_(feature_maps, in_files, fxml_file);
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    vector<size_t> dist_matrix;
-    build_distance_matrix_(feature_maps, dist_matrix);
+    // one set of RT data for each input map
+    vector<SeqAndRT> maps_peptides(in_files.size());
+    // get Peptide/ RT tuple for all features, seperated by input file
+    for (vector<FeatureMap>::iterator maps_it = feature_maps.begin(); maps_it != feature_maps.end(); ++maps_it)
+    {
+      for (vector<Feature>::iterator feature_it = maps_it->begin();
+         feature_it != maps_it->end(); ++feature_it)
+      {
+        if (feature_it->getPeptideIdentifications().size()>0)
+        {
+            getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_peptides[distance(feature_maps.begin(), maps_it)]);
+        }
+      }
+    }
+    /* for debug
+    for (vector<SeqAndRT>::iterator itmaps= maps_peptides.begin(); itmaps != maps_peptides.end(); ++itmaps)
+    {
+        for (SeqAndRT::iterator it = itmaps->begin(); it != itmaps->end(); ++it)
+        {
+            std::cout << it->first << " : " << it->second << "\n";
+        }
+    }*/
+
+    // remove feature-maps? or is there another way to get relevant data for later alignment?
+
+
+    // RTs of cluster (only petides present in both parent maps)
+    //vector<SeqAndRT> clusters_rts(in_files.size()*in_files.size());
+    vector<size_t> dist_matrix(in_files.size()*in_files.size());
+    build_distance_matrix_(feature_maps.size(), maps_peptides, dist_matrix);
 
     // SingleLinkage tree = new SingleLinkage(dist_matrix)
 
@@ -149,10 +199,6 @@ private:
 
 };
 
-void same_feature_vecs_(std::vector< ProteinIdentification > vec1, std::vector< ProteinIdentification > vec2)
-{
-
-}
 
 int main(int argc, const char** argv)
 {
