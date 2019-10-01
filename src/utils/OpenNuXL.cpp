@@ -107,7 +107,7 @@
 
 //#define DEBUG_OpenNuXL 1
 //#define OPENNUXL_SEPARATE_FEATURES 1
-#define DANGEROUS_FEAUTURES
+//#define DANGEROUS_FEAUTURES increases FDR on entrappment dataset
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
