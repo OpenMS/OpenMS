@@ -109,7 +109,7 @@ START_SECTION((const T & operator[](const Key &key) const ))
   TEST_EQUAL(const_map[4], 16)
   TEST_EQUAL(const_map[5], 32)
   typedef Map<int,int> MyMap; // otherwise next line wont work
-  TEST_EXCEPTION(MyMap::IllegalKey&, const_map[6])
+  TEST_EXCEPTION(MyMap::IllegalKey, const_map[6])
 }
 END_SECTION
 
