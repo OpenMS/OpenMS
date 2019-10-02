@@ -168,6 +168,11 @@ START_SECTION((String(const char* s)))
   TEST_EQUAL(s,"blablabla")
 END_SECTION
 
+START_SECTION((String(const unsigned char* s)))
+  unsigned char s[] = "testtest";
+  TEST_EQUAL(String(s),"testtest")
+END_SECTION
+
 START_SECTION((String(size_t len, char c)))
   String s(17,'b');
   TEST_EQUAL(s,"bbbbbbbbbbbbbbbbb")
