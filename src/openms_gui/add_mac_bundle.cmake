@@ -120,7 +120,19 @@ message('\${sign_out}')" COMPONENT BApplications)
                    install(CODE "
 execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
 message('\${sign_check_out}')" COMPONENT BApplications)
-		 
+
+                   install(CODE "
+execute_process(COMMAND ditto -c -k --rsrc --keepParent \${CMAKE_INSTALL_PREFIX}/${_name}.app \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip OUTPUT_VARIABLE ditto_out ERROR_VARIABLE ditto_out)
+message('\${ditto_out}')" COMPONENT BApplications)
+
+                   install(CODE "
+execute_process(COMMAND xcrun altool --notarize-app -t osx -f \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip --primary-bundle-id de.openms.${_name} -u jule.pf@gmail.com -p @env:CODESIGNPW --output-format xml OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
+message('\${notarize_out}')" COMPONENT BApplications)
+
+                   install(CODE "
+execute_process(COMMAND sleep 5)
+execute_process(COMMAND xcrun stapler staple \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE staple_out ERROR_VARIABLE staple_out)
+message('\${staple_out}')" COMPONENT BApplications)
 		endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 
 	else()
