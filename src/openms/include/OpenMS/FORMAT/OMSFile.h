@@ -58,7 +58,7 @@ namespace OpenMS
      * @param id_data The IdentificationData object
      *
     */
-    static void store(const String& filename, const IdentificationData& id_data);
+    void store(const String& filename, const IdentificationData& id_data);
 
     /** @brief Read in a OMS file and construct an IdentificationData
      *
@@ -66,7 +66,7 @@ namespace OpenMS
      * @param id_data The IdentificationData object
      *
     */
-    static void load(const String& filename, IdentificationData& id_data);
+    void load(const String& filename, IdentificationData& id_data);
 
   protected:
 
@@ -74,44 +74,58 @@ namespace OpenMS
 
     // convenience functions:
 
-    static bool tableExists_(QSqlDatabase& db, const String& name);
+    bool tableExists_(const String& name) const;
 
-    static void raiseDBError_(const QSqlError& error, QSqlDatabase& db,
-                              int line, const char* function,
-                              const String& context);
+    void raiseDBError_(const QSqlError& error, int line, const char* function,
+                       const String& context);
 
     // store helper functions:
 
-    static void createTable_(const String& name, const String& definition,
-                             QSqlDatabase& db, bool may_exist = false);
+    void createTable_(const String& name, const String& definition,
+                      bool may_exist = false);
 
-    static void storeVersionAndDate_(QSqlDatabase& db);
+    void storeVersionAndDate_();
 
-    static void createTableDataValue_(QSqlDatabase& db);
+    void createTableDataValue_();
 
-    static Key storeDataValue_(const DataValue& value, QSqlDatabase& db);
+    Key storeDataValue_(const DataValue& value);
 
-    static void createTableCVTerm_(QSqlDatabase& db);
+    void createTableCVTerm_();
 
-    static Key storeCVTerm_(const CVTerm& cv_term, QSqlDatabase& db);
+    Key storeCVTerm_(const CVTerm& cv_term);
 
-    static void storeScoreTypes_(const IdentificationData& id_data,
-                                 QSqlDatabase& db);
+    void storeScoreTypes_(const IdentificationData& id_data);
 
-    static void storeDataProcessingSoftwares_(const IdentificationData& id_data,
-                                              QSqlDatabase& db);
+    void storeInputFiles_(const IdentificationData& id_data);
 
-    static void storeParentMolecules_(const IdentificationData& id_data,
-                                      QSqlDatabase& db);
+    void storeDataProcessingSoftwares_(const IdentificationData& id_data);
+
+    void storeDataProcessingSteps_(const IdentificationData& id_data);
+
+    void storeParentMolecules_(const IdentificationData& id_data);
 
     // load helper functions:
 
-    // static CVTerm loadCVTerm_(int id, QSqlDatabase& db);
+    // static CVTerm loadCVTerm_(int id);
 
-    static void loadScoreTypes_(IdentificationData& id_data, QSqlDatabase& db);
+    void loadScoreTypes_(IdentificationData& id_data);
 
-    static void loadParentMolecules_(IdentificationData& id_data,
-                                     QSqlDatabase& db);
+    void loadInputFiles_(IdentificationData& id_data);
+
+    void loadDataProcessingSoftwares_(IdentificationData& id_data);
+
+    void loadDataProcessingSteps_(IdentificationData& id_data);
+
+    void loadParentMolecules_(IdentificationData& id_data);
+
+    // member variables:
+
+    QSqlDatabase db_;
+
+    std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
+    std::unordered_map<Key, IdentificationData::InputFileRef> input_file_refs_;
+    std::unordered_map<Key, IdentificationData::ProcessingSoftwareRef> processing_software_refs_;
+
   };
 } // namespace OpenMS
 

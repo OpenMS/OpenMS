@@ -63,7 +63,7 @@ START_SECTION(void store(const String& filename, const IdentificationData& id_da
 {
   // empty input:
   oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_0.oms");
-  OMSFile::store(oms_path, ids);
+  OMSFile().store(oms_path, ids);
 
   sqlite3_stmt* result;
   SqliteConnector con(oms_path);
@@ -88,7 +88,7 @@ START_SECTION(void store(const String& filename, const IdentificationData& id_da
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
 
   oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_1.oms");
-  OMSFile::store(oms_path, ids);
+  OMSFile().store(oms_path, ids);
 
 }
 END_SECTION
@@ -96,10 +96,16 @@ END_SECTION
 START_SECTION(void load(const String& filename, IdentificationData& id_data))
 {
   IdentificationData out;
-  OMSFile::load(oms_path, out);
+  OMSFile().load(oms_path, out);
 
-  TEST_EQUAL(ids.getParentMolecules().size(), out.getParentMolecules().size());
+  TEST_EQUAL(ids.getInputFiles().size(), out.getInputFiles().size());
   TEST_EQUAL(ids.getScoreTypes().size(), out.getScoreTypes().size());
+  TEST_EQUAL(ids.getDataProcessingSoftwares().size(),
+             out.getDataProcessingSoftwares().size());
+  TEST_EQUAL(ids.getDataProcessingSteps().size(),
+             out.getDataProcessingSteps().size());
+  TEST_EQUAL(ids.getParentMolecules().size(),
+             out.getParentMolecules().size());
 }
 END_SECTION
 

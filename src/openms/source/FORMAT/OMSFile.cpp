@@ -42,54 +42,54 @@
 
 using namespace std;
 
+using ID = OpenMS::IdentificationData;
+
 namespace OpenMS
 {
   int version_number = 1;
 
-  void OMSFile::raiseDBError_(const QSqlError& error, QSqlDatabase& db,
-                               int line, const char* function,
-                               const String& context)
+  void OMSFile::raiseDBError_(const QSqlError& error, int line,
+                              const char* function, const String& context)
   {
     // clean-up:
-    db.close();
-    QSqlDatabase::removeDatabase(db.connectionName());
+    db_.close();
+    QSqlDatabase::removeDatabase(db_.connectionName());
 
     String msg = context + ": " + error.text();
     throw Exception::FailedAPICall(__FILE__, line, function, msg);
   }
 
 
+  bool OMSFile::tableExists_(const String& name) const
+  {
+    return db_.tables(QSql::Tables).contains(name.toQString());
+  }
+
+
   void OMSFile::createTable_(const String& name, const String& definition,
-                             QSqlDatabase& db, bool may_exist)
+                             bool may_exist)
   {
     QString sql_create = "CREATE TABLE ";
     if (may_exist) sql_create += "IF NOT EXISTS ";
     sql_create += name.toQString() + " (" + definition.toQString() + ")";
-    QSqlQuery query(db);
+    QSqlQuery query(db_);
     if (!query.exec(sql_create))
     {
       String msg = "error creating database table " + name;
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                    msg);
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, msg);
     }
   }
 
 
-  bool OMSFile::tableExists_(QSqlDatabase& db, const String& name)
-  {
-    return db.tables(QSql::Tables).contains(name.toQString());
-  }
-
-
-  void OMSFile::storeVersionAndDate_(QSqlDatabase& db)
+  void OMSFile::storeVersionAndDate_()
   {
     createTable_("version",
-                 "OMSFile INT NOT NULL, "                \
-                 "date TEXT NOT NULL, "                  \
-                 "OpenMS TEXT, "                         \
-                 "build_date TEXT", db);
+                 "OMSFile INT NOT NULL, "       \
+                 "date TEXT NOT NULL, "         \
+                 "OpenMS TEXT, "                \
+                 "build_date TEXT");
 
-    QSqlQuery query(db);
+    QSqlQuery query(db_);
     query.prepare("INSERT INTO version VALUES ("  \
                   ":format_version, "             \
                   "datetime('now'), "             \
@@ -100,17 +100,17 @@ namespace OpenMS
     query.bindValue(":build_date", VersionInfo::getTime().toQString());
     if (!query.exec())
     {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error inserting data");
     }
   }
 
 
-  void OMSFile::createTableDataValue_(QSqlDatabase& db)
+  void OMSFile::createTableDataValue_()
   {
     createTable_("DataValue_DataType",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
-                 "data_type TEXT UNIQUE NOT NULL", db);
+                 "data_type TEXT UNIQUE NOT NULL");
     QString sql_insert =
       "INSERT INTO DataValue_DataType VALUES " \
       "(1, 'STRING_VALUE'), "                  \
@@ -119,10 +119,10 @@ namespace OpenMS
       "(4, 'STRING_LIST'), "                   \
       "(5, 'INT_LIST'), "                      \
       "(6, 'DOUBLE_LIST')";
-    QSqlQuery query(db);
+    QSqlQuery query(db_);
     if (!query.exec(sql_insert))
     {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error inserting data");
     }
     createTable_(
@@ -130,17 +130,16 @@ namespace OpenMS
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "data_type_id INTEGER, "                                          \
       "value TEXT, "                                                    \
-      "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id)", db);
+      "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id)");
     // @TODO: add support for units
   }
 
 
-  OMSFile::Key OMSFile::storeDataValue_(const DataValue& value,
-                                        QSqlDatabase& db)
+  OMSFile::Key OMSFile::storeDataValue_(const DataValue& value)
   {
     // this assumes the "DataValue" table exists already!
     // @TODO: split this up and make several tables for different types?
-    QSqlQuery query(db);
+    QSqlQuery query(db_);
     query.prepare("INSERT INTO DataValue VALUES (" \
                   "NULL, "                         \
                   ":data_type, "                   \
@@ -152,85 +151,14 @@ namespace OpenMS
     query.bindValue(":value", value.toQString());
     if (!query.exec())
     {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error inserting data");
     }
     return query.lastInsertId().toInt();
   }
 
 
-  void OMSFile::storeDataProcessingSoftwares_(const IdentificationData& id_data,
-                                              QSqlDatabase& db)
-  {
-    if (id_data.getDataProcessingSoftwares().empty()) return;
-
-    createTable_("ID_DataProcessingSoftware",
-                 "id INTEGER PRIMARY KEY NOT NULL, "  \
-                 "name TEXT NOT NULL, "               \
-                 "version TEXT, "                     \
-                 "UNIQUE (name, version)", db);
-
-    QSqlQuery query(db);
-    query.prepare("INSERT INTO ID_DataProcessingSoftware VALUES ("  \
-                  ":id, "                                           \
-                  ":name, "                                         \
-                  ":version)");
-    bool any_scores = false; // does any software have assigned scores stored?
-    for (const IdentificationData::DataProcessingSoftware& software :
-           id_data.getDataProcessingSoftwares())
-    {
-      if (!software.assigned_scores.empty()) any_scores = true;
-      query.bindValue(":id", Key(&software));
-      query.bindValue(":name", software.getName().toQString());
-      query.bindValue(":version", software.getVersion().toQString());
-      if (!query.exec())
-      {
-        raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
-      }
-    }
-    if (any_scores)
-    {
-      createTable_(
-        "ID_DataProcessingSoftware_AssignedScore",
-        "software_id INTEGER NOT NULL, "                                \
-        "score_type_id INTEGER NOT NULL, "                              \
-        "UNIQUE (software_id, score_type_id), "                         \
-        "FOREIGN KEY (software_id) REFERENCES ID_DataProcessingSoftware (id), " \
-        "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id)", db);
-
-      query.prepare(
-        "INSERT INTO ID_DataProcessingSoftware_AssignedScore VALUES ("  \
-        ":software_id, "                                                \
-        ":score_type_id)");
-      for (const IdentificationData::DataProcessingSoftware& software :
-             id_data.getDataProcessingSoftwares())
-      {
-        query.bindValue(":software_id", Key(&software));
-        for (IdentificationData::ScoreTypeRef score_type_ref :
-               software.assigned_scores)
-        {
-          query.bindValue(":score_type_id", Key(&(*score_type_ref)));
-          if (!query.exec())
-          {
-            raiseDBError_(query.lastError(), db, __LINE__,
-                          OPENMS_PRETTY_FUNCTION, "error inserting data");
-          }
-        }
-      }
-    }
-  }
-
-
-  // void OMSFile::storeDataProcessingSteps_(const IdentificationData& id_data,
-  //                                         QSqlDatabase& db)
-  // {
-  //   if (id_data.getDataProcessingSteps().empty()) return;
-
-  // }
-
-
-  void OMSFile::createTableCVTerm_(QSqlDatabase& db)
+  void OMSFile::createTableCVTerm_()
   {
     createTable_("CVTerm",
                  "id INTEGER PRIMARY KEY NOT NULL, "        \
@@ -238,15 +166,15 @@ namespace OpenMS
                  "name TEXT NOT NULL, "                     \
                  "cv_identifier_ref TEXT, "                 \
                  // does this constrain "name" if "accession" is NULL?
-                 "UNIQUE (accession, name)", db);
+                 "UNIQUE (accession, name)");
     // @TODO: add support for unit and value
   }
 
 
-  OMSFile::Key OMSFile::storeCVTerm_(const CVTerm& cv_term, QSqlDatabase& db)
+  OMSFile::Key OMSFile::storeCVTerm_(const CVTerm& cv_term)
   {
     // this assumes the "CVTerm" table exists already!
-    QSqlQuery query(db);
+    QSqlQuery query(db_);
     query.prepare("INSERT OR IGNORE INTO CVTerm VALUES ("   \
                   "NULL, "                                  \
                   ":accession, "                            \
@@ -261,7 +189,7 @@ namespace OpenMS
                     cv_term.getCVIdentifierRef().toQString());
     if (!query.exec())
     {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error updating database");
     }
     if (query.lastInsertId().isValid()) return query.lastInsertId().toInt();
@@ -275,66 +203,221 @@ namespace OpenMS
     query.bindValue(":name", cv_term.getName().toQString());
     if (!query.exec() || !query.next())
     {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error querying database");
     }
     return query.value(0).toInt();
   }
 
 
-  void OMSFile::storeScoreTypes_(const IdentificationData& id_data,
-                                 QSqlDatabase& db)
+  void OMSFile::storeScoreTypes_(const IdentificationData& id_data)
   {
     if (id_data.getScoreTypes().empty()) return;
 
-    createTableCVTerm_(db);
+    createTableCVTerm_();
     createTable_(
       "ID_ScoreType",
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "cv_term_id INTEGER NOT NULL, "                                   \
       "higher_better NUMERIC NOT NULL CHECK (higher_better in (0, 1)), " \
-      "FOREIGN KEY (cv_term_id) REFERENCES CVTerm (id)", db);
+      "FOREIGN KEY (cv_term_id) REFERENCES CVTerm (id)");
 
-    QSqlQuery query(db);
+    QSqlQuery query(db_);
     query.prepare("INSERT INTO ID_ScoreType VALUES ("       \
                   ":id, "                                   \
                   ":cv_term_id, "                           \
                   ":higher_better)");
-    for (const IdentificationData::ScoreType& score_type :
-           id_data.getScoreTypes())
+    for (const ID::ScoreType& score_type : id_data.getScoreTypes())
     {
-      Key cv_id = storeCVTerm_(score_type.cv_term, db);
+      Key cv_id = storeCVTerm_(score_type.cv_term);
       query.bindValue(":id", Key(&score_type)); // use address as primary key
       query.bindValue(":cv_term_id", cv_id);
       query.bindValue(":higher_better", int(score_type.higher_better));
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                       "error inserting data");
       }
     }
   }
 
 
-  void OMSFile::storeParentMolecules_(const IdentificationData& id_data,
-                                      QSqlDatabase& db)
+  void OMSFile::storeInputFiles_(const IdentificationData& id_data)
+  {
+    if (id_data.getInputFiles().empty()) return;
+
+    createTable_("ID_InputFile",
+                 "id INTEGER PRIMARY KEY NOT NULL, "  \
+                 "file TEXT UNIQUE NOT NULL");
+
+    QSqlQuery query(db_);
+    query.prepare("INSERT INTO ID_InputFile VALUES ("  \
+                  ":id, "                              \
+                  ":file)");
+    for (const String& input_file : id_data.getInputFiles())
+    {
+      query.bindValue(":id", Key(&input_file));
+      query.bindValue(":file", input_file.toQString());
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+  }
+
+
+  void OMSFile::storeDataProcessingSoftwares_(const IdentificationData& id_data)
+  {
+    if (id_data.getDataProcessingSoftwares().empty()) return;
+
+    createTable_("ID_DataProcessingSoftware",
+                 "id INTEGER PRIMARY KEY NOT NULL, "  \
+                 "name TEXT NOT NULL, "               \
+                 "version TEXT, "                     \
+                 "UNIQUE (name, version)");
+
+    QSqlQuery query(db_);
+    query.prepare("INSERT INTO ID_DataProcessingSoftware VALUES ("  \
+                  ":id, "                                           \
+                  ":name, "                                         \
+                  ":version)");
+    bool any_scores = false; // does any software have assigned scores stored?
+    for (const ID::DataProcessingSoftware& software :
+           id_data.getDataProcessingSoftwares())
+    {
+      if (!software.assigned_scores.empty()) any_scores = true;
+      query.bindValue(":id", Key(&software));
+      query.bindValue(":name", software.getName().toQString());
+      query.bindValue(":version", software.getVersion().toQString());
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+    if (any_scores)
+    {
+      createTable_(
+        "ID_DataProcessingSoftware_AssignedScore",
+        "software_id INTEGER NOT NULL, "                                \
+        "score_type_id INTEGER NOT NULL, "                              \
+        "UNIQUE (software_id, score_type_id), "                         \
+        "FOREIGN KEY (software_id) REFERENCES ID_DataProcessingSoftware (id), " \
+        "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id)");
+
+      query.prepare(
+        "INSERT INTO ID_DataProcessingSoftware_AssignedScore VALUES ("  \
+        ":software_id, "                                                \
+        ":score_type_id)");
+      for (const ID::DataProcessingSoftware& software :
+             id_data.getDataProcessingSoftwares())
+      {
+        query.bindValue(":software_id", Key(&software));
+        for (ID::ScoreTypeRef score_type_ref : software.assigned_scores)
+        {
+          query.bindValue(":score_type_id", Key(&(*score_type_ref)));
+          if (!query.exec())
+          {
+            raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                          "error inserting data");
+          }
+        }
+      }
+    }
+  }
+
+
+  void OMSFile::storeDataProcessingSteps_(const IdentificationData& id_data)
+  {
+    if (id_data.getDataProcessingSteps().empty()) return;
+
+    createTable_("ID_DataProcessingStep",
+                 "id INTEGER PRIMARY KEY NOT NULL, " \
+                 "software_id INTEGER NOT NULL, "    \
+                 "primary_files TEXT, "              \
+                 "date_time TEXT");
+    // @TODO: add support for processing actions
+    // @TODO: store primary files in a separate table (like input files)?
+
+    QSqlQuery query(db_);
+    query.prepare("INSERT INTO ID_DataProcessingStep VALUES ("  \
+                  ":id, "                                       \
+                  ":software_id, "                              \
+                  ":primary_files, "                            \
+                  ":data_time)");
+    bool any_input_files = false, any_meta_values = false;
+    for (const ID::DataProcessingStep& step : id_data.getDataProcessingSteps())
+    {
+      if (!step.input_file_refs.empty()) any_input_files = true;
+      if (!step.isMetaEmpty()) any_meta_values = true;
+      query.bindValue(":id", Key(&step));
+      query.bindValue(":software_id", Key(&(*step.software_ref)));
+      // @TODO: what if a primary file name contains ","?
+      String primary_files = ListUtils::concatenate(step.primary_files, ",");
+      query.bindValue(":primary_files", primary_files.toQString());
+      query.bindValue(":date_time", step.date_time.get().toQString());
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+    if (any_input_files)
+    {
+      createTable_(
+        "ID_DataProcessingStep_InputFile",
+        "processing_step_id INTEGER NOT NULL, "                         \
+        "input_file_id INTEGER NOT NULL, "                              \
+        "FOREIGN KEY processing_step_id REFERENCES ID_DataProcessingStep (id), " \
+        "FOREIGN KEY input_file_id REFERENCES ID_InputFile (id), "      \
+        "UNIQUE (processing_step_id, input_file_id)");
+
+      query.prepare("INSERT INTO ID_DataProcessingStep_InputFile VALUES (" \
+                    ":processing_step_id, "                             \
+                    ":input_file_id)");
+
+      for (const ID::DataProcessingStep& step :
+             id_data.getDataProcessingSteps())
+      {
+        query.bindValue(":processing_step_id", Key(&step));
+        for (ID::InputFileRef input_file_ref : step.input_file_refs)
+        {
+          query.bindValue(":input_file_id", Key(&(*input_file_ref)));
+          if (!query.exec())
+          {
+            raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                          "error inserting data");
+          }
+        }
+      }
+    }
+
+    if (any_meta_values)
+    {
+      // @TODO: handle meta values
+    }
+  }
+
+
+  void OMSFile::storeParentMolecules_(const IdentificationData& id_data)
   {
     if (id_data.getParentMolecules().empty()) return;
 
     // table for molecule types (enum MoleculeType):
     createTable_("ID_MoleculeType",
                  "id INTEGER PRIMARY KEY NOT NULL, "    \
-                 "molecule_type TEXT UNIQUE NOT NULL", db);
+                 "molecule_type TEXT UNIQUE NOT NULL");
 
     QString sql_insert =
       "INSERT INTO ID_MoleculeType VALUES "     \
       "(1, 'PROTEIN'), "                        \
       "(2, 'COMPOUND'), "                       \
       "(3, 'RNA')";
-    QSqlQuery query(db);
+    QSqlQuery query(db_);
     if (!query.exec(sql_insert))
     {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error inserting data");
     }
 
@@ -347,7 +430,7 @@ namespace OpenMS
       "description TEXT, "                                              \
       "coverage REAL, "                                                 \
       "is_decoy NUMERIC NOT NULL CHECK (is_decoy in (0, 1)) DEFAULT 0, " \
-      "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)", db);
+      "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)");
 
     query.prepare("INSERT INTO ID_ParentMolecule VALUES ("  \
                   ":id, "                                   \
@@ -357,8 +440,7 @@ namespace OpenMS
                   ":description, "                          \
                   ":coverage, "                             \
                   ":is_decoy)");
-    for (const IdentificationData::ParentMolecule& parent :
-           id_data.getParentMolecules())
+    for (const ID::ParentMolecule& parent : id_data.getParentMolecules())
     {
       query.bindValue(":id", Key(&parent)); // use address as primary key
       query.bindValue(":accession", parent.accession.toQString());
@@ -369,7 +451,7 @@ namespace OpenMS
       query.bindValue(":is_decoy", int(parent.is_decoy));
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                       "error inserting data");
       }
     }
@@ -383,39 +465,37 @@ namespace OpenMS
 
     // open database:
     QString connection = "store_" + filename.toQString();
-    { // extra scope to avoid warning from "QSqlDatabase::removeDatabase"
-      QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connection);
-      db.setDatabaseName(filename.toQString());
-      if (!db.open())
-      {
-        raiseDBError_(db.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error opening SQLite database");
-      }
-      // generally, create tables only if we have data to write - no empty ones!
-
-      storeVersionAndDate_(db);
-
-      storeScoreTypes_(id_data, db);
-
-      storeDataProcessingSoftwares_(id_data, db);
-
-      storeParentMolecules_(id_data, db);
+    db_ = QSqlDatabase::addDatabase("QSQLITE", connection);
+    db_.setDatabaseName(filename.toQString());
+    if (!db_.open())
+    {
+      raiseDBError_(db_.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error opening SQLite database");
     }
+    // generally, create tables only if we have data to write - no empty ones!
 
+    storeVersionAndDate_();
+    storeInputFiles_(id_data);
+    storeScoreTypes_(id_data);
+    storeDataProcessingSoftwares_(id_data);
+    storeDataProcessingSteps_(id_data);
+    storeParentMolecules_(id_data);
+
+    // this currently produces a warning (because "db_" is still in scope):
     QSqlDatabase::removeDatabase(connection);
   }
 
 
   // currently not needed:
-  // CVTerm OMSFile::loadCVTerm_(int id, QSqlDatabase& db)
+  // CVTerm OMSFile::loadCVTerm_(int id)
   // {
   //   // this assumes that the "CVTerm" table exists!
-  //   QSqlQuery query(db);
+  //   QSqlQuery query(db_);
   //   query.setForwardOnly(true);
   //   QString sql_select = "SELECT * FROM CVTerm WHERE id = " + QString(id);
   //   if (!query.exec(sql_select) || !query.next())
   //   {
-  //     raiseDBError_(model.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+  //     raiseDBError_(model.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
   //                   "error reading from database");
   //   }
   //   return CVTerm(query.value("accession").toString(),
@@ -424,21 +504,22 @@ namespace OpenMS
   // }
 
 
-  void OMSFile::loadScoreTypes_(IdentificationData& id_data, QSqlDatabase& db)
+  void OMSFile::loadScoreTypes_(IdentificationData& id_data)
   {
-    if (!tableExists_(db, "ID_ScoreType")) return;
-    if (!tableExists_(db, "CVTerm")) // every score type is a CV term
+    score_type_refs_.clear();
+    if (!tableExists_("ID_ScoreType")) return;
+    if (!tableExists_("CVTerm")) // every score type is a CV term
     {
       String msg = "required database table 'CVTerm' not found";
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
-    QSqlQuery query(db);
+    QSqlQuery query(db_);
     query.setForwardOnly(true);
     if (!query.exec("SELECT * FROM ID_ScoreType JOIN CVTerm "   \
                     "ON ID_ScoreType.cv_term_id = CVTerm.id"))
     {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
     }
     while (query.next())
@@ -447,31 +528,152 @@ namespace OpenMS
                      query.value("name").toString(),
                      query.value("cv_identifier_ref").toString());
       bool higher_better = query.value("higher_better").toInt();
-      IdentificationData::ScoreType score_type(cv_term, higher_better);
-      id_data.registerScoreType(score_type);
+      ID::ScoreType score_type(cv_term, higher_better);
+      ID::ScoreTypeRef ref = id_data.registerScoreType(score_type);
+      score_type_refs_[query.value("id").toInt()] = ref;
     }
   }
 
 
-  void OMSFile::loadParentMolecules_(IdentificationData& id_data,
-                                     QSqlDatabase& db)
+  void OMSFile::loadInputFiles_(IdentificationData& id_data)
   {
-    if (!tableExists_(db, "ID_ParentMolecule")) return;
+    if (!tableExists_("ID_InputFile")) return;
 
-    QSqlQuery query(db);
+    QSqlQuery query(db_);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_InputFile"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    while (query.next())
+    {
+      ID::InputFileRef ref =
+        id_data.registerInputFile(query.value("file").toString());
+      input_file_refs_[query.value("id").toInt()] = ref;
+    }
+  }
+
+
+  void OMSFile::loadDataProcessingSoftwares_(IdentificationData& id_data)
+  {
+    if (!tableExists_("ID_DataProcessingSoftware")) return;
+
+    QSqlQuery query(db_);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_DataProcessingSoftware"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    bool have_scores = tableExists_("ID_DataProcessingSoftware_AssignedScore");
+    QSqlQuery subquery(db_);
+    if (have_scores)
+    {
+      subquery.setForwardOnly(true);
+      subquery.prepare("SELECT score_type_id "                         \
+                       "FROM ID_DataProcessingSoftware_AssignedScore " \
+                       "WHERE software_id = :id");
+    }
+    while (query.next())
+    {
+      Key id = query.value("id").toInt();
+      ID::DataProcessingSoftware software(query.value("name").toString(),
+                                          query.value("version").toString());
+      if (have_scores)
+      {
+        subquery.bindValue(":id", id);
+        if (!subquery.exec())
+        {
+          raiseDBError_(subquery.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                        "error reading from database");
+        }
+        while (subquery.next())
+        {
+          Key score_type_id = query.value(0).toInt();
+          // the foreign key constraint should ensure that look-up succeeds:
+          software.assigned_scores.push_back(score_type_refs_[score_type_id]);
+        }
+        // order in the vector should be the same as in the table:
+        reverse(software.assigned_scores.begin(),
+                software.assigned_scores.end());
+      }
+      ID::ProcessingSoftwareRef ref =
+        id_data.registerDataProcessingSoftware(software);
+      processing_software_refs_[query.value("id").toInt()] = ref;
+    }
+  }
+
+
+  void OMSFile::loadDataProcessingSteps_(IdentificationData& id_data)
+  {
+    if (!tableExists_("ID_DataProcessingStep")) return;
+
+    QSqlQuery query(db_);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_DataProcessingStep"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    bool have_input_files = tableExists_("ID_DataProcessingStep_InputFile");
+    QSqlQuery subquery(db_);
+    if (have_input_files)
+    {
+      subquery.setForwardOnly(true);
+      subquery.prepare("SELECT input_file_id "                 \
+                       "FROM ID_DataProcessingStep_InputFile " \
+                       "WHERE processing_step_id = :id");
+    }
+    while (query.next())
+    {
+      Key id = query.value("id").toInt();
+      Key software_id = query.value("software_id").toInt();
+      ID::DataProcessingStep step(processing_software_refs_[software_id]);
+      String primary_files = query.value("primary_files").toString();
+      step.primary_files = ListUtils::create<String>(primary_files);
+      String date_time = query.value("date_time").toString();
+      if (!date_time.empty()) step.date_time.set(date_time);
+      if (have_input_files)
+      {
+        subquery.bindValue(":id", id);
+        if (!subquery.exec())
+        {
+          raiseDBError_(subquery.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                        "error reading from database");
+        }
+        while (subquery.next())
+        {
+          Key input_file_id = query.value(0).toInt();
+          // the foreign key constraint should ensure that look-up succeeds:
+          step.input_file_refs.push_back(input_file_refs_[input_file_id]);
+        }
+        // order in the vector should be the same as in the table:
+        reverse(step.input_file_refs.begin(), step.input_file_refs.end());
+      }
+      id_data.registerDataProcessingStep(step);
+    }
+  }
+
+
+
+  void OMSFile::loadParentMolecules_(IdentificationData& id_data)
+  {
+    if (!tableExists_("ID_ParentMolecule")) return;
+
+    QSqlQuery query(db_);
     query.setForwardOnly(true);
     if (!query.exec("SELECT * FROM ID_ParentMolecule"))
     {
-      raiseDBError_(query.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
     }
     while (query.next())
     {
       String accession = query.value("accession").toString();
-      IdentificationData::ParentMolecule parent(accession);
+      ID::ParentMolecule parent(accession);
       int molecule_type_index = query.value("molecule_type_id").toInt() - 1;
-      parent.molecule_type =
-        IdentificationData::MoleculeType(molecule_type_index);
+      parent.molecule_type = ID::MoleculeType(molecule_type_index);
       parent.sequence = query.value("sequence").toString();
       parent.description = query.value("description").toString();
       parent.coverage = query.value("coverage").toDouble();
@@ -485,20 +687,22 @@ namespace OpenMS
   {
     // open database:
     QString connection = "load_" + filename.toQString();
-    { // extra scope to avoid warning from "QSqlDatabase::removeDatabase"
-      QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connection);
-      db.setDatabaseName(filename.toQString());
-      if (!db.open())
-      {
-        raiseDBError_(db.lastError(), db, __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error opening SQLite database");
-      }
-
-      loadScoreTypes_(id_data, db);
-
-      loadParentMolecules_(id_data, db);
+    db_ = QSqlDatabase::addDatabase("QSQLITE", connection);
+    db_.setDatabaseName(filename.toQString());
+    db_.setConnectOptions("QSQLITE_OPEN_READONLY");
+    if (!db_.open())
+    {
+      raiseDBError_(db_.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error opening SQLite database");
     }
 
+    loadInputFiles_(id_data);
+    loadScoreTypes_(id_data);
+    loadDataProcessingSoftwares_(id_data);
+    loadDataProcessingSteps_(id_data);
+    loadParentMolecules_(id_data);
+
+    // this currently produces a warning (because "db_" is still in scope):
     QSqlDatabase::removeDatabase(connection);
   }
 
