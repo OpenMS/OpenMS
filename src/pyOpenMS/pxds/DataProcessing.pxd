@@ -1,5 +1,4 @@
 from Types cimport *
-from SpectrumSettings cimport *
 from Peak1D cimport *
 from String cimport *
 from Software cimport *
