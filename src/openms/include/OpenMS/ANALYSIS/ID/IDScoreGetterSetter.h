@@ -550,20 +550,64 @@ namespace OpenMS
      * @param keep_decoy read from Param object
      * @param args optional additional arguments (int charge, string run ID)
      */
-    template<class ...Args>
     static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
                                  ConsensusMap &cmap,
                                  bool include_unassigned_peptides,
                                  const std::string &score_type,
                                  bool higher_better,
-                                 bool keep_decoy,
-                                 Args &&... args)
+                                 bool keep_decoy)
     {
       //Note: Gcc4.8 cannot handle variadic templates in lambdas
       std::function<void(PeptideIdentification &)> f =
           [&](PeptideIdentification &id) -> void
           { setScores_(scores_to_FDR, id, score_type,
-              higher_better, keep_decoy, std::forward<Args>(args)...); };
+              higher_better, keep_decoy); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
+                                        ConsensusMap &cmap,
+                                        bool include_unassigned_peptides,
+                                        const std::string &score_type,
+                                        bool higher_better,
+                                        bool keep_decoy,
+                                        int charge)
+    {
+      //Note: Gcc4.8 cannot handle variadic templates in lambdas
+      std::function<void(PeptideIdentification &)> f =
+          [&](PeptideIdentification &id) -> void
+          { setScores_(scores_to_FDR, id, score_type,
+                       higher_better, keep_decoy, charge); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
+                                        ConsensusMap &cmap,
+                                        bool include_unassigned_peptides,
+                                        const std::string &score_type,
+                                        bool higher_better,
+                                        bool keep_decoy,
+                                        const String& run_identifier)
+    {
+      //Note: Gcc4.8 cannot handle variadic templates in lambdas
+      std::function<void(PeptideIdentification &)> f =
+          [&](PeptideIdentification &id) -> void
+          { setScores_(scores_to_FDR, id, score_type,
+                       higher_better, keep_decoy, run_identifier); };
+      cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
+    }
+    static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
+                                        ConsensusMap &cmap,
+                                        bool include_unassigned_peptides,
+                                        const std::string &score_type,
+                                        bool higher_better,
+                                        bool keep_decoy,
+                                        int charge,
+                                        const String& run_identifier)
+    {
+      //Note: Gcc4.8 cannot handle variadic templates in lambdas
+      std::function<void(PeptideIdentification &)> f =
+          [&](PeptideIdentification &id) -> void
+          { setScores_(scores_to_FDR, id, score_type,
+                       higher_better, keep_decoy, charge, run_identifier); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
     }
 

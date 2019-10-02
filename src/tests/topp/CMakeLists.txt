@@ -2659,6 +2659,6 @@ set_tests_properties("UTILS_RNAMassCalculator_1_out" PROPERTIES DEPENDS "UTILS_R
 
 #------------------------------------------------------------------------------
 # EPIFANY:
-add_test("UTILS_Epifany_1" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out Epifany_1_out.tmp)
+add_test("UTILS_Epifany_1" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_1_out.tmp)
 add_test("UTILS_Epifany_1_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_1_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_1_out.idXML)
 set_tests_properties("UTILS_Epifany_1_out" PROPERTIES DEPENDS "UTILS_Epifany_1")
