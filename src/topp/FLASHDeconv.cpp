@@ -73,7 +73,6 @@ public:
 
 protected:
   typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
-  typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
   typedef FLASHDeconvHelperStructs::Parameter Parameter;
 
   // this function will be used to register the tool parameters
@@ -145,7 +144,6 @@ protected:
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
-    FLASHDeconvAlgorithm fd;
 
     //-------------------------------------------------------------
     // parsing parameters
@@ -154,7 +152,6 @@ protected:
     String outfilePath = getStringOption_("out");
 
     auto param = setParameter();
-    auto averagines = getPrecalculatedAveragines(param);
     int specCntr = 0, qspecCntr = 0, massCntr = 0, featureCntr = 0;
     int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0, total_featureCntr = 0;
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
@@ -288,7 +285,8 @@ protected:
       auto deconv_begin = clock();
       auto deconv_t_start = chrono::high_resolution_clock::now();
       //continue;
-      auto peakGroups = FLASHDeconvAlgorithm::Deconvolution(map, param, averagines, specCntr, qspecCntr, massCntr);
+      auto fa = FLASHDeconvAlgorithm(map, param);
+      auto peakGroups = fa.Deconvolution(specCntr, qspecCntr, massCntr);
 
       auto deconv_t_end = chrono::high_resolution_clock::now();
       auto deconv_end = clock();
@@ -299,7 +297,7 @@ protected:
 
       if (!peakGroups.empty() && specCntr > 0 && map.size() > 1)
       {
-        findFeatures(peakGroups, featureCntr, fsf, averagines, param);
+      //  findFeatures(peakGroups, featureCntr, fsf, averagines, param); //TODO
       }
 
       //cout<< "after running" << endl;
@@ -563,252 +561,6 @@ protected:
 
   }
 
-  void findFeatures(vector<PeakGroup> &peakGroups,
-                    //MSExperiment &prevMap,
-                    int &featureCntr,
-                    fstream &fsf,
-                    PrecalcularedAveragine &averagines,
-                    Parameter &param)
-  {
-
-    MSExperiment map;
-    boost::unordered_map<float, PeakGroup> *peakGroupMap;
-   // boost::unordered_map<float, MSSpectrum> rtOrignalSpecMap;
-    boost::unordered_map<float, int> rtSpecMap;
-
-    /*for (auto it = map.begin(); it != map.end(); ++it)
-    {
-      rtOrignalSpecMap[it->getRT()] = *it;
-      it->clear(false);
-    }*/
-
-    int maxSpecIndex = 0;
-    for (auto &pg : peakGroups)
-    {
-      auto &spec = pg.spec;
-
-      Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);
-
-      rtSpecMap[spec->getRT()] = pg.specIndex;
-      maxSpecIndex = max(maxSpecIndex, pg.specIndex);
-      //cout<<spec->getRT();
-      MSSpectrum massSpec;
-      massSpec.setRT(spec->getRT());
-      massSpec.push_back(tp);
-      map.addSpectrum(massSpec);
-      //cout<<" " <<rtOrignalSpecMap[spec->getRT()].size()<<endl;
-
-    }
-    peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
-
-    for (auto &pg : peakGroups)
-    {
-      //      auto &spec = pg.spec;
-
-      auto &pgMap = peakGroupMap[pg.specIndex];
-
-      pgMap[pg.monoisotopicMass] = pg;
-    }
-
-    for (auto it = map.begin(); it != map.end(); ++it)
-    {
-      it->sortByPosition();
-      // cout<<it->size()<<endl;
-    }
-
-
-    Param common_param = getParam_().copy("algorithm:common:", true);
-    writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
-
-    Param mtd_param = getParam_().copy("algorithm:mtd:", true);
-    writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
-
-    MassTraceDetection mtdet;
-    mtd_param.insert("", common_param);
-    mtd_param.remove("chrom_fwhm");
-
-    //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
-    //                   "Allowed mass deviation (in da).");
-    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 2, "");
-    mtd_param.setValue("trace_termination_criterion", "outlier", "");
-
-    mtd_param.setValue("reestimate_mt_sd", "true", "");
-    mtd_param.setValue("quant_method", "area", "");
-    mtd_param.setValue("noise_threshold_int", .0, "");
-
-    //double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
-    mtd_param.setValue("min_sample_rate", 0.01, "");
-    mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans, "");
-    mtd_param.setValue("min_trace_length", param.minRTSpan, "");
-    //mtd_param.setValue("max_trace_length", 1000.0, "");
-    mtdet.setParameters(mtd_param);
-
-    vector<MassTrace> m_traces;
-
-    mtdet.run(map, m_traces);  // m_traces : output of this function
-
-
-    double *perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
-    double *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
-    double *perChargeMz = new double[param.chargeRange + param.minCharge + 1];
-    double *perIsotopeIntensity = new double[param.maxIsotopeCount];
-
-
-    for (auto &mt : m_traces)
-    {
-      //if (mt.getSize() < 3)
-      //{
-      //continue;
-      // }
-      int minCharge = param.chargeRange + param.minCharge + 1;
-      int maxCharge = 0;
-      boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
-      //cout << "where? 1" << endl;
-      fill_n(perChargeIntensity, param.chargeRange + param.minCharge + 1, 0);
-      fill_n(perChargeMaxIntensity, param.chargeRange + param.minCharge + 1, 0);
-      fill_n(perChargeMz, param.chargeRange + param.minCharge + 1, 0);
-      fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
-      //mt.getIntensity()
-      //double sum_intensity = .0;
-      //double mass = 0;//mt.getCentroidMZ();
-      //double avgMass = 0;
-      double massDiff = 0;
-      double max_intensity = -1;
-
-      for (auto &p2 : mt)
-      {
-       // cout << "where? 2" << endl;
-        int specIndex = rtSpecMap[(float) p2.getRT()];
-        auto &pgMap = peakGroupMap[specIndex];
-        auto &pg = pgMap[(float) p2.getMZ()];
-        minCharge = min(minCharge, pg.minCharge);
-        maxCharge = max(maxCharge, pg.maxCharge);
-        //sum_intensity += pg.intensity;
-        if (pg.intensity > max_intensity)
-        {
-          max_intensity = pg.intensity;
-          massDiff = pg.avgMass - pg.monoisotopicMass;
-        }
-        //cout << "where? 22" << endl;
-        for (auto &p : pg.peaks)
-        {
-          if (p.isotopeIndex < 0 || p.isotopeIndex >= param.maxIsotopeCount || p.charge < 0 ||
-              p.charge >= param.chargeRange + param.minCharge + 1)
-          {
-            continue;
-          }
-          //cout << "where? 222" << endl;
-          charges[p.charge] = true;
-         // cout << "p.charge:" << p.charge << "," << p.orgPeak << endl;
-          perChargeIntensity[p.charge] += p.orgPeak->getIntensity();
-          //cout << "where? 222-2" << endl;
-          perIsotopeIntensity[p.isotopeIndex] += p.orgPeak->getIntensity();
-         // cout << "where? 222-3" << endl;
-          if (perChargeMaxIntensity[p.charge] > p.orgPeak->getIntensity())
-          {
-            continue;
-          }
-         // cout << "where? 2222" << endl;
-          perChargeMaxIntensity[p.charge] = p.orgPeak->getIntensity();
-          perChargeMz[p.charge] = p.orgPeak->getMZ();
-         // cout << "where? 3" << endl;
-        }
-       // cout << "where? 4" << endl;
-
-        /*if (max_intensity > pg.intensity)
-        {
-          continue;
-        }
-        max_intensity = pg.intensity;
-        mass = pg.monoisotopicMass;*/
-      }
-     // cout << "where? 5" << endl;
-
-      // cout<<2<<endl;
-      if (massDiff <= 0)
-      {
-        continue;
-      }
-
-      double chargeScore = FLASHDeconvAlgorithm::getChargeFitScore(perChargeIntensity, param.minCharge + param.chargeRange + 1);
-      if (chargeScore < param.minChargeCosine) //
-      {
-        continue;
-      }
-
-      int offset = 0;
-      double mass = mt.getCentroidMZ();
-      double isoScore = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
-                                                                 perIsotopeIntensity,
-                                                                 param.maxIsotopeCount,
-                                                                 averagines, offset);
-      //cout << "where? 6" << endl;
-      if (isoScore < param.minIsotopeCosine)
-      {
-        continue;
-      }
-
-      if (offset != 0)
-      {
-        mass += offset * Constants::C13C12_MASSDIFF_U;
-        //avgMass += offset * Constants::C13C12_MASSDIFF_U;
-        //p.isotopeIndex -= offset;
-      }
-    //  cout << "where? 7" << endl;
-      //auto mass = mt.getCentroidMZ();
-      fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
-          << to_string(mass + massDiff) << "\t"
-          << mt.getSize() << "\t"
-          //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
-          //<< getNominalMass(mass) << "\t"
-          << mt.begin()->getRT() << "\t"
-          << mt.rbegin()->getRT() << "\t"
-          << mt.getTraceLength() << "\t"
-          << mt[mt.findMaxByIntPeak()].getRT() << "\t"
-          << mt.getMaxIntensity(false) << "\t"
-          // << mt.computePeakArea() << "\t"
-          << minCharge << "\t"
-          << maxCharge << "\t"
-          << charges.count() << "\t"
-          << isoScore << "\t"
-          << chargeScore << "\n";
-
-      // cout<<3<<endl;
-
-      /*for (int charge = param.minCharge; charge < param.chargeRange + param.minCharge; charge++)
-      {
-        if (perChargeIntensity[charge] <= 0)
-        {
-          continue;
-        }
-        fsf << charge << "," << perChargeMz[charge] << "," << perChargeIntensity[charge] << ";";
-      }
-      fsf << param.chargeRange + param.minCharge << "," <<
-          perChargeMz[param.chargeRange + param.minCharge] << "," <<
-          perChargeIntensity[param.chargeRange + param.minCharge] << "\n";
-  */
-    //  cout << "where? 8" << endl;
-    }
-    // cout<<4<<endl;
-    delete[] perIsotopeIntensity;
-    delete[] perChargeMz;
-    delete[] perChargeMaxIntensity;
-    delete[] perChargeIntensity;
-
-    delete[] peakGroupMap;
-    // cout<<4.1<<endl;
-   // cout << "where? 9" << endl;
-  }
-
-  static PrecalcularedAveragine getPrecalculatedAveragines(Parameter &param)
-  {
-    auto generator = new CoarseIsotopePatternGenerator();
-    auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
-    param.maxIsotopeCount = (int) maxIso.size() - 1;
-    generator->setMaxIsotope((Size) param.maxIsotopeCount);
-    return PrecalcularedAveragine(100, param.maxMass, 50, generator);
-  }
 
   static void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false)
   {
