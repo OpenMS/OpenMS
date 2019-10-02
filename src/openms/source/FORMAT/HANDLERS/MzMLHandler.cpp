@@ -3729,9 +3729,9 @@ namespace OpenMS
       //isolation window (optional)
       //--------------------------------------------------------------------------------------------
 
-      double mz = precursor.metaValueExists("isolation window target m/z") ?
-        double(precursor.getMetaValue("isolation window target m/z")) :
-        precursor.getMZ(); // precursor m/z may come from "selected ion"
+      // precursor m/z may come from "selected ion":
+      double mz = precursor.getMetaValue("isolation window target m/z",
+                                         precursor.getMZ());
       // Note that TPP parsers break when the isolation window is written out
       // in mzML files and the precursorMZ gets set to zero.
       if (mz > 0.0 && !options_.getForceTPPCompatability())
@@ -3760,9 +3760,9 @@ namespace OpenMS
           precursor.getDriftTime() >= 0.0 ||
           precursor.getPossibleChargeStates().size() > 0)
       {
-        mz = precursor.metaValueExists("selected ion m/z") ?
-          double(precursor.getMetaValue("selected ion m/z")) :
-          precursor.getMZ(); // precursor m/z may come from "isolation window"
+        // precursor m/z may come from "isolation window":
+        mz = precursor.getMetaValue("selected ion m/z",
+                                    precursor.getMZ());
         os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
         os << "\t\t\t\t\t\t\t<selectedIon>\n";
         os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << mz << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";

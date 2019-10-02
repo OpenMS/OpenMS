@@ -897,29 +897,22 @@ namespace OpenMS
 
   void TOPPASBase::closeEvent(QCloseEvent* event)
   {
-    bool close = true;
-    QList<QMdiSubWindow *> all_windows = ws_->subWindowList();
-    foreach(QMdiSubWindow * w, all_windows)
+    QList<QMdiSubWindow*> all_windows = ws_->subWindowList();
+    for (QMdiSubWindow* w : all_windows)
     {
-      TOPPASWidget * widget = dynamic_cast<TOPPASWidget*>(w->widget());
-      bool close_this = widget->getScene()->saveIfChanged();
-      if (!close_this)
-      {
-        close = false;
-        break;
+      TOPPASWidget* widget = dynamic_cast<TOPPASWidget*>(w->widget());
+      if (!widget) continue; // not a TOPPASWidget.. ignore it
+
+      if (!widget->getScene()->saveIfChanged())
+      { // user chose 'abort' in dialog
+        event->ignore();
+        return;
       }
     }
-    if (close)
-    {
-      event->accept();
-      QSettings settings("OpenMS", "TOPPAS");
-      settings.setValue("geometry", saveGeometry());
-      settings.setValue("windowState", saveState());
-    }
-    else
-    {
-      event->ignore();
-    }
+    event->accept();
+    QSettings settings("OpenMS", "TOPPAS");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
   }
 
   void TOPPASBase::showURL()
@@ -1331,7 +1324,7 @@ namespace OpenMS
     tv->setPos(x, y);
     tv->setZValue(z_value_);
     z_value_ += 0.000001;
-    scene->topoSort();
+    scene->topoSort(false);
     scene->setChanged(true);
   }
 

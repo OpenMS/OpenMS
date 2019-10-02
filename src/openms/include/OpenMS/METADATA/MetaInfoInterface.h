@@ -80,10 +80,10 @@ public:
     /// Equality operator
     bool operator!=(const MetaInfoInterface& rhs) const;
 
-    /// Returns the value corresponding to a string (or DataValue::EMPTY if not found)
-    const DataValue& getMetaValue(const String& name) const;
-    /// Returns the value corresponding to an index (or DataValue::EMPTY if not found)
-    const DataValue& getMetaValue(UInt index) const;
+    /// Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
+    const DataValue& getMetaValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const;
+    /// Returns the value corresponding to an index, or a default value (default: DataValue::EMPTY) if not found
+    const DataValue& getMetaValue(UInt index, const DataValue& default_value = DataValue::EMPTY) const;
 
     /// Returns whether an entry with the given name exists
     bool metaValueExists(const String& name) const;
