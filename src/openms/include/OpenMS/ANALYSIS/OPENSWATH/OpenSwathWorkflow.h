@@ -356,7 +356,7 @@ protected:
   };
 
   /**
-   * @brief Execute all steps in an OpenSwath analysis
+   * @brief Execute all steps in an \ref UTILS_OpenSwathWorkflow "OpenSwath" analysis
    *
    * The workflow will perform a complete OpenSWATH analysis. Optionally, 
    * a calibration of m/z and retention time (mapping peptides to normalized 

@@ -98,12 +98,12 @@ using namespace OpenMS;
 
   @brief Complete workflow to run OpenSWATH
 
-  This implements the OpenSwath workflow as described in Rost and Rosenberger
+  This implements the OpenSWATH workflow as described in Rost and Rosenberger
   et al. (Nature Biotechnology, 2014) and provides a complete, integrated
   analysis tool without the need to run multiple tools consecutively. See also
   http://openswath.org/ for additional documentation.
 
-  It executes the following steps in order:
+  It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
 
   <ul>
     <li>Reading of input files, which can be provided as one single mzML or multiple "split" mzMLs (one per SWATH)</li>
@@ -114,7 +114,6 @@ using namespace OpenMS;
     <li>Reporting the peak groups and the chromatograms</li>
   </ul>
 
-  The overall execution flow for this tool is described in the TOPPOpenSwathWorkflow documentation.
 
   See below or have a look at the INI file (via "OpenSwathWorkflow -write_ini myini.ini") for available parameters and more functionality.
 
@@ -406,7 +405,7 @@ using namespace OpenMS;
 
   <h3>Execution flow:</h3>
 
-  The overall execution flow for this tool is described in the TOPPOpenSwathWorkflow documentation.
+  The overall execution flow for this tool is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow".
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_OpenSwathWorkflow.cli
@@ -415,22 +414,8 @@ using namespace OpenMS;
 
 */
 
-/** @brief Extended documentation on OpenSwath
-
-  The overall execution flow for this tool is as follows:
-
-    - Parameter validation
-    - Transition loading: loads input transitions into OpenSwath::LightTargetedExperiment
-    - SWATH file loading:
-      - Load SWATH files (see loadSwathFiles())
-      - Annotate SWATH-files with user-defined windows (see OpenMS::SwathWindowLoader::annotateSwathMapsFromFile() )
-      - Sanity check: there should be no overlap between the windows:
-    - Perform RT and m/z calibration (see performCalibration() and OpenMS::OpenSwathRetentionTimeNormalization)
-    - Set up chromatogram file output
-    - Set up peakgroup file output
-    - Extract and score (see OpenMS::OpenSwathWorkflow or OpenMS::OpenSwathWorkflowSonar)
-
-*/
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 class TOPPOpenSwathWorkflow
   : public TOPPOpenSwathBase 
 {

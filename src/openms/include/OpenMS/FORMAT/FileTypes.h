@@ -84,7 +84,7 @@ namespace OpenMS
       MASCOTXML,          ///< Mascot XML file format for peptide identifications (.xml)
       PNG,                ///< Portable Network Graphics (.png)
       XMASS,              ///< XMass Analysis file (fid)
-      TSV,                ///< msInspect file (.tsv)
+      TSV,                ///< any TSV file, for example msInspect file or OpenSWATH transition file (see TransitionTSVFile)
       MZTAB,              ///< mzTab file (.mzTab)
       PEPLIST,            ///< specArray file (.peplist)
       HARDKLOER,          ///< hardkloer file (.hardkloer)
@@ -100,8 +100,8 @@ namespace OpenMS
       XSD,                ///< XSD schema format
       PSQ,                ///< NCBI binary blast db
       MRM,                ///< SpectraST MRM List
-      SQMASS,             ///< SqLite format for mass and chromatograms
-      PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB
+      SQMASS,             ///< SqLite format for mass and chromatograms, see SqMassFile
+      PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB, see TransitionPQPFile
       MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
       PSMS,               ///< Percolator tab-delimited output (PSM level)
