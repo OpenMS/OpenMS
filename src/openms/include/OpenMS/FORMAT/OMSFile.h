@@ -50,7 +50,6 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI OMSFile
   {
-
   public:
 
     /** @brief Write out an IdentificationData object to SQL-based OMS file
@@ -75,64 +74,88 @@ namespace OpenMS
 
     // convenience functions:
 
-    bool tableExists_(const String& name) const;
+    static bool tableExists_(const String& db_name, const String& table_name);
 
-    void raiseDBError_(const QSqlError& error, int line, const char* function,
-                       const String& context);
+    static void raiseDBError_(const QSqlError& error, int line,
+                              const char* function, const String& context);
 
-    // store helper functions:
+    // store helper class:
+    class OMSFileStore
+    {
+    public:
+      OMSFileStore(const String& filename, const IdentificationData& id_data);
 
-    void createTable_(const String& name, const String& definition,
-                      bool may_exist = false);
+      ~OMSFileStore();
 
-    void storeVersionAndDate_();
+      void storeVersionAndDate();
 
-    void createTableDataValue_();
+      void storeScoreTypes();
 
-    Key storeDataValue_(const DataValue& value);
+      void storeInputFiles();
 
-    void createTableCVTerm_();
+      void storeDataProcessingSoftwares();
 
-    Key storeCVTerm_(const CVTerm& cv_term);
+      void storeDataProcessingSteps();
 
-    void createTableMetaInfo_(const String& parent_table);
+      void storeParentMolecules();
 
-    void storeMetaInfo_(const MetaInfoInterface& info,
-                        const String& parent_table, Key parent_id);
+    private:
+      void createTable_(const String& name, const String& definition,
+                        bool may_exist = false);
 
-    void storeScoreTypes_(const IdentificationData& id_data);
+      void createTableDataValue_();
 
-    void storeInputFiles_(const IdentificationData& id_data);
+      Key storeDataValue_(const DataValue& value);
 
-    void storeDataProcessingSoftwares_(const IdentificationData& id_data);
+      void createTableCVTerm_();
 
-    void storeDataProcessingSteps_(const IdentificationData& id_data);
+      Key storeCVTerm_(const CVTerm& cv_term);
 
-    void storeParentMolecules_(const IdentificationData& id_data);
+      void createTableMetaInfo_(const String& parent_table);
 
-    // load helper functions:
+      void storeMetaInfo_(const MetaInfoInterface& info,
+                          const String& parent_table, Key parent_id);
 
-    // static CVTerm loadCVTerm_(int id);
+      // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
+      QString db_name_;
 
-    static DataValue makeDataValue_(const QSqlQuery& query);
+      const IdentificationData& id_data_;
+    };
 
-    void loadScoreTypes_(IdentificationData& id_data);
+    // load helper class:
+    class OMSFileLoad
+    {
+    public:
+      OMSFileLoad(const String& filename, IdentificationData& id_data);
 
-    void loadInputFiles_(IdentificationData& id_data);
+      ~OMSFileLoad();
 
-    void loadDataProcessingSoftwares_(IdentificationData& id_data);
+      // static CVTerm loadCVTerm_(int id);
 
-    void loadDataProcessingSteps_(IdentificationData& id_data);
+      void loadScoreTypes();
 
-    void loadParentMolecules_(IdentificationData& id_data);
+      void loadInputFiles();
 
-    // member variables:
+      void loadDataProcessingSoftwares();
 
-    QSqlDatabase db_;
+      void loadDataProcessingSteps();
 
-    std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
-    std::unordered_map<Key, IdentificationData::InputFileRef> input_file_refs_;
-    std::unordered_map<Key, IdentificationData::ProcessingSoftwareRef> processing_software_refs_;
+      void loadParentMolecules();
+
+    private:
+      static DataValue makeDataValue_(const QSqlQuery& query);
+
+      // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
+      QString db_name_;
+
+      IdentificationData& id_data_;
+
+      std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
+      std::unordered_map<Key, IdentificationData::InputFileRef> input_file_refs_;
+      std::unordered_map<Key, IdentificationData::ProcessingSoftwareRef> processing_software_refs_;
+
+      std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
+    };
 
   };
 } // namespace OpenMS
