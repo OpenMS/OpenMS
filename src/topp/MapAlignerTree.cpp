@@ -72,10 +72,15 @@ private:
   template <typename MapType, typename FileType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FileType& input_file)
   {
+      ProgressLogger progresslogger;
+      progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
+      progresslogger.startProgress(0, ins.size(), "loading input files");
       for (Size i = 0; i < ins.size(); ++i)
       {
+        progresslogger.setProgress(i);
         input_file.load(ins[i], maps[i]);
       }
+      progresslogger.endProgress();
   }
 
   void getPeptideSequences_(vector<PeptideIdentification>& peptides, SeqAndRT& peptide_rts)
@@ -91,11 +96,11 @@ private:
       }
   }
 
-  void build_distance_matrix_(Size maps_amount, vector<SeqAndRT>& maps_peptides, vector<size_t>& dist_matrix)
+  void build_distance_matrix_(Size maps_amount, vector<SeqAndRT>& maps_peptides, vector<double>& dist_matrix)
   {
       for (Size i = 0; i < maps_amount-1; ++i)
       {
-          for (Size j = 1; j < maps_amount; ++j)
+          for (Size j = i+1; j < maps_amount; ++j)
           {
               // get identified proteins of maps[i] and maps[j], sorted, -> done with getPeptideSequences()
 
@@ -127,19 +132,24 @@ private:
                   }
               }
               std::cout << "intercept size: " << intercept_rts1.size() << "\n";
-              unsigned int intercept_size = intercept_rts1.size();
+              Size intercept_size = intercept_rts1.size();
               SeqAndRT union_map_tmp;
               union_map_tmp.insert(maps_peptides[i].begin(), maps_peptides[i].end());
               union_map_tmp.insert(maps_peptides[j].begin(), maps_peptides[j].end());
-              unsigned int union_size = union_map_tmp.size();
+              Size union_size = union_map_tmp.size();
 
               // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
               double pearson_val = pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(), intercept_rts2.begin(), intercept_rts2.end());
-              std::cout << pearson_val*union_size/intercept_size << std::endl;
+              std::cout << pearson_val*intercept_size/union_size << std::endl;
 
-              dist_matrix[i*j+j] = pearson_val*union_size/intercept_size;
+              dist_matrix[i*j+j] = pearson_val*intercept_size/intercept_size;
           }
       }
+  }
+
+  void buildPrimTree()
+  {
+
   }
 
   void registerOptionsAndFlags_() override
@@ -199,7 +209,7 @@ private:
       {
         if (feature_it->getPeptideIdentifications().size()>0)
         {
-            getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_peptides[distance(feature_maps.begin(), maps_it)]);
+            getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_peptides[static_cast<unsigned long>(distance(feature_maps.begin(), maps_it))]);
         }
       }
     }
@@ -217,7 +227,7 @@ private:
 
     // RTs of cluster (only petides present in both parent maps)
     //vector<SeqAndRT> clusters_rts(in_files.size()*in_files.size());
-    vector<size_t> dist_matrix(in_files.size()*in_files.size());
+    vector<double> dist_matrix(in_files.size()*in_files.size());
     build_distance_matrix_(feature_maps.size(), maps_peptides, dist_matrix);
 
     // SingleLinkage tree = new SingleLinkage(dist_matrix)
