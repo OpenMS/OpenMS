@@ -333,8 +333,18 @@ protected:
              mergedprots[0].getIndistinguishableProteins().size() <<
              " indist. groups." << std::endl;
 
+    //sort for output because they might have been added in a different order
+    std::sort(
+        mergedprots[0].getIndistinguishableProteins().begin(),
+        mergedprots[0].getIndistinguishableProteins().end(),
+        [](const ProteinIdentification::ProteinGroup& f,
+            const ProteinIdentification::ProteinGroup& g)
+            {return f.accessions < g.accessions;});
+
+
     idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
     return ExitCodes::EXECUTION_OK;
+
 
     // Some thoughts about how to leverage info from different runs.
     //Fractions: Always merge (not much to leverage, maybe agreement at borders)
