@@ -38,6 +38,7 @@
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
+#include <QtSql/QSqlQuery>
 
 namespace OpenMS
 {
@@ -94,6 +95,11 @@ namespace OpenMS
 
     Key storeCVTerm_(const CVTerm& cv_term);
 
+    void createTableMetaInfo_(const String& parent_table);
+
+    void storeMetaInfo_(const MetaInfoInterface& info,
+                        const String& parent_table, Key parent_id);
+
     void storeScoreTypes_(const IdentificationData& id_data);
 
     void storeInputFiles_(const IdentificationData& id_data);
@@ -107,6 +113,8 @@ namespace OpenMS
     // load helper functions:
 
     // static CVTerm loadCVTerm_(int id);
+
+    static DataValue makeDataValue_(const QSqlQuery& query);
 
     void loadScoreTypes_(IdentificationData& id_data);
 

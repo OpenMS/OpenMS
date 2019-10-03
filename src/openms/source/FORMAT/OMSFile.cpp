@@ -36,7 +36,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
-#include <QtSql/QSqlQuery>
 // strangely, this is needed for type conversions in "QSqlQuery::bindValue":
 #include <QtSql/QSqlQueryModel>
 
@@ -144,6 +143,7 @@ namespace OpenMS
                   "NULL, "                         \
                   ":data_type, "                   \
                   ":value)");
+    // @TODO: cache the prepared query between function calls somehow?
     if (!value.isEmpty()) // use NULL as the type for empty values
     {
       query.bindValue(":data_type", int(value.valueType()) + 1);
@@ -207,6 +207,52 @@ namespace OpenMS
                     "error querying database");
     }
     return query.value(0).toInt();
+  }
+
+
+  void OMSFile::createTableMetaInfo_(const String& parent_table)
+  {
+    if (!tableExists_("DataValue")) createTableDataValue_();
+
+    createTable_(
+      parent_table + "_MetaInfo",
+      "parent_id INTEGER PRIMARY KEY NOT NULL, "                        \
+      "name TEXT NOT NULL, "                                            \
+      "data_value_id INTEGER NOT NULL, "                                \
+      "FOREIGN KEY (parent_id) REFERENCES " + parent_table + " (id), "  \
+      "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), "         \
+      "UNIQUE (parent_id, name)");
+  }
+
+
+  void OMSFile::storeMetaInfo_(const MetaInfoInterface& info,
+                               const String& parent_table, Key parent_id)
+  {
+    if (info.isMetaEmpty()) return;
+
+    // this assumes the "..._MetaInfo" and "DataValue" tables exists already!
+    String table = parent_table + "_MetaInfo";
+
+    QSqlQuery query(db_);
+    query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
+                  ":parent_id, "                                    \
+                  ":name, "                                         \
+                  ":data_value_id)");
+    query.bindValue(":parent_id", parent_id);
+    // this is inefficient, but MetaInfoInterface doesn't support iteration:
+    vector<String> info_keys;
+    info.getKeys(info_keys);
+    for (const String& info_key : info_keys)
+    {
+      query.bindValue(":name", info_key.toQString());
+      Key value_id = storeDataValue_(info.getMetaValue(info_key));
+      query.bindValue(":data_value_id", value_id);
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
   }
 
 
@@ -392,10 +438,15 @@ namespace OpenMS
         }
       }
     }
-
     if (any_meta_values)
     {
-      // @TODO: handle meta values
+      createTableMetaInfo_("ID_DataProcessingStep");
+
+      for (const ID::DataProcessingStep& step :
+             id_data.getDataProcessingSteps())
+      {
+        storeMetaInfo_(step, "ID_DataProcessingStep", Key(&step));
+      }
     }
   }
 
@@ -605,6 +656,32 @@ namespace OpenMS
   }
 
 
+  DataValue OMSFile::makeDataValue_(const QSqlQuery& query)
+  {
+    DataValue::DataType type = DataValue::EMPTY_VALUE;
+    int type_index = query.value("data_type_id").toInt();
+    if (type_index > 0) type = DataValue::DataType(type_index - 1);
+    String value = query.value("value").toString();
+    switch (type)
+    {
+    case DataValue::STRING_VALUE:
+      return DataValue(value);
+    case DataValue::INT_VALUE:
+      return DataValue(value.toInt());
+    case DataValue::DOUBLE_VALUE:
+      return DataValue(value.toDouble());
+    case DataValue::STRING_LIST:
+      return DataValue(ListUtils::create<String>(value));
+    case DataValue::INT_LIST:
+      return DataValue(ListUtils::create<int>(value));
+    case DataValue::DOUBLE_LIST:
+      return DataValue(ListUtils::create<double>(value));
+    default: // DataValue::EMPTY_VALUE (avoid warning about missing return)
+      return DataValue();
+    }
+  }
+
+
   void OMSFile::loadDataProcessingSteps_(IdentificationData& id_data)
   {
     if (!tableExists_("ID_DataProcessingStep")) return;
@@ -617,13 +694,23 @@ namespace OpenMS
                     "error reading from database");
     }
     bool have_input_files = tableExists_("ID_DataProcessingStep_InputFile");
-    QSqlQuery subquery(db_);
+    bool have_meta_info = tableExists_("ID_DataProcessingStep_MetaInfo");
+    QSqlQuery subquery_file(db_);
     if (have_input_files)
     {
-      subquery.setForwardOnly(true);
-      subquery.prepare("SELECT input_file_id "                 \
-                       "FROM ID_DataProcessingStep_InputFile " \
-                       "WHERE processing_step_id = :id");
+      subquery_file.setForwardOnly(true);
+      subquery_file.prepare("SELECT input_file_id "                 \
+                            "FROM ID_DataProcessingStep_InputFile " \
+                            "WHERE processing_step_id = :id");
+    }
+    QSqlQuery subquery_info(db_);
+    if (have_meta_info)
+    {
+      subquery_info.setForwardOnly(true);
+      subquery_info.prepare(
+        "SELECT * FROM ID_DataProcessingStep_MetaInfo AS MI " \
+        "JOIN DataValue AS DV ON MI.data_value_id = DV.id "   \
+        "WHERE MI.parent_id = :id");
     }
     while (query.next())
     {
@@ -636,20 +723,34 @@ namespace OpenMS
       if (!date_time.empty()) step.date_time.set(date_time);
       if (have_input_files)
       {
-        subquery.bindValue(":id", id);
-        if (!subquery.exec())
+        subquery_file.bindValue(":id", id);
+        if (!subquery_file.exec())
         {
-          raiseDBError_(subquery.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                        "error reading from database");
+          raiseDBError_(subquery_file.lastError(), __LINE__,
+                        OPENMS_PRETTY_FUNCTION, "error reading from database");
         }
-        while (subquery.next())
+        while (subquery_file.next())
         {
-          Key input_file_id = query.value(0).toInt();
+          Key input_file_id = subquery_file.value(0).toInt();
           // the foreign key constraint should ensure that look-up succeeds:
           step.input_file_refs.push_back(input_file_refs_[input_file_id]);
         }
         // order in the vector should be the same as in the table:
         reverse(step.input_file_refs.begin(), step.input_file_refs.end());
+      }
+      if (have_meta_info)
+      {
+        subquery_info.bindValue(":id", id);
+        if (!subquery_info.exec())
+        {
+          raiseDBError_(subquery_info.lastError(), __LINE__,
+                        OPENMS_PRETTY_FUNCTION, "error reading from database");
+        }
+        while (subquery_info.next())
+        {
+          DataValue value = makeDataValue_(subquery_info);
+          step.setMetaValue(subquery_info.value("name").toString(), value);
+        }
       }
       id_data.registerDataProcessingStep(step);
     }
