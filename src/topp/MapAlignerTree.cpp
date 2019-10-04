@@ -34,9 +34,16 @@
 
 //#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTree.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/KERNEL/ConversionHelper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
+#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+
 
 using namespace OpenMS;
 using namespace Math;
@@ -69,6 +76,88 @@ private:
   /// Type to store retention times given for individual peptide sequence
   typedef std::map<String, double> SeqAndRT;
 
+  class PeptideIdentificationsPearsonDistance
+  {
+  public:
+    /*
+    // default constructor
+    PeptideIdentificationsPearsonDistance();
+
+    // copy constructor
+    PeptideIdentificationsPearsonDistance(const PeptideIdentificationsPearsonDistance & source);
+
+    // destructor
+    ~PeptideIdentificationsPearsonDistance();
+    // assignment operator
+    PeptideIdentificationsPearsonDistance & operator=(const PeptideIdentificationsPearsonDistance & source)
+    {
+      if (this != &source)
+      {
+        DefaultParamHandler::operator=(source);
+      }
+      return *this;
+    }
+    */
+
+    float operator()(const SeqAndRT& map_first, const SeqAndRT& map_second) const
+    {
+      // create vectors for both maps containing RTs of identical proteins and
+      // get union and intercept amount of proteins
+      SeqAndRT::const_iterator pep1_it = map_first.begin();
+      SeqAndRT::const_iterator pep2_it = map_second.begin();
+      vector<double> intercept_rts1;
+      vector<double> intercept_rts2;
+      while (pep1_it != map_first.end() && pep2_it != map_second.end())
+      {
+          if (pep1_it->first < pep2_it->first)
+          {
+              ++pep1_it;
+          }
+          else if (pep2_it->first < pep1_it->first)
+          {
+              ++pep2_it;
+          }
+          else
+          {
+              //intercept_peps1[pep1_it->first] = pep1_it->second; //if second DoubleList, then pushback of both possible
+              //intercept_peps2[pep2_it->first] = pep2_it->second;
+              intercept_rts1.push_back(pep1_it->second);
+              intercept_rts2.push_back(pep2_it->second);
+              ++pep1_it;
+              ++pep2_it;
+          }
+      }
+      Size intercept_size = intercept_rts1.size();
+      SeqAndRT union_map_tmp;
+      union_map_tmp.insert(map_first.begin(), map_first.end());
+      union_map_tmp.insert(map_second.begin(), map_second.end());
+      Size union_size = union_map_tmp.size();
+
+      // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
+      float pearson_val = static_cast<float>(pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(), intercept_rts2.begin(), intercept_rts2.end()));
+
+      if (pearson_val > 1)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+      return (1 - (pearson_val*intercept_size/union_size));
+    }
+
+    /*
+    // calculates self similarity
+    virtual float operator()(const PeptideIdentificationsPearsonDistance & a) const = 0;
+
+    // registers all derived products
+    static void registerChildren();
+
+    static const String getProductName()
+    {
+        return "PeptideIdentificationsPearsonDistance";
+    }
+    */
+
+  }; // end of PeptidIdentificationsPearsonDifferencer
+
   template <typename MapType, typename FileType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FileType& input_file)
   {
@@ -96,21 +185,19 @@ private:
       }
   }
 
-  void build_distance_matrix_(Size maps_amount, vector<SeqAndRT>& maps_peptides, vector<double>& dist_matrix)
+  /*
+  void build_distance_matrix_(Size maps_amount, vector<SeqAndRT>& maps_peptides, DistanceMatrix<float>& dist_matrix)
   {
       for (Size i = 0; i < maps_amount-1; ++i)
       {
           for (Size j = i+1; j < maps_amount; ++j)
           {
-              // get identified proteins of maps[i] and maps[j], sorted, -> done with getPeptideSequences()
-
               // create vectors for both maps containing RTs of identical proteins and
               // get union and intercept amount of proteins
               SeqAndRT::iterator pep1_it = maps_peptides[i].begin();
               SeqAndRT::iterator pep2_it = maps_peptides[j].begin();
               vector<double> intercept_rts1;
               vector<double> intercept_rts2;
-              std::cout << "peptide sizes to combine: " << maps_peptides[i].size() << " " << maps_peptides[j].size() << "\n";
               while (pep1_it != maps_peptides[i].end() && pep2_it != maps_peptides[j].end())
               {
                   if (pep1_it->first < pep2_it->first)
@@ -131,7 +218,6 @@ private:
                       ++pep2_it;
                   }
               }
-              std::cout << "intercept size: " << intercept_rts1.size() << "\n";
               Size intercept_size = intercept_rts1.size();
               SeqAndRT union_map_tmp;
               union_map_tmp.insert(maps_peptides[i].begin(), maps_peptides[i].end());
@@ -139,18 +225,13 @@ private:
               Size union_size = union_map_tmp.size();
 
               // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
-              double pearson_val = pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(), intercept_rts2.begin(), intercept_rts2.end());
-              std::cout << pearson_val*intercept_size/union_size << std::endl;
+              float pearson_val = static_cast<float>(pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(), intercept_rts2.begin(), intercept_rts2.end()));
 
-              dist_matrix[i*j+j] = pearson_val*intercept_size/intercept_size;
+              dist_matrix.setValue(i,j, 1-pearson_val*intercept_size/union_size);
           }
       }
   }
-
-  void buildPrimTree()
-  {
-
-  }
+  */
 
   void registerOptionsAndFlags_() override
   {
@@ -192,7 +273,8 @@ private:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    vector<FeatureMap> feature_maps(in_files.size());
+    Size in_files_size = in_files.size();
+    vector<FeatureMap> feature_maps(in_files_size);
     FeatureXMLFile fxml_file;
     loadInputMaps_(feature_maps, in_files, fxml_file);
 
@@ -200,7 +282,7 @@ private:
     // calculations
     //-------------------------------------------------------------
     // one set of RT data for each input map
-    vector<SeqAndRT> maps_peptides(in_files.size());
+    vector<SeqAndRT> maps_peptides(in_files_size);
     // get Peptide/ RT tuple for all features, seperated by input file
     for (vector<FeatureMap>::iterator maps_it = feature_maps.begin(); maps_it != feature_maps.end(); ++maps_it)
     {
@@ -213,24 +295,27 @@ private:
         }
       }
     }
-    /* for debug
-    for (vector<SeqAndRT>::iterator itmaps= maps_peptides.begin(); itmaps != maps_peptides.end(); ++itmaps)
-    {
-        for (SeqAndRT::iterator it = itmaps->begin(); it != itmaps->end(); ++it)
-        {
-            std::cout << it->first << " : " << it->second << "\n";
-        }
-    }*/
 
     // remove feature-maps? or is there another way to get relevant data for later alignment?
 
 
     // RTs of cluster (only petides present in both parent maps)
     //vector<SeqAndRT> clusters_rts(in_files.size()*in_files.size());
-    vector<double> dist_matrix(in_files.size()*in_files.size());
-    build_distance_matrix_(feature_maps.size(), maps_peptides, dist_matrix);
+    //DistanceMatrix<float> dist_matrix(in_files_size*(in_files_size-1)/2);
+    //build_distance_matrix_(feature_maps.size(), maps_peptides, dist_matrix);
 
-    // SingleLinkage tree = new SingleLinkage(dist_matrix)
+    PeptideIdentificationsPearsonDistance pepDist;
+    SingleLinkage sl;
+    std::vector<BinaryTreeNode> tree;
+    DistanceMatrix<float> dist_matrix;
+    ClusterHierarchical ch;
+    ch.cluster<SeqAndRT, PeptideIdentificationsPearsonDistance>(maps_peptides, pepDist, sl, tree, dist_matrix);
+
+    // to print tree
+    //ClusterAnalyzer ca;
+    //std::cout << ca.newickTree(tree) << std::endl;
+
+
 
     //-------------------------------------------------------------
     // writing output
