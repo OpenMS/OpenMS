@@ -240,6 +240,8 @@ namespace OpenMS
      * @brief Helper for getting scores in ConsensusMaps
      * @todo allow FeatureMap?
      */
+    // GCC-OPT 4.8 -- the following functions can be replaced by a
+    // single one with a variadic template, see #4273 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
     static void getPeptideScoresFromMap_(
         ScoreToTgtDecLabelPairs &scores_labels,
         const ConsensusMap &cmap, bool include_unassigned_peptides)
@@ -550,6 +552,8 @@ namespace OpenMS
      * @param keep_decoy read from Param object
      * @param args optional additional arguments (int charge, string run ID)
      */
+    // GCC-OPT 4.8 -- the following functions can be replaced by a
+    // single one with a variadic template, see #4273 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
     static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
                                  ConsensusMap &cmap,
                                  bool include_unassigned_peptides,

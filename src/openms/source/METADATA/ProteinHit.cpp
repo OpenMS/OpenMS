@@ -88,7 +88,6 @@ namespace OpenMS
     return !operator==(rhs);
   }
 
-  //TODO WHAAAAAT why float???
   // returns the score of the protein hit
   double ProteinHit::getScore() const
   {
