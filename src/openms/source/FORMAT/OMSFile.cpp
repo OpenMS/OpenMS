@@ -735,6 +735,40 @@ namespace OpenMS
   }
 
 
+  bool OMSFile::OMSFileLoad::prepareQueryMetaInfo_(QSqlQuery& query,
+                                                   const String& parent_table)
+  {
+    String table_name = parent_table + "_MetaInfo";
+    if (!tableExists_(db_name_, table_name)) return false;
+
+    query.setForwardOnly(true);
+    QString sql_select =
+      "SELECT * FROM " + table_name.toQString() + " AS MI " \
+      "JOIN DataValue AS DV ON MI.data_value_id = DV.id "   \
+      "WHERE MI.parent_id = :id";
+    query.prepare(sql_select);
+    return true;
+  }
+
+
+  void OMSFile::OMSFileLoad::handleQueryMetaInfo_(QSqlQuery& query,
+                                                  MetaInfoInterface& info,
+                                                  Key parent_id)
+  {
+    query.bindValue(":id", parent_id);
+    if (!query.exec())
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    while (query.next())
+    {
+      DataValue value = makeDataValue_(query);
+      info.setMetaValue(query.value("name").toString(), value);
+    }
+  }
+
+
   void OMSFile::OMSFileLoad::loadDataProcessingSteps()
   {
     if (!tableExists_(db_name_, "ID_DataProcessingStep")) return;
@@ -747,11 +781,9 @@ namespace OpenMS
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
     }
+    QSqlQuery subquery_file(db);
     bool have_input_files = tableExists_(db_name_,
                                          "ID_DataProcessingStep_InputFile");
-    bool have_meta_info = tableExists_(db_name_,
-                                       "ID_DataProcessingStep_MetaInfo");
-    QSqlQuery subquery_file(db);
     if (have_input_files)
     {
       subquery_file.setForwardOnly(true);
@@ -760,14 +792,8 @@ namespace OpenMS
                             "WHERE processing_step_id = :id");
     }
     QSqlQuery subquery_info(db);
-    if (have_meta_info)
-    {
-      subquery_info.setForwardOnly(true);
-      subquery_info.prepare(
-        "SELECT * FROM ID_DataProcessingStep_MetaInfo AS MI " \
-        "JOIN DataValue AS DV ON MI.data_value_id = DV.id "   \
-        "WHERE MI.parent_id = :id");
-    }
+    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
+                                              "ID_DataProcessingStep");
     while (query.next())
     {
       Key id = query.value("id").toInt();
@@ -796,17 +822,7 @@ namespace OpenMS
       }
       if (have_meta_info)
       {
-        subquery_info.bindValue(":id", id);
-        if (!subquery_info.exec())
-        {
-          raiseDBError_(subquery_info.lastError(), __LINE__,
-                        OPENMS_PRETTY_FUNCTION, "error reading from database");
-        }
-        while (subquery_info.next())
-        {
-          DataValue value = makeDataValue_(subquery_info);
-          step.setMetaValue(subquery_info.value("name").toString(), value);
-        }
+        handleQueryMetaInfo_(subquery_info, step, id);
       }
       ID::ProcessingStepRef ref = id_data_.registerDataProcessingStep(step);
       processing_step_refs_[id] = ref;
@@ -818,13 +834,17 @@ namespace OpenMS
   {
     if (!tableExists_(db_name_, "ID_ParentMolecule")) return;
 
-    QSqlQuery query(QSqlDatabase::database(db_name_));
+    QSqlDatabase db = QSqlDatabase::database(db_name_);
+    QSqlQuery query(db);
     query.setForwardOnly(true);
     if (!query.exec("SELECT * FROM ID_ParentMolecule"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
     }
+    QSqlQuery subquery_info(db);
+    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
+                                                "ID_ParentMolecule");
     while (query.next())
     {
       String accession = query.value("accession").toString();
@@ -835,6 +855,10 @@ namespace OpenMS
       parent.description = query.value("description").toString();
       parent.coverage = query.value("coverage").toDouble();
       parent.is_decoy = query.value("is_decoy").toInt();
+      if (have_meta_info)
+      {
+        handleQueryMetaInfo_(subquery_info, parent, query.value("id").toInt());
+      }
       id_data_.registerParentMolecule(parent);
     }
   }

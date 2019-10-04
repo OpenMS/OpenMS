@@ -145,6 +145,11 @@ namespace OpenMS
     private:
       static DataValue makeDataValue_(const QSqlQuery& query);
 
+      bool prepareQueryMetaInfo_(QSqlQuery& query, const String& parent_table);
+
+      void handleQueryMetaInfo_(QSqlQuery& query, MetaInfoInterface& info,
+                                Key parent_id);
+
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
 
