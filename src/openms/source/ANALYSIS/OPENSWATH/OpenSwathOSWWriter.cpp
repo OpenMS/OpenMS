@@ -456,7 +456,7 @@ namespace OpenMS
       }
     }
 
-    if (enable_uis_scoring_)
+    if (enable_uis_scoring_ && !sql_feature_uis_transition.empty())
     {
       sql << sql_feature.str() << sql_feature_ms1.str() << sql_feature_ms1_precursor.str() << sql_feature_ms2.str() << sql_feature_uis_transition.str();
     }
