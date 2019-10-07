@@ -776,7 +776,7 @@ namespace OpenMS
                                              const ChromExtractParams& cp,
                                              const OpenSwath::LightTargetedExperiment& transition_exp,
                                              const TransformationDescription& trafo_inverse,
-                                             bool ms1_only,
+                                             bool /* ms1_only */,
                                              int ms1_isotopes)
   {
     std::vector< OpenSwath::ChromatogramPtr > chrom_list;
