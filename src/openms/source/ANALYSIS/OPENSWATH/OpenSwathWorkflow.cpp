@@ -670,7 +670,6 @@ namespace OpenMS
               "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")" << std::endl;
             }
 
-
             // Create the new, batch-size transition experiment
             OpenSwath::LightTargetedExperiment transition_exp_used;
             selectCompoundsForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
@@ -771,60 +770,40 @@ namespace OpenMS
   }
 
   void OpenSwathWorkflowBase::MS1Extraction_(const OpenSwath::SpectrumAccessPtr ms1_map,
-                                             const std::vector< OpenSwath::SwathMap > & swath_maps,
+                                             const std::vector< OpenSwath::SwathMap > & /* swath_maps */,
                                              std::vector< MSChromatogram >& ms1_chromatograms,
                                              Interfaces::IMSDataConsumer* chromConsumer,
                                              const ChromExtractParams& cp,
                                              const OpenSwath::LightTargetedExperiment& transition_exp,
                                              const TransformationDescription& trafo_inverse,
-                                             bool ms1_only,
+                                             bool /* ms1_only */,
                                              int ms1_isotopes)
   {
+    std::vector< OpenSwath::ChromatogramPtr > chrom_list;
+    std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
+    OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp; // copy for const correctness
+    ChromatogramExtractor extractor;
+
+    // prepare the extraction coordinates and extract chromatogram
+    prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp, true, ms1_isotopes);
+    extractor.extractChromatograms(ms1_map, chrom_list, coordinates, cp.mz_extraction_window,
+        cp.ppm, cp.im_extraction_window, cp.extraction_function);
+    extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
+        SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
+
+    for (Size j = 0; j < coordinates.size(); j++)
     {
-      {
+      if (ms1_chromatograms[j].empty()) continue; // skip empty chromatograms
 
-        std::vector< OpenSwath::ChromatogramPtr > chrom_list;
-        std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
-        OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp; // copy for const correctness
-        ChromatogramExtractor extractor;
-
-        // prepare the extraction coordinates and extract chromatogram
-        prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp, true, ms1_isotopes);
-        extractor.extractChromatograms(ms1_map, chrom_list, coordinates, cp.mz_extraction_window,
-            cp.ppm, cp.im_extraction_window, cp.extraction_function);
-
-        extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
-            SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
-
-        for (Size j = 0; j < coordinates.size(); j++)
-        {
-          if (ms1_chromatograms[j].empty())
-          {
-            continue; // skip empty chromatograms
-          }
-
-          // write MS1 chromatograms to disk
-          // only write precursor chromatograms that have a corresponding swath windows
-          for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
-          {
-            if ((ms1_only) ||
-                ( swath_maps.size() > 1 && !swath_maps[i].ms1 && // we have swath maps and its not MS1
-                  swath_maps[i].lower < coordinates[j].mz && swath_maps[i].upper > coordinates[j].mz)
-                )
-            {
 #ifdef _OPENMP
 #pragma omp critical (osw_write_out)
 #endif
-              {
-                // write MS1 chromatograms to disk
-                chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
-              }
-            }
-          }
-        } // end of for coordinates
-
+      {
+        // write MS1 chromatograms to disk
+        chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
       }
-    }
+    } // end of for coordinates
+
   }
 
   void OpenSwathWorkflow::scoreAllChromatograms_(
