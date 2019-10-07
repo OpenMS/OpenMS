@@ -291,11 +291,11 @@ is_valid_package(${PACKAGE_TYPE})
 ## Warn here because you need the signing identity before the app bundles are defined in the
 ## src subfolder
 if("${PACKAGE_TYPE}" STREQUAL "dmg")
-  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "")
-    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY being set. "
+  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
+    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
                          "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
   else()
-    ## CPack has a special variable for it.
+    ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
   endif()
 endif()
