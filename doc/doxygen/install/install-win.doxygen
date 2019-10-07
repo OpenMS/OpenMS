@@ -35,8 +35,8 @@
       <li>Have a Visual Studio 2015 or 2017 installed (The C++ Express editions should work as well, we tested VSE2015 Update 3).
         <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier, due to missing C11 support). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li>Have CMake 3.1 or greater installed (see http://www.cmake.org).<br>
-	      CMake's Generator (-G flag) must support your version of Visual Studio. If it doesn't, upgrade CMake.<br>
+      <li>Have at least CMake 3.1 or greater installed (see http://www.cmake.org). For building with our contrib package please use 3.14+. <br>
+	      CMake's Generator (-G flag) also must support your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
       <li>To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
         the installation directory to your PATH.
@@ -171,7 +171,7 @@
   you will need to install three programs:
 
   <ol>
-    <li> Doxygen (>= 1.8.14 is tested, others might work as well; older versions produce (mildly) incomplete documentation due to lack of support for certain commands or bugs)
+    <li> Doxygen (1.8.16 is tested, others might work as well; older versions might produce errors or incomplete documentation due to lack of support for certain commands or bugs)
       <ul>
         <li> Download the installer for Windows (http://www.doxygen.org)
         <li> Execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
