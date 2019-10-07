@@ -479,11 +479,10 @@ namespace OpenMS
                   ":software_id, "                              \
                   ":primary_files, "                            \
                   ":data_time)");
-    bool any_input_files = false, any_meta_values = false;
+    bool any_input_files = false;
     for (const ID::DataProcessingStep& step : id_data_.getDataProcessingSteps())
     {
       if (!step.input_file_refs.empty()) any_input_files = true;
-      if (!step.isMetaEmpty()) any_meta_values = true;
       query.bindValue(":id", Key(&step));
       query.bindValue(":software_id", Key(&(*step.software_ref)));
       // @TODO: what if a primary file name contains ","?
@@ -525,16 +524,8 @@ namespace OpenMS
         }
       }
     }
-    if (any_meta_values)
-    {
-      createTableMetaInfo_("ID_DataProcessingStep");
-
-      for (const ID::DataProcessingStep& step :
-             id_data_.getDataProcessingSteps())
-      {
-        storeMetaInfo_(step, "ID_DataProcessingStep", Key(&step));
-      }
-    }
+    storeMetaInfos_(id_data_.getDataProcessingSteps(),
+                    "ID_DataProcessingStep");
   }
 
 
@@ -578,11 +569,8 @@ namespace OpenMS
                   ":description, "                          \
                   ":coverage, "                             \
                   ":is_decoy)");
-    bool any_meta_values = false, any_applied_steps = false;
     for (const ID::ParentMolecule& parent : id_data_.getParentMolecules())
     {
-      if (!parent.isMetaEmpty()) any_meta_values = true;
-      if (!parent.steps_and_scores.empty()) any_applied_steps = true;
       query.bindValue(":id", Key(&parent)); // use address as primary key
       query.bindValue(":accession", parent.accession.toQString());
       query.bindValue(":molecule_type", int(parent.molecule_type) + 1);
@@ -596,25 +584,8 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    if (any_meta_values)
-    {
-      createTableMetaInfo_("ID_ParentMolecule");
-      for (const ID::ParentMolecule& parent : id_data_.getParentMolecules())
-      {
-        storeMetaInfo_(parent, "ID_ParentMolecule", Key(&parent));
-      }
-    }
-    if (any_applied_steps)
-    {
-      createTableAppliedProcessingStep_("ID_ParentMolecule");
-      for (const ID::ParentMolecule& parent : id_data_.getParentMolecules())
-      {
-        for (const ID::AppliedProcessingStep step : parent.steps_and_scores)
-        {
-          storeAppliedProcessingStep_(step, "ID_ParentMolecule", Key(&parent));
-        }
-      }
-    }
+    storeScoredProcessingResults_(id_data_.getParentMolecules(),
+                                  "ID_ParentMolecule");
   }
 
 

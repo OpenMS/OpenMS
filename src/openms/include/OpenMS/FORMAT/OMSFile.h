@@ -122,6 +122,50 @@ namespace OpenMS
         const IdentificationData::AppliedProcessingStep& step,
         const String& parent_table, Key parent_id);
 
+      template<class MetaInfoInterfaceContainer>
+      void storeMetaInfos_(const MetaInfoInterfaceContainer& container,
+                           const String& parent_table)
+      {
+        bool table_created = false;
+        for (const auto& element : container)
+        {
+          if (!element.isMetaEmpty())
+          {
+            if (!table_created)
+            {
+              createTableMetaInfo_(parent_table);
+              table_created = true;
+            }
+            storeMetaInfo_(element, parent_table, Key(&element));
+          }
+        }
+      }
+
+      template<class ScoredProcessingResultContainer>
+      void storeScoredProcessingResults_(
+        const ScoredProcessingResultContainer& container,
+        const String& parent_table)
+      {
+        bool table_created = false;
+        for (const auto& element : container)
+        {
+          if (!element.steps_and_scores.empty())
+          {
+            if (!table_created)
+            {
+              createTableAppliedProcessingStep_(parent_table);
+              table_created = true;
+            }
+            for (const IdentificationData::AppliedProcessingStep& step :
+                   element.steps_and_scores)
+            {
+              storeAppliedProcessingStep_(step, parent_table, Key(&element));
+            }
+          }
+        }
+        storeMetaInfos_(container, parent_table);
+      }
+
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
 
