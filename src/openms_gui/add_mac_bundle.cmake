@@ -129,7 +129,7 @@ execute_process(COMMAND ditto -c -k --rsrc --keepParent \${CMAKE_INSTALL_PREFIX}
 message('\${ditto_out}')" COMPONENT BApplications)
 
                    install(CODE "
-execute_process(COMMAND xcrun altool --notarize-app -t osx -f \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip --primary-bundle-id de.openms.${_name} -u ${CPACK_BUNDLE_APPLE_CERT_APP} -p @env:CODESIGNPW --output-format xml OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
+execute_process(COMMAND xcrun altool --notarize-app -t osx -f \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip --primary-bundle-id de.openms.${_name} -u ${SIGNING_EMAIL} -p @env:CODESIGNPW --output-format xml OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
 message('\${notarize_out}')" COMPONENT BApplications)
 
                    ## Note: sometimes it needs some seconds to verify
