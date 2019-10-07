@@ -67,7 +67,7 @@ namespace OpenMS
     sqlite3_step(xcntstmt);
     while (sqlite3_column_type(xcntstmt, 0) != SQLITE_NULL)
     {
-      String name = String(reinterpret_cast<const char*>(sqlite3_column_text(xcntstmt, 1)));
+      String name = String(sqlite3_column_text(xcntstmt, 1));
       if (colname == name)
       {
         found = true;
@@ -179,7 +179,7 @@ namespace OpenMS
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
-          *dst = String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
+          *dst = String(sqlite3_column_text(stmt, pos));
         }
       }
 
