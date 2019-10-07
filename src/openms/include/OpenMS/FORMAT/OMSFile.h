@@ -116,6 +116,12 @@ namespace OpenMS
       void storeMetaInfo_(const MetaInfoInterface& info,
                           const String& parent_table, Key parent_id);
 
+      void createTableAppliedProcessingStep_(const String& parent_table);
+
+      void storeAppliedProcessingStep_(
+        const IdentificationData::AppliedProcessingStep& step,
+        const String& parent_table, Key parent_id);
+
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
 

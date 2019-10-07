@@ -258,7 +258,7 @@ namespace OpenMS
   {
     if (info.isMetaEmpty()) return;
 
-    // this assumes the "..._MetaInfo" and "DataValue" tables exists already!
+    // this assumes the "..._MetaInfo" and "DataValue" tables exist already!
     String table = parent_table + "_MetaInfo";
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
@@ -275,6 +275,65 @@ namespace OpenMS
       query.bindValue(":name", info_key.toQString());
       Key value_id = storeDataValue_(info.getMetaValue(info_key));
       query.bindValue(":data_value_id", value_id);
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+  }
+
+
+  void OMSFile::OMSFileStore::createTableAppliedProcessingStep_(
+    const String& parent_table)
+  {
+    createTable_(
+      parent_table + "_AppliedProcessingStep",
+      "parent_id INTEGER NOT NULL, "                                    \
+      "processing_step_id INTEGER, "                                    \
+      "score_type_id INTEGER, "                                         \
+      "score REAL, "                                                    \
+      "UNIQUE (parent_id, processing_step_id, score_type_id), "         \
+      "FOREIGN KEY (parent_id) REFERENCES " + parent_table + " (id), "  \
+      "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id), "      \
+      "FOREIGN KEY (processing_step_id) REFERENCES ID_DataProcessingStep (id)");
+    // @TODO: add constraint that "processing_step_id" and "score_type_id"
+    // can't both be NULL
+    // @TODO: normalize table? (splitting into multiple tables is awkward here)
+  }
+
+
+  void OMSFile::OMSFileStore::storeAppliedProcessingStep_(
+    const ID::AppliedProcessingStep& step, const String& parent_table,
+    Key parent_id)
+  {
+    // this assumes the "..._AppliedProcessingStep" table exists already!
+    String table = parent_table + "_AppliedProcessingStep";
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
+                  ":parent_id, "                                    \
+                  ":processing_step_id, "                           \
+                  ":score_type_id, "
+                  ":score)");
+    query.bindValue(":parent_id", parent_id);
+    if (step.processing_step_opt)
+    {
+      query.bindValue(":processing_step_id",
+                      Key(&(**step.processing_step_opt)));
+      if (step.scores.empty()) // insert processing step information only
+      {
+        if (!query.exec())
+        {
+          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                        "error inserting data");
+        }
+      }
+    }
+    for (auto score_pair : step.scores)
+    {
+      query.bindValue(":score_type_id", Key(&(*score_pair.first)));
+      query.bindValue(":value", score_pair.second);
       if (!query.exec())
       {
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -519,10 +578,11 @@ namespace OpenMS
                   ":description, "                          \
                   ":coverage, "                             \
                   ":is_decoy)");
-    bool any_meta_values = false;
+    bool any_meta_values = false, any_applied_steps = false;
     for (const ID::ParentMolecule& parent : id_data_.getParentMolecules())
     {
       if (!parent.isMetaEmpty()) any_meta_values = true;
+      if (!parent.steps_and_scores.empty()) any_applied_steps = true;
       query.bindValue(":id", Key(&parent)); // use address as primary key
       query.bindValue(":accession", parent.accession.toQString());
       query.bindValue(":molecule_type", int(parent.molecule_type) + 1);
@@ -539,10 +599,20 @@ namespace OpenMS
     if (any_meta_values)
     {
       createTableMetaInfo_("ID_ParentMolecule");
-
       for (const ID::ParentMolecule& parent : id_data_.getParentMolecules())
       {
         storeMetaInfo_(parent, "ID_ParentMolecule", Key(&parent));
+      }
+    }
+    if (any_applied_steps)
+    {
+      createTableAppliedProcessingStep_("ID_ParentMolecule");
+      for (const ID::ParentMolecule& parent : id_data_.getParentMolecules())
+      {
+        for (const ID::AppliedProcessingStep step : parent.steps_and_scores)
+        {
+          storeAppliedProcessingStep_(step, "ID_ParentMolecule", Key(&parent));
+        }
       }
     }
   }
