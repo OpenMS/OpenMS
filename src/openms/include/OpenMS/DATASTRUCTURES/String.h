@@ -98,7 +98,7 @@ public:
     /// Constructor from char*
     OPENMS_DLLAPI String(const char* s);
     /// Constructor from unsigned char*
-    OPENMS_DLLAPI String(const unsigned char* s);
+    OPENMS_DLLAPI explicit String(const unsigned char* s);
     /// Constructor from a char
     OPENMS_DLLAPI String(const char c);
     /// Constructor from char* (only @p length characters)
