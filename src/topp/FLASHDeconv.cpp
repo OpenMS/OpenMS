@@ -34,7 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
-
+#include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <QDirIterator>
 #include <QFileInfo>
@@ -140,6 +140,16 @@ protected:
     return param;
   }
 
+  FLASHDeconvHelperStructs::PrecalcularedAveragine calculateAveragines(Parameter &param)
+  {
+    auto generator = new CoarseIsotopePatternGenerator();
+    auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
+    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
+    param.maxIsotopeCount = (int) maxIso.size() - 1;
+    generator->setMaxIsotope((Size) param.maxIsotopeCount);
+    return FLASHDeconvHelperStructs::PrecalcularedAveragine(100, param.maxMass, 50, generator);
+  }
+
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
@@ -152,6 +162,7 @@ protected:
     String outfilePath = getStringOption_("out");
 
     auto param = setParameter();
+    auto avgine = calculateAveragines(param);
     int specCntr = 0, qspecCntr = 0, massCntr = 0, featureCntr = 0;
     int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0, total_featureCntr = 0;
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
@@ -286,18 +297,25 @@ protected:
       auto deconv_t_start = chrono::high_resolution_clock::now();
       //continue;
       auto fa = FLASHDeconvAlgorithm(map, param);
-      auto peakGroups = fa.Deconvolution(specCntr, qspecCntr, massCntr);
+      auto peakGroups = fa.Deconvolution(specCntr, qspecCntr, massCntr, avgine);
 
       auto deconv_t_end = chrono::high_resolution_clock::now();
       auto deconv_end = clock();
 
       //writeAnnotatedSpectra(peakGroups,map,fsm);//
 
-
-
       if (!peakGroups.empty() && specCntr > 0 && map.size() > 1)
       {
-      //  findFeatures(peakGroups, featureCntr, fsf, averagines, param); //TODO
+        Param common_param = getParam_().copy("algorithm:common:", true);
+        writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
+
+        Param mtd_param = getParam_().copy("algorithm:mtd:", true);
+        writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
+
+        mtd_param.insert("", common_param);
+        mtd_param.remove("chrom_fwhm");
+
+        MassFeatureTrace::findFeatures(peakGroups, featureCntr, fsf, avgine, mtd_param, param); //
       }
 
       //cout<< "after running" << endl;
@@ -455,8 +473,8 @@ protected:
         fs << "apeaks" << index << "{" << mi++ << "}=[";
         for (auto &lp:p.peaks)
         {
-          auto &op = lp.orgPeak;
-          fs << op->getMZ() << "," << op->getIntensity() << ";";
+          //auto &op = lp.orgPeak;
+          fs << lp.mz << "," << lp.intensity << ";";
         }
 
         fs << "];\n";
@@ -514,7 +532,7 @@ protected:
     fs << fixed << setprecision(2);
     for (auto &p : pg.peaks)
     {
-      fs << p.orgPeak->getMZ() << ";";
+      fs << p.mz << ";";
     }
     fs << "\t";
     for (auto &p : pg.peaks)
@@ -535,7 +553,7 @@ protected:
     fs << fixed << setprecision(1);
     for (auto &p : pg.peaks)
     {
-      fs << p.orgPeak->getIntensity() << ";";
+      fs << p.intensity << ";";
     }
     fs << fixed << setprecision(3);
     fs << "\t" << pg.isotopeCosineScore

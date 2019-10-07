@@ -128,7 +128,7 @@ openms_doc_path("${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS")
 set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)
 include(${GUI_DIR}/executables.cmake)
 foreach(i ${GUI_executables})
-  set(resource_file ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}.rc ../openms/source/ANALYSIS/TOPDOWN/SpectrumDeconvolution.cpp ../openms/include/OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h ../openms/source/ANALYSIS/TOPDOWN/MassFeatureTrace.cpp ../openms/include/OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h)
+  set(resource_file ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}.rc)
   set(resource_dir ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}-resources/)
   ## add icons to TOPPView and INIFileEditor
   if (MSVC AND EXISTS ${resource_file})

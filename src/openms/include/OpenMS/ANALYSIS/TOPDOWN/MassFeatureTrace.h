@@ -18,7 +18,7 @@
 #include <Eigen/Dense>
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 namespace OpenMS
 {
   class OPENMS_DLLAPI MassFeatureTrace
@@ -34,6 +34,13 @@ namespace OpenMS
 
     /// default destructor
     ~MassFeatureTrace();
+
+    static void findFeatures(std::vector<PeakGroup> &peakGroups,
+                                        int &featureCntr,
+                                        std::fstream &fsf,
+                                        PrecalcularedAveragine &averagines,
+                                               Param &mtd_param,
+                                               Parameter &param);
 
   protected:
 

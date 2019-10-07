@@ -8,11 +8,11 @@ namespace OpenMS
 {
 
   // constructor
-  SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum &s, PrecalcularedAveragine &a, Parameter &p)
+  SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum &s, Parameter &p)
   {
     spec = s;
     param = p;
-    averagines = a;
+    //averagines = a;
     setFilters();
     updateLogMzPeaks();
   }
@@ -37,7 +37,7 @@ namespace OpenMS
 
     filter = new double[param.chargeRange];
     harmonicFilter = new double *[param.hCharges.size()];
-    int *random = new int[param.chargeRange];
+//    int *random = new int[param.chargeRange];
     //std::srand(std::time(nullptr));
 
     for (int i = 0; i < param.chargeRange; i++)
@@ -96,7 +96,7 @@ namespace OpenMS
                                            float *mzBinIntensities
   )
   {
-    boost::dynamic_bitset<> mzBins(binNumber);
+    mzBins = boost::dynamic_bitset<>(binNumber);
     // double *intensities = new double[binNumber];
     std::fill_n(mzBinIntensities, binNumber, .0);
 
@@ -108,7 +108,7 @@ namespace OpenMS
         continue;
       }
       mzBins.set(bi);
-      mzBinIntensities[bi] += p.orgPeak->getIntensity();
+      mzBinIntensities[bi] += p.intensity;
 
       auto delta = (p.logMz - getBinValue(bi, mzBinMinValue, binWidth));
 
@@ -117,7 +117,7 @@ namespace OpenMS
         if (bi < binNumber - 1)
         {
           mzBins.set(bi + 1);
-          mzBinIntensities[bi + 1] += p.orgPeak->getIntensity();
+          mzBinIntensities[bi + 1] += p.intensity;
         }
       }
       else if (delta < 0)
@@ -125,7 +125,7 @@ namespace OpenMS
         if (bi > 0)
         {
           mzBins.set(bi - 1);
-          mzBinIntensities[bi - 1] += p.orgPeak->getIntensity();
+          mzBinIntensities[bi - 1] += p.intensity;
         }
       }
     }
@@ -135,10 +135,12 @@ namespace OpenMS
                                                 std::vector<std::vector<Size>> &prevMassBinVector,
                                                 std::vector<double> &prevMassBinMinValue)
   {
+
     if (massBins.empty())
     {
       return;
     }
+
     for (Size i = 0; i < prevMassBinVector.size(); i++)
     {
       auto &pmb = prevMassBinVector[i];
@@ -172,6 +174,7 @@ namespace OpenMS
     int chargeRange = param.chargeRange;
     int hChargeSize = (int) param.hCharges.size();
     int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
+
     long binEnd = (long) massBins.size();
     auto candidateMassBinsForThisSpectrum = boost::dynamic_bitset<>(massBins.size());
 
@@ -195,12 +198,14 @@ namespace OpenMS
     //double th = 1;//
     float factor = 4.0;
     auto mzBinIndex = mzBins.find_first();
+
     while (mzBinIndex != mzBins.npos)
     {
       auto &intensity = mzIntensities[mzBinIndex];
       for (Byte j = 0; j < chargeRange; j++)
       {
         long massBinIndex = mzBinIndex + binOffsets[j];
+
         if (massBinIndex < 0)
         {
           continue;
@@ -209,6 +214,7 @@ namespace OpenMS
         {
           break;
         }
+
         auto cd = prevCharges[massBinIndex] - j;
 
         auto &prevIntensity = prevIntensities[massBinIndex];
@@ -251,6 +257,7 @@ namespace OpenMS
               }
             }
           }
+
           if (maxHcharge >= 0)
           {
             continuousChargePeakPairCount[massBinIndex] = 0;
@@ -270,7 +277,6 @@ namespace OpenMS
       }
       mzBinIndex = mzBins.find_next(mzBinIndex);
     }
-
     auto mindex = candidateMassBinsForThisSpectrum.find_first();
     while (mindex != candidateMassBinsForThisSpectrum.npos)
     {
@@ -487,7 +493,7 @@ namespace OpenMS
           //auto bi = peakBinNumbers[cpi] + binOffset;
           if (peakBinNumbers[cpi] == bi)
           {
-            auto intensity = logMzPeaks[cpi].orgPeak->getIntensity();
+            auto intensity = logMzPeaks[cpi].intensity;
             if (intensity > maxIntensity)
             {
               maxIntensity = intensity;
@@ -503,7 +509,7 @@ namespace OpenMS
 
         if (maxIntensityPeakIndex >= 0)
         {
-          const double mz = logMzPeaks[maxIntensityPeakIndex].orgPeak->getMZ();
+          const double mz = logMzPeaks[maxIntensityPeakIndex].mz;
           //double &logMz = logMzPeaks[maxIntensityPeakIndex].logMz;
           const double isof = Constants::C13C12_MASSDIFF_U / charge;
           double mzDelta = tol * mz;
@@ -526,7 +532,7 @@ namespace OpenMS
               }//maxIntensityPeakIndex + (d < 0 ? d : 0);
               for (; peakIndex >= 0 && peakIndex < logMzPeakSize; peakIndex += d)
               {
-                const double observedMz = logMzPeaks[peakIndex].orgPeak->getMZ();
+                const double observedMz = logMzPeaks[peakIndex].mz;
                 if (observedMz < centerMzMin)
                 {
                   if (d < 0)
@@ -558,7 +564,7 @@ namespace OpenMS
 
                   if (bin < massBinSize) //
                   {
-                    LogMzPeak p(*logMzPeaks[peakIndex].orgPeak, charge, i * d);
+                    LogMzPeak p(logMzPeaks[peakIndex], charge, i * d);
                     pg.peaks.push_back(p);
                     lastPeakIndex = peakIndex;
                   }
@@ -587,7 +593,7 @@ namespace OpenMS
               for (int i = 0; i <= maxI; i++)
               {
                 double centerMz = mz + isof * (p.isotopeIndex + i * d);
-                double delta = abs(centerMz - p.orgPeak->getMZ());
+                double delta = abs(centerMz - p.mz);
 
                 if (delta > minMzDelta)
                 {
@@ -701,8 +707,8 @@ namespace OpenMS
       maxCharge = std::max(maxCharge, p.charge);
 
       int index = p.charge - param.minCharge;
-      perIsotopeIntensity[p.isotopeIndex] += p.orgPeak->getIntensity();
-      perChargeIntensity[index] += p.orgPeak->getIntensity();
+      perIsotopeIntensity[p.isotopeIndex] += p.intensity;
+      perChargeIntensity[index] += p.intensity;
     }
     pg.maxCharge = maxCharge;
     pg.minCharge = minCharge;
@@ -855,10 +861,11 @@ namespace OpenMS
   double SpectrumDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(double mass,
                                                                          double *perIsotopeIntensities,
                                                                          int perIsotopeIntensitiesSize,
-                                                                         int &offset)
+                                                                         int &offset,
+                                                                         FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
-    auto iso = averagines.get(mass);
-    auto isoNorm = averagines.getNorm(mass);
+    auto iso = avg.get(mass);
+    auto isoNorm = avg.getNorm(mass);
 
     int isoSize = (int) iso.size();
 
@@ -973,7 +980,7 @@ namespace OpenMS
   }
 
 
-  void SpectrumDeconvolution::scoreAndFilterPeakGroups()
+  void SpectrumDeconvolution::scoreAndFilterPeakGroups(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
     std::vector<FLASHDeconvAlgorithm::PeakGroup> filteredPeakGroups;
     filteredPeakGroups.reserve(peakGroups.size());
@@ -987,7 +994,7 @@ namespace OpenMS
 
       for (auto &pg : peakGroups)
       {
-        pg.updateMassesAndIntensity(averagines);
+        pg.updateMassesAndIntensity(avg);
         intensities.push_back(pg.intensity);
       }
 
@@ -1032,7 +1039,8 @@ namespace OpenMS
       pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getMass(),
                                                                        perIsotopeIntensity,
                                                                        param.maxIsotopeCount,
-                                                                       offset);
+                                                                       offset,
+                                                                       avg);
 
 
       if (pg.peaks.empty() || (pg.isotopeCosineScore < param.minIsotopeCosineSpec))
@@ -1041,7 +1049,7 @@ namespace OpenMS
       }
 
 
-      pg.updateMassesAndIntensity(averagines, offset, param.maxIsotopeCount);
+      pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
       filteredPeakGroups.push_back(pg);
 
     }
@@ -1060,9 +1068,9 @@ namespace OpenMS
   }
 
 
-  std::vector<PeakGroup> SpectrumDeconvolution::getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
+  std::vector<SpectrumDeconvolution::PeakGroup> SpectrumDeconvolution::getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                                                                                 std::vector<double> &prevMinBinLogMassVector,
-                                                                                                int &specCntr)
+                                                                                                FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
     double massBinMaxValue = std::min(
         logMzPeaks[logMzPeaks.size() - 1].logMz -
@@ -1095,21 +1103,23 @@ namespace OpenMS
 
     Size mzBinNumber = getBinNumber(mzBinMaxValue, mzBinMinValue, param.binWidth) + 1;
     float *mzBinIntensities = new float[mzBinNumber];
+
     updateMzBins(mzBinMinValue, mzBinNumber, param.binWidth, mzBinIntensities);
 
     float *massIntensities = new float[massBinNumber];
+
+    massBins = boost::dynamic_bitset<>(massBinNumber);
+    massBinsForThisSpectrum = boost::dynamic_bitset<>(massBinNumber);
 
     unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector);
 
     auto perMassChargeRanges = updateMassBins(massBinMinValue, massIntensities,
                                               mzBinIntensities);
-
     getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
                            massIntensities,
                            perMassChargeRanges
     );
-
-    scoreAndFilterPeakGroups();
+    scoreAndFilterPeakGroups(avg);
     if (prevMassBinVector.size() > 0 && prevMassBinVector.size() >= (Size) param.numOverlappedScans)
     {
       prevMassBinVector.erase(prevMassBinVector.begin());
@@ -1121,7 +1131,7 @@ namespace OpenMS
     for (auto &pg : peakGroups)//filteredPeakGroups
     {
       pg.peaks.shrink_to_fit();
-      if (massBins[pg.massBinIndex])
+      if (massBinsForThisSpectrum[pg.massBinIndex])
       {
         mb.push_back(pg.massBinIndex);
       }

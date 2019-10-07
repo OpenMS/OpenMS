@@ -34,15 +34,22 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
-    SpectrumDeconvolution(MSSpectrum &spec, PrecalcularedAveragine &a, Parameter &param);
+    SpectrumDeconvolution(MSSpectrum &spec, Parameter &param);
 
     /// default destructor
     ~SpectrumDeconvolution();
 
     std::vector<PeakGroup> getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                    std::vector<double> &prevMinBinLogMassVector,
-                                   int &specCntr);
+                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
+    static double getChargeFitScore(double *perChargeIntensity, int range);
+
+    static double getIsotopeCosineAndDetermineIsotopeIndex(double mass,
+                                                           double *perIsotopeIntensities,
+                                                           int perIsotopeIntensitiesSize,
+                                                           int &offset,
+                                                           FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
   protected:
     MSSpectrum spec;
@@ -60,7 +67,7 @@ namespace OpenMS
 
     double *filter;
     double **harmonicFilter;
-    PrecalcularedAveragine averagines;
+    //PrecalcularedAveragine averagines;
 
     static double getBinValue(Size bin, double minV, double binWidth);
 
@@ -88,8 +95,6 @@ namespace OpenMS
 
     void removeOverlappingPeakGroups();
 
-    double getChargeFitScore(double *perChargeIntensity, int range);
-
     static double getCosine(std::vector<double> &a, std::vector<double> &b, int off = 0);
 
     static double getCosine(double *a,
@@ -107,12 +112,7 @@ namespace OpenMS
 
     static bool checkChargeDistribution(double *perChargeIntensity, int range, int threshold);
 
-    double getIsotopeCosineAndDetermineIsotopeIndex(double mass,
-                                                    double *perIsotopeIntensities,
-                                                    int perIsotopeIntensitiesSize,
-                                                    int &offset);
-
-    void scoreAndFilterPeakGroups();
+    void scoreAndFilterPeakGroups(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
     boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites, float *mzIntensities);
 

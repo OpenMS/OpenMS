@@ -103,7 +103,8 @@ namespace OpenMS
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak():
-      orgPeak(nullptr),
+      mz(0),
+      intensity(0),
       logMz(-1000),
       charge(0),
       isotopeIndex(0)
@@ -111,16 +112,18 @@ namespace OpenMS
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(Peak1D &peak) :
-      orgPeak(&peak),
+      mz(peak.getMZ()),
+      intensity(peak.getIntensity()),
       logMz(getLogMz(peak.getMZ())),
       charge(0),
       isotopeIndex(0)
   {
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(Peak1D &peak, int c, int i) :
-      orgPeak(&peak),
-      logMz(getLogMz(peak.getMZ())),
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(LogMzPeak &peak, int c, int i) :
+      mz(peak.mz),
+      intensity(peak.intensity),
+      logMz(peak.logMz),
       charge(c),
       isotopeIndex(i)
   {
@@ -206,7 +209,7 @@ namespace OpenMS
     intensity = .0;
     for (auto &p : peaks)
     {
-      double pi = p.orgPeak->getIntensity();
+      double pi = p.intensity;
       intensity += pi;
       if (maxIntensityForMonoIsotopeMass > pi)
       {

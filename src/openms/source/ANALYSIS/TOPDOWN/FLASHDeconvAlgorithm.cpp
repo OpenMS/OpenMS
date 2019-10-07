@@ -41,6 +41,7 @@ namespace OpenMS
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(MSExperiment &m, Parameter &p)
   {
     map = m;
+    //averagines = a;
     param = p;
   }
 
@@ -65,21 +66,12 @@ namespace OpenMS
     return (int) (m * 0.999497 + .5);
   }
 
-  void FLASHDeconvAlgorithm::updatePrecalculatedAveragines()
-  {
-    auto generator = new CoarseIsotopePatternGenerator();
-    auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
-    param.maxIsotopeCount = (int) maxIso.size() - 1;
-    generator->setMaxIsotope((Size) param.maxIsotopeCount);
-    averagines = FLASHDeconvHelperStructs::PrecalcularedAveragine(100, param.maxMass, 50, generator);
-  }
 
 
   std::vector<FLASHDeconvAlgorithm::PeakGroup> FLASHDeconvAlgorithm::Deconvolution(int &specCntr, int &qspecCntr,
-                                         int &massCntr)
+                                         int &massCntr, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
-    updatePrecalculatedAveragines();
+    //calculateAveragines(param);
     float prevProgress = .0;
     std::vector<PeakGroup> allPeakGroups;
     allPeakGroups.reserve(100000);
@@ -103,8 +95,8 @@ namespace OpenMS
       }
 
       specCntr++;
-      auto sd = SpectrumDeconvolution(*it, averagines, param);
-      auto peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinVector, prevMinBinLogMassVector, specCntr);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
+      auto sd = SpectrumDeconvolution(*it, param);
+      auto peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinVector, prevMinBinLogMassVector,avg);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
 
       if (peakGroups.empty())
       {
@@ -115,7 +107,6 @@ namespace OpenMS
       qspecCntr++;
 
       //allPeakGroups.reserve(allPeakGroups.size() + peakGroups.size());
-
       for (auto &pg : peakGroups)
       {
         massCntr++;

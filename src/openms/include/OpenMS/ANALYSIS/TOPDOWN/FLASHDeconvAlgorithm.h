@@ -80,7 +80,7 @@ public:
 
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
-    std::vector<PeakGroup> Deconvolution(int &specCntr, int &qspecCntr, int &massCntr);
+    std::vector<PeakGroup> Deconvolution(int &specCntr, int &qspecCntr, int &massCntr, PrecalcularedAveragine &avg);
 
   protected:
     MSExperiment map;
@@ -90,9 +90,8 @@ public:
     double** harmonicFilter;
     boost::dynamic_bitset<> massBins;
     boost::dynamic_bitset<> mzBins;
+   // PrecalcularedAveragine averagines;
 
-    static PrecalcularedAveragine averagines;
-    void updatePrecalculatedAveragines();
     static int getNominalMass(double &m);
 
 

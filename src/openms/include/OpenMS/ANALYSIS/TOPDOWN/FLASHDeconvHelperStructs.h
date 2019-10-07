@@ -103,7 +103,9 @@ namespace OpenMS
 
     struct OPENMS_DLLAPI LogMzPeak
     {
-      Peak1D *orgPeak;
+      //Peak1D *orgPeak;
+      double mz = 0;
+      double intensity = 0;
       double logMz = 0;
       double mass = .0;
       int charge = 0;
@@ -114,7 +116,7 @@ namespace OpenMS
 
       explicit LogMzPeak(Peak1D &peak);
 
-      LogMzPeak(Peak1D &peak, int c, int i);
+      LogMzPeak(LogMzPeak &peak, int c, int i);
 
       ~LogMzPeak();
 
@@ -155,3 +157,5 @@ namespace OpenMS
     static double getLogMz(double mz);
   };
 }
+
+
