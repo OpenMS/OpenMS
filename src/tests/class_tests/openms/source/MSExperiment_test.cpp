@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -42,6 +42,7 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 ///////////////////////////
 
@@ -167,7 +168,7 @@ START_SECTION((MSExperiment& operator= (const MSExperiment&& source)))
   // test move
   TEST_EQUAL(tmp.size(),0);
 
-  tmp2 = std::move(PeakMap());
+  tmp2 = PeakMap(); // use rvalue assignment
   TEST_EQUAL(tmp2.getContacts().size(),0);
   TEST_EQUAL(tmp2.size(),0);
 }
@@ -1214,25 +1215,88 @@ START_SECTION((std::vector<MSChromatogram >& getChromatograms()))
 }
 END_SECTION
 
-START_SECTION((const MSChromatogram getTIC() const))
+START_SECTION((const MSChromatogram getTIC(float rt_bin_size=0) const))
 {
-  PeakMap tmp;
-  tmp.resize(2);
-  Peak1D p;
-  p.setMZ(5.0);
-  p.setIntensity(3);
-  tmp[0].push_back(p);
-  p.setMZ(10.0);
-  p.setIntensity(5);
-  tmp[0].push_back(p);
-  p.setMZ(5.0);
-  p.setIntensity(2);
-  tmp[1].push_back(p);
-  tmp.updateRanges();
-  MSChromatogram chrom = tmp.getTIC();
-  TEST_EQUAL(chrom.size(), 2);
-  TEST_EQUAL(chrom[0].getIntensity(), 8);
-  TEST_EQUAL(chrom[1].getIntensity(), 2);
+	MSChromatogram chrom;
+  // Dummy peakmap
+	PeakMap exp;
+	exp.resize(4);
+	Peak1D p;
+
+	// MS spectrum at RT = 0
+	p.setMZ(5.0);
+	p.setIntensity(3);
+	exp[0].push_back(p);
+	p.setMZ(10.0);
+	p.setIntensity(5);
+	exp[0].push_back(p);
+	exp[0].setMSLevel(1);
+	exp[0].setRT(0);
+
+	// MS spectrum at RT = 2
+	p.setMZ(5.0);
+	p.setIntensity(2);
+	exp[1].push_back(p);
+	exp[1].setMSLevel(1);
+	exp[1].setRT(2);
+
+	// MSMS spectrum at RT = 2
+	p.setMZ(5.0);
+	p.setIntensity(0.5);
+	exp[2].push_back(p);
+	exp[2].setMSLevel(2);
+	exp[2].setRT(2);
+
+	// MS spectrum at RT = 5
+	p.setMZ(5.0);
+	p.setIntensity(2.0);
+	exp[3].push_back(p);
+	p.setMZ(10.0);
+	p.setIntensity(3.0);
+	exp[3].push_back(p);
+	p.setMZ(15.0);
+	p.setIntensity(4.0);
+	exp[3].push_back(p);
+	exp[3].setMSLevel(1);
+	exp[3].setRT(5);
+
+	exp.updateRanges();
+
+	// empty MSExperiment
+	MSExperiment exp2;
+	chrom = exp2.getTIC();
+	TEST_EQUAL(chrom.empty(),true);
+
+	// no binning
+	chrom = exp.getTIC();
+	ABORT_IF(chrom.size() != 3);
+	TEST_EQUAL(chrom[0].getIntensity(),8);
+	TEST_EQUAL(chrom[1].getIntensity(),2);
+	TEST_EQUAL(chrom[2].getIntensity(),9);
+
+	// bin size smaller than highest RT
+	chrom = exp.getTIC(2.0);
+	ABORT_IF(chrom.size() != 4);
+	TEST_EQUAL(chrom[0].getIntensity(),8);
+	TEST_EQUAL(chrom[1].getIntensity(),2);
+	// Intensity at RT = 5 in between new data points at 4.0 and 6.0
+	TEST_EQUAL(chrom[2].getIntensity(),4.5);
+	TEST_EQUAL(chrom[3].getIntensity(),4.5);
+
+	// bin size bigger than highest RT
+	chrom = exp.getTIC(6.0);
+	ABORT_IF(chrom.size() != 2);
+	// Intensities at RT = 2 and RT = 5 in between new data points at 0.0 and 6.0
+	TEST_REAL_SIMILAR(chrom[0].getIntensity(),8.0 + 2.0* 4.0/6.0 + 9 * 1.0/6.0);
+	TEST_REAL_SIMILAR(chrom[1].getIntensity(),2.0* 2.0/6.0 + 9 * 5.0/6.0);
+
+	// negative bin size
+	chrom = exp.getTIC(-1.0);
+	// should be like no bin size was given
+	ABORT_IF(chrom.size() != 3);
+	TEST_EQUAL(chrom[0].getIntensity(),8);
+	TEST_EQUAL(chrom[1].getIntensity(),2);
+	TEST_EQUAL(chrom[2].getIntensity(),9);
 }
 END_SECTION
 

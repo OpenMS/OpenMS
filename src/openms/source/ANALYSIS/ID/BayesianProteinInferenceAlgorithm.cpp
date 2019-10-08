@@ -31,6 +31,7 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -41,7 +42,7 @@
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/openms_package_version.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <set>
 
@@ -442,6 +443,7 @@ namespace OpenMS
       FalseDiscoveryRate fdr;
       Param fdrparam = fdr.getParameters();
       fdrparam.setValue("conservative",param_.getValue("param_optimize:conservative_fdr"));
+      fdrparam.setValue("add_decoy_proteins","true");
       fdr.setParameters(fdrparam);
       return fdr.applyEvaluateProteinIDs(ibg_.getProteinIDs(), 1.0, 50, static_cast<double>(param_.getValue("param_optimize:aucweight")));
     }
@@ -474,13 +476,6 @@ namespace OpenMS
                           "Remove PSMs with probabilities less than or equal this cutoff");
     defaults_.setMinFloat("psm_probability_cutoff", 0.0);
     defaults_.setMaxFloat("psm_probability_cutoff", 1.0);
-
-    defaults_.setValue("min_psms_extreme_probability",
-                          0.0,
-                          "Set PSMs with probability lower than this to this minimum probability.");
-    defaults_.setValue("max_psms_extreme_probability",
-                          1.0,
-                          "Set PSMs with probability higher than this to this maximum probability.");
 
     defaults_.setValue("top_PSMs",
                        1,
@@ -614,7 +609,26 @@ namespace OpenMS
 
   void BayesianProteinInferenceAlgorithm::updateMembers_()
   {
-    //Note: this function can be changed, e.g. when we want to do a extremum removal etc. beforehand
+    //Note: the following lambda function can be changed, e.g. when we want to do a extremum removal etc. beforehand
+    /*
+    double min_nonnull_obs_probability = getDoubleOption_("min_psms_extreme_probability");
+    double max_nonone_obs_probability = getDoubleOption_("max_psms_extreme_probability");
+    // Currently unused
+    bool datadependent_extrema_removal = false;
+    if (datadependent_extrema_removal)
+    {
+      pair<double,double> minmax = checkExtremePSMScores_(mergedpeps);
+      min_nonnull_obs_probability = minmax.first;
+      max_nonone_obs_probability = minmax.second;
+    }
+
+    if (min_nonnull_obs_probability > 0.0 || max_nonone_obs_probability < 1.0 )
+    {
+      removeExtremeValues_(mergedpeps, min_nonnull_obs_probability, max_nonone_obs_probability);
+    }
+    */
+    //TODO also convert potential PEPs to PPs in ProteinHits? In case you want to use them as priors or
+    // emergency posteriors?
     //TODO test performance of getting the probability cutoff everytime vs capture free lambda
     double probability_cutoff = param_.getValue("psm_probability_cutoff");
     checkConvertAndFilterPepHits_ = [probability_cutoff](PeptideIdentification &pep_id/*, const String& run_id*/)
@@ -657,7 +671,7 @@ namespace OpenMS
   {
     proteinIDs.setScoreType("Posterior Probability");
     proteinIDs.setInferenceEngine("Epifany");
-    proteinIDs.setInferenceEngineVersion(OPENMS_PACKAGE_VERSION);
+    proteinIDs.setInferenceEngineVersion(VersionInfo::getVersion());
     proteinIDs.setHigherScoreBetter(true);
   }
 
@@ -890,6 +904,14 @@ namespace OpenMS
     IDFilter::removeEmptyIdentifications(peptideIDs);
 
     Size nr_top_psms = static_cast<Size>(param_.getValue("top_PSMs"));
+
+    //TODO actually if we just want to use replicate information, we can still filter for best per run,
+    // but the extended model is currently coupled to multiple charge and mod states (which would be removed)
+    if (!use_run_info)
+    {
+      IDFilter::keepBestPerPeptidePerRun(proteinIDs, peptideIDs, true, true, static_cast<unsigned int>(nr_top_psms));
+      IDFilter::removeEmptyIdentifications(peptideIDs);
+    }
 
     FalseDiscoveryRate pepFDR;
     Param p = pepFDR.getParameters();

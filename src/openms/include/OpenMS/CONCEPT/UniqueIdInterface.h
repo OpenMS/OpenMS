@@ -40,14 +40,14 @@
 namespace OpenMS
 {
 
-/** @brief A base class defining a common interface for all classes having a unique id.
+  /** @brief A base class defining a common interface for all classes having a unique id.
 
- Have a look at RichPeak2D for an example how to extend a class to support unique ids.
+   Have a look at RichPeak2D for an example how to extend a class to support unique ids.
 
- @sa UniqueIdGenerator, RichPeak2D
+   @sa UniqueIdGenerator, RichPeak2D
 
- @ingroup Concept
- */
+   @ingroup Concept
+   */
   class OPENMS_DLLAPI UniqueIdInterface
   {
 public:
@@ -79,23 +79,19 @@ public:
     }
 
     /// Copy constructor - copies the unique id
-    UniqueIdInterface(const UniqueIdInterface & rhs) :
-      unique_id_(rhs.unique_id_)
-    {
-    }
+    UniqueIdInterface(const UniqueIdInterface & rhs) = default;
+
+    /// Move constructor 
+    UniqueIdInterface(UniqueIdInterface && rhs) = default;
 
     /// Assignment operator - copies the unique id
-    UniqueIdInterface &
-    operator=(UniqueIdInterface const & rhs)
-    {
-      unique_id_ = rhs.unique_id_;
-      return *this;
-    }
+    UniqueIdInterface & operator=(UniqueIdInterface const & rhs) = default;
+
+    /// Move Assignment operator - copies the unique id
+    UniqueIdInterface& operator=(UniqueIdInterface&&) & = default;
 
     /// Destructor
-    virtual ~UniqueIdInterface()
-    {
-    }
+    virtual ~UniqueIdInterface() = default;
 
     /// Equality comparison operator - the unique ids must be equal (!)
     bool

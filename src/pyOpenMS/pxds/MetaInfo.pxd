@@ -17,6 +17,11 @@ cdef extern from "<OpenMS/METADATA/MetaInfo.h>" namespace "OpenMS":
         # returns the value corresponding to an index
         DataValue getValue(UInt index) nogil except +
 
+        # returns the value corresponding to a string, with default
+        DataValue getValue(String name, DataValue default_value) nogil except +
+        # returns the value corresponding to an index, with default
+        DataValue getValue(UInt index, DataValue default_value) nogil except +
+
         # returns if this MetaInfo is set
         bool exists(String name) nogil except +
         # returns if this MetaInfo is set

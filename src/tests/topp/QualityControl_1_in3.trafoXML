@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrafoXML version="1.1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/TrafoXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Transformation name="b_spline">
+		<Param  type="float" name="wavelength" value="0.0"/>
+		<Param  type="int" name="num_nodes" value="5"/>
+		<Param  type="string" name="extrapolate" value="linear"/>
+		<Param  type="int" name="boundary_condition" value="2"/>
+		<Pairs count="5">
+			<Pair from="1341.62658691406" to="1341.62658691406" note="AHGDLSENAEYHAAK"/>
+			<Pair from="1346.23913574219" to="1353.99035644531" note="ARAEDAMDEASGR"/>
+			<Pair from="1347.32495117188" to="1347.32495117188" note="DAEAEAYAR"/>
+			<Pair from="1348.44360351563" to="1373.31652832031" note="EALQGEHEAHAEAVAR"/>
+			<Pair from="1339.60534667969" to="1359.54412841797" note="IASVSANAGADPHR"/>
+		</Pairs>
+	</Transformation>
+</TrafoXML>

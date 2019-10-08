@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -220,7 +220,7 @@ public:
         {
           continue;
         }
-				typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
+        typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
         for (typename SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
         {
           cont.push_back(s);
@@ -528,8 +528,15 @@ public:
     Size getNrChromatograms() const;
     //@}
 
-    /// returns the total ion chromatogram (TIC)
-    const MSChromatogram getTIC() const;
+    /**
+    @brief Compute Total Ion Count per MS1 spectrum and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+
+    By default, each MS1 spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
+
+    @param bin_size RT bin size in seconds
+    @return TIC Chromatogram
+    **/
+    const MSChromatogram getTIC(float rt_bin_size = 0) const;
 
     /**
       @brief Clears all data and meta data

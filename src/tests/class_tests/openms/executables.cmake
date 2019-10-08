@@ -15,6 +15,17 @@ set(concept_executables_list
   UniqueIdIndexer_test
   UniqueIdInterface_test
 )
+set(qc_executables_list
+  Contaminants_test
+  FragmentMassError_test
+  MissedCleavages_test
+  Ms2IdentificationRate_test
+  MzCalibration_test
+  QCBase_test
+  RTAlignment_test
+  TIC_test
+  TopNoverRT_test
+)
 
 set(datastructures_executables_list
   Adduct_test
@@ -656,6 +667,7 @@ if(NOT DISABLE_OPENSWATH)
     SpectrumHelpers_test
     StatsHelpers_test
     SwathQC_test
+    IonMobilityScoring_test
     CachedMzML_test
     CachedMzMLHandler_test
     HDF5_test
@@ -696,4 +708,5 @@ set(TEST_executables
     ${transformations_executables_list}
     ${simulation_executables_list}
     ${swath_executables_list}
+    ${qc_executables_list}
 )
