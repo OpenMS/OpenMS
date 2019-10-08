@@ -117,16 +117,6 @@ namespace OpenMS
         allPeakGroups.push_back(pg);
       }
     }
-/*
-    delete[] filter;
-
-    for (Size k = 0; k < param.hCharges.size(); k++)
-    {
-      delete[] harmonicFilter[k];
-    }
-    delete[] harmonicFilter;
-    */
-//    delete[] random;
     printProgress(1); //
     //allPeakGroups.shrink_to_fit();
     return allPeakGroups; //

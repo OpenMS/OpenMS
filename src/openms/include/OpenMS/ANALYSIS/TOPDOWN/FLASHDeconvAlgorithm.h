@@ -85,11 +85,11 @@ public:
   protected:
     MSExperiment map;
     Parameter param;
-    std::vector<LogMzPeak> logMzPeaks;
-    double* filter;
-    double** harmonicFilter;
-    boost::dynamic_bitset<> massBins;
-    boost::dynamic_bitset<> mzBins;
+    //std::vector<LogMzPeak> logMzPeaks;
+   // double* filter;
+    //double** harmonicFilter;
+    //boost::dynamic_bitset<> massBins;
+    //boost::dynamic_bitset<> mzBins;
    // PrecalcularedAveragine averagines;
 
     static int getNominalMass(double &m);

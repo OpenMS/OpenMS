@@ -4,6 +4,7 @@ set(directory source/ANALYSIS/TOPDOWN)
 ### list all filenames of the directory here
 set(sources_list
 MassFeatureTrace.cpp
+		PeakGroupScoring.cpp
 SpectrumDeconvolution.cpp
 FLASHDeconvAlgorithm.cpp
 FLASHDeconvHelperStructs.cpp

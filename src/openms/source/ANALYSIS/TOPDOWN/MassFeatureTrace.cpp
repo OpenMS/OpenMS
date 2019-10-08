@@ -76,10 +76,10 @@ namespace OpenMS
 
     mtdet.run(map, m_traces);  // m_traces : output of this function
 
-    double *perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
-    double *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
-    double *perChargeMz = new double[param.chargeRange + param.minCharge + 1];
-    double *perIsotopeIntensity = new double[param.maxIsotopeCount];
+    auto *perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
+    auto *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
+    auto *perChargeMz = new double[param.chargeRange + param.minCharge + 1];
+    auto *perIsotopeIntensity = new double[param.maxIsotopeCount];
 
     for (auto &mt : m_traces)
     {
@@ -119,9 +119,6 @@ namespace OpenMS
             continue;
           }
 
-         // std::cout<<2<<std::endl;
-         // std::cout<<p.logMz<< " " << p.orgPeak->getIntensity()<<std::endl;
-         // std::cout<<3<<std::endl;
           charges[p.charge] = true;
           perChargeIntensity[p.charge] += p.intensity;
           perIsotopeIntensity[p.isotopeIndex] += p.intensity;
@@ -141,7 +138,7 @@ namespace OpenMS
         continue;
       }
 
-      double chargeScore = SpectrumDeconvolution::getChargeFitScore(perChargeIntensity, param.minCharge + param.chargeRange + 1);
+      double chargeScore = PeakGroupScoring::getChargeFitScore(perChargeIntensity, param.minCharge + param.chargeRange + 1);
       if (chargeScore < param.minChargeCosine) //
       {
         continue;
@@ -149,7 +146,7 @@ namespace OpenMS
 
       int offset = 0;
       double mass = mt.getCentroidMZ();
-      double isoScore = SpectrumDeconvolution::getIsotopeCosineAndDetermineIsotopeIndex(mass,
+      double isoScore = PeakGroupScoring::getIsotopeCosineAndDetermineIsotopeIndex(mass,
                                                                                        perIsotopeIntensity,
                                                                                        param.maxIsotopeCount,
                                                                                         offset,averagines);
