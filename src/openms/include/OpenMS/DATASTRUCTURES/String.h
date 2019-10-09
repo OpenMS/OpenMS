@@ -474,7 +474,7 @@ public:
         return;
       }
 
-      std::string::operator=(* first);
+      std::string::operator=(*first);
       for (StringIterator it = ++first; it != last; ++it)
       {
         std::string::operator+=(glue + (*it));

@@ -33,8 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/OMSFile.h>
-#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/SYSTEM/File.h>
 
 // strangely, this is needed for type conversions in "QSqlQuery::bindValue":
 #include <QtSql/QSqlQueryModel>
@@ -125,6 +128,25 @@ namespace OpenMS
     query.bindValue(":openms_version", VersionInfo::getVersion().toQString());
     query.bindValue(":build_date", VersionInfo::getTime().toQString());
     if (!query.exec())
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error inserting data");
+    }
+  }
+
+
+  void OMSFile::OMSFileStore::createTableMoleculeType_()
+  {
+    createTable_("ID_MoleculeType",
+                 "id INTEGER PRIMARY KEY NOT NULL, "    \
+                 "molecule_type TEXT UNIQUE NOT NULL");
+    QString sql_insert =
+      "INSERT INTO ID_MoleculeType VALUES "     \
+      "(1, 'PROTEIN'), "                        \
+      "(2, 'COMPOUND'), "                       \
+      "(3, 'RNA')";
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    if (!query.exec(sql_insert))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error inserting data");
@@ -333,7 +355,7 @@ namespace OpenMS
     for (auto score_pair : step.scores)
     {
       query.bindValue(":score_type_id", Key(&(*score_pair.first)));
-      query.bindValue(":value", score_pair.second);
+      query.bindValue(":score", score_pair.second);
       if (!query.exec())
       {
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -461,27 +483,125 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileStore::storeDBSearchParams()
+  {
+    if (id_data_.getDBSearchParams().empty()) return;
+
+    if (!tableExists_(db_name_, "ID_MoleculeType")) createTableMoleculeType_();
+
+    createTable_(
+      "ID_DBSearchParam",
+      "id INTEGER PRIMARY KEY NOT NULL, "                               \
+      "molecule_type_id INTEGER NOT NULL, "                             \
+      "mass_type_average NUMERIC NOT NULL CHECK (mass_type_average in (0, 1)) DEFAULT 0, " \
+      "database TEXT, "                                                 \
+      "database_version TEXT, "                                         \
+      "taxonomy TEXT, "                                                 \
+      "charges TEXT, "                                                  \
+      "fixed_mods TEXT, "                                               \
+      "variable_mods TEXT, "                                            \
+      "precursor_mass_tolerance REAL, "                                 \
+      "fragment_mass_tolerance REAL, "                                  \
+      "precursor_tolerance_ppm NUMERIC NOT NULL CHECK (precursor_tolerance_ppm in (0, 1)) DEFAULT 0, " \
+      "fragment_tolerance_ppm NUMERIC NOT NULL CHECK (fragment_tolerance_ppm in (0, 1)) DEFAULT 0, " \
+      "digestion_enzyme TEXT, "                                         \
+      "missed_cleavages NUMERIC, "                                      \
+      "min_length NUMERIC, "                                            \
+      "max_length NUMERIC, "                                            \
+      "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)");
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO ID_DBSearchParam VALUES (" \
+                  ":id, "                                 \
+                  ":molecule_type_id, "                   \
+                  ":mass_type_average, "                  \
+                  ":database, "                           \
+                  ":database_version, "                   \
+                  ":taxonomy, "                           \
+                  ":charges, "                            \
+                  ":fixed_mods, "                         \
+                  ":variable_mods, "                      \
+                  ":precursor_mass_tolerance, "           \
+                  ":fragment_mass_tolerance, "            \
+                  ":precursor_tolerance_ppm, "            \
+                  ":fragment_tolerance_ppm, "             \
+                  ":digestion_enzyme, "                   \
+                  ":missed_cleavages, "                   \
+                  ":min_length, "                         \
+                  ":max_length)");
+    for (const ID::DBSearchParam& param : id_data_.getDBSearchParams())
+    {
+      query.bindValue(":id", Key(&param));
+      query.bindValue(":molecule_type_id", int(param.molecule_type) + 1);
+      query.bindValue(":mass_type_average", int(param.mass_type));
+      query.bindValue(":database", param.database.toQString());
+      query.bindValue(":database_version", param.database_version.toQString());
+      query.bindValue(":taxonomy", param.taxonomy.toQString());
+      String charges = ListUtils::concatenate(param.charges, ",");
+      query.bindValue(":charges", charges.toQString());
+      String fixed_mods = ListUtils::concatenate(param.fixed_mods, ",");
+      query.bindValue(":fixed_mods", fixed_mods.toQString());
+      String variable_mods = ListUtils::concatenate(param.variable_mods, ",");
+      query.bindValue(":variable_mods", variable_mods.toQString());
+      query.bindValue(":precursor_mass_tolerance",
+                      param.precursor_mass_tolerance);
+      query.bindValue(":fragment_mass_tolerance",
+                      param.fragment_mass_tolerance);
+      query.bindValue(":precursor_tolerance_ppm",
+                      int(param.precursor_tolerance_ppm));
+      query.bindValue(":fragment_tolerance_ppm",
+                      int(param.fragment_tolerance_ppm));
+      if (param.digestion_enzyme != nullptr)
+      {
+        query.bindValue(":digestion_enzyme",
+                        param.digestion_enzyme->getName().toQString());
+      }
+      else // bind NULL value
+      {
+        query.bindValue(":digestion_enzyme", QVariant(QVariant::String));
+      }
+      query.bindValue(":missed_cleavages", uint(param.missed_cleavages));
+      query.bindValue(":min_length", uint(param.min_length));
+      query.bindValue(":max_length", uint(param.max_length));
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+  }
+
+
   void OMSFile::OMSFileStore::storeDataProcessingSteps()
   {
     if (id_data_.getDataProcessingSteps().empty()) return;
 
-    createTable_("ID_DataProcessingStep",
-                 "id INTEGER PRIMARY KEY NOT NULL, " \
-                 "software_id INTEGER NOT NULL, "    \
-                 "primary_files TEXT, "              \
-                 "date_time TEXT");
+    createTable_(
+      "ID_DataProcessingStep",
+      "id INTEGER PRIMARY KEY NOT NULL, "                               \
+      "software_id INTEGER NOT NULL, "                                  \
+      "primary_files TEXT, "                                            \
+      "date_time TEXT, "                                                \
+      "search_param_id INTEGER, "                                       \
+      "FOREIGN KEY (search_param_id) REFERENCES ID_DBSearchParam (id)");
     // @TODO: add support for processing actions
     // @TODO: store primary files in a separate table (like input files)?
+    // @TODO: store (optional) search param reference in a separate table?
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO ID_DataProcessingStep VALUES ("  \
                   ":id, "                                       \
                   ":software_id, "                              \
                   ":primary_files, "                            \
-                  ":data_time)");
+                  ":data_time, "                                \
+                  ":search_param_id)");
     bool any_input_files = false;
-    for (const ID::DataProcessingStep& step : id_data_.getDataProcessingSteps())
+    // use iterator here because we need one to look up the DB search params:
+    for (ID::ProcessingStepRef step_ref =
+           id_data_.getDataProcessingSteps().begin(); step_ref !=
+           id_data_.getDataProcessingSteps().end(); ++step_ref)
     {
+      const ID::DataProcessingStep& step = *step_ref;
       if (!step.input_file_refs.empty()) any_input_files = true;
       query.bindValue(":id", Key(&step));
       query.bindValue(":software_id", Key(&(*step.software_ref)));
@@ -489,6 +609,15 @@ namespace OpenMS
       String primary_files = ListUtils::concatenate(step.primary_files, ",");
       query.bindValue(":primary_files", primary_files.toQString());
       query.bindValue(":date_time", step.date_time.get().toQString());
+      auto pos = id_data_.getDBSearchSteps().find(step_ref);
+      if (pos != id_data_.getDBSearchSteps().end())
+      {
+        query.bindValue(":search_param_id", Key(&(*pos->second)));
+      }
+      else
+      {
+        query.bindValue(":search_param_id", QVariant(QVariant::Int)); // NULL
+      }
       if (!query.exec())
       {
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -533,22 +662,7 @@ namespace OpenMS
   {
     if (id_data_.getParentMolecules().empty()) return;
 
-    // table for molecule types (enum MoleculeType):
-    createTable_("ID_MoleculeType",
-                 "id INTEGER PRIMARY KEY NOT NULL, "    \
-                 "molecule_type TEXT UNIQUE NOT NULL");
-
-    QString sql_insert =
-      "INSERT INTO ID_MoleculeType VALUES "     \
-      "(1, 'PROTEIN'), "                        \
-      "(2, 'COMPOUND'), "                       \
-      "(3, 'RNA')";
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    if (!query.exec(sql_insert))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error inserting data");
-    }
+    if (!tableExists_(db_name_, "ID_MoleculeType")) createTableMoleculeType_();
 
     createTable_(
       "ID_ParentMolecule",
@@ -561,10 +675,11 @@ namespace OpenMS
       "is_decoy NUMERIC NOT NULL CHECK (is_decoy in (0, 1)) DEFAULT 0, " \
       "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)");
 
+    QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO ID_ParentMolecule VALUES ("  \
                   ":id, "                                   \
                   ":accession, "                            \
-                  ":molecule_type, "                        \
+                  ":molecule_type_id, "                     \
                   ":sequence, "                             \
                   ":description, "                          \
                   ":coverage, "                             \
@@ -573,7 +688,7 @@ namespace OpenMS
     {
       query.bindValue(":id", Key(&parent)); // use address as primary key
       query.bindValue(":accession", parent.accession.toQString());
-      query.bindValue(":molecule_type", int(parent.molecule_type) + 1);
+      query.bindValue(":molecule_type_id", int(parent.molecule_type) + 1);
       query.bindValue(":sequence", parent.sequence.toQString());
       query.bindValue(":description", parent.description.toQString());
       query.bindValue(":coverage", parent.coverage);
@@ -597,6 +712,7 @@ namespace OpenMS
     helper.storeInputFiles();
     helper.storeScoreTypes();
     helper.storeDataProcessingSoftwares();
+    helper.storeDBSearchParams();
     helper.storeDataProcessingSteps();
     helper.storeParentMolecules();
   }
@@ -810,6 +926,66 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileLoad::loadDBSearchParams()
+  {
+    if (!tableExists_(db_name_, "ID_DBSearchParam")) return;
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_DBSearchParam"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    while (query.next())
+    {
+      Key id = query.value("id").toInt();
+      ID::DBSearchParam param;
+      int molecule_type_index = query.value("molecule_type_id").toInt() - 1;
+      param.molecule_type = ID::MoleculeType(molecule_type_index);
+      int mass_type_index = query.value("mass_type_average").toInt();
+      param.mass_type = ID::MassType(mass_type_index);
+      param.database = query.value("database").toString();
+      param.database_version = query.value("database_version").toString();
+      param.taxonomy = query.value("taxonomy").toString();
+      vector<Int> charges =
+        ListUtils::create<Int>(query.value("charges").toString());
+      param.charges.insert(charges.begin(), charges.end());
+      vector<String> fixed_mods =
+        ListUtils::create<String>(query.value("fixed_mods").toString());
+      param.fixed_mods.insert(fixed_mods.begin(), fixed_mods.end());
+      vector<String> variable_mods =
+        ListUtils::create<String>(query.value("variable_mods").toString());
+      param.variable_mods.insert(fixed_mods.begin(), fixed_mods.end());
+      param.precursor_mass_tolerance =
+        query.value("precursor_mass_tolerance").toDouble();
+      param.fragment_mass_tolerance =
+        query.value("fragment_mass_tolerance").toDouble();
+      param.precursor_tolerance_ppm =
+        query.value("precursor_tolerance_ppm").toInt();
+      param.fragment_tolerance_ppm =
+        query.value("fragment_tolerance_ppm").toInt();
+      String enzyme = query.value("digestion_enzyme").toString();
+      if (!enzyme.empty())
+      {
+        if (param.molecule_type == ID::MoleculeType::PROTEIN)
+        {
+          param.digestion_enzyme = ProteaseDB::getInstance()->getEnzyme(enzyme);
+        }
+        else if (param.molecule_type == ID::MoleculeType::RNA)
+        {
+          param.digestion_enzyme = RNaseDB::getInstance()->getEnzyme(enzyme);
+        }
+      }
+      param.missed_cleavages = query.value("missed_cleavages").toUInt();
+      param.min_length = query.value("min_length").toUInt();
+      param.max_length = query.value("max_length").toUInt();
+      ID::SearchParamRef ref = id_data_.registerDBSearchParam(param);
+      search_param_refs_[id] = ref;
+    }
+  }
+
+
   void OMSFile::OMSFileLoad::loadDataProcessingSteps()
   {
     if (!tableExists_(db_name_, "ID_DataProcessingStep")) return;
@@ -865,7 +1041,18 @@ namespace OpenMS
       {
         handleQueryMetaInfo_(subquery_info, step, id);
       }
-      ID::ProcessingStepRef ref = id_data_.registerDataProcessingStep(step);
+      ID::ProcessingStepRef ref;
+      QVariant opt_search_param_id = query.value("search_param_id");
+      if (opt_search_param_id.isNull()) // no DB search params available
+      {
+        ref = id_data_.registerDataProcessingStep(step);
+      }
+      else
+      {
+        ID::SearchParamRef search_param_ref =
+          search_param_refs_[opt_search_param_id.toInt()];
+        ref = id_data_.registerDataProcessingStep(step, search_param_ref);
+      }
       processing_step_refs_[id] = ref;
     }
   }
@@ -911,6 +1098,7 @@ namespace OpenMS
     helper.loadInputFiles();
     helper.loadScoreTypes();
     helper.loadDataProcessingSoftwares();
+    helper.loadDBSearchParams();
     helper.loadDataProcessingSteps();
     helper.loadParentMolecules();
   }

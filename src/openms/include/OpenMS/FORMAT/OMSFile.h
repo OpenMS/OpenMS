@@ -95,6 +95,8 @@ namespace OpenMS
 
       void storeDataProcessingSoftwares();
 
+      void storeDBSearchParams();
+
       void storeDataProcessingSteps();
 
       void storeParentMolecules();
@@ -102,6 +104,8 @@ namespace OpenMS
     private:
       void createTable_(const String& name, const String& definition,
                         bool may_exist = false);
+
+      void createTableMoleculeType_();
 
       void createTableDataValue_();
 
@@ -188,6 +192,8 @@ namespace OpenMS
 
       void loadDataProcessingSoftwares();
 
+      void loadDBSearchParams();
+
       void loadDataProcessingSteps();
 
       void loadParentMolecules();
@@ -210,6 +216,8 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::ProcessingSoftwareRef> processing_software_refs_;
 
       std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
+
+      std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
     };
 
   };
