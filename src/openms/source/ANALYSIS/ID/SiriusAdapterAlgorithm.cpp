@@ -319,7 +319,7 @@ namespace OpenMS
       }
 
       // library path depends if original or THIRDPARTY version is used.
-      // assemble SIRIUS parameters
+      // assemble SIRIUS parameterj
       QStringList process_params;
       process_params << "-Djava.library.path="+libpath.toQString()
                      << java_memory.toQString()

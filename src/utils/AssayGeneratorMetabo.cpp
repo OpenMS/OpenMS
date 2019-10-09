@@ -129,7 +129,8 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>", "", "SIRIUS executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<executable>", "sirius_openms_plugin-4.0.1.jar", "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("java_executable", "<executable>", "java", "java executable e.g. java", false, false, ListUtils::create<String>("skipexists"));
 
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -234,6 +235,7 @@ protected:
 
     // param SiriusAdapterAlgorithm
     String executable = getStringOption_("executable");
+    String java_executable = getStringOption_("java_executable");
     Param combined; 
     SiriusAdapterAlgorithm sirius_algo;
     Param preprocessing = getParam_().copy("preprocessing", false);
@@ -416,6 +418,7 @@ protected:
         subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(tmp_ms_file,
                                                              tmp_out_dir,
                                                              executable,
+                                                             java_executable,
                                                              out_csifingerid,
                                                              sirius_algo);
   
