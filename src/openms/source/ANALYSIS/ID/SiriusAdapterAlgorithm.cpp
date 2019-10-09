@@ -95,7 +95,9 @@ namespace OpenMS
       defaults_.setValidStrings("sirius:most_intense_ms2", ListUtils::create<String>("true,false"));
       defaults_.setValue("sirius:quiet", "true", "If enabled, SIRIUS' output to the console will be suppressed.", ListUtils::create<String>("advanced"));
       defaults_.setValidStrings("sirius:quiet", ListUtils::create<String>("true,false"));
+      defaults_.setValue("sirius:java_memory", 1024, "Maximum Java heap size (in MB)",ListUtils::create<String>("advanced"));
       defaults_.setSectionDescription("sirius", "Parameters for SIRIUS and CSI:FingerID");
+
 
       defaultsToParam_();
     }
@@ -136,6 +138,7 @@ namespace OpenMS
       no_recalibration_ = param_.getValue("sirius:no_recalibration");
       most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
       quiet_ = param_.getValue("sirius:quiet").toBool();
+      java_memory_ = param_.getValue("sirius:java_memory");
     }   
 
     std::pair<String, String> SiriusAdapterAlgorithm::checkSiriusExecutablePath(String& executable)
@@ -299,12 +302,28 @@ namespace OpenMS
                                              "Error: Sirius executable not found. Please check parameters and your PATH.");
         }
       }
-      QString libpath = exec.absoluteDir().absolutePath(); // + "lib" depending on what we use as reference
+      String libpath = exec.absoluteDir().absolutePath(); // + "lib" depending on what we use as reference
+      String java_memory = "-Xmx" + QString::number(sirius_algo.java_memory_) + "m";
+      String sirius_libpath = libpath+"/*" + ":" + libpath + "/../../../All/Sirius/lib/*";
 
+      // check environment variables for additional solvers
+      if (getenv("GUROBI_HOME") != nullptr)
+      {
+        String gurobi_home = getenv("GUROBI_HOME");
+        sirius_libpath = sirius_libpath + ":" + gurobi_home + "/lib/gurobi.jar";
+      }
+      if (getenv("CPLEX_HOME") != nullptr)
+      {
+        String cplex_home = getenv("CPLEX_HOME");
+        sirius_libpath = sirius_libpath + ":" +  cplex_home + "/lib/cplex.jar";
+      }
+
+      // library path depends if original or THIRDPARTY version is used.
       // assemble SIRIUS parameters
       QStringList process_params;
-      process_params << "-Djava.library.path="+libpath
-                     << "-classpath" << libpath+"/*"
+      process_params << "-Djava.library.path="+libpath.toQString()
+                     << java_memory.toQString()
+                     << "-classpath" << sirius_libpath.toQString()
                      << "de.unijena.bioinf.ms.cli.SiriusCLIApplication"
                      << "-p" << sirius_algo.profile_.toQString()
                      << "-e" << sirius_algo.elements_.toQString()

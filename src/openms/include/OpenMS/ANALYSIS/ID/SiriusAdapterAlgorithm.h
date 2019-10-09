@@ -169,6 +169,7 @@ namespace OpenMS
       String no_recalibration_;
       String most_intense_ms2_;
       bool quiet_;
+      int java_memory_;
 
       void updateMembers_() override;
     };
