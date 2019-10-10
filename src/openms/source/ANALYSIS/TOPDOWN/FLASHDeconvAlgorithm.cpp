@@ -76,13 +76,15 @@ namespace OpenMS
     std::vector<PeakGroup> allPeakGroups;
     allPeakGroups.reserve(100000);
     //to overlap previous mass bins.
-    std::vector<std::vector<Size>> prevMassBinVector;
-    std::vector<double> prevMinBinLogMassVector;
+
     //vector <MSSpectrum> prevSpectra;
 
+    std::map<UInt, std::vector<std::vector<Size>>> prevMassBinMap;
+    std::map<UInt,std::vector<double>> prevMinBinLogMassMap;
     for (auto it = map.begin(); it != map.end(); ++it)
     {
-      if ((int) it->getMSLevel() > param.maxMSLevel)
+      auto msLevel =  it->getMSLevel();
+      if ((int) msLevel> param.maxMSLevel)
       {
         continue;
       }
@@ -96,7 +98,13 @@ namespace OpenMS
 
       specCntr++;
       auto sd = SpectrumDeconvolution(*it, param);
-      auto peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinVector, prevMinBinLogMassVector,avg);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
+
+      if(prevMassBinMap.find(msLevel) == prevMassBinMap.end()){
+        prevMassBinMap[msLevel] = std::vector<std::vector<Size>>();
+        prevMinBinLogMassMap[msLevel] = std::vector<double>();
+      }
+
+      auto & peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap[msLevel], prevMinBinLogMassMap[msLevel],avg, msLevel);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
 
       if (peakGroups.empty())
       {

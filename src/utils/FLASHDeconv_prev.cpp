@@ -696,61 +696,59 @@ protected:
 
   void
   findFeatures(vector<PeakGroup> &peakGroups,
-               MSExperiment &mp,
+               MSExperiment &map,
                int &featureCntr,
                fstream &fsf,
                PrecalcularedAveragine &averagines,
                Parameter &param)
   {
 
-    MSExperiment map;
     boost::unordered_map<float, PeakGroup> *peakGroupMap;
-    // boost::unordered_map<float, MSSpectrum> rtOrignalSpecMap;
     boost::unordered_map<float, int> rtSpecMap;
 
+    for (auto it = map.begin(); it != map.end(); ++it)
+    {
+      it->clear(false);
+    }
+
     int maxSpecIndex = 0;
-    //cout<<peakGroups.size()<<endl;
     for (auto &pg : peakGroups)
     {
       auto &spec = pg.spec;
-      //std::cout<<pg.monoisotopicMass<<" "<<pg.intensity<<std::endl;
+
       Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);
 
       rtSpecMap[spec->getRT()] = pg.specIndex;
-      maxSpecIndex = maxSpecIndex > pg.specIndex ? maxSpecIndex : pg.specIndex ;
-      //cout<<spec->getRT();
-      MSSpectrum massSpec;
-      massSpec.setRT(spec->getRT());
-      massSpec.push_back(tp);
-      map.addSpectrum(massSpec);
-      //std::cout<<pg.specIndex<<std::endl;
+      maxSpecIndex = max(maxSpecIndex, pg.specIndex);
+
+      spec->push_back(tp);
     }
     peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
 
     for (auto &pg : peakGroups)
     {
       //      auto &spec = pg.spec;
+
       auto &pgMap = peakGroupMap[pg.specIndex];
 
       pgMap[pg.monoisotopicMass] = pg;
-     // std::cout<<pg.monoisotopicMass<< " " << pg.specIndex << std::endl;
     }
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       it->sortByPosition();
-      // cout<<it->size()<<endl;
     }
 
-    MassTraceDetection mtdet;
     Param common_param = getParam_().copy("algorithm:common:", true);
     writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
     Param mtd_param = getParam_().copy("algorithm:mtd:", true);
     writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
 
+    MassTraceDetection mtdet;
     mtd_param.insert("", common_param);
     mtd_param.remove("chrom_fwhm");
+
     //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
     //                   "Allowed mass deviation (in da).");
     mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 2, "");
@@ -767,10 +765,10 @@ protected:
     //mtd_param.setValue("max_trace_length", 1000.0, "");
     mtdet.setParameters(mtd_param);
 
-    std::vector<MassTrace> m_traces;
-
+    vector<MassTrace> m_traces;
     mtdet.run(map, m_traces);  // m_traces : output of this function
 
+    // cout<<1<<endl;
     double *perChargeIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMaxIntensity = new double[param.chargeRange + param.minCharge + 1];
     double *perChargeMz = new double[param.chargeRange + param.minCharge + 1];
@@ -778,24 +776,33 @@ protected:
 
     for (auto &mt : m_traces)
     {
+      //if (mt.getSize() < 3)
+      //{
+        //continue;
+     // }
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
       boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
-      std::fill_n(perChargeIntensity, param.chargeRange + param.minCharge + 1, 0);
-      std::fill_n(perChargeMaxIntensity, param.chargeRange + param.minCharge + 1, 0);
-      std::fill_n(perChargeMz, param.chargeRange + param.minCharge + 1, 0);
-      std::fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
+
+      fill_n(perChargeIntensity, param.chargeRange + param.minCharge + 1, 0);
+      fill_n(perChargeMaxIntensity, param.chargeRange + param.minCharge + 1, 0);
+      fill_n(perChargeMz, param.chargeRange + param.minCharge + 1, 0);
+      fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
+      //mt.getIntensity()
+      //double sum_intensity = .0;
+      //double mass = 0;//mt.getCentroidMZ();
+      //double avgMass = 0;
       double massDiff = 0;
       double max_intensity = -1;
 
       for (auto &p2 : mt)
       {
-       // std::cout << p2.getRT() << " " << p2.getMZ() << std::endl;
         int specIndex = rtSpecMap[(float) p2.getRT()];
         auto &pgMap = peakGroupMap[specIndex];
         auto &pg = pgMap[(float) p2.getMZ()];
-        minCharge = minCharge < pg.minCharge? minCharge : pg.minCharge;
-        maxCharge = maxCharge > pg.maxCharge? maxCharge : pg.maxCharge;
+        minCharge = min(minCharge, pg.minCharge);
+        maxCharge = max(maxCharge, pg.maxCharge);
+        //sum_intensity += pg.intensity;
         if (pg.intensity > max_intensity)
         {
           max_intensity = pg.intensity;
@@ -818,10 +825,15 @@ protected:
           }
           perChargeMaxIntensity[p.charge] = p.orgPeak->getIntensity();
           perChargeMz[p.charge] = p.orgPeak->getMZ();
-
         }
+        /*if (max_intensity > pg.intensity)
+        {
+          continue;
+        }
+        max_intensity = pg.intensity;
+        mass = pg.monoisotopicMass;*/
       }
-
+      // cout<<2<<endl;
       if (massDiff <= 0)
       {
         continue;
@@ -851,9 +863,10 @@ protected:
         //avgMass += offset * Constants::C13C12_MASSDIFF_U;
         //p.isotopeIndex -= offset;
       }
+
       //auto mass = mt.getCentroidMZ();
-      fsf << ++featureCntr << "\t" << param.fileName << "\t" << std::to_string(mass) << "\t"
-          << std::to_string(mass + massDiff) << "\t"
+      fsf << ++featureCntr << "\t" << param.fileName << "\t" << to_string(mass) << "\t"
+          << to_string(mass + massDiff) << "\t"
           << mt.getSize() << "\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
           //<< getNominalMass(mass) << "\t"
@@ -868,11 +881,28 @@ protected:
           << charges.count() << "\t"
           << isoScore << "\t"
           << chargeScore << "\n";
+
+      // cout<<3<<endl;
+
+      /*for (int charge = param.minCharge; charge < param.chargeRange + param.minCharge; charge++)
+      {
+        if (perChargeIntensity[charge] <= 0)
+        {
+          continue;
+        }
+        fsf << charge << "," << perChargeMz[charge] << "," << perChargeIntensity[charge] << ";";
+      }
+      fsf << param.chargeRange + param.minCharge << "," <<
+          perChargeMz[param.chargeRange + param.minCharge] << "," <<
+          perChargeIntensity[param.chargeRange + param.minCharge] << "\n";
+*/
     }
+    // cout<<4<<endl;
     delete[] perIsotopeIntensity;
     delete[] perChargeMz;
     delete[] perChargeMaxIntensity;
     delete[] perChargeIntensity;
+
     delete[] peakGroupMap;
     // cout<<4.1<<endl;
   }

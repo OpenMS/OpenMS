@@ -18,6 +18,7 @@ namespace OpenMS
     boost::unordered_map<float, PeakGroup> *peakGroupMap;
     // boost::unordered_map<float, MSSpectrum> rtOrignalSpecMap;
     boost::unordered_map<float, int> rtSpecMap;
+    std::map<int, MSSpectrum> indexSpecMap;
 
     int maxSpecIndex = 0;
 
@@ -25,17 +26,26 @@ namespace OpenMS
     {
       auto &spec = pg.spec;
 
-      Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);
-
+      if (indexSpecMap.find(pg.specIndex) == indexSpecMap.end()){
+        indexSpecMap[pg.specIndex] = MSSpectrum();
+      }
+      auto &deconvSpec = indexSpecMap[pg.specIndex];
       rtSpecMap[spec->getRT()] = pg.specIndex;
       maxSpecIndex = maxSpecIndex > pg.specIndex ? maxSpecIndex : pg.specIndex ;
-      //cout<<spec->getRT();
-      MSSpectrum massSpec;
-      massSpec.setRT(spec->getRT());
-      massSpec.push_back(tp);
-      map.addSpectrum(massSpec);
-    //  std::cout<<pg.specIndex<<std::endl;
+
+      deconvSpec.setRT(spec->getRT());
+      Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);
+      deconvSpec.push_back(tp);
     }
+
+    //int tmp = 0;
+    for(auto iter = indexSpecMap.begin(); iter != indexSpecMap.end(); ++iter)
+    {
+      //tmp+=(iter->second).size();
+      map.addSpectrum(iter->second);
+    }
+
+    //std::cout<<map.size()<< " " <<tmp<< std::endl;
     peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
 
     for (auto &pg : peakGroups)

@@ -41,7 +41,8 @@ namespace OpenMS
 
     std::vector<PeakGroup>& getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                    std::vector<double> &prevMinBinLogMassVector,
-                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
+                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
+                                                     int msLevel);
 
 
   protected:
@@ -76,22 +77,25 @@ namespace OpenMS
                            std::vector<std::vector<Size>> &prevMassBinVector,
                            std::vector<double> &prevMassBinMinValue);
 
-    Byte **updateMassBins_(boost::dynamic_bitset<> candidateMassBinsForThisSpectrum,
+    Byte **updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
                            float *massIntensities,
-                           long &binStart, long &binEnd
+                           long &binStart, long &binEnd,
+                           int &msLevel
     );
 
     Byte **updateMassBins(double &massBinMinValue,
                           float *massIntensities,
-                          float *mzIntensities
+                          float *mzIntensities,
+                          int &msLevel
     );
 
-    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites, float *mzIntensities);
+    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites, float *mzIntensities, int &msLevel);
 
     void getCandidatePeakGroups(double &mzBinMinValue,
                                 double &massBinMinValue,
                                 float *sumLogIntensities,
-                                Byte **chargeRanges
+                                Byte **chargeRanges,
+                                FLASHDeconvHelperStructs::PrecalcularedAveragine &avg
     );
 
     void setFilters();
