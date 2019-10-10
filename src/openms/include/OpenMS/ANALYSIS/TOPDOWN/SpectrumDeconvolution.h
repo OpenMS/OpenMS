@@ -46,8 +46,8 @@ namespace OpenMS
 
 
   protected:
-    MSSpectrum spec;
-    Parameter param;
+    MSSpectrum &spec;
+    Parameter &param;
     std::vector<LogMzPeak> logMzPeaks;
     boost::dynamic_bitset<> massBinsForThisSpectrum;
 

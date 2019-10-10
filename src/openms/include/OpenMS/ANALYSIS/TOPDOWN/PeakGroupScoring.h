@@ -36,8 +36,8 @@ namespace OpenMS
     std::vector<PeakGroup> & scoreAndFilterPeakGroups(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
   protected:
-    std::vector<PeakGroup> peakGroups;
-    Parameter param;
+    std::vector<PeakGroup> &peakGroups;
+    Parameter &param;
 
     void removeOverlappingPeakGroups();
 

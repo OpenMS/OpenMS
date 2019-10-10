@@ -6,9 +6,8 @@
 namespace OpenMS
 {
 
-  PeakGroupScoring::PeakGroupScoring(std::vector<PeakGroup> &pg, Parameter &p){
-    peakGroups = pg;
-    param = p;
+  PeakGroupScoring::PeakGroupScoring(std::vector<PeakGroup> &pg, Parameter &p): peakGroups(pg), param(p)
+  {
   }
 
   PeakGroupScoring::~PeakGroupScoring(){

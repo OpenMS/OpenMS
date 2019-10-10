@@ -696,47 +696,61 @@ protected:
 
   void
   findFeatures(vector<PeakGroup> &peakGroups,
-               MSExperiment &map,
+               MSExperiment &mp,
                int &featureCntr,
                fstream &fsf,
                PrecalcularedAveragine &averagines,
                Parameter &param)
   {
 
+    MSExperiment map;
     boost::unordered_map<float, PeakGroup> *peakGroupMap;
+    // boost::unordered_map<float, MSSpectrum> rtOrignalSpecMap;
     boost::unordered_map<float, int> rtSpecMap;
-
-    for (auto it = map.begin(); it != map.end(); ++it)
-    {
-      it->clear(false);
-    }
+    std::map<int, MSSpectrum> indexSpecMap;
 
     int maxSpecIndex = 0;
+
     for (auto &pg : peakGroups)
     {
       auto &spec = pg.spec;
 
-      Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);
-
+      if (indexSpecMap.find(pg.specIndex) == indexSpecMap.end()){
+        indexSpecMap[pg.specIndex] = MSSpectrum();
+      }
+      auto &deconvSpec = indexSpecMap[pg.specIndex];
       rtSpecMap[spec->getRT()] = pg.specIndex;
-      maxSpecIndex = max(maxSpecIndex, pg.specIndex);
+      maxSpecIndex = maxSpecIndex > pg.specIndex ? maxSpecIndex : pg.specIndex ;
 
-      spec->push_back(tp);
+      deconvSpec.setRT(spec->getRT());
+      Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);
+      deconvSpec.push_back(tp);
     }
+
+    //int tmp = 0;
+    for(auto iter = indexSpecMap.begin(); iter != indexSpecMap.end(); ++iter)
+    {
+      //tmp+=(iter->second).size();
+      map.addSpectrum(iter->second);
+    }
+
+    //std::cout<<map.size()<< " " <<tmp<< std::endl;
     peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
 
     for (auto &pg : peakGroups)
     {
       //      auto &spec = pg.spec;
-
       auto &pgMap = peakGroupMap[pg.specIndex];
 
       pgMap[pg.monoisotopicMass] = pg;
+      //std::cout<<pg.monoisotopicMass<< " " << pg.specIndex << std::endl;
+
     }
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       it->sortByPosition();
+      // cout<<it->size()<<endl;
     }
 
     Param common_param = getParam_().copy("algorithm:common:", true);

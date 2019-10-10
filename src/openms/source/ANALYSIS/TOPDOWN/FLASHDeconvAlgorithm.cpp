@@ -38,20 +38,17 @@ namespace OpenMS
 {
 
   // constructor
-  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(MSExperiment &m, Parameter &p)
+  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(MSExperiment &m, Parameter &p): map(m), param(p)
   {
-    map = m;
-    //averagines = a;
-    param = p;
   }
 
   FLASHDeconvAlgorithm::~FLASHDeconvAlgorithm()
   {
   }
 
-  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&)
-  {
-  }
+ // FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&)
+ // {
+ // }
 
   FLASHDeconvAlgorithm& FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm& fd)
   {
@@ -110,8 +107,7 @@ namespace OpenMS
       {
         continue;
       }
-      //vector<PeakGroup>().swap(peakGroups);
-      //prevPgs = peakGroups;
+
       qspecCntr++;
 
       //allPeakGroups.reserve(allPeakGroups.size() + peakGroups.size());
@@ -126,7 +122,7 @@ namespace OpenMS
       }
     }
     printProgress(1); //
-    //allPeakGroups.shrink_to_fit();
+    allPeakGroups.shrink_to_fit();
     return allPeakGroups; //
   }
 

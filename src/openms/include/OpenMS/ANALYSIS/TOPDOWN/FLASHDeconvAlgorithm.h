@@ -76,15 +76,15 @@ public:
     ~FLASHDeconvAlgorithm();
 
     /// copy constructor
-    FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &);
+   // FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &);
 
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
     std::vector<PeakGroup> Deconvolution(int &specCntr, int &qspecCntr, int &massCntr, PrecalcularedAveragine &avg);
 
   protected:
-    MSExperiment map;
-    Parameter param;
+    MSExperiment &map;
+    Parameter &param;
     //std::vector<LogMzPeak> logMzPeaks;
    // double* filter;
     //double** harmonicFilter;

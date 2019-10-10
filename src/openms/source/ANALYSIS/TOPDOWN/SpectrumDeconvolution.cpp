@@ -8,10 +8,8 @@ namespace OpenMS
 {
 
   // constructor
-  SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum &s, Parameter &p)
+  SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum &s, Parameter &p) : spec(s), param(p)
   {
-    spec = s;
-    param = p;
     //averagines = a;
     setFilters();
     updateLogMzPeaks();
@@ -20,6 +18,20 @@ namespace OpenMS
   /// default destructor
   SpectrumDeconvolution::~SpectrumDeconvolution()
   {
+
+    //MSSpectrum spec;
+    //    Parameter param;
+    //    std::vector<LogMzPeak> logMzPeaks;
+    //    boost::dynamic_bitset<> massBinsForThisSpectrum;
+    //
+    //    boost::dynamic_bitset<> massBins;
+    //    boost::dynamic_bitset<> mzBins;
+    //
+    //    std::vector<PeakGroup> peakGroups;
+    //
+
+    std::vector<LogMzPeak>().swap(logMzPeaks);
+    std::vector<PeakGroup>().swap(peakGroups);
     delete[] binOffsets;
     delete[] filter;
 
@@ -714,7 +726,7 @@ namespace OpenMS
     int minCharge = param.minCharge;
     int chargeRange = param.chargeRange;
 //    int maxIsotopeCount = param.maxIsotopeCount;
-
+    auto maxIsotopeCount = param.maxIsotopeCount;;//avg.getMostAbundantIndex(exp(logM));
 
     int logMzPeakSize = (int) logMzPeaks.size();
     Size massBinSize = massBins.size();
@@ -767,7 +779,7 @@ namespace OpenMS
         continue;
       }
       //
-      auto maxIsotopeCount = avg.getMostAbundantIndex(exp(logM));
+
 
       int isoOff = 0;
       PeakGroup pg;
