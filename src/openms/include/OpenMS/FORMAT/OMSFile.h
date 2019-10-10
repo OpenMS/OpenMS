@@ -206,6 +206,14 @@ namespace OpenMS
       void handleQueryMetaInfo_(QSqlQuery& query, MetaInfoInterface& info,
                                 Key parent_id);
 
+      bool prepareQueryAppliedProcessingStep_(QSqlQuery& query,
+                                              const String& parent_table);
+
+      void handleQueryAppliedProcessingStep_(
+        QSqlQuery& query,
+        IdentificationDataInternal::ScoredProcessingResult& result,
+        Key parent_id);
+
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
 

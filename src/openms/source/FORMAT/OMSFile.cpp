@@ -855,9 +855,6 @@ namespace OpenMS
           // the foreign key constraint should ensure that look-up succeeds:
           software.assigned_scores.push_back(score_type_refs_[score_type_id]);
         }
-        // order in the vector should be the same as in the table:
-        reverse(software.assigned_scores.begin(),
-                software.assigned_scores.end());
       }
       ID::ProcessingSoftwareRef ref =
         id_data_.registerDataProcessingSoftware(software);
@@ -908,6 +905,20 @@ namespace OpenMS
   }
 
 
+  bool OMSFile::OMSFileLoad::prepareQueryAppliedProcessingStep_(
+    QSqlQuery& query, const String& parent_table)
+  {
+    String table_name = parent_table + "_AppliedProcessingStep";
+    if (!tableExists_(db_name_, table_name)) return false;
+
+    query.setForwardOnly(true);
+    QString sql_select =
+      "SELECT * FROM " + table_name.toQString() + " WHERE parent_id = :id";
+    query.prepare(sql_select);
+    return true;
+  }
+
+
   void OMSFile::OMSFileLoad::handleQueryMetaInfo_(QSqlQuery& query,
                                                   MetaInfoInterface& info,
                                                   Key parent_id)
@@ -922,6 +933,36 @@ namespace OpenMS
     {
       DataValue value = makeDataValue_(query);
       info.setMetaValue(query.value("name").toString(), value);
+    }
+  }
+
+
+  void OMSFile::OMSFileLoad::handleQueryAppliedProcessingStep_(
+    QSqlQuery& query,
+    IdentificationDataInternal::ScoredProcessingResult& result,
+    Key parent_id)
+  {
+    query.bindValue(":id", parent_id);
+    if (!query.exec())
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    while (query.next())
+    {
+      ID::AppliedProcessingStep step;
+      QVariant step_id_opt = query.value("processing_step_id");
+      if (!step_id_opt.isNull())
+      {
+        step.processing_step_opt = processing_step_refs_[step_id_opt.toInt()];
+      }
+      QVariant score_type_opt = query.value("score_type_id");
+      if (!score_type_opt.isNull())
+      {
+        step.scores[score_type_refs_[score_type_opt.toInt()]] =
+          query.value("score").toDouble();
+      }
+      result.addProcessingStep(step); // this takes care of merging the steps
     }
   }
 
@@ -1034,8 +1075,6 @@ namespace OpenMS
           // the foreign key constraint should ensure that look-up succeeds:
           step.input_file_refs.push_back(input_file_refs_[input_file_id]);
         }
-        // order in the vector should be the same as in the table:
-        reverse(step.input_file_refs.begin(), step.input_file_refs.end());
       }
       if (have_meta_info)
       {
@@ -1070,9 +1109,14 @@ namespace OpenMS
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
     }
+    // @TODO: can we combine handling of meta info and applied processing steps?
     QSqlQuery subquery_info(db);
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_ParentMolecule");
+    QSqlQuery subquery_step(db);
+    bool have_applied_steps =
+      prepareQueryAppliedProcessingStep_(subquery_step, "ID_ParentMolecule");
+
     while (query.next())
     {
       String accession = query.value("accession").toString();
@@ -1083,9 +1127,14 @@ namespace OpenMS
       parent.description = query.value("description").toString();
       parent.coverage = query.value("coverage").toDouble();
       parent.is_decoy = query.value("is_decoy").toInt();
+      Key id = query.value("id").toInt();
       if (have_meta_info)
       {
-        handleQueryMetaInfo_(subquery_info, parent, query.value("id").toInt());
+        handleQueryMetaInfo_(subquery_info, parent, id);
+      }
+      if (have_applied_steps)
+      {
+        handleQueryAppliedProcessingStep_(subquery_step, parent, id);
       }
       id_data_.registerParentMolecule(parent);
     }
