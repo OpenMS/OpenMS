@@ -108,6 +108,10 @@
 //#define DEBUG_OpenNuXL 1
 //#define OPENNUXL_SEPARATE_FEATURES 1
 //#define DANGEROUS_FEAUTURES increases FDR on entrappment dataset
+//#define FILTER_BAD_PARTIAL_LOSS_SCORES filters out some good (difficult) hits but decreases overall false positives
+//#define FILTER_BAD_SCORES_ID_TAGS filter out some good hits
+//#define FILTER_AMBIGIOUS_PEAKS  
+//#define FILTER_NO_ARBITRARY_TAG_PRESENT
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -939,6 +943,21 @@ protected:
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() == partial_loss_template_z1_y_ions.size(), "b- and y-ion arrays must have same size.");
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() > 0, "b- and y-ion arrays must not be empty.");
 
+#ifdef FILTER_AMBIGIOUS_PEAKS
+    // is the mass shift ambigious and common in non-XL data (e.g.: freq > 10%)
+    auto ambigious_match = [&](const double& previous_theo_mass, const double& current_theo_mass)->bool
+      {
+        const double dist = current_theo_mass - previous_theo_mass;
+        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? current_theo_mass * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+        auto low_it = mass2high_frequency_.lower_bound(dist - max_dist_dalton);
+        if (low_it != mass2high_frequency_.end() && fabs(low_it->first - dist) < max_dist_dalton) // in tolerance window?
+        {
+          return true; // ambigious match
+        }
+        return false;
+      };
+#endif
+
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
     const Size N = intensity_sum.size(); // number of bonds = length of peptide - 1
 
@@ -956,6 +975,7 @@ protected:
           {
             const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
               + (z-1) * Constants::PROTON_MASS_U) / z;
+
             const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
             // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
@@ -969,6 +989,14 @@ protected:
             {
               if (!peak_matched[index])
               {
+#ifdef FILTER_AMBIGIOUS_PEAKS
+                // skip ambigious matches
+                if (i >= 1)
+                {
+                  if (ambigious_match(partial_loss_template_z1_b_ions[i - 1], partial_loss_template_z1_b_ions[i] + fa.mass)) continue;
+                }
+#endif
+
                 const double intensity = exp_spectrum[index].getIntensity();
                 b_mean_err += intensity * std::abs(theo_mz - exp_mz);
                 dot_product += intensity;
@@ -990,6 +1018,7 @@ protected:
         {
           const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
             + (z-1) * Constants::PROTON_MASS_U) / z;
+
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
           // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
@@ -1003,6 +1032,14 @@ protected:
           {
             if (!peak_matched[index])
             {
+#ifdef FILTER_AMBIGIOUS_PEAKS
+              // skip ambigious matches
+              if (i >= 1)
+              {
+                  if (ambigious_match(partial_loss_template_z1_y_ions[i - 1], partial_loss_template_z1_y_ions[i] + fa.mass)) continue;
+              }
+#endif
+
               const double intensity = exp_spectrum[index].getIntensity();
               y_mean_err += intensity * std::abs(theo_mz - exp_mz);
               dot_product += intensity;                  
@@ -1519,6 +1556,7 @@ static void scoreXLIons_(
     }
 };
 
+
   RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
   {
     double matched = std::accumulate(peak_matched.begin(), peak_matched.end(), 0);
@@ -1550,6 +1588,10 @@ static void scoreXLIons_(
     return r;
   }
 
+#ifdef FILTER_AMBIGIOUS_PEAKS
+  static map<double, double> mass2high_frequency_;
+#endif
+
   void calculateNucleotideTags_(PeakMap& exp, 
     const double fragment_mass_tolerance, 
     const bool fragment_mass_tolerance_unit_ppm,
@@ -1567,14 +1609,17 @@ static void scoreXLIons_(
 
     // mass shift to residue + adduct (including no adduct)
     map<double, pair<const Residue*, double> > aa_plus_adduct_mass;
-    auto residues = ResidueDB::getInstance()->getResidues("Natural20");
+    auto residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
     for (const double d : adduct_mass)
     {
       for (const Residue* r : residues)
       {
         double m = d + r->getMonoWeight(Residue::Internal);
-        if (aa_plus_adduct_mass.count(m) > 0) cout << "WARNING: mass " << m << " of residue " << r->getName() << " with adduct " << d <<  " already present." << endl;
+        if (aa_plus_adduct_mass.count(m) > 0) 
+        { 
+          cout << "WARNING: mass " << m << " of residue " << r->getName() << " with adduct " << d <<  " already present with " << aa_plus_adduct_mass[m].first->getName() << " and adduct " << aa_plus_adduct_mass[m].second  << endl;
+        }
         aa_plus_adduct_mass[m] = {r, d};
       }
     }
@@ -1582,7 +1627,10 @@ static void scoreXLIons_(
     for (const Residue* r : residues)
     {
       double m = r->getMonoWeight(Residue::Internal);
-      if (aa_plus_adduct_mass.count(m) > 0) cout << "WARNING: mass " << m << " of residue " << r->getName() << " already present." << endl;
+      if (aa_plus_adduct_mass.count(m) > 0)
+      {
+        cout << "WARNING: mass " << m << " of residue " << r->getName() <<  " already present with " << aa_plus_adduct_mass[m].first->getName() << " and adduct " << aa_plus_adduct_mass[m].second  << endl;
+      }
       aa_plus_adduct_mass[m] = {r, 0};
     }
 
@@ -1600,11 +1648,13 @@ static void scoreXLIons_(
  
       size_t match(0);
       size_t in_mass_range(0);
+
+      // for all peak pairs
       for (Size i = 0; i != mzs.size(); ++i)
       {
         for (Size j = i+1; j < mzs.size(); ++j)
         {
-          double m =  mzs[j];
+          double m = mzs[j];
           double dm = m - mzs[i];
 
           if (charges[i] != charges[j]) continue;
@@ -1613,6 +1663,7 @@ static void scoreXLIons_(
           auto left = adduct_mass.lower_bound((dm * charges[i]) - tolerance);
           if (left == adduct_mass.end()) continue;
           ++in_mass_range;
+          // count if distance matches to adduct mass
           if (fabs(*left - (dm * charges[i])) < tolerance )
           {
             ++match;
@@ -1671,17 +1722,16 @@ static void scoreXLIons_(
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] = tagger.getLongestTag(spec).size();
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].setName("longest_tag");
     }
-/*
+
+
+    // Calculate background statistics on shifts
     for (const auto& mra : aa_plus_adduct_mass)
     {
       double m = mra.first;
       const pair<const Residue*, double>& residue_adduct = mra.second;
-      cout << m << "\t" << residue_adduct.first->getOneLetterCode() << "\ŧ" << residue_adduct.second << endl;
+      cout << m << "\t" << residue_adduct.first->getOneLetterCode() << "\t" << residue_adduct.second << endl;
     }
-*/
 
-
-/* 
     cout << "Distinct residue + adduct pairs: " << aa_plus_adduct_mass_count.size() << endl; 
     map<const Residue*, map<double, size_t> > aa2mass2count;
 
@@ -1693,14 +1743,31 @@ static void scoreXLIons_(
       String name = residue->getName();
       aa2mass2count[residue][mc.first] = mc.second;
     }
+
     cout << "Total counts per residue:" << endl;
+
+#ifdef FILTER_AMBIGIOUS_PEAKS
+    mass2high_frequency_.clear();
+#endif
     for (const auto& aa2 : aa2mass2count)
     {
-      for (const auto m2c : aa2.second)
+      auto& mass2count = aa2.second;
+      for (const auto m2c : mass2count)
       {
+        // counts
         cout << aa2.first->getName() << "\t" << m2c.first << "\t" << m2c.second << endl; // aa mass count  
+        // frequency
+        double frequency_normalized = (double)m2c.second / mass2count.begin()->second;
+
+#ifdef FILTER_AMBIGIOUS_PEAKS
+        if (frequency_normalized > 0.5 && frequency_normalized != 1.0) // residue with shift (=freq. is different to 1)
+        {
+          mass2high_frequency_[m2c.first] = frequency_normalized;
+        }
+#endif
       }
     }
+
     cout << "Normalized counts per residue:" << endl;
     for (const auto& aa2 : aa2mass2count)
     {
@@ -1708,11 +1775,18 @@ static void scoreXLIons_(
       for (const auto m2c : mass2count)
       {
         // normalize by counts
-        cout << aa2.first->getName() << "\t" << m2c.first << "\t" << (double)m2c.second / mass2count.begin()->second << endl ; // aa mass count  
+        double frequency_normalized = (double)m2c.second / mass2count.begin()->second;
+        cout << aa2.first->getName() << "\t" << m2c.first << "\t" << frequency_normalized << endl ; // aa mass count
       }
     }
-*/
 
+#ifdef FILTER_AMBIGIOUS_PEAKS
+    cout << "Frequent background mass shifts (mass vs. freq):" << endl;
+    for (auto & hf : mass2high_frequency_)
+    {
+      cout << hf.first << "\t" << hf.second << endl;
+    }
+#endif
   }
 
   /* @brief Filter spectra to remove noise.
@@ -1731,7 +1805,7 @@ static void scoreXLIons_(
     double fragment_mass_tolerance, 
     bool fragment_mass_tolerance_unit_ppm, 
     bool single_charge_spectra, 
-    bool annotate_charge = false)
+    bool annotate_charge)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -1768,7 +1842,8 @@ static void scoreXLIons_(
 
       // deisotope
       Deisotoper::deisotopeAndSingleCharge(spec, 
-                                         fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+                                         0.05, 
+                                         false, 
                                          1, 3, 
                                          false, 
                                          2, 10, 
@@ -3701,12 +3776,11 @@ static void scoreXLIons_(
 
     progresslogger.startProgress(0, 1, "Filtering spectra...");
     const bool convert_to_single_charge = false;  // whether to convert fragment peaks with isotopic patterns to single charge
-    const bool annotate_charge = true;
     preprocessSpectra_(spectra, 
                        fragment_mass_tolerance, 
                        fragment_mass_tolerance_unit_ppm, 
                        convert_to_single_charge,
-                       annotate_charge);  
+                       true); // annotate charge  
     progresslogger.endProgress();
 
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
@@ -3920,8 +3994,10 @@ static void scoreXLIons_(
                   const Size & scan_index = l->second.first;
                   const PeakSpectrum & exp_spectrum = spectra[scan_index];
 
+#ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
                   // require at least one mass tag
                   if (exp_spectrum.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
+#endif
 
                   // count candidate for spectrum
 #ifdef _OPENMP
@@ -4006,10 +4082,11 @@ static void scoreXLIons_(
                   ah.rank_product = rankscores.rp;
                   ah.wTop50 = rankscores.wTop50;
 
+                  // do we have at least one ladder peak
                   const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, vector<double>());
-
+#ifdef FILTER_BAD_SCORES_ID_TAGS
                   if (longest_tags.tag_unshifted == 0) continue;
-
+#endif
                   ah.tag_XLed = longest_tags.tag_XLed;
                   ah.tag_unshifted = longest_tags.tag_unshifted;
                   ah.tag_shifted = longest_tags.tag_shifted;
@@ -4087,8 +4164,11 @@ static void scoreXLIons_(
                   {
                     const Size & scan_index = l->second.first;
                     const PeakSpectrum & exp_spectrum = spectra[scan_index];
+#ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
                     // require at least one mass tag
                     if (exp_spectrum.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
+#endif
+
 #ifdef _OPENMP
                     omp_set_lock(&(annotated_peptides_lock[scan_index]));
                     omp_set_lock(&(annotated_XLs_lock[scan_index]));
@@ -4177,12 +4257,13 @@ static void scoreXLIons_(
 
                     const double total_MIC = tlss_MIC + im_MIC + pc_MIC + plss_MIC + plss_pc_MIC + plss_im_MIC + marker_ions_sub_score;
 
+#ifdef FILTER_BAD_PARTIAL_LOSS_SCORES
                     // decreases number of hits (especially difficult cases - but also number of false discoveries)
                     if (badPartialLossScore(tlss_Morph, plss_Morph, plss_MIC, plss_im_MIC, plss_pc_MIC, marker_ions_sub_score))  
                     { 
                       continue; 
                     }
-
+#endif
                     const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
                     
@@ -4233,18 +4314,20 @@ static void scoreXLIons_(
                       ah.sequence_score = ladderScore_(range) / (double)intensity_linear.size();
                     }
 
-                    const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, intensity_xls);
 
                     RankScores rankscores = rankScores_(exp_spectrum, peak_matched);
                     ah.rank_product = rankscores.rp;
                     ah.wTop50 = rankscores.wTop50;
 
+
+                    // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
+                    const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, intensity_xls);
+#ifdef FILTER_BAD_SCORES_ID_TAGS
+                    if (longest_tags.tag_XLed == 0) { continue; }
+#endif
                     ah.tag_XLed = longest_tags.tag_XLed;
                     ah.tag_unshifted = longest_tags.tag_unshifted;
                     ah.tag_shifted = longest_tags.tag_shifted;
-
-                    // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
-                    if (longest_tags.tag_XLed == 0) { continue; }
 
                     // combined score
                     const double tags = exp_spectrum.getFloatDataArrays()[1][0];
@@ -4279,12 +4362,16 @@ static void scoreXLIons_(
               for (auto & l = low_it; l != up_it; ++l)
               {
                 const Size & scan_index = l->second.first;
+#ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
+                 // require at least one mass tag
+                 if (exp_spectrum.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
+#endif
 #ifdef _OPENMP
-            omp_set_lock(&(annotated_peptides_lock[scan_index]));
-            omp_set_lock(&(annotated_XLs_lock[scan_index]));
-            ++nr_candidates[scan_index];
-            omp_unset_lock(&(annotated_XLs_lock[scan_index]));
-            omp_unset_lock(&(annotated_peptides_lock[scan_index]));
+                omp_set_lock(&(annotated_peptides_lock[scan_index]));
+                omp_set_lock(&(annotated_XLs_lock[scan_index]));
+                ++nr_candidates[scan_index];
+                omp_unset_lock(&(annotated_XLs_lock[scan_index]));
+                omp_unset_lock(&(annotated_peptides_lock[scan_index]));
 #endif
                 const int & isotope_error = l->second.second;
                 const double & exp_pc_mass = l->first;
@@ -4471,27 +4558,49 @@ static void scoreXLIons_(
 
     if (generate_decoys) 
     {
-    // calculate tail median score of decoys for specific meta value
-    auto metaMedian = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
-    {
-      vector<double> decoy_XL_scores;
-      for (const auto & pi : peptide_ids)
+
+      // calculate median score of decoys for specific meta value
+      auto metaMedian = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
       {
-        for (const auto & ph : pi.getHits())
+        vector<double> decoy_XL_scores;
+        for (const auto & pi : peptide_ids)
+        {
+          for (const auto & ph : pi.getHits())
+          {
+            const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+            if (!is_XL || ph.getMetaValue("target_decoy") != "decoy") continue;
+            double score = ph.getMetaValue(name);
+            decoy_XL_scores.push_back(score); 
+          }
+        }
+        std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
+        return Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
+      };
+
+      map<String, double> medians;
+      for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
+      {
+        medians[mn] = metaMedian(peptide_ids, mn);
+      }
+
+      for (auto & pi : peptide_ids)
+      {
+        for (auto & ph : pi.getHits())
         {
            const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-           if (!is_XL || ph.getMetaValue("target_decoy") != "decoy") continue;
-           double score = ph.getMetaValue(name);
-           decoy_XL_scores.push_back(score); 
+           double score = ph.getScore();
+           if (!is_XL) 
+           { 
+             for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
+             {
+               ph.setMetaValue(mn,  medians[mn]);   // impute missing with medians
+             }
+           }
         }
+        pi.assignRanks();
       }
-      std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
-      decoy_XL_scores.resize(1000);
-      return Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
-    };
-
-  /*
-      // calibrate scores by tail of decoy distribution
+/*
+      // calibrate scores by decoy distribution
       vector<double> decoy_XL_scores;
       vector<double> decoy_peptide_scores;
       for (const auto & pi : peptide_ids)
@@ -4507,8 +4616,6 @@ static void scoreXLIons_(
       }
       std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
       std::sort(decoy_peptide_scores.begin(), decoy_peptide_scores.end(), greater<double>());
-      decoy_XL_scores.resize(1000);
-      decoy_peptide_scores.resize(1000);
       double mxl = Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
       double mpep = Math::median(decoy_peptide_scores.begin(), decoy_peptide_scores.end());
       double diff = mpep - mxl; 
@@ -4527,30 +4634,8 @@ static void scoreXLIons_(
         }
         pi.assignRanks();
       }
-*/      
-      map<String, double> medians;
-      for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
-      {
-        medians[mn] = metaMedian(peptide_ids, mn);
-      }
+*/
 
-      for (auto & pi : peptide_ids)
-      {
-        for (auto & ph : pi.getHits())
-        {
-           const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-           double score = ph.getScore();
-           //if (is_XL) { ph.setScore(score + diff); }  // equalize medians of tails
-           if (!is_XL) 
-           { 
-             for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
-             {
-               ph.setMetaValue(mn,  medians[mn]);   // impute missing with medians
-             }
-           }
-        }
-        pi.assignRanks();
-      }
       fdr.apply(peptide_ids); 
   
       // write ProteinIdentifications and PeptideIdentifications to IdXML
@@ -4814,6 +4899,10 @@ static void scoreXLIons_(
     if (plss_err > ft_da) plss_err = ft_da;
   }
 };
+
+#ifdef FILTER_AMBIGIOUS_PEAKS
+map<double, double> OpenNuXL::mass2high_frequency_ = {};
+#endif
 
 int main(int argc, const char** argv)
 {
