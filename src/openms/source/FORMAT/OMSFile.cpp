@@ -658,6 +658,50 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileStore::storeDataQueries()
+  {
+    if (id_data_.getDataQueries().empty()) return;
+
+    createTable_("ID_DataQuery",
+                 "id INTEGER PRIMARY KEY NOT NULL, "                    \
+                 "data_id TEXT NOT NULL, "                              \
+                 "input_file_id INTEGER, "                              \
+                 "rt REAL, "                                            \
+                 "mz REAL, "                                            \
+                 "UNIQUE (data_id, input_file_id), "                    \
+                 "FOREIGN KEY (input_file_id) REFERENCES ID_InputFiles (id)");
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO ID_DataQuery VALUES (" \
+                  ":id, "                             \
+                  ":data_id, "                        \
+                  ":input_file_id, "                  \
+                  ":rt, "                             \
+                  ":mz)");
+    for (const ID::DataQuery& data_query : id_data_.getDataQueries())
+    {
+      query.bindValue(":id", Key(&data_query)); // use address as primary key
+      query.bindValue(":data_id", data_query.data_id.toQString());
+      if (data_query.input_file_opt)
+      {
+        query.bindValue(":input_file_id", Key(&(**data_query.input_file_opt)));
+      }
+      else
+      {
+        query.bindValue(":input_file_id", QVariant(QVariant::String)); // NULL
+      }
+      query.bindValue(":rt", data_query.rt);
+      query.bindValue(":mz", data_query.mz);
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+    storeMetaInfos_(id_data_.getDataQueries(), "ID_DataQuery");
+  }
+
+
   void OMSFile::OMSFileStore::storeParentMolecules()
   {
     if (id_data_.getParentMolecules().empty()) return;
@@ -714,6 +758,7 @@ namespace OpenMS
     helper.storeDataProcessingSoftwares();
     helper.storeDBSearchParams();
     helper.storeDataProcessingSteps();
+    helper.storeDataQueries();
     helper.storeParentMolecules();
   }
 
@@ -1097,6 +1142,43 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileLoad::loadDataQueries()
+  {
+    if (!tableExists_(db_name_, "ID_DataQuery")) return;
+
+    QSqlDatabase db = QSqlDatabase::database(db_name_);
+    QSqlQuery query(db);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_DataQuery"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    QSqlQuery subquery_info(db);
+    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
+                                                "ID_DataQuery");
+
+    while (query.next())
+    {
+      ID::DataQuery data_query(query.value("data_id").toString());
+      QVariant input_file_id = query.value("input_file_id");
+      if (!input_file_id.isNull())
+      {
+        data_query.input_file_opt = input_file_refs_[input_file_id.toInt()];
+      }
+      data_query.rt = query.value("rt").toDouble();
+      data_query.mz = query.value("mz").toDouble();
+      Key id = query.value("id").toInt();
+      if (have_meta_info)
+      {
+        handleQueryMetaInfo_(subquery_info, data_query, id);
+      }
+      ID::DataQueryRef ref = id_data_.registerDataQuery(data_query);
+      data_query_refs_[id] = ref;
+    }
+  }
+
+
   void OMSFile::OMSFileLoad::loadParentMolecules()
   {
     if (!tableExists_(db_name_, "ID_ParentMolecule")) return;
@@ -1149,6 +1231,7 @@ namespace OpenMS
     helper.loadDataProcessingSoftwares();
     helper.loadDBSearchParams();
     helper.loadDataProcessingSteps();
+    helper.loadDataQueries();
     helper.loadParentMolecules();
   }
 

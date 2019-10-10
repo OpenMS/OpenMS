@@ -99,6 +99,8 @@ namespace OpenMS
 
       void storeDataProcessingSteps();
 
+      void storeDataQueries();
+
       void storeParentMolecules();
 
     private:
@@ -196,6 +198,8 @@ namespace OpenMS
 
       void loadDataProcessingSteps();
 
+      void loadDataQueries();
+
       void loadParentMolecules();
 
     private:
@@ -226,6 +230,8 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
 
       std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
+
+      std::unordered_map<Key, IdentificationData::DataQueryRef> data_query_refs_;
     };
 
   };
