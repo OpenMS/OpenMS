@@ -201,9 +201,13 @@ END_SECTION
 
 START_SECTION((ConsensusFeature(ConsensusFeature &&rhs)))
 {
+#ifndef OPENMS_COMPILER_MSVC
   // Ensure that ConsensusFeature has a no-except move constructor (otherwise
   // std::vector is inefficient and will copy instead of move).
+  // Note that MSVS does not support noexcept move constructors for STL
+  // constructs such as std::map.
   TEST_EQUAL(noexcept(ConsensusFeature(std::declval<ConsensusFeature&&>())), true)
+#endif
 
   ConsensusFeature cons(tmp_feature);
   cons.insert(1,tmp_feature);
