@@ -305,7 +305,7 @@ namespace OpenMS
       String libpath = exec.absoluteDir().absolutePath(); // + "lib" depending on what we use as reference
       String java_memory = "-Xmx" + QString::number(sirius_algo.java_memory_) + "m";
       // library path depends if original or THIRDPARTY version is used.
-      String lib_class_path = libpath + ":" + libpath + "/*" +  ":" + libpath + "/../../../MacOS/64bit/Sirius/lib" + ":" + libpath + "/../../../Linux/64bit/Sirius/lib" + ":" + libpath + "/../../../Windows/64bit/Sirius" ;
+      String lib_class_path = libpath + ":" + libpath + "/*" +  ":" + libpath + "/../../../MacOS/64bit/Sirius/lib" + ":" + libpath + "/../../../Linux/64bit/Sirius/lib" + ":" + libpath + "/../../../Windows/64bit/Sirius";
 
       // check environment variables for additional solvers
       if (getenv("GUROBI_HOME") != nullptr)
