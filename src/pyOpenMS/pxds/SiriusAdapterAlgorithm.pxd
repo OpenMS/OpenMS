@@ -39,6 +39,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         libcpp_vector[String] callSiriusQProcess(String tmp_ms_file,
                                                  String tmp_out_dir,
                                                  String executable,
+                                                 String java_executable,
                                                  String out_csifingerid,
                                                  SiriusAdapterAlgorithm sirius_algo);
 
