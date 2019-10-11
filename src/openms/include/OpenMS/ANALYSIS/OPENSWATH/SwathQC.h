@@ -126,7 +126,7 @@ namespace OpenSwath
       @brief Explicitly set the number of expected MS1 spectra (for sampling charge distribution)
 
       Computing the charge distribution using getSpectraProcessingFunc() requires knowing the total number of MS1 spectra.
-      Either use getExpSettingsFunc() externaly, or use this method to set it explicitly (depending on workflow).
+      Either use getExpSettingsFunc() externally, or use this method to set it explicitly (depending on workflow).
       If @p nr is set to 0, all spectra passed into getSpectraProcessingFunc() will be inspected for their charge distribution.
     */
     void setNrMS1Spectra(size_t nr);

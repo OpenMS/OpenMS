@@ -59,8 +59,8 @@ namespace OpenMS
     setCanvas_(new Spectrum2DCanvas(preferences, this), 1, 2);
 
     // add axes
-    x_axis_->setLegend(String(Peak2D::shortDimensionName(Peak2D::MZ)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::MZ)) + "]");
-    y_axis_->setLegend(String(Peak2D::shortDimensionName(Peak2D::RT)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::RT)) + "]");
+    x_axis_->setLegend(SpectrumWidget::MZ_AXIS_TITLE);
+    y_axis_->setLegend(SpectrumWidget::RT_AXIS_TITLE);
     y_axis_->setMinimumWidth(50);
 
     // add projections
@@ -352,17 +352,34 @@ namespace OpenMS
   void Spectrum2DWidget::horizontalProjection(ExperimentSharedPtrType exp)
   {
     LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    projection_horz_->canvas()->mzToXAxis(true); // determines the orientation of the data
-    projection_horz_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
-    projection_horz_->showLegend(false);
 
-    Spectrum1DCanvas::DrawModes mode = projection_horz_->canvas()->getDrawMode();
+    // print horizontal (note that m/z in the projection could actually be RT - this only determines the orientation)
+    projection_horz_->canvas()->mzToXAxis(true); 
+    projection_horz_->canvas()->setSwappedAxis(true);
+    
+    projection_horz_->showLegend(false);
     Spectrum1DCanvas::IntensityModes intensity = projection_horz_->canvas()->getIntensityMode();
+    projection_horz_->canvas()->setIntensityMode(intensity);
+
     projection_horz_->canvas()->removeLayer(0);
     projection_horz_->canvas()->addLayer(exp, od_dummy);
-    projection_horz_->canvas()->setDrawMode(mode);
-    projection_horz_->canvas()->setIntensityMode(intensity);
+
     grid_->setColumnStretch(3, 2);
+
+        if (canvas()->isMzToXAxis())
+    {
+      projection_horz_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
+      projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+      projection_vert_->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+      projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+    }
+    else
+    {
+      projection_horz_->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+      projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+      projection_vert_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
+      projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+    }
     projection_horz_->show();
     projection_box_->show();
   }
@@ -370,16 +387,33 @@ namespace OpenMS
   void Spectrum2DWidget::verticalProjection(ExperimentSharedPtrType exp)
   {
     LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    projection_vert_->canvas()->mzToXAxis(false); // determines the orientation of the data
-    projection_vert_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
+    // print vertically (note that m/z in the projection could actually be RT - this only determines the orientation)
+    projection_vert_->canvas()->mzToXAxis(false); 
+    projection_vert_->canvas()->setSwappedAxis(true);
+
     projection_vert_->showLegend(false);
-    Spectrum1DCanvas::DrawModes mode = projection_vert_->canvas()->getDrawMode();
     Spectrum1DCanvas::IntensityModes intensity = projection_vert_->canvas()->getIntensityMode();
+    projection_vert_->canvas()->setIntensityMode(intensity);
+
     projection_vert_->canvas()->removeLayer(0);
     projection_vert_->canvas()->addLayer(exp, od_dummy);
-    projection_vert_->canvas()->setDrawMode(mode);
-    projection_vert_->canvas()->setIntensityMode(intensity);
+
     grid_->setRowStretch(0, 2);
+
+    if (canvas()->isMzToXAxis())
+    {
+      projection_horz_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
+      projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+      projection_vert_->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+      projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+    }
+    else
+    {
+      projection_horz_->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+      projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+      projection_vert_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
+      projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+    }
     projection_box_->show();
     projection_vert_->show();
   }

@@ -33,50 +33,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
-#include <QSvgRenderer>
 
 #include <iostream>
 
 namespace OpenMS
 {
-  TOPPASMergerVertex::TOPPASMergerVertex() :
-    TOPPASVertex(),
-    round_based_mode_(true)
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
   TOPPASMergerVertex::TOPPASMergerVertex(bool round_based) :
-    TOPPASVertex(),
     round_based_mode_(round_based)
   {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
-  TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex& rhs) :
-    TOPPASVertex(rhs),
-    round_based_mode_(rhs.round_based_mode_)
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
-  TOPPASMergerVertex::~TOPPASMergerVertex()
-  {
-  }
-
-  TOPPASMergerVertex& TOPPASMergerVertex::operator=(const TOPPASMergerVertex& rhs)
-  {
-    TOPPASVertex::operator=(rhs);
-    round_based_mode_ = rhs.round_based_mode_;
-
-    return *this;
   }
 
   String TOPPASMergerVertex::getName() const
@@ -84,33 +53,9 @@ namespace OpenMS
     return "MergerVertex";
   }
 
-  void TOPPASMergerVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+  void TOPPASMergerVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
   {
-  }
-
-  void TOPPASMergerVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
-  {
-    __DEBUG_BEGIN_METHOD__
-
-    QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-    if (isSelected())
-    {
-      pen.setWidth(2);
-      painter->setBrush(brush_color_.darker(130));
-      pen.setColor(Qt::darkBlue);
-    }
-    else
-    {
-      painter->setBrush(brush_color_);
-    }
-    painter->setPen(pen);
-
-    QPainterPath path;
-    path.addRoundRect(-40.0, -40.0, 80.0, 80.0, 20, 20);
-    painter->drawPath(path);
-
-    pen.setColor(pen_color_);
-    painter->setPen(pen);
+    TOPPASVertex::paint(painter, option, widget);
 
     QString text = round_based_mode_ ? "Merge" : "Collect";
     QRectF text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
@@ -122,34 +67,11 @@ namespace OpenMS
       text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
       painter->drawText(-(int)(text_boundings.width() / 2.0), 31, text);
     }
-
-    //topo sort number
-    qreal x_pos = -36.0;
-    qreal y_pos = -23.0;
-    painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
-
-
-    // recycling status
-    if (this->allow_output_recycling_)
-    {
-      painter->setPen(Qt::green);
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
-      svg_renderer->render(painter, QRectF(-7, -32, 14, 14));
-    }
-
-    __DEBUG_END_METHOD__
   }
 
   QRectF TOPPASMergerVertex::boundingRect() const
   {
     return QRectF(-41, -41, 82, 82);
-  }
-
-  QPainterPath TOPPASMergerVertex::shape() const
-  {
-    QPainterPath shape;
-    shape.addRoundRect(-41.0, -41.0, 82.0, 82.0, 20, 20);
-    return shape;
   }
 
   bool TOPPASMergerVertex::roundBasedMode()

@@ -87,7 +87,10 @@ namespace OpenMS
       }
       else
       {
-        LOG_DEBUG << "output shaping: COLUMNS env does not exist!" << std::endl;
+        {
+          OPENMS_LOG_DEBUG << "output shaping: COLUMNS env does not exist!" << std::endl;
+        }
+
 #ifdef OPENMS_WINDOWSPLATFORM
         HANDLE hOut;
         CONSOLE_SCREEN_BUFFER_INFO SBInfo;
@@ -112,13 +115,13 @@ namespace OpenMS
           else
           {
             // TODO: throw ?
-            LOG_DEBUG << "Could not read 100 characters from file." << std::endl;
+            OPENMS_LOG_DEBUG << "Could not read 100 characters from file." << std::endl;
           }
           pclose(fp); //moved pclose outside of fgets condition - cant move it out of not nullpointer condition because pclose(null pointer is undefined behaviour)
         }
         else
         {
-          LOG_DEBUG << "output shaping: stty size command failed." << std::endl;
+          OPENMS_LOG_DEBUG << "output shaping: stty size command failed." << std::endl;
         }
 #endif
       }
@@ -130,7 +133,7 @@ namespace OpenMS
     // if console_width_ is still -1, we do not use command line reshaping
     if (console_width_ < 10)
     {
-      LOG_DEBUG << "Console width could not be determined or is smaller than 10. Not using output shaping!" << std::endl;
+      OPENMS_LOG_DEBUG << "Console width could not be determined or is smaller than 10. Not using output shaping!" << std::endl;
       console_width_ = std::numeric_limits<int>::max();
     }
 

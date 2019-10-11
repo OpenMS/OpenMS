@@ -15,6 +15,17 @@ set(concept_executables_list
   UniqueIdIndexer_test
   UniqueIdInterface_test
 )
+set(qc_executables_list
+  Contaminants_test
+  FragmentMassError_test
+  MissedCleavages_test
+  Ms2IdentificationRate_test
+  MzCalibration_test
+  QCBase_test
+  RTAlignment_test
+  TIC_test
+  TopNoverRT_test
+)
 
 set(datastructures_executables_list
   Adduct_test
@@ -47,6 +58,7 @@ set(datastructures_executables_list
   LPWrapper_test
   Map_test
   MassExplainer_test
+  MatchedIterator_test
   Matrix_test
   #MatrixUtils_test
   OPXLDataStructs_test
@@ -201,6 +213,7 @@ set(format_executables_list
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
+  # MSstatsFile_test
   MzQuantMLFile_test
   #MzQuantMLValidator_test
   MzXMLFile_test
@@ -258,11 +271,11 @@ set(math_executables_list
   BilinearInterpolation_test
   BSpline2d_test
   CubicSpline2d_test
-  CumulativeBinomial_test
   EmgGradientDescent_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
+  GridSearch_test
   Histogram_test
   LinearInterpolation_test
   LinearRegression_test
@@ -423,6 +436,8 @@ set(analysis_executables_list
   AScore_test
   BaseGroupFinder_test
   BaseSuperimposer_test
+  BasicProteinInferenceAlgorithm_test
+  BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
   CompNovoIdentificationBase_test
   CompNovoIdentificationCID_test
@@ -440,6 +455,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
+  ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   DeNovoAlgorithm_test
   DeNovoIdentification_test
@@ -455,7 +471,9 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   HiddenMarkovModel_test
+  IDBoostGraph_test
   IDMapper_test
+  IDMergerAlgorithm_test
   IDRipper_test
   ILPDCWrapper_test
   IncludeExcludeTarget_test
@@ -508,7 +526,6 @@ set(analysis_executables_list
   PoseClusteringShiftSuperimposer_test
   PrecursorIonSelectionPreprocessing_test
   PrecursorIonSelection_test
-  ProteinInference_test
   PrecursorPurity_test
   ProtonDistributionModel_test
   ProteinResolver_test
@@ -530,6 +547,7 @@ set(analysis_executables_list
   TransformationModelLowess_test
   TransformationModelInterpolated_test
   TransformationModelLinear_test
+  XFDRAlgorithm_test
   XQuestScores_test
 )
 
@@ -649,8 +667,10 @@ if(NOT DISABLE_OPENSWATH)
     SpectrumHelpers_test
     StatsHelpers_test
     SwathQC_test
+    IonMobilityScoring_test
     CachedMzML_test
     CachedMzMLHandler_test
+    HDF5_test
   )
 endif(NOT DISABLE_OPENSWATH)
 
@@ -688,4 +708,5 @@ set(TEST_executables
     ${transformations_executables_list}
     ${simulation_executables_list}
     ${swath_executables_list}
+    ${qc_executables_list}
 )

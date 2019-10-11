@@ -172,7 +172,7 @@ class TOPPHiResPrecursorMassCorrector :
 
       if ((nearest_peak_mz_tolerance <= 0.0) && (highest_intensity_peak_mz_tolerance <= 0.0) && in_feature.empty())
       {
-        LOG_ERROR << "No method for PC correction requested. Either provide featureXML input files or set 'nearest_peak:mz_tolerance' > 0 or specify a 'highest_intensity_peak:mz_tolerance' > 0" << std::endl;
+        OPENMS_LOG_ERROR << "No method for PC correction requested. Either provide featureXML input files or set 'nearest_peak:mz_tolerance' > 0 or specify a 'highest_intensity_peak:mz_tolerance' > 0" << std::endl;
         return MISSING_PARAMETERS;
       }
 
@@ -206,22 +206,22 @@ class TOPPHiResPrecursorMassCorrector :
       {
         if (nearest_peak_mz_tolerance > 0.0 && highest_intensity_peak_mz_tolerance <= 0.0)
         {
-          LOG_INFO << "Corrected " << corrected_to_nearest_peak.size() << " precursor to a MS1 peak." << endl;
+          OPENMS_LOG_INFO << "Corrected " << corrected_to_nearest_peak.size() << " precursor to a MS1 peak." << endl;
         }
         else if (highest_intensity_peak_mz_tolerance > 0.0)
         {
-          LOG_INFO << "Corrected " << corrected_to_highest_intensity_peak.size() << " precursor to a MS1 peak." << endl;
+          OPENMS_LOG_INFO << "Corrected " << corrected_to_highest_intensity_peak.size() << " precursor to a MS1 peak." << endl;
         }
         else
         {
-          LOG_WARN << "Output file 'out_csv': No data collected since 'nearest_peak:mz_tolerance' was not enabled. CSV will be empty." << endl;
+          OPENMS_LOG_WARN << "Output file 'out_csv': No data collected since 'nearest_peak:mz_tolerance' was not enabled. CSV will be empty." << endl;
         }
         PrecursorCorrection::writeHist(out_csv, deltaMZs, mzs, rts);
       }
 
       if (!in_feature.empty())
       {
-        LOG_INFO << "Corrected " << corrected_to_nearest_feature.size() << " precursors to a feature." << endl;
+        OPENMS_LOG_INFO << "Corrected " << corrected_to_nearest_feature.size() << " precursors to a feature." << endl;
       }
 
       return EXECUTION_OK;

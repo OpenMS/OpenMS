@@ -71,7 +71,7 @@ namespace OpenMS
     }
     else
     {
-      throw "Variable type not supported\n";
+      throw std::runtime_error("Variable type not supported\n");
     }
 
     problem.setObjective(index, obj);
@@ -156,7 +156,7 @@ namespace OpenMS
       const Size start_iter = std::max(cnt1 - parameters.nn_threshold, 0);
       const Size stop_iter = std::min(static_cast<Size>(cnt1 + parameters.nn_threshold + 1), time_to_name.size()); // assuming nn_threshold >= -1
       std::vector<Int> constraints;
-      const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
+      const std::vector<Feature>& feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
 
       for (Size i = 0; i < feature_row1.size(); ++i)
       {
@@ -190,7 +190,7 @@ namespace OpenMS
             continue;
           }
 
-          const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
+          const std::vector<Feature>& feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
           const double locality_weight = parameters.locality_weight
             ? 1.0 / (parameters.nn_threshold - std::abs(static_cast<Int>(start_iter + cnt2) - cnt1) + 1)
             : 1.0;
@@ -267,7 +267,7 @@ namespace OpenMS
       const double assay_retention_time = feature.getMetaValue("assay_rt");
       if (names.count(component_group_name) == 0)
       {
-        time_to_name.push_back(std::make_pair(assay_retention_time, component_group_name));
+        time_to_name.emplace_back(assay_retention_time, component_group_name);
         names.insert(component_group_name);
       }
       if (feature_name_map.count(component_group_name) == 0)
@@ -284,7 +284,7 @@ namespace OpenMS
         const String component_name = removeSpaces_(subordinate.getMetaValue("native_id").toString());
         if (names.count(component_name))
         {
-          time_to_name.push_back(std::make_pair(assay_retention_time, component_name));
+          time_to_name.emplace_back(assay_retention_time, component_name);
           names.insert(component_name);
         }
         if (feature_name_map.count(component_name) == 0)
@@ -351,7 +351,7 @@ namespace OpenMS
           subordinates_filtered.push_back(subordinate);
         }
       }
-      if (subordinates_filtered.size())
+      if (!subordinates_filtered.empty())
       {
         Feature feature_filtered(feature);
         feature_filtered.setSubordinates(subordinates_filtered);
@@ -363,13 +363,13 @@ namespace OpenMS
   double MRMFeatureSelector::computeScore_(const Feature& feature, const std::map<String, MRMFeatureSelector::LambdaScore>& score_weights) const
   {
     double score_1 = 1.0;
-    for (const std::pair<String, LambdaScore>& score_weight : score_weights)
+    for (const std::pair<const String, LambdaScore>& score_weight : score_weights)
     {
       const String& metavalue_name = score_weight.first;
       const LambdaScore lambda_score = score_weight.second;
       if (!feature.metaValueExists(metavalue_name))
       {
-        LOG_WARN << "computeScore_(): Metavalue \"" << metavalue_name << "\" not found.\n";
+        OPENMS_LOG_WARN << "computeScore_(): Metavalue \"" << metavalue_name << "\" not found.\n";
         continue;
       }
       const double value = weightScore_(feature.getMetaValue(metavalue_name), lambda_score);

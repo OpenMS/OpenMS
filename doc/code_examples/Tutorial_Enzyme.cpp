@@ -57,7 +57,7 @@ int main()
   protease.digest(AASequence::fromString("ARCDRE.(Amidated)"), products);
 
   // output digestion products
-  for (const AASequence p : products)
+  for (const AASequence& p : products)
   {
     cout << p.toString() << " ";
   }
@@ -68,7 +68,7 @@ int main()
   protease.digest(AASequence::fromString("ARCDRE.(Amidated)"), products);
 
   // output digestion products
-  for (const AASequence p : products)
+  for (const AASequence& p : products)
   {
     cout << p.toString() << " ";
   }

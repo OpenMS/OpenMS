@@ -70,6 +70,97 @@ START_TEST(DIAHelper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+START_SECTION(testIntegrateWindows_test)
+{
+  OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
+  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+
+  mass->data.push_back(100.);
+  mass->data.push_back(101.);
+  mass->data.push_back(102.);
+  mass->data.push_back(103.);
+  mass->data.push_back(104.);
+  mass->data.push_back(105.);
+  mass->data.push_back(106.);
+
+  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+
+  OpenSwath::BinaryDataArrayPtr ion_mobility(new OpenSwath::BinaryDataArray);
+  ion_mobility->data.push_back(1.);
+  ion_mobility->data.push_back(2.);
+  ion_mobility->data.push_back(3.);
+  ion_mobility->data.push_back(4.);
+  ion_mobility->data.push_back(5.);
+  ion_mobility->data.push_back(6.);
+  ion_mobility->data.push_back(7.);
+  ion_mobility->description = "Ion Mobility";
+
+  spec->setMZArray( mass);
+  spec->setIntensityArray( intensity);
+  spec->getDataArrays().push_back( ion_mobility );
+
+  double mz, intens;
+  DIAHelpers::integrateWindow(spec, 101., 103., mz, intens);
+  // std::cout << "mz : " << mz << " int : " << intens << std::endl;
+  TEST_REAL_SIMILAR (mz, 101.5);
+  TEST_REAL_SIMILAR (intens, 2)
+
+  std::vector<double> windows, intInt, intMz;
+  windows.push_back(101.);
+  windows.push_back(103.);
+  windows.push_back(105.);
+  DIAHelpers::integrateWindows(spec, windows, 2, intInt, intMz);
+  TEST_EQUAL (intInt.size(), intMz.size() )
+  TEST_EQUAL (intInt.size(), 3)
+  TEST_REAL_SIMILAR (intInt[0], 2)
+  TEST_REAL_SIMILAR (intMz[0], 100.5);
+
+  // std::cout << "print Int" << std::endl;
+  // std::copy(intInt.begin(), intInt.end(),
+  //     std::ostream_iterator<double>(std::cout, " "));
+  // std::cout << std::endl << "print mz" << intMz.size() << std::endl;
+  // std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
+  // std::copy(intMz.begin(), intMz.end(),
+  //     std::ostream_iterator<double>(std::cout, " "));
+
+  double im(0.0), im_intens(0.0);
+  DIAHelpers::integrateDriftSpectrum(spec, 101., 109., im, im_intens, 2, 5);
+  TEST_REAL_SIMILAR (im, 3.5);
+  TEST_REAL_SIMILAR (im_intens, 4)
+
+  double im2(0.0), im_intens2(0.0);
+  DIAHelpers::integrateDriftSpectrum(spec, 101., 103., im2, im_intens2, 2, 5);
+  TEST_REAL_SIMILAR (im2, 2.5);
+  TEST_REAL_SIMILAR (im_intens2, 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm))
+{
+  // test absolute
+  {
+    double left(500.0), right(500.0);
+    OpenMS::DIAHelpers::adjustExtractionWindow(right, left, 0.5, false);
+    TEST_REAL_SIMILAR(left, 500 - 0.25);
+    TEST_REAL_SIMILAR(right, 500 + 0.25);
+  }
+  // test ppm
+  {
+    double left(500.0), right(500.0);
+    OpenMS::DIAHelpers::adjustExtractionWindow(right, left, 10, true);
+    TEST_REAL_SIMILAR(left, 500 - 500 * 5 /1e6);
+    TEST_REAL_SIMILAR(right, 500 + 500 * 5 /1e6);
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] getBYSeries_test)
 {
   TheoreticalSpectrumGenerator generator;
@@ -88,6 +179,7 @@ START_SECTION([EXTRA] getBYSeries_test)
 }
 END_SECTION
 
+#if 0
 START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
 {
 
@@ -205,8 +297,7 @@ START_SECTION([EXTRA] addIsotopesToSpec_test)
 
 }
 END_SECTION
-
-
+#endif
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

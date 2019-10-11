@@ -89,7 +89,7 @@ namespace OpenMS
   }
 
   // returns the score of the protein hit
-  float ProteinHit::getScore() const
+  double ProteinHit::getScore() const
   {
     return score_;
   }

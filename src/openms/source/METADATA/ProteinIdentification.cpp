@@ -32,7 +32,12 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/METADATA/ProteinIdentification.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <numeric>
@@ -359,18 +364,84 @@ namespace OpenMS
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
   {
-    if (!s.empty())
+    if (s.empty())
     {
+      OPENMS_LOG_WARN << "Setting empty MS runs paths." << std::endl;
       this->setMetaValue("spectra_data", DataValue(s));
+      return;
+    }     
+
+    for (const String& filename : s)
+    {
+      if (!filename.hasSuffix("mzML"))
+      {
+        OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
+                        << "Filename: '" << filename << "'" << std::endl;                          
+      }
     }
+
+    this->setMetaValue("spectra_data", DataValue(s));
   }
 
-  /// get the file path to the first MS run
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
+  {
+    StringList ms_path;
+    e.getPrimaryMSRunPath(ms_path);
+    if (ms_path.size() == 1 && ms_path[0].hasSuffix("mzML") && File::exists(ms_path[0]))
+    {
+      setPrimaryMSRunPath(ms_path);
+    }
+    else
+    {
+      setPrimaryMSRunPath(s);
+    }        
+  }
+
+  /// get the file path to the first MS runs
   void ProteinIdentification::getPrimaryMSRunPath(StringList& toFill) const
   {
     if (this->metaValueExists("spectra_data"))
     {
       toFill = this->getMetaValue("spectra_data");
+    }
+  }
+
+  void ProteinIdentification::addPrimaryMSRunPath(const StringList& toAdd)
+  {
+    if (this->metaValueExists("spectra_data"))
+    {
+      StringList tmp = this->getMetaValue("spectra_data");
+      tmp.insert(tmp.end(),toAdd.begin(),toAdd.end());
+      this->setMetaValue("spectra_data", DataValue(tmp));
+    }
+    else
+    {
+      this->setMetaValue("spectra_data", DataValue(toAdd));
+    }
+  }
+
+
+  void ProteinIdentification::addPrimaryMSRunPath(const String& toAdd)
+  {
+    if (this->metaValueExists("spectra_data"))
+    {
+      StringList tmp = this->getMetaValue("spectra_data");
+      tmp.push_back(toAdd);
+      this->setMetaValue("spectra_data", DataValue(tmp));
+    }
+    else
+    {
+      this->setMetaValue("spectra_data", DataValue(toAdd));
+    }
+  }
+
+  /// get the file path to the first MS runs
+  void ProteinIdentification::getPrimaryMSRunPath(set<String>& toFill) const
+  {
+    if (this->metaValueExists("spectra_data"))
+    {
+      const auto& strlist = this->getMetaValue("spectra_data").toStringList();
+      toFill = set<String>(strlist.begin(),strlist.end());
     }
   }
 
@@ -456,7 +527,7 @@ namespace OpenMS
     {
       // peptide hits
       const PeptideIdentification & peptide_id = pep_ids[pep_i];
-      const vector<PeptideHit> peptide_hits = peptide_id.getHits();
+      const vector<PeptideHit>& peptide_hits = peptide_id.getHits();
       for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
       {
         const PeptideHit & peptide_hit = peptide_hits[ph_i];
@@ -514,7 +585,7 @@ namespace OpenMS
   }
 
   void ProteinIdentification::computeModifications(
-    const std::vector<PeptideIdentification>& pep_ids, 
+    const std::vector<PeptideIdentification>& pep_ids,
     const StringList & skip_modifications)
   {
     // map protein accession to observed position,modifications pairs
@@ -564,7 +635,7 @@ namespace OpenMS
                 for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
                 {
                   const String & acc = ph_evidences[phe_i].getProteinAccession();
-                  const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai 
+                  const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai
                   prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
                 }
               }
@@ -643,6 +714,11 @@ namespace OpenMS
   void ProteinIdentification::setSearchParameters(const SearchParameters& search_parameters)
   {
     search_parameters_ = search_parameters;
+  }
+
+  void ProteinIdentification::setSearchParameters(SearchParameters&& search_parameters)
+  {
+    search_parameters_ = std::move(search_parameters);
   }
 
   const ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters() const

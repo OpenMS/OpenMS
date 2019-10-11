@@ -186,6 +186,7 @@
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 				</PeptideHit>
 			</PeptideIdentification>
+			<UserParam type="string" name="foo" value="bar"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

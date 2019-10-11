@@ -37,7 +37,9 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
+#include <cmath>
 #include <vector>
 
 namespace OpenMS
@@ -64,9 +66,9 @@ public:
       {
 public:
         GaussFitResult()
-        : A(-1.0), x0(-1.0), sigma(-1.0) {}
+        : A(-1.0), x0(-1.0), sigma(-1.0), logsigma(-1.0) {}
         GaussFitResult(double a, double x, double s)
-        : A(a), x0(x), sigma(s) {}
+        : A(a), x0(x), sigma(s), logsigma(log(s)) {}
 
         /// parameter A of Gaussian distribution (amplitude)
         double A;
@@ -77,15 +79,29 @@ public:
         /// parameter sigma of Gaussian distribution (width)
         double sigma;
 
-      /**
-        @brief Evaluate the current Gaussian model at the specified point.
 
-        Returns the intensities (i.e. probabilities scaled by the factor 'A') of the PDF at the given positions.
-        This function can be called with any set of parameters, e.g. the initial parameters (to get a 'before-fit' status),
-        or after fitting.
+        /**
+          @brief Evaluate the current density Gaussian model at the specified point.
 
-      */
-        double eval(const double x) const;
+          Returns the intensities (i.e. probabilities scaled by the factor 'A') of the PDF at the given positions.
+          This function can be called with any set of parameters, e.g. the initial parameters (to get a 'before-fit' status),
+          or after fitting.
+        */
+        double eval(double x) const;
+
+        /**
+          @brief Evaluate the current log density of the Gaussian model at the specified point.
+
+          Returns the intensities (i.e. probabilities scaled by the factor 'A') of the PDF at the given positions.
+          This function can be called with any set of parameters, e.g. the initial parameters (to get a 'before-fit' status),
+          or after fitting.
+        */
+        double log_eval_no_normalize(double x) const;
+
+      private:
+        /// cached value of log sigma
+        double logsigma;
+        double halflogtwopi = 0.5*log(2.0*Constants::PI);
       };
 
       /// Constructor
@@ -121,7 +137,6 @@ protected:
       GaussFitResult init_param_;
 
 private:
-
      /// Copy constructor (not implemented)
       GaussFitter(const GaussFitter & rhs);
 

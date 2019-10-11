@@ -67,7 +67,7 @@ namespace OpenMS
   {
     Q_OBJECT
 
-public:
+public:    
     /// Default constructor
     Spectrum1DWidget(const Param & preferences, QWidget * parent = nullptr);
     ///Destructor
@@ -87,7 +87,7 @@ public:
 
     /// Switches to mirror view, displays another y-axis for the second spectrum
     void toggleMirrorView(bool mirror);
-
+    
     /// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
     void performAlignment(Size layer_index_1, Size layer_index_2, const Param & param);
 

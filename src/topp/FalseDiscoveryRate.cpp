@@ -75,7 +75,8 @@ using namespace std;
     This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
 
     @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the maximum q-value (e.g., 0.05 corresponds to an FDR of 5%) can be controlled on the PSM and protein level.
-    Alternativly, FDR filtering can be performed in the @ref IDFilter tool by setting score:pep and score:prot to the maximum q-value.
+    Alternatively, FDR filtering can be performed in the @ref IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
+    automatically updated and unreferenced proteins/peptides removed based on the advanced cleanup parameters.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -120,9 +121,23 @@ protected:
     registerDoubleOption_("FDR:PSM", "<fraction>", 1, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
     setMinFloat_("FDR:PSM", 0);
     setMaxFloat_("FDR:PSM", 1);
+
     registerDoubleOption_("FDR:protein", "<fraction>", 1, "Filter proteins based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
     setMinFloat_("FDR:protein", 0);
     setMaxFloat_("FDR:protein", 1);
+
+    registerTOPPSubsection_("FDR:cleanup", "Cleanup references after FDR control");
+    registerStringOption_("FDR:cleanup:remove_proteins_without_psms","<choice>", "true",
+        "Remove proteins without PSMs (due to being decoy or below PSM FDR threshold).", false, true);
+    setValidStrings_("FDR:cleanup:remove_proteins_without_psms", {"true","false"});
+    registerStringOption_("FDR:cleanup:remove_psms_without_proteins","<choice>", "true",
+        "Remove PSMs without proteins (due to being decoy or below protein FDR threshold).", false, true);
+    setValidStrings_("FDR:cleanup:remove_psms_without_proteins", {"true","false"});
+    registerStringOption_("FDR:cleanup:remove_spectra_without_psms","<choice>", "true",
+        "Remove spectra without PSMs (due to being decoy or below protein FDR threshold)."
+        " Caution: if remove_psms_without_proteins is false, protein level filtering does not propagate.", false, true);
+    setValidStrings_("FDR:cleanup:remove_spectra_without_psms", {"true","false"});
+
     registerSubsection_("algorithm", "Parameter section for the FDR calculation algorithm");
   }
 
@@ -164,13 +179,29 @@ protected:
     {
       if (getStringOption_("protein") == "true")
       {
-        fdr.apply(prot_ids);
-        filter_applied = true;
 
-        if (protein_fdr < 1)
+        for (auto& run : prot_ids)
         {
-          LOG_INFO << "FDR control: Filtering proteins..." << endl;
-          IDFilter::filterHitsByScore(prot_ids, protein_fdr);
+          if (!run.hasInferenceData() && !getFlag_("force"))
+          {
+            throw OpenMS::Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "It seems like protein inference was not yet performed."
+              " Calculating Protein FDR is probably not meaningful. To override,"
+              " use the force flag.");
+          }
+          else
+          {
+            fdr.applyBasic(run, true);
+            if (protein_fdr < 1)
+            {
+              OPENMS_LOG_INFO << "FDR control: Filtering proteins..." << endl;
+              IDFilter::filterHitsByScore(prot_ids, protein_fdr);
+              filter_applied = true;
+            }
+          }
         }
       }
 
@@ -181,34 +212,39 @@ protected:
 
         if (psm_fdr < 1)
         {
-          LOG_INFO << "FDR control: Filtering PSMs..." << endl;
+          OPENMS_LOG_INFO << "FDR control: Filtering PSMs..." << endl;
           IDFilter::filterHitsByScore(pep_ids, psm_fdr);
         }
       }
     }
-    catch (Exception::MissingInformation)
+    catch (Exception::MissingInformation& e)
     {
-      LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information (see above).\n";
+      OPENMS_LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information:\n"
+      << e.getMessage();
       return INCOMPATIBLE_INPUT_DATA;
     }
 
     if (filter_applied)
     {
-      IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
-
-      // keep decoy peptide hits without decoy protein references if flag is specified
-      if (alg_param.getValue("add_decoy_peptides").toBool() == true)
+      //remove_proteins_without_psms
+      if (getStringOption_("FDR:cleanup:remove_proteins_without_psms") == "true")
       {
-        IDFilter::updateProteinReferences(pep_ids, prot_ids, false);
+        IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
       }
-      else
+      //remove_psms_without_proteins
+      IDFilter::updateProteinReferences(pep_ids,
+                                        prot_ids,
+                                        getStringOption_("FDR:cleanup:remove_psms_without_proteins") == "true");
+      //remove_spectra_without_psms
+      if (getStringOption_("FDR:cleanup:remove_spectra_without_psms") == "true")
       {
-        IDFilter::updateProteinReferences(pep_ids, prot_ids, true);
-      }    
+        IDFilter::removeEmptyIdentifications(pep_ids);
+      }
+
       IDFilter::updateHitRanks(prot_ids);
       IDFilter::updateHitRanks(pep_ids);
-      IDFilter::removeEmptyIdentifications(pep_ids);
-      // we want to keep "empty" protein IDs because they contain search meta data
+
+      // we want to keep "empty" protein ID runs because they contain search meta data
     }
 
     // update protein groupings if necessary:
@@ -218,7 +254,7 @@ protected:
                                                  prot_it->getHits());
       if (!valid)
       {
-        LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
+        OPENMS_LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
                  << "The new grouping (especially the group probabilities) may not be completely valid any more." 
                  << endl;
       }
@@ -228,14 +264,14 @@ protected:
 
       if (!valid)
       {
-        LOG_WARN << "Warning: While updating indistinguishable prot_ids, some prot_ids were removed from groups that are still present. "
+        OPENMS_LOG_WARN << "Warning: While updating indistinguishable prot_ids, some prot_ids were removed from groups that are still present. "
                  << "The new grouping (especially the group probabilities) may not be completely valid any more." 
                  << endl;
       }
     }
 
     // some stats
-    LOG_INFO << "Before filtering:\n"
+    OPENMS_LOG_INFO << "Before filtering:\n"
              << n_prot_ids << " protein identification(s) with "
              << n_prot_hits << " protein hit(s),\n"
              << n_pep_ids << " peptide identification(s) with "
@@ -246,7 +282,7 @@ protected:
              << pep_ids.size() << " peptide identification(s) with "
              << IDFilter::countHits(pep_ids) << " pep_ids hit(s)." << endl;
 
-    LOG_INFO << "Writing filtered output..." << endl;
+    OPENMS_LOG_INFO << "Writing filtered output..." << endl;
     IdXMLFile().store(out, prot_ids, pep_ids);
     return EXECUTION_OK;
   }

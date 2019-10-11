@@ -99,7 +99,6 @@ namespace OpenMS
     
     String SiriusAdapterAlgorithm::getFeatureOnly() { return feature_only_; }
     String SiriusAdapterAlgorithm::getNoMasstraceInfoIsotopePattern() { return no_masstrace_info_isotope_pattern_; }
-    String SiriusAdapterAlgorithm::getConverterMode() { return converter_mode_; }
     int SiriusAdapterAlgorithm::getIsotopePatternIterations() { return isotope_pattern_iterations_; }
     int SiriusAdapterAlgorithm::getCandidates() { return candidates_; }
     int SiriusAdapterAlgorithm::getTopNHits() { return top_n_hits_; }
@@ -159,7 +158,7 @@ namespace OpenMS
       QFileInfo file_info(exe);
       exe = file_info.canonicalFilePath();
   
-      LOG_WARN << "Executable is: " + String(exe) << std::endl;
+      OPENMS_LOG_WARN << "Executable is: " + String(exe) << std::endl;
       const String path_to_executable = File::path(exe);
       executable_workdir = std::make_pair(exe.toStdString(), path_to_executable);
       
@@ -194,16 +193,23 @@ namespace OpenMS
           FeatureMap feature_map;
           fxml.load(featureinfo, feature_map);
           
-          bool feature_only = (sirius_algo.feature_only_ == "true") ? true : false;
+          bool feature_only;
+          if (sirius_algo.feature_only_ == "true") feature_only = true;
+          else if (sirius_algo.feature_only_ == "false") feature_only = false;
+          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature only is either true or false");
+          
           unsigned int num_masstrace_filter = sirius_algo.filter_by_num_masstraces_;
           double precursor_mz_tol = sirius_algo.precursor_mz_tolerance_;
           double precursor_rt_tol = sirius_algo.precursor_rt_tolerance_;
-          bool ppm_prec = (sirius_algo.precursor_mz_tolerance_unit_ == "true") ? true : false; 
+          bool ppm_prec;
+          if (sirius_algo.precursor_mz_tolerance_unit_ == "ppm") ppm_prec = true;
+          else if (sirius_algo.precursor_mz_tolerance_unit_ == "Da") ppm_prec = false;
+          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor m/z tolerance unit is either ppm or Da"); 
           
           if (num_masstrace_filter != 1 && !feature_only)
           {
             num_masstrace_filter = 1;
-            LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
+            OPENMS_LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
           }
 
           // filter feature by number of masstraces
@@ -244,33 +250,33 @@ namespace OpenMS
       // number of features to be processed 
       if (feature_only && !featureinfo.empty())
       {
-        LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
       }
       else if (!featureinfo.empty())
       {
-        LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-        LOG_INFO << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
       } 
       else
       {
         int count_ms2 = 0;
-        for (auto spec_it : spectra)
+        for (const auto& spec_it : spectra)
         {
           if (spec_it.getMSLevel() == 2)
           {
             count_ms2++;
           }
         }
-        LOG_INFO << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
+        OPENMS_LOG_WARN << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
       }
     } 
 
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
-                                                                   const String& tmp_out_dir,
-                                                                   String& executable,
-                                                                   const String& out_csifingerid,
-                                                                   const SiriusAdapterAlgorithm& sirius_algo)
+                                                                         const String& tmp_out_dir,
+                                                                         String& executable,
+                                                                         const String& out_csifingerid,
+                                                                         const SiriusAdapterAlgorithm& sirius_algo)
     {
       // assemble SIRIUS parameters
       QStringList process_params;
@@ -324,19 +330,19 @@ namespace OpenMS
       {
           ss << " " << it->toStdString();
       }
-      LOG_DEBUG << ss.str() << std::endl;
-      LOG_WARN << "Executing: " + String(exe) << std::endl;
-      LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
+      OPENMS_LOG_DEBUG << ss.str() << std::endl;
+      OPENMS_LOG_WARN << "Executing: " + String(exe) << std::endl;
+      OPENMS_LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
       const bool success = qp.waitForFinished(-1); // wait till job is finished
   
       if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
       {
-        LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
+        OPENMS_LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
         const QString sirius_stdout(qp.readAllStandardOutput());
         const QString sirius_stderr(qp.readAllStandardError());
-        LOG_WARN << String(sirius_stdout) << std::endl;
-        LOG_WARN << String(sirius_stderr) << std::endl;
-        LOG_WARN << String(qp.exitCode()) << std::endl;
+        OPENMS_LOG_WARN << String(sirius_stdout) << std::endl;
+        OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
+        OPENMS_LOG_WARN << String(qp.exitCode()) << std::endl;
         qp.close();
 
         throw Exception::InvalidValue(__FILE__,

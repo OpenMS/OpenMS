@@ -166,7 +166,7 @@ namespace OpenMS
 
     EmpiricalFormula our_form;
     // Add all the ribonucleotide masses
-    for (auto i : seq_)
+    for (const auto& i : seq_)
     {
       our_form += i->getFormula();
     }
@@ -220,7 +220,7 @@ namespace OpenMS
       return our_form + (H_form * charge) + local_three_prime + z_ion_to_full;
 
     default:
-      LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << endl;
+      OPENMS_LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << endl;
     }
 
     return our_form;

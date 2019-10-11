@@ -461,9 +461,20 @@ protected:
     Param copy(const String& prefix, bool remove_prefix = false) const;
 
     /**
+      @brief Returns a new Param object containing all entries in the given subset.
+
+      @param subset The subset of Param nodes that should be copied out of the object
+             here. Includes values etc. Does not check any compatibility. Just matches the names.
+      @note Only matches entries and nodes at the root=top level and copies over whole subtrees if matched.
+            This function is mainly used for copying subsection parameters that were not registered as
+            as an actual subsection e.g. for backwards compatibility of param names.
+    */
+    Param copySubset(const Param& subset) const;
+
+    /**
       @brief Rescue parameter <b>values</b> from @p p_outdated to current param
 
-      Calls ::update(p_outdated, true, add_unknown, false, false, LOG_WARN) and returns its value.
+      Calls ::update(p_outdated, true, add_unknown, false, false, OPENMS_LOG_WARN) and returns its value.
     */
     bool update(const Param& p_outdated, const bool add_unknown = false);
 
@@ -535,7 +546,7 @@ protected:
       @param defaults The default values.
       @param prefix The prefix where to check for the defaults.
 
-      Warnings etc. will be send to LOG_WARN.
+      Warnings etc. will be send to OPENMS_LOG_WARN.
 
       @exception Exception::InvalidParameter is thrown if errors occur during the check
     */

@@ -106,6 +106,11 @@ namespace OpenSwath
         return; // unknown: too dangerous to analyse
       }
 
+      if (tmp.empty())
+      {
+        return; // something went wrong with the spectrum after peak picking (e.g. returned empty spectrum)
+      }
+
       // Note: this will pick up also non-peptide signals; filtering by averagine might yield better results
       Deisotoper::deisotopeAndSingleCharge(tmp, this->decon_ms1_mz_tol_, false, 1, 10, true, 3, 10, false, true);
       if (tmp.getIntegerDataArrays().empty())

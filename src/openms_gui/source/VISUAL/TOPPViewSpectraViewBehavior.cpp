@@ -72,6 +72,10 @@ namespace OpenMS
       spectrum.push_back(peak1d);
     }
 
+    spectrum.getFloatDataArrays() = current_chrom.getFloatDataArrays();
+    spectrum.getIntegerDataArrays() = current_chrom.getIntegerDataArrays();
+    spectrum.getStringDataArrays() = current_chrom.getStringDataArrays();
+
     // Add at least one data point to the chromatogram, otherwise
     // "addLayer" will fail and a segfault occurs later
     if (current_chrom.empty()) 
@@ -114,7 +118,7 @@ namespace OpenMS
 
       // fix legend and set layer name
       caption = layer.name + "[" + index + "]";
-      w->xAxis()->setLegend("Time [sec]");
+      w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
 
       // add chromatogram data as peak spectrum
       if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
@@ -202,9 +206,9 @@ namespace OpenMS
     //open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
     // fix legend if its a chromatogram
-    w->xAxis()->setLegend("Time [sec]");
+    w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
 
-    for (auto index : indices)
+    for (const auto& index : indices)
     {
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
@@ -340,7 +344,7 @@ namespace OpenMS
         widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
       }
 
-      for (auto index : indices)
+      for (const auto& index : indices)
       {
         ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 

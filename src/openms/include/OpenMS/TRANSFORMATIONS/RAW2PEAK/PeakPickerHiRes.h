@@ -119,7 +119,6 @@ public:
      */
     void pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const;
 
-
     /**
      * @brief Applies the peak-picking algorithm to a single chromatogram
      * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
@@ -128,7 +127,7 @@ public:
      * @param output  output chromatogram with picked peaks
      * @param boundaries  boundaries of the picked peaks
      */
-    void pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries) const;
+    void pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = false) const;
 
     /**
      * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
@@ -152,7 +151,11 @@ public:
      * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
      * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
-    void pickExperiment(const PeakMap& input, PeakMap& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom, const bool check_spectrum_type = true) const;
+    void pickExperiment(const PeakMap& input,
+                        PeakMap& output,
+                        std::vector<std::vector<PeakBoundary> >& boundaries_spec,
+                        std::vector<std::vector<PeakBoundary> >& boundaries_chrom,
+                        const bool check_spectrum_type = true) const;
 
     /**
       @brief Applies the peak-picking algorithm to a map (MSExperiment). This
@@ -164,6 +167,10 @@ public:
     void pickExperiment(/* const */ OnDiscMSExperiment& input, PeakMap& output, const bool check_spectrum_type = true) const;
 
 protected:
+
+    template <typename ContainerType>
+    void pick_(const ContainerType& input, ContainerType& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const;
+
     // signal-to-noise parameter
     double signal_to_noise_;
 

@@ -59,12 +59,12 @@ namespace OpenMS
       progresslogger.setProgress(proteins_counter);
       IdentificationData::ScoreType score_type(prot.getScoreType(),
                                                prot.isHigherScoreBetter());
-      IdentificationData::ScoreTypeRef score_ref =
+      IdentificationData::ScoreTypeRef prot_score_ref =
         id_data.registerScoreType(score_type);
 
       IdentificationData::DataProcessingSoftware software(
         prot.getSearchEngine(), prot.getSearchEngineVersion());
-      software.assigned_scores.push_back(score_ref);
+      software.assigned_scores.push_back(prot_score_ref);
       IdentificationData::ProcessingSoftwareRef software_ref =
         id_data.registerDataProcessingSoftware(software);
 
@@ -104,7 +104,7 @@ namespace OpenMS
         parent.coverage = hit.getCoverage() / 100.0; // we don't want percents
         static_cast<MetaInfoInterface&>(parent) = hit;
         IdentificationData::AppliedProcessingStep applied(step_ref);
-        applied.scores[score_ref] = hit.getScore();
+        applied.scores[prot_score_ref] = hit.getScore();
         parent.steps_and_scores.push_back(applied);
         id_data.registerParentMolecule(parent);
       }
@@ -280,7 +280,7 @@ namespace OpenMS
             id_data.registerScoreType(main_score);
           software.assigned_scores.push_back(main_score_ref);
           sub_applied.scores[main_score_ref] = ana_res.main_score;
-          for (const pair<String, double>& sub_pair : ana_res.sub_scores)
+          for (const pair<const String, double>& sub_pair : ana_res.sub_scores)
           {
             IdentificationData::ScoreType sub_score;
             sub_score.name = sub_pair.first;
@@ -326,7 +326,7 @@ namespace OpenMS
         pair<vector<PeptideHit>, IdentificationData::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
-    const String& ppm_error_name = Constants::PRECURSOR_ERROR_PPM_USERPARAM;
+    const String& ppm_error_name = Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
 
     for (const IdentificationData::MoleculeQueryMatch& query_match :
            id_data.getMoleculeQueryMatches())
@@ -550,7 +550,7 @@ namespace OpenMS
               // @TODO: what if there are several scores?
               new_group.probability = group.scores.begin()->second;
             }
-            for (auto parent_ref : group.parent_molecule_refs)
+            for (const auto& parent_ref : group.parent_molecule_refs)
             {
               new_group.accessions.push_back(parent_ref->accession);
             }
@@ -783,7 +783,7 @@ namespace OpenMS
     const map<IdentificationData::ScoreTypeRef, Size>& scores,
     map<Size, MzTabParameter>& output)
   {
-    for (const pair<IdentificationData::ScoreTypeRef, Size>& score_pair :
+    for (const pair<const IdentificationData::ScoreTypeRef, Size>& score_pair :
            scores)
     {
       const IdentificationData::ScoreType& score_type = *score_pair.first;
@@ -860,7 +860,7 @@ namespace OpenMS
     {
       charges = ListUtils::create<Int>(pisp.charges);
     }
-    catch (Exception::ConversionError& e) { // X! Tandem notation, e.g. "+1-+4"?
+    catch (Exception::ConversionError& /*e*/) { // X! Tandem notation, e.g. "+1-+4"?
       charges = ListUtils::create<Int>(pisp.charges, '-');
       if ((charges.size() == 2) && (charges[0] < charges[1]))
       {

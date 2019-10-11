@@ -84,8 +84,10 @@ using namespace OpenMS;
   step, the transitions will be filtered to improve sensitivity for detection
   of peptides.
 
-  Optionally, theoretical identification transitions can be generated when
-  the TraML will be used for IPF scoring in OpenSWATH.
+  Optionally, theoretical identification transitions can be generated when the
+  TraML will be used for IPF scoring in OpenSWATH, see @ref OpenMS::MRMAssay
+  "MRMAssay" for more information on the algorithm. This is recommended if
+  post-translational modifications are scored with OpenSWATH.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathAssayGenerator.cli
@@ -244,7 +246,7 @@ protected:
       if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
       {
         ModificationsDB* ptr = ModificationsDB::getInstance(unimod_file, String(""), String(""));
-        LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
+        OPENMS_LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
       }
       else
       {
@@ -256,23 +258,23 @@ protected:
     // Check swath window input
     if (!swath_windows_file.empty())
     {
-      LOG_INFO << "Validate provided Swath windows file:" << std::endl;
+      OPENMS_LOG_INFO << "Validate provided Swath windows file:" << std::endl;
       std::vector<double> swath_prec_lower;
       std::vector<double> swath_prec_upper;
       SwathWindowLoader::readSwathWindows(swath_windows_file, swath_prec_lower, swath_prec_upper);
 
-      LOG_INFO << "Read Swath maps file with " << swath_prec_lower.size() << " windows." << std::endl;
+      OPENMS_LOG_INFO << "Read Swath maps file with " << swath_prec_lower.size() << " windows." << std::endl;
       for (Size i = 0; i < swath_prec_lower.size(); i++)
       {
         swathes.push_back(std::make_pair(swath_prec_lower[i], swath_prec_upper[i]));
-        LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;
+        OPENMS_LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;
       }
     }
 
     TargetedExperiment targeted_exp;
 
     // Load data
-    LOG_INFO << "Loading " << in << std::endl;
+    OPENMS_LOG_INFO << "Loading " << in << std::endl;
     if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
     {
       const char* tr_file = in.c_str();
@@ -302,10 +304,10 @@ protected:
     MRMAssay assays = MRMAssay();
     assays.setLogType(ProgressLogger::CMD);
 
-    LOG_INFO << "Annotating transitions" << std::endl;
+    OPENMS_LOG_INFO << "Annotating transitions" << std::endl;
     assays.reannotateTransitions(targeted_exp, precursor_mz_threshold, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_detection_specific_losses, enable_detection_unspecific_losses);
 
-    LOG_INFO << "Annotating detecting transitions" << std::endl;
+    OPENMS_LOG_INFO << "Annotating detecting transitions" << std::endl;
     assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
     assays.detectingTransitions(targeted_exp, min_transitions, max_transitions);
 
@@ -326,13 +328,13 @@ protected:
         uis_swathes = swathes;
       }
       
-      LOG_INFO << "Generating identifying transitions for IPF" << std::endl;
+      OPENMS_LOG_INFO << "Generating identifying transitions for IPF" << std::endl;
       assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, uis_seed, disable_decoy_transitions);
       std::vector<std::pair<double, double> > empty_swathes;
       assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, empty_swathes);
     }
 
-    LOG_INFO << "Writing assays " << out << std::endl;
+    OPENMS_LOG_INFO << "Writing assays " << out << std::endl;
     if (out_type == FileTypes::TSV)
     {
       const char* tr_file = out.c_str();

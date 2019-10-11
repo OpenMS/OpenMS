@@ -507,6 +507,8 @@ namespace OpenMS
         }
         else
         {
+          bool haspep = it->getScoreType() == "Posterior Error Probability" || it->getScoreType() == "pep";
+          bool percolator = false;
           if (search_engine_name == "X! Tandem")
           {
             // check if score type is XTandem or qvalue/fdr
@@ -562,22 +564,62 @@ namespace OpenMS
           }
           else if (search_engine_name == "Percolator")
           {
-            double pep_score = static_cast<double>(h.getMetaValue("Percolator_PEP"));
-            f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << h.getMetaValue("Percolator_score") << "\"" << "/>\n";
-            f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << h.getMetaValue("Percolator_qvalue") << "\"" << "/>\n";
+            double svm_score = 0.0;
+            if (h.metaValueExists("MS:1001492"))
+            {
+              svm_score = static_cast<double>(h.getMetaValue("MS:1001492"));
+              f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << svm_score << "\"" << "/>\n";
+            }
+            else if (h.metaValueExists("Percolator_score"))
+            {
+              svm_score = static_cast<double>(h.getMetaValue("Percolator_score"));
+              f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << svm_score << "\"" << "/>\n";
+            }
+
+            double qval_score = 0.0;
+            if (h.metaValueExists("MS:1001491"))
+            {
+              qval_score = static_cast<double>(h.getMetaValue("MS:1001491"));
+              f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << qval_score << "\"" << "/>\n";
+            }
+            else if (h.metaValueExists("Percolator_qvalue"))
+            {
+              qval_score = static_cast<double>(h.getMetaValue("Percolator_qvalue"));
+              f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << qval_score << "\"" << "/>\n";
+            }
+
+            double pep_score = 0.0;
+            if (h.metaValueExists("MS:1001493"))
+            {
+              pep_score = static_cast<double>(h.getMetaValue("MS:1001493"));
+            }
+            else if (h.metaValueExists("Percolator_PEP"))
+            {
+              pep_score = static_cast<double>(h.getMetaValue("Percolator_PEP"));
+            }
+            else
+            {
+              if (!haspep)
+              {
+                // will be written later
+                throw Exception::MissingInformation(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,"Percolator PEP score missing for pepXML export of Percolator results.");
+              }
+            }
             f << "\t\t\t<search_score" << " name=\"Percolator_PEP\" value=\"" << pep_score << "\"" << "/>\n";
 
-            double probability = 1.0 - pep_score;
             f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
-            f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
-            f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
+            f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << 1. - pep_score << "\"";
+            f << " all_ntt_prob=\"(0.0000,0.0000," << 1. - pep_score << ")\"/>\n";
             f << "\t\t\t</analysis_result>" << "\n";
-          }
+            percolator = true;
+          } // Anything else
           else
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
           }
-          if (it->getScoreType() == "Posterior Error Probability" || it->getScoreType() == "pep")
+          // Any search engine with a PEP (e.g. also our IDPEP) except Percolator which has
+          // written that part already
+          if (haspep && !percolator)
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
             double probability = 1.0 - h.getScore();
@@ -1202,13 +1244,29 @@ namespace OpenMS
 
         optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
         aa_mod.terminus = String(attributeAsString_(attributes, "terminus")).toLower();
+        // "y" if protein terminus, "n" if peptide terminus
+        aa_mod.protein_terminus = String(attributeAsString_(attributes, "protein_terminus")).toLower() == "y";
         if (aa_mod.terminus == "n")
         {
-          term_spec = ResidueModification::N_TERM;
+          if (aa_mod.protein_terminus)
+          {
+            term_spec = ResidueModification::PROTEIN_N_TERM;
+          }
+          else
+          {
+            term_spec = ResidueModification::N_TERM;
+          }
         }
         else if (aa_mod.terminus == "c")
         {
-          term_spec = ResidueModification::C_TERM;
+          if (aa_mod.protein_terminus)
+          {
+            term_spec = ResidueModification::PROTEIN_C_TERM;
+          }
+          else
+          {
+            term_spec = ResidueModification::C_TERM;
+          }
         }
       }
       String desc = "";
@@ -1220,7 +1278,7 @@ namespace OpenMS
           const ResidueModification* r = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec);
           desc = r->getFullId();
         }
-        catch (Exception::BaseException)
+        catch ( Exception::BaseException& )
         {
           error(LOAD, "Modification '" + aa_mod.description + "' of residue '" + aa_mod.aminoacid + "' could not be matched. Trying by modification mass.");
         }
@@ -1573,4 +1631,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

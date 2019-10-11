@@ -89,6 +89,11 @@ using namespace std;
   Maybe most importantly, data from MS experiments in a number of different formats can be converted to mzML,
   the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
   supports traceability of analysis steps.)
+  
+  Thermo raw files can be converted to mzML using the ThermoRawFileParser provided in the THIRDPARTY folder.
+  On windows, a recent .NET framwork needs to be installed. On linux and mac, the mono runtime needs to be
+  present and accessible via the -NET_executable parameter. The path to the ThermoRawFileParser can be set
+  via the -ThermoRaw_executable option.
 
   For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
 
@@ -136,7 +141,7 @@ String extractCachedMetaFilename(const String& in)
   in.split(".cachedMzML", split_out);
   if (split_out.size() != 2)
   {
-    LOG_ERROR << "Cannot deduce base path from input '" << in 
+    OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in 
       << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
     return "";
   }
@@ -194,7 +199,7 @@ void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSS
       name += " (MS:1002815)";
     }
     fda.setName(name);
-    for (auto s : stack)
+    for (const auto& s : stack)
     {
       new_spec.insert(new_spec.end(), s.begin(), s.end());
       fda.insert(fda.end(), s.size(), s.getDriftTime());
@@ -261,7 +266,7 @@ void expandIMSpectrum(const MSSpectrum& tmps, std::vector<MSSpectrum>& result)
 
   // Add spectra to result, note that this is guaranteed to be
   // sorted by ion mobility (through std::map).
-  for (auto s : im_map)
+  for (const auto& s : im_map)
   {
     result.push_back(s.second);
   }
@@ -323,7 +328,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
-    String formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
+    String formats("mzML,mzXML,mgf,raw,cachedMzML,mzData,dta,dta2d,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
     
@@ -351,6 +356,9 @@ protected:
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
+    registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, ListUtils::create<String>("skipexists"));
+    registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, ListUtils::create<String>("skipexists"));
+    registerFlag_("no_peak_picking", "Disables vendor peak picking for raw files.", true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -368,6 +376,7 @@ protected:
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
+    bool no_peak_picking = getFlag_("no_peak_picking");
 
     //input file type
     FileHandler fh;
@@ -447,6 +456,50 @@ protected:
         exp.set2DData(cm);
       }
     }
+    else if (in_type == FileTypes::RAW)
+    {
+      if (out_type != FileTypes::MZML)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Only conversion to mzML supported at this point.");
+      }
+      writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
+      String net_executable = getStringOption_("NET_executable");
+      TOPPBase::ExitCodes exit_code;
+      QStringList arguments;
+#ifdef OPENMS_WINDOWSPLATFORM      
+      if (net_executable.empty())
+      { // default on Windows: if no mono executable is set use the "native" .NET one
+        arguments << String("-i=" + in).toQString()
+                  << String("--output_file=" + out).toQString()
+                  << String("-f=2").toQString() // indexedMzML
+                  << String("-e").toQString(); // ignore instrument errors
+        if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
+        exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
+      }
+      else
+      { // use e.g., mono
+        arguments << getStringOption_("ThermoRaw_executable").toQString()
+                  << String("-i=" + in).toQString()
+                  << String("--output_file=" + out).toQString()
+                  << String("-f=2").toQString()
+                  << String("-e").toQString();
+        if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
+        exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
+      }      
+#else
+      // default on Mac, Linux: use mono
+      net_executable = net_executable.empty() ? "mono" : net_executable;
+      arguments << getStringOption_("ThermoRaw_executable").toQString()
+                << String("-i=" + in).toQString()
+                << String("--output_file=" + out).toQString()
+                << String("-f=2").toQString()
+                << String("-e").toQString();
+      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
+      exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
+#endif            
+      return exit_code;
+    }
     else if (in_type == FileTypes::EDTA)
     {
       EDTAFile().load(in, cm);
@@ -492,7 +545,7 @@ protected:
       // Sanity check
       if (exp.size() != tmp_exp.size())
       {
-        LOG_ERROR << "Paired input files do not match, cannot convert: " << in_meta << " and " << in << std::endl;
+        OPENMS_LOG_ERROR << "Paired input files do not match, cannot convert: " << in_meta << " and " << in << std::endl;
         return ILLEGAL_PARAMETERS;
       }
 
@@ -794,6 +847,10 @@ protected:
       {
         MapConversion::convert(0, exp, cm, exp.size());
       }
+      for (auto& pepID : cm.getUnassignedPeptideIdentifications())
+      {
+        pepID.setMetaValue("map_index", 0);
+      }
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
@@ -803,7 +860,7 @@ protected:
     {
       if (fm.size() > 0 && cm.size() > 0)
       {
-        LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
+        OPENMS_LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
         return INTERNAL_ERROR;
       }
       if (fm.size() > 0) EDTAFile().store(out, fm);
@@ -828,7 +885,7 @@ protected:
       // IBSpectra selected as output type
       if (in_type != FileTypes::CONSENSUSXML)
       {
-        LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
 

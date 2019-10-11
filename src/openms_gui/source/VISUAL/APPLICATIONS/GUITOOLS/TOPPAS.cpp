@@ -97,7 +97,7 @@ const char* tool_name = "TOPPAS";
 // description of the usage of this TOPP tool
 //-------------------------------------------------------------
 
-void print_usage(Logger::LogStream& stream = Log_info)
+void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 {
   stream << "\n"
          << tool_name << " -- An assistant for GUI-driven TOPP workflow design." << "\n"
@@ -136,8 +136,8 @@ int main(int argc, const char** argv)
   // '-debug' given
   if (param.exists("debug"))
   {
-    LOG_INFO << "Debug flag provided. Enabling 'LOG_DEBUG' ..." << std::endl;
-    Log_debug.insert(cout); // allows to use LOG_DEBUG << "something" << std::endl;
+    OPENMS_LOG_INFO << "Debug flag provided. Enabling 'OPENMS_LOG_DEBUG' ..." << std::endl;
+    OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
   }
 
   // test if unknown options were given
@@ -148,8 +148,8 @@ int main(int argc, const char** argv)
     // in Param.h
     if (!(param.getValue("unknown").toString().hasSubstring("-psn") && !param.getValue("unknown").toString().hasSubstring(", ")))
     {
-      LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
-      print_usage(Log_error);
+      OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
+      print_usage(OpenMS_Log_error);
       return 1;
     }
   }
@@ -159,7 +159,7 @@ int main(int argc, const char** argv)
 
     if (param.exists("execute") || param.exists("out_dir"))
     {
-      LOG_ERROR << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl;
+      OPENMS_LOG_ERROR << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl;
       return 1;
     }
 

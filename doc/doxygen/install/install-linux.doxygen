@@ -37,8 +37,9 @@
   %OpenMS requires several other libraries to be present on your system.
   Most of these should be available in the repositories of your GNU/Linux distribution.
 
-  For those libraries/versions often not found in the distro repositories, we provide sources and build scripts.
-  The Release tar.gz archive contains the libraries in the contrib/ folder,
+  For those libraries/versions often not found in the distro repositories, we provide sources and build scripts
+  called "Contrib" build scripts.
+  The Release tar.gz archive contains these libraries in the contrib/ folder,
   if you build the development (git) version, you'll find an empty submodule in that folder that you have to update first with
   \code
     git submodule update --init contrib
@@ -48,10 +49,14 @@
 
   <ul>
     <li>
-      Essential are \b GCC (> 4.0) or other ANSI C++ compiler, \b CMake (> 2.8.3), \b Qt5, \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
+      Essential are \b gcc/g++ (>= 4.9) or similar ANSI C++ compiler with full C++11 support,
+      \b CMake (>= 3.1; with >= 3.9 suggested), \b Qt5, \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
-      For the complete feature set to be enabled, %OpenMS needs recent versions of \b Boost (>= 1.48), \b Eigen3 (>= 3.3.2), \b WildMagic5, \b libSVM (2.91 or higher but not 3.15), \b SeqAn (>= 1.4.0 but < 2.0 needed), \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1). These can be obtained via your package manager (if possible) or build through our contrib build script.
+      For the complete feature set to be enabled, %OpenMS needs recent versions of
+      \b Boost (>= 1.48), \b Eigen3 (>= 3.3.2), \b WildMagic5, \b libHDF5, \b libSVM (2.91 or higher but not 3.15),
+      \b SeqAn (>= 1.4.0 but < 2.0 needed), \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
+      These should be built by our contrib build script in case they are not already installed via your package manager.
     </li>
     <li>
       Building the documentation from the development version requires doxygen (recommended: >= 1.8.13, required: > 1.5.4, some might be buggy in between) and pdflatex/texlive/texlive-full.
@@ -61,13 +66,14 @@
     </li>
   </ul>
 
-  For the most common distributions, we have compiled these commands which will install the required compatible libraries. There may be more libraries in your distributions packaging system, but beware of version incompatibilities:
+  For the most common distributions, we have compiled these commands which will install the required compatible libraries.
+  There may be more libraries in your distributions packaging system, but beware of version incompatibilities.
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" cellpadding="3px">
   <tr>
     <td><B>Fedora/RHEL/CentOS</B>
     <a href="http://koji.fedoraproject.org/koji/packages">packages</a>
-	</td>
+  </td>
     <td><pre>
     # In newer distros change yum to dnf
     sudo yum groupinstall 'Development Tools'
@@ -76,9 +82,11 @@
     sudo yum install epel-release
     # Update repo list for the thirdparty repository EPEL
     sudo yum repolist
-    # Get installable contrib libraries
-    sudo yum install qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg-devel python-devel boost-devel \
-        libsvm-devel glpk-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel
+    # Get REQUIRED installable contrib libraries
+    sudo yum install cmake3 qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg-devel python-devel glpk-devel
+    # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
+    #sudo yum boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel
+    # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
     </pre>
     </td>
   </tr>
@@ -86,10 +94,13 @@
       <td><B>openSUSE >= 13.2<br/></B></td>
       <td><pre>
       # register obs://build.opensuse.org/devel:libraries:c_c++
-      sudo zypper install cmake gcc-c++ autoconf libqt5-qtbase-devel \
-        libqt5-qtsvg-devel python-devel boost-devel  glpk-devel \
-        libzip-devel zlib-devel libxerces-c-devel libbz2-devel \
-        git patch automake libtool libsvm-devel
+      # tools
+      sudo zypper install cmake gcc-c++ autoconf git patch automake libtool
+      # REQUIRED dependencies
+      sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel python-devel glpk-devel
+      # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
+      #sudo zypper install boost-devel libzip-devel zlib-devel \
+      # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
       </pre></td>
   </tr>
   <tr>
@@ -97,9 +108,10 @@
     <td><pre>
     # include the ubuntu universe repository and update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    sudo apt-get install qtbase5-dev libqt5svg5-dev libboost-regex-dev libboost-iostreams-dev \
-      libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev\
-      libglpk-dev zlib1g-dev libxerces-c-dev seqan-dev libbz2-dev coinor-libcoinmp-dev
+    sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+    sudo apt-get install libboost-regex-dev libboost-iostreams-dev \
+      libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev \
+      libglpk-dev zlib1g-dev libxerces-c-dev seqan-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
       # Use from contrib: EIGEN; SQLITE; WILDMAGIC (since libwildmagic-dev is buggy)
     </pre></td>
   </tr>
@@ -108,10 +120,10 @@
       <td><pre>
     # include the ubuntu universe repository and update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    sudo apt-get install qtbase5-dev libqt5svg5-dev
+    sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.62-dev \
       libboost-regex1.62-dev libboost-iostreams1.62-dev libboost-date-time1.62-dev libboost-math1.62-dev \
-      libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev seqan-dev coinor-libcoinmp-dev
+      libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev seqan-dev coinor-libcoinmp-dev libhdf5-dev
       # this should eliminate the need for building contrib libraries.
       </pre></td>
   </tr>
@@ -119,9 +131,10 @@
 
   @section build_linux_contrib Building remaining dependencies
 
-  You can check which dependencies you still need by attempting to configure %OpenMS (see the next section),
+  You can and should check which dependencies you still need by attempting to configure %OpenMS (see the next section),
   it will complain about anything unusual/missing.
-  @note In most cases, the only dependencies left unresolved (e.g. unavailable through your distributions packaging system) at this point are SeqAn, WildMagic and maybe CoinOR.
+  @warning Do not install libraries from our contrib package if it is installed on your system in a compatible version already. If you have an incompatible version, we suggest to update or deinstall and use the contrib version.
+  @note In most cases, the only dependencies left unresolved (e.g. unavailable through your distributions packaging system) at this point are SeqAn, WildMagic and CoinOR.
   Contact us if you still have trouble with the dependencies \b after these
   instructions.
 

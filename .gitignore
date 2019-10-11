@@ -23,3 +23,7 @@ src/openms/.DS_Store
 .vscode
 contrib-build
 openms-build
+*.swp
+cmake-build-debug
+cmake-build-release
+
