@@ -79,6 +79,9 @@ using namespace std;
      </table>
    </CENTER>
 
+   @b Reference: @n
+   Weisser & Choudhary: <a href="https://doi.org/10.1021/acs.jproteome.7b00248">Targeted feature detection for data-dependent shotgun proteomics</a> (J. Proteome Res., 2017, PMID: 28673088).
+
    This tool detects quantitative features in MS1 data based on information from peptide identifications (derived from MS2 spectra).
    It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
