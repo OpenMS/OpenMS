@@ -41,25 +41,25 @@
 namespace OpenMS
 {
   /**
-    @brief TMT 11plex quantitation to be used with the IsobaricQuantitation.
+    @brief TMT 16plex quantitation to be used with the IsobaricQuantitation.
 
     @htmlinclude OpenMS_TMTSixPlexQuantitationMethod.parameters
   */
-  class OPENMS_DLLAPI TMTElevenPlexQuantitationMethod :
+  class OPENMS_DLLAPI TMTSixteenPlexQuantitationMethod :
     public IsobaricQuantitationMethod
   {
 public:
     /// Default c'tor
-    TMTElevenPlexQuantitationMethod();
+    TMTSixteenPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTElevenPlexQuantitationMethod() override;
+    ~TMTSixteenPlexQuantitationMethod() override;
 
     /// Copy c'tor
-    TMTElevenPlexQuantitationMethod(const TMTElevenPlexQuantitationMethod& other);
+    TMTSixteenPlexQuantitationMethod(const TMTSixteenPlexQuantitationMethod& other);
 
     /// Assignment operator
-    TMTElevenPlexQuantitationMethod & operator=(const TMTElevenPlexQuantitationMethod& rhs);
+    TMTSixteenPlexQuantitationMethod & operator=(const TMTSixteenPlexQuantitationMethod& rhs);
 
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
@@ -77,7 +77,7 @@ public:
     /// @}
 
   private:
-    /// the actual information on the different tmt11plex channels.
+    /// the actual information on the different tmt16plex channels.
     IsobaricChannelList channels_;
 
     /// The name of the quantitation method.
