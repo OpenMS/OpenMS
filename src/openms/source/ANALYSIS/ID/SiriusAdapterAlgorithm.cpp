@@ -304,26 +304,26 @@ namespace OpenMS
       }
       String libpath = exec.absoluteDir().absolutePath(); // + "lib" depending on what we use as reference
       String java_memory = "-Xmx" + QString::number(sirius_algo.java_memory_) + "m";
-      String sirius_libpath = libpath+"/*" + ":" + libpath + "/../../../All/Sirius/lib/*";
+      // library path depends if original or THIRDPARTY version is used.
+      String lib_class_path = libpath + ":" + libpath + "/*" +  ":" + libpath + "/../../../MacOS/64bit/Sirius/lib" + ":" + libpath + "/../../../Linux/64bit/Sirius/lib" + ":" + libpath + "/../../../Windows/64bit/Sirius" ;
 
       // check environment variables for additional solvers
       if (getenv("GUROBI_HOME") != nullptr)
       {
         String gurobi_home = getenv("GUROBI_HOME");
-        sirius_libpath = sirius_libpath + ":" + gurobi_home + "/lib/gurobi.jar";
+        lib_class_path = lib_class_path + ":" + gurobi_home + "/lib/gurobi.jar";
       }
       if (getenv("CPLEX_HOME") != nullptr)
       {
         String cplex_home = getenv("CPLEX_HOME");
-        sirius_libpath = sirius_libpath + ":" +  cplex_home + "/lib/cplex.jar";
+        lib_class_path = lib_class_path + ":" +  cplex_home + "/lib/cplex.jar";
       }
 
-      // library path depends if original or THIRDPARTY version is used.
-      // assemble SIRIUS parameterj
+      // assemble SIRIUS parameters
       QStringList process_params;
-      process_params << "-Djava.library.path="+libpath.toQString()
-                     << java_memory.toQString()
-                     << "-classpath" << sirius_libpath.toQString()
+      process_params << java_memory.toQString()
+                     << "-Djava.library.path=" + lib_class_path.toQString()
+                     << "-classpath" << lib_class_path.toQString()
                      << "de.unijena.bioinf.ms.cli.SiriusCLIApplication"
                      << "-p" << sirius_algo.profile_.toQString()
                      << "-e" << sirius_algo.elements_.toQString()
@@ -335,8 +335,11 @@ namespace OpenMS
                      << "--compound-timeout" << QString::number(sirius_algo.compound_timeout_)
                      << "--tree-timeout" << QString::number(sirius_algo.tree_timeout_)
                      << "--processors" << QString::number(sirius_algo.cores_);
+
       if (sirius_algo.quiet_)
+      {
         process_params << "--quiet";
+      }
 
       process_params << "--output" << tmp_out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
   
@@ -366,10 +369,6 @@ namespace OpenMS
   
       // the actual process
       QProcess qp;
-      //std::pair<String, String> exe_wd = SiriusAdapterAlgorithm::checkSiriusExecutablePath(executable);
-      //QString exe = exe_wd.first.toQString();
-      //QString wd = exe_wd.second.toQString();
-      //qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
       qp.start(java_executable.toQString(), process_params); // does automatic escaping etc... start
       std::stringstream ss;
       ss << "COMMAND: " << String(java_executable);
@@ -398,7 +397,7 @@ namespace OpenMS
                                       "FATAL: External invocation of Sirius failed!",
                                        "");
       }
-      else if (!sirius_algo.quiet_) //@todo make it depend on debug level instead
+      else if (!sirius_algo.quiet_)
       {
         OPENMS_LOG_DEBUG << "Standard output and error of Sirius were:" << std::endl;
         const QString sirius_stdout(qp.readAllStandardOutput());
