@@ -95,7 +95,6 @@ public:
 
     /// implemented for DefaultParamHandler
     void updateMembers_() override;
-
   };
 } // namespace
 
