@@ -38,6 +38,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <string>
 
 #include <OpenMS/CONCEPT/Types.h>
 

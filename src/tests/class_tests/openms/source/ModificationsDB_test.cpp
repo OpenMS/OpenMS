@@ -46,7 +46,7 @@ using namespace std;
 
 struct ResidueModificationOriginCmp
 {
-  bool operator() (const ResidueModification* a, const ResidueModification* b)
+  bool operator() (const ResidueModification* a, const ResidueModification* b) const
   {
     return a->getOrigin() < b->getOrigin();
   }
