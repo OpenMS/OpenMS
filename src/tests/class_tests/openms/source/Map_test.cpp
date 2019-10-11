@@ -64,9 +64,13 @@ END_SECTION
 
 START_SECTION((Map(const Map&& source)))
 {
+#ifndef OPENMS_COMPILER_MSVC
   // Ensure that Map has a no-except move constructor (otherwise
   // std::vector is inefficient and will copy instead of move).
+  // Note that MSVS does not support noexcept move constructors for STL
+  // constructs such as std::map.
   TEST_EQUAL(noexcept(Map<int,int>(std::declval<Map<int,int>&&>())), true)
+#endif
 }
 END_SECTION
 
