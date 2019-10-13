@@ -32,17 +32,21 @@
 // $Authors: Julia Thueringer $
 // --------------------------------------------------------------------------
 
-//#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTree.h>
-#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/KERNEL/ConversionHelper.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
+#include "FeatureLinkerBase.cpp"
+// calculate pearson distance
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+// create binary tree
+#include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
+// align maps and genereate output
+#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+// store transformations
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 
 using namespace OpenMS;
@@ -63,16 +67,15 @@ using namespace std;
   /// @cond TOPPCLASSES
 
 class TOPPMapAlignerTree :
-  public TOPPMapAlignerBase
+  public TOPPFeatureLinkerBase
 {
 
 public:
   TOPPMapAlignerTree() :
-    TOPPMapAlignerBase("MapAlignerTree", "Tree guided correction of retention time distortions between maps.")
+    TOPPFeatureLinkerBase("MapAlignerTree", "Tree guided correction of retention time distortions between maps.")
   {}
 
 private:
-
   /// Type to store retention times given for individual peptide sequence
   typedef std::map<String, double> SeqAndRT;
 
@@ -87,7 +90,8 @@ private:
     PeptideIdentificationsPearsonDistance(const PeptideIdentificationsPearsonDistance & source);
 
     // destructor
-    ~PeptideIdentificationsPearsonDistance();
+    ~PeptideIdentificationsPearsonDistance() = default_delete;
+
     // assignment operator
     PeptideIdentificationsPearsonDistance & operator=(const PeptideIdentificationsPearsonDistance & source)
     {
@@ -96,8 +100,7 @@ private:
         DefaultParamHandler::operator=(source);
       }
       return *this;
-    }
-    */
+    }*/
 
     float operator()(const SeqAndRT& map_first, const SeqAndRT& map_second) const
     {
@@ -145,7 +148,11 @@ private:
 
     /*
     // calculates self similarity
-    virtual float operator()(const PeptideIdentificationsPearsonDistance & a) const = 0;
+    float operator()(const PeptideIdentificationsPearsonDistance & a) const
+    {
+      return 0;
+    }
+    */
 
     // registers all derived products
     static void registerChildren();
@@ -154,15 +161,14 @@ private:
     {
         return "PeptideIdentificationsPearsonDistance";
     }
-    */
 
-  }; // end of PeptidIdentificationsPearsonDifferencer
+  }; // end of PeptideIdentificationsPearsonDifference
 
   template <typename MapType, typename FileType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FileType& input_file)
   {
       ProgressLogger progresslogger;
-      progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
+      progresslogger.setLogType(TOPPFeatureLinkerBase::log_type_);
       progresslogger.startProgress(0, ins.size(), "loading input files");
       for (Size i = 0; i < ins.size(); ++i)
       {
@@ -185,88 +191,132 @@ private:
       }
   }
 
-  /*
-  void build_distance_matrix_(Size maps_amount, vector<SeqAndRT>& maps_peptides, DistanceMatrix<float>& dist_matrix)
+  void treeGuidedAlignment(const StringList& in_files, std::vector<BinaryTreeNode>& tree, vector<FeatureMap>& feature_maps_transformed, ConsensusMap& consensus, vector<TransformationDescription>& transformations)
   {
-      for (Size i = 0; i < maps_amount-1; ++i)
+    vector<TransformationDescription> transformations_tmp;
+    //for (BinaryTreeNode node : tree)
+    ClusterAnalyzer ca;
+    for (Size t = 0; t < tree.size(); ++t)
+    {
+      std::cout << "links: " << tree[t].left_child << " rechts: " << tree[t].right_child << std::endl;
+      // performAlignment
+      MapAlignmentAlgorithmIdentification algorithm;
+      algorithm.setReference(feature_maps_transformed[tree[t].left_child]);
+      Param algo_params = getParam_().copy("algorithm:", true);
+      algorithm.setParameters(algo_params);
+      algorithm.setLogType(log_type_);
+      vector<FeatureMap> to_align;
+      to_align.push_back(feature_maps_transformed[tree[t].left_child]);
+      to_align.push_back(feature_maps_transformed[tree[t].right_child]);
+      algorithm.align(to_align, transformations_tmp, 1);
+
+      // compute Transformations and apply
+      Param model_params = getParam_().copy("models:", true);
+      String model_type = "b_spline";
+      model_params = model_params.copy(model_type+":", true);
+      model_params.setValue("transformed_data", ""+in_files[tree[t].left_child]);
+      model_params.setValue("reference_data", ""+in_files[tree[t].right_child]);
+      model_params.setValue("subtree", ca.newickTree(tree));
+      // only fit non-identity? ->
+      transformations_tmp[0].fitModel(model_type, model_params);
+      /*
+      for (vector<TransformationDescription>::iterator it = transformations_tmp.begin();
+       it != transformations_tmp.end(); ++it)
       {
-          for (Size j = i+1; j < maps_amount; ++j)
-          {
-              // create vectors for both maps containing RTs of identical proteins and
-              // get union and intercept amount of proteins
-              SeqAndRT::iterator pep1_it = maps_peptides[i].begin();
-              SeqAndRT::iterator pep2_it = maps_peptides[j].begin();
-              vector<double> intercept_rts1;
-              vector<double> intercept_rts2;
-              while (pep1_it != maps_peptides[i].end() && pep2_it != maps_peptides[j].end())
-              {
-                  if (pep1_it->first < pep2_it->first)
-                  {
-                      ++pep1_it;
-                  }
-                  else if (pep2_it->first < pep1_it->first)
-                  {
-                      ++pep2_it;
-                  }
-                  else
-                  {
-                      //intercept_peps1[pep1_it->first] = pep1_it->second; //if second DoubleList, then pushback of both possible
-                      //intercept_peps2[pep2_it->first] = pep2_it->second;
-                      intercept_rts1.push_back(pep1_it->second);
-                      intercept_rts2.push_back(pep2_it->second);
-                      ++pep1_it;
-                      ++pep2_it;
-                  }
-              }
-              Size intercept_size = intercept_rts1.size();
-              SeqAndRT union_map_tmp;
-              union_map_tmp.insert(maps_peptides[i].begin(), maps_peptides[i].end());
-              union_map_tmp.insert(maps_peptides[j].begin(), maps_peptides[j].end());
-              Size union_size = union_map_tmp.size();
-
-              // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
-              float pearson_val = static_cast<float>(pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(), intercept_rts2.begin(), intercept_rts2.end()));
-
-              dist_matrix.setValue(i,j, 1-pearson_val*intercept_size/union_size);
-          }
+        it->fitModel(model_type, model_params);
       }
+      */
+
+      // needed for following iteration steps
+      MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[tree[t].left_child], transformations_tmp[0], true);
+      MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[tree[t].right_child], transformations_tmp[1], true);
+
+      // combine aligned maps
+      feature_maps_transformed[tree[t].left_child] += feature_maps_transformed[tree[t].right_child];
+      // kann man sich klemmen, da immer nur das linke Kind verwendet wird:
+      //feature_maps_transformed[tree[t].right_child] = feature_maps_transformed[tree[t].left_child];
+
+      /*//////////////////////////////////////////
+      /// hier transformationen addieren und nicht einfach ueberschreiben -> welches Tool gibt es??
+      /// transformations[tree[t].left_child] += transformations_tmp[0];
+      /// transformations[node.right_child].add(transformations_tmp[1]);
+      */
+
+      // jeden Transformationsschritt einzeln in eine Datei schreiben
+      transformations[t] = transformations_tmp[0];
+
+      // consensus bilden?
+      transformations_tmp.clear();
+      /*
+      for (Param::ParamIterator pit =model_params.begin();pit !=model_params.end(); ++pit)
+      {
+          std::cout << pit->name << std::endl;
+      }
+      std::cout << std::endl;
+      */
+    }
+
+    /* //////////////////////////////////////////
+    /// MapConversion erst hier nach den ganzen featureMap-Transformationen?
+    */
+    Size max_num_peaks_considered_=400;
+    MapConversion::convert(1, feature_maps_transformed[tree[tree.size()-1].left_child], consensus, max_num_peaks_considered_);
+    addDataProcessing_(consensus, getProcessingInfo_(DataProcessing::ALIGNMENT));
   }
-  */
+
+  void storeTransformationDescriptions_(const vector<TransformationDescription>&
+                                        transformations, StringList& trafos)
+  {
+    // custom progress logger for this task:
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, trafos.size(),
+                                 "writing transformation files");
+    for (Size i = 0; i < transformations.size(); ++i)
+    {
+      TransformationXMLFile().store(trafos[i], transformations[i]);
+    }
+    progresslogger.endProgress();
+  }
 
   void registerOptionsAndFlags_() override
   {
     String formats = "featureXML";
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_NONE);
+    //TOPPFeatureLinkerBase::registerOptionsAndFlags_();
+    registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input files", true);
+    setValidFormats_("in", ListUtils::create<String>("featureXML"));
+    registerOutputFile_("out", "<file>", "", "Output file", true);
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. This option or 'out' has to be provided; they can be used together.", false);
+    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     //registerSubsection_("algorithm", "Algorithm parameters section");
-    //registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
+    registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  /*
-  Param getSubsectionDefaults_(const String& section) const override
+
+  // getSubsectionDefaults of TOPPMapAlignerBase geht nicht, da von TOPPFeatureLinkerBase geerbt:
+  Param getSubsectionDefaults_(const String & section) const override
   {
-    if (section == "algorithm")
-    {
-      //MapAlignmentAlgorithmSpectrumAlignment algo;
-      //return algo.getParameters();
-    }
     if (section == "model")
     {
-      //return getModelDefaults("interpolated");
+      return TOPPMapAlignerBase::getModelDefaults("b_spline");
     }
-    //return Param(); // shouldn't happen
+
+    return Param(); // this shouldn't happen
   }
-  */
+
+
 
   ExitCodes main_(int, const char**) override
   {
-    ExitCodes ret = checkParameters_();
-    if (ret != EXECUTION_OK) return ret;
+    //ExitCodes ret = checkParameters_();
+    //if (ret != EXECUTION_OK) return ret;
 
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
     StringList in_files = getStringList_("in");
-    StringList out_files = getStringList_("out");
+    String out_file = getStringOption_("out");
     StringList out_trafos = getStringList_("trafo_out");
 
 
@@ -282,7 +332,8 @@ private:
     // calculations
     //-------------------------------------------------------------
     // one set of RT data for each input map
-    vector<SeqAndRT> maps_peptides(in_files_size);
+    vector<vector<PeptideIdentification>> maps_peptides(in_files_size);
+    vector<SeqAndRT> maps_seqAndRt(in_files_size);
     // get Peptide/ RT tuple for all features, seperated by input file
     for (vector<FeatureMap>::iterator maps_it = feature_maps.begin(); maps_it != feature_maps.end(); ++maps_it)
     {
@@ -291,7 +342,9 @@ private:
       {
         if (feature_it->getPeptideIdentifications().size()>0)
         {
-            getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_peptides[static_cast<unsigned long>(distance(feature_maps.begin(), maps_it))]);
+          Size position = static_cast<Size>(distance(feature_maps.begin(), maps_it));
+          maps_peptides[position] = feature_it->getPeptideIdentifications();
+          getPeptideSequences_(maps_peptides[position], maps_seqAndRt[position]);
         }
       }
     }
@@ -309,17 +362,40 @@ private:
     std::vector<BinaryTreeNode> tree;
     DistanceMatrix<float> dist_matrix;
     ClusterHierarchical ch;
-    ch.cluster<SeqAndRT, PeptideIdentificationsPearsonDistance>(maps_peptides, pepDist, sl, tree, dist_matrix);
+    ch.cluster<SeqAndRT, PeptideIdentificationsPearsonDistance>(maps_seqAndRt, pepDist, sl, tree, dist_matrix);
 
     // to print tree
-    //ClusterAnalyzer ca;
-    //std::cout << ca.newickTree(tree) << std::endl;
+    ClusterAnalyzer ca;
+    std::cout << ca.newickTree(tree) << std::endl;
 
+    // to store transformations
+    vector<TransformationDescription> transformations(in_files_size);
+    vector<FeatureMap> feature_maps_transformed = feature_maps; //copy needed?
+    ConsensusMap consensus;
 
+    // perform Alignment
+    treeGuidedAlignment(in_files, tree, feature_maps_transformed, consensus, transformations);
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
+    // store consensusMap
+    ConsensusXMLFile().store(out_file, consensus);
+    // store transformed map
+    /*
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, 1, "writing output file");
+    progresslogger.setProgress(0);
+    // annotate output with data processing info:
+    addDataProcessing_(feature_maps_transformed[0],
+                       getProcessingInfo_(DataProcessing::ALIGNMENT));
+    fxml_file.store(out_file, feature_maps_transformed[0]);
+    progresslogger.endProgress();
+    */
+
+    // store transformations
+    storeTransformationDescriptions_(transformations, out_trafos);
 
 
     return EXECUTION_OK;
