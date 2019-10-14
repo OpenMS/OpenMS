@@ -318,7 +318,7 @@ public:
         if (tics_pp.size())
         {
           OPENMS_LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
-          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp) LOG_INFO << " " << tics_pp[ipp].getMZ();
+          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp) OPENMS_LOG_INFO << " " << tics_pp[ipp].getMZ();
         }
         else
         {
