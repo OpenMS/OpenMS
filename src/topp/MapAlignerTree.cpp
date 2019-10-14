@@ -106,8 +106,8 @@ private:
     {
       // create vectors for both maps containing RTs of identical proteins and
       // get union and intercept amount of proteins
-      SeqAndRT::const_iterator pep1_it = map_first.begin();
-      SeqAndRT::const_iterator pep2_it = map_second.begin();
+      auto pep1_it = map_first.begin();
+      auto pep2_it = map_second.begin();
       vector<double> intercept_rts1;
       vector<double> intercept_rts2;
       while (pep1_it != map_first.end() && pep2_it != map_second.end())
@@ -122,8 +122,6 @@ private:
           }
           else
           {
-              //intercept_peps1[pep1_it->first] = pep1_it->second; //if second DoubleList, then pushback of both possible
-              //intercept_peps2[pep2_it->first] = pep2_it->second;
               intercept_rts1.push_back(pep1_it->second);
               intercept_rts2.push_back(pep2_it->second);
               ++pep1_it;
@@ -137,13 +135,13 @@ private:
       Size union_size = union_map_tmp.size();
 
       // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
-      float pearson_val = static_cast<float>(pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(), intercept_rts2.begin(), intercept_rts2.end()));
+        float pearson_val;
+        pearson_val = static_cast<float>(pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(),
+                                                                       intercept_rts2.begin(), intercept_rts2.end()));
 
-      if (pearson_val > 1)
-      {
-        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-      }
-      return (1 - (pearson_val*intercept_size/union_size));
+        if (pearson_val > 1)
+            throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        return (1 - (pearson_val * intercept_size / union_size));
     }
 
     /*
@@ -152,55 +150,35 @@ private:
     {
       return 0;
     }
-    */
 
     // registers all derived products
     static void registerChildren();
+    */
 
-    static const String getProductName()
-    {
-        return "PeptideIdentificationsPearsonDistance";
-    }
+    static const String getProductName();
 
   }; // end of PeptideIdentificationsPearsonDifference
 
+  // function declarations
   template <typename MapType, typename FileType>
-  void loadInputMaps_(vector<MapType>& maps, StringList& ins, FileType& input_file)
-  {
-      ProgressLogger progresslogger;
-      progresslogger.setLogType(TOPPFeatureLinkerBase::log_type_);
-      progresslogger.startProgress(0, ins.size(), "loading input files");
-      for (Size i = 0; i < ins.size(); ++i)
-      {
-        progresslogger.setProgress(i);
-        input_file.load(ins[i], maps[i]);
-      }
-      progresslogger.endProgress();
-  }
-
-  void getPeptideSequences_(vector<PeptideIdentification>& peptides, SeqAndRT& peptide_rts)
-  {
-      for (std::vector<PeptideIdentification>::iterator pep_it =
-        peptides.begin(); pep_it != peptides.end(); ++pep_it)
-      {
-        if (!pep_it->getHits().empty())
-        {
-          const String& sequence = pep_it->getHits()[0].getSequence().toString();
-          peptide_rts[sequence] = pep_it->getRT();
-        }
-      }
-  }
+  void loadInputMaps_(vector<MapType> &maps, StringList &ins, FileType &input_file);
+  static void getPeptideSequences_(vector<PeptideIdentification> &peptides, SeqAndRT &peptide_rts, vector<double> &rt_tmp);
+  static void extract_seq_and_rt_(vector<FeatureMap> &feature_maps, vector<SeqAndRT> &maps_seqAndRt, vector<double> &maps_ranges);
+  static void buildTree_(vector<SeqAndRT> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree);
 
   void treeGuidedAlignment(const StringList& in_files, std::vector<BinaryTreeNode>& tree, vector<FeatureMap>& feature_maps_transformed, ConsensusMap& consensus, vector<TransformationDescription>& transformations)
   {
     vector<TransformationDescription> transformations_tmp;
+    vector<int> trafo_order;
     //for (BinaryTreeNode node : tree)
     ClusterAnalyzer ca;
     for (Size t = 0; t < tree.size(); ++t)
     {
       std::cout << "links: " << tree[t].left_child << " rechts: " << tree[t].right_child << std::endl;
-      // performAlignment
+      // performAlignment with map as reference that has larger RT range
       MapAlignmentAlgorithmIdentification algorithm;
+      double min_range;
+      double max_range;
       algorithm.setReference(feature_maps_transformed[tree[t].left_child]);
       Param algo_params = getParam_().copy("algorithm:", true);
       algorithm.setParameters(algo_params);
@@ -216,7 +194,7 @@ private:
       model_params = model_params.copy(model_type+":", true);
       model_params.setValue("transformed_data", ""+in_files[tree[t].left_child]);
       model_params.setValue("reference_data", ""+in_files[tree[t].right_child]);
-      model_params.setValue("subtree", ca.newickTree(tree));
+      model_params.setValue("tree", ca.newickTree(tree));
       // only fit non-identity? ->
       transformations_tmp[0].fitModel(model_type, model_params);
       /*
@@ -331,38 +309,15 @@ private:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    // one set of RT data for each input map
-    vector<vector<PeptideIdentification>> maps_peptides(in_files_size);
-    vector<SeqAndRT> maps_seqAndRt(in_files_size);
     // get Peptide/ RT tuple for all features, seperated by input file
-    for (vector<FeatureMap>::iterator maps_it = feature_maps.begin(); maps_it != feature_maps.end(); ++maps_it)
-    {
-      for (vector<Feature>::iterator feature_it = maps_it->begin();
-         feature_it != maps_it->end(); ++feature_it)
-      {
-        if (feature_it->getPeptideIdentifications().size()>0)
-        {
-          Size position = static_cast<Size>(distance(feature_maps.begin(), maps_it));
-          maps_peptides[position] = feature_it->getPeptideIdentifications();
-          getPeptideSequences_(maps_peptides[position], maps_seqAndRt[position]);
-        }
-      }
-    }
+    vector<SeqAndRT> maps_seqAndRt(in_files_size);
+    // save ranges for alignment (larger rt_range -> reference)
+    vector<double> maps_ranges(in_files_size);
+    extract_seq_and_rt_(feature_maps, maps_seqAndRt, maps_ranges);
 
-    // remove feature-maps? or is there another way to get relevant data for later alignment?
-
-
-    // RTs of cluster (only petides present in both parent maps)
-    //vector<SeqAndRT> clusters_rts(in_files.size()*in_files.size());
-    //DistanceMatrix<float> dist_matrix(in_files_size*(in_files_size-1)/2);
-    //build_distance_matrix_(feature_maps.size(), maps_peptides, dist_matrix);
-
-    PeptideIdentificationsPearsonDistance pepDist;
-    SingleLinkage sl;
+    //  construct tree with pearson coefficient
     std::vector<BinaryTreeNode> tree;
-    DistanceMatrix<float> dist_matrix;
-    ClusterHierarchical ch;
-    ch.cluster<SeqAndRT, PeptideIdentificationsPearsonDistance>(maps_seqAndRt, pepDist, sl, tree, dist_matrix);
+    buildTree_(maps_seqAndRt, tree);
 
     // to print tree
     ClusterAnalyzer ca;
@@ -402,6 +357,71 @@ private:
   }
 
 };
+
+const String TOPPMapAlignerTree::PeptideIdentificationsPearsonDistance::getProductName() {
+    return "PeptideIdentificationsPearsonDistance";
+}
+
+template<typename MapType, typename FileType>
+void TOPPMapAlignerTree::loadInputMaps_(vector<MapType> &maps, StringList &ins, FileType &input_file) {
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(TOPPFeatureLinkerBase::log_type_);
+    progresslogger.startProgress(0, ins.size(), "loading input files");
+    for (Size i = 0; i < ins.size(); ++i)
+    {
+        progresslogger.setProgress(i);
+        input_file.load(ins[i], maps[i]);
+    }
+    progresslogger.endProgress();
+}
+
+void TOPPMapAlignerTree::getPeptideSequences_(vector<PeptideIdentification> &peptides,
+                                              TOPPMapAlignerTree::SeqAndRT &peptide_rts, vector<double> &rts_tmp) {
+    vector<PeptideIdentification>::iterator pep_it;
+    for (pep_it = peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    {
+        if (!pep_it->getHits().empty())
+        {
+            const String& sequence = pep_it->getHits()[0].getSequence().toString();
+            double rt = pep_it->getRT();
+            peptide_rts[sequence] = rt;
+            rts_tmp.push_back(rt);
+        }
+    }
+}
+
+void TOPPMapAlignerTree::extract_seq_and_rt_(vector<FeatureMap> &feature_maps, vector<SeqAndRT> &maps_seqAndRt, vector<double> &maps_ranges) {
+    for (auto maps_it = feature_maps.begin(); maps_it != feature_maps.end(); ++maps_it)
+    {
+        Size position = static_cast<Size>(distance(feature_maps.begin(), maps_it));
+        double percentile10;
+        double percentile90;
+        vector<double> rts_tmp(maps_it->size());
+        vector<Feature>::iterator feature_it;
+        for (feature_it = maps_it->begin();
+             maps_it->end() != feature_it; ++feature_it)
+        {
+            if (!feature_it->getPeptideIdentifications().empty()) {
+                getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seqAndRt[position], rts_tmp);
+            }
+        }
+        sort(rts_tmp.begin(), rts_tmp.end());
+
+        percentile10 = rts_tmp[abs(rts_tmp.size()*0.1)];
+        percentile90 = rts_tmp[abs(rts_tmp.size()*0.9)];
+
+        maps_ranges[position] = percentile90 - percentile10;
+        rts_tmp.clear();
+    }
+}
+
+void TOPPMapAlignerTree::buildTree_(vector<SeqAndRT> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree) {
+    PeptideIdentificationsPearsonDistance pepDist;
+    SingleLinkage sl;
+    DistanceMatrix<float> dist_matrix;
+    ClusterHierarchical ch;
+    ch.cluster<SeqAndRT, PeptideIdentificationsPearsonDistance>(maps_seqAndRt, pepDist, sl, tree, dist_matrix);
+}
 
 
 int main(int argc, const char** argv)
