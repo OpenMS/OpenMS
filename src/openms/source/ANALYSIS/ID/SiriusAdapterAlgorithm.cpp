@@ -302,10 +302,12 @@ namespace OpenMS
                                              "Error: Sirius executable not found. Please check parameters and your PATH.");
         }
       }
-      String libpath = exec.absoluteDir().absolutePath(); // + "lib" depending on what we use as reference
+      // libpaths are collected based on reference (executable: sirius;sirius-console-64.exe")
+      // sirius is then called via its class "de.unijena.bioinf.ms.cli.SiriusCLIApplication"
+      String libpath = exec.absoluteDir().absolutePath();
       String java_memory = "-Xmx" + QString::number(sirius_algo.java_memory_) + "m";
-      // library path depends if original or THIRDPARTY version is used.
-      String lib_class_path = libpath + ":" + libpath + "/*" +  ":" + libpath + "/../../../MacOS/64bit/Sirius/lib" + ":" + libpath + "/../../../Linux/64bit/Sirius/lib" + ":" + libpath + "/../../../Windows/64bit/Sirius";
+      // library path depends if original, merged (build system) or THIRDPARTY version of SIRIUS is used.
+      String lib_class_path = libpath + ":" + libpath + "/lib/*" + ":" + libpath + "/*" +  ":" + libpath + "/../../../MacOS/64bit/Sirius/lib" + ":" + libpath + "/../../../Linux/64bit/Sirius/lib" + ":" + libpath + "/../../../Windows/64bit/Sirius";
 
       // check environment variables for additional solvers
       if (getenv("GUROBI_HOME") != nullptr)
