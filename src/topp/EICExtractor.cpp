@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,13 +48,7 @@
 
 #include <functional>
 #include <numeric>
-#include <boost/accumulators/accumulators.hpp> //SPW: refactor stats to use boost's accumulators
-#include <boost/accumulators/statistics.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/max.hpp>
-#include <boost/accumulators/statistics/sum.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -239,20 +233,20 @@ public:
     // number of out_debug_TIC files and input files must be identical
     /*if (out_TIC_debug.size() > 0 && in.size() != out_TIC_debug.size())
     {
-        OPENMS_LOG_FATAL_ERROR << "Error: number of input file 'in' and auto_rt:out_debug_TIC files must be identical!" << std::endl;
+        LOG_FATAL_ERROR << "Error: number of input file 'in' and auto_rt:out_debug_TIC files must be identical!" << std::endl;
         return ILLEGAL_PARAMETERS;
     }*/
 
     // number of header files and input files must be identical
     if (in_header.size() > 0 && in.size() != in_header.size())
     {
-      OPENMS_LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
+      LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
     if (!getFlag_("auto_rt:enabled") && !out_TIC_debug.empty())
     {
-      OPENMS_LOG_FATAL_ERROR << "Error: TIC output file requested, but auto_rt is not enabled! Either do not request the file or switch on 'auto_rt:enabled'." << std::endl;
+      LOG_FATAL_ERROR << "Error: TIC output file requested, but auto_rt is not enabled! Either do not request the file or switch on 'auto_rt:enabled'." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -283,7 +277,7 @@ public:
 
       if (exp.empty())
       {
-        OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
+        LOG_WARN << "The given file does not contain any conventional peak data, but might"
                     " contain chromatograms. This tool currently cannot handle them, sorry." << std::endl;
         return INCOMPATIBLE_INPUT_DATA;
       }
@@ -323,14 +317,14 @@ public:
 
         if (tics_pp.size())
         {
-          OPENMS_LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
-          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp) OPENMS_LOG_INFO << " " << tics_pp[ipp].getMZ();
+          LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
+          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp) LOG_INFO << " " << tics_pp[ipp].getMZ();
         }
         else
         {
-          OPENMS_LOG_INFO << "Found no auto-rt peaks. Change threshold parameters!";
+          LOG_INFO << "Found no auto-rt peaks. Change threshold parameters!";
         }
-        OPENMS_LOG_INFO << std::endl;
+        LOG_INFO << std::endl;
 
         if (!out_TIC_debug.empty()) // if debug file was given
         { // store intermediate steps for debug
@@ -354,7 +348,7 @@ public:
           for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(String("spectrum=") + id);
 
           mzml_file.store(out_TIC_debug, out_debug);
-          OPENMS_LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
+          LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
         }
 
         // add target EICs: for each m/z with no/negative RT, add all combinations of that m/z with auto-RTs
@@ -372,7 +366,7 @@ public:
             }
             else
             {
-              OPENMS_LOG_INFO << "Found duplicate m/z entry (" << cit->getMZ() << ") for auto-rt. Skipping ..." << std::endl;
+              LOG_INFO << "Found duplicate m/z entry (" << cit->getMZ() << ") for auto-rt. Skipping ..." << std::endl;
               continue;
             }
 
@@ -387,7 +381,7 @@ public:
           }
           else
           { // default feature with no auto-rt
-            OPENMS_LOG_INFO << "copying feature with RT " << cit->getRT() << std::endl;
+            LOG_INFO << "copying feature with RT " << cit->getRT() << std::endl;
             cm.push_back(*cit);
           }
         }
@@ -418,8 +412,7 @@ public:
       // 5 entries for each input file
       tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
       tf_single_header1 << description << "" << "" << "" << "";
-      // SPW added AUC, AvgINT, variance for my specific use case
-      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity" << "AUC" << "AvgINT" << "variance";
+      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity";
 
       for (Size i = 0; i < cm.size(); ++i)
       {
@@ -430,14 +423,12 @@ public:
                                                                   cm[i].getRT() + rttol / 2,
                                                                   cm[i].getMZ() - mz_da,
                                                                   cm[i].getMZ() + mz_da);
-        boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::mean, boost::accumulators::tag::max, boost::accumulators::tag::sum, boost::accumulators::tag::variance > > acc;
         Peak2D max_peak;
         max_peak.setIntensity(0);
         max_peak.setRT(cm[i].getRT());
         max_peak.setMZ(cm[i].getMZ());
         for (; it != exp.areaEndConst(); ++it)
         {
-            acc(it->getIntensity());//add each intensity to our accumulator
           if (max_peak.getIntensity() < it->getIntensity())
           {
             max_peak.setIntensity(it->getIntensity());
@@ -465,7 +456,7 @@ public:
             //std::cerr << "ppm: " << itt.getRT() << " " <<  itt->getMZ() << " " << itt->getIntensity() << std::endl;
           }
 
-          if ((SignedSize)mz.size() > (low + high + 1)) OPENMS_LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]" << std::endl;
+          if ((SignedSize)mz.size() > (low + high + 1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]" << std::endl;
 
           if (!mz.empty())
           {
@@ -489,13 +480,10 @@ public:
                          String(max_peak.getRT() - cm[i].getRT()) + out_sep +
                          String(max_peak.getMZ()) + out_sep +
                          String(ppm)  + out_sep +
-                         String(max_peak.getIntensity()) + out_sep +
-                         String(boost::accumulators::extract_result <boost::accumulators::tag::sum>(acc)) + out_sep +
-                         String(boost::accumulators::extract_result <boost::accumulators::tag::mean>(acc)) + out_sep +
-                         String(boost::accumulators::extract_result <boost::accumulators::tag::variance>(acc));
+                         String(max_peak.getIntensity());
       }
 
-      if (not_found) OPENMS_LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
+      if (not_found) LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
     }
 
     //-------------------------------------------------------------
