@@ -408,6 +408,7 @@ protected:
     registerTOPPSubsection_("f_and_c", "Feature & Consensus data options");
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
+    registerFlag_("f_and_c:remove_all_meta","Remove ALL metadata. This happens after filtering by f_and_c:remove_meta");
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
 
     addEmptyLine_();
@@ -610,6 +611,9 @@ protected:
     bool sort = getFlag_("sort");
     writeDebug_("Sorting output data: " + String(sort), 3);
 
+    // handle remove_all_meta
+    bool remove_all_meta = getFlag_("f_and_c:remove_all_meta");
+
     // handle remove_meta
     StringList meta_info = getStringList_("f_and_c:remove_meta");
     bool remove_meta_enabled = (meta_info.size() > 0);
@@ -664,6 +668,12 @@ protected:
         }
         exp.clear(false);
         exp.getSpectra().insert(exp.begin(), exp_tmp.begin(), exp_tmp.end());
+      }
+
+      // clear meta-data
+      if (remove_all_meta)
+      {
+        exp.clearMetaDataArrays();
       }
 
 
@@ -971,6 +981,13 @@ protected:
             if (annotation_ok && meta_ok) map_sm.push_back(*fm_it);
           }
         }
+
+        // remove metadata if requested
+        if (remove_all_meta)
+        {
+          map_sm.clearMetaInfo();
+        }
+
         //delete unassignedPeptideIdentifications
         if (remove_unassigned_ids)
         {
@@ -1033,6 +1050,11 @@ protected:
             if (annotation_ok && meta_ok) consensus_map_filtered.push_back(*cm_it);
           }
         }
+        if (remove_all_meta)
+        {
+          consensus_map_filtered.clearMetaInfo();
+        }
+
         //delete unassignedPeptideIdentifications
         if (remove_unassigned_ids)
         {
