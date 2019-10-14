@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Eugen Netz $
+// $Authors: Timo Sachsenberg, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -49,15 +49,13 @@ namespace OpenMS
     *  @brief Calculate sequence tags from m/z values
     *
     *  Current restrictions and potential extensions:
-    *  - all peaks are considered charge 1
     *  - first prefix/suffix ion don't give rise to first character in tags (as currently ion types are not specified)
-    *  - modifications are not supported
     *  - gaps are not supported
     **/
   class OPENMS_DLLAPI Tagger
   {
     public:
-      // initalize tagger with minimum/maximum tag length and +- tolerance ppm
+      // initalize tagger with minimum/maximum tag length, +- tolerance ppm, min/max charge, fixed and variable modifications
       Tagger(size_t min_tag_length, double ppm, size_t max_tag_length = 65535, size_t min_charge = 1, size_t max_charge = 1, StringList fixed_mods = StringList(), StringList var_mods = StringList());
 
       // generate tags from mass vector @p mzs using the standard residues in ResidueDB
@@ -76,6 +74,6 @@ namespace OpenMS
       size_t max_charge_; // < maximal fragment charge
       std::map<double, char> mass2aa;
       char getAAByMass_(double m) const;
-      void getTag_(std::string& tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags) const;
+      void getTag_(std::string& tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags, size_t charge) const;
   };
 }
