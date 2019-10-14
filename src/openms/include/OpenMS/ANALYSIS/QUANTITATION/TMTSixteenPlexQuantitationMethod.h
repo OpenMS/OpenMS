@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Samuel Wein $
 // --------------------------------------------------------------------------
 
 #pragma once

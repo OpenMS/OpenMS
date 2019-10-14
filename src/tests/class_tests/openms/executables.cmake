@@ -489,6 +489,7 @@ set(analysis_executables_list
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
+  TMTSixteenPlexQuantitationMethod_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
