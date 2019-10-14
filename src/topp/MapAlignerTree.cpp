@@ -100,7 +100,8 @@ private:
         DefaultParamHandler::operator=(source);
       }
       return *this;
-    }*/
+    }
+     */
 
     float operator()(const SeqAndRT& map_first, const SeqAndRT& map_second) const
     {
@@ -166,34 +167,50 @@ private:
   static void extract_seq_and_rt_(vector<FeatureMap> &feature_maps, vector<SeqAndRT> &maps_seqAndRt, vector<double> &maps_ranges);
   static void buildTree_(vector<SeqAndRT> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree);
 
-  void treeGuidedAlignment(const StringList& in_files, std::vector<BinaryTreeNode>& tree, vector<FeatureMap>& feature_maps_transformed, ConsensusMap& consensus, vector<TransformationDescription>& transformations)
+  void treeGuidedAlignment(StringList &in_files, std::vector<BinaryTreeNode> &tree, vector<FeatureMap> &feature_maps_transformed, ConsensusMap &consensus, vector<TransformationDescription> &transformations, vector<double> &maps_ranges)
   {
     vector<TransformationDescription> transformations_tmp;
     vector<int> trafo_order;
-    //for (BinaryTreeNode node : tree)
+    Size ref;
+    Size to_transform;
     ClusterAnalyzer ca;
-    for (Size t = 0; t < tree.size(); ++t)
+    for (BinaryTreeNode node : tree)
     {
-      std::cout << "links: " << tree[t].left_child << " rechts: " << tree[t].right_child << std::endl;
+      std::cout << "links: " << node.left_child << " rechts: " << node.right_child << std::endl;
+      std::cout << "ranges: " << maps_ranges[node.left_child] << " " << maps_ranges[node.right_child] << std::endl;
       // performAlignment with map as reference that has larger RT range
+      if (maps_ranges[node.left_child] > maps_ranges[node.right_child]) {
+        ref = node.left_child;
+        to_transform = node.right_child;
+        trafo_order.push_back(to_transform);
+      } else {
+        ref = node.right_child;
+        to_transform = node.left_child;
+        trafo_order.push_back(to_transform);
+      }
+
       MapAlignmentAlgorithmIdentification algorithm;
-      double min_range;
-      double max_range;
-      algorithm.setReference(feature_maps_transformed[tree[t].left_child]);
+      algorithm.setReference(feature_maps_transformed[ref]);
       Param algo_params = getParam_().copy("algorithm:", true);
       algorithm.setParameters(algo_params);
       algorithm.setLogType(log_type_);
       vector<FeatureMap> to_align;
-      to_align.push_back(feature_maps_transformed[tree[t].left_child]);
-      to_align.push_back(feature_maps_transformed[tree[t].right_child]);
+      to_align.push_back(feature_maps_transformed[to_transform]);
+      to_align.push_back(feature_maps_transformed[ref]);
       algorithm.align(to_align, transformations_tmp, 1);
 
       // compute Transformations and apply
       Param model_params = getParam_().copy("models:", true);
       String model_type = "b_spline";
       model_params = model_params.copy(model_type+":", true);
-      model_params.setValue("transformed_data", ""+in_files[tree[t].left_child]);
-      model_params.setValue("reference_data", ""+in_files[tree[t].right_child]);
+      if (to_transform < ref)
+      {
+        model_params.setValue("transformed_data", ""+in_files[to_transform]);
+        model_params.setValue("reference_data", ""+in_files[ref]);
+      } else{
+        model_params.setValue("reference_data", ""+in_files[ref]);
+        model_params.setValue("transformed_data", ""+in_files[to_transform]);
+      }
       model_params.setValue("tree", ca.newickTree(tree));
       // only fit non-identity? ->
       transformations_tmp[0].fitModel(model_type, model_params);
@@ -206,13 +223,13 @@ private:
       */
 
       // needed for following iteration steps
-      MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[tree[t].left_child], transformations_tmp[0], true);
-      MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[tree[t].right_child], transformations_tmp[1], true);
+      MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[to_transform], transformations_tmp[0], true);
+      MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[ref], transformations_tmp[1], true);
 
-      // combine aligned maps
-      feature_maps_transformed[tree[t].left_child] += feature_maps_transformed[tree[t].right_child];
-      // kann man sich klemmen, da immer nur das linke Kind verwendet wird:
-      //feature_maps_transformed[tree[t].right_child] = feature_maps_transformed[tree[t].left_child];
+      // combine aligned maps, store in both, because tree always calls smaller number
+      // also possible: feature_maps_transformed[smalerNumber] = ..[ref]+..[to_transform]
+      feature_maps_transformed[ref] += feature_maps_transformed[to_transform];
+      feature_maps_transformed[to_transform] = feature_maps_transformed[ref];
 
       /*//////////////////////////////////////////
       /// hier transformationen addieren und nicht einfach ueberschreiben -> welches Tool gibt es??
@@ -221,7 +238,7 @@ private:
       */
 
       // jeden Transformationsschritt einzeln in eine Datei schreiben
-      transformations[t] = transformations_tmp[0];
+      transformations.push_back(transformations_tmp[0]);
 
       // consensus bilden?
       transformations_tmp.clear();
@@ -324,12 +341,12 @@ private:
     std::cout << ca.newickTree(tree) << std::endl;
 
     // to store transformations
-    vector<TransformationDescription> transformations(in_files_size);
+    vector<TransformationDescription> transformations;
     vector<FeatureMap> feature_maps_transformed = feature_maps; //copy needed?
     ConsensusMap consensus;
 
     // perform Alignment
-    treeGuidedAlignment(in_files, tree, feature_maps_transformed, consensus, transformations);
+    treeGuidedAlignment(in_files, tree, feature_maps_transformed, consensus, transformations, maps_ranges);
 
     //-------------------------------------------------------------
     // writing output
