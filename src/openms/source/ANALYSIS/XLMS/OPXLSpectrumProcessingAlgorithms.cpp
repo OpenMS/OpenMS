@@ -174,8 +174,8 @@ namespace OpenMS
           false,  // make single charged
           true,   // annotate charge
           true,   // annotate isotopic peak counts
-          false,  // use simple averagine model
-          2,      // peak to start averagine model
+          true,   // use simple averagine model
+          3,      // peak to start averagine model
           true    // add upp intensity into monoisotopic peak
           );
 
