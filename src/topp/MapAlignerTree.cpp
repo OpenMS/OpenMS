@@ -167,15 +167,39 @@ private:
   static void extract_seq_and_rt_(vector<FeatureMap> &feature_maps, vector<SeqAndRT> &maps_seqAndRt, vector<double> &maps_ranges);
   static void buildTree_(vector<SeqAndRT> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree);
 
-  void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> &feature_maps_transformed, vector<TransformationDescription> &transformations_tmp, vector<double> &maps_ranges, vector<int> trafo_order);
+  void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> &feature_maps_transformed, vector<TransformationDescription> &transformations_tmp, vector<double> &maps_ranges, vector<int> trafo_order, const Param &model_params, const String &model_type);
 
-  void computeTransformations_(const vector<TransformationDescription> &trafo_tmp, vector<TransformationDescription> &transformtions, const vector<int> trafo_order)
+  void computeTransformations_(vector<SeqAndRT> &maps_seqAndRt, const vector<TransformationDescription> &trafo_tmp, vector<TransformationDescription> &transformations, const Param &model_params, const String &model_type)
   {
-      //auto refit =transformations_tmp[1].getDataPoints().begin();
-      //for (auto trafoit = transformations_tmp[0].getDataPoints().begin(); trafoit!= transformations_tmp[0].getDataPoints().end(); ++trafoit)
-      //{
-
-      //}
+    Size last_trafo = trafo_tmp.size()-1;
+    for (auto mapsit = maps_seqAndRt.begin(); mapsit != maps_seqAndRt.end(); ++mapsit)
+    {
+      TransformationDescription::DataPoints trafo_data_tmp;
+      auto trafoit = trafo_tmp[last_trafo].getDataPoints().begin();
+      auto mapit = mapsit->begin();
+      while (trafoit != trafo_tmp[last_trafo].getDataPoints().end() && mapit != mapsit->end())
+      {
+        if (trafoit->note < mapit->first)
+        {
+          ++trafoit;
+        }
+        else if (trafoit->note > mapit->first)
+        {
+          ++mapit;
+        }
+        else
+        {
+          TransformationDescription::DataPoint point(mapit->second,
+                                                       trafoit->second, trafoit->note);
+          trafo_data_tmp.push_back(point);
+          ++trafoit;
+          ++mapit;
+        }
+      }
+      TransformationDescription hihi = TransformationDescription(trafo_data_tmp);
+      hihi.fitModel(model_type, model_params);
+      transformations.push_back(hihi);
+    }
       //std::cout << "size: " << transformations_align[0].getDataPoints().size() << std::endl;
       //std::cout << (String)transformations_align[0].getDataPoints().at(60).first << " " << transformations_align[0].getDataPoints().at(60).note << " " << (String)transformations_align[0].getDataPoints().at(60).second << std::endl;
 
@@ -217,7 +241,6 @@ private:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-
   // getSubsectionDefaults of TOPPMapAlignerBase geht nicht, da von TOPPFeatureLinkerBase geerbt:
   Param getSubsectionDefaults_(const String & section) const override
   {
@@ -229,8 +252,6 @@ private:
 
     return Param(); // this shouldn't happen
   }
-
-
 
   ExitCodes main_(int, const char**) override
   {
@@ -268,7 +289,7 @@ private:
 
     // to print tree
     ClusterAnalyzer ca;
-    std::cout << ca.newickTree(tree) << std::endl;
+    std::cout << "alignment follows tree: " << ca.newickTree(tree) << std::endl;
 
     // to store transformations
     vector<TransformationDescription> trafo_tmp;
@@ -276,11 +297,14 @@ private:
     vector<int> trafo_order;
 
     // perform Alignment
-    treeGuidedAlignment_(tree, feature_maps_transformed, trafo_tmp, maps_ranges, trafo_order);
+    Param model_params = getParam_();//.copy("model:", true);
+    String model_type = "b_spline";
+    model_params = model_params.copy(model_type+":", true);
+    treeGuidedAlignment_(tree, feature_maps_transformed, trafo_tmp, maps_ranges, trafo_order, model_params, model_type);
 
     // generate transformations for each map
     vector<TransformationDescription> transformations;
-    computeTransformations_(trafo_tmp, transformations, trafo_order);
+    computeTransformations_(maps_seqAndRt, trafo_tmp, transformations, model_params, model_type);
 
     // create consensus
     ConsensusMap consensus;
@@ -304,7 +328,7 @@ private:
     */
 
     // store transformations
-    storeTransformationDescriptions_(trafo_tmp, out_trafos);
+    storeTransformationDescriptions_(transformations, out_trafos);
 
 
     return EXECUTION_OK;
@@ -380,7 +404,8 @@ void TOPPMapAlignerTree::buildTree_(vector<SeqAndRT> &maps_seqAndRt, std::vector
 void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree,
                                               vector<FeatureMap> &feature_maps_transformed,
                                               vector<TransformationDescription> &transformations_tmp,
-                                              vector<double> &maps_ranges, vector<int> trafo_order) {
+                                              vector<double> &maps_ranges, vector<int> trafo_order,
+                                              const Param &model_params, const String &model_type) {
     vector<TransformationDescription> transformations_align;
     vector<FeatureMap> to_align;
     Size ref;
@@ -391,14 +416,8 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
     algorithm.setParameters(algo_params);
     algorithm.setLogType(log_type_);
 
-    Param model_params = getParam_();//.copy("model:", true);
-    String model_type = "b_spline";
-    model_params = model_params.copy(model_type+":", true);
-
     for (BinaryTreeNode node : tree)
     {
-        std::cout << "links: " << node.left_child << " rechts: " << node.right_child << std::endl;
-        std::cout << "ranges: " << maps_ranges[node.left_child] << " " << maps_ranges[node.right_child] << std::endl;
         //  determine the map with larger RT range (->reference)
         if (maps_ranges[node.left_child] > maps_ranges[node.right_child]) {
             ref = node.left_child;
