@@ -725,6 +725,8 @@ namespace OpenMS
     double tol = param.tolerance * 2;
     int minCharge = param.minCharge;
     int chargeRange = param.chargeRange;
+    auto mzBinSize = mzBins.size();
+    auto massBinSize = massBins.size();
 //    int maxIsotopeCount = param.maxIsotopeCount;
     auto maxIsotopeCount = param.maxIsotopeCount;;//avg.getMostAbundantIndex(exp(logM));
 
@@ -741,6 +743,7 @@ namespace OpenMS
     auto massBinIndex = massBins.find_first();
     // Size lastSetMassBinIndex = unionedMassBins.size();
     Size *peakBinNumbers = new Size[logMzPeakSize];
+
     for (int i = 0; i < logMzPeakSize; i++)
     {
       peakBinNumbers[i] = getBinNumber(logMzPeaks[i].logMz, mzBinMinValue, binWidth);
@@ -754,7 +757,7 @@ namespace OpenMS
       double isoLogM2 = logM + diff;
 
       auto b1 = getBinNumber(isoLogM1, massBinMinValue, binWidth);
-      if (b1 > 0)
+      if (b1 > 0 && massBinSize)
       {
         if (massIntensities[massBinIndex] < massIntensities[b1])
         {
@@ -764,7 +767,7 @@ namespace OpenMS
       }
 
       auto b2 = getBinNumber(isoLogM2, massBinMinValue, binWidth);
-      if (b2 < massBins.size())
+      if (b2 > 0 && b2 < massBinSize)
       {
         if (massIntensities[massBinIndex] < massIntensities[b2])
         {
@@ -787,13 +790,16 @@ namespace OpenMS
 
       for (auto j = minChargeRanges[massBinIndex]; j <= maxChargeRanges[massBinIndex]; j++)
       {
+        //std::cout<<1<<std::endl;
         long &binOffset = binOffsets[j];
         auto bi = massBinIndex - binOffset;
-        if (mzChargeRanges[bi] < chargeRange && mzChargeRanges[bi] != j)
+        //std::cout<<bi<< " " << mzBins.size()<< std::endl;
+        //std::cout<<(int)mzChargeRanges[bi] <<" "<<1<<std::endl;
+        if (bi >= mzBinSize || (mzChargeRanges[bi] < chargeRange && mzChargeRanges[bi] != j))
         {
           continue;
         }
-
+       // std::cout<<2<<std::endl;
         int charge = j + minCharge;
         auto &cpi = currentPeakIndex[j];
         double maxIntensity = 0.0;
@@ -817,7 +823,7 @@ namespace OpenMS
           }
           cpi++;
         }
-
+        //std::cout<<3<<std::endl;
         if (maxIntensityPeakIndex >= 0)
         {
           const double mz = logMzPeaks[maxIntensityPeakIndex].mz;
@@ -826,6 +832,7 @@ namespace OpenMS
           double mzDelta = tol * mz;
           //cout<<mzDelta<<endl;
           int maxI = 0;
+         // std::cout<<1<<std::endl;////
           for (int d = -1; d <= 1; d += 2)
           { // negative then positive direction.
             int peakIndex = maxIntensityPeakIndex + (d < 0 ? d : 0);
@@ -887,7 +894,7 @@ namespace OpenMS
               }
             }
           }
-
+        //  std::cout<<2<<std::endl;////
           //int minIsoIndex = maxI;
           for (auto &p : pg.peaks)
           {// assign the nearest isotope index..
@@ -917,9 +924,13 @@ namespace OpenMS
             }
             isoOff = std::min(isoOff, p.isotopeIndex);
           }
-
+         // std::cout<<3<<std::endl;////
         }
+
+        //std::cout<<3<<std::endl;
       }
+
+      //std::cout<<4<<std::endl;////
       if (!pg.peaks.empty())
       {
         int minIi = 10000;
@@ -939,10 +950,13 @@ namespace OpenMS
         }
       }
 
+
+      //std::cout<<5<<std::endl;////
       massBinIndex = massBins.find_next(massBinIndex);
     }
     delete[] currentPeakIndex;
     delete[] peakBinNumbers;
+
   }
 
 
@@ -996,9 +1010,11 @@ namespace OpenMS
     auto perMassChargeRanges = updateMassBins(massBinMinValue, massIntensities,
                                               mzBinIntensities, msLevel);
 
-    getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
+
+     getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
                            massIntensities,
                            perMassChargeRanges, avg);
+
 
     PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
     peakGroups = scorer.scoreAndFilterPeakGroups(avg);

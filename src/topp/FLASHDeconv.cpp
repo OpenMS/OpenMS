@@ -107,7 +107,7 @@ protected:
 
     registerIntOption_("maxMSL", "", 1, "maximum MS-level (inclusive) for deconvolution", false, true);
 
-    registerIntOption_("jitter", "<1:true 0:false>", 0, "jitter universal pattern to generate decoy features (output file will end with *Decoy.tsv)", false, true);
+    //registerIntOption_("jitter", "<1:true 0:false>", 0, "jitter universal pattern to generate decoy features (output file will end with *Decoy.tsv)", false, true);
   }
 
   Parameter setParameter()
@@ -135,7 +135,7 @@ protected:
     param.minRTSpan = getDoubleOption_("minRTspan");
     param.threads = getIntOption_("threads");
     param.writeSpecTsv = getIntOption_("writeSpecDeconv");
-    param.jitter = getIntOption_("jitter");
+    //param.jitter = getIntOption_("jitter");
     param.maxMSLevel = getIntOption_("maxMSL");
     return param;
   }
