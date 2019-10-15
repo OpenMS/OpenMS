@@ -124,7 +124,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>", "sirius_openms_plugin-4.0.jar", "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<executable>", "sirius", "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("java_executable", "<executable>", "java", "java executable e.g. java", false, false, ListUtils::create<String>("skipexists"));
 
     registerInputFile_("in", "<file>", "", "MzML Input file");
