@@ -306,6 +306,7 @@ namespace OpenMS
 
     if (data.size() > 2) 
     {
+      spectrum.sortByPosition();
       fillDataArrays(data, spectrum);
     }
   }
@@ -342,6 +343,7 @@ namespace OpenMS
 
     if (data.size() > 2) 
     {
+      chromatogram.sortByPosition();
       fillDataArrays(data, chromatogram);
     }
   }
