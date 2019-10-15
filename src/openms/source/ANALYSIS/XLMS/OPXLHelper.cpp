@@ -78,6 +78,7 @@ namespace OpenMS
         precursor.precursor_mass = cross_linked_pair_mass;
         precursor.alpha_index = p1;
         precursor.beta_index = peptides.size() + 1; // an out-of-range index to represent an empty index
+        precursor.alpha_seq = seq_first;
 
         // call function to compare with spectrum precursor masses
         // will only add this candidate, if the mass is within the given tolerance to any precursor in the spectra data
@@ -121,6 +122,7 @@ namespace OpenMS
         precursor.precursor_mass = cross_linked_pair_mass;
         precursor.alpha_index = p1;
         precursor.beta_index = peptides.size() + 1; // an out-of-range index to represent an empty index
+        precursor.alpha_seq = seq_first;
 
         // call function to compare with spectrum precursor masses
         filter_and_add_candidate(mass_to_candidates, spectrum_precursors, precursor_correction_positions, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
@@ -166,6 +168,8 @@ namespace OpenMS
         precursor.precursor_mass = cross_linked_pair_mass;
         precursor.alpha_index = p1;
         precursor.beta_index = p2;
+        precursor.alpha_seq = seq_first;
+        precursor.beta_seq = peptides[p2].peptide_seq.toUnmodifiedString();
 
         // call function to compare with spectrum precursor masses
         filter_and_add_candidate(mass_to_candidates, spectrum_precursors, precursor_correction_positions, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
@@ -1263,7 +1267,18 @@ namespace OpenMS
     return new_peptide_ids;
   }
 
-  std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(const IntList& precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, const vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name)
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(const IntList& precursor_correction_steps,
+                                                                                                double precursor_mass,
+                                                                                                double precursor_mass_tolerance,
+                                                                                                bool precursor_mass_tolerance_unit_ppm,
+                                                                                                const vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses,
+                                                                                                double cross_link_mass,
+                                                                                                DoubleList cross_link_mass_mono_link,
+                                                                                                StringList cross_link_residue1,
+                                                                                                StringList cross_link_residue2,
+                                                                                                String cross_link_name,
+                                                                                                bool use_sequence_tags,
+                                                                                                const std::vector<std::string>& tags)
   {
     // determine candidates
     std::vector< OPXLDataStructs::XLPrecursor > candidates;
@@ -1293,6 +1308,22 @@ namespace OpenMS
 
     std::vector< int > precursor_correction_positions;
     candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursor_vector, precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
+    // std::cout << "TEST TAG number of tags: " << tags.size() << std::endl;
+    // std::cout << "TEST TAG number of precursors before sequence tag filtering: " << candidates.size() << std::endl;
+
+    // an empty vector of sequence tags implies no filtering should be done in this case
+    if (tags.size() > 0)
+    {
+      // std::cout << "TEST TAGs : ";
+      // for (const auto& tag : tags)
+      // {
+      //   std::cout << tag << " | ";
+      // }
+      // std::cout << std::endl;
+      OPXLHelper::filterPrecursorsByTags(candidates, tags);
+    }
+    // std::cout << "TEST TAG number of precursors after sequence tag filtering : " << candidates.size() << std::endl;
 
     vector< int > precursor_corrections;
     for (Size pc = 0; pc < precursor_correction_positions.size(); ++pc)
@@ -1368,11 +1399,11 @@ namespace OpenMS
     }
   }
 
-  void OPXLHelper::filterCandidatesByTags(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, std::vector<std::string>& tags)
+  void OPXLHelper::filterCandidatesByTags(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, const std::vector<std::string>& tags)
   {
     std::vector <OPXLDataStructs::ProteinProteinCrossLink> filtered_candidates;
 
-    // brute force string comparisons for now
+    // brute force string comparisons using hasSubstring()
     for (const OPXLDataStructs::ProteinProteinCrossLink& candidate : candidates)
     {
       String alpha = candidate.alpha->toUnmodifiedString();
@@ -1381,13 +1412,15 @@ namespace OpenMS
       {
         beta = candidate.beta->toUnmodifiedString();
       }
-      String rev_alpha = alpha;
-      rev_alpha.reverse();
-      String rev_beta = beta;
-      rev_beta.reverse();
-      for (const std::string& tag : tags)
+      for (std::string tag : tags)
       {
-        if (alpha.hasSubstring(tag) || beta.hasSubstring(tag) || rev_alpha.hasSubstring(tag) || rev_beta.hasSubstring(tag))
+        if (alpha.hasSubstring(tag) || beta.hasSubstring(tag))
+        {
+          filtered_candidates.push_back(candidate);
+          break;
+        }
+        std::reverse(tag.begin(), tag.end());
+        if (alpha.hasSubstring(tag) || beta.hasSubstring(tag))
         {
           filtered_candidates.push_back(candidate);
           break;
@@ -1397,7 +1430,33 @@ namespace OpenMS
     candidates = filtered_candidates;
   }
 
-  void OPXLHelper::filterCandidatesByTagTrie(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, std::vector<std::string>& tags)
+  void OPXLHelper::filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, const std::vector<std::string>& tags)
+  {
+    std::vector <OPXLDataStructs::XLPrecursor> filtered_candidates;
+
+    // brute force string comparisons for now, faster than Aho-Corasick for small tag sets
+    for (const OPXLDataStructs::XLPrecursor& candidate : candidates)
+    {
+      // iterate over copies, so that we can reverse them
+      for (std::string tag : tags)
+      {
+        if (candidate.alpha_seq.hasSubstring(tag) || candidate.beta_seq.hasSubstring(tag))
+        {
+          filtered_candidates.push_back(candidate);
+          break;
+        }
+        std::reverse(tag.begin(), tag.end());
+        if (candidate.alpha_seq.hasSubstring(tag) || candidate.beta_seq.hasSubstring(tag))
+        {
+          filtered_candidates.push_back(candidate);
+          break;
+        }
+      }
+    }
+    candidates = filtered_candidates;
+  }
+
+  void OPXLHelper::filterCandidatesByTagTrie(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, const std::vector<std::string>& tags)
   {
     std::vector <OPXLDataStructs::ProteinProteinCrossLink> filtered_candidates;
 
@@ -1445,6 +1504,50 @@ namespace OpenMS
 
         beta.reverse();
         fuzzyAC.setProtein(beta);
+        if (fuzzyAC.findNext(pattern))
+        {
+          filtered_candidates.push_back(candidate);
+          continue;
+        }
+      }
+    }
+
+    candidates = filtered_candidates;
+  }
+
+  void OPXLHelper::filterPrecursorsByTagTrie(std::vector <OPXLDataStructs::XLPrecursor>& candidates, const std::vector<std::string>& tags)
+  {
+    std::vector <OPXLDataStructs::XLPrecursor> filtered_candidates;
+
+    // prepare trie with forward and reverse tags
+    AhoCorasickAmbiguous::PeptideDB tag_DB;
+    for (std::string tag : tags)
+    {
+      appendValue(tag_DB, tag.c_str());
+      std::reverse(tag.begin(), tag.end());
+      appendValue(tag_DB, tag.c_str());
+    }
+    AhoCorasickAmbiguous::FuzzyACPattern pattern;
+    // make trie from: set of tags, max. ambiguous, max. mismatches, and the pattern that will contain the trie
+    AhoCorasickAmbiguous::initPattern(tag_DB, 0, 0, pattern);
+
+    // init algorithm
+    AhoCorasickAmbiguous fuzzyAC;
+
+    for (const OPXLDataStructs::XLPrecursor& candidate : candidates)
+    {
+
+      fuzzyAC.setProtein(candidate.alpha_seq);
+      if (fuzzyAC.findNext(pattern))
+      {
+        filtered_candidates.push_back(candidate);
+        continue;
+      }
+
+      if (candidate.beta_seq.size() > 0)
+      {
+        // String beta = candidate.beta_seq;
+        fuzzyAC.setProtein(candidate.beta_seq);
         if (fuzzyAC.findNext(pattern))
         {
           filtered_candidates.push_back(candidate);

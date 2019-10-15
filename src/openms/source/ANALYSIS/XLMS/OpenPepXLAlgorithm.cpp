@@ -457,8 +457,8 @@ using namespace OpenMS;
         continue;
       }
 
+      // std::vector<std::string> tags;
       vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_light_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_);
-
 
 #ifdef _OPENMP
 #pragma omp critical (cout_access)

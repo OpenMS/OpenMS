@@ -217,6 +217,8 @@ namespace OpenMS
         float precursor_mass;
         unsigned int alpha_index;
         unsigned int beta_index;
+        String alpha_seq;
+        String beta_seq;
       };
 
       // comparator for sorting XLPrecursor vectors and using upper_bound and lower_bound using only a precursor mass

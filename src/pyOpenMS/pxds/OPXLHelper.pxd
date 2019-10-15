@@ -2,6 +2,7 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp cimport bool
+from libcpp cimport string
 from XLPrecursor cimport *
 from AASeqWithMass cimport *
 from DoubleList cimport *
@@ -96,7 +97,8 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                                                                             DoubleList cross_link_mass_mono_link,
                                                                             StringList cross_link_residue1,
                                                                             StringList cross_link_residue2,
-                                                                            String cross_link_name) nogil except +
+                                                                            String cross_link_name,
+                                                                            libcpp_vector[ string ] tags) nogil except +
 
         double computePrecursorError(CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge) nogil except +
 
