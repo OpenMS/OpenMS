@@ -246,7 +246,7 @@ namespace OpenMS
       Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
       Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
-      if (Sql::extractValue<std::string>(&tmp_field, stmt, 28)) tmp_field.split(';', mytransition.peptidoforms);
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 28)) tmp_field.split('|', mytransition.peptidoforms);
       // optional attributes only present in newer file versions
       if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);
       if (gene_exists) Sql::extractValue<std::string>(&mytransition.GeneName, stmt, 30);
