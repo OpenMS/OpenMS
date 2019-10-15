@@ -312,11 +312,13 @@ namespace OpenMS
       String lib_original = libpath + "/../lib";
       String lib_merged = libpath + "/lib";
       String lib_thirdparty = libpath + "/../../../All/Sirius/lib";
-      String lib_glpk_thirdparty= libpath + "/../../../MacOS/64bit/Sirius/lib" + sep + libpath + "/../../../Linux/64bit/Sirius/lib" + sep +  libpath + "/../../../Windows/64bit/Sirius";
+      String lib_glpk_thirdparty_mac = libpath + "/../../../MacOS/64bit/Sirius/lib"
+      String lib_glpk_thirdparty_lnx = libpath + "/../../../Linux/64bit/Sirius/lib"
+      String lib_glpk_thirdparty_win = libpath;
 
       // construct library and class path
-      String javalibpath = lib_original + sep + lib_merged + sep + lib_thirdparty + sep + lib_glpk_thirdparty;
-      String classpath = lib_original + "/*" + sep + lib_merged + "/*" + sep + lib_thirdparty + "/*" + sep + lib_glpk_thirdparty + "/*";
+      String javalibpath = lib_glpk_thirdparty_win + sep + lib_merged + sep + lib_original + sep + lib_glpk_thirdparty_mac + sep + lib_glpk_thirdparty_lnx;
+      String classpath = lib_original + "/*" + sep + lib_merged + "/*" + sep + lib_thirdparty + "/*" + sep + lib_glpk_thirdparty_win + "/*";
 
       // check environment variables for additional solvers
       if (getenv("GUROBI_HOME") != nullptr)
