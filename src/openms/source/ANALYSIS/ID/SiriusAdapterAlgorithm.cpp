@@ -308,31 +308,33 @@ namespace OpenMS
       String java_memory = "-Xmx" + QString::number(sirius_algo.java_memory_) + "m";
 
       // library path depends if original, merged (build system) or THIRDPARTY version of SIRIUS is used.
-      String lib_original = libpath + "/../lib/*";
-      String lib_merged = libpath + "/lib/*";
-      String lib_thirdparty = libpath + "/../../../All/Sirius/lib/*";
-      String lib_glpk_thirdparty = libpath + "/../../../MacOS/64bit/Sirius/lib" + ":" + libpath + "/../../../Linux/64bit/Sirius/lib" + ":" + libpath + "/../../../Windows/64bit/Sirius";
+      String sep = QDir::listSeparator().toLatin1(); // UNIX: ":", Windows: ";"
+      String lib_original = libpath + "/../lib";
+      String lib_merged = libpath + "/lib";
+      String lib_thirdparty = libpath + "/../../../All/Sirius/lib";
+      String lib_glpk_thirdparty= libpath + "/../../../MacOS/64bit/Sirius/lib" + sep + libpath + "/../../../Linux/64bit/Sirius/lib" + sep +  libpath + "/../../../Windows/64bit/Sirius";
 
-      // build class- / libpath
-      String lib_class_path = lib_original + ":" + lib_merged + ":" + lib_thirdparty + ":" + lib_glpk_thirdparty;
+      // construct library and class path
+      String javalibpath = lib_original + sep + lib_merged + sep + lib_thirdparty + sep + lib_glpk_thirdparty;
+      String classpath = lib_original + "/*" + sep + lib_merged + "/*" + sep + lib_thirdparty + "/*" + sep + lib_glpk_thirdparty + "/*";
 
       // check environment variables for additional solvers
       if (getenv("GUROBI_HOME") != nullptr)
       {
         String gurobi_home = getenv("GUROBI_HOME");
-        lib_class_path = lib_class_path + ":" + gurobi_home + "/lib/gurobi.jar";
+        classpath = classpath + sep + gurobi_home + "/lib/gurobi.jar";
       }
       if (getenv("CPLEX_HOME") != nullptr)
       {
         String cplex_home = getenv("CPLEX_HOME");
-        lib_class_path = lib_class_path + ":" +  cplex_home + "/lib/cplex.jar";
+        classpath = classpath + sep +  cplex_home + "/lib/cplex.jar";
       }
 
       // assemble SIRIUS parameters
       QStringList process_params;
       process_params << java_memory.toQString()
-                     << "-Djava.library.path=" + lib_class_path.toQString()
-                     << "-classpath" << lib_class_path.toQString()
+                     << "-Djava.library.path=" + javalibpath.toQString()
+                     << "-classpath" << classpath.toQString()
                      << "de.unijena.bioinf.ms.cli.SiriusCLIApplication"
                      << "-p" << sirius_algo.profile_.toQString()
                      << "-e" << sirius_algo.elements_.toQString()
