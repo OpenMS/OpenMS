@@ -63,6 +63,8 @@ namespace OpenMS
     defaults_.setValidStrings("add_decoy_proteins", ListUtils::create<String>("true,false"));
     defaults_.setValue("conservative", "true", "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.");
     defaults_.setValidStrings("conservative", ListUtils::create<String>("true,false"));
+    //defaults_.setValue("equality_epsilon", 0, "The epsilon under which two scores are considered equal.");
+    //defaults_.setMinFloat("equality_epsilon", 0.0);
     defaultsToParam_();
 
   }
@@ -1191,7 +1193,14 @@ namespace OpenMS
         est = pepSum / (truePos + falsePos);
         if (conservative)
         {
-          emp = static_cast<double>(falsePos) / (truePos);
+          if (truePos == 0.)
+          {
+            emp = 1.;
+          }
+          else
+          {
+            emp = static_cast<double>(falsePos) / (truePos);
+          }
         }
         else
         {
@@ -1336,7 +1345,7 @@ namespace OpenMS
     bool conservative = param_.getValue("conservative").toBool();
     if (scores_labels.empty())
     {
-     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
       return;
     }
 
