@@ -226,10 +226,8 @@ namespace OpenMS
       Sql::extractValue<std::string>(&mytransition.group_id, stmt, 6);
       Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 7);
       Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
-      if (sqlite3_column_type( stmt, 9 ) != SQLITE_NULL)
-      {
-        String(sqlite3_column_text(stmt, 9)).split(';', mytransition.ProteinName);
-      }
+      String tmp_field;
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 9)) tmp_field.split(';', mytransition.ProteinName);
       Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
       Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
       Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
@@ -244,17 +242,11 @@ namespace OpenMS
       Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 21);
       Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 22);
       Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
-      if (sqlite3_column_type( stmt, 24 ) != SQLITE_NULL)
-      {
-        String(sqlite3_column_text(stmt, 24)).split(';', mytransition.uniprot_id);
-      }
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 24)) tmp_field.split(';', mytransition.uniprot_id);
       Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
       Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
-      if (sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
-      {
-        String(sqlite3_column_text(stmt, 28)).split('|', mytransition.peptidoforms);
-      }
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 28)) tmp_field.split(';', mytransition.peptidoforms);
       // optional attributes only present in newer file versions
       if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);
       if (gene_exists) Sql::extractValue<std::string>(&mytransition.GeneName, stmt, 30);

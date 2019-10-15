@@ -67,8 +67,7 @@ namespace OpenMS
     sqlite3_step(xcntstmt);
     while (sqlite3_column_type(xcntstmt, 0) != SQLITE_NULL)
     {
-      String name = String(sqlite3_column_text(xcntstmt, 1));
-      if (colname == name)
+      if (strcmp(colname.c_str(), reinterpret_cast<const char*>(sqlite3_column_text(xcntstmt, 1))) == 0)
       {
         found = true;
         break;
@@ -114,7 +113,7 @@ namespace OpenMS
 
   void SqliteConnector::prepareStatement(sqlite3 *db, sqlite3_stmt** stmt, const String& prepare_statement)
   {
-    int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), stmt, nullptr);
+    int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), (int)prepare_statement.size(), stmt, nullptr);
     if (rc != SQLITE_OK)
     {
       std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
@@ -133,11 +132,12 @@ namespace OpenMS
       // Fifth argument is a destructor for the blob.
       // SQLITE_STATIC because the statement is finalized
       // before the buffer is freed:
-      rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), data[k].size(), SQLITE_STATIC);
+      rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), (int)data[k].size(), SQLITE_STATIC);
       if (rc != SQLITE_OK)
       {
         std::cerr << "SQL error after sqlite3_bind_blob at iteration " << k << std::endl;
         std::cerr << "Prepared statement " << prepare_statement << std::endl;
+        // TODO this is a mem-leak (missing sqlite3_finalize())
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
       }
     }
@@ -147,6 +147,7 @@ namespace OpenMS
     {
       std::cerr << "SQL error after sqlite3_step" << std::endl;
       std::cerr << "Prepared statement " << prepare_statement << std::endl;
+      // TODO this is a mem-leak (missing sqlite3_finalize())
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
     }
 
@@ -159,45 +160,55 @@ namespace OpenMS
     namespace SqliteHelper
     {
 
-      template <> void extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = sqlite3_column_double(stmt, pos);
+          return true;
         }
+        return false;
       }
 
-      template <> void extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      template <> bool extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = sqlite3_column_int(stmt, pos);
+          return true;
         }
+        return false;
       }
 
-      template <> void extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
-          *dst = String(sqlite3_column_text(stmt, pos));
+          *dst = String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
+          return true;
         }
+        return false;
       }
 
-      template <> void extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      template <> bool extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
+          return true;
         }
+        return false;
       }
 
       /// Special case: store integer in a string data value
-      void extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos)
+      bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos)
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = sqlite3_column_int(stmt, pos);
+          return true;
         }
+        return false;
       }
 
     }
