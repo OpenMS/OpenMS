@@ -86,7 +86,7 @@ namespace OpenMS
     }
   }
 
-  Tagger::Tagger(size_t min_tag_length, double ppm, size_t max_tag_length, size_t min_charge, size_t max_charge, StringList fixed_mods, StringList var_mods)
+  Tagger::Tagger(size_t min_tag_length, double ppm, size_t max_tag_length, size_t min_charge, size_t max_charge, const StringList& fixed_mods, const StringList& var_mods)
   {
     ppm_ = ppm;
     min_tag_length_ = min_tag_length;

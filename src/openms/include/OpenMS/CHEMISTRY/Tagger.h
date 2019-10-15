@@ -56,7 +56,7 @@ namespace OpenMS
   {
     public:
       // initalize tagger with minimum/maximum tag length, +- tolerance ppm, min/max charge, fixed and variable modifications
-      Tagger(size_t min_tag_length, double ppm, size_t max_tag_length = 65535, size_t min_charge = 1, size_t max_charge = 1, StringList fixed_mods = StringList(), StringList var_mods = StringList());
+      Tagger(size_t min_tag_length, double ppm, size_t max_tag_length = 65535, size_t min_charge = 1, size_t max_charge = 1, const StringList& fixed_mods = StringList(), const StringList& var_mods = StringList());
 
       // generate tags from mass vector @p mzs using the standard residues in ResidueDB
       void getTag(const std::vector<double>& mzs, std::vector<std::string>& tags) const;
