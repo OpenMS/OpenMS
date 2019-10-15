@@ -108,9 +108,8 @@
 //#define DEBUG_OpenNuXL 1
 //#define OPENNUXL_SEPARATE_FEATURES 1
 //#define DANGEROUS_FEAUTURES increases FDR on entrappment dataset
-//#define FILTER_BAD_PARTIAL_LOSS_SCORES filters out some good (difficult) hits but decreases overall false positives
 //#define FILTER_BAD_SCORES_ID_TAGS filter out some good hits
-//#define FILTER_AMBIGIOUS_PEAKS  
+//#define FILTER_AMBIGIOUS_PEAKS 
 //#define FILTER_NO_ARBITRARY_TAG_PRESENT
 
 using namespace OpenMS;
@@ -537,6 +536,9 @@ protected:
 
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
+  
+    registerStringList_("filter", "<list>", {"filter_pc_mass_error", "impute_decoy_medians"}, "Filtering steps applied to results.", false, true);
+    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores"}); 
   }
 
 
@@ -996,7 +998,6 @@ protected:
                   if (ambigious_match(partial_loss_template_z1_b_ions[i - 1], partial_loss_template_z1_b_ions[i] + fa.mass)) continue;
                 }
 #endif
-
                 const double intensity = exp_spectrum[index].getIntensity();
                 b_mean_err += intensity * std::abs(theo_mz - exp_mz);
                 dot_product += intensity;
@@ -1039,7 +1040,6 @@ protected:
                   if (ambigious_match(partial_loss_template_z1_y_ions[i - 1], partial_loss_template_z1_y_ions[i] + fa.mass)) continue;
               }
 #endif
-
               const double intensity = exp_spectrum[index].getIntensity();
               y_mean_err += intensity * std::abs(theo_mz - exp_mz);
               dot_product += intensity;                  
@@ -1288,14 +1288,17 @@ score += ah.mass_error_p     *   1.15386068
            + isXL * 3.0 * ah.marker_ions_score
            + 3.0 * ah.total_MIC + ah.ladder_score;
 */
+
     return 
              10.0 * ah.total_loss_score
-            + 0.1 * ah.mass_error_p 
+           +  1.0 * ah.partial_loss_score
+           +  0.1 * ah.mass_error_p 
            - 10.0 * ah.err 
            - 10.0 * ah.pl_err
-           + 3.0 * ah.pl_MIC
+           +  3.0 * ah.pl_MIC
            + isXL * 3.0 * ah.marker_ions_score
-           + 3.0 * ah.total_MIC + ah.ladder_score;
+           +  3.0 * ah.total_MIC 
+           +  1.0 * ah.ladder_score;
 
 /*
             -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err
@@ -1608,7 +1611,7 @@ static void scoreXLIons_(
     }
 
     // mass shift to residue + adduct (including no adduct)
-    map<double, pair<const Residue*, double> > aa_plus_adduct_mass;
+    map<double, map<const Residue*, double> > aa_plus_adduct_mass;
     auto residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
     for (const double d : adduct_mass)
@@ -1616,23 +1619,29 @@ static void scoreXLIons_(
       for (const Residue* r : residues)
       {
         double m = d + r->getMonoWeight(Residue::Internal);
-        if (aa_plus_adduct_mass.count(m) > 0) 
-        { 
-          cout << "WARNING: mass " << m << " of residue " << r->getName() << " with adduct " << d <<  " already present with " << aa_plus_adduct_mass[m].first->getName() << " and adduct " << aa_plus_adduct_mass[m].second  << endl;
-        }
-        aa_plus_adduct_mass[m] = {r, d};
+        aa_plus_adduct_mass[m][r] = d; // mass, residue, shift mass
       }
     }
     // add mass shits of plain residues
     for (const Residue* r : residues)
     {
       double m = r->getMonoWeight(Residue::Internal);
-      if (aa_plus_adduct_mass.count(m) > 0)
-      {
-        cout << "WARNING: mass " << m << " of residue " << r->getName() <<  " already present with " << aa_plus_adduct_mass[m].first->getName() << " and adduct " << aa_plus_adduct_mass[m].second  << endl;
-      }
-      aa_plus_adduct_mass[m] = {r, 0};
+      aa_plus_adduct_mass[m][r] = 0;
     }
+
+    // output ambigious masses
+    cout << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
+    cout << "Total\tResidue\tAdduct" << endl;
+    for (auto& m : aa_plus_adduct_mass)
+    {
+      double mass = m.first;
+      if (m.second.size() == 1) continue; // more than one residue / adduct registered for that mass
+      for (auto& a : m.second)
+      {
+        cout << mass << "\t" << a.first->getOneLetterCode() << "\t+\t" << a.second << endl;
+      }
+    } 
+
 
     map<double, size_t> adduct_mass_count;
     map<double, size_t> aa_plus_adduct_mass_count;
@@ -1672,7 +1681,7 @@ static void scoreXLIons_(
         } 
       } 
 
-      size_t aa_plus_adduct_match(0);
+      // count how often a shift matches a residue + adduct mass (including mass 0 for unmodified residue)
       size_t aa_plus_adduct_in_mass_range(0);
       for (Size i = 0; i != mzs.size(); ++i)
       {
@@ -1684,13 +1693,17 @@ static void scoreXLIons_(
           if (charges[i] != charges[j]) continue;
 
           const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
+
+          // find all (shifted/normal) residues that match to an observed shift
           auto left = aa_plus_adduct_mass.lower_bound((dm * charges[i]) - tolerance);
-          if (left == aa_plus_adduct_mass.end()) continue;
-          ++aa_plus_adduct_in_mass_range;
-          if (fabs(left->first - (dm * charges[i])) < tolerance )
+          auto right = aa_plus_adduct_mass.upper_bound((dm * charges[i]) + tolerance);
+          for (; left != right; ++left)
           {
-            ++aa_plus_adduct_match;
-            ++aa_plus_adduct_mass_count[left->first];
+            ++aa_plus_adduct_in_mass_range;
+            if (fabs(left->first - (dm * charges[i])) < tolerance )
+            {
+              ++aa_plus_adduct_mass_count[left->first];
+            }
           }
         } 
       } 
@@ -1723,25 +1736,36 @@ static void scoreXLIons_(
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].setName("longest_tag");
     }
 
-
+    cout << "Distinct residue + adduct masses (including residues without shift): " << aa_plus_adduct_mass_count.size() << endl; 
     // Calculate background statistics on shifts
+    cout << "mass\tresidue\tshift:" << endl;
     for (const auto& mra : aa_plus_adduct_mass)
     {
       double m = mra.first;
-      const pair<const Residue*, double>& residue_adduct = mra.second;
-      cout << m << "\t" << residue_adduct.first->getOneLetterCode() << "\t" << residue_adduct.second << endl;
+      const map<const Residue*, double>& residue2adduct = mra.second;
+      for (auto& r2a : residue2adduct)
+      {
+        cout << m << "\t" << r2a.first->getOneLetterCode() << "\t" << r2a.second << endl;
+      }
     }
 
-    cout << "Distinct residue + adduct pairs: " << aa_plus_adduct_mass_count.size() << endl; 
+    // reformat to get: amino acid, mass, count statistics
     map<const Residue*, map<double, size_t> > aa2mass2count;
-
     for (const auto& mc : aa_plus_adduct_mass_count)
     {
-      auto it = aa_plus_adduct_mass.lower_bound(mc.first - 1e-6);
+      double mass = mc.first;
+      size_t count = mc.second;
+
+      auto it = aa_plus_adduct_mass.lower_bound(mass - 1e-6); // "exact" match
       if (it == aa_plus_adduct_mass.end()) continue;
-      const Residue* residue = it->second.first;
-      String name = residue->getName();
-      aa2mass2count[residue][mc.first] = mc.second;
+
+      const map<const Residue*, double>& residue2adduct = it->second;
+      for (auto& r2a : residue2adduct)
+      {
+        const Residue* residue = r2a.first;
+        String name = residue->getName();
+        aa2mass2count[residue][mass] = count;
+      }
     }
 
     cout << "Total counts per residue:" << endl;
@@ -1754,13 +1778,14 @@ static void scoreXLIons_(
       auto& mass2count = aa2.second;
       for (const auto m2c : mass2count)
       {
-        // counts
-        cout << aa2.first->getName() << "\t" << m2c.first << "\t" << m2c.second << endl; // aa mass count  
-        // frequency
-        double frequency_normalized = (double)m2c.second / mass2count.begin()->second;
+        double current_mass = m2c.first;
+        size_t current_residue_count = m2c.second;
+        size_t unmodified_residue_count = mass2count.begin()->second;
+        cout << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
+        double frequency_normalized = (double)current_residue_count / unmodified_residue_count;  // frequency relative to unmodified residue
 
 #ifdef FILTER_AMBIGIOUS_PEAKS
-        if (frequency_normalized > 0.5 && frequency_normalized != 1.0) // residue with shift (=freq. is different to 1)
+        if (frequency_normalized > 0.5 && frequency_normalized != 1.0) // residue with shift as frequent as unmodified residue
         {
           mass2high_frequency_[m2c.first] = frequency_normalized;
         }
@@ -1775,8 +1800,11 @@ static void scoreXLIons_(
       for (const auto m2c : mass2count)
       {
         // normalize by counts
-        double frequency_normalized = (double)m2c.second / mass2count.begin()->second;
-        cout << aa2.first->getName() << "\t" << m2c.first << "\t" << frequency_normalized << endl ; // aa mass count
+        double current_mass = m2c.first;
+        size_t current_residue_count = m2c.second;
+        size_t unmodified_residue_count = mass2count.begin()->second;
+        double frequency_normalized = (double)current_residue_count / unmodified_residue_count;
+        cout << aa2.first->getName() << "\t" << current_mass << "\t" << frequency_normalized << endl ; // aa mass count
       }
     }
 
@@ -1787,6 +1815,7 @@ static void scoreXLIons_(
       cout << hf.first << "\t" << hf.second << endl;
     }
 #endif
+
   }
 
   /* @brief Filter spectra to remove noise.
@@ -3709,6 +3738,11 @@ static void scoreXLIons_(
 
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
 
+    StringList filter = getStringList_("filter");
+    bool filter_pc_mass_error = find(filter.begin(), filter.end(), "filter_pc_mass_error") != filter.end();
+    bool impute_decoy_medians = find(filter.begin(), filter.end(), "impute_decoy_medians") != filter.end();
+    bool filter_bad_partial_loss_scores = find(filter.begin(), filter.end(), "filter_bad_partial_loss_scores") != filter.end();
+
     // generate mapping from empirical formula to mass and empirical formula to (one or more) precursor adducts
     RNPxlModificationMassesResult mm;
     if (max_nucleotide_length != 0)
@@ -4257,13 +4291,11 @@ static void scoreXLIons_(
 
                     const double total_MIC = tlss_MIC + im_MIC + pc_MIC + plss_MIC + plss_pc_MIC + plss_im_MIC + marker_ions_sub_score;
 
-#ifdef FILTER_BAD_PARTIAL_LOSS_SCORES
                     // decreases number of hits (especially difficult cases - but also number of false discoveries)
-                    if (badPartialLossScore(tlss_Morph, plss_Morph, plss_MIC, plss_im_MIC, plss_pc_MIC, marker_ions_sub_score))  
+                    if (filter_bad_partial_loss_scores && badPartialLossScore(tlss_Morph, plss_Morph, plss_MIC, plss_im_MIC, plss_pc_MIC, marker_ions_sub_score))  
                     { 
                       continue; 
                     }
-#endif
                     const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
                     
@@ -4515,126 +4547,93 @@ static void scoreXLIons_(
       }
     }
 */
-    map<size_t, double, std::greater<double>> map_index2ppm;
-    size_t i(0);
-    double mean(0);
-    for (size_t index = 0; index != peptide_ids.size(); ++index)
-    {
-       if (peptide_ids[index].getHits().empty()) continue;
-       if (peptide_ids[index].getHits()[0].getMetaValue("target_decoy") == "target"
-        && (double)peptide_ids[index].getHits()[0].getMetaValue("NuXL:total_loss_score") > 15.0) // not too bad score
-       {
-         double ppm_error = peptide_ids[index].getHits()[0].getMetaValue(OpenMS::Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
-         map_index2ppm[peptide_ids[index].getHits()[0].getScore()] = ppm_error; 
-         mean += ppm_error;
-         ++i;
-       }
-    }
-    mean /= i;
-    double sd(0);
-    for (auto & m : map_index2ppm)
-    {
-       sd += pow(m.second - mean, 2.0);
-    }
-    sd = sqrt(1.0/(double)i * sd);
-    cout << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << endl;
-
-    // as we are dealing with a very large search space, filter out all identifications with mass error > 5 *sd
-    for (size_t index = 0; index != peptide_ids.size(); ++index)
-    {
-      vector<PeptideHit>& phs = peptide_ids[index].getHits();
-      if (phs.empty()) continue;
-      
-      auto new_end = std::remove_if(phs.begin(), phs.end(),
-          [&sd, &mean](const PeptideHit & ph) 
-        { 
-         return fabs((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM)) - fabs(mean) > 5.0*sd; 
-        });
-      phs.erase(new_end, phs.end());
-    }
-    IDFilter::removeEmptyIdentifications(peptide_ids);
- 
-    map_index2ppm.clear(); 
-
     if (generate_decoys) 
     {
-
-      // calculate median score of decoys for specific meta value
-      auto metaMedian = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
+      map<size_t, double, std::greater<double>> map_index2ppm;
+      size_t i(0);
+      double mean(0);
+      for (size_t index = 0; index != peptide_ids.size(); ++index)
       {
-        vector<double> decoy_XL_scores;
-        for (const auto & pi : peptide_ids)
+         if (peptide_ids[index].getHits().empty()) continue;
+         if (peptide_ids[index].getHits()[0].getMetaValue("target_decoy") == "target"
+          && (double)peptide_ids[index].getHits()[0].getMetaValue("NuXL:total_loss_score") > 15.0) // not too bad score
+         {
+           double ppm_error = peptide_ids[index].getHits()[0].getMetaValue(OpenMS::Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
+           map_index2ppm[peptide_ids[index].getHits()[0].getScore()] = ppm_error; 
+           mean += ppm_error;
+           ++i;
+         }
+      }
+      mean /= i;
+      double sd(0);
+      for (auto & m : map_index2ppm)
+      {
+         sd += pow(m.second - mean, 2.0);
+      }
+      sd = sqrt(1.0/(double)i * sd);
+      cout << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << endl;
+  
+      if (filter_pc_mass_error)
+      {
+        // as we are dealing with a very large search space, filter out all PSMs with mass error > 5 *sd
+        for (size_t index = 0; index != peptide_ids.size(); ++index)
         {
-          for (const auto & ph : pi.getHits())
+          vector<PeptideHit>& phs = peptide_ids[index].getHits();
+          if (phs.empty()) continue;
+          auto new_end = std::remove_if(phs.begin(), phs.end(),
+              [&sd, &mean](const PeptideHit & ph) 
+            { 
+             return fabs((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM)) - fabs(mean) > 5.0*sd; 
+            });
+          phs.erase(new_end, phs.end());
+        }
+        IDFilter::removeEmptyIdentifications(peptide_ids);
+      }
+      map_index2ppm.clear(); 
+
+      if (impute_decoy_medians)
+      {
+        // calculate median score of decoys for specific meta value
+        auto metaMedian = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
+        {
+          vector<double> decoy_XL_scores;
+          for (const auto & pi : peptide_ids)
           {
-            const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-            if (!is_XL || ph.getMetaValue("target_decoy") != "decoy") continue;
-            double score = ph.getMetaValue(name);
-            decoy_XL_scores.push_back(score); 
+            for (const auto & ph : pi.getHits())
+            {
+              const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+              if (!is_XL || ph.getMetaValue("target_decoy") != "decoy") continue;
+              double score = ph.getMetaValue(name);
+              decoy_XL_scores.push_back(score); 
+            }
           }
-        }
-        std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
-        return Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
-      };
-
-      map<String, double> medians;
-      for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
-      {
-        medians[mn] = metaMedian(peptide_ids, mn);
-      }
-
-      for (auto & pi : peptide_ids)
-      {
-        for (auto & ph : pi.getHits())
+          std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
+          return Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
+        };
+      
+        map<String, double> medians;
+        for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
         {
-           const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-           double score = ph.getScore();
-           if (!is_XL) 
-           { 
-             for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
-             {
-               ph.setMetaValue(mn,  medians[mn]);   // impute missing with medians
+          medians[mn] = metaMedian(peptide_ids, mn);
+        }
+
+        for (auto & pi : peptide_ids)
+        {
+          for (auto & ph : pi.getHits())
+          {
+             const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+             double score = ph.getScore();
+             if (!is_XL) 
+             { 
+               for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
+               {
+                 ph.setMetaValue(mn,  medians[mn]);   // impute missing with medians
+               }
              }
-           }
-        }
-        pi.assignRanks();
-      }
-/*
-      // calibrate scores by decoy distribution
-      vector<double> decoy_XL_scores;
-      vector<double> decoy_peptide_scores;
-      for (const auto & pi : peptide_ids)
-      {
-        for (const auto & ph : pi.getHits())
-        {
-           const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-           if (ph.getMetaValue("target_decoy") != "decoy") continue;
-           double score = ph.getScore();
-           if (is_XL) { decoy_XL_scores.push_back(score); }
-           else { decoy_peptide_scores.push_back(score); }
+          }
+          pi.assignRanks();
         }
       }
-      std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
-      std::sort(decoy_peptide_scores.begin(), decoy_peptide_scores.end(), greater<double>());
-      double mxl = Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
-      double mpep = Math::median(decoy_peptide_scores.begin(), decoy_peptide_scores.end());
-      double diff = mpep - mxl; 
-      cout << "Difference between medians of decoy distributions (tails pep-XL): " << diff << endl;
-      for (auto & pi : peptide_ids)
-      {
-        for (auto & ph : pi.getHits())
-        {
-           const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-           double score = ph.getScore();
-           //if (is_XL) { ph.setScore(score + diff); }  // equalize medians of tails
-           if (!is_XL) 
-           { 
-             ph.setMetaValue();   // impute missing with medians
-           }
-        }
-        pi.assignRanks();
-      }
-*/
 
       fdr.apply(peptide_ids); 
   
