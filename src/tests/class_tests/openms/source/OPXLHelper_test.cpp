@@ -404,7 +404,7 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
 
 END_SECTION
 
-START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name))
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name, bool use_sequence_tags, std::vector<std::string>& tags))
 
   IntList precursor_correction_steps;
   precursor_correction_steps.push_back(2);
@@ -499,27 +499,71 @@ START_SECTION(static void filterCandidatesByTags(std::vector <OPXLDataStructs::P
   std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps, precursor_mass, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, cross_link_name);
 
   // set of tags
-  std::set<std::string> tags;
-  tags.insert("DE");
-  tags.insert("PP");
-  tags.insert("FDA");
-  tags.insert("CIA");
-  tags.insert("FTC");
+  std::vector<std::string> tags;
+  tags.push_back("DE");
+  tags.push_back("PP");
+  tags.push_back("FDA");
+  tags.push_back("CIA");
+  tags.push_back("FTC");
 
   TEST_EQUAL(spectrum_candidates.size(), 1050);
 
   // filter candidates
-  OPXLHelper::filterCandidatesByTagTrie(spectrum_candidates, tags);
+  OPXLHelper::filterCandidatesByTags(spectrum_candidates, tags);
   TEST_EQUAL(spectrum_candidates.size(), 210);
   std::cout << std::endl;
 
   // // runtime benchmark: search those 210 candidates that do not contain the tags many times
-  // for (int i = 0; i < 50000; ++i)
+  // for (int i = 0; i < 20000; ++i)
   // {
   //   OPXLHelper::filterCandidatesByTags(spectrum_candidates, tags);
   // }
   // TEST_EQUAL(spectrum_candidates.size(), 210);
 
+
+END_SECTION
+//
+START_SECTION(filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector<std::string>& tags))
+
+  std::cout << std::endl;
+  std::vector< int > spectrum_precursor_correction_positions;
+  std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
+  // set of tags
+  std::vector<std::string> tags;
+  tags.push_back("DE");
+  tags.push_back("PP");
+  tags.push_back("FDA");
+  tags.push_back("CIA");
+  tags.push_back("FTC");
+  tags.push_back("ESA");
+  tags.push_back("ISRO");
+  tags.push_back("NASA");
+  // tags.push_back("JAXA");
+
+  TEST_EQUAL(precursors.size(), 15990);
+
+  // filter candidates
+  OPXLHelper::filterPrecursorsByTags(precursors, tags);
+  TEST_EQUAL(precursors.size(), 4092);
+  // std::cout << std::endl;
+
+  // // hasSubstring method runtime benchmark: search those 4092 candidates that do not contain the tags many times
+  // // with 30000 iterations: 126.80 sec
+  // for (int i = 0; i < 30000; ++i)
+  // {
+  //   OPXLHelper::filterPrecursorsByTags(precursors, tags);
+  // }
+  // TEST_EQUAL(precursors.size(), 4092);
+
+  // // trie method runtime benchmark: search those 210 candidates that do not contain the tags many times
+  // // with 30000 iterations: Timeout after 1500.10 sec
+  // // with 3000 iterations: 200.92 sec
+  // for (int i = 0; i < 3000; ++i)
+  // {
+  //   OPXLHelper::filterPrecursorsByTagTrie(precursors, tags);
+  // }
+  // TEST_EQUAL(precursors.size(), 4092);
 
 END_SECTION
 
