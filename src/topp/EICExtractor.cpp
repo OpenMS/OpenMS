@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,13 @@
 
 #include <functional>
 #include <numeric>
-
+#include <boost/accumulators/accumulators.hpp> //SPW: refactor stats to use boost's accumulators
+#include <boost/accumulators/statistics.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/max.hpp>
+#include <boost/accumulators/statistics/sum.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
 using namespace OpenMS;
 using namespace std;
 
@@ -412,7 +418,8 @@ public:
       // 5 entries for each input file
       tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
       tf_single_header1 << description << "" << "" << "" << "";
-      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity";
+      // SPW added AUC, AvgINT, variance for my specific use case
+      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity" << "AUC" << "AvgINT" << "variance";
 
       for (Size i = 0; i < cm.size(); ++i)
       {
@@ -423,12 +430,14 @@ public:
                                                                   cm[i].getRT() + rttol / 2,
                                                                   cm[i].getMZ() - mz_da,
                                                                   cm[i].getMZ() + mz_da);
+        boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::mean, boost::accumulators::tag::max, boost::accumulators::tag::sum, boost::accumulators::tag::variance > > acc;
         Peak2D max_peak;
         max_peak.setIntensity(0);
         max_peak.setRT(cm[i].getRT());
         max_peak.setMZ(cm[i].getMZ());
         for (; it != exp.areaEndConst(); ++it)
         {
+            acc(it->getIntensity());//add each intensity to our accumulator
           if (max_peak.getIntensity() < it->getIntensity())
           {
             max_peak.setIntensity(it->getIntensity());
@@ -480,7 +489,10 @@ public:
                          String(max_peak.getRT() - cm[i].getRT()) + out_sep +
                          String(max_peak.getMZ()) + out_sep +
                          String(ppm)  + out_sep +
-                         String(max_peak.getIntensity());
+                         String(max_peak.getIntensity()) + out_sep +
+                         String(boost::accumulators::extract_result <boost::accumulators::tag::sum>(acc)) + out_sep +
+                         String(boost::accumulators::extract_result <boost::accumulators::tag::mean>(acc)) + out_sep +
+                         String(boost::accumulators::extract_result <boost::accumulators::tag::variance>(acc));
       }
 
       if (not_found) OPENMS_LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
