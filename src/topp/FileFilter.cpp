@@ -307,6 +307,9 @@ protected:
     registerStringOption_("int", "[min]:[max]", ":", "Intensity range to extract", false);
 
     registerFlag_("sort", "Sorts the output according to RT and m/z.");
+    registerStringList_("remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+    registerFlag_("remove_all_meta","Remove ALL metadata. This happens after filtering by remove_meta");
+
 
     registerTOPPSubsection_("peak_options", "Peak data options");
     registerDoubleOption_("peak_options:sn", "<s/n ratio>", 0, "Write peaks with S/N > 'sn' values only", false);
@@ -409,12 +412,7 @@ protected:
     registerTOPPSubsection_("f_and_c", "Feature & Consensus data options");
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
-    registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "WARNING: THIS FLAG IS DEPRECATED. USE all:remove_meta instead.   Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
-
-    addEmptyLine_();
-    registerTOPPSubsection_("all","Options that can be applied to all file types");
-    registerStringList_("all:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
-    registerFlag_("all:remove_all_meta","Remove ALL metadata. This happens after filtering by all:remove_meta");
+    registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "WARNING: THIS FLAG IS DEPRECATED. USE remove_meta instead.   Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
 
     addEmptyLine_();
     // XXX: Change description
@@ -617,18 +615,18 @@ protected:
     writeDebug_("Sorting output data: " + String(sort), 3);
 
     // handle remove_all_meta
-    bool remove_all_meta = getFlag_("all:remove_all_meta");
+    bool remove_all_meta = getFlag_("remove_all_meta");
 
     // handle remove_meta
-    // Handle the case where user put in both f_and_c:remove_meta and all:remove_meta
+    // Handle the case where user put in both f_and_c:remove_meta and remove_meta
     StringList meta_info = getStringList_("f_and_c:remove_meta");
-    StringList all_meta_info = getStringList_("all:remove_meta");
+    StringList all_meta_info = getStringList_("remove_meta");
     if (meta_info.size() > 0)
     {
-      writeLog_("WARNING f_and_c:remove meta is deprecated, use all:remove_meta instead");
+      writeLog_("WARNING f_and_c:remove meta is deprecated, use remove_meta instead");
       if (all_meta_info.size() >0 )
       {
-        writeLog_("Both all:remove_meta and f_and_c:remove_meta are defined. Please remove f_and_c:remove_meta.");
+        writeLog_("Both remove_meta and f_and_c:remove_meta are defined. Please remove f_and_c:remove_meta.");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
