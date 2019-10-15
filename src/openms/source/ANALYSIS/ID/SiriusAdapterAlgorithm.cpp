@@ -312,8 +312,8 @@ namespace OpenMS
       String lib_original = libpath + "/../lib";
       String lib_merged = libpath + "/lib";
       String lib_thirdparty = libpath + "/../../../All/Sirius/lib";
-      String lib_glpk_thirdparty_mac = libpath + "/../../../MacOS/64bit/Sirius/lib"
-      String lib_glpk_thirdparty_lnx = libpath + "/../../../Linux/64bit/Sirius/lib"
+      String lib_glpk_thirdparty_mac = libpath + "/../../../MacOS/64bit/Sirius/lib";
+      String lib_glpk_thirdparty_lnx = libpath + "/../../../Linux/64bit/Sirius/lib";
       String lib_glpk_thirdparty_win = libpath;
 
       // construct library and class path
