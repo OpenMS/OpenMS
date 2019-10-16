@@ -108,7 +108,6 @@ public:
     String(InputIterator first, InputIterator last) :
       std::string(first, last)
     {
-
     }
 
     /// Constructor from an integer
