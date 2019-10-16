@@ -37,16 +37,14 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
-#include <boost/assign/list_of.hpp>
 
 #include <algorithm>
 
-using namespace boost::assign;
 
 namespace OpenMS
 {
 const String TMTSixteenPlexQuantitationMethod::name_ = "tmt16plex";
-const std::vector<String> TMTSixteenPlexQuantitationMethod::channel_names_ = list_of("126")("127N")("127C")("128N")("128C")("129N")("129C")("130N")("130C")("131N")("131C")("132N")("132C")("133N")("133C")("134N");
+const std::vector<String> TMTSixteenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C","132N","132C","133N","133C","134N"};
 
 TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod()
 {

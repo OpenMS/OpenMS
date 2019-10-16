@@ -36,14 +36,10 @@
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
-#include <boost/assign/list_of.hpp>
-
-using namespace boost::assign;
-
 namespace OpenMS
 {
 const String TMTTenPlexQuantitationMethod::name_ = "tmt10plex";
-const std::vector<String> TMTTenPlexQuantitationMethod::channel_names_ = list_of("126")("127N")("127C")("128N")("128C")("129N")("129C")("130N")("130C")("131");
+const std::vector<String> TMTTenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131"};
 
 TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
 {
