@@ -642,6 +642,17 @@ add_test("TOPP_FileFilter_49" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_T
 add_test("TOPP_FileFilter_49_out" ${DIFF} -in1 FileFilter_49_1.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_49_output.mzML)
 set_tests_properties("TOPP_FileFilter_49_out" PROPERTIES DEPENDS "TOPP_FileFilter_49")
 
+# Test Metadata removal
+add_test("TOPP_FileFilter_50" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_49_input.mzML -peak_options:zlib_compression true -out FileFilter_50_1.tmp)
+add_test("TOPP_FileFilter_50_out" ${DIFF} -in1 FileFilter_50_1.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_50_output.mzML)
+set_tests_properties("TOPP_FileFilter_50_out" PROPERTIES DEPENDS "TOPP_FileFilter_50")
+add_test("TOPP_FileFilter_51" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter_51_1.tmp)
+add_test("TOPP_FileFilter_51_out" ${DIFF} -in1 FileFilter_51_1.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_51_output.featureXML)
+set_tests_properties("TOPP_FileFilter_51_out" PROPERTIES DEPENDS "TOPP_FileFilter_51")
+add_test("TOPP_FileFilter_52" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_22_input.consensusXML -out FileFilter_52_1.tmp)
+add_test("TOPP_FileFilter_52_out" ${DIFF} -in1 FileFilter_52_1.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_52_output.consensusXML)
+set_tests_properties("TOPP_FileFilter_52_out" PROPERTIES DEPENDS "TOPP_FileFilter_52")
+
 
 #------------------------------------------------------------------------------
 # FileInfo tests
