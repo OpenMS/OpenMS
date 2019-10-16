@@ -39,7 +39,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
 
 ///////////////////////////
 
