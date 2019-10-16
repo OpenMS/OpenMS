@@ -58,8 +58,6 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  TMTSixPlexQuantitationMethod::~TMTSixPlexQuantitationMethod() = default;
-
   void TMTSixPlexQuantitationMethod::setDefaultParams_()
   {
     defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");

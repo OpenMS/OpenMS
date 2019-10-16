@@ -75,8 +75,6 @@ TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
     setDefaultParams_();
 }
 
-TMTTenPlexQuantitationMethod::~TMTTenPlexQuantitationMethod() = default;
-
 void TMTTenPlexQuantitationMethod::setDefaultParams_()
 {
     defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");

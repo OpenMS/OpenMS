@@ -53,7 +53,7 @@ public:
     TMTSixteenPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTSixteenPlexQuantitationMethod() override;
+    ~TMTSixteenPlexQuantitationMethod() = default;
 
     /// Copy c'tor
     TMTSixteenPlexQuantitationMethod(const TMTSixteenPlexQuantitationMethod& other);
