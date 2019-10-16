@@ -37,8 +37,9 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <sqlite3.h>
-#include <sstream>
 
+#include <cstring> // for strcmp
+#include <sstream>
 
 namespace OpenMS
 {

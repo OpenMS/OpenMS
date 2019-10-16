@@ -38,6 +38,8 @@
 
 #include <sqlite3.h>
 
+#include <cstring> // for strcmp
+
 namespace OpenMS
 {
 
