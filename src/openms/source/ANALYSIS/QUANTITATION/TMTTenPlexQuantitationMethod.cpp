@@ -75,9 +75,7 @@ TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
     setDefaultParams_();
 }
 
-TMTTenPlexQuantitationMethod::~TMTTenPlexQuantitationMethod()
-{
-}
+TMTTenPlexQuantitationMethod::~TMTTenPlexQuantitationMethod() = default;
 
 void TMTTenPlexQuantitationMethod::setDefaultParams_()
 {

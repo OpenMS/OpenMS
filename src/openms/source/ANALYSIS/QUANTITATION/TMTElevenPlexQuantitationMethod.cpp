@@ -84,9 +84,7 @@ TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
     setDefaultParams_();
 }
 
-TMTElevenPlexQuantitationMethod::~TMTElevenPlexQuantitationMethod()
-{
-}
+TMTElevenPlexQuantitationMethod::~TMTElevenPlexQuantitationMethod() = default;
 
 void TMTElevenPlexQuantitationMethod::setDefaultParams_()
 {

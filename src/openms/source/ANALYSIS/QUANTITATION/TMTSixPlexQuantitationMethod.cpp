@@ -58,9 +58,7 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  TMTSixPlexQuantitationMethod::~TMTSixPlexQuantitationMethod()
-  {
-  }
+  TMTSixPlexQuantitationMethod::~TMTSixPlexQuantitationMethod() = default;
 
   void TMTSixPlexQuantitationMethod::setDefaultParams_()
   {

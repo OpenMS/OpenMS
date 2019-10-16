@@ -91,9 +91,7 @@ TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod()
     setDefaultParams_();
 }
 
-TMTSixteenPlexQuantitationMethod::~TMTSixteenPlexQuantitationMethod()
-{
-}
+TMTSixteenPlexQuantitationMethod::~TMTSixteenPlexQuantitationMethod() = default;
 
 void TMTSixteenPlexQuantitationMethod::setDefaultParams_()
 {
