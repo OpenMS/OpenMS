@@ -77,7 +77,7 @@ public:
 
 private:
   /// Type to store retention times given for individual peptide sequence
-  typedef std::map<String, double> SeqAndRT;
+  typedef std::map<String, DoubleList> SeqAndRTList;
 
   class PeptideIdentificationsPearsonDistance
   {
@@ -103,46 +103,48 @@ private:
     }
      */
 
-    float operator()(const SeqAndRT& map_first, const SeqAndRT& map_second) const
+    float operator()(SeqAndRTList& map_first, SeqAndRTList& map_second) const
     {
-      // create vectors for both maps containing RTs of identical proteins and
-      // get union and intercept amount of proteins
-      auto pep1_it = map_first.begin();
-      auto pep2_it = map_second.begin();
+      // create vectors for both maps containing RTs of identical peptides and
+      // get union and intercept amount of peptides
+      SeqAndRTList::iterator pep1_it = map_first.begin();
+      SeqAndRTList::iterator pep2_it = map_second.begin();
       vector<double> intercept_rts1;
       vector<double> intercept_rts2;
+      int union_size = 0;
       while (pep1_it != map_first.end() && pep2_it != map_second.end())
       {
-          if (pep1_it->first < pep2_it->first)
-          {
-              ++pep1_it;
-          }
-          else if (pep2_it->first < pep1_it->first)
-          {
-              ++pep2_it;
-          }
-          else
-          {
-              intercept_rts1.push_back(pep1_it->second);
-              intercept_rts2.push_back(pep2_it->second);
-              ++pep1_it;
-              ++pep2_it;
-          }
+        if (pep1_it->first < pep2_it->first)
+        {
+          ++pep1_it;
+        }
+        else if (pep2_it->first < pep1_it->first)
+        {
+          ++pep2_it;
+        }
+        else
+        {
+          // TODO : maybe not one entry for list >1, but min(size1, size2) entries with median?
+          //if (pep1_it->second.size()+pep2_it->second.size() >2) std::cout << pep1_it->second.front() << " " << pep1_it->second.back() << " " << pep2_it->second.front()<< " " <<pep2_it->second.back() << " " << std:: endl;
+          double med1 = Math::median(pep1_it->second.begin(), pep1_it->second.end(), true);
+          intercept_rts1.push_back(med1);
+          double med2 = Math::median(pep2_it->second.begin(), pep2_it->second.end(), true);
+          intercept_rts2.push_back(med2);
+          ++pep1_it;
+          ++pep2_it;
+        }
+        ++union_size;
       }
       Size intercept_size = intercept_rts1.size();
-      SeqAndRT union_map_tmp;
-      union_map_tmp.insert(map_first.begin(), map_first.end());
-      union_map_tmp.insert(map_second.begin(), map_second.end());
-      Size union_size = union_map_tmp.size();
 
       // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
-        float pearson_val;
-        pearson_val = static_cast<float>(pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(),
-                                                                       intercept_rts2.begin(), intercept_rts2.end()));
+      float pearson_val;
+      pearson_val = static_cast<float>(pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(),
+                                                                     intercept_rts2.begin(), intercept_rts2.end()));
+      if (pearson_val > 1)
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
-        if (pearson_val > 1)
-            throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        return (1 - (pearson_val * intercept_size / union_size));
+      return (1 - (pearson_val * intercept_size / union_size));
     }
 
     /*
@@ -163,53 +165,19 @@ private:
   // function declarations
   template <typename MapType, typename FileType>
   void loadInputMaps_(vector<MapType> &maps, StringList &ins, FileType &input_file);
-  static void getPeptideSequences_(vector<PeptideIdentification> &peptides, SeqAndRT &peptide_rts, vector<double> &rts_tmp);
-  static void extract_seq_and_rt_(vector<FeatureMap> &feature_maps, vector<SeqAndRT> &maps_seqAndRt, vector<double> &maps_ranges);
-  static void buildTree_(vector<SeqAndRT> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree);
+  static void getPeptideSequences_(vector<PeptideIdentification> &peptides, SeqAndRTList &peptide_rts, vector<double> &rts_tmp);
+  static void extract_seq_and_rt_(vector<FeatureMap> &feature_maps, vector<SeqAndRTList> &maps_seqAndRt, vector<double> &maps_ranges);
+  static void buildTree_(vector<SeqAndRTList> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree);
+  void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> &feature_maps_transformed, vector<TransformationDescription> &transformations_tmp, vector<double> &maps_ranges, vector<int> &trafo_order, const Param &model_params, const String &model_type);
+  static void computeTransformations_(vector<SeqAndRTList> &maps_seqAndRt, const vector<TransformationDescription> &trafo_tmp, vector<TransformationDescription> &transformations, const Param &model_params, const String &model_type);
 
-  void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> &feature_maps_transformed, vector<TransformationDescription> &transformations_tmp, vector<double> &maps_ranges, vector<int> trafo_order, const Param &model_params, const String &model_type);
-
-  void computeTransformations_(vector<SeqAndRT> &maps_seqAndRt, const vector<TransformationDescription> &trafo_tmp, vector<TransformationDescription> &transformations, const Param &model_params, const String &model_type)
+  void storeConsensusFile_(vector<FeatureMap> &feature_maps, vector<int> &trafo_order, FeatureXMLFile &fxml_file, String out_file)
   {
-    Size last_trafo = trafo_tmp.size()-1;
-    for (auto mapsit = maps_seqAndRt.begin(); mapsit != maps_seqAndRt.end(); ++mapsit)
-    {
-      TransformationDescription::DataPoints trafo_data_tmp;
-      auto trafoit = trafo_tmp[last_trafo].getDataPoints().begin();
-      auto mapit = mapsit->begin();
-      while (trafoit != trafo_tmp[last_trafo].getDataPoints().end() && mapit != mapsit->end())
-      {
-        if (trafoit->note < mapit->first)
-        {
-          ++trafoit;
-        }
-        else if (trafoit->note > mapit->first)
-        {
-          ++mapit;
-        }
-        else
-        {
-          TransformationDescription::DataPoint point(mapit->second,
-                                                       trafoit->second, trafoit->note);
-          trafo_data_tmp.push_back(point);
-          ++trafoit;
-          ++mapit;
-        }
-      }
-      TransformationDescription hihi = TransformationDescription(trafo_data_tmp);
-      hihi.fitModel(model_type, model_params);
-      transformations.push_back(hihi);
-    }
-      //std::cout << "size: " << transformations_align[0].getDataPoints().size() << std::endl;
-      //std::cout << (String)transformations_align[0].getDataPoints().at(60).first << " " << transformations_align[0].getDataPoints().at(60).note << " " << (String)transformations_align[0].getDataPoints().at(60).second << std::endl;
-
-  }
-
-  void createConsensusMap_(vector<FeatureMap> &maps, ConsensusMap &consensus)
-  {
-      Size max_num_peaks_considered_=400;
-      MapConversion::convert(1, maps[0], consensus, max_num_peaks_considered_);
-      addDataProcessing_(consensus, getProcessingInfo_(DataProcessing::ALIGNMENT));
+      OPENMS_LOG_INFO << "writing output file" << endl;
+      // annotate output with data processing info:
+      addDataProcessing_(feature_maps[trafo_order.back()],
+                         getProcessingInfo_(DataProcessing::ALIGNMENT));
+      fxml_file.store(out_file, feature_maps[trafo_order.back()]);
   }
 
   void storeTransformationDescriptions_(const vector<TransformationDescription>&
@@ -234,19 +202,24 @@ private:
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input files", true);
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. This option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
-    //registerSubsection_("algorithm", "Algorithm parameters section");
+    registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
   // getSubsectionDefaults of TOPPMapAlignerBase geht nicht, da von TOPPFeatureLinkerBase geerbt:
   Param getSubsectionDefaults_(const String & section) const override
   {
+    if (section == "algorithm")
+    {
+      MapAlignmentAlgorithmIdentification algo;
+      return algo.getParameters();
+    }
     if (section == "model")
     {
-      // deswegen ist keine Definition in der INI noetig.. somit aber auch nicht parametrisierbar
+      // deswegen ist keine Definition in der INI noetig.. somit aber auch nicht parametrisierbar!?
       return TOPPMapAlignerBase::getModelDefaults("b_spline");
     }
 
@@ -272,13 +245,15 @@ private:
     Size in_files_size = in_files.size();
     vector<FeatureMap> feature_maps(in_files_size);
     FeatureXMLFile fxml_file;
+    //fxml_file.getOptions();
     loadInputMaps_(feature_maps, in_files, fxml_file);
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
+
     // get Peptide/ RT tuple for all features, seperated by input file
-    vector<SeqAndRT> maps_seqAndRt(in_files_size);
+    vector<SeqAndRTList> maps_seqAndRt(in_files_size);
     // save ranges for alignment (larger rt_range -> reference)
     vector<double> maps_ranges(in_files_size);
     extract_seq_and_rt_(feature_maps, maps_seqAndRt, maps_ranges);
@@ -289,47 +264,34 @@ private:
 
     // to print tree
     ClusterAnalyzer ca;
-    std::cout << "alignment follows tree: " << ca.newickTree(tree) << std::endl;
+    OPENMS_LOG_INFO << "alignment follows tree: " << ca.newickTree(tree) << endl;
 
     // to store transformations
     vector<TransformationDescription> trafo_tmp;
-    vector<FeatureMap> feature_maps_transformed = feature_maps; //copy needed?
+    vector<FeatureMap> feature_maps_transformed = feature_maps; //copy needed for computation of transformations
     vector<int> trafo_order;
 
     // perform Alignment
-    Param model_params = getParam_();//.copy("model:", true);
+    Param model_params = getParam_().copy("model:", true);
     String model_type = "b_spline";
     model_params = model_params.copy(model_type+":", true);
+
     treeGuidedAlignment_(tree, feature_maps_transformed, trafo_tmp, maps_ranges, trafo_order, model_params, model_type);
 
+    /*
     // generate transformations for each map
     vector<TransformationDescription> transformations;
     computeTransformations_(maps_seqAndRt, trafo_tmp, transformations, model_params, model_type);
 
-    // create consensus
-    ConsensusMap consensus;
-
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    // store consensusMap
-    //ConsensusXMLFile().store(out_file, consensus);
     // store transformed map
-    /*
-    ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, 1, "writing output file");
-    progresslogger.setProgress(0);
-    // annotate output with data processing info:
-    addDataProcessing_(feature_maps_transformed[0],
-                       getProcessingInfo_(DataProcessing::ALIGNMENT));
-    fxml_file.store(out_file, feature_maps_transformed[0]);
-    progresslogger.endProgress();
-    */
+    storeConsensusFile_(feature_maps_transformed, trafo_order, fxml_file, out_file);
 
     // store transformations
     storeTransformationDescriptions_(transformations, out_trafos);
-
+     */
 
     return EXECUTION_OK;
   }
@@ -354,7 +316,7 @@ void TOPPMapAlignerTree::loadInputMaps_(vector<MapType> &maps, StringList &ins, 
 }
 
 void TOPPMapAlignerTree::getPeptideSequences_(vector<PeptideIdentification> &peptides,
-                                              TOPPMapAlignerTree::SeqAndRT &peptide_rts, vector<double> &rts_tmp) {
+                                              TOPPMapAlignerTree::SeqAndRTList &peptide_rts, vector<double> &rts_tmp) {
     vector<PeptideIdentification>::iterator pep_it;
     for (pep_it = peptides.begin(); pep_it != peptides.end(); ++pep_it)
     {
@@ -362,13 +324,13 @@ void TOPPMapAlignerTree::getPeptideSequences_(vector<PeptideIdentification> &pep
         {
             const String& sequence = pep_it->getHits()[0].getSequence().toString();
             double rt = pep_it->getRT();
-            peptide_rts[sequence] = rt;
+            peptide_rts[sequence].push_back(rt);
             rts_tmp.push_back(rt);
         }
     }
 }
 
-void TOPPMapAlignerTree::extract_seq_and_rt_(vector<FeatureMap> &feature_maps, vector<SeqAndRT> &maps_seqAndRt, vector<double> &maps_ranges) {
+void TOPPMapAlignerTree::extract_seq_and_rt_(vector<FeatureMap> &feature_maps, vector<SeqAndRTList> &maps_seqAndRt, vector<double> &maps_ranges) {
     for (auto maps_it = feature_maps.begin(); maps_it != feature_maps.end(); ++maps_it)
     {
         Size position = static_cast<Size>(distance(feature_maps.begin(), maps_it));
@@ -385,26 +347,26 @@ void TOPPMapAlignerTree::extract_seq_and_rt_(vector<FeatureMap> &feature_maps, v
         }
         sort(rts_tmp.begin(), rts_tmp.end());
 
-        percentile10 = rts_tmp[abs(rts_tmp.size()*0.1)];
-        percentile90 = rts_tmp[abs(rts_tmp.size()*0.9)];
+        percentile10 = rts_tmp[rts_tmp.size()*0.1];
+        percentile90 = rts_tmp[rts_tmp.size()*0.9];
 
         maps_ranges[position] = percentile90 - percentile10;
         rts_tmp.clear();
     }
 }
 
-void TOPPMapAlignerTree::buildTree_(vector<SeqAndRT> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree) {
+void TOPPMapAlignerTree::buildTree_(vector<SeqAndRTList> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree) {
     PeptideIdentificationsPearsonDistance pepDist;
     SingleLinkage sl;
     DistanceMatrix<float> dist_matrix;
     ClusterHierarchical ch;
-    ch.cluster<SeqAndRT, PeptideIdentificationsPearsonDistance>(maps_seqAndRt, pepDist, sl, tree, dist_matrix);
+    ch.cluster<SeqAndRTList, PeptideIdentificationsPearsonDistance>(maps_seqAndRt, pepDist, sl, tree, dist_matrix);
 }
 
 void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree,
                                               vector<FeatureMap> &feature_maps_transformed,
                                               vector<TransformationDescription> &transformations_tmp,
-                                              vector<double> &maps_ranges, vector<int> trafo_order,
+                                              vector<double> &maps_ranges, vector<int> &trafo_order,
                                               const Param &model_params, const String &model_type) {
     vector<TransformationDescription> transformations_align;
     vector<FeatureMap> to_align;
@@ -418,7 +380,7 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
 
     for (BinaryTreeNode node : tree)
     {
-        //  determine the map with larger RT range (->reference)
+        //  determine the map with larger RT range for 10/90 percentile (->reference)
         if (maps_ranges[node.left_child] > maps_ranges[node.right_child]) {
             ref = node.left_child;
             to_transform = node.right_child;
@@ -445,7 +407,12 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
         // combine aligned maps, store in both, because tree always calls smaller number
         // also possible: feature_maps_transformed[smallerNumber] = ..[ref]+..[to_transform] or use pointer
         feature_maps_transformed[ref] += feature_maps_transformed[to_transform];
+        feature_maps_transformed[ref].updateRanges();
+        feature_maps_transformed[ref].updateUniqueIdToIndex();
         feature_maps_transformed[to_transform] = feature_maps_transformed[ref];
+
+        // alternative for insertion using +=:
+
 
         transformations_tmp.push_back(transformations_align[0]);
 
@@ -454,6 +421,41 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
     }
 }
 
+/*
+void TOPPMapAlignerTree::computeTransformations_(vector<SeqAndRTList> &maps_seqAndRt,
+                                                 const vector<TransformationDescription> &trafo_tmp,
+                                                 vector<TransformationDescription> &transformations,
+                                                 const Param &model_params, const String &model_type) {
+    for (auto mapsit = maps_seqAndRt.begin(); mapsit != maps_seqAndRt.end(); ++mapsit)
+    {
+        TransformationDescription::DataPoints trafo_data_tmp;
+        auto trafoit = trafo_tmp.back().getDataPoints().begin();
+        auto mapit = mapsit->begin();
+        while (trafoit != trafo_tmp.back().getDataPoints().end() && mapit != mapsit->end())
+        {
+            if (trafoit->note < mapit->first)
+            {
+                ++trafoit;
+            }
+            else if (trafoit->note > mapit->first)
+            {
+                ++mapit;
+            }
+            else
+            {
+                TransformationDescription::DataPoint point(mapit->second,
+                                                           trafoit->second, trafoit->note);
+                trafo_data_tmp.push_back(point);
+                ++trafoit;
+                ++mapit;
+            }
+        }
+        TransformationDescription hihi = TransformationDescription(trafo_data_tmp);
+        hihi.fitModel(model_type, model_params);
+        transformations.push_back(hihi);
+    }
+}
+*/
 
 int main(int argc, const char** argv)
 {
