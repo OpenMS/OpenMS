@@ -49,11 +49,11 @@ using namespace OpenSwath;
 
 void getMRMFeatureTest(MockMRMFeature * imrmfeature_test)
 {
-  boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f1_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f2_ptr = std::shared_ptr<MockFeature>(new MockFeature());
   f1_ptr->m_intensity = 0.3f;
   f2_ptr->m_intensity = 0.7f;
-  std::map<std::string, boost::shared_ptr<MockFeature> > features;
+  std::map<std::string, std::shared_ptr<MockFeature> > features;
   features["group1"] = f1_ptr;
   features["group2"] = f2_ptr;
   imrmfeature_test->m_features = features;

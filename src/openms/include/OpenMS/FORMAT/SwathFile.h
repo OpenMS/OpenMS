@@ -41,7 +41,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
-#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -72,7 +71,7 @@ public:
     /// Loads a Swath run from a list of split mzML files
     std::vector<OpenSwath::SwathMap> loadSplit(StringList file_list,
                                                String tmp,
-                                               boost::shared_ptr<ExperimentalSettings>& exp_meta, 
+                                               std::shared_ptr<ExperimentalSettings>& exp_meta, 
                                                String readoptions = "normal");
 
     /**
@@ -93,27 +92,27 @@ public:
     */
     std::vector<OpenSwath::SwathMap> loadMzML(const String& file, 
                                               const String& tmp,
-                                              boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                                              std::shared_ptr<ExperimentalSettings>& exp_meta,
                                               const String& readoptions = "normal",
                                               Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
     /// Loads a Swath run from a single mzXML file
     std::vector<OpenSwath::SwathMap> loadMzXML(String file, 
                                                String tmp,
-                                               boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                                               std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                String readoptions = "normal");
 
     /// Loads a Swath run from a single sqMass file
-    std::vector<OpenSwath::SwathMap> loadSqMass(String file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */);
+    std::vector<OpenSwath::SwathMap> loadSqMass(String file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */);
 
 protected:
 
     /// Cache a file to disk
     OpenSwath::SpectrumAccessPtr doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
-                                              boost::shared_ptr<PeakMap > experiment_metadata);
+                                              std::shared_ptr<PeakMap > experiment_metadata);
 
     /// Only read the meta data from a file and use it to populate exp_meta
-    boost::shared_ptr< PeakMap > populateMetaData_(const String& file);
+    std::shared_ptr< PeakMap > populateMetaData_(const String& file);
 
     /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
     void countScansInSwath_(const std::vector<MSSpectrum>& exp,

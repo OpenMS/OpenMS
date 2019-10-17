@@ -47,7 +47,7 @@ namespace OpenMS
     mrmfeature.getFeatureIDs(ids);
     for (std::vector<String>::iterator it = ids.begin(); it != ids.end(); ++it)
     {
-      boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getFeature(*it)));
+      std::shared_ptr<FeatureOpenMS> ptr = std::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getFeature(*it)));
       features_[*it] = ptr;
     }
 
@@ -55,7 +55,7 @@ namespace OpenMS
     mrmfeature.getPrecursorFeatureIDs(p_ids);
     for (std::vector<String>::iterator it = p_ids.begin(); it != p_ids.end(); ++it)
     {
-      boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getPrecursorFeature(*it)));
+      std::shared_ptr<FeatureOpenMS> ptr = std::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getPrecursorFeature(*it)));
       precursor_features_[*it] = ptr;
     }
   }
@@ -103,22 +103,22 @@ namespace OpenMS
   {
   }
 
-  boost::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getFeature(std::string nativeID)
+  std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getFeature(std::string nativeID)
   {
     OPENMS_PRECONDITION(features_.find(nativeID) != features_.end(), "Feature needs to exist");
-    return boost::static_pointer_cast<OpenSwath::IFeature>(features_[nativeID]);
+    return std::static_pointer_cast<OpenSwath::IFeature>(features_[nativeID]);
   }
 
-  boost::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
+  std::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
   {
     OPENMS_PRECONDITION(precursor_features_.find(nativeID) != precursor_features_.end(), "Precursor feature needs to exist");
-    return boost::static_pointer_cast<OpenSwath::IFeature>(precursor_features_[nativeID]);
+    return std::static_pointer_cast<OpenSwath::IFeature>(precursor_features_[nativeID]);
   }
 
   std::vector<std::string> MRMFeatureOpenMS::getNativeIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = features_.begin(); it != features_.end(); ++it)
+    for (std::map<std::string, std::shared_ptr<FeatureOpenMS> >::const_iterator it = features_.begin(); it != features_.end(); ++it)
     {
       v.push_back(it->first);
     }
@@ -128,7 +128,7 @@ namespace OpenMS
   std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it) 
+    for (std::map<std::string, std::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it) 
     {
       v.push_back(it->first);
     }

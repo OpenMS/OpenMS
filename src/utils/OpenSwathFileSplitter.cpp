@@ -101,7 +101,7 @@ protected:
   void loadSwathFiles(const String& file_in,
                       const String& tmp,
                       const String& readoptions,
-                      boost::shared_ptr<ExperimentalSettings >& exp_meta,
+                      std::shared_ptr<ExperimentalSettings >& exp_meta,
                       std::vector< OpenSwath::SwathMap >& swath_maps,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
@@ -143,7 +143,7 @@ protected:
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
-    boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
+    std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
 
     // collect some QC data

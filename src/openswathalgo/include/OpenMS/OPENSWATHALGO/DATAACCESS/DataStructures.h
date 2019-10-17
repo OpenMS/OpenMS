@@ -36,7 +36,7 @@
 
 #include <string>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
@@ -76,7 +76,7 @@ namespace OpenSwath
     std::string description;
   };
   typedef OSBinaryDataArray BinaryDataArray;
-  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
+  using BinaryDataArrayPtr = std::shared_ptr<BinaryDataArray>;
 
   /// Identifying information for a chromatogram
   struct OPENSWATHALGO_DLLAPI OSChromatogramMeta
@@ -92,7 +92,7 @@ namespace OpenSwath
 
   };
   typedef OSChromatogramMeta ChromatogramMeta;
-  typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
+  typedef std::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
 
   /// A single chromatogram.
   struct OPENSWATHALGO_DLLAPI OSChromatogram
@@ -169,7 +169,7 @@ public:
 
   };
   typedef OSChromatogram Chromatogram;
-  typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
+  typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 
   /// Identifying information for a spectrum
   struct OPENSWATHALGO_DLLAPI OSSpectrumMeta
@@ -201,7 +201,7 @@ public:
 
   };
   typedef OSSpectrumMeta SpectrumMeta;
-  typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
+  typedef std::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
 
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
   struct OPENSWATHALGO_DLLAPI OSSpectrum
@@ -289,6 +289,6 @@ public:
 
   };
   typedef OSSpectrum Spectrum;
-  typedef boost::shared_ptr<Spectrum> SpectrumPtr;
+  typedef std::shared_ptr<Spectrum> SpectrumPtr;
 } //end Namespace OpenSwath
 

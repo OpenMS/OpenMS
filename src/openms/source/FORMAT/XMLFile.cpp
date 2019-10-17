@@ -50,8 +50,6 @@
 #include <fstream>
 #include <iomanip> // setprecision etc.
 
-#include <boost/shared_ptr.hpp>
-
 using namespace std;
 
 namespace OpenMS
@@ -122,7 +120,7 @@ private:
             "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-      boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
+      std::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
 
@@ -139,7 +137,7 @@ private:
         bz = String(tmp_bz);
       }
 
-      boost::shared_ptr< xercesc::InputSource > source;
+      std::shared_ptr< xercesc::InputSource > source;
 
       char g1 = 0x1f;
       char g2 = 0;
@@ -208,7 +206,7 @@ private:
             "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-      boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
+      std::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
 
@@ -219,7 +217,7 @@ private:
       // peak ahead into the file: is it bzip2 or gzip compressed?
       // String bz = buffer.substr(0, 2);
 
-      boost::shared_ptr< xercesc::InputSource > source;
+      std::shared_ptr< xercesc::InputSource > source;
       {
         auto fake_id = sm.convert("inMemory");
         source.reset(new xercesc::MemBufInputSource(reinterpret_cast<const unsigned char *>(buffer.c_str()), buffer.size(), fake_id.c_str()));

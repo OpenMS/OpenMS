@@ -46,7 +46,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 
-#include <boost/shared_ptr.hpp>
 #include <vector>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMS.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
@@ -81,7 +80,7 @@ private:
 
 public:
 
-    typedef std::pair<double, boost::shared_ptr<RawData> > Map;
+    typedef std::pair<double, std::shared_ptr<RawData> > Map;
     typedef std::vector<Map> Vec;
 
 //  static bool CREATE_FEATURE_ELUTION_PROFILES;

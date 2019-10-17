@@ -194,7 +194,7 @@ protected:
       void populateSpectraWithData_();
 
       /// data processing auxiliary variable
-      std::vector< boost::shared_ptr< DataProcessing> > data_processing_;
+      std::vector< std::shared_ptr< DataProcessing> > data_processing_;
 
 
 private:

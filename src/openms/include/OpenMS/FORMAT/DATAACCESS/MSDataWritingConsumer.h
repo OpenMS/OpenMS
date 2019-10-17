@@ -43,7 +43,6 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {

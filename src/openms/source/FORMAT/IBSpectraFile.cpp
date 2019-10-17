@@ -110,7 +110,7 @@ namespace OpenMS
     return *this;
   }
 
-  boost::shared_ptr<IsobaricQuantitationMethod> IBSpectraFile::guessExperimentType_(const ConsensusMap& cm)
+  std::shared_ptr<IsobaricQuantitationMethod> IBSpectraFile::guessExperimentType_(const ConsensusMap& cm)
   {
     if (cm.getExperimentType() != "labeled_MS2" && cm.getExperimentType() != "itraq")
     {
@@ -123,15 +123,15 @@ namespace OpenMS
     // we take the mapcount as approximation
     if (cm.getColumnHeaders().size() == 4)
     {
-      return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqFourPlexQuantitationMethod);
+      return std::shared_ptr<IsobaricQuantitationMethod>(new ItraqFourPlexQuantitationMethod);
     }
     else if (cm.getColumnHeaders().size() == 6)
     {
-      return boost::shared_ptr<IsobaricQuantitationMethod>(new TMTSixPlexQuantitationMethod);
+      return std::shared_ptr<IsobaricQuantitationMethod>(new TMTSixPlexQuantitationMethod);
     }
     else if (cm.getColumnHeaders().size() == 8)
     {
-      return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqEightPlexQuantitationMethod);
+      return std::shared_ptr<IsobaricQuantitationMethod>(new ItraqEightPlexQuantitationMethod);
     }
     else
     {
@@ -207,7 +207,7 @@ namespace OpenMS
 
 
     // guess experiment type
-    boost::shared_ptr<IsobaricQuantitationMethod> quantMethod = guessExperimentType_(cm);
+    std::shared_ptr<IsobaricQuantitationMethod> quantMethod = guessExperimentType_(cm);
 
     // we need the protein identifications to reference the protein names
     ProteinIdentification protIdent;

@@ -38,7 +38,6 @@
 #include <utility>
 #include <map>
 #include <utility>
-#include <boost/shared_ptr.hpp>
 
 #include <boost/random/mersenne_twister.hpp>
 
@@ -171,7 +170,7 @@ private:
     };
 
     //Sim Shared Pointer type
-    typedef boost::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
+    typedef std::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
 
   }
 

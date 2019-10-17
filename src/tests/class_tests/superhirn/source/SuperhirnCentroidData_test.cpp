@@ -56,7 +56,7 @@ CentroidData* nullPtr = nullptr;
 
 vector<double>* centroidMasses = new vector<double>(); // Centroided masses
 vector<double>* centroidIntens = new vector<double>(); // Centroided intensities
-boost::shared_ptr<RawData> raw(new RawData(*centroidMasses, *centroidIntens));
+std::shared_ptr<RawData> raw(new RawData(*centroidMasses, *centroidIntens));
 
 
 START_SECTION((CentroidData()))

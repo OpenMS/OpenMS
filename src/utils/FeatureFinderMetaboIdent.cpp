@@ -50,9 +50,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -957,7 +954,7 @@ protected:
     extractor.prepare_coordinates(chrom_temp, coords, library_,
                                   numeric_limits<double>::quiet_NaN(), false);
 
-    boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
+    std::shared_ptr<PeakMap> shared = std::make_shared<PeakMap>(ms_data_);
     OpenSwath::SpectrumAccessPtr spec_temp =
       SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
     extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,

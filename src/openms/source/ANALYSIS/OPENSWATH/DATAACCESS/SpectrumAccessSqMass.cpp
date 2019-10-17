@@ -82,9 +82,9 @@ namespace OpenMS
     }
 
     /// Light clone operator (actual data will not get copied)
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessSqMass::lightClone() const
+    std::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessSqMass::lightClone() const
     {
-      return boost::shared_ptr<SpectrumAccessSqMass>(new SpectrumAccessSqMass(*this));
+      return std::shared_ptr<SpectrumAccessSqMass>(new SpectrumAccessSqMass(*this));
     }
 
     OpenSwath::SpectrumPtr SpectrumAccessSqMass::getSpectrumById(int id)

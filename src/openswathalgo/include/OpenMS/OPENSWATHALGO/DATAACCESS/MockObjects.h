@@ -37,7 +37,6 @@
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
 
-#include <boost/shared_ptr.hpp>
 #include <map>
 #include <vector>
 
@@ -82,9 +81,9 @@ public:
 
     ~MockMRMFeature() override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
+    std::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
+    std::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
 
     std::vector<std::string> getNativeIDs() const override;
 
@@ -96,8 +95,8 @@ public:
 
     size_t size() const override;
 
-    std::map<std::string, boost::shared_ptr<MockFeature> > m_features;
-    std::map<std::string, boost::shared_ptr<MockFeature> > m_precursor_features;
+    std::map<std::string, std::shared_ptr<MockFeature> > m_features;
+    std::map<std::string, std::shared_ptr<MockFeature> > m_precursor_features;
     float m_intensity;
     double m_rt;
   };

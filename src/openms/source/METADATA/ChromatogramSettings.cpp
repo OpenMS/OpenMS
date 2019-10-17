@@ -211,7 +211,7 @@ namespace OpenMS
     return data_processing_;
   }
 
-  const std::vector< boost::shared_ptr<const DataProcessing > > ChromatogramSettings::getDataProcessing() const 
+  const std::vector< std::shared_ptr<const DataProcessing > > ChromatogramSettings::getDataProcessing() const 
   {
     return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }

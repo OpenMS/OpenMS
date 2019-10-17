@@ -55,7 +55,7 @@ namespace OpenMS
       // This creates an InMemory object that keeps all data in memory
       // but provides the same access functionality to the raw data as
       // any object implementing ISpectrumAccess
-      ms1_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*ms1_map) );
+      ms1_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*ms1_map) );
     }
     return ms1_map;
   }
@@ -173,7 +173,7 @@ namespace OpenMS
     TransformationDescription empty_trafo; // empty transformation
 
     // Prepare the data with the chromatograms
-    boost::shared_ptr<PeakMap > xic_map(new PeakMap);
+    std::shared_ptr<PeakMap > xic_map(new PeakMap);
     xic_map->setChromatograms(chromatograms);
     OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwath::SpectrumAccessPtr(new OpenMS::SpectrumAccessOpenMS(xic_map));
 
@@ -339,7 +339,7 @@ namespace OpenMS
           if (load_into_memory)
           {
             // This creates an InMemory object that keeps all data in memory
-            current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
+            current_swath_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
           }
 
           prepareExtractionCoordinates_(tmp_out, coordinates, transition_exp_used, trafo_inverse, cp);
@@ -490,7 +490,7 @@ namespace OpenMS
                      transition_exp, trafo_inverse, ms1_only, ms1_isotopes);
 
       FeatureMap featureFile;
-      boost::shared_ptr<MSExperiment> empty_exp = boost::shared_ptr<MSExperiment>(new MSExperiment);
+      std::shared_ptr<MSExperiment> empty_exp = std::shared_ptr<MSExperiment>(new MSExperiment);
 
       OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp;
       scoreAllChromatograms_(std::vector<MSChromatogram>(), ms1_chromatograms, swath_maps, transition_exp_used, 
@@ -608,7 +608,7 @@ namespace OpenMS
           if (load_into_memory)
           {
             // This creates an InMemory object that keeps all data in memory
-            current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
+            current_swath_map = std::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
           }
 
           int batch_size;
@@ -1181,7 +1181,7 @@ namespace OpenMS
               // clone or load them into memory if requested.
               if (load_into_memory)
               {
-                used_maps[i].sptr = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*used_maps[i].sptr) );
+                used_maps[i].sptr = std::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*used_maps[i].sptr) );
               }
               else
               {

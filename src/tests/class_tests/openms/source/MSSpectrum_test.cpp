@@ -1352,7 +1352,7 @@ START_SECTION( SpectrumSettings::SpectrumType MSSpectrum::getType(const bool que
   // second easiest: type is given in data processing
   DataProcessing dp;
   dp.setProcessingActions( { DataProcessing::PEAK_PICKING } );
-  boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+  std::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
   edit.getDataProcessing().push_back(dp_);
   // still profile, since DP is only checked when type is unknown
   TEST_EQUAL(edit.getType(false), SpectrumSettings::PROFILE);

@@ -53,7 +53,7 @@ public:
         
     ~SpectrumAccessTransforming() override = 0;
 
-    boost::shared_ptr<ISpectrumAccess> lightClone() const override = 0;
+    std::shared_ptr<ISpectrumAccess> lightClone() const override = 0;
 
     OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 

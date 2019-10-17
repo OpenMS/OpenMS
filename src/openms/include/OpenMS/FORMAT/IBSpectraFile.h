@@ -36,9 +36,9 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <memory>
 
 // boost shared_ptr
-#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -87,7 +87,7 @@ private:
 
       @throws Exception::InvalidParameter if the ConsensusMap does not hold the result of an isobaric quantification experiment (e.g., itraq).
     */
-    boost::shared_ptr<IsobaricQuantitationMethod> guessExperimentType_(const ConsensusMap& cm);
+    std::shared_ptr<IsobaricQuantitationMethod> guessExperimentType_(const ConsensusMap& cm);
 
     /**
       @brief Constructs the matching file header for the given quantitation method.

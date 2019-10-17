@@ -37,6 +37,7 @@
 // OpenMS includes
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <memory>
 
 namespace OpenMS
 {

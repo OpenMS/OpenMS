@@ -47,7 +47,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>
-#include <boost/shared_ptr.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -195,7 +194,7 @@ protected:
     Param feature_finder_param = getParam_().copy("algorithm:", true);
 
     // Create the output map, load the input TraML file and the chromatograms
-    boost::shared_ptr<MapType> exp (new MapType());
+    std::shared_ptr<MapType> exp (new MapType());
     FeatureMap out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
 
@@ -243,7 +242,7 @@ protected:
     {
       MRMFeatureFinderScoring featureFinder;
       MzMLFile swath_file;
-      boost::shared_ptr<MapType> swath_map (new MapType());
+      std::shared_ptr<MapType> swath_map (new MapType());
       FeatureMap featureFile;
       cout << "Loading file " << file_list[i] << endl;
 

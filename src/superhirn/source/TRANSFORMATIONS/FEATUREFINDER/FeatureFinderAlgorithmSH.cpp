@@ -36,8 +36,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSHCtrl.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <boost/shared_ptr.hpp>
-
 namespace OpenMS
 {
   FeatureFinderAlgorithmSH::FeatureFinderAlgorithmSH() :
@@ -204,7 +202,7 @@ namespace OpenMS
       }
 
       //RawData* data = new RawData(vmzvals, vintvals);
-      boost::shared_ptr<RawData> data_ptr(new RawData(vmzvals, vintvals));
+      std::shared_ptr<RawData> data_ptr(new RawData(vmzvals, vintvals));
 
       FeatureFinderAlgorithmSHCtrl::MyMap map_ptr(rt / 60, data_ptr);
 //        m[rt/60.0] = data;

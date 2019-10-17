@@ -55,8 +55,6 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/unordered_map.hpp>
 
 #ifdef _OPENMP

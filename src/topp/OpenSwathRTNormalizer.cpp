@@ -227,8 +227,8 @@ protected:
     std::vector<std::pair<double, double> > pairs;
     for (Size i = 0; i < file_list.size(); ++i)
     {
-      boost::shared_ptr<MapType> swath_map (new MapType()); // the map with the extracted ion chromatograms
-      boost::shared_ptr<MapType> xic_map (new MapType());
+      std::shared_ptr<MapType> swath_map (new MapType()); // the map with the extracted ion chromatograms
+      std::shared_ptr<MapType> xic_map (new MapType());
       FeatureMap featureFile;
       std::cout << "RT Normalization working on " << file_list[i] << std::endl;
       f.load(file_list[i], *xic_map.get());

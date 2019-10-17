@@ -31,7 +31,6 @@
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
-#include <boost/shared_ptr.hpp>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -124,7 +123,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 {
   // test result for empty map
   {
-    boost::shared_ptr<PeakMap > swath_map (new PeakMap);
+    std::shared_ptr<PeakMap > swath_map (new PeakMap);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     OpenSwathScoring sc;
@@ -143,7 +142,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     s.push_back(p);
     s.setRT(20.0);
     eptr->addSpectrum(s);
-    boost::shared_ptr<PeakMap > swath_map (eptr);
+    std::shared_ptr<PeakMap > swath_map (eptr);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 1)
@@ -183,7 +182,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     eptr->addSpectrum(s);
     s.setRT(30.0);
     eptr->addSpectrum(s);
-    boost::shared_ptr<PeakMap > swath_map (eptr);
+    std::shared_ptr<PeakMap > swath_map (eptr);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 3)
@@ -240,7 +239,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
       s.setRT(60.0);
       eptr->addSpectrum(s);
     }
-    boost::shared_ptr<PeakMap > swath_map (eptr);
+    std::shared_ptr<PeakMap > swath_map (eptr);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 4)

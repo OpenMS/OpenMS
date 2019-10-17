@@ -97,7 +97,7 @@ MSExperiment exp_no_calibration = exp;
 // adding processing info
 DataProcessing p;
 p.setProcessingActions({ OpenMS::DataProcessing::CALIBRATION });
-boost::shared_ptr< DataProcessing > p_(new DataProcessing(p));
+std::shared_ptr< DataProcessing > p_(new DataProcessing(p));
 for (Size i = 0; i < exp.size(); ++i)
 {
   exp[i].getDataProcessing().push_back(p_);

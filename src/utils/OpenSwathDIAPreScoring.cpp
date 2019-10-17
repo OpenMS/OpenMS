@@ -86,7 +86,7 @@ public:
 protected:
 
   typedef PeakMap MapType;
-  typedef boost::shared_ptr<PeakMap> MapTypePtr;
+  typedef std::shared_ptr<PeakMap> MapTypePtr;
 
   void registerOptionsAndFlags_() override
   {

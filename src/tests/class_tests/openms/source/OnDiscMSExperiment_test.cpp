@@ -168,10 +168,10 @@ START_SECTION((Size getNrChromatograms() const))
 }
 END_SECTION
 
-START_SECTION((boost::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const))
+START_SECTION((std::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  boost::shared_ptr<const ExperimentalSettings> settings = tmp.getExperimentalSettings();
+  std::shared_ptr<const ExperimentalSettings> settings = tmp.getExperimentalSettings();
 
   TEST_EQUAL(settings->getInstrument().getName(), "LTQ FT")
   TEST_EQUAL(settings->getInstrument().getMassAnalyzers().size(), 1)

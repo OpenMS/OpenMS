@@ -275,7 +275,7 @@ protected:
     String tr_file = getStringOption_("tr");
     bool force = getFlag_("force");
 
-    boost::shared_ptr<PeakMap > exp ( new PeakMap );
+    std::shared_ptr<PeakMap > exp ( new PeakMap );
     MzMLFile mzmlfile;
     mzmlfile.setLogType(log_type_);
     mzmlfile.load(in, *exp);

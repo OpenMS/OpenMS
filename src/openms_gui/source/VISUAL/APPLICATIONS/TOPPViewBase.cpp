@@ -1264,7 +1264,7 @@ namespace OpenMS
             // with actual spectra including raw data (allowing us to only
             // populate MS1 spectra with actual data).
 
-            // peak_map_sptr = boost::static_pointer_cast<ExperimentSharedPtrType>(on_disc_peaks->getMetaData());
+            // peak_map_sptr = std::static_pointer_cast<ExperimentSharedPtrType>(on_disc_peaks->getMetaData());
             peak_map_sptr = on_disc_peaks->getMetaData();
 
             for (Size k = 0; k < indexed_mzml_file_.getNrSpectra() && !cache_ms1_on_disc; k++)
@@ -3563,14 +3563,14 @@ namespace OpenMS
     }
 
     // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
-    std::map< int, boost::shared_ptr<MSSpectrum> > im_map;
+    std::map< int, std::shared_ptr<MSSpectrum> > im_map;
     auto im_arr = tmps.getFloatDataArrays()[0]; // the first array should be the IM array (see containsIMData)
     for (Size k = 0;  k < tmps.size(); k++)
     {
       double im = im_arr[ k ];
       if (im_map.find( int(im*IM_BINNING) ) == im_map.end() )
       {
-        boost::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
+        std::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
         news->setRT(im);
         news->setMSLevel(1);
         im_map[ int(im*IM_BINNING) ] = news;

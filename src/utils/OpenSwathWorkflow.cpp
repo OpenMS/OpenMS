@@ -820,7 +820,7 @@ protected:
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
-    boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
+    std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
 
     // collect some QC data
