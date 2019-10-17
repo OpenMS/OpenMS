@@ -50,6 +50,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdio>
+#include <memory>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>

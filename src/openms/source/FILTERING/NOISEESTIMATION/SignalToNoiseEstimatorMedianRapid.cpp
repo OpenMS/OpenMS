@@ -35,6 +35,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
 
 #include <numeric>
+#include <algorithm>
 
 // array_wrapper needs to be included before it is used
 // only in boost1.64+. See issue #2790

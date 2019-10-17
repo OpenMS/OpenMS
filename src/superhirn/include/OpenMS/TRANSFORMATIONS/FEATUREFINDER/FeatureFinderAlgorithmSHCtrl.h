@@ -42,7 +42,7 @@
 
 #include <vector>
 #include <map>
-
+#include <memory>
 namespace OpenMS
 {
   /**

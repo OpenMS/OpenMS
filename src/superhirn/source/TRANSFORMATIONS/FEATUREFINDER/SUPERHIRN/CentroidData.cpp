@@ -49,6 +49,7 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <memory>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>

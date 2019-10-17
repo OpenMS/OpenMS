@@ -54,6 +54,7 @@
 
 #include <list>
 #include <vector>
+#include <memory>
 
 namespace OpenMS
 {
