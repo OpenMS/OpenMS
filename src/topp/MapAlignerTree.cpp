@@ -278,7 +278,6 @@ private:
 
     treeGuidedAlignment_(tree, feature_maps_transformed, trafo_tmp, maps_ranges, trafo_order, model_params, model_type);
 
-    /*
     // generate transformations for each map
     vector<TransformationDescription> transformations;
     computeTransformations_(maps_seqAndRt, trafo_tmp, transformations, model_params, model_type);
@@ -291,7 +290,6 @@ private:
 
     // store transformations
     storeTransformationDescriptions_(transformations, out_trafos);
-     */
 
     return EXECUTION_OK;
   }
@@ -421,17 +419,16 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
     }
 }
 
-/*
 void TOPPMapAlignerTree::computeTransformations_(vector<SeqAndRTList> &maps_seqAndRt,
                                                  const vector<TransformationDescription> &trafo_tmp,
                                                  vector<TransformationDescription> &transformations,
                                                  const Param &model_params, const String &model_type) {
-    for (auto mapsit = maps_seqAndRt.begin(); mapsit != maps_seqAndRt.end(); ++mapsit)
+    for (auto & mapsit : maps_seqAndRt)
     {
         TransformationDescription::DataPoints trafo_data_tmp;
         auto trafoit = trafo_tmp.back().getDataPoints().begin();
-        auto mapit = mapsit->begin();
-        while (trafoit != trafo_tmp.back().getDataPoints().end() && mapit != mapsit->end())
+        auto mapit = mapsit.begin();
+        while (trafoit != trafo_tmp.back().getDataPoints().end() && mapit != mapsit.end())
         {
             if (trafoit->note < mapit->first)
             {
@@ -443,19 +440,21 @@ void TOPPMapAlignerTree::computeTransformations_(vector<SeqAndRTList> &maps_seqA
             }
             else
             {
-                TransformationDescription::DataPoint point(mapit->second,
-                                                           trafoit->second, trafoit->note);
-                trafo_data_tmp.push_back(point);
+                // TODO: check problems with outliers
+                for (auto & rt : mapit->second)
+                {
+                    TransformationDescription::DataPoint point(rt, trafoit->second, trafoit->note);
+                    trafo_data_tmp.push_back(point);
+                }
                 ++trafoit;
                 ++mapit;
             }
         }
-        TransformationDescription hihi = TransformationDescription(trafo_data_tmp);
-        hihi.fitModel(model_type, model_params);
-        transformations.push_back(hihi);
+        TransformationDescription map_trafo = TransformationDescription(trafo_data_tmp);
+        map_trafo.fitModel(model_type, model_params);
+        transformations.push_back(map_trafo);
     }
 }
-*/
 
 int main(int argc, const char** argv)
 {
