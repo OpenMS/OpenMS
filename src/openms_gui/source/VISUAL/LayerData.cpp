@@ -37,6 +37,7 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 
 #include <iostream>
+#include <memory>
 
 using namespace std;
 
@@ -56,7 +57,7 @@ namespace OpenMS
 
   const LayerData::ConstExperimentSharedPtrType LayerData::getPeakData() const
   {
-    return boost::static_pointer_cast<const ExperimentType>(peaks);
+    return std::static_pointer_cast<const ExperimentType>(peaks);
   }
 
   void LayerData::updateRanges()
