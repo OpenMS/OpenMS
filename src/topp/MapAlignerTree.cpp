@@ -177,6 +177,7 @@ private:
       // annotate output with data processing info:
       addDataProcessing_(feature_maps[trafo_order.back()],
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
+      feature_maps[trafo_order.back()].setUniqueId();
       fxml_file.store(out_file, feature_maps[trafo_order.back()]);
   }
 
@@ -406,8 +407,9 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
         // also possible: feature_maps_transformed[smallerNumber] = ..[ref]+..[to_transform] or use pointer
         feature_maps_transformed[ref] += feature_maps_transformed[to_transform];
         feature_maps_transformed[ref].updateRanges();
-        feature_maps_transformed[ref].updateUniqueIdToIndex();
+        //feature_maps_transformed[ref].updateUniqueIdToIndex();
         feature_maps_transformed[to_transform] = feature_maps_transformed[ref];
+        //feature_maps_transformed[ref].updateUniqueIdToIndex();
 
         // alternative for insertion using +=:
 
