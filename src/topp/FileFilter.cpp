@@ -96,6 +96,7 @@ using namespace std;
         - filter by consensus feature charge
         - filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
     - featureXML / consensusXML:
+    - remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
         - filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
         - filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
         - remove features with annotations
@@ -103,8 +104,6 @@ using namespace std;
         - remove unassigned peptide identifications
         - filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
         - remove features with id clashes (different sequences mapped to one feature)
-    - All formats
-        - remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
 
     The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
 
@@ -409,12 +408,7 @@ protected:
     registerTOPPSubsection_("f_and_c", "Feature & Consensus data options");
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
-    registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "WARNING: THIS FLAG IS DEPRECATED. USE all:remove_meta instead.   Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
-
-    addEmptyLine_();
-    registerTOPPSubsection_("all","Options that can be applied to all file types");
-    registerStringList_("all:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
-    registerFlag_("all:remove_all_meta","Remove ALL metadata. This happens after filtering by all:remove_meta");
+    registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
 
     addEmptyLine_();
     // XXX: Change description
@@ -616,29 +610,8 @@ protected:
     bool sort = getFlag_("sort");
     writeDebug_("Sorting output data: " + String(sort), 3);
 
-    // handle remove_all_meta
-    bool remove_all_meta = getFlag_("all:remove_all_meta");
-
     // handle remove_meta
-    // Handle the case where user put in both f_and_c:remove_meta and all:remove_meta
     StringList meta_info = getStringList_("f_and_c:remove_meta");
-    StringList all_meta_info = getStringList_("all:remove_meta");
-    if (meta_info.size() > 0)
-    {
-      writeLog_("WARNING f_and_c:remove meta is deprecated, use all:remove_meta instead");
-      if (all_meta_info.size() >0 )
-      {
-        writeLog_("Both all:remove_meta and f_and_c:remove_meta are defined. Please remove f_and_c:remove_meta.");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
-    }
-
-    if (all_meta_info.size() > 0)
-    {
-      meta_info = all_meta_info;
-  }
-
     bool remove_meta_enabled = (meta_info.size() > 0);
     if (remove_meta_enabled && meta_info.size() != 3)
     {
@@ -691,12 +664,6 @@ protected:
         }
         exp.clear(false);
         exp.getSpectra().insert(exp.begin(), exp_tmp.begin(), exp_tmp.end());
-      }
-
-      // clear meta-data
-      if (remove_all_meta)
-      {
-        exp.clearMetaDataArrays();
       }
 
 
@@ -1004,13 +971,6 @@ protected:
             if (annotation_ok && meta_ok) map_sm.push_back(*fm_it);
           }
         }
-
-        // remove metadata if requested
-        if (remove_all_meta)
-        {
-          map_sm.clearMetaInfo();
-        }
-
         //delete unassignedPeptideIdentifications
         if (remove_unassigned_ids)
         {
@@ -1073,11 +1033,6 @@ protected:
             if (annotation_ok && meta_ok) consensus_map_filtered.push_back(*cm_it);
           }
         }
-        if (remove_all_meta)
-        {
-          consensus_map_filtered.clearMetaInfo();
-        }
-
         //delete unassignedPeptideIdentifications
         if (remove_unassigned_ids)
         {
