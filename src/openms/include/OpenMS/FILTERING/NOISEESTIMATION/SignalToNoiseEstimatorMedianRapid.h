@@ -38,6 +38,7 @@
 #include <OpenMS/INTERFACES/ISpectrumAccess.h>
 #include <cassert>
 #include <vector>
+#include <algorithm>
 
 namespace OpenMS
 {
