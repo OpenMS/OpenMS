@@ -64,9 +64,44 @@
 using namespace OpenMS;
 using namespace std;
 
+
 //-------------------------------------------------------------
-// Doxygen docu
+//Doxygen docu
 //-------------------------------------------------------------
+
+/**
+@page TOPP_QualityControl QualityControl
+
+@brief Generates an mzTab file from various sources of a pipeline (mainly a ConsensusXML) which can be used for QC plots (e.g. via the R package 'PTX-QC').
+
+<CENTER>
+<table>
+<tr>
+<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ QualityControl \f$ \longrightarrow \f$</td>
+<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeledKD (or FLs; for consensusXML)</td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=3> <a href="https://github.com/cbielow/PTXQC/" target="_blank">PTX-QC</a> </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper (for featureXMLs)</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_InternalCalibration </td>
+</tr>
+</table>
+</CENTER>
+
+See @ref TOPP_example_qualitycontrol for details.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_QualityControl.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_QualityControl.html
+*/
+
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
@@ -110,7 +145,8 @@ struct Mapping
 class TOPPQualityControl : public TOPPBase
 {
 public:
-  TOPPQualityControl() : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
+  TOPPQualityControl()
+   : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
   {
   }
 protected:
