@@ -103,6 +103,8 @@ namespace OpenMS
 
       void storeParentMolecules();
 
+      void storeIdentifiedSequences();
+
     private:
       void createTable_(const String& name, const String& definition,
                         bool may_exist = false);
@@ -127,6 +129,11 @@ namespace OpenMS
       void storeAppliedProcessingStep_(
         const IdentificationData::AppliedProcessingStep& step,
         const String& parent_table, Key parent_id);
+
+      void createTableMoleculeParentMatches_();
+
+      void storeMoleculeParentMatches_(
+        const IdentificationData::ParentMatches& matches, Key sequence_id);
 
       template<class MetaInfoInterfaceContainer>
       void storeMetaInfos_(const MetaInfoInterfaceContainer& container,

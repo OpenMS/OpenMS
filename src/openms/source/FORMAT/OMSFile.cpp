@@ -748,6 +748,128 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileStore::storeIdentifiedSequences()
+  {
+    if (id_data_.getIdentifiedPeptides().empty() &&
+        id_data_.getIdentifiedOligos().empty()) return;
+
+    if (!tableExists_(db_name_, "ID_MoleculeType")) createTableMoleculeType_();
+
+    createTable_(
+      "ID_IdentifiedSequence",
+      "id INTEGER PRIMARY KEY NOT NULL, "                               \
+      "molecule_type_id INTEGER NOT NULL, "                             \
+      "sequence TEXT, "                                                 \
+      "UNIQUE (molecule_type_id, sequence), "                           \
+      "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)");
+    // @TODO: add constraint that molecule type can't be compound?
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO ID_IdentifiedSequence VALUES (" \
+                  ":id, "                                   \
+                  ":molecule_type_id, "                     \
+                  ":sequence)");
+    bool any_parent_matches = false;
+    // store peptides:
+    query.bindValue(":molecule_type_id", int(ID::MoleculeType::PROTEIN) + 1);
+    for (const ID::IdentifiedPeptide& peptide :
+           id_data_.getIdentifiedPeptides())
+    {
+      if (!peptide.parent_matches.empty()) any_parent_matches = true;
+      query.bindValue(":id", Key(&peptide)); // use address as primary key
+      query.bindValue(":sequence", peptide.sequence.toString().toQString());
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+    storeScoredProcessingResults_(id_data_.getIdentifiedPeptides(),
+                                  "ID_IdentifiedSequence");
+    // store RNA oligos:
+    query.bindValue(":molecule_type_id", int(ID::MoleculeType::RNA) + 1);
+    for (const ID::IdentifiedOligo& oligo : id_data_.getIdentifiedOligos())
+    {
+      if (!oligo.parent_matches.empty()) any_parent_matches = true;
+      query.bindValue(":id", Key(&oligo)); // use address as primary key
+      query.bindValue(":sequence",
+                      QString::fromStdString(oligo.sequence.toString()));
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+    storeScoredProcessingResults_(id_data_.getIdentifiedOligos(),
+                                  "ID_IdentifiedSequence");
+
+    if (any_parent_matches)
+    {
+      createTableMoleculeParentMatches_();
+      for (const ID::IdentifiedPeptide& peptide :
+             id_data_.getIdentifiedPeptides())
+      {
+        if (peptide.parent_matches.empty()) continue;
+        storeMoleculeParentMatches_(peptide.parent_matches, Key(&peptide));
+      }
+      for (const ID::IdentifiedOligo& oligo : id_data_.getIdentifiedOligos())
+      {
+        if (oligo.parent_matches.empty()) continue;
+        storeMoleculeParentMatches_(oligo.parent_matches, Key(&oligo));
+      }
+    }
+  }
+
+
+  void OMSFile::OMSFileStore::createTableMoleculeParentMatches_()
+  {
+    createTable_(
+      "ID_MoleculeParentMatch",
+      "sequence_id INTEGER NOT NULL, "                                  \
+      "parent_id INTEGER NOT NULL, "                                    \
+      "start_pos NUMERIC, "                                             \
+      "end_pos NUMERIC, "                                               \
+      "left_neighbor TEXT, "                                            \
+      "right_neighbor TEXT, "                                           \
+      "UNIQUE (sequence_id, parent_id, start_pos, end_pos), "           \
+      "FOREIGN KEY (parent_id) REFERENCES ID_ParentMolecule (id), "     \
+      "FOREIGN KEY (sequence_id) REFERENCES ID_IdentifiedSequence (id)");
+  }
+
+
+  void OMSFile::OMSFileStore::storeMoleculeParentMatches_(
+    const ID::ParentMatches& matches, Key sequence_id)
+  {
+    // this assumes the "ID_MoleculeParentMatch" table exists already!
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO ID_MoleculeParentMatch VALUES (" \
+                  ":sequence_id, "                              \
+                  ":parent_id, "                                \
+                  ":start_pos, "                                \
+                  ":end_pos, "                                  \
+                  ":left_neighbor, "                            \
+                  ":right_neighbor)");
+    // @TODO: cache the prepared query between function calls somehow?
+    query.bindValue(":sequence_id", sequence_id);
+    for (const auto& pair : matches)
+    {
+      query.bindValue(":parent_id", Key(&(*pair.first)));
+      for (const auto& match : pair.second)
+      {
+        query.bindValue(":start_pos", uint(match.start_pos));
+        query.bindValue(":end_pos", uint(match.end_pos));
+        query.bindValue(":left_neighbor", match.left_neighbor.toQString());
+        query.bindValue(":right_neighbor", match.right_neighbor.toQString());
+        if (!query.exec())
+        {
+          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                        "error inserting data");
+        }
+      }
+    }
+  }
+
+
   void OMSFile::store(const String& filename, const IdentificationData& id_data)
   {
     OMSFileStore helper(filename, id_data);
@@ -760,6 +882,7 @@ namespace OpenMS
     helper.storeDataProcessingSteps();
     helper.storeDataQueries();
     helper.storeParentMolecules();
+    helper.storeIdentifiedSequences();
   }
 
 
