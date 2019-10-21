@@ -81,9 +81,9 @@ namespace OpenMS
     db = conn.getDB();
 
     // Count transitions
-    SqliteConnector::executePreparedStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
+    SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
     sqlite3_step( cntstmt );
-    int num_transitions = sqlite3_column_int( cntstmt, 0 );
+    int num_transitions = sqlite3_column_int(cntstmt, 0);
     sqlite3_finalize(cntstmt);
 
     String select_drift_time = "";
@@ -105,6 +105,14 @@ namespace OpenMS
                   "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
     }
 
+    String select_annotation = "'' AS Annotation, ";
+    bool annotation_exists = SqliteConnector::columnExists(db, "TRANSITION", "ANNOTATION");
+    if (annotation_exists) select_annotation = "TRANSITION.ANNOTATION AS Annotation, ";
+
+    String select_adducts = "'' AS Adducts, ";
+    bool adducts_exists = SqliteConnector::columnExists(db, "COMPOUND", "ADDUCTS");
+    if (adducts_exists) select_adducts = "COMPOUND.ADDUCTS AS Adducts, ";
+
     // Get peptides
     select_sql = "SELECT " \
                   "PRECURSOR.PRECURSOR_MZ AS precursor, " \
@@ -117,7 +125,7 @@ namespace OpenMS
                   "TRANSITION.DECOY AS decoy, " \
                   "PEPTIDE.UNMODIFIED_SEQUENCE AS PeptideSequence, " \
                   "PROTEIN_AGGREGATED.PROTEIN_ACCESSION AS ProteinName, " \
-                  "NULL AS Annotation, " \
+                  + select_annotation + \
                   "PEPTIDE.MODIFIED_SEQUENCE AS FullPeptideName, " \
                   "NULL AS CompoundName, " \
                   "NULL AS SMILES, " \
@@ -169,12 +177,12 @@ namespace OpenMS
                   "TRANSITION.DECOY AS decoy, " \
                   "NULL AS PeptideSequence, " \
                   "NULL AS ProteinName, " \
-                  "TRANSITION.ANNOTATION AS Annotation, " \
+                  + select_annotation + \
                   "NULL AS FullPeptideName, " \
                   "COMPOUND.COMPOUND_NAME AS CompoundName, " \
                   "COMPOUND.SMILES AS SMILES, " \
                   "COMPOUND.SUM_FORMULA AS SumFormula, " \
-                  "COMPOUND.ADDUCTS AS Adducts, " \
+                  + select_adducts + \
                   "PRECURSOR.CHARGE AS precursor_charge, " \
                   "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
                   "NULL AS label_type, " \
@@ -198,13 +206,13 @@ namespace OpenMS
 
 
     // Execute SQL select statement
-    SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-    sqlite3_step( stmt );
+    SqliteConnector::prepareStatement(db, &stmt, select_sql);
+    sqlite3_step(stmt);
 
     Size progress = 0;
     startProgress(0, num_transitions, "reading PQP file");
     // Convert SQLite data to TSVTransition data structure
-    while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+    while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
     {
       setProgress(progress++);
       TSVTransition mytransition;
@@ -218,10 +226,8 @@ namespace OpenMS
       Sql::extractValue<std::string>(&mytransition.group_id, stmt, 6);
       Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 7);
       Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
-      if (sqlite3_column_type( stmt, 9 ) != SQLITE_NULL)
-      {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 9 ))).split(';', mytransition.ProteinName);
-      }
+      String tmp_field;
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 9)) tmp_field.split(';', mytransition.ProteinName);
       Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
       Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
       Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
@@ -236,17 +242,11 @@ namespace OpenMS
       Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 21);
       Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 22);
       Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
-      if (sqlite3_column_type( stmt, 24 ) != SQLITE_NULL)
-      {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 24 ))).split(';', mytransition.uniprot_id);
-      }
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 24)) tmp_field.split(';', mytransition.uniprot_id);
       Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
       Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
-      if (sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
-      {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 28 ))).split('|', mytransition.peptidoforms);
-      }
+      if (Sql::extractValue<std::string>(&tmp_field, stmt, 28)) tmp_field.split('|', mytransition.peptidoforms);
       // optional attributes only present in newer file versions
       if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);
       if (gene_exists) Sql::extractValue<std::string>(&mytransition.GeneName, stmt, 30);

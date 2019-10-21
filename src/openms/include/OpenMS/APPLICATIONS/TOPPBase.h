@@ -80,7 +80,7 @@ namespace OpenMS
     std::string when_where; ///< suggested format: journal. year; volume, issue: pages
     std::string doi;        ///< plain DOI (no urls), e.g. 10.1021/pr100177k
 
-                            /// mangle members to string
+    /// mangle members to string
     std::string toString() const
     {
       return authors + ". " + title + ". " + when_where + ". doi:" + doi + ".";

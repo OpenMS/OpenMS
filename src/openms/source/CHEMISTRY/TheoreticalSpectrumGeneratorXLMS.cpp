@@ -174,7 +174,7 @@ namespace OpenMS
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
-      charges.setName("Charges");
+      charges.setName("charge");
     }
     if (add_metainfo_)
     {
@@ -369,7 +369,7 @@ namespace OpenMS
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
-      charges.setName("Charges");
+      charges.setName("charge");
     }
     if (add_metainfo_)
     {
@@ -860,7 +860,7 @@ namespace OpenMS
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
-      charges.setName("Charges");
+      charges.setName("charge");
     }
     if (add_metainfo_)
     {

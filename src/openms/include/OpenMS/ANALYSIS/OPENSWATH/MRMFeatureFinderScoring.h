@@ -275,12 +275,11 @@ private:
                                               OpenSwathScoring& scorer,
                                               const size_t feature_idx,
                                               const std::vector<std::string> & native_ids_detection,
-                                              const double sn_win_len_,
-                                              const unsigned int sn_bin_count_,
                                               const double det_intensity_ratio_score,
                                               const double det_mi_ratio_score,
-                                              bool write_log_messages,
                                               const std::vector<OpenSwath::SwathMap>& swath_maps);
+
+    void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge);
 
     /// Synchronize members with param class
     void updateMembers_() override;
@@ -304,6 +303,8 @@ private:
     double sn_win_len_;
     unsigned int sn_bin_count_;
     bool write_log_messages_;
+
+    double im_extra_drift_;
 
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;

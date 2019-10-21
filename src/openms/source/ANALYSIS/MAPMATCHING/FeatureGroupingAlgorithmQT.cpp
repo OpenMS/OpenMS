@@ -70,31 +70,7 @@ namespace OpenMS
 
     cluster_finder.run(maps, out);
 
-    StringList ms_run_locations;
-
-    // add protein IDs and unassigned peptide IDs to the result map here,
-    // to keep the same order as the input maps (useful for output later):
-    for (typename vector<MapType>::const_iterator map_it = maps.begin();
-         map_it != maps.end(); ++map_it)
-    {      
-      // add protein identifications to result map:
-      out.getProteinIdentifications().insert(
-        out.getProteinIdentifications().end(),
-        map_it->getProteinIdentifications().begin(),
-        map_it->getProteinIdentifications().end());
-
-      // add unassigned peptide identifications to result map:
-      out.getUnassignedPeptideIdentifications().insert(
-        out.getUnassignedPeptideIdentifications().end(),
-        map_it->getUnassignedPeptideIdentifications().begin(),
-        map_it->getUnassignedPeptideIdentifications().end());
-    }
-
-    // canonical ordering for checking the results:
-    out.sortByQuality();
-    out.sortByMaps();
-    out.sortBySize();
-    return;
+    postprocess_(maps, out);
   }
 
   void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,

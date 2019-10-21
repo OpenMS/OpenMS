@@ -44,49 +44,12 @@
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#include <QSvgRenderer>
 
 namespace OpenMS
 {
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex() :
-    TOPPASVertex(),
-    key_()
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files)
   {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files) :
-    TOPPASVertex(),
-    key_()
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
     setFilenames(files);
-  }
-
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) :
-    TOPPASVertex(rhs),
-    key_()
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-    output_files_ = rhs.output_files_; // copy input file paths, too
-  }
-
-  TOPPASInputFileListVertex::~TOPPASInputFileListVertex()
-  {
-
-  }
-
-  TOPPASInputFileListVertex& TOPPASInputFileListVertex::operator=(const TOPPASInputFileListVertex& rhs)
-  {
-    TOPPASVertex::operator=(rhs);
-
-    key_ = rhs.key_;
-    output_files_ = rhs.output_files_; // copy input file paths, too
-
-    return *this;
   }
 
   String TOPPASInputFileListVertex::getName() const
@@ -119,27 +82,9 @@ namespace OpenMS
     }
   }
 
-  void TOPPASInputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
+  void TOPPASInputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
   {
-    QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-    if (isSelected())
-    {
-      pen.setWidth(2);
-      painter->setBrush(brush_color_.darker(130));
-      pen.setColor(Qt::darkBlue);
-    }
-    else
-    {
-      painter->setBrush(brush_color_);
-    }
-    painter->setPen(pen);
-
-    QPainterPath path;
-    path.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);
-    painter->drawPath(path);
-
-    pen.setColor(pen_color_);
-    painter->setPen(pen);
+    TOPPASVertex::paint(painter, option, widget);
 
     // display number of input files
     QString text = QString::number(getFileNames().size())
@@ -149,50 +94,17 @@ namespace OpenMS
     painter->drawText(-(int)(text_boundings.width() / 2.0), (int)(text_boundings.height() / 4.0), text);
 
     // display file type(s)
-    Map<QString, Size> suffices;
-    foreach(QString fn, getFileNames())
-    {
-      QStringList l = QFileInfo(fn).completeSuffix().split('.');
-      QString suf = ((l.size() > 1 && l[l.size() - 2].size() <= 4) ? l[l.size() - 2] + "." : QString()) + l.back(); // take up to two dots as suffix (the first only if its <=4 chars, e.g. we want ".prot.xml" or ".tar.gz", but not "stupid.filename.with.longdots.mzML")
-      ++suffices[suf];
-    }
-    StringList text_l;
-    for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
-    {
-      if (suffices.size() > 1)
-        text_l.push_back(String(".") + sit->first + "(" + String(sit->second) + ")");
-      else
-        text_l.push_back(String(".") + sit->first);
-    }
-    text = ListUtils::concatenate(text_l, " | ").toQString();
+    QStringList text_l = TOPPASVertex::TOPPASFilenames(getFileNames()).getSuffixCounts();
+    text = text_l.join(" | ");
+    // might get very long, especially if node was not reached yet, so trim
+    text = text.left(15) + " ...";
     text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
     painter->drawText(-(int)(text_boundings.width() / 2.0), 35 - (int)(text_boundings.height() / 4.0), text);
-
-    // topological sort number
-    qreal x_pos = -63.0;
-    qreal y_pos = -19.0;
-    painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
-
-    // recycling status
-    if (this->allow_output_recycling_)
-    {
-      painter->setPen(Qt::green);
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
-      svg_renderer->render(painter, QRectF(-7, -32, 14, 14));
-    }
-
   }
 
   QRectF TOPPASInputFileListVertex::boundingRect() const
   {
     return QRectF(-71, -41, 142, 82);
-  }
-
-  QPainterPath TOPPASInputFileListVertex::shape() const
-  {
-    QPainterPath shape;
-    shape.addRoundRect(-71.0, -41.0, 142.0, 81.0, 20, 20);
-    return shape;
   }
 
   bool TOPPASInputFileListVertex::fileNamesValid()

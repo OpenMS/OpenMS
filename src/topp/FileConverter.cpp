@@ -847,6 +847,10 @@ protected:
       {
         MapConversion::convert(0, exp, cm, exp.size());
       }
+      for (auto& pepID : cm.getUnassignedPeptideIdentifications())
+      {
+        pepID.setMetaValue("map_index", 0);
+      }
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));

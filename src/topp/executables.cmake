@@ -86,6 +86,7 @@ ProteinQuantifier
 ProteinResolver
 PTModel
 PTPredict
+QualityControl
 RTModel
 RTPredict
 SeedListGenerator

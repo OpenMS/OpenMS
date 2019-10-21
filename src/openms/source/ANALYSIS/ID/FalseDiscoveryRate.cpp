@@ -63,6 +63,8 @@ namespace OpenMS
     defaults_.setValidStrings("add_decoy_proteins", ListUtils::create<String>("true,false"));
     defaults_.setValue("conservative", "true", "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.");
     defaults_.setValidStrings("conservative", ListUtils::create<String>("true,false"));
+    //defaults_.setValue("equality_epsilon", 0, "The epsilon under which two scores are considered equal.");
+    //defaults_.setMinFloat("equality_epsilon", 0.0);
     defaultsToParam_();
 
   }
@@ -94,7 +96,7 @@ namespace OpenMS
       identifiers.insert(it->getIdentifier());
       it->sort();
 
-      if (!use_all_hits)
+      if (!use_all_hits && it->getHits().size() > 1)
       {
         it->getHits().resize(1);
       }
@@ -1003,6 +1005,31 @@ namespace OpenMS
     scores_labels.reserve(id.getHits().size());
     std::map<double,double> scores_to_FDR;
 
+    // TODO this could be a separate function.. And it could actually be sped up.
+    //  We could store the number of decoys/targets in the group, or we only update the
+    //  scores of proteins that are actually in groups (rest stays the same)
+    // do groups first, if keep_decoy is false, we would otherwise miss those proteins
+    if (groups_too)
+    {
+      // Prepare lookup map for decoy proteins (since there is no direct way back from group to protein)
+      unordered_set<string> decoy_accs;
+      for (const auto& prot : id.getHits())
+      {
+        if (!prot.metaValueExists("target_decoy") || prot.getMetaValue("target_decoy") == "decoy")
+        {
+          decoy_accs.insert(prot.getAccession());
+        }
+      }
+      IDScoreGetterSetter::getScores_(scores_labels, id.getIndistinguishableProteins(), decoy_accs);
+      calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+      if (!scores_labels.empty())
+        IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
+    }
+
+    scores_to_FDR.clear();
+    scores_labels.clear();
+    scores_labels.reserve(id.getHits().size());
+
     IDScoreGetterSetter::getScores_(scores_labels, id);
     if (scores_labels.empty())
     {
@@ -1025,28 +1052,6 @@ namespace OpenMS
      OPENMS_LOG_WARN << "Warning: No scores could be extracted for proteins. No FDR calculation performed.";
     }
 
-    // TODO this could be a separate function.. And it could actually be sped up.
-    //  We could store the number of decoys/targets in the group, or we only update the
-    //  scores of proteins that are actually in groups (rest stays the same)
-    if (groups_too)
-    {
-      scores_to_FDR.clear();
-      scores_labels.clear();
-      scores_labels.reserve(id.getHits().size());
-      // Prepare lookup map for decoy proteins (since there is no direct way back from group to protein)
-      unordered_set<string> decoy_accs;
-      for (const auto& prot : id.getHits())
-      {
-        if (!prot.metaValueExists("target_decoy") || prot.getMetaValue("target_decoy") == "decoy")
-        {
-          decoy_accs.insert(prot.getAccession());
-        }
-      }
-      IDScoreGetterSetter::getScores_(scores_labels, id.getIndistinguishableProteins(), decoy_accs);
-      calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
-      if (!scores_labels.empty())
-        IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
-    }
     scores_to_FDR.clear();
   }
 
@@ -1155,7 +1160,7 @@ namespace OpenMS
     std::sort(scores_labels.rbegin(), scores_labels.rend());
     double diff = diffEstimatedEmpirical_(scores_labels, pepCutoff);
     double auc = rocN_(scores_labels, fpCutoff);
-   OPENMS_LOG_INFO << "Evaluation of protein probabilities: Difference estimated vs. T-D FDR = " << diff << " and roc" << fpCutoff << " = " << auc << std::endl;
+    OPENMS_LOG_INFO << "Evaluation of protein probabilities: Difference estimated vs. T-D FDR = " << diff << " and roc" << fpCutoff << " = " << auc << std::endl;
     // we want the score to get higher the lesser the difference. Subtract from one.
     // Then convex combination with the AUC.
     return (1.0 - diff) * (1.0 - diffWeight) + auc * diffWeight;
@@ -1188,7 +1193,14 @@ namespace OpenMS
         est = pepSum / (truePos + falsePos);
         if (conservative)
         {
-          emp = static_cast<double>(falsePos) / (truePos);
+          if (truePos == 0.)
+          {
+            emp = 1.;
+          }
+          else
+          {
+            emp = static_cast<double>(falsePos) / (truePos);
+          }
         }
         else
         {
@@ -1333,7 +1345,7 @@ namespace OpenMS
     bool conservative = param_.getValue("conservative").toBool();
     if (scores_labels.empty())
     {
-     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
       return;
     }
 

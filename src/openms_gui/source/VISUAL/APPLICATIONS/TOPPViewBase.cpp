@@ -3000,7 +3000,6 @@ namespace OpenMS
       }
       else
       {
-
         f.store(topp_.file_name + "_in", *layer.getPeakData());
       }
     }

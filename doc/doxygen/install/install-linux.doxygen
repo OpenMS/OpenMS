@@ -108,7 +108,8 @@
     <td><pre>
     # include the ubuntu universe repository and update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    sudo apt-get install qtbase5-dev libqt5svg5-dev libboost-regex-dev libboost-iostreams-dev \
+    sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+    sudo apt-get install libboost-regex-dev libboost-iostreams-dev \
       libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev \
       libglpk-dev zlib1g-dev libxerces-c-dev seqan-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
       # Use from contrib: EIGEN; SQLITE; WILDMAGIC (since libwildmagic-dev is buggy)
@@ -119,7 +120,7 @@
       <td><pre>
     # include the ubuntu universe repository and update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    sudo apt-get install qtbase5-dev libqt5svg5-dev
+    sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.62-dev \
       libboost-regex1.62-dev libboost-iostreams1.62-dev libboost-date-time1.62-dev libboost-math1.62-dev \
       libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev seqan-dev coinor-libcoinmp-dev libhdf5-dev

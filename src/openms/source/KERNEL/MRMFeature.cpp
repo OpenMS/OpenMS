@@ -100,6 +100,12 @@ namespace OpenMS
     feature_map_[key] = Int(features_.size()) - 1;
   }
 
+  void MRMFeature::addFeature(Feature && feature, const String& key)
+  {
+    features_.push_back(std::move(feature));
+    feature_map_[key] = Int(features_.size()) - 1;
+  }
+
   Feature & MRMFeature::getFeature(const String& key) 
   {
     return features_.at(feature_map_[key]);
@@ -129,6 +135,12 @@ namespace OpenMS
     precursor_feature_map_[key] = Int(precursor_features_.size()) - 1;
   }
 
+  void MRMFeature::addPrecursorFeature(Feature && feature, const String& key)
+  {
+    precursor_features_.push_back(std::move(feature));
+    precursor_feature_map_[key] = Int(precursor_features_.size()) - 1;
+  }
+
   void MRMFeature::getPrecursorFeatureIDs(std::vector<String> & result) const
   {
     for (std::map<String, int>::const_iterator it = precursor_feature_map_.begin(); it != precursor_feature_map_.end(); ++it)
@@ -147,5 +159,29 @@ namespace OpenMS
     return precursor_features_.at(precursor_feature_map_.at(key));
   }
 
+  void MRMFeature::IDScoresAsMetaValue(bool decoy, const OpenSwath_Ind_Scores& idscores)
+  {
+    String id = "id_target_";
+    if (decoy) id = "id_decoy_";
+
+    setMetaValue(id + "transition_names", idscores.ind_transition_names);
+    setMetaValue(id + "num_transitions", idscores.ind_num_transitions);
+    setMetaValue(id + "area_intensity", idscores.ind_area_intensity);
+    setMetaValue(id + "total_area_intensity", idscores.ind_total_area_intensity);
+    setMetaValue(id + "intensity_score", idscores.ind_intensity_score);
+    setMetaValue(id + "intensity_ratio_score", idscores.ind_intensity_ratio);
+    setMetaValue(id + "apex_intensity", idscores.ind_apex_intensity);
+    setMetaValue(id + "total_mi", idscores.ind_total_mi);
+    setMetaValue(id + "transition_names", idscores.ind_transition_names);
+    setMetaValue(id + "ind_log_intensity", idscores.ind_log_intensity);
+    setMetaValue(id + "ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
+    setMetaValue(id + "ind_xcorr_shape", idscores.ind_xcorr_shape_score);
+    setMetaValue(id + "ind_log_sn_score", idscores.ind_log_sn_score);
+    setMetaValue(id + "ind_isotope_correlation", idscores.ind_isotope_correlation);
+    setMetaValue(id + "ind_isotope_overlap", idscores.ind_isotope_overlap);
+    setMetaValue(id + "ind_massdev_score", idscores.ind_massdev_score);
+    setMetaValue(id + "ind_mi_score", idscores.ind_mi_score);
+    setMetaValue(id + "ind_mi_ratio_score", idscores.ind_mi_ratio);
+  }
 }
 

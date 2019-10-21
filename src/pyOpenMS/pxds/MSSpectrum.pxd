@@ -1,10 +1,10 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.string cimport string as libcpp_string
-from SpectrumSettings cimport *
 from Peak1D cimport *
 from String cimport *
 from RangeManager cimport *
 from DataArrays cimport *
+from SpectrumSettings cimport *
 
 # this class has addons, see the ./addons folder (../addons/MSSpectrum.pyx)
 

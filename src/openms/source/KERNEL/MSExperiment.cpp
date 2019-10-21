@@ -29,13 +29,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -667,7 +668,7 @@ namespace OpenMS
   //@}
 
   /// returns the total ion chromatogram (TIC)
-  const MSChromatogram MSExperiment::getTIC() const
+  const MSChromatogram MSExperiment::getTIC(float rt_bin_size) const
   {
     // The TIC is (re)calculated from the MS1 spectra. Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
     MSChromatogram TIC;
@@ -687,6 +688,14 @@ namespace OpenMS
         peak.setIntensity(totalIntensity);
         TIC.push_back(peak);
       }
+    }
+    if (rt_bin_size > 0)
+    {
+      LinearResamplerAlign lra;
+      Param param = lra.getParameters();
+      param.setValue("spacing", rt_bin_size);
+      lra.setParameters(param);
+      lra.raster(TIC);
     }
     return TIC;
   }

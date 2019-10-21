@@ -63,12 +63,13 @@ namespace OpenMS
   TransformationDescription OpenSwathCalibrationWorkflow::performRTNormalization(
     const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenSwath::SwathMap > & swath_maps,
+    TransformationDescription& im_trafo,
     double min_rsq,
     double min_coverage,
-    const Param & feature_finder_param,
-    const ChromExtractParams & cp_irt,
-    const Param & irt_detection_param,
-    const String & mz_correction_function,
+    const Param& feature_finder_param,
+    const ChromExtractParams& cp_irt,
+    const Param& irt_detection_param,
+    const Param& calibration_param,
     const String& irt_mzml_out,
     Size debug_level,
     bool sonar,
@@ -105,22 +106,22 @@ namespace OpenMS
 
     // perform RT and m/z correction on the data
     TransformationDescription tr = doDataNormalization_(irt_transitions,
-        irt_chromatograms, min_rsq, min_coverage, feature_finder_param,
-        irt_detection_param, swath_maps, mz_correction_function, cp_irt.mz_extraction_window, cp_irt.ppm);
+        irt_chromatograms, im_trafo, swath_maps,
+        min_rsq, min_coverage, feature_finder_param,
+        irt_detection_param, calibration_param);
     return tr;
   }
 
   TransformationDescription OpenSwathCalibrationWorkflow::doDataNormalization_(
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenMS::MSChromatogram >& chromatograms,
+    TransformationDescription& im_trafo,
+    std::vector< OpenSwath::SwathMap > & swath_maps,
     double min_rsq,
     double min_coverage,
     const Param& default_ffparam,
     const Param& irt_detection_param,
-    std::vector< OpenSwath::SwathMap > & swath_maps,
-    const String & mz_correction_function,
-    double mz_extraction_window,
-    bool ppm)
+    const Param& calibration_param)
   {
     OPENMS_LOG_DEBUG << "Start of doDataNormalization_ method" << std::endl;
     this->startProgress(0, 1, "Retention time normalization");
@@ -276,8 +277,10 @@ namespace OpenMS
     }
 
     // 8. Correct m/z deviations using SwathMapMassCorrection
-    SwathMapMassCorrection::correctMZ(trgrmap_final, swath_maps,
-        mz_correction_function, mz_extraction_window, ppm);
+    SwathMapMassCorrection mc;
+    mc.setParameters(calibration_param);
+    mc.correctMZ(trgrmap_final, swath_maps, targeted_exp);
+    mc.correctIM(trgrmap_final, swath_maps, im_trafo, targeted_exp);
 
     // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
@@ -667,7 +670,6 @@ namespace OpenMS
               "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")" << std::endl;
             }
 
-
             // Create the new, batch-size transition experiment
             OpenSwath::LightTargetedExperiment transition_exp_used;
             selectCompoundsForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
@@ -768,60 +770,40 @@ namespace OpenMS
   }
 
   void OpenSwathWorkflowBase::MS1Extraction_(const OpenSwath::SpectrumAccessPtr ms1_map,
-                                             const std::vector< OpenSwath::SwathMap > & swath_maps,
+                                             const std::vector< OpenSwath::SwathMap > & /* swath_maps */,
                                              std::vector< MSChromatogram >& ms1_chromatograms,
                                              Interfaces::IMSDataConsumer* chromConsumer,
                                              const ChromExtractParams& cp,
                                              const OpenSwath::LightTargetedExperiment& transition_exp,
                                              const TransformationDescription& trafo_inverse,
-                                             bool ms1_only,
+                                             bool /* ms1_only */,
                                              int ms1_isotopes)
   {
+    std::vector< OpenSwath::ChromatogramPtr > chrom_list;
+    std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
+    OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp; // copy for const correctness
+    ChromatogramExtractor extractor;
+
+    // prepare the extraction coordinates and extract chromatogram
+    prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp, true, ms1_isotopes);
+    extractor.extractChromatograms(ms1_map, chrom_list, coordinates, cp.mz_extraction_window,
+        cp.ppm, cp.im_extraction_window, cp.extraction_function);
+    extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
+        SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
+
+    for (Size j = 0; j < coordinates.size(); j++)
     {
-      {
+      if (ms1_chromatograms[j].empty()) continue; // skip empty chromatograms
 
-        std::vector< OpenSwath::ChromatogramPtr > chrom_list;
-        std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
-        OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp; // copy for const correctness
-        ChromatogramExtractor extractor;
-
-        // prepare the extraction coordinates and extract chromatogram
-        prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp, true, ms1_isotopes);
-        extractor.extractChromatograms(ms1_map, chrom_list, coordinates, cp.mz_extraction_window,
-            cp.ppm, cp.im_extraction_window, cp.extraction_function);
-
-        extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
-            SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
-
-        for (Size j = 0; j < coordinates.size(); j++)
-        {
-          if (ms1_chromatograms[j].empty())
-          {
-            continue; // skip empty chromatograms
-          }
-
-          // write MS1 chromatograms to disk
-          // only write precursor chromatograms that have a corresponding swath windows
-          for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
-          {
-            if ((ms1_only) ||
-                ( swath_maps.size() > 1 && !swath_maps[i].ms1 && // we have swath maps and its not MS1
-                  swath_maps[i].lower < coordinates[j].mz && swath_maps[i].upper > coordinates[j].mz)
-                )
-            {
 #ifdef _OPENMP
 #pragma omp critical (osw_write_out)
 #endif
-              {
-                // write MS1 chromatograms to disk
-                chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
-              }
-            }
-          }
-        } // end of for coordinates
-
+      {
+        // write MS1 chromatograms to disk
+        chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
       }
-    }
+    } // end of for coordinates
+
   }
 
   void OpenSwathWorkflow::scoreAllChromatograms_(
