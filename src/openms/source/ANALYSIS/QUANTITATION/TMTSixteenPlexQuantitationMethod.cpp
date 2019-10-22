@@ -113,22 +113,22 @@ void TMTSixteenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C).");
     defaults_.setValidStrings("reference_channel", TMTSixteenPlexQuantitationMethod::channel_names_);
 
-    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0"),
+    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/0.0/8.02/0.0,"
+                                                                      "0.0/0.68/7.46/0.0,"
+                                                                      "0.0/0.71/6.94/0.0,"
+                                                                      "0.0/1.88/6.67/0.0,"
+                                                                      "0.0/1.34/5.59/0.0,"
+                                                                      "0.0/2.41/5.48/0.0,"
+                                                                      "0.0/2.34/5.19/0.0,"
+                                                                      "0.0/3.53/4.57/0.0,"
+                                                                      "0.0/2.67/4.16/0.0,"
+                                                                      "0.0/3.92/3.73/0.0,"
+                                                                      "0.0/3.69/3.14/0.0,"
+                                                                      "0.0/3.22/2.76/0.0,"
+                                                                      "0.0/4.11/2.0/0.0,"
+                                                                      "0.0/3.85/1.58/0.0,"
+                                                                      "0.0/4.63/1.18/0.0,"
+                                                                      "0.0/5.22/0.86/0.0"),
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
