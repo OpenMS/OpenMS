@@ -510,7 +510,7 @@ void TOPPMapAlignerTree::computeTransformations_(vector<FeatureMap>& feature_map
         const String& model_type) {
   ProgressLogger progresslogger;
   progresslogger.setLogType(log_type_);
-  progresslogger.startProgress(0, feature_maps.size(), "computing trfoXML files");
+  progresslogger.startProgress(0, feature_maps.size(), "computing trafoXML files");
   Size done = 0;
   auto last_map_it = last_map.begin();
   for (auto & map_idx : trafo_order)
@@ -521,10 +521,25 @@ void TOPPMapAlignerTree::computeTransformations_(vector<FeatureMap>& feature_map
     {
       if (features.getUniqueId() == last_map_it->getUniqueId())
       {
-        TransformationDescription::DataPoint point(features.getRT(), last_map_it->getRT(), "");
-        trafo_data_tmp.push_back(point);
+        auto last_map_pep_it = last_map_it->getPeptideIdentifications().begin();
+        auto pep_it = features.getPeptideIdentifications().begin();
+        while (last_map_pep_it != last_map_it->getPeptideIdentifications().end() &&
+        pep_it != features.getPeptideIdentifications().end())
+        {
+          if (last_map_pep_it->getHits()[0].getSequence() == pep_it->getHits()[0].getSequence())
+          {
+            TransformationDescription::DataPoint point(pep_it->getRT(), last_map_pep_it->getRT(), pep_it->getHits()[0].getSequence().toString());
+            trafo_data_tmp.push_back(point);
+          }
+          else{
+            OPENMS_LOG_INFO << "peptide identification hits don't have the same sequence" << std::endl;
+          }
+          ++last_map_pep_it;
+          ++pep_it;
+        }
+
       } else{
-        OPENMS_LOG_INFO << "die Feature stimmen nicht ueberein!!" << endl;
+        OPENMS_LOG_INFO << "features to compare don't have the same unique id" << endl;
       }
       ++last_map_it;
     }
