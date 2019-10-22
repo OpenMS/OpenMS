@@ -132,10 +132,12 @@ namespace OpenMS
         const IdentificationData::AppliedProcessingStep& step, Size step_order,
         const String& parent_table, Key parent_id);
 
+      void createTableIdentifiedMolecule_();
+
       void createTableMoleculeParentMatches_();
 
       void storeMoleculeParentMatches_(
-        const IdentificationData::ParentMatches& matches, Key sequence_id);
+        const IdentificationData::ParentMatches& matches, Key molecule_id);
 
       template<class MetaInfoInterfaceContainer>
       void storeMetaInfos_(const MetaInfoInterfaceContainer& container,
@@ -235,7 +237,7 @@ namespace OpenMS
 
       void handleQueryParentMatch_(
         QSqlQuery& query, IdentificationData::ParentMatches& parent_matches,
-        Key sequence_id);
+        Key molecule_id);
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
@@ -249,7 +251,7 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
       std::unordered_map<Key, IdentificationData::DataQueryRef> data_query_refs_;
       std::unordered_map<Key, IdentificationData::ParentMoleculeRef> parent_molecule_refs_;
-      std::unordered_map<Key, IdentificationData::IdentifiedCompoundRef> identified_compound_refs_;
+      std::unordered_map<Key, IdentificationData::IdentifiedMoleculeRef> identified_molecule_refs_;
     };
 
   };
