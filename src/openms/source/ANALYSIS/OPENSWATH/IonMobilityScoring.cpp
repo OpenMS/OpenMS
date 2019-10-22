@@ -453,13 +453,19 @@ namespace OpenMS
     std::vector< std::vector< double > > aligned_mobilograms;
     for (const auto & mobilogram : mobilograms) 
     {
-      std::vector< double > arrInt, arrIM;
+      std::vector< double > arr_int, arr_IM;
       Size max_peak_idx = 0;
-      alignToGrid(mobilogram, im_grid, arrInt, arrIM, eps, max_peak_idx);
-      aligned_mobilograms.push_back(arrInt);
+      alignToGrid(mobilogram, im_grid, arr_int, arr_IM, eps, max_peak_idx);
+      if (!arr_int.empty()) aligned_mobilograms.push_back(arr_int);
     }
 
     // Step 3: Compute cross-correlation scores based on ion mobilograms
+    if (aligned_mobilograms.size() < 2)
+    {
+      scores.im_xcorr_coelution_score = 0;
+      scores.im_xcorr_shape_score = std::numeric_limits<double>::quiet_NaN();
+      return;
+    }
     OpenSwath::MRMScoring mrmscore_;
     mrmscore_.initializeXCorrMatrix(aligned_mobilograms);
 
