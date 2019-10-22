@@ -544,8 +544,9 @@ namespace OpenMS
     defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
     defaults_.setValidStrings("keep_unidentified_masses", ListUtils::create<String>(("false,true")));
 
-    defaults_.setValue("mzTab:exportIsotopeIntensities", 0, "[featureXML input only] Number of extra columns in mzTab output, which provide intensities up to the x'th isotope. '0' to deactivate, '1' for monoisotopic peak, etc. If a feature does not have a certain isotope, 'null' will be reported.");
-    defaults_.setMinInt("mzTab:exportIsotopeIntensities", 0);
+    // Number of extra columns in mzTab output, which provide intensities up to the x'th isotope. '0' to deactivate, '1' for monoisotopic peak, etc. If a feature does not have a certain isotope, 'null' will be reported.
+    defaults_.setValue("mzTab:exportIsotopeIntensities", "false", "[featureXML input only] Export column with available isotope trace intensities (opt_global_MTint)");
+    defaults_.setValidStrings("mzTab:exportIsotopeIntensities", ListUtils::create<String>("false,true"));
 
 
     defaultsToParam_();
@@ -700,7 +701,7 @@ namespace OpenMS
       queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
     }
 
-    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
+    bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 
     for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
     {
@@ -709,7 +710,7 @@ namespace OpenMS
       results_part[hit_idx].setObservedIntensity(feature.getIntensity());
 
       std::vector<double> mti;
-      if (isotope_export > 0)
+      if (isotope_export)
       {
           if (feature.metaValueExists("masstrace_intensity"))
           {
@@ -970,7 +971,7 @@ namespace OpenMS
     std::map<String, UInt> adduct_stats; // adduct --> # occurences
     std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count each feature only once)
 
-    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
+    bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
@@ -1191,9 +1192,8 @@ namespace OpenMS
           col2.second = sim_score;
           optionals.push_back(col2);
 
-          // TODO: What is happening here?
           // mass trace intensities (use NULL if not present)
-          if (isotope_export > 0)
+          if (isotope_export)
           {
               MzTabString trace_int; // implicitly NULL
 
@@ -1209,9 +1209,8 @@ namespace OpenMS
 
               MzTabOptionalColumnEntry col_mt;
               col_mt.first = String("opt_global_MTint");
-              col_mt.second = trace_int;
+              col_mt.second = MzTabString(mt_int_str);
               optionals.push_back(col_mt);
-
           }
 
           // set neutral mass

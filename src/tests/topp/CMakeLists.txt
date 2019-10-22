@@ -270,7 +270,7 @@ set_tests_properties("TOPP_FeatureFinderCentroided_1_out1" PROPERTIES DEPENDS "T
 ## internal IDs only:
 add_test("TOPP_FeatureFinderIdentification_1" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -out FeatureFinderIdentification_1.tmp -extract:mz_window 0.1 -detect:peak_width 60 -model:type none)
 add_test("TOPP_FeatureFinderIdentification_1_out1" ${DIFF} -whitelist "spectra_data" "featureMap" -in1 FeatureFinderIdentification_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_output.featureXML)
-set_tests_properties("TOPP_FeatureFinderIdentification_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_1")
+set_tests_properties("TOPP_FeatureFinderIdentification_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentifidatecation_1")
 ## with (faked) external IDs; fix SVM parameters to avoid randomness:
 ## test currently produces different results on Windows, Mac, and Linux
 # add_test("TOPP_FeatureFinderIdentification_2" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_2_input.idXML -id_ext ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -out FeatureFinderIdentification_2.tmp -extract:mz_window 0.1 -detect:peak_width 60 -svm:no_selection -svm:log2_C 1 -svm:log2_gamma 1 -model:type none)
@@ -2440,6 +2440,17 @@ include(THIRDPARTY/third_party_tests.cmake)
 add_test("UTILS_AccurateMassSearch_1" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out AccurateMassSearch_1_output.tmp.mzTab)
 add_test("UTILS_AccurateMassSearch_1_out1" ${DIFF} -in1 AccurateMassSearch_1_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_1_output.csv -whitelist "")
 set_tests_properties("UTILS_AccurateMassSearch_1_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_1")
+# use FFM and MAD featurexml with custom adducts and database
+# mztab, featureXML (with isotope intensities)
+add_test("UTILS_AccurateMassSearch_2" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_2_output.tmp.mzTab -out_annotation AccurateMassSearch_2_output.tmp.featureXML -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv -algorithm:mzTab:exportIsotopeIntensities true)
+add_test("UTILS_AccurateMassSearch_2_out1" ${DIFF} -in1 AccurateMassSearch_2_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_2_output.mzTab -whitelist "")
+add_test("UTILS_AccurateMassSearch_2_out2" ${DIFF} -in1 AccurateMassSearch_2_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_2_output.featureXML -whitelist "date")
+set_tests_properties("UTILS_AccurateMassSearch_2_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_2")
+set_tests_properties("UTILS_AccurateMassSearch_2_out2" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_2")
+# mztab (default)
+add_test("UTILS_AccurateMassSearch_3" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_3_output.tmp.mzTab -out_annotation AccurateMassSearch_2_output.tmp.featureXML -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv)
+add_test("UTILS_AccurateMassSearch_3_out1" ${DIFF} -in1 AccurateMassSearch_3_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_3_output.mzTab -whitelist "")
+set_tests_properties("UTILS_AccurateMassSearch_3_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_3")
 
 # AssayGeneratorMetabo
 # use FeatureFinderMetabo data
