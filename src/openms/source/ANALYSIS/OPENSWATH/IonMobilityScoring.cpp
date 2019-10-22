@@ -254,7 +254,6 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
-    OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot score drift time if no drift time is available.");
 
     if (ms1spectrum->getDriftTimeArray() == nullptr)
     {
@@ -352,7 +351,6 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
-    OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot score drift time if no drift time is available.");
 
     if (spectrum->getDriftTimeArray() == nullptr)
     {
@@ -385,7 +383,6 @@ namespace OpenMS
                                         const double drift_extra)
   {
     OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
-    OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot score drift time if no drift time is available.");
 
     if (spectrum->getDriftTimeArray() == nullptr)
     {
