@@ -544,10 +544,8 @@ namespace OpenMS
     defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
     defaults_.setValidStrings("keep_unidentified_masses", ListUtils::create<String>(("false,true")));
 
-    // Number of extra columns in mzTab output, which provide intensities up to the x'th isotope. '0' to deactivate, '1' for monoisotopic peak, etc. If a feature does not have a certain isotope, 'null' will be reported.
     defaults_.setValue("mzTab:exportIsotopeIntensities", "false", "[featureXML input only] Export column with available isotope trace intensities (opt_global_MTint)");
     defaults_.setValidStrings("mzTab:exportIsotopeIntensities", ListUtils::create<String>("false,true"));
-
 
     defaultsToParam_();
   }
