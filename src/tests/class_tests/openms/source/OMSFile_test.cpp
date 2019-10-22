@@ -108,6 +108,10 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   TEST_EQUAL(ids.getDataQueries().size(), out.getDataQueries().size());
   TEST_EQUAL(ids.getParentMolecules().size(),
              out.getParentMolecules().size());
+  TEST_EQUAL(ids.getIdentifiedPeptides().size(),
+             out.getIdentifiedPeptides().size());
+  TEST_EQUAL(ids.getIdentifiedOligos().size(),
+             out.getIdentifiedOligos().size());
 }
 END_SECTION
 

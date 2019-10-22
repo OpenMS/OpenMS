@@ -1350,7 +1350,118 @@ namespace OpenMS
       {
         handleQueryAppliedProcessingStep_(subquery_step, parent, id);
       }
-      id_data_.registerParentMolecule(parent);
+      ID::ParentMoleculeRef ref = id_data_.registerParentMolecule(parent);
+      parent_molecule_refs_[id] = ref;
+    }
+  }
+
+
+  void OMSFile::OMSFileLoad::handleQueryParentMatch_(
+    QSqlQuery& query, IdentificationData::ParentMatches& parent_matches,
+    Key sequence_id)
+  {
+    query.bindValue(":id", sequence_id);
+    if (!query.exec())
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    while (query.next())
+    {
+      ID::ParentMoleculeRef ref =
+        parent_molecule_refs_[query.value("parent_id").toInt()];
+      ID::MoleculeParentMatch match(query.value("start_pos").toInt(),
+                                    query.value("end_pos").toInt(),
+                                    query.value("left_neighbor").toString(),
+                                    query.value("right_neighbor").toString());
+      parent_matches[ref].insert(match);
+    }
+  }
+
+
+  void OMSFile::OMSFileLoad::loadIdentifiedSequences()
+  {
+    if (!tableExists_(db_name_, "ID_IdentifiedSequence")) return;
+
+    QSqlDatabase db = QSqlDatabase::database(db_name_);
+    QSqlQuery query(db);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_IdentifiedSequence"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    // @TODO: can we combine handling of meta info and applied processing steps?
+    QSqlQuery subquery_info(db);
+    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
+                                                "ID_IdentifiedSequence");
+    QSqlQuery subquery_step(db);
+    bool have_applied_steps =
+      prepareQueryAppliedProcessingStep_(subquery_step,
+                                         "ID_IdentifiedSequence");
+    QSqlQuery subquery_parent(db);
+    bool have_parent_matches = tableExists_(db_name_,
+                                            "ID_MoleculeParentMatch");
+    if (have_parent_matches)
+    {
+      subquery_parent.setForwardOnly(true);
+      QString sql_select =
+        "SELECT * FROM ID_MoleculeParentMatch " \
+        "WHERE sequence_id = :id";
+      subquery_parent.prepare(sql_select);
+    }
+
+    while (query.next())
+    {
+      Key id = query.value("id").toInt();
+      int molecule_type_index = query.value("molecule_type_id").toInt() - 1;
+      ID::MoleculeType molecule_type = ID::MoleculeType(molecule_type_index);
+      String sequence = query.value("sequence").toString();
+      // @TODO: avoid duplication below (using a template function?)
+      switch (molecule_type)
+      {
+      case ID::MoleculeType::PROTEIN:
+      {
+        ID::IdentifiedPeptide peptide(AASequence::fromString(sequence));
+        if (have_meta_info)
+        {
+          handleQueryMetaInfo_(subquery_info, peptide, id);
+        }
+        if (have_applied_steps)
+        {
+          handleQueryAppliedProcessingStep_(subquery_step, peptide, id);
+        }
+        if (have_parent_matches)
+        {
+          handleQueryParentMatch_(subquery_parent, peptide.parent_matches, id);
+        }
+        id_data_.registerIdentifiedPeptide(peptide);
+      }
+      break;
+      case ID::MoleculeType::RNA:
+      {
+        ID::IdentifiedOligo oligo(NASequence::fromString(sequence));
+        if (have_meta_info)
+        {
+          handleQueryMetaInfo_(subquery_info, oligo, id);
+        }
+        if (have_applied_steps)
+        {
+          handleQueryAppliedProcessingStep_(subquery_step, oligo, id);
+        }
+        if (have_parent_matches)
+        {
+          handleQueryParentMatch_(subquery_parent, oligo.parent_matches, id);
+        }
+        id_data_.registerIdentifiedOligo(oligo);
+      }
+      break;
+      default: // just to avoid compiler warning
+        String msg = "unexpected molecule type";
+        throw Exception::InvalidValue(__FILE__, __LINE__,
+                                      OPENMS_PRETTY_FUNCTION, msg,
+                                      String(molecule_type));
+      }
     }
   }
 
@@ -1365,6 +1476,7 @@ namespace OpenMS
     helper.loadDataProcessingSteps();
     helper.loadDataQueries();
     helper.loadParentMolecules();
+    helper.loadIdentifiedSequences();
   }
 
 }
