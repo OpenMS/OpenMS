@@ -127,7 +127,7 @@ namespace OpenMS
       void createTableAppliedProcessingStep_(const String& parent_table);
 
       void storeAppliedProcessingStep_(
-        const IdentificationData::AppliedProcessingStep& step,
+        const IdentificationData::AppliedProcessingStep& step, Size step_order,
         const String& parent_table, Key parent_id);
 
       void createTableMoleculeParentMatches_();
@@ -169,10 +169,12 @@ namespace OpenMS
               createTableAppliedProcessingStep_(parent_table);
               table_created = true;
             }
+            Size counter = 0;
             for (const IdentificationData::AppliedProcessingStep& step :
                    element.steps_and_scores)
             {
-              storeAppliedProcessingStep_(step, parent_table, Key(&element));
+              storeAppliedProcessingStep_(step, ++counter, parent_table,
+                                          Key(&element));
             }
           }
         }

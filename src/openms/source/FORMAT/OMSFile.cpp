@@ -313,6 +313,7 @@ namespace OpenMS
       parent_table + "_AppliedProcessingStep",
       "parent_id INTEGER NOT NULL, "                                    \
       "processing_step_id INTEGER, "                                    \
+      "processing_step_order INTEGER NOT NULL, "                        \
       "score_type_id INTEGER, "                                         \
       "score REAL, "                                                    \
       "UNIQUE (parent_id, processing_step_id, score_type_id), "         \
@@ -321,13 +322,14 @@ namespace OpenMS
       "FOREIGN KEY (processing_step_id) REFERENCES ID_DataProcessingStep (id)");
     // @TODO: add constraint that "processing_step_id" and "score_type_id"
     // can't both be NULL
+    // @TODO: add constraint that "processing_step_order" must match "..._id"?
     // @TODO: normalize table? (splitting into multiple tables is awkward here)
   }
 
 
   void OMSFile::OMSFileStore::storeAppliedProcessingStep_(
-    const ID::AppliedProcessingStep& step, const String& parent_table,
-    Key parent_id)
+    const ID::AppliedProcessingStep& step, Size step_order,
+    const String& parent_table, Key parent_id)
   {
     // this assumes the "..._AppliedProcessingStep" table exists already!
     String table = parent_table + "_AppliedProcessingStep";
@@ -336,9 +338,11 @@ namespace OpenMS
     query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
                   ":parent_id, "                                    \
                   ":processing_step_id, "                           \
-                  ":score_type_id, "
+                  ":processing_step_order, "                        \
+                  ":score_type_id, "                                \
                   ":score)");
     query.bindValue(":parent_id", parent_id);
+    query.bindValue(":processing_step_order", int(step_order));
     if (step.processing_step_opt)
     {
       query.bindValue(":processing_step_id",
@@ -351,7 +355,7 @@ namespace OpenMS
                         "error inserting data");
         }
       }
-    }
+    } // else: use NULL for missing processing step reference
     for (auto score_pair : step.scores)
     {
       query.bindValue(":score_type_id", Key(&(*score_pair.first)));
@@ -457,21 +461,26 @@ namespace OpenMS
         "ID_DataProcessingSoftware_AssignedScore",
         "software_id INTEGER NOT NULL, "                                \
         "score_type_id INTEGER NOT NULL, "                              \
+        "score_type_order INTEGER NOT NULL, "                           \
         "UNIQUE (software_id, score_type_id), "                         \
+        "UNIQUE (software_id, score_type_order), "                      \
         "FOREIGN KEY (software_id) REFERENCES ID_DataProcessingSoftware (id), " \
         "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id)");
 
       query.prepare(
         "INSERT INTO ID_DataProcessingSoftware_AssignedScore VALUES ("  \
         ":software_id, "                                                \
-        ":score_type_id)");
+        ":score_type_id, "                                              \
+        ":score_type_order)");
       for (const ID::DataProcessingSoftware& software :
              id_data_.getDataProcessingSoftwares())
       {
         query.bindValue(":software_id", Key(&software));
+        Size counter = 0;
         for (ID::ScoreTypeRef score_type_ref : software.assigned_scores)
         {
           query.bindValue(":score_type_id", Key(&(*score_type_ref)));
+          query.bindValue(":score_type_order", int(++counter));
           if (!query.exec())
           {
             raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1002,7 +1011,7 @@ namespace OpenMS
       subquery.setForwardOnly(true);
       subquery.prepare("SELECT score_type_id "                         \
                        "FROM ID_DataProcessingSoftware_AssignedScore " \
-                       "WHERE software_id = :id");
+                       "WHERE software_id = :id ORDER BY score_type_order ASC");
     }
     while (query.next())
     {
@@ -1080,8 +1089,8 @@ namespace OpenMS
     if (!tableExists_(db_name_, table_name)) return false;
 
     query.setForwardOnly(true);
-    QString sql_select =
-      "SELECT * FROM " + table_name.toQString() + " WHERE parent_id = :id";
+    QString sql_select = "SELECT * FROM " + table_name.toQString() +
+      " WHERE parent_id = :id ORDER BY processing_step_order ASC";
     query.prepare(sql_select);
     return true;
   }
