@@ -85,13 +85,13 @@ private:
   public:
     /*
     // default constructor
-    PeptideIdentificationsPearsonDistance();
+    PeptideIdentificationsPearsonDistance(){};
 
     // copy constructor
-    PeptideIdentificationsPearsonDistance(const PeptideIdentificationsPearsonDistance & source);
+    //PeptideIdentificationsPearsonDistance(const PeptideIdentificationsPearsonDistance & source);
 
     // destructor
-    ~PeptideIdentificationsPearsonDistance() = default_delete;
+    virtual ~PeptideIdentificationsPearsonDistance(){};
 
     // assignment operator
     PeptideIdentificationsPearsonDistance & operator=(const PeptideIdentificationsPearsonDistance & source)
@@ -104,6 +104,7 @@ private:
     }
      */
 
+    // no const SeqAndRTList because want to iterate through
     float operator()(SeqAndRTList& map_first, SeqAndRTList& map_second) const
     {
       // create vectors for both maps containing RTs of identical peptides and
@@ -159,46 +160,26 @@ private:
     static void registerChildren();
     */
 
-    static String getProductName();
+    static String getProductName()
+    {
+      return "PeptideIdentificationsPearsonDistance";
+    };
 
   }; // end of PeptideIdentificationsPearsonDifference
 
   // function declarations
   template <typename MapType>
-  void loadInputMaps_(vector<MapType> &maps, StringList &ins, vector<StringList> &ms_run_paths, ConsensusMap &out_map);
-  static void getPeptideSequences_(const vector<PeptideIdentification> &peptides, SeqAndRTList &peptide_rts, vector<double> &rts_tmp);
-  static void extract_seq_and_rt_(const vector<FeatureMap> &feature_maps, vector<SeqAndRTList> &maps_seqAndRt, vector<double> &maps_ranges);
-  static void buildTree_(vector<SeqAndRTList> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree);
-  void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> &feature_maps_transformed, vector<TransformationDescription> &transformations_tmp, vector<double> &maps_ranges, vector<Size> &trafo_order, const Param &model_params, const String &model_type, vector<vector<vector<Size>>> &map_sets);
-  static void computeTransformations_(vector<SeqAndRTList> &maps_seqAndRt, const vector<TransformationDescription> &trafo_tmp, vector<TransformationDescription> &transformations, const Param &model_params, const String &model_type);
-  void computeConsensus(vector<FeatureMap> &feature_maps, const vector<TransformationDescription> &trafo_tmp, const vector<Size> &trafo_order, const vector<vector<vector<Size>>> &map_sets, ConsensusMap &out_map);
-  void storeConsensusFile_(ConsensusMap &out_map, String &out_file);
-  void storeTransformationDescriptions_(const vector<TransformationDescription> &transformations, StringList &trafos);
+  void loadInputMaps_(vector<MapType>& maps, StringList& ins, vector<StringList>& ms_run_paths, ConsensusMap& out_map);
+  static void setUniqueIds_(vector<FeatureMap>& feature_maps);
+  static void getPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts, vector<double>& rts_tmp);
+  static void extract_seq_and_rt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, vector<double>& maps_ranges);
+  static void buildTree_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, std::vector<BinaryTreeNode>& tree, vector<double>& maps_ranges);
+  void treeGuidedAlignment_(const std::vector<BinaryTreeNode>& tree, vector<FeatureMap>& feature_maps_transformed, vector<TransformationDescription>& transformations_tmp, vector<double>& maps_ranges, vector<Size>& trafo_order, const Param& model_params, const String& model_type, vector<vector<vector<Size>>>& map_sets);
+  static void computeTransformations_(vector<SeqAndRTList>& maps_seqAndRt, const vector<TransformationDescription>& trafo_tmp, vector<TransformationDescription>& transformations, const Param& model_params, const String& model_type);
+  void computeConsensus_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& trafo_tmp, const vector<Size>& trafo_order, const vector<vector<vector<Size>>>& map_sets, ConsensusMap& out_map);
+  void storeConsensusFile_(ConsensusMap& out_map, String& out_file);
+  void storeTransformationDescriptions_(const vector<TransformationDescription>& transformations, StringList& trafos);
 
-  static void setUniqueIds_(vector<FeatureMap> &feature_maps)
-  {
-    FeatureMap maps;
-    for (auto & map : feature_maps)
-    {
-      maps += map;
-    }
-    if (Size hoho = maps.applyMemberFunction(&UniqueIdInterface::ensureUniqueId))
-    {
-      OPENMS_LOG_INFO << "set " << hoho << "unique ids." << endl;
-      auto maps_it = maps.begin();
-      for (auto &map : feature_maps)
-      {
-        for (auto & feature : map)
-        {
-          if (feature.getUniqueId() != maps_it->getUniqueId())
-          {
-            feature.setUniqueId(maps_it->getUniqueId());
-          }
-          ++maps_it;
-        }
-      }
-    }
-  }
 
   void registerOptionsAndFlags_() override
   {
@@ -214,7 +195,7 @@ private:
   }
 
   // getSubsectionDefaults of TOPPMapAlignerBase geht nicht, da von TOPPFeatureLinkerBase geerbt:
-  Param getSubsectionDefaults_(const String & section) const override
+  Param getSubsectionDefaults_(const String&  section) const override
   {
     if (section == "algorithm")
     {
@@ -254,17 +235,17 @@ private:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    //setUniqueIds_(feature_maps);
+    setUniqueIds_(feature_maps);
 
     // get Peptide/ RT tuple for all features, seperated by input file
     vector<SeqAndRTList> maps_seqAndRt(in_files_size);
     // save ranges for alignment (larger rt_range -> reference)
     vector<double> maps_ranges(in_files_size);
-    extract_seq_and_rt_(feature_maps, maps_seqAndRt, maps_ranges);
+    //extract_seq_and_rt_(feature_maps, maps_seqAndRt, maps_ranges);
 
     //  construct tree with pearson coefficient
     std::vector<BinaryTreeNode> tree;
-    buildTree_(maps_seqAndRt, tree);
+    buildTree_(feature_maps, maps_seqAndRt, tree, maps_ranges);
 
     // print tree
     ClusterAnalyzer ca;
@@ -284,9 +265,25 @@ private:
     model_params = model_params.copy(model_type+":", true);
 
 
+    // TODO : refacture: compute transformations and consensus within treeGuidedAlignment
     treeGuidedAlignment_(tree, maps_transformed, trafo_tmp, maps_ranges, trafo_order, model_params, model_type, map_sets);
 
-    computeConsensus(feature_maps, trafo_tmp, trafo_order, map_sets, out_map);
+
+    // try to figure out transformations by unique id
+    Size h = maps_transformed[trafo_order.back()].size();
+    Feature id1 = maps_transformed[trafo_order.back()][h-1];
+    //UInt64 id2 = feature_maps.at(map_sets.back().at(trafo_order.back()));
+    Size j = map_sets.back().at(trafo_order.back()).size();
+    Size actual_map = map_sets.back().at(trafo_order.back())[j-1];
+    for (auto feat_it = feature_maps[actual_map].begin(); feat_it != feature_maps[actual_map].end(); ++feat_it)
+    {
+      if (feat_it->getUniqueId() == id1.getUniqueId())
+      {
+        std::cout << id1.getUniqueId() << " mit rt: " << id1.getRT() << " und " << feat_it->getRT() << std::endl;
+      }
+    }
+
+    computeConsensus_(feature_maps, trafo_tmp, trafo_order, map_sets, out_map);
 
     // generate transformations for each map
     vector<TransformationDescription> transformations;
@@ -307,13 +304,10 @@ private:
 
 };
 
-String TOPPMapAlignerTree::PeptideIdentificationsPearsonDistance::getProductName() {
-    return "PeptideIdentificationsPearsonDistance";
-}
-
 template<typename MapType>
-void TOPPMapAlignerTree::loadInputMaps_(vector<MapType> &maps, StringList &ins, vector<StringList> &ms_run_paths, ConsensusMap &out_map) {
-
+void TOPPMapAlignerTree::loadInputMaps_(vector<MapType>& maps, StringList& ins, vector<StringList>& ms_run_paths,
+        ConsensusMap& out_map)
+        {
   FeatureXMLFile fxml_file;
   FeatureFileOptions param = fxml_file.getOptions();
   StringList ms_run_locations;
@@ -333,9 +327,9 @@ void TOPPMapAlignerTree::loadInputMaps_(vector<MapType> &maps, StringList &ins, 
     maps[i].getPrimaryMSRunPath(ms_run_paths[i]);
     if (ms_run_paths[i].size() > 1 || ms_run_paths[i].empty())
     {
-        OPENMS_LOG_WARN << "Exactly one MS runs should be associated with a FeatureMap. "
-                        << ms_run_paths[i].size()
-                        << " provided." << endl;
+      OPENMS_LOG_WARN << "Exactly one MS runs should be associated with a FeatureMap. "
+                      << ms_run_paths[i].size()
+                      << " provided." << endl;
     }
     else
     {
@@ -355,14 +349,14 @@ void TOPPMapAlignerTree::loadInputMaps_(vector<MapType> &maps, StringList &ins, 
       //exception: addduct information
       if (it->metaValueExists("dc_charge_adducts"))
       {
-          adduct = it->getMetaValue("dc_charge_adducts");
+        adduct = it->getMetaValue("dc_charge_adducts");
       }
       it->getSubordinates().clear();
       it->getConvexHulls().clear();
       it->clearMetaInfo();
       if (!adduct.empty())
       {
-          it->setMetaValue("dc_charge_adducts", adduct);
+        it->setMetaValue("dc_charge_adducts", adduct);
       }
     }
       maps[i].updateRanges();
@@ -370,66 +364,95 @@ void TOPPMapAlignerTree::loadInputMaps_(vector<MapType> &maps, StringList &ins, 
     progresslogger.endProgress();
 }
 
-void TOPPMapAlignerTree::getPeptideSequences_(const vector<PeptideIdentification> &peptides,
-                                              TOPPMapAlignerTree::SeqAndRTList &peptide_rts, vector<double> &rts_tmp) {
-    //vector<PeptideIdentification>::const_iterator pep_it;
-    for (const auto & peptide : peptides)
+void TOPPMapAlignerTree::setUniqueIds_(vector<FeatureMap> &feature_maps) {
+  FeatureMap maps;
+  for (auto& map : feature_maps)
+  {
+    maps += map;
+  }
+  if (Size hoho = maps.applyMemberFunction(&UniqueIdInterface::setUniqueId))
+  {
+    //OPENMS_LOG_INFO << "set " << hoho << "unique ids." << endl;
+    auto maps_it = maps.begin();
+    for (auto& map : feature_maps)
     {
-        if (!peptide.getHits().empty())
+      for (auto& feature : map)
+      {
+        if (feature.getUniqueId() != maps_it->getUniqueId())
         {
-            const String& sequence = peptide.getHits()[0].getSequence().toString();
-            double rt = peptide.getRT();
-            peptide_rts[sequence].push_back(rt);
-            rts_tmp.push_back(rt);
+          feature.setUniqueId(maps_it->getUniqueId());
         }
+        ++maps_it;
+      }
     }
+  }
 }
 
-void TOPPMapAlignerTree::extract_seq_and_rt_(const vector<FeatureMap> &feature_maps, vector<SeqAndRTList> &maps_seqAndRt, vector<double> &maps_ranges) {
-    for (auto maps_it = feature_maps.begin(); maps_it != feature_maps.end(); ++maps_it)
+void TOPPMapAlignerTree::getPeptideSequences_(const vector<PeptideIdentification>& peptides,
+        TOPPMapAlignerTree::SeqAndRTList& peptide_rts, vector<double>& rts_tmp)
+        {
+  //vector<PeptideIdentification>::const_iterator pep_it;
+  for (const auto & peptide : peptides)
+  {
+    if (!peptide.getHits().empty())
     {
-        Size position = static_cast<Size>(distance(feature_maps.begin(), maps_it));
-        double percentile10;
-        double percentile90;
-        vector<double> rts_tmp(maps_it->size());
-        //vector<Feature>::const_iterator feature_it;
-        for (auto feature_it = maps_it->begin();
-             maps_it->end() != feature_it; ++feature_it)
-        {
-            if (!feature_it->getPeptideIdentifications().empty()) {
-                getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seqAndRt[position], rts_tmp);
-            }
-        }
-        sort(rts_tmp.begin(), rts_tmp.end());
-
-        percentile10 = rts_tmp[rts_tmp.size()*0.1];
-        percentile90 = rts_tmp[rts_tmp.size()*0.9];
-
-        maps_ranges[position] = percentile90 - percentile10;
-        rts_tmp.clear();
+      const String& sequence = peptide.getHits()[0].getSequence().toString();
+      double rt = peptide.getRT();
+      peptide_rts[sequence].push_back(rt);
+      rts_tmp.push_back(rt);
     }
+  }
 }
 
-void TOPPMapAlignerTree::buildTree_(vector<SeqAndRTList> &maps_seqAndRt, std::vector<BinaryTreeNode> &tree) {
-    PeptideIdentificationsPearsonDistance pepDist;
-    SingleLinkage sl;
-    DistanceMatrix<float> dist_matrix;
-    ClusterHierarchical ch;
-    ch.cluster<SeqAndRTList, PeptideIdentificationsPearsonDistance>(maps_seqAndRt, pepDist, sl, tree, dist_matrix);
+void TOPPMapAlignerTree::extract_seq_and_rt_(const vector<FeatureMap>& feature_maps,
+        vector<SeqAndRTList>& maps_seqAndRt, vector<double>& maps_ranges)
+        {
+  for (auto maps_it = feature_maps.begin(); maps_it != feature_maps.end(); ++maps_it)
+  {
+    const Size position = static_cast<Size>(distance(feature_maps.begin(), maps_it));
+    double percentile10;
+    double percentile90;
+    vector<double> rts_tmp(maps_it->size());
+    //vector<Feature>::const_iterator feature_it;
+    for (auto feature_it = maps_it->begin(); maps_it->end() != feature_it; ++feature_it)
+    {
+      if (!feature_it->getPeptideIdentifications().empty()) {
+        getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seqAndRt[position], rts_tmp);
+      }
+    }
+    sort(rts_tmp.begin(), rts_tmp.end());
+
+    percentile10 = rts_tmp[rts_tmp.size()*0.1];
+    percentile90 = rts_tmp[rts_tmp.size()*0.9];
+
+    maps_ranges[position] = percentile90 - percentile10;
+    rts_tmp.clear();
+  }
 }
 
-void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree,
-                                              vector<FeatureMap> &feature_maps_transformed,
-                                              vector<TransformationDescription> &transformations_tmp,
-                                              vector<double> &maps_ranges, vector<Size> &trafo_order,
-                                              const Param &model_params, const String &model_type,
-                                              vector<vector<vector<Size>>> &map_sets) {
+void TOPPMapAlignerTree::buildTree_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt,
+        std::vector<BinaryTreeNode>& tree, vector<double>& maps_ranges)
+        {
+  extract_seq_and_rt_(feature_maps, maps_seqAndRt, maps_ranges);
+  PeptideIdentificationsPearsonDistance pepDist;
+  SingleLinkage sl;
+  DistanceMatrix<float> dist_matrix;
+  ClusterHierarchical ch;
+  ch.cluster<SeqAndRTList, PeptideIdentificationsPearsonDistance>(maps_seqAndRt, pepDist, sl, tree, dist_matrix);
+}
+
+void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode>& tree,
+        vector<FeatureMap>& feature_maps_transformed, vector<TransformationDescription>& transformations_tmp,
+        vector<double>& maps_ranges, vector<Size>& trafo_order, const Param& model_params, const String& model_type,
+        vector<vector<vector<Size>>>& map_sets)
+        {
   vector<TransformationDescription> trafo_out(feature_maps_transformed.size());
   vector<TransformationDescription> transformations_align;
   vector<ConsensusMap> consensus_tmp(feature_maps_transformed.size()-1);
   Size ref;
   Size to_transform;
-  Size counter = 0;
+  Size counter = 0; // number of transformation progress
+  // helper to reorganize rt transformations
   for (Size i = 0; i < feature_maps_transformed.size(); ++i)
   {
     vector<Size> tmp;
@@ -459,7 +482,6 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
         maps_ranges[node.left_child] = maps_ranges[node.right_child]; // after transformation same range for both maps
     }
     // performAlignment with map as reference that has larger RT range
-    algorithm.setReference(feature_maps_transformed[ref]);
     to_align.push_back(feature_maps_transformed[to_transform]);
     to_align.push_back(feature_maps_transformed[ref]);
     algorithm.align(to_align, transformations_align, 1);
@@ -468,8 +490,8 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
     transformations_align[0].fitModel(model_type, model_params);
 
     // needed for following iteration steps
-    MapAlignmentTransformer::transformRetentionTimes(to_align[0],
-            transformations_align[0], true);
+    MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[to_transform],
+            transformations_align[0], false);
 
     // combine aligned maps, store in both, because tree always calls smaller number
     // also possible: feature_maps_transformed[smallerNumber] = ..[ref]+..[to_transform] or use pointer
@@ -500,10 +522,10 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
   }
 }
 
-void TOPPMapAlignerTree::computeTransformations_(vector<SeqAndRTList> &maps_seqAndRt,
-                                                 const vector<TransformationDescription> &trafo_tmp,
-                                                 vector<TransformationDescription> &transformations,
-                                                 const Param &model_params, const String &model_type) {
+void TOPPMapAlignerTree::computeTransformations_(vector<SeqAndRTList>& maps_seqAndRt,
+                                                 const vector<TransformationDescription>& trafo_tmp,
+                                                 vector<TransformationDescription>& transformations,
+                                                 const Param& model_params, const String& model_type) {
   for (auto & map : maps_seqAndRt)
   {
     TransformationDescription::DataPoints trafo_data_tmp;
@@ -542,14 +564,14 @@ void TOPPMapAlignerTree::computeTransformations_(vector<SeqAndRTList> &maps_seqA
   }
 }
 
-void TOPPMapAlignerTree::computeConsensus(vector<FeatureMap> &feature_maps, const vector<TransformationDescription> &trafo_tmp, const vector<Size> &trafo_order, const vector<vector<vector<Size>>> &map_sets, ConsensusMap &out_map) {
+void TOPPMapAlignerTree::computeConsensus_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& trafo_tmp, const vector<Size>& trafo_order, const vector<vector<vector<Size>>>& map_sets, ConsensusMap& out_map) {
 
   ProgressLogger progresslogger;
   progresslogger.setLogType(log_type_);
   progresslogger.startProgress(0, 1, "compute consensus map");
   Size counter = 0;
   auto trafo = trafo_tmp.begin();
-  for (const auto &map_id : trafo_order)
+  for (const auto& map_id : trafo_order)
   {
     for (auto & map_list: map_sets[counter][map_id])
     {
@@ -579,7 +601,7 @@ void TOPPMapAlignerTree::computeConsensus(vector<FeatureMap> &feature_maps, cons
   progresslogger.endProgress();
 }
 
-void TOPPMapAlignerTree::storeConsensusFile_(ConsensusMap &out_map, String &out_file) {
+void TOPPMapAlignerTree::storeConsensusFile_(ConsensusMap& out_map, String& out_file) {
   ConsensusXMLFile cxml_file;
 
   ProgressLogger progresslogger;
@@ -610,8 +632,8 @@ void TOPPMapAlignerTree::storeConsensusFile_(ConsensusMap &out_map, String &out_
   OPENMS_LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
 }
 
-void TOPPMapAlignerTree::storeTransformationDescriptions_(const vector<TransformationDescription> &transformations,
-                                                          StringList &trafos) {
+void TOPPMapAlignerTree::storeTransformationDescriptions_(const vector<TransformationDescription>& transformations,
+                                                          StringList& trafos) {
     // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
@@ -623,6 +645,7 @@ void TOPPMapAlignerTree::storeTransformationDescriptions_(const vector<Transform
     }
     progresslogger.endProgress();
 }
+
 
 int main(int argc, const char** argv)
 {
