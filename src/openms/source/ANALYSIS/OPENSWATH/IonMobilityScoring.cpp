@@ -330,9 +330,10 @@ namespace OpenMS
     }
 
     OpenSwath::MRMScoring mrmscore_;
+    // horribly broken: provides vector of length 1, but expects at least length 2 in calcXcorrPrecursorContrastCoelutionScore()
     mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, {fragment_values});
     OPENMS_LOG_DEBUG << "Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastCoelutionScore() << " / shape  precursor " << 
-      mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
+       mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
     scores.im_ms1_sum_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
     scores.im_ms1_sum_contrast_shape = mrmscore_.calcXcorrPrecursorContrastShapeScore();
 
