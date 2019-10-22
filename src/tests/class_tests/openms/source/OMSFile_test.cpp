@@ -112,6 +112,8 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
              out.getIdentifiedPeptides().size());
   TEST_EQUAL(ids.getIdentifiedOligos().size(),
              out.getIdentifiedOligos().size());
+  TEST_EQUAL(ids.getIdentifiedCompounds().size(),
+             out.getIdentifiedCompounds().size());
 }
 END_SECTION
 

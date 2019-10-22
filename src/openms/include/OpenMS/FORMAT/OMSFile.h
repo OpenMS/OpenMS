@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Julianus Pfeuffer, Oliver Alka, Hendrik Weisser $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -102,6 +102,8 @@ namespace OpenMS
       void storeDataQueries();
 
       void storeParentMolecules();
+
+      void storeIdentifiedCompounds();
 
       void storeIdentifiedSequences();
 
@@ -211,6 +213,8 @@ namespace OpenMS
 
       void loadParentMolecules();
 
+      void loadIdentifiedCompounds();
+
       void loadIdentifiedSequences();
 
     private:
@@ -241,14 +245,11 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
       std::unordered_map<Key, IdentificationData::InputFileRef> input_file_refs_;
       std::unordered_map<Key, IdentificationData::ProcessingSoftwareRef> processing_software_refs_;
-
       std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
-
       std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
-
       std::unordered_map<Key, IdentificationData::DataQueryRef> data_query_refs_;
-
       std::unordered_map<Key, IdentificationData::ParentMoleculeRef> parent_molecule_refs_;
+      std::unordered_map<Key, IdentificationData::IdentifiedCompoundRef> identified_compound_refs_;
     };
 
   };

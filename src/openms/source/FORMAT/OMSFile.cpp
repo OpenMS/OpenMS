@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Julianus Pfeuffer, Oliver Alka, Hendrik Weisser $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/OMSFile.h>
@@ -757,6 +757,49 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileStore::storeIdentifiedCompounds()
+  {
+    if (id_data_.getIdentifiedCompounds().empty()) return;
+
+    if (!tableExists_(db_name_, "ID_MoleculeType")) createTableMoleculeType_();
+
+    createTable_(
+      "ID_IdentifiedCompound",
+      "id INTEGER PRIMARY KEY NOT NULL, "                               \
+      "identifier TEXT UNIQUE NOT NULL, "                               \
+      "formula TEXT, "                                                  \
+      "name TEXT, "                                                     \
+      "smile TEXT, "                                                    \
+      "inchi TEXT");
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO ID_IdentifiedCompound VALUES ("  \
+                  ":id, "                                       \
+                  ":identifier, "                               \
+                  ":formula, "                                  \
+                  ":name, "                                     \
+                  ":smile, "                                    \
+                  ":inchi)");
+    for (const ID::IdentifiedCompound& compound :
+           id_data_.getIdentifiedCompounds())
+    {
+      query.bindValue(":id", Key(&compound)); // use address as primary key
+      query.bindValue(":identifier", compound.identifier.toQString());
+      query.bindValue(":formula", compound.formula.toString().toQString());
+      query.bindValue(":name", compound.name.toQString());
+      query.bindValue(":smile", compound.name.toQString());
+      query.bindValue(":inchi", compound.inchi.toQString());
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+    storeScoredProcessingResults_(id_data_.getIdentifiedCompounds(),
+                                  "ID_IdentifiedCompound");
+  }
+
+
   void OMSFile::OMSFileStore::storeIdentifiedSequences()
   {
     if (id_data_.getIdentifiedPeptides().empty() &&
@@ -1352,6 +1395,51 @@ namespace OpenMS
       }
       ID::ParentMoleculeRef ref = id_data_.registerParentMolecule(parent);
       parent_molecule_refs_[id] = ref;
+    }
+  }
+
+
+  void OMSFile::OMSFileLoad::loadIdentifiedCompounds()
+  {
+    if (!tableExists_(db_name_, "ID_IdentifiedCompound")) return;
+
+    QSqlDatabase db = QSqlDatabase::database(db_name_);
+    QSqlQuery query(db);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_IdentifiedCompound"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    // @TODO: can we combine handling of meta info and applied processing steps?
+    QSqlQuery subquery_info(db);
+    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
+                                                "ID_IdentifiedCompound");
+    QSqlQuery subquery_step(db);
+    bool have_applied_steps =
+      prepareQueryAppliedProcessingStep_(subquery_step,
+                                         "ID_IdentifiedCompound");
+
+    while (query.next())
+    {
+      ID::IdentifiedCompound compound(
+        query.value("identifier").toString(),
+        EmpiricalFormula(query.value("formula").toString()),
+        query.value("name").toString(),
+        query.value("smile").toString(),
+        query.value("inchi").toString());
+      Key id = query.value("id").toInt();
+      if (have_meta_info)
+      {
+        handleQueryMetaInfo_(subquery_info, compound, id);
+      }
+      if (have_applied_steps)
+      {
+        handleQueryAppliedProcessingStep_(subquery_step, compound, id);
+      }
+      ID::IdentifiedCompoundRef ref =
+        id_data_.registerIdentifiedCompound(compound);
+      identified_compound_refs_[id] = ref;
     }
   }
 
