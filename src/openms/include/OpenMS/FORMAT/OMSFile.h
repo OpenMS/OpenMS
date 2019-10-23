@@ -107,6 +107,8 @@ namespace OpenMS
 
       void storeIdentifiedSequences();
 
+      void storeMoleculeQueryMatches();
+
     private:
       void createTable_(const String& name, const String& definition,
                         bool may_exist = false);
@@ -219,6 +221,8 @@ namespace OpenMS
 
       void loadIdentifiedSequences();
 
+      void loadMoleculeQueryMatches();
+
     private:
       static DataValue makeDataValue_(const QSqlQuery& query);
 
@@ -239,6 +243,10 @@ namespace OpenMS
         QSqlQuery& query, IdentificationData::ParentMatches& parent_matches,
         Key molecule_id);
 
+      void handleQueryPeakAnnotation_(
+        QSqlQuery& query, IdentificationData::MoleculeQueryMatch& match,
+        Key parent_id);
+
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
 
@@ -252,6 +260,7 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::DataQueryRef> data_query_refs_;
       std::unordered_map<Key, IdentificationData::ParentMoleculeRef> parent_molecule_refs_;
       std::unordered_map<Key, IdentificationData::IdentifiedMoleculeRef> identified_molecule_refs_;
+      std::unordered_map<Key, IdentificationData::QueryMatchRef> query_match_refs_;
     };
 
   };

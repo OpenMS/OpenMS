@@ -114,6 +114,8 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
              out.getIdentifiedOligos().size());
   TEST_EQUAL(ids.getIdentifiedCompounds().size(),
              out.getIdentifiedCompounds().size());
+  TEST_EQUAL(ids.getMoleculeQueryMatches().size(),
+             out.getMoleculeQueryMatches().size());
 }
 END_SECTION
 
