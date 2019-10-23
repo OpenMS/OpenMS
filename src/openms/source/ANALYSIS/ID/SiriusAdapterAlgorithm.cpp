@@ -45,7 +45,10 @@
 
 namespace OpenMS
 {
+    using NightSkyName
     using SiriusName = String;
+    using FingerIdName = String;
+    using PassatuttoName = String;
     using OpenMSName = String;
     using DefaultValue = DataValue;
     using Description = String;
@@ -53,13 +56,17 @@ namespace OpenMS
     SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
       DefaultParamHandler("SiriusAdapterAlgorithm"),
       preprocessing(Preprocessing(this)),
-      nightsky_config(Config(this)),
-      nightsky_sirius(Sirius(this))
+      nightsky_config(config(this)),
+      nightsky_sirius(sirius(this)),
+      nightsky_fingerid(fingerid(this)),
+      nightsky_passatutto(passatutto(this))
     {
-      // Defines the Parameters for Preprocessing and NightSky subtools
+      // Defines the Parameters for preprocessing and NightSky subtools
       preprocessing.parameters();
       nightsky_config.parameters();
       nightsky_sirius.parameters();
+      nightsky_fingerid.parameters();
+      nightsky_passatutto.paramters();
 
       defaultsToParam_();
     }
@@ -71,7 +78,7 @@ namespace OpenMS
               DefaultValue(1),
               Description("Number of mass traces each feature has to have to be included. "
                           "To use this parameter, setting the feature_only flag is necessary"))
-          .withMinInt(1);
+              .withMinInt(1);
 
       parameter(
               OpenMSName("precursor_mz_tolerance"),
@@ -89,7 +96,7 @@ namespace OpenMS
               DefaultValue(5),
               Description("Tolerance window (left and right) for precursor selection [seconds]"));
 
-      //  defaults_.setValue".", ListUtils::create<String>("advanced"));
+      // defaults_.setValue".", ListUtils::create<String>("advanced"));
       parameter(
               OpenMSName("isotope_pattern_iterations"),
               DefaultValue(3),
@@ -106,9 +113,86 @@ namespace OpenMS
                        "and the isotope_pattern_iterations should be used instead"));
     }
 
-
     void SiriusAdapterAlgorithm::Config::parameters()
     {
+
+      //       -w, --workspace=<workspace>
+      //          Specify sirius workspace location. This is the directory
+      //      for storing Property files, logs, databases and caches.
+      //      This is NOT for the project-space that stores the
+      //      results! Default is $USER_HOME/.sirius
+
+      // TODO
+
+      //      -o, -p, --output, --project-space=<projectSpaceLocation>
+      //          Specify project-space to read from and also write to if
+      //        nothing else is specified. For compression use the File
+      //      ending .zip or .sirius
+
+      // TODO
+
+      //      -i, --input=<input>    Input for the analysis. Ths can be either preprocessed mass
+      //      spectra in .ms or .mgf file format, LC/MS runs in .mzML/.
+      //      mzXml format or already existing SIRIUS project-space(s)
+      //          (uncompressed/compressed).
+
+      // TODO
+
+      //       --maxmz=<maxMz>    Just consider compounds with a precursor mz lower or equal
+      //      this maximum mz. All other compounds in the input file
+      //      are ignored.
+
+      // TODO
+
+      flag(NightSkyName("ignore-formula"),
+           Description("Ignore given molecular formula in internal .ms format, while processing."));
+
+      // -q  suppress shell output
+      flag(NightSkyName("quiet"), Description("Suppress shell output"));
+
+      //      --cores, --processors=<numOfCores>
+      //      Number of cpu cores to use. If not specified Sirius uses
+      //      all available cores.
+
+      // TODO
+
+
+
+      //      night-sky [-hqV] [--ignore-formula] [--recompute]
+//      [--compound-buffer=<initialInstanceBuffer>]
+//      [--cores=<numOfCores>] [--maxmz=<maxMz>]
+//      [--naming-convention=<projectSpaceFilenameFormatter>]
+//      [-o=<projectSpaceLocation>] [-w=<workspace>] [-i=<input>]...
+//      [COMMAND]
+
+
+
+
+
+
+//          --compound-buffer, --initial-compound-buffer=<initialInstanceBuffer>
+//          Number of compounds that will be loaded into the Memory. A
+//      larger buffer ensures that there are enough compounds
+//      available to use all cores efficiently during
+//      computation. A smaller buffer saves Memory. To load all
+//      compounds immediately set it to 0. Default: 2 * --cores
+//
+
+      // TODO
+
+
+      // TODO: Needed?
+
+//          --naming-convention=<projectSpaceFilenameFormatter>
+//          Specify a format for compounds' output directories. Default
+//                                        %index_%filename_%compoundname
+//                                            --recompute        Recompute ALL results of ALL SubTools that are already
+//      present. By defaults already present results of an
+//      instance will be preserved and the instance will be
+//      skipped for the corresponding Task/Tool
+
+
+
       parameter(
               SiriusName("NoiseIntensity"),
               DefaultValue(0),
@@ -162,7 +246,7 @@ namespace OpenMS
       // Default: 0
       parameter(
               SiriusName("compound-timeout"),
-              DefaultValue(0),
+              DefaultValue(100),
               Description(
                       "Maximal computation time in seconds for a single compound. 0 for an infinite amount of time."))
          .withMinInt(0);
@@ -271,8 +355,106 @@ namespace OpenMS
               Description("the iontype/adduct of the MS/MS data. "
                           "Example: [M+H]+, [M-H]-, [M+Cl]-, [M+Na]+, [M]+. "
                           "You can also provide a comma separated list of adducts."));
+
+//      Identify molecular formula for each compound individually using fragmentation
+//      trees and isotope patterns.
+//          --ppm-max=<ppmMax>    Maximum allowed mass deviation in ppm for decomposing
+//      masses.
+//          --ppm-max-ms2=<ppmMaxMs2>
+//          Maximum allowed mass deviation in ppm for decomposing
+//      masses in MS2. If not specified, the same value as for
+//      the MS1 is used.
+//          --tree-timeout=<treeTimeout>
+//          Time out in seconds per fragmentation tree computations.
+//      0 for an infinite amount of time. Default: 0
+//          --compound-timeout=<instanceTimeout>
+//          Maximal computation time in seconds for a single
+//      compound. 0 for an infinite amount of time. Default: 0
+//          --no-recalibration    Disable Recalibration of input Spectra
+//      -p, --profile=<profile>   Name of the configuration profile. Some of the default
+//        profiles are: 'qtof', 'orbitrap', 'fticr'.
+//                                          -c, --candidates=<numberOfCandidates>
+//          Number of formula candidates in the output.
+//          --candidates-per-ion=<numberOfCandidatesPerIon>
+//          Minimum number of candidates in the output for each
+//      ionization. Set to force output of results for each
+//      possible ionization, even if not part of highest
+//      ranked results.
+//             -e, --elements-considered=<detectableElements>
+//          Set the allowed elements for rare element detection.
+//                                                                 Write SBrClBSe to allow the elements S,Br,Cl,B and Se.
+//                                                                                                                    -E, --elements-enforced=<enforcedElements>
+//          Enforce elements for molecular formula determination.
+//                                                                  Write CHNOPSCl to allow the elements C, H, N, O, P, S
+//                                                                                                                      and Cl. Add numbers in brackets to restrict the
+//      minimal and maximal allowed occurrence of these
+//      elements: CHNOP[5]S[8]Cl[1-2]. When one number is
+//      given then it is interpreted as upper bound. Default
+//      is CHNOP
+//      -d, --db=<database>       Search formulas in given database: all, pubchem, bio,
+//        kegg, hmdb
+//              -f, --formula, --formulas=<formulaWhiteList>
+//          Specify the neutral molecular formula of the measured
+//      compound to compute its tree or a list of candidate
+//      formulas the method should discriminate. Omit this
+//      option if you want to consider all possible molecular
+//      formulas
+//      --no-isotope-filter   Disable molecular formula filter. When filtering is
+//      enabled, molecular formulas are excluded if their
+//        theoretical isotope pattern does not match the
+//      theoretical one, even if their MS/MS pattern has high
+//      score.
+//          --no-isotope-score    Disable isotope pattern score.
+//                                                        -i, --ions-considered=<ionsConsidered>
+//          the iontype/adduct of the MS/MS data. Example: [M+H]+,
+//      [M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a
+//      comma separated list of adducts.
+//                              -I, --ions-enforced=<ionsEnforced>
+//          the iontype/adduct of the MS/MS data. Example: [M+H]+,
+//      [M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a
+//      comma separated list of adducts.
+//                              -h, --help                Show this help message and exit.
+//                                                                                   -V, --version             Print version information and exit.
+//                                                                                                                                           -1, --ms1=<ms1>           MS1 spectrum file name
+//      -2, --ms2=<ms2>           MS2 spectra file names
+//      -z, mz, precursor, --parentmass=<parentMz>
+//          the mass of the parent ion
+
+
     }
 
+    void SiriusAdapterAlgorihtm::FingerID::parameters()
+    {
+//      Identify molecular structure for each compound Individually using CSI:FingerID.
+//          --info, --webservice-info
+//      information about connection of CSI:FingerID Webservice
+//      -c, --candidates=<numberOfCandidates>
+//          Number of molecular structure candidates in the output.
+//                                                          -d, --db , --fingeriddb, --fingerid-db, --fingerid_db=<database>
+//          search structure in given database. By default the same database
+//      for molecular formula search is also used for structure search.
+//                                                                        If no database is used for molecular formula search, PubChem is
+//      used for structure search.
+//                         -h, --help      Show this help message and exit.
+//                                                                    -s, --formula-score=<predictors>
+//          Specifies the Score that is used to rank the list Molecular
+//      Formula Identifications before the thresholds for CSI:FingerID
+//      predictions are calculated.
+//                      -V, --version   Print version information and exit.
+
+    }
+
+    void SiriusAdapterAlgorithm:::Passatutto::parameters()
+    {
+//      Usage: night-sky passatutto [-hV] [COMMAND]
+//      Compute a decoy database based on the input spectra. If no molecular formula is
+//      provided in the input, the top scoring formula is used.
+//      -h, --help      Show this help message and exit.
+//      -V, --version   Print version information and exit.
+//      Commands:
+//      fingerid, F  Identify molecular structure for each compound Individually
+//      using CSI:FingerID.
+    }
 
     void SiriusAdapterAlgorithm::updateExistingParameter(const OpenMS::Param &param)
     {
@@ -436,7 +618,6 @@ namespace OpenMS
       }
       LOG_INFO << endl;
 
-
         // the actual process
         QProcess qp;
         QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
@@ -473,7 +654,6 @@ namespace OpenMS
         }
       return subdirs;
     }
-
 
     SiriusAdapterAlgorithm::ParameterModifier SiriusAdapterAlgorithm::ParameterSection::parameter(
             const String &parameter_name,

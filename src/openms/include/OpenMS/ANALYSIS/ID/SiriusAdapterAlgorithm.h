@@ -59,6 +59,7 @@ namespace OpenMS
       /*
        * Accessors for Preprocessing Parameters
        */
+
       bool isFeatureOnly() const { return preprocessing.getValue("feature_only").toBool(); }
       UInt getFilterByNumMassTraces() const { return preprocessing.getValue("filter_by_num_masstraces"); }
       double getPrecursorMzTolerance() const { return preprocessing.getValue("precursor_mz_tolerance"); }
@@ -70,6 +71,7 @@ namespace OpenMS
       /*
        * Accessors for Sirius Parameters
        */
+
       int getNumberOfCandidates() const { return nightsky_sirius.getValue("candidates");  }
 
       /**
@@ -187,7 +189,6 @@ namespace OpenMS
       // Maps the OpenMS Parameter Names to the one for Sirius
       unordered_map<String, String> openms_to_sirius;
 
-
       String toFullParameter(const String &param_name) const
       {
         String result(param_name);
@@ -269,8 +270,13 @@ namespace OpenMS
       void parameters() override;
     };
 
+    // TODO: add subclass for fingerid, passatutto
+
     Preprocessing preprocessing;
     Config nightsky_config;
     Sirius nightsky_sirius;
+    FingerID nightsky_fingerid;
+    Passatutto nightsky_passatutto;
+
     };
 } // namespace OpenMS
