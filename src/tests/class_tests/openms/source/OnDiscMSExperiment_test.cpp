@@ -36,9 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
-
 ///////////////////////////
 
 START_TEST(OnDiscMSExperiment, "$Id$");
@@ -87,10 +85,13 @@ END_SECTION
 START_SECTION((bool operator== (const OnDiscMSExperiment& rhs) const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
   OnDiscPeakMap same; same.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
 
   TEST_EQUAL(tmp==same, true);
+  TEST_EQUAL(tmp2==same, false);
+  TEST_EQUAL(tmp2==tmp2, true);
   TEST_EQUAL((*tmp.getExperimentalSettings())==(*same.getExperimentalSettings()), true);
   TEST_EQUAL(tmp==failed, false);
 }
@@ -99,28 +100,39 @@ END_SECTION
 START_SECTION((bool operator!= (const OnDiscMSExperiment& rhs) const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
   OnDiscPeakMap same; same.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
 
   TEST_EQUAL(tmp!=same, false);
+  TEST_EQUAL(tmp2!=same, true);
   TEST_EQUAL(tmp!=failed, true);
 }
 END_SECTION
 
-START_SECTION((bool openFile(const String& source)))
+START_SECTION(( bool openFile(const String& filename, bool skipMetaData = false) ))
 {
   OnDiscPeakMap tmp;
   OnDiscPeakMap same;
   OnDiscPeakMap failed;
-  
+
   bool res;
   res = tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  TEST_EQUAL(res, true)
+
+  res = tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
   TEST_EQUAL(res, true)
 
   res = same.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(res, true)
 
+  res = same.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
+  TEST_EQUAL(res, true)
+
   res = failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  TEST_EQUAL(res, false)
+
+  res = failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), true);
   TEST_EQUAL(res, false)
 }
 END_SECTION
@@ -135,8 +147,10 @@ END_SECTION
 START_SECTION((Size size() const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(tmp.size(), 2);
+  TEST_EQUAL(tmp2.size(), 2);
   TEST_EQUAL(failed.size(), 0);
 }
 END_SECTION
@@ -144,8 +158,10 @@ END_SECTION
 START_SECTION((bool empty() const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
+  TEST_EQUAL(tmp2.empty(), false);
   TEST_EQUAL(failed.empty(), true);
 }
 END_SECTION
@@ -153,8 +169,10 @@ END_SECTION
 START_SECTION((Size getNrSpectra() const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(tmp.getNrSpectra(), 2);
+  TEST_EQUAL(tmp2.getNrSpectra(), 2);
   TEST_EQUAL(failed.getNrSpectra(), 0);
 }
 END_SECTION
@@ -162,8 +180,10 @@ END_SECTION
 START_SECTION((Size getNrChromatograms() const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(tmp.getNrChromatograms(), 1);
+  TEST_EQUAL(tmp2.getNrChromatograms(), 1);
   TEST_EQUAL(failed.getNrChromatograms(), 0);
 }
 END_SECTION
@@ -171,10 +191,14 @@ END_SECTION
 START_SECTION((boost::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
   boost::shared_ptr<const ExperimentalSettings> settings = tmp.getExperimentalSettings();
 
   TEST_EQUAL(settings->getInstrument().getName(), "LTQ FT")
   TEST_EQUAL(settings->getInstrument().getMassAnalyzers().size(), 1)
+
+  settings = tmp2.getExperimentalSettings();
+  TEST_EQUAL(settings == nullptr, true)
 }
 END_SECTION
 
@@ -183,6 +207,12 @@ START_SECTION((MSSpectrum operator[] (Size n) const))
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
   MSSpectrum s = tmp[0];
+  TEST_EQUAL(s.empty(), false);
+  TEST_EQUAL(s.size(), 19914);
+
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
+  TEST_EQUAL(tmp2.empty(), false);
+  s = tmp2[0];
   TEST_EQUAL(s.empty(), false);
   TEST_EQUAL(s.size(), 19914);
 }
@@ -195,6 +225,13 @@ START_SECTION((MSSpectrum getSpectrum(Size id)))
   MSSpectrum s = tmp.getSpectrum(0);
   TEST_EQUAL(s.empty(), false);
   TEST_EQUAL(s.size(), 19914);
+
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
+  TEST_EQUAL(tmp2.empty(), false);
+  MSSpectrum s2 = tmp2.getSpectrum(0);
+  TEST_EQUAL(s2.empty(), false);
+  TEST_EQUAL(s2.size(), 19914);
+  MSSpectrum s3 = tmp2.getSpectrum(1);
 }
 END_SECTION
 
@@ -203,6 +240,14 @@ START_SECTION(OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id))
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
   OpenMS::Interfaces::SpectrumPtr s = tmp.getSpectrumById(0);
+  TEST_EQUAL(s->getMZArray()->data.empty(), false);
+  TEST_EQUAL(s->getMZArray()->data.size(), 19914);
+  TEST_EQUAL(s->getIntensityArray()->data.empty(), false);
+  TEST_EQUAL(s->getIntensityArray()->data.size(), 19914);
+
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
+  TEST_EQUAL(tmp2.empty(), false);
+  s = tmp2.getSpectrumById(0);
   TEST_EQUAL(s->getMZArray()->data.empty(), false);
   TEST_EQUAL(s->getMZArray()->data.size(), 19914);
   TEST_EQUAL(s->getIntensityArray()->data.empty(), false);
@@ -218,6 +263,13 @@ START_SECTION((MSChromatogram getChromatogram(Size id)))
   MSChromatogram c = tmp.getChromatogram(0);
   TEST_EQUAL(c.empty(), false);
   TEST_EQUAL(c.size(), 48);
+
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
+  TEST_EQUAL(tmp2.getNrChromatograms(), 1);
+  TEST_EQUAL(tmp2.empty(), false);
+  c = tmp2.getChromatogram(0);
+  TEST_EQUAL(c.empty(), false);
+  TEST_EQUAL(c.size(), 48);
 }
 END_SECTION
 
@@ -226,6 +278,14 @@ START_SECTION(OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id))
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
   OpenMS::Interfaces::ChromatogramPtr s = tmp.getChromatogramById(0);
+  TEST_EQUAL(s->getTimeArray()->data.empty(), false);
+  TEST_EQUAL(s->getTimeArray()->data.size(), 48);
+  TEST_EQUAL(s->getIntensityArray()->data.empty(), false);
+  TEST_EQUAL(s->getIntensityArray()->data.size(), 48);
+
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
+  TEST_EQUAL(tmp2.empty(), false);
+  s = tmp2.getChromatogramById(0);
   TEST_EQUAL(s->getTimeArray()->data.empty(), false);
   TEST_EQUAL(s->getTimeArray()->data.size(), 48);
   TEST_EQUAL(s->getIntensityArray()->data.empty(), false);

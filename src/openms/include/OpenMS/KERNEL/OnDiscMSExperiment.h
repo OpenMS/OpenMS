@@ -117,6 +117,12 @@ public:
     */
     bool operator==(const OnDiscMSExperiment& rhs) const
     {
+      if (meta_ms_experiment_ == nullptr || rhs.meta_ms_experiment_ == nullptr) 
+      {
+        return filename_ == rhs.filename_ &&
+               meta_ms_experiment_ == rhs.meta_ms_experiment_;
+      }
+
       // check if file and meta information is the same
       return filename_ == rhs.filename_ &&
              (*meta_ms_experiment_) == (*rhs.meta_ms_experiment_);
@@ -137,6 +143,8 @@ public:
     */
     bool isSortedByRT() const
     {
+      if (!meta_ms_experiment_) return false;
+
       return meta_ms_experiment_->isSorted(false);
     }
 
@@ -188,8 +196,10 @@ public:
     */
     MSSpectrum getSpectrum(Size id)
     {
+      if (!meta_ms_experiment_) return indexed_mzml_file_.getMSSpectrumById(int(id));
+
       MSSpectrum spectrum(meta_ms_experiment_->operator[](id));
-      indexed_mzml_file_.getMSSpectrumById(static_cast<int>(id), spectrum);
+      indexed_mzml_file_.getMSSpectrumById(int(id), spectrum);
       return spectrum;
     }
 
@@ -208,8 +218,29 @@ public:
     */
     MSChromatogram getChromatogram(Size id)
     {
+      if (!meta_ms_experiment_) return indexed_mzml_file_.getMSChromatogramById(int(id));
+
       MSChromatogram chromatogram(meta_ms_experiment_->getChromatogram(id));
-      indexed_mzml_file_.getMSChromatogramById(static_cast<int>(id), chromatogram);
+      indexed_mzml_file_.getMSChromatogramById(int(id), chromatogram);
+      return chromatogram;
+    }
+
+    /**
+      @brief returns a single chromatogram
+
+      @param id The index of the chromatogram
+    */
+    MSChromatogram getChromatogramByNativeId(const std::string& id)
+    {
+      if (!meta_ms_experiment_)
+      {
+        MSChromatogram chromatogram;
+        indexed_mzml_file_.getMSChromatogramByNativeId(id, chromatogram);
+        return chromatogram;
+      }
+
+      MSChromatogram chromatogram; // (meta_ms_experiment_->getChromatogram(id));
+      indexed_mzml_file_.getMSChromatogramByNativeId(id, chromatogram);
       return chromatogram;
     }
 
