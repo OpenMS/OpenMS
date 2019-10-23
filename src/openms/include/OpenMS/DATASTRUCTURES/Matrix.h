@@ -67,6 +67,7 @@ namespace OpenMS
       <li>size</li>
       <li>capacity</li>
       <li>max_size</li>
+      <li>data</li>
     </ul>
 
          @ingroup Datastructures
@@ -231,6 +232,7 @@ public:
     using Base::capacity;
     using Base::max_size;
 
+    using Base::data;  // allows direct conversion into numpy array
     //@}
 
     void clear()
