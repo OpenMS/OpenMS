@@ -293,6 +293,24 @@ START_SECTION(OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id))
 }
 END_SECTION
 
+START_SECTION(MSChromatogram getChromatogramByNativeId(const std::string& id))
+{
+  OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  TEST_EQUAL(tmp.empty(), false);
+  OpenMS::MSChromatogram s = tmp.getChromatogramByNativeId("TIC");
+  TEST_EQUAL(s.empty(), false);
+  TEST_EQUAL(s.size(), 48);
+  TEST_EXCEPTION(Exception::IllegalArgument, tmp.getChromatogramByNativeId("TIK"))
+
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
+  TEST_EQUAL(tmp2.empty(), false);
+  s = tmp2.getChromatogramByNativeId("TIC");
+  TEST_EQUAL(s.empty(), false);
+  TEST_EQUAL(s.size(), 48);
+  TEST_EXCEPTION(Exception::IllegalArgument, tmp2.getChromatogramByNativeId("TIK"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
