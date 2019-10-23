@@ -48,5 +48,38 @@ namespace OpenMS
     f.setOptions(options);
     f.load(filename, *meta_ms_experiment_.get());
   }
+
+  MSChromatogram OnDiscMSExperiment::getMetaChromatogramById_(const std::string& id)
+  {
+    if (chromatograms_native_ids_.empty())
+    {
+      for (int k = 0; k < meta_ms_experiment_->getChromatograms().size(); k++)
+      {
+        chromatograms_native_ids_.emplace(meta_ms_experiment_->getChromatograms()[k].getNativeID(), k);
+      }
+    }
+
+    if (chromatograms_native_ids_.find(id) == chromatograms_native_ids_.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          String("Could not find chromatogram with id '") + id + "'.");
+    }
+    return meta_ms_experiment_->getChromatogram(chromatograms_native_ids_[id]);
+  }
+
+    MSChromatogram OnDiscMSExperiment::getChromatogramByNativeId(const std::string& id)
+    {
+      if (!meta_ms_experiment_)
+      {
+        MSChromatogram chromatogram;
+        indexed_mzml_file_.getMSChromatogramByNativeId(id, chromatogram);
+        return chromatogram;
+      }
+
+      MSChromatogram chromatogram = getMetaChromatogramById_(id);
+      indexed_mzml_file_.getMSChromatogramByNativeId(id, chromatogram);
+      return chromatogram;
+    }
+
 } //namespace OpenMS
 

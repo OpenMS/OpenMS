@@ -230,19 +230,7 @@ public:
 
       @param id The index of the chromatogram
     */
-    MSChromatogram getChromatogramByNativeId(const std::string& id)
-    {
-      if (!meta_ms_experiment_)
-      {
-        MSChromatogram chromatogram;
-        indexed_mzml_file_.getMSChromatogramByNativeId(id, chromatogram);
-        return chromatogram;
-      }
-
-      MSChromatogram chromatogram; // (meta_ms_experiment_->getChromatogram(id));
-      indexed_mzml_file_.getMSChromatogramByNativeId(id, chromatogram);
-      return chromatogram;
-    }
+    MSChromatogram getChromatogramByNativeId(const std::string& id);
 
     /**
       @brief returns a single chromatogram
@@ -252,7 +240,7 @@ public:
       return indexed_mzml_file_.getChromatogramById(id);
     }
 
-    ///sets whether to skip some XML checks and be fast instead
+    /// sets whether to skip some XML checks and be fast instead
     void setSkipXMLChecks(bool skip)
     {
       indexed_mzml_file_.setSkipXMLChecks(skip);
@@ -265,6 +253,8 @@ private:
 
     void loadMetaData_(const String& filename);
 
+    MSChromatogram getMetaChromatogramById_(const std::string& id);
+
 protected:
 
     /// The filename of the underlying data file
@@ -273,6 +263,8 @@ protected:
     Internal::IndexedMzMLHandler indexed_mzml_file_;
     /// The meta-data
     boost::shared_ptr<PeakMap> meta_ms_experiment_;
+    /// Mapping of chromatogram native ids to offsets
+    std::unordered_map< std::string, Size > chromatograms_native_ids_;
   };
 
 typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
