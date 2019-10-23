@@ -190,11 +190,11 @@ protected:
         score_type.chop(6);
       }
       score_type.toLower().remove(' ').remove('_').remove('-');
-      if (score_type == "posteriorerrorprobability")
+      if (score_type == "posteriorerrorprobability" || score_type == "pep")
       {
         if (!warned_once)
         {
-          LOG_WARN << "Warning: Scores of peptide hits seem to be posterior "
+          OPENMS_LOG_WARN << "Warning: Scores of peptide hits seem to be posterior "
             "error probabilities. Converting to (positive) posterior "
             "probabilities." << endl;
           warned_once = true;
@@ -223,7 +223,7 @@ protected:
           "matches detected (problem: " + error_reason + ").\nFido requires "
           "probabilities as scores, e.g. as produced by "
           "IDPosteriorErrorProbability with the 'prob_correct' option.";
-        LOG_ERROR << msg << endl;
+        OPENMS_LOG_ERROR << msg << endl;
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -269,7 +269,7 @@ protected:
         String msg = "Error: All protein hits must be annotated with target/"
           "decoy meta data. Run PeptideIndexer with the 'annotate_proteins' "
           "option to accomplish this.";
-        LOG_ERROR << msg << endl;
+        OPENMS_LOG_ERROR << msg << endl;
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -279,7 +279,7 @@ protected:
     {
       String msg = "Error: No target proteins found. Fido needs both targets "
         "and decoys.";
-      LOG_ERROR << msg << endl;
+      OPENMS_LOG_ERROR << msg << endl;
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -287,7 +287,7 @@ protected:
     {
       String msg = "Error: No decoy proteins found. Fido needs both targets "
         "and decoys.";
-      LOG_ERROR << msg << endl;
+      OPENMS_LOG_ERROR << msg << endl;
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -324,7 +324,7 @@ protected:
     // different values:
     QStringList current_fido_params = QStringList(fido_params);
 
-    LOG_INFO << "Generating temporary files for Fido..." << endl;
+    OPENMS_LOG_INFO << "Generating temporary files for Fido..." << endl;
     String num = counter ? "." + String(counter) : "";
     String input_graph = temp_dir + "fido_input_graph" + num + ".txt";
     current_fido_params.replaceInStrings("INPUT_GRAPH",
@@ -337,9 +337,9 @@ protected:
       current_fido_params.replaceInStrings("INPUT_PROTEINS",
                                            input_proteins.toQString());
       writeProteinLists_(protein, input_proteins);
-      LOG_INFO << "Running Fido with parameter estimation..." << endl;
+      OPENMS_LOG_INFO << "Running Fido with parameter estimation..." << endl;
     }
-    else LOG_INFO << "Running Fido with fixed parameters..." << endl;
+    else OPENMS_LOG_INFO << "Running Fido with fixed parameters..." << endl;
 
     QProcess fido;
     fido.start(exe.toQString(), current_fido_params);
@@ -348,7 +348,7 @@ protected:
     {
       String cmd = exe + " \"" + String(current_fido_params.join("\" \"")) +
         "\"";
-      LOG_ERROR << "Fatal error running Fido (command: '" + cmd + "').\n"
+      OPENMS_LOG_ERROR << "Fatal error running Fido (command: '" + cmd + "').\n"
                 << "Does the Fido executable exist?" << endl;
       return false;
     }
@@ -358,7 +358,7 @@ protected:
     if (choose_params) // get relevant parts of parameter search output
     {
       String params_output = QString(fido.readAllStandardError());
-      LOG_INFO << "Fido parameter search:" << endl;
+      OPENMS_LOG_INFO << "Fido parameter search:" << endl;
       if (debug_level_ > 1)
       {
         String output_status = temp_dir + "fido_status" + num + ".txt";
@@ -373,13 +373,13 @@ protected:
       {
         if (lines[0].hasPrefix("caught an exception"))
         {
-          LOG_ERROR << "Error running Fido: '" + lines[0] + "'" << endl;
+          OPENMS_LOG_ERROR << "Error running Fido: '" + lines[0] + "'" << endl;
           return false;
         }
-        if (lines[0].hasPrefix("Warning:")) LOG_WARN << lines[0] << endl;
+        if (lines[0].hasPrefix("Warning:")) OPENMS_LOG_WARN << lines[0] << endl;
         if (lines.back().hasPrefix("Using best gamma, alpha, beta ="))
         {
-          LOG_INFO << lines.back() << endl;
+          OPENMS_LOG_INFO << lines.back() << endl;
           stringstream ss;
           ss << lines.back().suffix('=');
           ss >> prob_protein >> prob_peptide >> prob_spurious;
@@ -387,7 +387,7 @@ protected:
       }
     }
 
-    LOG_INFO << "Parsing Fido results and writing output..." << endl;
+    OPENMS_LOG_INFO << "Parsing Fido results and writing output..." << endl;
     String output = QString(fido.readAllStandardOutput());
     if (debug_level_ > 1)
     {
@@ -472,7 +472,7 @@ protected:
     protein.setMetaValue("Fido_prob_protein", prob_protein);
     protein.setMetaValue("Fido_prob_peptide", prob_peptide);
     protein.setMetaValue("Fido_prob_spurious", prob_spurious);
-    LOG_INFO << "Inferred " << protein_counter << " proteins in "
+    OPENMS_LOG_INFO << "Inferred " << protein_counter << " proteins in "
              << groups.size() << " groups ("
              << ((keep_zero_group && zero_proteins) ? "including " : "")
              << zero_proteins << " proteins with probability zero"
@@ -482,10 +482,10 @@ protected:
     // Do post-processing on groups if specified
     if (greedy_flag)
     {
-      LOG_INFO << "Resolving ambiguity groups greedily on Fido output..."
+      OPENMS_LOG_INFO << "Resolving ambiguity groups greedily on Fido output..."
                << endl;
       PeptideProteinResolution graph = PeptideProteinResolution();
-      graph.buildGraph(protein, peptides);
+      graph.buildGraph(protein, peptides, true);
       graph.resolveGraph(protein, peptides);
     }
     return true;
@@ -522,11 +522,11 @@ protected:
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
 
-    LOG_INFO << "Reading input data..." << endl;
+    OPENMS_LOG_INFO << "Reading input data..." << endl;
     IdXMLFile().load(in, proteins, peptides);
     if (proteins.empty() || peptides.empty())
     {
-      LOG_ERROR << "Error: Input file '" << in
+      OPENMS_LOG_ERROR << "Error: Input file '" << in
                 << "' should contain both protein and peptide data." << endl;
       return INPUT_FILE_EMPTY;
     }
@@ -607,11 +607,15 @@ protected:
       for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
            prot_it != proteins.end(); ++prot_it, ++counter)
       {
-        LOG_INFO << "Protein identification run " << counter << ":" << endl;
+        OPENMS_LOG_INFO << "Protein identification run " << counter << ":" << endl;
         fido_success = runFido_(*prot_it, peptides, choose_params, executable,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group,
                                 greedy_flag, counter);
+        if (fido_success)
+        {
+          prot_it->setInferenceEngine("Fido");
+        }
       }
     }
     else // merge multiple protein ID runs
@@ -619,6 +623,7 @@ protected:
       ProteinIdentification all_proteins; // one ID run to merge all hits
       // set search engine to Fido since they might disagree for different runs:
       all_proteins.setSearchEngine("Fido");
+      all_proteins.setInferenceEngine("Fido");
 
       // make sure identifiers match (otherwise "IdXMLFile::store" complains):
       all_proteins.setIdentifier("");
@@ -667,18 +672,18 @@ protected:
     // clean up temporary files:
     if (debug_level_ > 1)
     {
-      LOG_DEBUG << "Keeping temporary files at '" << temp_dir
+      OPENMS_LOG_DEBUG << "Keeping temporary files at '" << temp_dir
                 << "'. Set debug level to 0 or 1 to remove them." << endl;
     }
     else
     {
-      LOG_INFO << "Removing temporary files..." << endl;
+      OPENMS_LOG_INFO << "Removing temporary files..." << endl;
       File::removeDirRecursively(temp_dir);
       if (debug_level_ == 1)
       {
         String msg = "Set debug level to 2 or higher to keep temporary files "
           "at '" + temp_dir + "'.";
-        LOG_DEBUG << msg << endl;
+        OPENMS_LOG_DEBUG << msg << endl;
       }
     }
 

@@ -108,11 +108,14 @@ macro(add_mac_app_bundle _name)
 			DESTINATION .
 			COMPONENT Applications)
 		
-		if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-		   ## TODO try to find codesign to make sure the right exec is used (currently needs to be in path)
-		   ## TODO allow choosing keychain
-		   ## Note: Signing identity has to be unique, and present in any of the keychains in search list
-		   ## which needs to be unlocked. Play around with keychain argument otherwise.
+		## Notarization is only possible with Xcode/Appleclang 10, otherwise we just skip
+		if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
+			## We also need an identity to sign with
+			if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+			## TODO try to find codesign to make sure the right exec is used (currently needs to be in path)
+			## TODO allow choosing keychain
+			## Note: Signing identity has to be unique, and present in any of the keychains in search list
+			## which needs to be unlocked. Play around with keychain argument otherwise.
                    install(CODE "
 execute_process(COMMAND codesign --deep --force --sign ${CPACK_BUNDLE_APPLE_CERT_APP} -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
 message('\${sign_out}')" COMPONENT BApplications)
@@ -120,9 +123,25 @@ message('\${sign_out}')" COMPONENT BApplications)
                    install(CODE "
 execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
 message('\${sign_check_out}')" COMPONENT BApplications)
-		 
-		endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 
+                   install(CODE "
+execute_process(COMMAND ditto -c -k --rsrc --keepParent \${CMAKE_INSTALL_PREFIX}/${_name}.app \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip OUTPUT_VARIABLE ditto_out ERROR_VARIABLE ditto_out)
+message('\${ditto_out}')" COMPONENT BApplications)
+
+                   install(CODE "
+execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
+message('\${notarize_out}')" COMPONENT BApplications)
+
+                   install(CODE "
+execute_process(COMMAND spctl -a -v \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE verify_out ERROR_VARIABLE verify_out)
+message('\${verify_out}')" COMPONENT BApplications)
+
+                    install(CODE "
+execute_process(COMMAND rm \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip OUTPUT_VARIABLE remove_out ERROR_VARIABLE remove_out)
+message('\${remove_out}')" COMPONENT BApplications)
+                   
+			endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+		endif()
 	else()
 	  ## Just install to the usual bin dir without fixing it up
 	  install_tool(${_name})

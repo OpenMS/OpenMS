@@ -53,6 +53,9 @@
 
 namespace OpenMS
 {
+  class ProteinIdentification;
+
+
   namespace Internal
   {
 
@@ -243,6 +246,10 @@ public:
         return _copy;
       }
 
+      /// throws a ParseError if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
+      /// Should be called before writing any ProtIDs to file
+      void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids);
+
 protected:
       /// Error message of the last error
       mutable String error_message_;
@@ -318,7 +325,7 @@ protected:
         {
           res = in.toInt();
         }
-        catch (Exception::ConversionError)
+        catch (Exception::ConversionError&)
         {
           error(LOAD, String("Int conversion error of \"") + in + "\"");
         }
@@ -609,7 +616,7 @@ protected:
       {
         const XMLCh * val = a.getValue(name);
         if (val == nullptr) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
-        return String(sm_.convert(val)).toDouble();
+        return sm_.convert(val).toDouble();
       }
 
       /// Converts an attribute to a DoubleList
@@ -634,17 +641,13 @@ protected:
       }
 
       /// Assigns the attribute content to the String @a value if the attribute is present
-      inline bool optionalAttributeAsString_(String & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsString_(String& value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
         if (val != nullptr)
         {
-          String tmp2 = sm_.convert(val);
-          if (tmp2 != "")
-          {
-            value = tmp2;
-            return true;
-          }
+          value = sm_.convert(val);
+          return !value.empty();
         }
         return false;
       }
@@ -679,7 +682,7 @@ protected:
         const XMLCh * val = a.getValue(name);
         if (val != nullptr)
         {
-          value = String(sm_.convert(val)).toDouble();
+          value = sm_.convert(val).toDouble();
           return true;
         }
         return false;
@@ -739,14 +742,13 @@ private:
       /// Not implemented
       XMLHandler();
 
-      inline String expectList_(const String& str) const
+      inline const String& expectList_(const String& str) const
       {
-        String tmp(str);
-        if (!(tmp.hasPrefix('[') && tmp.hasSuffix(']')))
+        if (!(str.hasPrefix('[') && str.hasSuffix(']')))
         {
           fatalError(LOAD, String("List argument is not a string representation of a list!"));
         }
-        return tmp;
+        return str;
       }
 
     };

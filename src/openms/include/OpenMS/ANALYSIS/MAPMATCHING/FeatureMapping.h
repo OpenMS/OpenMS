@@ -47,7 +47,7 @@ namespace OpenMS
 
           struct FeatureToMs2Indices
           {
-             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
+             Map<const BaseFeature*, std::vector<size_t>> assignedMS2;
              std::vector<size_t> unassignedMS2;
           };
 
@@ -60,7 +60,7 @@ namespace OpenMS
             @param fp_map_kd: KDTree used for query and match spectra with features
             @param precursor_mz_tolerance: mz_tolerance used for query
             @param precursor_rt_tolernace: rt tolerance used for query
-            @param ppm: mz tolernace window calculation in ppm or Da
+            @param ppm: mz tolerance window calculation in ppm or Da
 
           */
           static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,

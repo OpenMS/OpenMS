@@ -58,11 +58,11 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASSplitterVertex();
+    TOPPASSplitterVertex() = default;
     /// Copy constructor
     TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs);
     /// Destructor
-    ~TOPPASSplitterVertex() override;
+    ~TOPPASSplitterVertex() override = default;
     /// Assignment operator
     TOPPASSplitterVertex& operator=(const TOPPASSplitterVertex& rhs);
     /// returns "SplitterVertex"
@@ -73,8 +73,6 @@ public:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class
     QRectF boundingRect() const override;
-    // documented in base class
-    QPainterPath shape() const override;
     // documented in base class
     void markUnreachable() override;
 

@@ -222,9 +222,9 @@ namespace seqan
     typedef typename VertexDescriptor<TGraph>::Type TVert;
     typedef typename Pattern<TNeedle, FuzzyAC>::KeyWordLengthType KeyWordLengthType;
     TVert current_state;
-    KeyWordLengthType max_depth_decrease; // maximum loss in depths of traversed nodes (both while reporting hits and changing its own state)
-    KeyWordLengthType ambAA_seen;         // number of ambAA's which the spawn has seen
-    KeyWordLengthType mismatches_seen;    // number of mismatches the spawn has seen
+    KeyWordLengthType max_depth_decrease; ///< maximum loss in depths of traversed nodes (both while reporting hits and changing its own state)
+    KeyWordLengthType ambAA_seen;         ///< number of ambAA's which the spawn has seen
+    KeyWordLengthType mismatches_seen;    ///< number of mismatches the spawn has seen
 
 	  Spawn(TVert init_state, KeyWordLengthType current_depth, KeyWordLengthType aaa_seen, KeyWordLengthType mm_seen) :
 		  current_state(init_state),
@@ -270,12 +270,12 @@ namespace seqan
     typedef typename std::list<Spawn<TNeedle> >::const_iterator SpawnCIt;
 
     // "working" set; changes with every hit
-    Spawns spawns;                      // spawn instances currently walking the tree
-    TVert data_lastState;   // Last state of master instance in the trie
+    Spawns spawns;                      ///< spawn instances currently walking the tree
+    TVert data_lastState;   ///< Last state of master instance in the trie
     // for hit reporting:
-    String<TSize> hits_endPositions;	// All remaining keyword indices
-    TSize data_keywordIndex;			// Current keyword that produced a hit
-    TSize data_needleLength;			// Last length of needle to reposition finder
+    String<TSize> hits_endPositions;	///< All remaining keyword indices
+    TSize data_keywordIndex;			///< Current keyword that produced a hit
+    TSize data_needleLength;			///< Last length of needle to reposition finder
   };
 
   template <typename TNeedle>
@@ -300,15 +300,15 @@ namespace seqan
     typedef __uint8 KeyWordLengthType;
 
     // constant after C'tor; 
-    const TVert nilVal; // NULL pointer for trie; e.g. returned when no successor is found
+    const TVert nilVal; ///< NULL pointer for trie; e.g. returned when no successor is found
                                         
     // "constant" data, after construction of trie
-    Holder<TNeedle> data_host;                    // holds needles, i.e. Peptides
-    TGraph data_graph;                            // regular trie data
-    String<String<TSize> > data_map_outputNodes; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
-    String<KeyWordLengthType> data_node_depth;    // depths of each graph node
-    KeyWordLengthType max_ambAA;            // ambiguity; default: 3
-    KeyWordLengthType max_mmAA;             // mismatches; default: 0
+    Holder<TNeedle> data_host;                    ///< holds needles, i.e. Peptides
+    TGraph data_graph;                            ///< regular trie data
+    String<String<TSize> > data_map_outputNodes; ///< regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
+    String<KeyWordLengthType> data_node_depth;    ///< depths of each graph node
+    KeyWordLengthType max_ambAA;            ///< ambiguity; default: 3
+    KeyWordLengthType max_mmAA;             ///< mismatches; default: 0
 
 #ifndef NDEBUG
     String<TVert> parentMap;  ///< allows to find parent of each node
@@ -447,18 +447,18 @@ namespace seqan
     // Build AC
     TVert root = getRoot(me.data_graph);
     // properties....
-    String<TVert> data_map_failurelink;                 // trie suffix links (temporary only)
+    String<TVert> data_map_failurelink;                 ///< trie suffix links (temporary only)
     resizeVertexMap(me.data_graph, data_map_failurelink);  
     assignProperty(data_map_failurelink, root, nilVal);
 
-    resizeVertexMap(me.data_graph, me.data_node_depth);  // node depths
+    resizeVertexMap(me.data_graph, me.data_node_depth);  ///< node depths
     assignProperty(me.data_node_depth, root, 0);
 
     // Bfs Traversal
     typedef typename Iterator<TGraph, BfsIterator>::Type TBfsIterator;
     TBfsIterator it(me.data_graph, root);
     typedef typename ValueSize<AAcid>::Type TSize;
-    TSize idxAAFirst, idxAALast; // range of unambiguous AAcids: AAcid(idx)
+    TSize idxAAFirst, idxAALast; ///< range of unambiguous AAcids: AAcid(idx)
     _getSpawnRange('X', idxAAFirst, idxAALast);
     // create nextMove function for root (point to itself)
     for (TSize idx = idxAAFirst; idx <= idxAALast; ++idx)

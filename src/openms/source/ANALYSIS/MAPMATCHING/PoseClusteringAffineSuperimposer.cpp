@@ -37,6 +37,7 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
+
 // #define Debug_PoseClusteringAffineSuperimposer
 
 namespace OpenMS
@@ -89,7 +90,6 @@ namespace OpenMS
                                          "A serial number for each invocation will be appended automatically.", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
-    return;
   }
 
   /**

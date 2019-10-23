@@ -213,7 +213,7 @@ protected:
 
     if (in_type == FileTypes::UNKNOWN)
     {
-      in_type = fh.getType(in);
+      in_type = FileHandler::getType(in);
       writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
@@ -421,8 +421,8 @@ protected:
       file.load(in, entries);
       std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
 
-      int dup_header(0);
-      int dup_seq(0);
+      Size dup_header(0);
+      Size dup_seq(0);
 
       typedef std::unordered_map<size_t, vector<ptrdiff_t> > SHashmap;
       SHashmap m_headers;
@@ -474,8 +474,9 @@ protected:
 
       os << "\n";
       os << "Number of sequences   : " << entries.size() << "\n";
-      os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 : (dup_header * 1000 / entries.size()) / 10.0) << "%)\n";
-      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : (dup_seq * 1000 / entries.size()) / 10.0) << "%) [by exact string matching]\n";
+      os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 :
+                                                                 static_cast<Size>(dup_header * 1000 / entries.size()) / 10.0) << "%)\n";
+      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : static_cast<Size>(dup_seq * 1000 / entries.size()) / 10.0) << "%) [by exact string matching]\n";
       os << "Total amino acids     : " << number_of_aacids << "\n\n";
       os << "Amino acid counts: \n";
 
@@ -485,8 +486,8 @@ protected:
       }
       size_t amb = aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x'];
       size_t amb_I = amb + aacids['I'] + aacids['i'];
-      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (amb * 10000 / number_of_aacids / 100.0) : 0) << "%)\n";
-      os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (amb_I * 10000 / number_of_aacids / 100.0) : 0) << "%)\n\n";
+      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (static_cast<Size>(amb * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n";
+      os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (static_cast<Size>(amb_I * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n\n";
     }
 
     else if (in_type == FileTypes::FEATUREXML) //features
@@ -563,10 +564,61 @@ protected:
       cons.updateRanges();
 
       map<Size, UInt> num_consfeat_of_size;
+      map<Size, UInt> num_consfeat_of_size_with_id;
+
+      map<pair<String, UInt>, vector<int> > seq_charge2map_occurence;
       for (ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit)
       {
         ++num_consfeat_of_size[cmit->size()];
+        const auto& pids = cmit->getPeptideIdentifications();
+        if (!pids.empty())
+        {
+          ++num_consfeat_of_size_with_id[cmit->size()];
+
+          // count how often a peptide/charge pair has been observed in the different maps
+          const vector<PeptideHit>& phits = pids[0].getHits();
+          if (!phits.empty())
+          {
+            const String s = phits[0].getSequence().toString();
+            const int z = phits[0].getCharge();
+
+            if (seq_charge2map_occurence[make_pair(s,z)].empty())
+            {
+              seq_charge2map_occurence[make_pair(s,z)] = vector<int>(cons.getColumnHeaders().size(), 0);
+            }
+
+            // assign id to all dimensions in the consensus feature
+            for (auto const & f : cmit->getFeatures())
+            {
+              Size map_index = f.getMapIndex();
+              seq_charge2map_occurence[make_pair(s,z)][map_index] += 1;
+            }
+          }
+        }
       }
+
+      // now at the level of peptides (different charges and modifications are counted separately) 
+      // to get a number independent of potential alignment/link errors
+      // Note: 
+      // we determine the size of a consensus feature we would obtain if we would link just be sequence and charge
+      // and we sum up all sub features for these consensus feature that has at least one id
+      // (as we assume that the ID is transfered to all sub features)
+      map<Size, UInt> num_aggregated_consfeat_of_size_with_id;
+      map<Size, UInt> num_aggregated_feat_of_size_with_id;
+      for (auto & a : seq_charge2map_occurence)
+      {
+        const vector<int>& occurences = a.second;
+        Size n(0); // dimensions with at least one peptide id assigned
+        Size f(0); // number of subfeatures with a least one peptide id assigned
+        for (int i : occurences) 
+        { 
+          if (i != 0) ++n; 
+          f += i;
+        }
+        num_aggregated_consfeat_of_size_with_id[n] += 1;
+        num_aggregated_feat_of_size_with_id[n] += f;	
+      }
+
       if (num_consfeat_of_size.empty())
       {
         os << "\n"
@@ -581,11 +633,45 @@ protected:
         os << "\n"
            << "Number of consensus features:"
            << "\n";
+        
+        Size number_features{0};
+        Size number_cons_features_with_id{0};
+        Size number_features_with_id{0};
         for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
         {
-          os << "  of size " << setw(field_width) << i->first << ": " << i->second << "\n";
+          const Size csize = i->first;
+          const Size nfeatures = i->first * i->second;
+          const Size nc_with_id = num_consfeat_of_size_with_id[i->first];
+          number_features += nfeatures;
+          number_features_with_id += csize * nc_with_id;
+          number_cons_features_with_id += nc_with_id;
+          number_cons_features_with_id += i->first * nc_with_id;
+
+          os << "  of size " << setw(field_width) << csize << ": " << i->second 
+             << "\t (features: " << nfeatures << " )"
+             << "\t with at least one ID: " << nc_with_id
+             << "\t (features: " << csize * nc_with_id << " )"
+             << "\n";
+
         }
-        os << "  total:    " << string(field_width, ' ') << cons.size() << "\n"
+
+        map<Size, UInt>::reverse_iterator ci = num_aggregated_consfeat_of_size_with_id.rbegin();
+        map<Size, UInt>::reverse_iterator fi = num_aggregated_feat_of_size_with_id.rbegin();
+        for (; ci != num_aggregated_consfeat_of_size_with_id.rend(); ++ci, ++fi)
+        {
+          const Size csize = ci->first;
+          const Size nconsfeatures = ci->second;
+          const Size nfeatures = fi->second;
+
+          os << "  peptides (with different mod. and charge) observed in " << setw(field_width) << csize << " maps: " << nconsfeatures 
+             << "\t (features: " << nfeatures << " )"
+             << "\n";
+
+        }
+        os << "  total consensus features:    "  << cons.size()
+           << "  with at least one ID: " << number_cons_features_with_id << "\n"
+           << "  total features:              " << number_features 
+           << "  with at least one ID: " << string(field_width, ' ') << number_features_with_id
            << "\n";
 
         writeRangesHumanReadable_(cons, os);
@@ -616,6 +702,7 @@ protected:
       UInt runs_count(0);
       Size protein_hit_count(0);
       set<String> peptides;
+      set<String> peptides_ignore_mods;
       set<String> proteins;
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
@@ -642,11 +729,13 @@ protected:
              << "\t" << id_data.proteins[0].getSearchParameters().taxonomy << "\n";
 
       // calculations
+      UInt average_peptide_hits{0}; // average number of hits per spectrum (ignoring the empty ones)
       for (Size i = 0; i < id_data.peptides.size(); ++i)
       {
         if (!id_data.peptides[i].empty())
         {
           ++spectrum_count;
+          average_peptide_hits += id_data.peptides[i].getHits().size();
           peptide_hit_count += id_data.peptides[i].getHits().size();
           const vector<PeptideHit> &temp_hits = id_data.peptides[i].getHits();
           // collect stats about modifications from TOP HIT!
@@ -665,6 +754,7 @@ protected:
           for (Size j = 0; j < temp_hits.size(); ++j)
           {
             peptides.insert(temp_hits[j].getSequence().toString());
+            peptides_ignore_mods.insert(temp_hits[j].getSequence().toUnmodifiedString());
             peptide_length.push_back((uint16_t)temp_hits[j].getSequence().size());
           }
         }
@@ -693,6 +783,8 @@ protected:
          << "\n";
       os << "\n";
       os << "  matched spectra:    " << spectrum_count << "\n";
+      os << "  peptide sequences:  " << peptides_ignore_mods.size() << "\n";
+      os << "  PSMs / spectrum (ignoring unidentified spectra):    " << average_peptide_hits / std::max(1, (Int)spectrum_count) << "\n";
       os << "  peptide hits:               " << peptide_hit_count << " (avg. length: " << Math::round(Math::mean(peptide_length.begin(), peptide_length.end())) << ")\n";
       os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? String(" (") + Math::round(modified_peptide_count * 1000.0 / spectrum_count) / 10 + "%)" : "") << "\n";
       os << "  non-redundant peptide hits: " << peptides.size() << "\n";
@@ -812,7 +904,7 @@ protected:
 
       // write peak types (centroided / profile mode)
       os << "Peak type metadata (estimated)\n";
-      for (auto const l : levels)
+      for (const auto& l : levels)
       {
         os << "  level " << l << ": "
            << SpectrumSettings::NamesOfSpectrumType[level_annotated_picked[l]] << " ("
@@ -932,7 +1024,7 @@ protected:
       }
 
       // Detailed listing of scans
-      if (getFlag_("d") && exp.size() > 0)
+      if (getFlag_("d") && !exp.empty())
       {
         os << "\n"
            << "-- Detailed spectrum listing --"
@@ -1096,9 +1188,8 @@ protected:
     //-------------------------------------------------------------
     // meta information
     //-------------------------------------------------------------
-    if (getFlag_("m") || getStringOption_("out_tsv") != "")
+    if (getFlag_("m") || !getStringOption_("out_tsv").empty())
     {
-
       //basic info
       os << "\n"
          << "-- Meta information --"
@@ -1130,10 +1221,10 @@ protected:
       }
       else if (in_type == FileTypes::FASTA)
       {
+        // TODO
       }
       else //peaks
       {
-
         os << "Document ID:        " << exp.getIdentifier() << "\n"
            << "Date:               " << exp.getDateTime().get() << "\n";
         os_tsv << "document id"
@@ -1424,7 +1515,7 @@ protected:
             }
             mz_aad_by_elems.push_back(mz_diff);
             mz_aad += mz_diff;
-            double it_ratio = hs_iter->getIntensity() / (cm_iter->getIntensity() ? cm_iter->getIntensity() : 1.);
+            double it_ratio = hs_iter->getIntensity() / (cm_iter->getIntensity() > 0 ? cm_iter->getIntensity() : 1.);
             it_delta_by_elems.push_back(it_ratio);
             if (it_ratio < 1.)
             {
@@ -1569,7 +1660,7 @@ protected:
     String out_tsv = getStringOption_("out_tsv");
 
     TOPPBase::ExitCodes ret;
-    if (out != "" && out_tsv != "")
+    if (!out.empty() && !out_tsv.empty())
     {
       ofstream os(out.c_str());
       ofstream os_tsv(out_tsv.c_str());
@@ -1577,7 +1668,7 @@ protected:
       os.close();
       os_tsv.close();
     }
-    else if (out != "" && out_tsv == "")
+    else if (!out.empty() && out_tsv.empty())
     {
       ofstream os(out.c_str());
       // Output stream with null output
@@ -1586,10 +1677,11 @@ protected:
       ret = outputTo_(os, os_tsv);
       os.close();
     }
-    else if (out == "" && out_tsv != "")
+    else if (out.empty() && !out_tsv.empty())
     {
       ofstream os_tsv(out_tsv.c_str());
-      ret = outputTo_(LOG_INFO, os_tsv);
+      // directly use OpenMS_Log_info (no need for protecting output stream in non-parallel section)
+      ret = outputTo_(OpenMS_Log_info, os_tsv);
       os_tsv.close();
     }
     else
@@ -1597,7 +1689,8 @@ protected:
       // Output stream with null output
       boost::iostreams::filtering_ostream os_tsv;
       os_tsv.push(boost::iostreams::null_sink());
-      ret = outputTo_(LOG_INFO, os_tsv);
+      // directly use OpenMS_Log_info (no need for protecting output stream in non-parallel section)
+      ret = outputTo_(OpenMS_Log_info, os_tsv);
     }
     return ret;
   }

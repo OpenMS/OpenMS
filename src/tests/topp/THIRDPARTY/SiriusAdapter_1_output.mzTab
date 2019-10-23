@@ -5,56 +5,57 @@ MTD	description	Sirius-4.0.1
 MTD	smallmolecule_search_engine_score[1]	[, , score, ]
 MTD	smallmolecule_search_engine_score[2]	[, , treescore, ]
 MTD	smallmolecule_search_engine_score[3]	[, , isoscore, ]
-MTD	ms_run[1]-location	/Users/alka/Documents/work/software/openms_oa/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_1_input.mzML
+MTD	ms_run[1]-location	/home/alka/software/openms_oa/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_1_input.mzML
 
-SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	adduct	rank	explainedPeaks	explainedIntensity	compoundId	compoundScanNumber	featureId
-SML	null	C16H13N5O	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	2	2165004	null
-SML	null	C15H17NO5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	2	2165004	null
-SML	null	C12H21NO5S	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	3	1	0	2	2165004	null
-SML	null	C15H18ClN3O	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	4	1	0	2	2165004	null
-SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	5	1	0	2	2165004	null
-SML	null	C12H21NO5S	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.73322372596161	-0.73322372596161	0	null	[M + H]+	1	1	0	4	2166006	null
-SML	null	C15H18ClN3O	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.86031324921971	-0.86031324921971	0	null	[M + H]+	2	1	0	4	2166006	null
-SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.981048761397028	-0.981048761397028	0	null	[M + H]+	3	1	0	4	2166006	null
-SML	null	C16H13N5O	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.04077856904307	-1.04077856904307	0	null	[M + H]+	4	1	0	4	2166006	null
-SML	null	C13H17N5OS	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.52635714481214	-1.52635714481214	0	null	[M + H]+	5	1	0	4	2166006	null
-SML	null	C12H21NO5S	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.658451587479821	-0.658451587479821	0	null	[M + H]+	1	1	0	6	2167005	null
-SML	null	C15H18ClN3O	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.75553420703378	-0.75553420703378	0	null	[M + H]+	2	1	0	6	2167005	null
-SML	null	C16H13N5O	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.825801390405481	-0.825801390405481	0	null	[M + H]+	3	1	0	6	2167005	null
-SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.866815897879027	-0.866815897879027	0	null	[M + H]+	4	1	0	6	2167005	null
-SML	null	C13H25NS3	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.66423288665116	-1.66423288665116	0	null	[M + H]+	5	1	0	6	2167005	null
-SML	null	C13H17N3O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.26817272617047	0.26817272617047	0	null	[M + H]+	1	1	0	11	2171003	null
-SML	null	C9H13N9O3	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.572292560546739	-0.572292560546739	0	null	[M + H]+	2	1	0	11	2171003	null
-SML	null	C14H13N7O	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.2044889552908	-1.2044889552908	0	null	[M + H]+	3	1	0	11	2171003	null
-SML	null	C7H18N7O4P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.50401586206295	-1.50401586206295	0	null	[M + H]+	4	1	0	11	2171003	null
-SML	null	C8H18ClN7O3	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.74723065421827	-1.74723065421827	0	null	[M + H]+	5	1	0	11	2171003	null
-SML	null	C13H17N3O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.801038404986894	0.801038404986894	0	null	[M + H]+	1	1	0	13	2172004	null
-SML	null	C14H13N7O	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.326604763712441	-0.326604763712441	0	null	[M + H]+	2	1	0	13	2172004	null
-SML	null	C9H13N9O3	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.47069878412981	-1.47069878412981	0	null	[M + H]+	3	1	0	13	2172004	null
-SML	null	C14H21N3S2	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.47077609395349	-1.47077609395349	0	null	[M + H]+	4	1	0	13	2172004	null
-SML	null	C7H18N7O4P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.98078230674294	-1.98078230674294	0	null	[M + H]+	5	1	0	13	2172004	null
-SML	null	C14H13N7O	null	null	null	null	null	null	null	null	null	null	null	null	null	0.703776516452899	0.703776516452899	0	null	[M + H]+	1	1	0	15	2173002	null
-SML	null	C13H17N3O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.34156111474069	0.34156111474069	0	null	[M + H]+	2	1	0	15	2173002	null
-SML	null	C14H21N3S2	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.671538431374925	-0.671538431374925	0	null	[M + H]+	3	1	0	15	2173002	null
-SML	null	C11H22NO6P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.13303317437525	-1.13303317437525	0	null	[M + H]+	4	1	0	15	2173002	null
-SML	null	C12H22ClNO5	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.27436593388098	-1.27436593388098	0	null	[M + H]+	5	1	0	15	2173002	null
-SML	null	C12H21NO5S	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.0703392433326	-1.0703392433326	0	null	[M + H]+	1	1	0	18	2175004	null
-SML	null	C13H17N5OS	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.09765222779899	-1.09765222779899	0	null	[M + H]+	2	1	0	18	2175004	null
-SML	null	C13H25NS3	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.18139616054283	-1.18139616054283	0	null	[M + H]+	3	1	0	18	2175004	null
-SML	null	C15H18ClN3O	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.23121492945865	-1.23121492945865	0	null	[M + H]+	4	1	0	18	2175004	null
-SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.38211832899059	-1.38211832899059	0	null	[M + H]+	5	1	0	18	2175004	null
-SML	null	C12H21NO5S	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.822790860200481	-0.822790860200481	0	null	[M + H]+	1	1	0	20	2176006	null
-SML	null	C15H18ClN3O	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.959386206003756	-0.959386206003756	0	null	[M + H]+	2	1	0	20	2176006	null
-SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.0886386265816	-1.0886386265816	0	null	[M + H]+	3	1	0	20	2176006	null
-SML	null	C16H13N5O	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.23811466290395	-1.23811466290395	0	null	[M + H]+	4	1	0	20	2176006	null
-SML	null	C13H17N5OS	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.39260106646985	-1.39260106646985	0	null	[M + H]+	5	1	0	20	2176006	null
-SML	null	C13H22N6O2	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	43	2199003	null
-SML	null	C12H26N2O6	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	43	2199003	null
-SML	null	C11H27N4O3P	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	3	1	0	43	2199003	null
-SML	null	C13H30N2OS2	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	4	1	0	43	2199003	null
-SML	null	C12H27ClN4O2	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.816550711012076	-0.816550711012076	0	null	[M + H]+	5	1	0	43	2199003	null
-SML	null	C12H19NO7	null	null	null	null	null	null	null	null	null	null	null	null	null	0.592913354034559	0.592913354034559	0	null	[M + H]+	1	1	0	49	2204006	null
-SML	null	C13H15N5O3	null	null	null	null	null	null	null	null	null	null	null	null	null	0.447997612989534	0.447997612989534	0	null	[M + H]+	2	1	0	49	2204006	null
-SML	null	C13H23NO2S2	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.824243246652225	-0.824243246652225	0	null	[M + H]+	3	1	0	49	2204006	null
-SML	null	C8H22N2O7P	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.897755144282232	-0.897755144282232	0	null	[M + H]+	4	1	0	49	2204006	null
-SML	null	C9H22ClN2O6	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.31393782658325	-1.31393782658325	0	null	[M + H]+	5	1	0	49	2204006	null
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	opt_global_adduct	opt_global_rank	opt_global_explainedPeaks	opt_global_explainedIntensity	opt_global_compoundId	opt_global_compoundScanNumber	opt_global_featureId	opt_global_native_id
+SML	null	C16H13N5O	null	null	null	292.118520142944021	null	null	404.455000000019993	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0.0	null	[M + H]+	1	1	0.0	2	2165004	null	sample=1 period=1 cycle=2165 experiment=4
+SML	null	C15H17NO5	null	null	null	292.118520142944021	null	null	404.455000000019993	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0.0	null	[M + H]+	2	1	0.0	2	2165004	null	sample=1 period=1 cycle=2165 experiment=4
+SML	null	C12H21NO5S	null	null	null	292.118520142944021	null	null	404.455000000019993	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0.0	null	[M + H]+	3	1	0.0	2	2165004	null	sample=1 period=1 cycle=2165 experiment=4
+SML	null	C15H18ClN3O	null	null	null	292.118520142944021	null	null	404.455000000019993	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0.0	null	[M + H]+	4	1	0.0	2	2165004	null	sample=1 period=1 cycle=2165 experiment=4
+SML	null	C14H18N3O2P	null	null	null	292.118520142944021	null	null	404.455000000019993	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0.0	null	[M + H]+	5	1	0.0	2	2165004	null	sample=1 period=1 cycle=2165 experiment=4
+SML	null	C12H21NO5S	null	null	null	292.121468920531015	null	null	404.875000000020009	null	null	null	null	null	null	-0.73322372596161	-0.73322372596161	0.0	null	[M + H]+	1	1	0.0	4	2166006	null	sample=1 period=1 cycle=2166 experiment=6
+SML	null	C15H18ClN3O	null	null	null	292.121468920531015	null	null	404.875000000020009	null	null	null	null	null	null	-0.86031324921971	-0.86031324921971	0.0	null	[M + H]+	2	1	0.0	4	2166006	null	sample=1 period=1 cycle=2166 experiment=6
+SML	null	C14H18N3O2P	null	null	null	292.121468920531015	null	null	404.875000000020009	null	null	null	null	null	null	-0.981048761397028	-0.981048761397028	0.0	null	[M + H]+	3	1	0.0	4	2166006	null	sample=1 period=1 cycle=2166 experiment=6
+SML	null	C16H13N5O	null	null	null	292.121468920531015	null	null	404.875000000020009	null	null	null	null	null	null	-1.04077856904307	-1.04077856904307	0.0	null	[M + H]+	4	1	0.0	4	2166006	null	sample=1 period=1 cycle=2166 experiment=6
+SML	null	C13H17N5OS	null	null	null	292.121468920531015	null	null	404.875000000020009	null	null	null	null	null	null	-1.526357144812137	-1.526357144812137	0.0	null	[M + H]+	5	1	0.0	4	2166006	null	sample=1 period=1 cycle=2166 experiment=6
+SML	null	C12H21NO5S	null	null	null	292.121302384156024	null	null	405.295000000020025	null	null	null	null	null	null	-0.658451587479821	-0.658451587479821	0.0	null	[M + H]+	1	1	0.0	6	2167005	null	sample=1 period=1 cycle=2167 experiment=5
+SML	null	C15H18ClN3O	null	null	null	292.121302384156024	null	null	405.295000000020025	null	null	null	null	null	null	-0.75553420703378	-0.75553420703378	0.0	null	[M + H]+	2	1	0.0	6	2167005	null	sample=1 period=1 cycle=2167 experiment=5
+SML	null	C16H13N5O	null	null	null	292.121302384156024	null	null	405.295000000020025	null	null	null	null	null	null	-0.825801390405481	-0.825801390405481	0.0	null	[M + H]+	3	1	0.0	6	2167005	null	sample=1 period=1 cycle=2167 experiment=5
+SML	null	C14H18N3O2P	null	null	null	292.121302384156024	null	null	405.295000000020025	null	null	null	null	null	null	-0.866815897879027	-0.866815897879027	0.0	null	[M + H]+	4	1	0.0	6	2167005	null	sample=1 period=1 cycle=2167 experiment=5
+SML	null	C13H25NS3	null	null	null	292.121302384156024	null	null	405.295000000020025	null	null	null	null	null	null	-1.664232886651156	-1.664232886651156	0.0	null	[M + H]+	5	1	0.0	6	2167005	null	sample=1 period=1 cycle=2167 experiment=5
+SML	null	C13H17N3O5	null	null	null	296.12309906592202	null	null	406.816999999979998	null	null	null	null	null	null	0.26817272617047	0.26817272617047	0.0	null	[M + H]+	1	1	0.0	11	2171003	null	sample=1 period=1 cycle=2171 experiment=3
+SML	null	C9H13N9O3	null	null	null	296.12309906592202	null	null	406.816999999979998	null	null	null	null	null	null	-0.572292560546739	-0.572292560546739	0.0	null	[M + H]+	2	1	0.0	11	2171003	null	sample=1 period=1 cycle=2171 experiment=3
+SML	null	C14H13N7O	null	null	null	296.12309906592202	null	null	406.816999999979998	null	null	null	null	null	null	-1.204488955290804	-1.204488955290804	0.0	null	[M + H]+	3	1	0.0	11	2171003	null	sample=1 period=1 cycle=2171 experiment=3
+SML	null	C7H18N7O4P	null	null	null	296.12309906592202	null	null	406.816999999979998	null	null	null	null	null	null	-1.504015862062947	-1.504015862062947	0.0	null	[M + H]+	4	1	0.0	11	2171003	null	sample=1 period=1 cycle=2171 experiment=3
+SML	null	C8H18ClN7O3	null	null	null	296.12309906592202	null	null	406.816999999979998	null	null	null	null	null	null	-1.747230654218274	-1.747230654218274	0.0	null	[M + H]+	5	1	0.0	11	2171003	null	sample=1 period=1 cycle=2171 experiment=3
+SML	null	C13H17N3O5	null	null	null	296.123821549630009	null	null	407.245000000020013	null	null	null	null	null	null	0.801038404986894	0.801038404986894	0.0	null	[M + H]+	1	1	0.0	13	2172004	null	sample=1 period=1 cycle=2172 experiment=4
+SML	null	C14H13N7O	null	null	null	296.123821549630009	null	null	407.245000000020013	null	null	null	null	null	null	-0.326604763712441	-0.326604763712441	0.0	null	[M + H]+	2	1	0.0	13	2172004	null	sample=1 period=1 cycle=2172 experiment=4
+SML	null	C9H13N9O3	null	null	null	296.123821549630009	null	null	407.245000000020013	null	null	null	null	null	null	-1.470698784129811	-1.470698784129811	0.0	null	[M + H]+	3	1	0.0	13	2172004	null	sample=1 period=1 cycle=2172 experiment=4
+SML	null	C14H21N3S2	null	null	null	296.123821549630009	null	null	407.245000000020013	null	null	null	null	null	null	-1.470776093953486	-1.470776093953486	0.0	null	[M + H]+	4	1	0.0	13	2172004	null	sample=1 period=1 cycle=2172 experiment=4
+SML	null	C7H18N7O4P	null	null	null	296.123821549630009	null	null	407.245000000020013	null	null	null	null	null	null	-1.980782306742944	-1.980782306742944	0.0	null	[M + H]+	5	1	0.0	13	2172004	null	sample=1 period=1 cycle=2172 experiment=4
+SML	null	C14H13N7O	null	null	null	296.125008105473	null	null	407.654999999999973	null	null	null	null	null	null	0.703776516452899	0.703776516452899	0.0	null	[M + H]+	1	1	0.0	15	2173002	null	sample=1 period=1 cycle=2173 experiment=2
+SML	null	C13H17N3O5	null	null	null	296.125008105473	null	null	407.654999999999973	null	null	null	null	null	null	0.34156111474069	0.34156111474069	0.0	null	[M + H]+	2	1	0.0	15	2173002	null	sample=1 period=1 cycle=2173 experiment=2
+SML	null	C14H21N3S2	null	null	null	296.125008105473	null	null	407.654999999999973	null	null	null	null	null	null	-0.671538431374925	-0.671538431374925	0.0	null	[M + H]+	3	1	0.0	15	2173002	null	sample=1 period=1 cycle=2173 experiment=2
+SML	null	C11H22NO6P	null	null	null	296.125008105473	null	null	407.654999999999973	null	null	null	null	null	null	-1.133033174375252	-1.133033174375252	0.0	null	[M + H]+	4	1	0.0	15	2173002	null	sample=1 period=1 cycle=2173 experiment=2
+SML	null	C12H22ClNO5	null	null	null	296.125008105473	null	null	407.654999999999973	null	null	null	null	null	null	-1.274365933880982	-1.274365933880982	0.0	null	[M + H]+	5	1	0.0	15	2173002	null	sample=1 period=1 cycle=2173 experiment=2
+SML	null	C12H21NO5S	null	null	null	292.121970956018004	null	null	408.495000000000005	null	null	null	null	null	null	-1.070339243332602	-1.070339243332602	0.0	null	[M + H]+	1	1	0.0	18	2175004	null	sample=1 period=1 cycle=2175 experiment=4
+SML	null	C13H17N5OS	null	null	null	292.121970956018004	null	null	408.495000000000005	null	null	null	null	null	null	-1.097652227798995	-1.097652227798995	0.0	null	[M + H]+	2	1	0.0	18	2175004	null	sample=1 period=1 cycle=2175 experiment=4
+SML	null	C13H25NS3	null	null	null	292.121970956018004	null	null	408.495000000000005	null	null	null	null	null	null	-1.181396160542834	-1.181396160542834	0.0	null	[M + H]+	3	1	0.0	18	2175004	null	sample=1 period=1 cycle=2175 experiment=4
+SML	null	C15H18ClN3O	null	null	null	292.121970956018004	null	null	408.495000000000005	null	null	null	null	null	null	-1.231214929458647	-1.231214929458647	0.0	null	[M + H]+	4	1	0.0	18	2175004	null	sample=1 period=1 cycle=2175 experiment=4
+SML	null	C14H18N3O2P	null	null	null	292.121970956018004	null	null	408.495000000000005	null	null	null	null	null	null	-1.382118328990586	-1.382118328990586	0.0	null	[M + H]+	5	1	0.0	18	2175004	null	sample=1 period=1 cycle=2175 experiment=4
+SML	null	C12H21NO5S	null	null	null	292.121614764236995	null	null	408.915000000000021	null	null	null	null	null	null	-0.822790860200481	-0.822790860200481	0.0	null	[M + H]+	1	1	0.0	20	2176006	null	sample=1 period=1 cycle=2176 experiment=6
+SML	null	C15H18ClN3O	null	null	null	292.121614764236995	null	null	408.915000000000021	null	null	null	null	null	null	-0.959386206003756	-0.959386206003756	0.0	null	[M + H]+	2	1	0.0	20	2176006	null	sample=1 period=1 cycle=2176 experiment=6
+SML	null	C14H18N3O2P	null	null	null	292.121614764236995	null	null	408.915000000000021	null	null	null	null	null	null	-1.088638626581599	-1.088638626581599	0.0	null	[M + H]+	3	1	0.0	20	2176006	null	sample=1 period=1 cycle=2176 experiment=6
+SML	null	C16H13N5O	null	null	null	292.121614764236995	null	null	408.915000000000021	null	null	null	null	null	null	-1.238114662903954	-1.238114662903954	0.0	null	[M + H]+	4	1	0.0	20	2176006	null	sample=1 period=1 cycle=2176 experiment=6
+SML	null	C13H17N5OS	null	null	null	292.121614764236995	null	null	408.915000000000021	null	null	null	null	null	null	-1.392601066469847	-1.392601066469847	0.0	null	[M + H]+	5	1	0.0	20	2176006	null	sample=1 period=1 cycle=2176 experiment=6
+SML	null	C13H22N6O2	null	null	null	295.18707248574799	null	null	418.393999999979997	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0.0	null	[M + H]+	1	1	0.0	43	2199003	null	sample=1 period=1 cycle=2199 experiment=3
+SML	null	C12H26N2O6	null	null	null	295.18707248574799	null	null	418.393999999979997	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0.0	null	[M + H]+	2	1	0.0	43	2199003	null	sample=1 period=1 cycle=2199 experiment=3
+SML	null	C11H27N4O3P	null	null	null	295.18707248574799	null	null	418.393999999979997	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0.0	null	[M + H]+	3	1	0.0	43	2199003	null	sample=1 period=1 cycle=2199 experiment=3
+SML	null	C13H30N2OS2	null	null	null	295.18707248574799	null	null	418.393999999979997	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0.0	null	[M + H]+	4	1	0.0	43	2199003	null	sample=1 period=1 cycle=2199 experiment=3
+SML	null	C12H27ClN4O2	null	null	null	295.18707248574799	null	null	418.393999999979997	null	null	null	null	null	null	-0.816550711012076	-0.816550711012076	0.0	null	[M + H]+	5	1	0.0	43	2199003	null	sample=1 period=1 cycle=2199 experiment=3
+SML	null	C12H19NO7	null	null	null	290.124002639250989	null	null	420.444000000000017	null	null	null	null	null	null	0.592913354034559	0.592913354034559	0.0	null	[M + H]+	1	1	0.0	49	2204006	null	sample=1 period=1 cycle=2204 experiment=6
+SML	null	C13H15N5O3	null	null	null	290.124002639250989	null	null	420.444000000000017	null	null	null	null	null	null	0.447997612989534	0.447997612989534	0.0	null	[M + H]+	2	1	0.0	49	2204006	null	sample=1 period=1 cycle=2204 experiment=6
+SML	null	C13H23NO2S2	null	null	null	290.124002639250989	null	null	420.444000000000017	null	null	null	null	null	null	-0.824243246652225	-0.824243246652225	0.0	null	[M + H]+	3	1	0.0	49	2204006	null	sample=1 period=1 cycle=2204 experiment=6
+SML	null	C8H22N2O7P	null	null	null	290.124002639250989	null	null	420.444000000000017	null	null	null	null	null	null	-0.897755144282232	-0.897755144282232	0.0	null	[M + H]+	4	1	0.0	49	2204006	null	sample=1 period=1 cycle=2204 experiment=6
+SML	null	C9H22ClN2O6	null	null	null	290.124002639250989	null	null	420.444000000000017	null	null	null	null	null	null	-1.313937826583246	-1.313937826583246	0.0	null	[M + H]+	5	1	0.0	49	2204006	null	sample=1 period=1 cycle=2204 experiment=6
+

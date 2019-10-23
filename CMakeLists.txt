@@ -35,6 +35,9 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 project("OpenMS_host")
 
+# required for cmake < 3.13 if ccache is used
+set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
+
 #------------------------------------------------------------------------------
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
@@ -43,6 +46,13 @@ SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 # Set C++ version
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # require at least gcc 4.8 for full C++11 support
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
+    message(FATAL_ERROR "GCC version must be at least 4.8!")
+  endif()
+endif()
 
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
@@ -78,6 +88,11 @@ option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
+if(MSVC)
+  option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
+else()
+  option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." ON)
+endif()
 
 #------------------------------------------------------------------------------
 # Extend module path with our modules
@@ -276,11 +291,11 @@ is_valid_package(${PACKAGE_TYPE})
 ## Warn here because you need the signing identity before the app bundles are defined in the
 ## src subfolder
 if("${PACKAGE_TYPE}" STREQUAL "dmg")
-  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "")
-    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY being set. "
+  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
+    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
                          "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
   else()
-    ## CPack has a special variable for it.
+    ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
   endif()
 endif()

@@ -63,6 +63,8 @@ MzTabExporter
 NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
+OpenPepXL
+OpenPepXLLF
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
@@ -83,6 +85,7 @@ ProteinQuantifier
 ProteinResolver
 PTModel
 PTPredict
+QualityControl
 RTModel
 RTPredict
 SeedListGenerator
@@ -99,6 +102,7 @@ SpectraFilterWindowMower
 SpectraMerger
 TextExporter
 TOFCalibration
+XFDR
 XTandemAdapter
 )
 

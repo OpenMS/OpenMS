@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="1:5" enzyme="trypsin/p" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
+				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="maximum"/>
+				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="0"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="A" score="0.1" sequence="ELEFANTKIMTELLERMYFINGER" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="nr_found_peptides" value="2"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.862100000000002" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.9" sequence="ELEFANT" charge="2" aa_before="[" aa_after="K" start="0" end="6" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.862100000000002" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.92" sequence="RMYFINGE" charge="2" aa_before="E" aa_after="R" start="15" end="11" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.862100000000002" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.9" sequence="ELEFANT" charge="2" aa_before="[" aa_after="K" start="0" end="6" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.862100000000002" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.92" sequence="ELEFANT" charge="3" aa_before="[" aa_after="K" start="0" end="6" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.862100000000002" MZ="0.0" RT="0.0" >
+			<PeptideHit score="0.8" sequence="RMYFINGE" charge="2" aa_before="E" aa_after="R" start="15" end="11" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

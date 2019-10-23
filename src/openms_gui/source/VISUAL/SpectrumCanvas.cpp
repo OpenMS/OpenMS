@@ -391,60 +391,99 @@ namespace OpenMS
 
   bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename)
   {
-    layers_.resize(layers_.size() + 1);
-    layers_.back().param = param_;
-    layers_.back().filename = filename;
-    layers_.back().setPeakData(map);
-    layers_.back().setOnDiscPeakData(od_map);
+    LayerData new_layer;
+    new_layer.param = param_;
+    new_layer.filename = filename;
+    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.setPeakData(map);
+    new_layer.setOnDiscPeakData(od_map);
 
-    if (layers_.back().getPeakData()->getChromatograms().size() != 0 
-        && layers_.back().getPeakData()->size() != 0)
+    // both empty
+    if (!new_layer.getPeakData()->getChromatograms().empty() 
+     && !new_layer.getPeakData()->empty())
     {
       // TODO : handle this case better
-      LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
+      OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
     }
 
-    if (layers_.back().getPeakData()->getChromatograms().size() != 0 
-        && layers_.back().getPeakData()->size() == 0)
+    // check which one is empty
+    if (!new_layer.getPeakData()->getChromatograms().empty() 
+      && new_layer.getPeakData()->empty())
     {
-      layers_.back().type = LayerData::DT_CHROMATOGRAM;
+      new_layer.type = LayerData::DT_CHROMATOGRAM;
     }
     else
     {
-      layers_.back().type = LayerData::DT_PEAK;
+      new_layer.type = LayerData::DT_PEAK;
     }
+
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
+
     return finishAdding_();
   }
 
   bool SpectrumCanvas::addLayer(FeatureMapSharedPtrType map, const String & filename)
   {
-    layers_.resize(layers_.size() + 1);
-    layers_.back().param = param_;
-    layers_.back().filename = filename;
-    layers_.back().getFeatureMap() = map;
-    layers_.back().type = LayerData::DT_FEATURE;
+    LayerData new_layer;
+    new_layer.param = param_;
+    new_layer.filename = filename;
+    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.getFeatureMap() = map;
+    new_layer.type = LayerData::DT_FEATURE;
+
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_();
   }
 
   bool SpectrumCanvas::addLayer(ConsensusMapSharedPtrType map, const String & filename)
   {
-    layers_.resize(layers_.size() + 1);
-    layers_.back().param = param_;
-    layers_.back().filename = filename;
-    layers_.back().getConsensusMap() = map;
-    layers_.back().type = LayerData::DT_CONSENSUS;
+    LayerData new_layer;
+    new_layer.param = param_;
+    new_layer.filename = filename;
+    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.getConsensusMap() = map;
+    new_layer.type = LayerData::DT_CONSENSUS;
+
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_();
   }
 
   bool SpectrumCanvas::addLayer(vector<PeptideIdentification> & peptides,
                                 const String & filename)
   {
-    layers_.resize(layers_.size() + 1);
-    layers_.back().param = param_;
-    layers_.back().filename = filename;
-    layers_.back().peptides.swap(peptides);
-    layers_.back().type = LayerData::DT_IDENT;
-    return finishAdding_();
+    LayerData new_layer;
+    new_layer.param = param_;
+    new_layer.filename = filename;
+    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.peptides.swap(peptides);
+    new_layer.type = LayerData::DT_IDENT;
+
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
+    return finishAdding_(); 
   }
 
   void SpectrumCanvas::setLayerName(Size i, const String & name)

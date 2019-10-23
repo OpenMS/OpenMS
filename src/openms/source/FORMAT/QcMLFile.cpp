@@ -1052,7 +1052,7 @@ namespace OpenMS
       String xslt_file = File::find("XSL/QcML_report_sheet.xsl"); //TODO make this user defined pt.1
       std::ifstream in(xslt_file.c_str());
       xslt = std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-      xslt = xslt.erase(0, xslt.find("\n") + 1);
+      xslt = xslt.erase(0, xslt.find('\n') + 1);
       xslt_ref = "openms-qc-stylesheet"; //TODO make this user defined pt.2
     }
     catch (Exception::FileNotFound &)

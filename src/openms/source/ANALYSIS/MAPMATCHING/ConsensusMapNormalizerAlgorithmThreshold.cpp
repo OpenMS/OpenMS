@@ -90,7 +90,7 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
+    OPENMS_LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
 
     //determine ratio
     vector<double> ratio_vector(number_of_maps);
@@ -110,7 +110,7 @@ namespace OpenMS
       }
       if (ratios.empty())
       {
-        LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
+        OPENMS_LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
         return vector<double>(number_of_maps, 1.0);
       }
       ratio_vector[j] = Math::mean(ratios.begin(), ratios.end());

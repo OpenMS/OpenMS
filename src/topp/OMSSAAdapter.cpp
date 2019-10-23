@@ -440,7 +440,7 @@ protected:
     //-------------------------------------------------------------
     if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
     {
-      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
+      OPENMS_LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -458,7 +458,7 @@ protected:
       }
       catch (...)
       {
-        LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
+        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
       db_name = full_db_name;
@@ -470,10 +470,10 @@ protected:
     bool has_phr = File::readable(db_name + ".phr");
     if (!has_pin || !has_phr)
     {
-      LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
-      if (!has_pin) LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
-      if (!has_phr) LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
-      LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
+      OPENMS_LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
+      if (!has_pin) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
+      if (!has_phr) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      OPENMS_LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -673,8 +673,9 @@ protected:
             9 modmax	-  the max number of modification types
         */
 
-        ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(it->second).getTermSpecificity();
-        String origin = ModificationsDB::getInstance()->getModification(it->second).getOrigin();
+	const ResidueModification* mod = ModificationsDB::getInstance()->getModification(it->second);
+        ResidueModification::TermSpecificity ts = mod->getTermSpecificity();
+        const String& origin = mod->getOrigin();
         if (ts == ResidueModification::ANYWHERE)
         {
           out << "\t\t<MSModType value=\"modaa\">0</MSModType>" << "\n";
@@ -704,8 +705,8 @@ protected:
         out << "\t</MSModSpec_type>" << "\n";
 
         out << "\t<MSModSpec_name>" << it->second << "</MSModSpec_name>" << "\n";
-        out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffMonoMass()  << "</MSModSpec_monomass>" << "\n";
-        out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
+        out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second)->getDiffMonoMass()  << "</MSModSpec_monomass>" << "\n";
+        out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second)->getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
         out << "\t<MSModSpec_n15mass>0</MSModSpec_n15mass>" << "\n";
 
         if (origin != "")
@@ -718,8 +719,8 @@ protected:
           double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
           double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossAverageMass();
           */
-          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getMonoWeight();
-          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getAverageWeight();
+          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getMonoWeight();
+          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getAverageWeight();
 
           if (fabs(neutral_loss_mono) > 0.00001)
           {
@@ -748,10 +749,10 @@ protected:
     writeDebug_("Splitting modification into N-Term, C-Term and anywhere specificity", 1);
     for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
     {
-      ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+      ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(*it)->getTermSpecificity();
       if (ts == ResidueModification::ANYWHERE)
       {
-        fixed_residue_mods[ModificationsDB::getInstance()->getModification(*it).getOrigin()] = *it;
+        fixed_residue_mods[ModificationsDB::getInstance()->getModification(*it)->getOrigin()] = *it;
       }
       if (ts == ResidueModification::C_TERM)
       {
@@ -773,16 +774,17 @@ protected:
     //-------------------------------------------------------------
 
     // names of temporary files for data chunks
-    StringList file_spectra_chunks_in, file_spectra_chunks_out, primary_ms_runs;
+    StringList file_spectra_chunks_in, file_spectra_chunks_out;
     Size ms2_spec_count(0);
+    ProteinIdentification protein_identification;    
     { // local scope to free memory after conversion to MGF format is done
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap peak_map;
       fh.getOptions().addMSLevel(2);
       fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_, false, false);
+      protein_identification.setPrimaryMSRunPath({inputfile_name}, peak_map);
 
-      peak_map.getPrimaryMSRunPath(primary_ms_runs);
       ms2_spec_count = peak_map.size();
       writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 
@@ -838,8 +840,6 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    ProteinIdentification protein_identification;
-    protein_identification.setPrimaryMSRunPath(primary_ms_runs);
     vector<PeptideIdentification> peptide_ids;
 
     ProgressLogger pl;
@@ -1039,7 +1039,7 @@ protected:
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 
     // some stats
-    LOG_INFO << "Statistics:\n"
+    OPENMS_LOG_INFO << "Statistics:\n"
              << "  identified MS2 spectra: " << peptide_ids.size() << " / " << ms2_spec_count << " = " << int(peptide_ids.size() * 100.0 / ms2_spec_count) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
 
 

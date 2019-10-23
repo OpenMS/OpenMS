@@ -3,11 +3,12 @@
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="+2-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 	</SearchParameters>
-	<IdentificationRun date="2017-11-28T11:40:16" search_engine="CompNovo" search_engine_version="0.9beta" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-08-09T14:42:15" search_engine="CompNovo" search_engine_version="0.9beta" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<UserParam type="stringList" name="spectra_data" value="[file://CompNovoCID_1_input.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" MZ="509.751" RT="-1" >
-			<PeptideHit score="1.0659004538858" sequence="DFPLANGER" charge="2" >
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0.0" MZ="509.750999999999976" RT="-1.0" >
+			<PeptideHit score="1.06590046233205" sequence="DFPLANGER" charge="2" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

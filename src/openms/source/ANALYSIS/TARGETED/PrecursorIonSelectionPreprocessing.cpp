@@ -263,7 +263,7 @@ namespace OpenMS
   {
 
 #ifdef PISP_DEBUG
-    LOG_DEBUG << "Original Entry-Identifier:" << entry.identifier << std::endl;
+    OPENMS_LOG_DEBUG << "Original Entry-Identifier:" << entry.identifier << std::endl;
 #endif
     if (entry.identifier.hasPrefix("sp|") || entry.identifier.hasPrefix("tr|") || entry.identifier.hasPrefix("gi|"))
     {
@@ -280,7 +280,7 @@ namespace OpenMS
     }
 
 #ifdef PISP_DEBUG
-    LOG_DEBUG << "Processed Entry-Identifier:" << entry.identifier << std::endl;
+    OPENMS_LOG_DEBUG << "Processed Entry-Identifier:" << entry.identifier << std::endl;
 #endif
 
   }

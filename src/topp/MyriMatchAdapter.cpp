@@ -162,9 +162,9 @@ protected:
       set<String> mod_names = mod_set.getFixedModificationNames();
       for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
-        ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
-        String origin = String(mod.getOrigin());
-        String mass_diff = String(mod.getDiffMonoMass());
+        const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it);
+        String origin = mod->getOrigin();
+        String mass_diff = String(mod->getDiffMonoMass());
         if (origin == "N-term")
         {
           origin = "(";
@@ -173,15 +173,15 @@ protected:
         {
           origin = ")";
         }
-        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "N-term")
+        else if (mod->getTermSpecificityName(mod->getTermSpecificity()) == "N-term")
         {
           origin = "(" + origin;
         }
-        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "C-term")
+        else if (mod->getTermSpecificityName(mod->getTermSpecificity()) == "C-term")
         {
           origin = ")" + origin;
         }
-        static_mod_list.push_back(origin + " " + mod.getDiffMonoMass());
+        static_mod_list.push_back(origin + " " + mod->getDiffMonoMass());
       }
     }
 
@@ -191,9 +191,9 @@ protected:
 
       for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
-        ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
-        String origin = String(mod.getOrigin());
-        String mass_diff = String(mod.getDiffMonoMass());
+        const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it);
+        String origin = mod->getOrigin();
+        String mass_diff = String(mod->getDiffMonoMass());
         if (origin == "N-term")
         {
           origin = "(";
@@ -202,11 +202,11 @@ protected:
         {
           origin = ")";
         }
-        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "N-term")
+        else if (mod->getTermSpecificityName(mod->getTermSpecificity()) == "N-term")
         {
           origin = "(" + origin;
         }
-        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "C-term")
+        else if (mod->getTermSpecificityName(mod->getTermSpecificity()) == "C-term")
         {
           origin = ")" + origin;
         }
@@ -513,9 +513,7 @@ protected:
 
     if (!protein_identifications.empty())
     {
-      StringList ms_runs;
-      exp.getPrimaryMSRunPath(ms_runs);
-      protein_identifications[0].setPrimaryMSRunPath(ms_runs);
+      protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
     }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;

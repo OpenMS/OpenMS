@@ -54,7 +54,7 @@ namespace OpenMS
     // Catch cases where a compound has no transitions
     if (pep2tr.count(pep.id) == 0)
     {
-      LOG_INFO << "Warning: no transitions found for compound " << pep.id << std::endl;
+      OPENMS_LOG_INFO << "Warning: no transitions found for compound " << pep.id << std::endl;
       coord.id = OpenSwathHelper::computePrecursorId(pep.id, 0);
       return false;
     }

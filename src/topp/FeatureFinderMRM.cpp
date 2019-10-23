@@ -36,6 +36,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -149,9 +151,16 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
-    features.setPrimaryMSRunPath(ms_runs);
+
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      features.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      features.setPrimaryMSRunPath({in}, exp);
+    }
 
     // Apply the feature finder
     ff.run(FeatureFinderAlgorithmMRM::getProductName(), exp, features, feafi_param, seeds);
@@ -167,10 +176,10 @@ protected:
         {
           vector<String> keys;
           it->getKeys(keys);
-          LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          OPENMS_LOG_INFO << "Feature " << it->getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)
           {
-            LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+            OPENMS_LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
           }
         }
       }

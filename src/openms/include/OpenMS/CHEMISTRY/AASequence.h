@@ -82,7 +82,7 @@ namespace OpenMS
       <tt>".(Dimethyl)DFPIAMGER."</tt> and <tt>".DFPIAMGER.(Label:18O(2))"</tt>
       represent the labelling of the N- and C-terminus respectively, but
       <tt>".DFPIAMGER(Phospho)."</tt> will be interpreted as a phosphorylation
-      of the last arginine at its side chain. 
+      of the last arginine at its side chain.
 
       Note there is a subtle difference between
       <tt>AASequence::fromString(".DFPIAM[+16]GER.")</tt> and
@@ -91,7 +91,7 @@ namespace OpenMS
       difference of 16 +/- 0.5, the latter will try to find the @e closest
       matching modification to the exact mass. This usually gives the intended
       results while the first approach may not.
-      
+
       Arbitrary/unknown amino acids (usually due to an unknown modification)
       can be specified using tags preceded by X: "X[weight]". This indicates a
       new amino acid ("X") with the specified weight, e.g. "RX[148.5]T"". Note
@@ -101,6 +101,12 @@ namespace OpenMS
       getFormula(), as tags will not be considered in this case (there exists
       no formula for them).  However, they have an influence on getMonoWeight()
       and getAverageWeight()!
+
+      @note For C/N terminal modifications, the absolute mass is assumed to be
+      1 (H) for the N-terminus and 17 (OH) for the C-terminus, therefore a
+      modification specified as absolute n[43]PEPTIDE would translate to
+      n[+42]PEPTIDE using relative masses. Note that there can be ambiguity in
+      cases where the loss includes the terminal amino acids.
 
       @ingroup Chemistry
   */
@@ -412,20 +418,23 @@ protected:
         Uses round brackets when possible (id is known) or square brackets for
         unknown modifications where only the mass is known.
 
-        i.e.: .n[43]PEPC(Carbamidomethyl)PEPM[147]PEPR.[16]
+        i.e.: .[43]PEPC(Carbamidomethyl)PEPM[147]PEPR.[-1]
+
+        @note For unknown modifications, the function will attempt to use the
+        exact same format used in the input
     */
     String toString() const;
 
-    /// returns the peptide as string without any modifications
+    /// returns the peptide as string without any modifications or (e.g., "PEPTIDER")
     String toUnmodifiedString() const;
 
     /**
         @brief returns the peptide as string with UniMod-style modifications embedded in brackets
 
-        Uses round brackets when possible (id is known) or square brackets for
-        unknown modifications where only the mass is known.
+        Annotates modification with UniMod identifier (when identifier is
+        known) and uses square brackets for unknown modifications (only mass is known).
 
-        i.e.: .n[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
+        i.e.: .[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
     */
     String toUniModString() const;
 
@@ -434,16 +443,36 @@ protected:
 
         Instead of using the modification names, it writes the modification masses in brackets
 
-        i.e.: n[35]RQLNK[162]LQHK[162]GEA
+        i.e.:
+
+         - n[43]PEPC[160]PEPM[147]PEPRc[16]
+         - n[+42]PEPC[+57]PEPM[+16]PEPRc[-1]
+
+        will be produced, depending on whether relative or absolute masses are used.
+
+        @param integer_mass Whether to use integer masses in brackets (default is true, if false, accurate masses will be written)
+        @param mass_delta Whether to write absolute masses M[147] or relative mass deltas M[+16] (default is false)
+        @param fixed_modifications Optional list of fixed modifications that should not be added to the output (they are considered to be present in all cases)
+
+        @note Using integer masses may mean that there could be multiple modifications mapping to the same mass
     */
-    String toBracketString(bool integer_mass = true, const std::vector<String> & fixed_modifications = std::vector<String>()) const;
+    String toBracketString(bool integer_mass = true,
+                           bool mass_delta = false,
+                           const std::vector<String> & fixed_modifications = std::vector<String>()) const;
 
     /// set the modification of the residue at position index.
-    /// if an empty string is passed replaces the residue with its unmodified version 
+    /// if an empty string is passed replaces the residue with its unmodified version
     void setModification(Size index, const String& modification);
 
+    // sets the (potentially modified) residue
+    void setModification(Size index, const Residue* modification) { peptide_[index] = modification; }
+
     /// sets the N-terminal modification
+    /// Note: Don't use this method if speed is critical
     void setNTerminalModification(const String& modification);
+
+    /// sets the N-terminal modification
+    void setNTerminalModification(const ResidueModification* modification);
 
     /// returns the name (ID) of the N-terminal modification, or an empty string if none is set
     const String& getNTerminalModificationName() const;
@@ -452,7 +481,11 @@ protected:
     const ResidueModification* getNTerminalModification() const;
 
     /// sets the C-terminal modification
+    /// Note: Don't use this method if speed is critical
     void setCTerminalModification(const String& modification);
+
+    /// sets the C-terminal modification
+    void setCTerminalModification(const ResidueModification* modification);
 
     /// returns the name (ID) of the C-terminal modification, or an empty string if none is set
     const String& getCTerminalModificationName() const;
@@ -566,7 +599,7 @@ protected:
     friend OPENMS_DLLAPI std::istream& operator>>(std::istream& is, const AASequence& peptide);
     //@}
 
-    /** 
+    /**
       @brief create AASequence object by parsing an OpenMS string
 
       @param s Input string
@@ -574,10 +607,10 @@ protected:
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const String& s, 
+    static AASequence fromString(const String& s,
                                  bool permissive = true);
 
-    /** 
+    /**
       @brief create AASequence object by parsing a C string (character array)
 
       @param s Input string
@@ -585,7 +618,7 @@ protected:
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const char* s, 
+    static AASequence fromString(const char* s,
                                  bool permissive = true);
 
   protected:
@@ -596,7 +629,7 @@ protected:
 
     const ResidueModification* c_term_mod_;
 
-    /** 
+    /**
       @brief Parses modifications in round brackets (an identifier)
 
       If dot notation is used it resolves cterm ambiguity based on the presence
@@ -615,7 +648,7 @@ protected:
                                                         AASequence& aas,
                                                         const ResidueModification::TermSpecificity& specificity);
 
-    /** 
+    /**
       @brief Parses modifications in square brackets (a mass)
 
       If dot notation is used it resolves cterm ambiguity based on the presence

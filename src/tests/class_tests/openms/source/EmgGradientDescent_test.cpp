@@ -594,7 +594,7 @@ START_SECTION(double emg_point(
 }
 END_SECTION
 
-START_SECTION(void emg_vector(
+START_SECTION(void applyEstimatedParameters(
   const std::vector<double>& xs,
   const double h,
   const double mu,
@@ -616,14 +616,14 @@ START_SECTION(void emg_vector(
 
   params.setValue("compute_additional_points", "false");
   emg_f.emg_gd_.setParameters(params);
-  emg_f.emg_vector(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys);
+  emg_f.applyEstimatedParameters(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys);
   TEST_EQUAL(out_xs.size(), saturated_cutoff_pos_min.size())
   TEST_REAL_SIMILAR(out_xs.front(), 14.3310337)
   TEST_REAL_SIMILAR(out_ys.front(), 2144281.1472228)
 
   params.setValue("compute_additional_points", "true");
   emg_f.emg_gd_.setParameters(params);
-  emg_f.emg_vector(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys);
+  emg_f.applyEstimatedParameters(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys);
   TEST_EQUAL(out_xs.size(), 71) // more points than before
   TEST_REAL_SIMILAR(out_xs.front(), 14.2717555076923) // peak was cutoff on the left side
   TEST_REAL_SIMILAR(out_ys.front(), 108845.941990663)

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/hr/openmsall/source/OpenMS_merges/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
 <consensusXML version="1.7" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2018-07-31T10:53:37" search_engine="OpenMS/ConsensusID_best" search_engine_version="2.4.0-fix-schemas-2018-07-31">
+	<IdentificationRun id="PI_0" date="2019-08-12T14:44:43" search_engine="OpenMS/ConsensusID_best" search_engine_version="2.4.0-fix-primary-ms-2019-08-09">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<UserParam type="string" name="ConsensusIDBaseSearch" value="Mascot:"/>
+			<UserParam type="stringList" name="spectra_data" value="[]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<mapList count="2">
@@ -14,7 +16,7 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_0" quality="0">
+		<consensusElement id="e_0" quality="0.0">
 			<centroid rt="1.5" mz="1.5" it="2.29"/>
 			<groupedElementList>
 				<element map="1" id="0" rt="1.45" mz="1.45" it="2.63"/>
@@ -22,17 +24,17 @@
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="9" sequence="F" charge="3">
-					<UserParam type="float" name="consensus_support" value="0"/>
+					<UserParam type="float" name="consensus_support" value="0.0"/>
 				</PeptideHit>
 				<PeptideHit score="3" sequence="A" charge="2">
 					<UserParam type="float" name="consensus_support" value="0.333333333333333"/>
 				</PeptideHit>
 				<PeptideHit score="2" sequence="E" charge="1">
-					<UserParam type="float" name="consensus_support" value="0"/>
+					<UserParam type="float" name="consensus_support" value="0.0"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_1" quality="0">
+		<consensusElement id="e_1" quality="0.0">
 			<centroid rt="3.5" mz="3.5" it="2.42"/>
 			<groupedElementList>
 				<element map="1" id="1" rt="3.45" mz="3.45" it="2.65"/>
@@ -40,10 +42,10 @@
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="7" sequence="H" charge="2">
-					<UserParam type="float" name="consensus_support" value="0"/>
+					<UserParam type="float" name="consensus_support" value="0.0"/>
 				</PeptideHit>
 				<PeptideHit score="4" sequence="D" charge="2">
-					<UserParam type="float" name="consensus_support" value="0"/>
+					<UserParam type="float" name="consensus_support" value="0.0"/>
 				</PeptideHit>
 				<PeptideHit score="3" sequence="C" charge="3">
 					<UserParam type="float" name="consensus_support" value="0.333333333333333"/>

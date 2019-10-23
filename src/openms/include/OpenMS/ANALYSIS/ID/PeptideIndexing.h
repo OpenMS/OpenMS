@@ -133,8 +133,7 @@ public:
       DATABASE_EMPTY,
       PEPTIDE_IDS_EMPTY,
       ILLEGAL_PARAMETERS,
-      UNEXPECTED_RESULT,
-      DECOYSTRING_EMPTY,
+      UNEXPECTED_RESULT
     };
 
     /// Default constructor
@@ -192,24 +191,19 @@ public:
       // no decoy string provided? try to deduce from data
       if (decoy_string_.empty())
       {
-        bool is_decoy_string_auto_successful = findDecoyString_(proteins);
-
-        if (!is_decoy_string_auto_successful && contains_decoys_)
-        {
-          return DECOYSTRING_EMPTY;
-        }
-        else if (!is_decoy_string_auto_successful && !contains_decoys_)
-        {
-          LOG_WARN << "Unable to determine decoy string automatically, not enough decoys were detected! Using default " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "\n"
-                   << "If you think that this is false, please provide a decoy_string and its position manually!" << std::endl;
-        }
-        else
-        {
-          // decoy string and position was extracted successfully
-          LOG_INFO << "Using " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "'" << std::endl;
-        }
-
+        auto r = DecoyHelper::findDecoyString(proteins);
         proteins.reset();
+        if (!r.success)
+        {
+          r.is_prefix = true;
+          r.name = "DECOY_";
+          OPENMS_LOG_WARN << "Unable to determine decoy string automatically (not enough decoys were detected)! Using default " << (r.is_prefix ? "prefix" : "suffix") << " decoy string '" << r.name << "'\n"
+                          << "If you think that this is incorrect, please provide a decoy_string and its position manually!" << std::endl;
+        }
+        prefix_ = r.is_prefix;
+        decoy_string_ = r.name;
+        // decoy string and position was extracted successfully
+        OPENMS_LOG_INFO << "Using " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "'" << std::endl;
       }
 
       //---------------------------------------------------------------
@@ -228,23 +222,19 @@ public:
         xtandem_fix_parameters = false;
       }
 
-      // enzyme is already Trypsin/P? don't automate MSGFPlus
-      if (enzyme.getEnzymeName() == "Trypsin/P") { msgfplus_fix_parameters = false; }
-
       // determine if search engine is solely xtandem or MSGFPlus
       for (const auto& prot_id : prot_ids)
       {
-        if (!msgfplus_fix_parameters && !xtandem_fix_parameters) { break; }
-        String se = prot_id.getSearchEngine();
-        std::string search_engine = StringUtils::toUpper(se);
+        String search_engine = prot_id.getSearchEngine();
+        StringUtils::toUpper(search_engine);
         if (search_engine != "XTANDEM") { xtandem_fix_parameters = false; }
-        if (search_engine != "MSGFPLUS" || "MS-GF+") { msgfplus_fix_parameters = false; }
+        if (!(search_engine == "MSGFPLUS" || search_engine == "MS-GF+")) { msgfplus_fix_parameters = false; }
       }
 
-      // solely MSGFPlus -> Trypsin P as enzyme
+      // solely MSGFPlus -> Trypsin/P as enzyme
       if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin")
       {
-        LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
+        OPENMS_LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
         enzyme.setEnzyme("Trypsin/P");
       }
 
@@ -254,19 +244,19 @@ public:
       // cache the first proteins
       const size_t PROTEIN_CACHE_SIZE = 4e5; // 400k should be enough for most DB's and is not too hard on memory either (~200 MB FASTA)
 
-      this->startProgress(0, 1, "Load first chunk");
+      this->startProgress(0, 1, "Load first DB chunk");
       proteins.cacheChunk(PROTEIN_CACHE_SIZE);
       this->endProgress();
 
       if (proteins.empty()) // we do not allow an empty database
       {
-        LOG_ERROR << "Error: An empty database was provided. Mapping makes no sense. Aborting..." << std::endl;
+        OPENMS_LOG_ERROR << "Error: An empty database was provided. Mapping makes no sense. Aborting..." << std::endl;
         return DATABASE_EMPTY;
       }
 
       if (pep_ids.empty()) // Aho-Corasick requires non-empty input; but we allow this case, since the TOPP tool should not crash when encountering a bad raw file (with no PSMs)
       {
-        LOG_WARN << "Warning: An empty set of peptide identifications was provided. Output will be empty as well." << std::endl;
+        OPENMS_LOG_WARN << "Warning: An empty set of peptide identifications was provided. Output will be empty as well." << std::endl;
         if (!keep_unreferenced_proteins_)
         {
           // delete only protein hits, not whole ID runs incl. meta data:
@@ -306,7 +296,7 @@ public:
             String seq = it2->getSequence().toUnmodifiedString().remove('*'); // make a copy, i.e. do NOT change the peptide sequence!
             if (seqan::isAmbiguous(seqan::AAString(seq.c_str())))
             { // do not quit here, to show the user all sequences .. only quit after loop
-              LOG_ERROR << "Peptide sequence '" << it2->getSequence() << "' contains one or more ambiguous amino acids (B|J|Z|X).\n";
+              OPENMS_LOG_ERROR << "Peptide sequence '" << it2->getSequence() << "' contains one or more ambiguous amino acids (B|J|Z|X).\n";
               has_illegal_AAs = true;
             }
             if (IL_equivalent_) // convert L to I;
@@ -318,30 +308,30 @@ public:
         }
         if (has_illegal_AAs)
         {
-          LOG_ERROR << "One or more peptides contained illegal amino acids. This is not allowed!"
+          OPENMS_LOG_ERROR << "One or more peptides contained illegal amino acids. This is not allowed!"
                     << "\nPlease either remove the peptide or replace it with one of the unambiguous ones (while allowing for ambiguous AA's to match the protein)." << std::endl;;
         }
 
-        LOG_INFO << "Mapping " << length(pep_DB) << " peptides to " << (proteins.size() == PROTEIN_CACHE_SIZE ? "? (unknown number of)" : String(proteins.size()))  << " proteins." << std::endl;
+        OPENMS_LOG_INFO << "Mapping " << length(pep_DB) << " peptides to " << (proteins.size() == PROTEIN_CACHE_SIZE ? "? (unknown number of)" : String(proteins.size()))  << " proteins." << std::endl;
 
         if (length(pep_DB) == 0)
         { // Aho-Corasick will crash if given empty needles as input
-          LOG_WARN << "Warning: Peptide identifications have no hits inside! Output will be empty as well." << std::endl;
+          OPENMS_LOG_WARN << "Warning: Peptide identifications have no hits inside! Output will be empty as well." << std::endl;
           return PEPTIDE_IDS_EMPTY;
         }
 
         /*
            Aho Corasick (fast)
         */
-        LOG_INFO << "Searching with up to " << aaa_max_ << " ambiguous amino acid(s) and " << mm_max_ << " mismatch(es)!" << std::endl;
+        OPENMS_LOG_INFO << "Searching with up to " << aaa_max_ << " ambiguous amino acid(s) and " << mm_max_ << " mismatch(es)!" << std::endl;
         SysInfo::MemUsage mu;
-        LOG_INFO << "Building trie ...";
+        OPENMS_LOG_INFO << "Building trie ...";
         StopWatch s;
         s.start();
         AhoCorasickAmbiguous::FuzzyACPattern pattern;
         AhoCorasickAmbiguous::initPattern(pep_DB, aaa_max_, mm_max_, pattern);
         s.stop();
-        LOG_INFO << " done (" << int(s.getClockTime()) << "s)" << std::endl;
+        OPENMS_LOG_INFO << " done (" << int(s.getClockTime()) << "s)" << std::endl;
         s.reset();
 
         uint16_t count_j_proteins(0);
@@ -478,15 +468,15 @@ public:
         mu.after();
         std::cout << mu.delta("Aho-Corasick") << "\n\n";
 
-        LOG_INFO << "\nAho-Corasick done:\n  found " << func.filter_passed << " hits for " << func.pep_to_prot.size() << " of " << length(pep_DB) << " peptides.\n";
+        OPENMS_LOG_INFO << "\nAho-Corasick done:\n  found " << func.filter_passed << " hits for " << func.pep_to_prot.size() << " of " << length(pep_DB) << " peptides.\n";
 
         // write some stats
-        LOG_INFO << "Peptide hits passing enzyme filter: " << func.filter_passed << "\n"
+        OPENMS_LOG_INFO << "Peptide hits passing enzyme filter: " << func.filter_passed << "\n"
                  << "     ... rejected by enzyme filter: " << func.filter_rejected << std::endl;
 
         if (count_j_proteins)
         {
-          LOG_WARN << "PeptideIndexer found " << count_j_proteins << " protein sequences in your database containing the amino acid 'J'."
+          OPENMS_LOG_WARN << "PeptideIndexer found " << count_j_proteins << " protein sequences in your database containing the amino acid 'J'."
             << "To match 'J' in a protein, an ambiguous amino acid placeholder for I/L will be used.\n"
             << "This costs runtime and eats into the 'aaa_max' limit, leaving less opportunity for B/Z/X matches.\n"
             << "If you want 'J' to be treated as unambiguous, enable '-IL_equivalent'!" << std::endl;
@@ -586,8 +576,8 @@ public:
           {
             it2->setMetaValue("protein_references", "unmatched");
             ++stats_unmatched;
-            if (stats_unmatched < 15) LOG_INFO << "Unmatched peptide: " << it2->getSequence() << "\n";
-            else if (stats_unmatched == 15) LOG_INFO << "Unmatched peptide: ...\n";
+            if (stats_unmatched < 15) OPENMS_LOG_INFO << "Unmatched peptide: " << it2->getSequence() << "\n";
+            else if (stats_unmatched == 15) OPENMS_LOG_INFO << "Unmatched peptide: ...\n";
           }
 
           ++pep_idx; // next hit
@@ -596,19 +586,19 @@ public:
       }
 
       Size total_peptides = stats_count_m_t + stats_count_m_d + stats_count_m_td + stats_unmatched;
-      LOG_INFO << "-----------------------------------\n";
-      LOG_INFO << "Peptide statistics\n";
-      LOG_INFO << "\n";
-      LOG_INFO << "  unmatched                : " << stats_unmatched << " (" << stats_unmatched * 100 / total_peptides << " %)\n";
-      LOG_INFO << "  target/decoy:\n";
-      LOG_INFO << "    match to target DB only: " << stats_count_m_t << " (" << stats_count_m_t * 100 / total_peptides << " %)\n";
-      LOG_INFO << "    match to decoy DB only : " << stats_count_m_d << " (" << stats_count_m_d * 100 / total_peptides << " %)\n";
-      LOG_INFO << "    match to both          : " << stats_count_m_td << " (" << stats_count_m_td * 100 / total_peptides << " %)\n";
-      LOG_INFO << "\n";
-      LOG_INFO << "  mapping to proteins:\n";
-      LOG_INFO << "    no match (to 0 protein)         : " << stats_unmatched << "\n";
-      LOG_INFO << "    unique match (to 1 protein)     : " << stats_matched_unique << "\n";
-      LOG_INFO << "    non-unique match (to >1 protein): " << stats_matched_multi << std::endl;
+      OPENMS_LOG_INFO << "-----------------------------------\n";
+      OPENMS_LOG_INFO << "Peptide statistics\n";
+      OPENMS_LOG_INFO << "\n";
+      OPENMS_LOG_INFO << "  unmatched                : " << stats_unmatched << " (" << stats_unmatched * 100 / total_peptides << " %)\n";
+      OPENMS_LOG_INFO << "  target/decoy:\n";
+      OPENMS_LOG_INFO << "    match to target DB only: " << stats_count_m_t << " (" << stats_count_m_t * 100 / total_peptides << " %)\n";
+      OPENMS_LOG_INFO << "    match to decoy DB only : " << stats_count_m_d << " (" << stats_count_m_d * 100 / total_peptides << " %)\n";
+      OPENMS_LOG_INFO << "    match to both          : " << stats_count_m_td << " (" << stats_count_m_td * 100 / total_peptides << " %)\n";
+      OPENMS_LOG_INFO << "\n";
+      OPENMS_LOG_INFO << "  mapping to proteins:\n";
+      OPENMS_LOG_INFO << "    no match (to 0 protein)         : " << stats_unmatched << "\n";
+      OPENMS_LOG_INFO << "    unique match (to 1 protein)     : " << stats_matched_unique << "\n";
+      OPENMS_LOG_INFO << "    non-unique match (to >1 protein): " << stats_matched_multi << std::endl;
 
       /// for proteins --> peptides
       Size stats_matched_proteins(0), stats_matched_new_proteins(0), stats_orphaned_proteins(0), stats_proteins_target(0), stats_proteins_decoy(0);
@@ -676,18 +666,18 @@ public:
       }
 
 
-      LOG_INFO << "-----------------------------------\n";
-      LOG_INFO << "Protein statistics\n";
-      LOG_INFO << "\n";
-      LOG_INFO << "  total proteins searched: " << proteins.size() << "\n";
-      LOG_INFO << "  matched proteins       : " << stats_matched_proteins << " (" << stats_matched_new_proteins << " new)\n";
+      OPENMS_LOG_INFO << "-----------------------------------\n";
+      OPENMS_LOG_INFO << "Protein statistics\n";
+      OPENMS_LOG_INFO << "\n";
+      OPENMS_LOG_INFO << "  total proteins searched: " << proteins.size() << "\n";
+      OPENMS_LOG_INFO << "  matched proteins       : " << stats_matched_proteins << " (" << stats_matched_new_proteins << " new)\n";
       if (stats_matched_proteins)
       { // prevent Division-by-0 Exception
-        LOG_INFO << "  matched target proteins: " << stats_proteins_target << " (" << stats_proteins_target * 100 / stats_matched_proteins << " %)\n";
-        LOG_INFO << "  matched decoy proteins : " << stats_proteins_decoy << " (" << stats_proteins_decoy * 100 / stats_matched_proteins << " %)\n";
+        OPENMS_LOG_INFO << "  matched target proteins: " << stats_proteins_target << " (" << stats_proteins_target * 100 / stats_matched_proteins << " %)\n";
+        OPENMS_LOG_INFO << "  matched decoy proteins : " << stats_proteins_decoy << " (" << stats_proteins_decoy * 100 / stats_matched_proteins << " %)\n";
       }
-      LOG_INFO << "  orphaned proteins      : " << stats_orphaned_proteins << (keep_unreferenced_proteins_ ? " (all kept)" : " (all removed)\n");
-      LOG_INFO << "-----------------------------------" << std::endl;
+      OPENMS_LOG_INFO << "  orphaned proteins      : " << stats_orphaned_proteins << (keep_unreferenced_proteins_ ? " (all kept)" : " (all removed)\n");
+      OPENMS_LOG_INFO << "-----------------------------------" << std::endl;
 
 
       /// exit if no peptides were matched to decoy
@@ -695,7 +685,7 @@ public:
 
       if (invalid_protein_sequence)
       {
-        LOG_ERROR << "Error: One or more protein sequences contained the characters '[' or '(', which are illegal in protein sequences."
+        OPENMS_LOG_ERROR << "Error: One or more protein sequences contained the characters '[' or '(', which are illegal in protein sequences."
                  << "\nPeptide hits might be masked by these characters (which usually indicate presence of modifications).\n";
         has_error = true;
       }
@@ -705,12 +695,12 @@ public:
         String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + String(decoy_string_) + ") and 'decoy_string_position' (=" + String(param_.getValue("decoy_string_position")) + ") settings correct?");
         if (missing_decoy_action_ == "error")
         {
-          LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
+          OPENMS_LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
           has_error = true;
         }
         else if (missing_decoy_action_ == "warn")
         {
-          LOG_WARN << "Warn: " << msg << "\nSet 'missing_decoy_action' to 'error' if you want to elevate this to an error!" << std::endl;
+          OPENMS_LOG_WARN << "Warn: " << msg << "\nSet 'missing_decoy_action' to 'error' if you want to elevate this to an error!" << std::endl;
         }
         else // silent
         {
@@ -719,7 +709,7 @@ public:
 
       if ((!allow_unmatched_) && (stats_unmatched > 0))
       {
-        LOG_ERROR << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
+        OPENMS_LOG_ERROR << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
                   << "Potential solutions:\n"
                   << "   - check your FASTA database for completeness\n"
                   << "   - set 'enzyme:specificity' to match the identification parameters of the search engine\n"
@@ -733,7 +723,7 @@ public:
 
       if (has_error)
       {
-        LOG_ERROR << "Result files will be written, but PeptideIndexer will exit with an error code." << std::endl;
+        OPENMS_LOG_ERROR << "Result files will be written, but PeptideIndexer will exit with an error code." << std::endl;
         return UNEXPECTED_RESULT;
       }
       return EXECUTION_OK;
@@ -744,220 +734,39 @@ public:
      bool isPrefix() const;
 
  protected:
-     using DecoyStringToAffixCount = std::map<std::string, std::pair<int, int>>;
-     using CaseInsensitiveToCaseSensitiveDecoy = std::map<std::string, std::string>;
-     bool contains_decoys_;
 
-     template<typename T>
-     bool findDecoyString_(FASTAContainer<T>& proteins)
-     {
-       // common decoy strings in FASTA files
-       // note: decoy prefixes/suffices must be provided in lower case
-       std::vector<std::string> affixes = {"decoy", "dec", "reverse", "rev", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random"};
-
-       // map decoys to counts of occurrences as prefix/suffix
-       DecoyStringToAffixCount decoy_count;
-       // map case insensitive strings back to original case (as used in fasta)
-       CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
-
-       // assume that it contains decoys for now
-       contains_decoys_ = true;
-
-       // setup prefix- and suffix regex strings
-       const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
-       const std::string regexstr_suffix = std::string("(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)$";
-
-       // setup regexes
-       const boost::regex pattern_prefix(regexstr_prefix);
-       const boost::regex pattern_suffix(regexstr_suffix);
-
-       int all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
-
-       const size_t PROTEIN_CACHE_SIZE = 4e5;
-
-       while (true)
-       {
-         proteins.cacheChunk(PROTEIN_CACHE_SIZE);
-         if (!proteins.activateCache()) break;
-
-         auto prot_count = (SignedSize) proteins.chunkSize();
-         all_proteins_count += prot_count;
-
-         {
-           for (SignedSize i = 0; i < prot_count; ++i)
-           {
-             String seq = proteins.chunkAt(i).identifier;
-
-             String seq_lower = seq;
-             seq_lower.toLower();
-
-             boost::smatch sm;
-             // search for prefix
-             bool found_prefix = boost::regex_search(seq_lower, sm, pattern_prefix);
-             if (found_prefix)
-             {
-               std::string match = sm[0];
-               all_prefix_occur++;
-
-               // increase count of observed prefix
-               decoy_count[match].first++;
-
-               // store observed (case sensitive and with special characters)
-               std::string seq_decoy = StringUtils::prefix(seq, match.length());
-               decoy_case_sensitive[match] = seq_decoy;
-             }
-
-             // search for suffix
-             bool found_suffix = boost::regex_search(seq_lower, sm, pattern_suffix);
-             if (found_suffix)
-             {
-               std::string match = sm[0];
-               all_suffix_occur++;
-
-               // increase count of observed suffix
-               decoy_count[match].second++;
-
-               // store observed (case sensitive and with special characters)
-               std::string seq_decoy = StringUtils::suffix(seq, match.length());
-               decoy_case_sensitive[match] = seq_decoy;
-             }
-           }
-         }
-       }
-
-       // DEBUG ONLY: print counts of found decoys
-       for (auto &a : decoy_count) LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
-
-       // less than 40% of proteins are decoys -> won't be able to determine a decoy string and its position
-       // return default values
-       if (all_prefix_occur + all_suffix_occur < 0.4 * all_proteins_count) {
-         decoy_string_ = "DECOY_";
-         prefix_ = true;
-
-         contains_decoys_ = false;
-         return false;
-       }
-
-       if (all_prefix_occur == all_suffix_occur)
-       {
-         LOG_ERROR << "Unable to determine decoy string!" << std::endl;
-         return false;
-       }
-
-       // Decoy prefix occurred at least 80% of all prefixes + observed in at least 40% of all proteins -> set it as prefix decoy
-       for (const auto& pair : decoy_count)
-       {
-         const std::string & case_insensitive_decoy_string = pair.first;
-         const std::pair<int, int>& prefix_suffix_counts = pair.second;
-         double freq_prefix = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_prefix_occur);
-         double freq_prefix_in_proteins = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_proteins_count);
-
-         if (freq_prefix >= 0.8 && freq_prefix_in_proteins >= 0.4)
-         {
-           prefix_ = true;
-           decoy_string_ = decoy_case_sensitive[case_insensitive_decoy_string];
-
-           if (prefix_suffix_counts.first != all_prefix_occur)
-           {
-             LOG_WARN << "More than one decoy prefix observed!" << std::endl;
-             LOG_WARN << "Using most frequent decoy prefix (" << (int) (freq_prefix * 100) <<"%)" << std::endl;
-           }
-
-           return true;
-         }
-       }
-
-       // Decoy suffix occurred at least 80% of all suffixes + observed in at least 40% of all proteins -> set it as suffix decoy
-       for (const auto& pair : decoy_count)
-       {
-         const std::string& case_insensitive_decoy_string = pair.first;
-         const std::pair<int, int>& prefix_suffix_counts = pair.second;
-         double freq_suffix = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_suffix_occur);
-         double freq_suffix_in_proteins = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_proteins_count);
-
-         if (freq_suffix >= 0.8 && freq_suffix_in_proteins >= 0.4)
-         {
-           prefix_ = false;
-           decoy_string_ = decoy_case_sensitive[case_insensitive_decoy_string];
-
-           if (prefix_suffix_counts.second != all_suffix_occur)
-           {
-             LOG_WARN << "More than one decoy suffix observed!" << std::endl;
-             LOG_WARN << "Using most frequent decoy suffix (" << (int) (freq_suffix * 100) <<"%)" << std::endl;
-           }
-
-           return true;
-         }
-       }
-
-       LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
-       return false;
-     }
-
-
-     struct PeptideProteinMatchInformation
+    struct PeptideProteinMatchInformation
     {
-      /// index of the protein the peptide is contained in
-      OpenMS::Size protein_index;
+      OpenMS::Size protein_index; //< index of the protein the peptide is contained in
+      OpenMS::Int position; //< the position of the peptide in the protein
+      char AABefore; //< the amino acid after the peptide in the protein
+      char AAAfter; //< the amino acid before the peptide in the protein
 
-      /// the position of the peptide in the protein
-      OpenMS::Int position;
-
-      /// the amino acid after the peptide in the protein
-      char AABefore;
-
-      /// the amino acid before the peptide in the protein
-      char AAAfter;
-
+      const std::tuple<const Size&, const Int&, const char&, const char&> tie() const
+      {
+        return std::tie(protein_index, position, AABefore, AAAfter);
+      }
       bool operator<(const PeptideProteinMatchInformation& other) const
       {
-        if (protein_index != other.protein_index)
-        {
-          return protein_index < other.protein_index;
-        }
-        else if (position != other.position)
-        {
-          return position < other.position;
-        }
-        else if (AABefore != other.AABefore)
-        {
-          return AABefore < other.AABefore;
-        }
-        else if (AAAfter != other.AAAfter)
-        {
-          return AAAfter < other.AAAfter;
-        }
-        return false;
+        return tie() < other.tie();
       }
-
       bool operator==(const PeptideProteinMatchInformation& other) const
       {
-        return protein_index == other.protein_index &&
-          position == other.position &&
-          AABefore == other.AABefore &&
-          AAAfter == other.AAAfter;
+        return tie() == other.tie();
       }
-
     };
+
     struct FoundProteinFunctor
     {
     public:
       typedef std::map<OpenMS::Size, std::set<PeptideProteinMatchInformation> > MapType;
-
-      /// peptide index --> protein indices
-      MapType pep_to_prot;
-
-      /// number of accepted hits (passing addHit() constraints)
-      OpenMS::Size filter_passed;
-
-      /// number of rejected hits (not passing addHit())
-      OpenMS::Size filter_rejected;
+      MapType pep_to_prot; //< peptide index --> protein indices
+      OpenMS::Size filter_passed; //< number of accepted hits (passing addHit() constraints)
+      OpenMS::Size filter_rejected; //< number of rejected hits (not passing addHit())
 
     private:
       ProteaseDigestion enzyme_;
-
-      /// are we checking xtandem cleavage rules?
-      bool xtandem_;
+      bool xtandem_; //< are we checking xtandem cleavage rules?
 
     public:
       explicit FoundProteinFunctor(const ProteaseDigestion& enzyme, bool xtandem) :
@@ -1020,7 +829,6 @@ public:
         const seqan::Peptide& tmp_pep = pep_DB[fuzzyAC.getHitDBIndex()];
         func_threads.addHit(fuzzyAC.getHitDBIndex(), idx_prot, length(tmp_pep), full_prot, fuzzyAC.getHitProteinPosition() + offset);
       }
-
     }
 
     void updateMembers_() override;
@@ -1039,7 +847,6 @@ public:
 
     Int aaa_max_;
     Int mm_max_;
-
  };
 }
 

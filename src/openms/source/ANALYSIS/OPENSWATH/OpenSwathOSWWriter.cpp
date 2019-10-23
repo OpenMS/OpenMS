@@ -62,11 +62,13 @@ namespace OpenMS
       "RUN_ID INT NOT NULL," \
       "PRECURSOR_ID INT NOT NULL," \
       "EXP_RT REAL NOT NULL," \
+      "EXP_IM REAL, " \
       "NORM_RT REAL NOT NULL," \
       "DELTA_RT REAL NOT NULL," \
       "LEFT_WIDTH REAL NOT NULL," \
       "RIGHT_WIDTH REAL NOT NULL); " \
 
+      // MS1-level scores
       "CREATE TABLE FEATURE_MS1(" \
       "FEATURE_ID INT NOT NULL," \
       "AREA_INTENSITY REAL NOT NULL," \
@@ -77,6 +79,7 @@ namespace OpenMS
       "VAR_MI_COMBINED_SCORE REAL NULL," \
       "VAR_ISOTOPE_CORRELATION_SCORE REAL NULL," \
       "VAR_ISOTOPE_OVERLAP_SCORE REAL NULL," \
+      "VAR_IM_MS1_DELTA_SCORE REAL NULL," \
       "VAR_XCORR_COELUTION REAL NULL," \
       "VAR_XCORR_COELUTION_CONTRAST REAL NULL," \
       "VAR_XCORR_COELUTION_COMBINED REAL NULL," \
@@ -84,6 +87,7 @@ namespace OpenMS
       "VAR_XCORR_SHAPE_CONTRAST REAL NULL," \
       "VAR_XCORR_SHAPE_COMBINED REAL NULL); " \
 
+      // MS2-level scores
       "CREATE TABLE FEATURE_MS2(" \
       "FEATURE_ID INT NOT NULL," \
       "AREA_INTENSITY REAL NOT NULL," \
@@ -115,6 +119,11 @@ namespace OpenMS
       "VAR_XCORR_SHAPE_WEIGHTED REAL NULL," \
       "VAR_YSERIES_SCORE REAL NULL," \
       "VAR_ELUTION_MODEL_FIT_SCORE REAL NULL," \
+
+      "VAR_IM_XCORR_SHAPE REAL NULL," \
+      "VAR_IM_XCORR_COELUTION REAL NULL," \
+      "VAR_IM_DELTA_SCORE REAL NULL," \
+
       "VAR_SONAR_LAG REAL NULL," \
       "VAR_SONAR_SHAPE REAL NULL," \
       "VAR_SONAR_LOG_SN REAL NULL," \
@@ -128,6 +137,7 @@ namespace OpenMS
       "AREA_INTENSITY REAL NOT NULL," \
       "APEX_INTENSITY REAL NOT NULL);" \
 
+      // Transition-level scores
       "CREATE TABLE FEATURE_TRANSITION(" \
       "FEATURE_ID INT NOT NULL," \
       "TRANSITION_ID INT NOT NULL," \
@@ -154,7 +164,7 @@ namespace OpenMS
     std::stringstream sql_run;
     sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
             // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
-            <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", '"
+            <<  static_cast<int64_t >(run_id_ & ~(1ULL << 63)) << ", '"
             << input_filename_ << "'); ";
 
     // Execute SQL insert statement
@@ -168,32 +178,40 @@ namespace OpenMS
     {
       score = feature.getMetaValue(score_name).toString();
     }
+    if (score.toLower() == "nan") score = "NULL";
+    if (score.toLower() == "-nan") score = "NULL";
 
-    return(score);
+    return score;
   }
 
   std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, std::string score_name) const
   {
-    std::vector<String> tmp_separated_scores, separated_scores;
+    std::vector<String> separated_scores;
 
     if (!feature.getMetaValue(score_name).isEmpty())
     {
-      tmp_separated_scores = ListUtils::create<String>((String)feature.getMetaValue(score_name),';');
-    }
-
-    for (Size i = 0; i < tmp_separated_scores.size(); ++i)
-    {
-      if (tmp_separated_scores[i] == "")
+      if (feature.getMetaValue(score_name).valueType() == DataValue::STRING_LIST)
       {
-        separated_scores.push_back("NULL");
+        separated_scores = feature.getMetaValue(score_name).toStringList();
+      }
+      else if (feature.getMetaValue(score_name).valueType() == DataValue::INT_LIST)
+      {
+        std::vector<int> int_separated_scores = feature.getMetaValue(score_name).toIntList();
+        std::transform(int_separated_scores.begin(), int_separated_scores.end(), std::back_inserter(separated_scores), [](const int& num) { return String(num); });
+
+      }
+      else if (feature.getMetaValue(score_name).valueType() == DataValue::DOUBLE_LIST)
+      {
+        std::vector<double> double_separated_scores = feature.getMetaValue(score_name).toDoubleList();
+        std::transform(double_separated_scores.begin(), double_separated_scores.end(), std::back_inserter(separated_scores), [](const double& num) { return String(num); });
       }
       else
       {
-        separated_scores.push_back(tmp_separated_scores[i]);
+        separated_scores.push_back(feature.getMetaValue(score_name).toString());
       }
     }
 
-    return(separated_scores);
+    return separated_scores;
   }
 
   String OpenSwathOSWWriter::prepareLine(const OpenSwath::LightCompound& /* pep */,
@@ -206,7 +224,7 @@ namespace OpenMS
     for (const auto& feature_it : output)
     {
       UInt64 uint64_feature_id = feature_it.getUniqueId();
-      int64_t feature_id = static_cast<int64_t >(uint64_feature_id & ~(1UL << 63)); // clear sign bit
+      int64_t feature_id = static_cast<int64_t >(uint64_feature_id & ~(1ULL << 63)); // clear sign bit
 
       for (const auto& sub_it : feature_it.getSubordinates())
       {
@@ -238,14 +256,20 @@ namespace OpenMS
         }
       }
 
-      sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES ("
+      // these will be missing if RT scoring is disabled
+      double norm_rt = -1, delta_rt = -1;
+      if (feature_it.metaValueExists("norm_RT") ) norm_rt = feature_it.getMetaValue("norm_RT");
+      if (feature_it.metaValueExists("delta_rt") ) delta_rt = feature_it.getMetaValue("delta_rt");
+
+      sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, EXP_IM, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES ("
                   << feature_id << ", "
                   // Conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
-                  <<  static_cast<int64_t >(run_id_ & ~(1UL << 63)) << ", "
+                  <<  static_cast<int64_t >(run_id_ & ~(1ULL << 63)) << ", "
                   << id << ", "
                   << feature_it.getRT() << ", "
-                  << feature_it.getMetaValue("norm_RT") << ", "
-                  << feature_it.getMetaValue("delta_rt") << ", "
+                  << getScore(feature_it, "im_drift") << ", "
+                  << norm_rt << ", "
+                  << delta_rt << ", "
                   << feature_it.getMetaValue("leftWidth") << ", "
                   << feature_it.getMetaValue("rightWidth") << "); ";
 
@@ -258,6 +282,7 @@ namespace OpenMS
         "VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_MI_RATIO_SCORE, VAR_NORM_RT_SCORE, "\
         "VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, "\
         "VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, "\
+        "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE, " \
         "VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ "\
         ") VALUES ("
                       << feature_id << ", "
@@ -290,6 +315,9 @@ namespace OpenMS
                       << getScore(feature_it, "var_xcorr_shape_weighted") << ", "
                       << getScore(feature_it, "var_yseries_score") << ", "
                       << getScore(feature_it, "var_elution_model_fit_score") << ", "
+                      << getScore(feature_it, "var_im_xcorr_shape") << ", "
+                      << getScore(feature_it, "var_im_xcorr_coelution") << ", "
+                      << getScore(feature_it, "var_im_delta_score") << ", "
                       << getScore(feature_it, "var_sonar_lag") << ", "
                       << getScore(feature_it, "var_sonar_shape") << ", "
                       << getScore(feature_it, "var_sonar_log_sn") << ", "
@@ -300,7 +328,8 @@ namespace OpenMS
       if (use_ms1_traces_)
       {
         sql_feature_ms1 << "INSERT INTO FEATURE_MS1 "\
-          "(FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, "\
+          "(FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, "\
+          " VAR_MASSDEV_SCORE, VAR_IM_MS1_DELTA_SCORE, "\
           " VAR_MI_SCORE, VAR_MI_CONTRAST_SCORE, VAR_MI_COMBINED_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, "\
           " VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_COELUTION_CONTRAST, "\
           " VAR_XCORR_COELUTION_COMBINED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_CONTRAST, VAR_XCORR_SHAPE_COMBINED "\
@@ -309,6 +338,7 @@ namespace OpenMS
                         << getScore(feature_it, "ms1_area_intensity") << ", "
                         << getScore(feature_it, "ms1_apex_intensity") << ", "
                         << getScore(feature_it, "var_ms1_ppm_diff") << ", "
+                        << getScore(feature_it, "var_im_ms1_delta_score") << ", "
                         << getScore(feature_it, "var_ms1_mi_score") << ", "
                         << getScore(feature_it, "var_ms1_mi_contrast_score") << ", "
                         << getScore(feature_it, "var_ms1_mi_combined_score") << ", "
@@ -341,9 +371,9 @@ namespace OpenMS
         auto id_target_ind_isotope_correlation = getSeparateScore(feature_it, "id_target_ind_isotope_correlation");
         auto id_target_ind_isotope_overlap = getSeparateScore(feature_it, "id_target_ind_isotope_overlap");
 
-        if ((String)feature_it.getMetaValue("id_target_num_transitions") != "")
+        if (feature_it.metaValueExists("id_target_num_transitions"))
         {
-          int id_target_num_transitions = feature_it.getMetaValue("id_target_num_transitions").toString().toInt();
+          int id_target_num_transitions = feature_it.getMetaValue("id_target_num_transitions");
 
           for (int i = 0; i < id_target_num_transitions; ++i)
           {
@@ -391,9 +421,9 @@ namespace OpenMS
         auto id_decoy_ind_isotope_correlation = getSeparateScore(feature_it, "id_decoy_ind_isotope_correlation");
         auto id_decoy_ind_isotope_overlap = getSeparateScore(feature_it, "id_decoy_ind_isotope_overlap");
 
-        if ((String)feature_it.getMetaValue("id_decoy_num_transitions") != "")
+        if (feature_it.metaValueExists("id_decoy_num_transitions"))
         {
-          int id_decoy_num_transitions = feature_it.getMetaValue("id_decoy_num_transitions").toString().toInt();
+          int id_decoy_num_transitions = feature_it.getMetaValue("id_decoy_num_transitions");
 
           for (int i = 0; i < id_decoy_num_transitions; ++i)
           {
@@ -426,7 +456,7 @@ namespace OpenMS
       }
     }
 
-    if (enable_uis_scoring_)
+    if (enable_uis_scoring_ && !sql_feature_uis_transition.str().empty() )
     {
       sql << sql_feature.str() << sql_feature_ms1.str() << sql_feature_ms1_precursor.str() << sql_feature_ms2.str() << sql_feature_uis_transition.str();
     }

@@ -157,16 +157,38 @@ protected:
       /// Convenience method to remove the [] from OpenMS internal file uri representation
       String trimOpenMSfileURI(const String file) const;
 
+      /// Abstraction of PeptideHit loop for most PeptideHits
+      void writePeptideHit(const PeptideHit& hit,
+                                std::vector<PeptideIdentification>::const_iterator& it,
+                                std::map<String, String>& pep_ids,
+                                String cv_ns, std::set<String>& sen_set,
+                                std::map<String, String>& sen_ids,
+                                std::map<String, std::vector<String> >& pep_evis,
+                                std::map<String, double>& pp_identifier_2_thresh,
+                                String& sidres);
+
+      /// Abstraction of PeptideHit loop for XL-MS data from OpenPepXL
+      void writeXLMSPeptideHit(const PeptideHit& hit,
+                                std::vector<PeptideIdentification>::const_iterator& it,
+                                String ppxl_linkid, std::map<String, String>& pep_ids,
+                                String cv_ns, std::set<String>& sen_set,
+                                std::map<String, String>& sen_ids,
+                                std::map<String, std::vector<String> >& pep_evis,
+                                std::map<String, double>& pp_identifier_2_thresh,
+                                double ppxl_crosslink_mass,
+                                std::map<String, String>& ppxl_specref_2_element,
+                                String& sid, bool alpha_peptide);
+
 private:
       MzIdentMLHandler();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
       MzIdentMLHandler& operator=(const MzIdentMLHandler& rhs);
       Map<String, AASequence> pep_sequences_;
-      std::map<String, String> pp_identifier_2_sil_; //mapping peptide/proteinidentification identifier_ to spectrumidentificationlist
-      std::map<String, String> sil_2_sdb_; //mapping spectrumidentificationlist to the search data bases
-      std::map<String, String> sil_2_sdat_; //mapping spectrumidentificationlist to the search input
-      std::map<String, String> ph_2_sdat_; //mapping identification runs (mapping PeptideIdentifications and ProteinIdentifications via .getIdentifier()) to spectra data
-      std::map<String, String> sil_2_sip_; //mapping spectrumidentificationlist to the search protocol (where the params are at)
+      std::map<String, String> pp_identifier_2_sil_; ///< mapping peptide/proteinidentification identifier_ to spectrumidentificationlist
+      std::map<String, String> sil_2_sdb_; ///< mapping spectrumidentificationlist to the search data bases
+      std::map<String, String> sil_2_sdat_; ///< mapping spectrumidentificationlist to the search input
+      std::map<String, String> ph_2_sdat_; ///< mapping identification runs (mapping PeptideIdentifications and ProteinIdentifications via .getIdentifier()) to spectra data
+      std::map<String, String> sil_2_sip_; ///< mapping spectrumidentificationlist to the search protocol (where the params are at)
       AASequence actual_peptide_;
       Int current_mod_location_;
       ProteinHit actual_protein_;
@@ -174,4 +196,3 @@ private:
     };
   } // namespace Internal
 } // namespace OpenMS
-

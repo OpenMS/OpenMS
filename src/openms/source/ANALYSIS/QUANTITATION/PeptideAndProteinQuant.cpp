@@ -56,8 +56,8 @@ namespace OpenMS
     defaults_.setValue("include_all", "false", "Include results for proteins with fewer proteotypic peptides than indicated by 'top' (no effect if 'top' is 0 or 1)");
     defaults_.setValidStrings("include_all", true_false);
 
-    defaults_.setValue("filter_charge", "false", "Distinguish between charge states of a peptide. For peptides, abundances will be reported separately for each charge;\nfor proteins, abundances will be computed based only on the most prevalent charge of each peptide.\nBy default, abundances are summed over all charge states.");
-    defaults_.setValidStrings("filter_charge", true_false);
+    defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states of a peptide. For peptides, abundances will be reported separately for each fraction and charge;\nfor proteins, abundances will be computed based only on the most prevalent charge observed of each peptide (over all fractions).\nBy default, abundances are summed over all charge states.");
+    defaults_.setValidStrings("best_charge_and_fraction", true_false);
 
     defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal");
     defaults_.setValidStrings("consensus:normalize", true_false);
@@ -71,19 +71,21 @@ namespace OpenMS
   }
 
 
-  void PeptideAndProteinQuant::countPeptides_(vector<PeptideIdentification>&
-                                              peptides)
+  void PeptideAndProteinQuant::countPeptides_(
+    vector<PeptideIdentification>& peptides)
   {
-    for (vector<PeptideIdentification>::iterator pep_it =
-           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    // TODO FRACTION: map ids to fractions
+    const int fraction = 1; //TODO: determine from ID?
+    for (auto & pep : peptides)
     {
-      if (!pep_it->getHits().empty())
+      if (!pep.getHits().empty())
       {
-        pep_it->sort();
-        const PeptideHit& hit = pep_it->getHits()[0];
+        pep.sort();
+        const PeptideHit& hit = pep.getHits()[0]; // get best hit
         PeptideData& data = pep_quant_[hit.getSequence()];
         data.id_count++;
-        data.abundances[hit.getCharge()]; // insert empty element for charge
+        data.abundances[fraction][hit.getCharge()]; // insert empty element for charge
+
         // add protein accessions:
         set<String> protein_accessions = hit.extractProteinAccessionsSet();
         data.accessions.insert(protein_accessions.begin(), protein_accessions.end());
@@ -98,13 +100,16 @@ namespace OpenMS
     // hits in IDs must already be sorted by score! (done in "countPeptides_")
     if (peptides.empty()) return PeptideHit();
 
+    // get best hit
     const PeptideHit& hit = peptides[0].getHits()[0];
-    for (vector<PeptideIdentification>::iterator pep_it = ++peptides.begin();
+
+    for (auto pep_it = ++peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
       const PeptideHit& current = pep_it->getHits()[0];
       if (current.getSequence() != hit.getSequence())
       {
+        // TODO?: warn/error that ambiguous sequences are annotated. check if this can happen
         return PeptideHit();
       }
     }
@@ -113,15 +118,16 @@ namespace OpenMS
 
 
   void PeptideAndProteinQuant::quantifyFeature_(const FeatureHandle& feature,
+                                                const size_t fraction,
+                                                const size_t sample,
                                                 const PeptideHit& hit)
   {
-    if (hit == PeptideHit())
-    {
-      return; // annotation for the feature is ambiguous or missing
-    }
+    // return if annotation for the feature is ambiguous or missing
+    if (hit == PeptideHit()) { return; }
+
     stats_.quant_features++;
     const AASequence& seq = hit.getSequence();
-    pep_quant_[seq].abundances[hit.getCharge()][feature.getMapIndex()] +=
+    pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] +=
       feature.getIntensity(); // new map element is initialized with 0
   }
 
@@ -129,6 +135,7 @@ namespace OpenMS
   void PeptideAndProteinQuant::quantifyPeptides(
     const vector<PeptideIdentification>& peptides)
   {
+    //////////////////////////////////////////////////////
     // first, use peptide-level results from protein inference:
     // - remove peptides not supported by inference results
     // - update protein accessions according to inference results
@@ -136,15 +143,15 @@ namespace OpenMS
     // mapping: peptide seq. (unmodified) -> protein accessions
     // (in protXML, only unmodified peptides are listed)
     map<String, set<String> > pep_info;
-    for (vector<PeptideIdentification>::const_iterator pep_it = 
-           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    for (auto const & pep : peptides)
     {
-      for (vector<PeptideHit>::const_iterator hit_it =
-             pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
-           ++hit_it)
+      for (auto const & hit : pep.getHits())
       {
-        String seq = hit_it->getSequence().toUnmodifiedString();
-        set<String> accessions = hit_it->extractProteinAccessionsSet();
+        String seq = hit.getSequence().toUnmodifiedString();
+        set<String> accessions = hit.extractProteinAccessionsSet();
+
+        // cout << "Sequence: " << seq << " size: " << accessions.size() << " " << *(accessions.begin()) << endl;
+
         // If a peptide is seen multiple times, the protein accessions should
         // always be the same, so only the first time it should be necessary to
         // insert them. However, just in case there a differences in the
@@ -155,149 +162,169 @@ namespace OpenMS
     // if inference results are given, filter quant. data accordingly:
     if (!pep_info.empty())
     {
-      PeptideQuant filtered;
-      for (PeptideQuant::iterator q_it = pep_quant_.begin(); 
-           q_it != pep_quant_.end(); ++q_it)
+      if (pep_quant_.empty())
       {
-        String seq = q_it->first.toUnmodifiedString();
+        OPENMS_LOG_ERROR << "No peptides quantified (pep_quant_ is empty)!" << endl;
+      }
+
+      PeptideQuant filtered;
+
+      for (auto & pep_q : pep_quant_)  // for all quantified peptides
+      {
+        String seq = pep_q.first.toUnmodifiedString();
+        OPENMS_LOG_DEBUG << "Sequence: " << seq << endl;
         map<String, set<String> >::iterator pos = pep_info.find(seq);
         if (pos != pep_info.end()) // sequence found in protein inference data
         {
-          q_it->second.accessions = pos->second; // replace accessions
-          filtered.insert(*q_it);
+          OPENMS_LOG_DEBUG << "Accessions: ";
+          for (auto & a : pos->second) {
+            OPENMS_LOG_DEBUG << a << "\t";
+          }
+          OPENMS_LOG_DEBUG << "\n";
+          pep_q.second.accessions = pos->second; // replace accessions
+          filtered.insert(pep_q);
+        }
+        else
+        {
+          OPENMS_LOG_DEBUG << "not found in inference data." << endl;
         }
       }
       pep_quant_ = filtered;
     }
 
-    // now perform the actual peptide quantification:
-    for (PeptideQuant::iterator q_it = pep_quant_.begin();
-         q_it != pep_quant_.end(); ++q_it)
+    //////////////////////////////////////////////////////
+    // second, perform the actual peptide quantification:
+    for (auto & pep_q : pep_quant_)
     {
-      if (param_.getValue("filter_charge") == "true")
-      {
-        // find charge state with abundances for highest number of samples
-        // (break ties by total abundance):
-        IntList charges; // sorted charge states (best first)
-        orderBest_(q_it->second.abundances, charges);
-        if (charges.empty()) continue; // only identified, not quantified
-        Int best_charge = charges[0];
+      if (param_.getValue("best_charge_and_fraction") == "true")
+      { // quantify according to the best charge state only:
 
-        // quantify according to the best charge state only:
-        for (SampleAbundances::iterator samp_it =
-               q_it->second.abundances[best_charge].begin(); samp_it !=
-             q_it->second.abundances[best_charge].end(); ++samp_it)
+        // determine which fraction and charge state yields the maximum number of abundances 
+        // (break ties by total abundance)
+        std::pair<size_t, size_t> best_fraction_and_charge;
+
+        // return false: only identified, not quantified
+        if (!getBest_(pep_q.second.abundances, best_fraction_and_charge)) 
+        { 
+          continue;
+        }
+        
+        // quantify according to the best fraction and charge state only:
+        for (auto & sa : pep_q.second.abundances[best_fraction_and_charge.first][best_fraction_and_charge.second])
         {
-          q_it->second.total_abundances[samp_it->first] = samp_it->second;
+          pep_q.second.total_abundances[sa.first] = sa.second;
         }
       }
       else
-      {
-        // sum up abundances over all charge states:
-        for (map<Int, SampleAbundances>::iterator ab_it =
-               q_it->second.abundances.begin(); ab_it !=
-             q_it->second.abundances.end(); ++ab_it)
+      { // sum up sample abundances over all fractions and charge states:
+
+        for (auto & fa : pep_q.second.abundances)  // for all fractions 
         {
-          for (SampleAbundances::iterator samp_it = ab_it->second.begin();
-               samp_it != ab_it->second.end(); ++samp_it)
-          {
-            q_it->second.total_abundances[samp_it->first] += samp_it->second;
+          for (auto & ca : fa.second) // for all charge states
+          {  
+            for (auto & sa : ca.second) // loop over abundances
+            {
+              const UInt64 & sample_id = sa.first;
+              const double & sample_abundance = sa.second;
+              pep_q.second.total_abundances[sample_id] += sample_abundance;
+            }
           }
         }
       }
-      if (!q_it->second.total_abundances.empty())
-        stats_.quant_peptides++;
+
+      // count quantified peptide
+      if (!pep_q.second.total_abundances.empty()) { stats_.quant_peptides++; }
     }
 
+    //////////////////////////////////////////////////////
+    // normalize (optional):
     if ((stats_.n_samples > 1) &&
-        (param_.getValue("consensus:normalize") == "true"))
-    {
+       (param_.getValue("consensus:normalize") == "true"))
+    {      
       normalizePeptides_();
     }
   }
 
-
   void PeptideAndProteinQuant::normalizePeptides_()
   {
-    // gather data:
+    /////////////////////////////////////////////////////
+    // calculate total peptide abundances 
+    // depending on earlier options, these include:
+    // - all charges or only the best charge state
+    // - all fractions (if multiple fractions are analyzed)
     map<UInt64, DoubleList> abundances; // all peptide abundances by sample
-    for (PeptideQuant::iterator q_it = pep_quant_.begin();
-         q_it != pep_quant_.end(); ++q_it)
+    for (auto & pq : pep_quant_)
     {
       // maybe TODO: treat missing abundance values as zero
-      for (SampleAbundances::iterator samp_it =
-             q_it->second.total_abundances.begin(); samp_it !=
-           q_it->second.total_abundances.end(); ++samp_it)
+      for (auto & sa : pq.second.total_abundances)
       {
-        abundances[samp_it->first].push_back(samp_it->second);
+        abundances[sa.first].push_back(sa.second);
       }
     }
-    if (abundances.size() <= 1) return;
+    if (abundances.size() <= 1) { return; }
 
-    // compute scale factors for all samples:
+    /////////////////////////////////////////////////////
+    // compute scale factors on the sample level:
     SampleAbundances medians; // median abundance by sample
-    for (map<UInt64, DoubleList>::iterator ab_it = abundances.begin();
-         ab_it != abundances.end(); ++ab_it)
+    for (auto & ab : abundances)
     {
-      medians[ab_it->first] = Math::median(ab_it->second.begin(),
-                                           ab_it->second.end());
+      medians[ab.first] = Math::median(ab.second.begin(), ab.second.end());
     }
+
     DoubleList all_medians;
-    for (SampleAbundances::iterator med_it = medians.begin();
-         med_it != medians.end(); ++med_it)
+    for (auto & sa : medians)
     {
-      all_medians.push_back(med_it->second);
+      all_medians.push_back(sa.second);
     }
     double overall_median = Math::median(all_medians.begin(),
                                          all_medians.end());
     SampleAbundances scale_factors;
-    for (SampleAbundances::iterator med_it = medians.begin();
-         med_it != medians.end(); ++med_it)
+    for (auto & med : medians)
     {
-      scale_factors[med_it->first] = overall_median / med_it->second;
+      scale_factors[med.first] = overall_median / med.second;
     }
 
+    /////////////////////////////////////////////////////
     // scale all abundance values:
-    for (PeptideQuant::iterator q_it = pep_quant_.begin();
-         q_it != pep_quant_.end(); ++q_it)
+    for (auto & pep_q : pep_quant_)
     {
-      for (SampleAbundances::iterator tot_it =
-             q_it->second.total_abundances.begin(); tot_it !=
-           q_it->second.total_abundances.end(); ++tot_it)
+      // scale total abundances
+      for (auto & sta : pep_q.second.total_abundances)
       {
-        tot_it->second *= scale_factors[tot_it->first];
+        sta.second *= scale_factors[sta.first];
       }
-      for (map<Int, SampleAbundances>::iterator ab_it =
-             q_it->second.abundances.begin(); ab_it !=
-           q_it->second.abundances.end(); ++ab_it)
+
+      // scale individual abundances
+      for (auto & fa : pep_q.second.abundances) // for all fractions
       {
-        for (SampleAbundances::iterator samp_it = ab_it->second.begin();
-             samp_it != ab_it->second.end(); ++samp_it)
+        for (auto & ca : fa.second) // for all charge states
         {
-          samp_it->second *= scale_factors[samp_it->first];
+          for (auto & sa : ca.second) // loop over abundances
+          {
+            sa.second *= scale_factors[sa.first];
+          }
         }
       }
     }
   }
 
-
   String PeptideAndProteinQuant::getAccession_(
-    const set<String>& pep_accessions, map<String, String>& accession_to_leader)
+    const set<String>& pep_accessions, 
+    map<String, String>& accession_to_leader)
   {
     if (accession_to_leader.empty())
     {
       // no info about indistinguishable proteins available
-      if (pep_accessions.size() == 1) return *pep_accessions.begin();
+      if (pep_accessions.size() == 1) { return *pep_accessions.begin(); }
     }
     else
     {
       // if all accessions belong to the same group of indistinguishable
       // proteins, return accession of the group leader
       StringList leaders;
-      for (set<String>::const_iterator it = pep_accessions.begin();
-           it != pep_accessions.end(); ++it)
+      for (auto const & acc : pep_accessions)
       {
-        map<String, String>::const_iterator pos = accession_to_leader.find(*it);
+        map<String, String>::const_iterator pos = accession_to_leader.find(acc);
         if (pos != accession_to_leader.end()) leaders.push_back(pos->second);
         // if the protein accession was not found, this is not an error:
         // if there's not enough evidence for a protein, it won't occur in
@@ -309,6 +336,11 @@ namespace OpenMS
                              ++leaders.begin());
       if (all_equal) return leaders[0];
     }
+    OPENMS_LOG_DEBUG << "LEADERS EMPTY: " << endl;
+    for (auto const & acc : pep_accessions)
+    {
+      OPENMS_LOG_DEBUG << acc << endl;
+    } 
     return "";
   }
 
@@ -316,40 +348,42 @@ namespace OpenMS
   void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification&
                                                 proteins)
   {
+    if (pep_quant_.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: No peptides quantified." << endl;
+    }
+
     // if information about (indistinguishable) protein groups is available, map
     // each accession to the accession of the leader of its group of proteins:
     map<String, String> accession_to_leader;
     if (!proteins.getIndistinguishableProteins().empty())
     {
-      for (vector<ProteinIdentification::ProteinGroup>::const_iterator pg_it =
-             proteins.getIndistinguishableProteins().begin(); pg_it !=
-             proteins.getIndistinguishableProteins().end(); ++pg_it)
+      for (auto const & pg : proteins.getIndistinguishableProteins())
       {
-        for (StringList::const_iterator acc_it = pg_it->accessions.begin();
-             acc_it != pg_it->accessions.end(); ++acc_it)
+        for (auto const & acc : pg.accessions)
         {
           // each accession should only occur once, but we don't check...
-          accession_to_leader[*acc_it] = pg_it->accessions[0];
+          accession_to_leader[acc] = pg.accessions[0];
         }
       }
     }
 
-    for (PeptideQuant::const_iterator pep_it = pep_quant_.begin();
-         pep_it != pep_quant_.end(); ++pep_it)
+    // for (auto & a : accession_to_leader) { std::cout << a.first << "\tis led by:\t" << a.second << endl; }
+
+    for (auto const& pep_q : pep_quant_)
     {
-      String accession = getAccession_(pep_it->second.accessions,
+      String accession = getAccession_(pep_q.second.accessions,
                                        accession_to_leader);
+      OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << accession << endl;
       if (!accession.empty()) // proteotypic peptide
       {
-        prot_quant_[accession].id_count += pep_it->second.id_count;
-        for (SampleAbundances::const_iterator tot_it =
-               pep_it->second.total_abundances.begin(); tot_it !=
-             pep_it->second.total_abundances.end(); ++tot_it)
+        prot_quant_[accession].id_count += pep_q.second.id_count;
+        for (auto const & sta : pep_q.second.total_abundances)
         {
           // add up contributions of same peptide with different mods:
-          String raw_peptide = pep_it->first.toUnmodifiedString();
-          prot_quant_[accession].abundances[raw_peptide][tot_it->first] +=
-            tot_it->second;
+          String raw_peptide = pep_q.first.toUnmodifiedString();
+          prot_quant_[accession].abundances[raw_peptide][sta.first] +=
+            sta.second;
         }
       }
     }
@@ -359,128 +393,133 @@ namespace OpenMS
     bool include_all = param_.getValue("include_all") == "true";
     bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
 
-    for (ProteinQuant::iterator prot_it = prot_quant_.begin();
-         prot_it != prot_quant_.end(); ++prot_it)
+    for (auto & prot_q : prot_quant_)
     {
-      if ((top > 0) && (prot_it->second.abundances.size() < top))
+      if ((top > 0) && (prot_q.second.abundances.size() < top))
       {
         stats_.too_few_peptides++;
-        if (!include_all)
-          continue; // not enough proteotypic peptides
+        if (!include_all) { continue; } // not enough proteotypic peptides
       }
 
       vector<String> peptides; // peptides selected for quantification
       if (fix_peptides && (top == 0))
       {
         // consider all peptides that occur in every sample:
-        for (map<String, SampleAbundances>::iterator ab_it =
-               prot_it->second.abundances.begin(); ab_it !=
-             prot_it->second.abundances.end(); ++ab_it)
+        for (auto const & ab : prot_q.second.abundances)
         {
-          if (ab_it->second.size() == stats_.n_samples)
+          if (ab.second.size() == stats_.n_samples)
           {
-            peptides.push_back(ab_it->first);
+            peptides.push_back(ab.first);
           }
         }
       }
       else if (fix_peptides && (top > 0) &&
-               (prot_it->second.abundances.size() > top))
+               (prot_q.second.abundances.size() > top))
       {
-        orderBest_(prot_it->second.abundances, peptides);
+        orderBest_(prot_q.second.abundances, peptides);
         peptides.resize(top);
       }
       else
       {
-        // consider all peptides:
-        for (map<String, SampleAbundances>::iterator ab_it =
-               prot_it->second.abundances.begin(); ab_it !=
-             prot_it->second.abundances.end(); ++ab_it)
+        // consider all peptides of the protein:
+        for (auto const & ab : prot_q.second.abundances)
         {
-          peptides.push_back(ab_it->first);
+          peptides.push_back(ab.first);
         }
       }
 
       map<UInt64, DoubleList> abundances; // all peptide abundances by sample
-      // consider only the peptides selected above for quantification:
-      for (vector<String>::iterator pep_it = peptides.begin();
-           pep_it != peptides.end(); ++pep_it)
-      {
-        SampleAbundances& current_ab = prot_it->second.abundances[*pep_it];
-        for (SampleAbundances::iterator samp_it = current_ab.begin();
-             samp_it != current_ab.end(); ++samp_it)
+
+      // consider only the selected peptides for quantification:
+      for (auto & pep : peptides)
+      {       
+        for (auto & sa : prot_q.second.abundances[pep])
         {
-          abundances[samp_it->first].push_back(samp_it->second);
+          abundances[sa.first].push_back(sa.second);
         }
       }
 
-      for (map<UInt64, DoubleList>::iterator ab_it = abundances.begin();
-           ab_it != abundances.end(); ++ab_it)
+      for (auto & ab : abundances)
       {
-        if (!include_all && (top > 0) && (ab_it->second.size() < top))
+        // check if the protein has enough peptides in this sample
+        if (!include_all && (top > 0) && (ab.second.size() < top))
         {
-          continue; // not enough peptide abundances for this sample
+          continue;
         }
-        if ((top > 0) && (ab_it->second.size() > top))
+
+        // if we have more than "top", reduce to the top ones
+        if ((top > 0) && (ab.second.size() > top))
         {
           // sort descending:
-          sort(ab_it->second.begin(), ab_it->second.end(), greater<double>());
-          ab_it->second.resize(top); // remove all but best "top" values
+          sort(ab.second.begin(), ab.second.end(), greater<double>());
+          ab.second.resize(top); // remove all but best "top" values
         }
 
         double result;
         if (average == "median")
         {
-          result = Math::median(ab_it->second.begin(), ab_it->second.end());
+          result = Math::median(ab.second.begin(), ab.second.end());
         }
         else if (average == "mean")
         {
-          result = Math::mean(ab_it->second.begin(), ab_it->second.end());
+          result = Math::mean(ab.second.begin(), ab.second.end());
         }
         else if (average == "weighted_mean")
         {
           double sum_intensities = 0;
           double sum_intensities_squared = 0;
-          for (DoubleList::const_iterator it_intensities =
-                 ab_it->second.begin(); it_intensities != ab_it->second.end();
-               ++it_intensities)
+          for (auto const & in : ab.second)
           {
-            sum_intensities += (*it_intensities);
-            sum_intensities_squared += (*it_intensities) * (*it_intensities);
+            sum_intensities += in;
+            sum_intensities_squared += in * in;
           }
           result = sum_intensities_squared / sum_intensities;
         }
         else // "sum"
         {
-          result = Math::sum(ab_it->second.begin(), ab_it->second.end());
+          result = Math::sum(ab.second.begin(), ab.second.end());
         }
-        prot_it->second.total_abundances[ab_it->first] = result;
+        prot_q.second.total_abundances[ab.first] = result;
       }
 
       // update statistics:
-      if (prot_it->second.total_abundances.empty()) stats_.too_few_peptides++;
-      else stats_.quant_proteins++;
+      if (prot_q.second.total_abundances.empty()) 
+      { 
+        stats_.too_few_peptides++; 
+      }
+      else 
+      {
+        stats_.quant_proteins++;
+      }
     }
   }
 
 
-  void PeptideAndProteinQuant::readQuantData(FeatureMap& features)
+  // FRACTIONS: DONE
+  void PeptideAndProteinQuant::readQuantData(
+    FeatureMap& features,
+    const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
-    stats_.n_samples = 1;
+
+    stats_.n_samples = ed.getNumberOfSamples();
+    stats_.n_fractions = 1;
+    stats_.n_ms_files = ed.getNumberOfMSFiles();
+
     stats_.total_features = features.size();
 
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
+    for (auto & f : features)
     {
-      if (feat_it->getPeptideIdentifications().empty())
+      if (f.getPeptideIdentifications().empty())
       {
         stats_.blank_features++;
         continue;
       }
-      countPeptides_(feat_it->getPeptideIdentifications());
-      PeptideHit hit = getAnnotation_(feat_it->getPeptideIdentifications());
-      FeatureHandle handle(0, *feat_it);
-      quantifyFeature_(handle, hit); // updates "stats_.quant_features"
+      countPeptides_(f.getPeptideIdentifications());
+      PeptideHit hit = getAnnotation_(f.getPeptideIdentifications());
+      FeatureHandle handle(0, f);
+      const size_t fraction(1), sample(1);
+      quantifyFeature_(handle, fraction, sample, hit); // updates "stats_.quant_features"
     }
     countPeptides_(features.getUnassignedPeptideIdentifications());
     stats_.total_peptides = pep_quant_.size();
@@ -489,27 +528,49 @@ namespace OpenMS
   }
 
 
-  void PeptideAndProteinQuant::readQuantData(ConsensusMap& consensus)
+  void PeptideAndProteinQuant::readQuantData(
+    ConsensusMap& consensus, 
+    const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
-    stats_.n_samples = consensus.getColumnHeaders().size();
 
-    for (ConsensusMap::Iterator cons_it = consensus.begin();
-         cons_it != consensus.end(); ++cons_it)
+    if (consensus.empty())
     {
-      stats_.total_features += cons_it->getFeatures().size();
-      if (cons_it->getPeptideIdentifications().empty())
+      OPENMS_LOG_ERROR << "Empty consensus map passed to readQuantData." << endl;
+      return;
+    }
+
+    stats_.n_samples = ed.getNumberOfSamples();
+    stats_.n_fractions = ed.getNumberOfFractions();
+    stats_.n_ms_files = ed.getNumberOfMSFiles();
+
+    OPENMS_LOG_DEBUG << "Reading quant data: " << endl;
+    OPENMS_LOG_DEBUG << "  MS files        : " << stats_.n_ms_files << endl;
+    OPENMS_LOG_DEBUG << "  Fractions       : " << stats_.n_fractions << endl;
+    OPENMS_LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;
+
+    for (auto & c : consensus)
+    {
+      stats_.total_features += c.getFeatures().size();
+
+      // count features without id
+      if (c.getPeptideIdentifications().empty())
       {
-        stats_.blank_features += cons_it->getFeatures().size();
+        stats_.blank_features += c.getFeatures().size();
         continue;
       }
-      countPeptides_(cons_it->getPeptideIdentifications());
-      PeptideHit hit = getAnnotation_(cons_it->getPeptideIdentifications());
-      for (ConsensusFeature::HandleSetType::const_iterator feat_it =
-             cons_it->getFeatures().begin(); feat_it !=
-           cons_it->getFeatures().end(); ++feat_it)
+
+      countPeptides_(c.getPeptideIdentifications());
+      PeptideHit hit = getAnnotation_(c.getPeptideIdentifications());
+      for (auto const & f : c.getFeatures())
       {
-        quantifyFeature_(*feat_it, hit); // updates "stats_.quant_features"
+        // indices in experimental design are 1-based (as in text file)
+        // so we need to convert between them
+        //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
+        size_t row = f.getMapIndex();
+        size_t fraction = ed.getMSFileSection()[row].fraction;
+        size_t sample = ed.getMSFileSection()[row].sample;
+        quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
       }
     }
     countPeptides_(consensus.getUnassignedPeptideIdentifications());
@@ -521,32 +582,66 @@ namespace OpenMS
 
   void PeptideAndProteinQuant::readQuantData(
     vector<ProteinIdentification>& proteins,
-    vector<PeptideIdentification>& peptides)
+    vector<PeptideIdentification>& peptides,
+    const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
-    stats_.n_samples = proteins.size();
+
+    stats_.n_samples = ed.getNumberOfSamples();
+    stats_.n_fractions = ed.getNumberOfFractions();
+    stats_.n_ms_files = ed.getNumberOfMSFiles();
+
     stats_.total_features = peptides.size();
 
     countPeptides_(peptides);
 
-    // treat identification runs as different samples - otherwise we could just
-    // use the "id_count" element of PeptideData (filled by "countPeptides_") to
-    // get the total spectral count for each peptide:
-    map<String, Size> identifiers;
+    map<String, String> identifier_to_ms_file;
     for (Size i = 0; i < proteins.size(); ++i)
     {
-      identifiers[proteins[i].getIdentifier()] = i;
+      StringList ms_files;
+      proteins[i].getPrimaryMSRunPath(ms_files);
+
+      if (ms_files.empty()) 
+      {
+        throw Exception::MissingInformation(
+          __FILE__, 
+          __LINE__, 
+          OPENMS_PRETTY_FUNCTION, 
+          "No MS file annotated in protein identification.");
+      }
+      if (ms_files.size() >= 2) 
+      {
+        throw Exception::MissingInformation(
+          __FILE__, 
+          __LINE__, 
+          OPENMS_PRETTY_FUNCTION, 
+          "More than one ms file annotated in protein identification.");
+      }
+      identifier_to_ms_file[proteins[i].getIdentifier()] = ms_files[0];
     }
 
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    for (auto & p : peptides)
     {
-      if (pep_it->getHits().empty()) continue;
-      const PeptideHit& hit = pep_it->getHits()[0];
+      if (p.getHits().empty()) { continue; }
+
+      const PeptideHit& hit = p.getHits()[0];
       stats_.quant_features++;
       const AASequence& seq = hit.getSequence();
-      Size sample = identifiers[pep_it->getIdentifier()];
-      pep_quant_[seq].abundances[hit.getCharge()][sample] += 1;
+      const String& ms_file_path = identifier_to_ms_file[p.getIdentifier()];
+
+      // determine sample and fraction by MS file name (stored in protein identification)
+      const ExperimentalDesign::MSFileSection& run_section = ed.getMSFileSection();
+      auto row = find_if(begin(run_section), end(run_section), 
+        [&ms_file_path](const ExperimentalDesign::MSFileSectionEntry& r)
+          { 
+            return r.path == ms_file_path; 
+          });
+      size_t sample = row->sample;
+      size_t fraction = row->fraction;
+
+      // TODO MULTIPLEXING: think about how id-based quant is done for SILAC, TMT, etc.
+      // count peptides in the different fractions, charge states, and samples
+      pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] += 1;
     }
     stats_.total_peptides = pep_quant_.size();
   }
@@ -580,5 +675,76 @@ namespace OpenMS
   {
     return prot_quant_;
   }
+
+  // static
+  void PeptideAndProteinQuant::annotateQuantificationsToProteins(
+    const ProteinQuant& protein_quants, 
+    ProteinIdentification& proteins,
+    const UInt n_samples)
+  {
+    auto & id_groups = proteins.getIndistinguishableProteins();
+
+    OPENMS_LOG_DEBUG << "Quantified ind. group with accessions:\n";
+    for (const auto& q : protein_quants)
+    {
+      // accession of quantified protein(group)
+      const String & acc = q.first;
+
+      if (q.second.total_abundances.empty()) 
+      {
+        //TODO maybe just count the number of unquantifiable proteins and report that?
+        OPENMS_LOG_DEBUG << "Protein: " << acc << " not quantified." << endl;
+        continue; 
+      } // not quantified
+ 
+      // lambda to check if a ProteinGroup has accession "acc"
+      auto hasProteinInGroup = [&acc] (const ProteinIdentification::ProteinGroup& g)->bool 
+      { 
+        return find(g.accessions.begin(), g.accessions.end(), acc) != g.accessions.end(); 
+      }; 
+
+      // retrieve protein group with accession "acc"
+      auto id_group = std::find_if(id_groups.begin(), id_groups.end(), hasProteinInGroup);  
+
+      if (id_group != id_groups.end())
+      {
+        // copy abundances to float data array
+        SampleAbundances total_abundances = q.second.total_abundances;
+        // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
+        id_group->getFloatDataArrays().resize(1);
+        ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
+        abundances.setName("abundances");        
+        abundances.resize(n_samples);
+
+        for (auto const& a : id_group->accessions)
+        {
+          OPENMS_LOG_DEBUG << a << "\t";
+        }
+        OPENMS_LOG_DEBUG << "\n";
+
+        for (auto const & s : total_abundances)
+        {
+          // Note: sample indices are one-based
+          abundances[s.first - 1] = s.second;
+          OPENMS_LOG_DEBUG << s.second << "\t";
+        }
+        OPENMS_LOG_DEBUG << endl;
+      }
+      else
+      {
+        throw Exception::MissingInformation(
+          __FILE__, 
+          __LINE__, 
+          OPENMS_PRETTY_FUNCTION, 
+          "Protein group quantified that is not present in inference data.");
+      } 
+    }
+
+   // remove all protein groups that have not been quantified
+   auto notQuantified = [] (const ProteinIdentification::ProteinGroup& g)->bool { return g.getFloatDataArrays().empty(); }; 
+   id_groups.erase(
+     remove_if(id_groups.begin(), id_groups.end(), notQuantified), 
+     id_groups.end());
+  } 
 
 }

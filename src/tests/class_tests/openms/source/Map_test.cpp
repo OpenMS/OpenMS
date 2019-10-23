@@ -50,65 +50,87 @@ START_TEST(Map, "$Id$")
 Map<int, int>* map_ptr = nullptr;
 Map<int, int>* map_nullPointer = nullptr;
 START_SECTION((Map()))
-	map_ptr = new Map<int, int>;
+{
+  map_ptr = new Map<int, int>;
   TEST_NOT_EQUAL(map_ptr, map_nullPointer)
+}
 END_SECTION
 
 START_SECTION((~Map()))
-	delete map_ptr;
+{
+  delete map_ptr;
+}
+END_SECTION
+
+START_SECTION((Map(const Map&& source)))
+{
+#ifndef OPENMS_COMPILER_MSVC
+  // Ensure that Map has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  // Note that MSVS does not support noexcept move constructors for STL
+  // constructs such as std::map.
+  TEST_EQUAL(noexcept(Map<int,int>(std::declval<Map<int,int>&&>())), true)
+#endif
+}
 END_SECTION
 
 START_SECTION((T& operator [] (const Key& key)))
-	Map<int, int> hm;
-	hm[0] = 0;
-	hm[0] = 1;
-	hm[1] = 2;
-	hm[2] = 4;
-	hm[3] = 8;
-	hm[4] = 16;
-	hm[5] = 32;
-	TEST_EQUAL(hm.size(), 6)
-	TEST_EQUAL(hm[0], 1)
-	TEST_EQUAL(hm[1], 2)
-	TEST_EQUAL(hm[2], 4)
-	TEST_EQUAL(hm[3], 8)
-	TEST_EQUAL(hm[4], 16)
-	TEST_EQUAL(hm[5], 32)
+{
+  Map<int, int> hm;
+  hm[0] = 0;
+  hm[0] = 1;
+  hm[1] = 2;
+  hm[2] = 4;
+  hm[3] = 8;
+  hm[4] = 16;
+  hm[5] = 32;
+  TEST_EQUAL(hm.size(), 6)
+  TEST_EQUAL(hm[0], 1)
+  TEST_EQUAL(hm[1], 2)
+  TEST_EQUAL(hm[2], 4)
+  TEST_EQUAL(hm[3], 8)
+  TEST_EQUAL(hm[4], 16)
+  TEST_EQUAL(hm[5], 32)
+}
 END_SECTION
 
 START_SECTION((const T & operator[](const Key &key) const ))
-	Map<int, int> hm;
-	hm[0] = 0;
-	hm[0] = 1;
-	hm[1] = 2;
-	hm[2] = 4;
-	hm[3] = 8;
-	hm[4] = 16;
-	hm[5] = 32;
-	const Map<int, int>& const_map = const_cast<const Map<int, int>&>(hm);
-	TEST_EQUAL(const_map.size(), 6)
-	TEST_EQUAL(const_map[0], 1)
-	TEST_EQUAL(const_map[1], 2)
-	TEST_EQUAL(const_map[2], 4)
-	TEST_EQUAL(const_map[3], 8)
-	TEST_EQUAL(const_map[4], 16)
-	TEST_EQUAL(const_map[5], 32)
-	typedef Map<int,int> MyMap; // otherwise next line wont work
-	TEST_EXCEPTION(MyMap::IllegalKey, const_map[6])
+{
+  Map<int, int> hm;
+  hm[0] = 0;
+  hm[0] = 1;
+  hm[1] = 2;
+  hm[2] = 4;
+  hm[3] = 8;
+  hm[4] = 16;
+  hm[5] = 32;
+  const Map<int, int>& const_map = const_cast<const Map<int, int>&>(hm);
+  TEST_EQUAL(const_map.size(), 6)
+  TEST_EQUAL(const_map[0], 1)
+  TEST_EQUAL(const_map[1], 2)
+  TEST_EQUAL(const_map[2], 4)
+  TEST_EQUAL(const_map[3], 8)
+  TEST_EQUAL(const_map[4], 16)
+  TEST_EQUAL(const_map[5], 32)
+  typedef Map<int,int> MyMap; // otherwise next line wont work
+  TEST_EXCEPTION(MyMap::IllegalKey, const_map[6])
+}
 END_SECTION
 
 START_SECTION((bool has(const Key& key) const))
-	Map<int, int> hm;
-	hm.insert(Map<int, int>::ValueType(0, 0));
-	hm.insert(Map<int, int>::ValueType(1, 1));
-	TEST_EQUAL(hm.has(0), true)
-	TEST_EQUAL(hm.has(1), true)
-	TEST_EQUAL(hm.has(2), false)
+{
+  Map<int, int> hm;
+  hm.insert(Map<int, int>::ValueType(0, 0));
+  hm.insert(Map<int, int>::ValueType(1, 1));
+  TEST_EQUAL(hm.has(0), true)
+  TEST_EQUAL(hm.has(1), true)
+  TEST_EQUAL(hm.has(2), false)
+}
 END_SECTION
 
 START_SECTION(([Map::IllegalKey] IllegalKey(const char *file, int line, const char *function)))
-	// already tested in const T & operator[](const Key &key) const
-	NOT_TESTABLE
+  // already tested in const T & operator[](const Key &key) const
+  NOT_TESTABLE
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

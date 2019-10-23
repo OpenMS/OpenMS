@@ -193,10 +193,9 @@ protected:
   
   String makeModString_(const String& mod_name)
   {
-    ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
-    String residue = mod.getOrigin();
-    
-    return String(residue +  " " + mod.getDiffMonoMass());    
+    const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
+    const String& residue = mod->getOrigin();
+    return String(residue +  " " + mod->getDiffMonoMass());    
   }
  
   ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in,
@@ -328,9 +327,15 @@ protected:
     }
     return EXECUTION_OK;
   }
-  
+
   String parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup)
   {
+    if (!File::exists(l_out))
+    {
+      OPENMS_LOG_ERROR << "LuciPhor2 was not able to provide an output. Please set debug >= 4 for additional information." << std::endl;
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, l_out);
+    }
+
     CsvFile tsvfile(l_out, '\t');
     String spec_id = "";
         
@@ -344,14 +349,13 @@ protected:
       }
       
       spec_id = elements[0];
-      struct LuciphorPSM l_psm = splitSpecId_(spec_id);      
+      struct LuciphorPSM l_psm = splitSpecId_(spec_id);
       l_psm.scan_idx = lookup.findByScanNumber(l_psm.scan_nr);
       l_psm.predicted_pep = elements[2];
       l_psm.delta_score = elements[7].toDouble();
       l_psm.predicted_pep_score = elements[8].toDouble();
       l_psm.global_flr = elements[10].toDouble();
       l_psm.local_flr = elements[11].toDouble();
-      
       if (l_psms.count(l_psm.scan_idx) > 0)
       {
         return "Duplicate scannr existing " + String(l_psm.scan_nr) + ".";
@@ -359,9 +363,6 @@ protected:
       l_psms[l_psm.scan_idx] = l_psm;
     }    
     return "";
-    
-    // String msg = "Spectrum could not be parsed";
-    // throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spec_id, msg);
   }
   
   // remove all modifications which are LuciPHOr2 target modifications,
@@ -526,7 +527,7 @@ protected:
       }
       else
       {
-        LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
+        OPENMS_LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
       }
       // create a temporary pepXML file for LuciPHOR2 input
       String id_file_name = File::removeExtension(File::basename(id));

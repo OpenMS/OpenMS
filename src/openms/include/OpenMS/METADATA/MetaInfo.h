@@ -90,10 +90,10 @@ public:
     /// Equality operator
     bool operator!=(const MetaInfo& rhs) const;
 
-    /// Returns the value corresponding to a string (or DataValue::EMPTY if not found)
-    const DataValue& getValue(const String& name) const;
-    /// Returns the value corresponding to an index (or DataValue::EMPTY if not found)
-    const DataValue& getValue(UInt index) const;
+    /// Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
+    const DataValue& getValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const;
+    /// Returns the value corresponding to an index, or a default value (default: DataValue::EMPTY) if not found
+    const DataValue& getValue(UInt index, const DataValue& default_value = DataValue::EMPTY) const;
 
     /// Returns whether an entry with the given name exists
     bool exists(const String& name) const;
@@ -127,8 +127,10 @@ public:
 
 private:
     using MapType = boost::container::flat_map<UInt, DataValue>;
+
     /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;
+
     /// The actual mapping of indexes to values
     MapType index_to_value_;
   };

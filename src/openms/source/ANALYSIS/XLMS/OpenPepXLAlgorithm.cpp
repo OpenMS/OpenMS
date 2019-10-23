@@ -71,7 +71,7 @@ using namespace OpenMS;
   OpenPepXLAlgorithm::OpenPepXLAlgorithm()
     : DefaultParamHandler("OpenPepXLAlgorithm")
   {
-    defaults_.setValue("decoy_string", "decoy", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     StringList bool_strings = ListUtils::create<String>("true,false");
     defaults_.setValue("decoy_prefix", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
     defaults_.setValidStrings("decoy_prefix", bool_strings);
@@ -197,7 +197,7 @@ using namespace OpenMS;
       fragment_mass_tolerance_xlinks_ = fragment_mass_tolerance_;
     }
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "XLinks Tolerance: " << fragment_mass_tolerance_xlinks_ << endl;
+    OPENMS_LOG_DEBUG << "XLinks Tolerance: " << fragment_mass_tolerance_xlinks_ << endl;
 #endif
 
     std::sort(cross_link_mass_mono_link_.begin(), cross_link_mass_mono_link_.end(), std::greater< double >());
@@ -212,7 +212,7 @@ using namespace OpenMS;
     if (fixed_unique.size() != fixedModNames_.size())
     {
 #ifdef DEBUG_OPENPEPXLALGO
-      LOG_DEBUG << "duplicate fixed modification provided." << endl;
+      OPENMS_LOG_DEBUG << "duplicate fixed modification provided." << endl;
 #endif
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
@@ -221,12 +221,12 @@ using namespace OpenMS;
     if (var_unique.size() != varModNames_.size())
     {
 #ifdef DEBUG_OPENPEPXLALGO
-      LOG_DEBUG << "duplicate variable modification provided." << endl;
+      OPENMS_LOG_DEBUG << "duplicate variable modification provided." << endl;
 #endif
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
-    vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames_);
-    vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames_);
+    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames_);
+    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(varModNames_);
 
     // Precursor Purity precalculation
     progresslogger.startProgress(0, 1, "Computing precursor purities...");
@@ -297,9 +297,8 @@ using namespace OpenMS;
     preprocessed_pair_spectra = OpenPepXLAlgorithm::preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift_, fragment_mass_tolerance_, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, deisotope);
     progresslogger.endProgress();
 
-    StringList ms_runs;
-    spectra.getPrimaryMSRunPath(ms_runs);
-    protein_ids[0].setPrimaryMSRunPath(ms_runs);
+    // TODO: this should probably be set in the tool where the input filename is available
+    protein_ids[0].setPrimaryMSRunPath({}, spectra);
 
     ProteinIdentification::SearchParameters search_params = protein_ids[0].getSearchParameters();
     String searched_charges((String(min_precursor_charge_)));
@@ -384,7 +383,7 @@ using namespace OpenMS;
     specGen_mainscore.setParameters(specGenParams_mainscore);
 
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
+    OPENMS_LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
 #endif
 
     search_params = protein_ids[0].getSearchParameters();
@@ -392,7 +391,7 @@ using namespace OpenMS;
     protein_ids[0].setSearchParameters(search_params);
 
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "Number of paired precursor masses: " << spectrum_precursors.size() << endl;
+    OPENMS_LOG_DEBUG << "Number of paired precursor masses: " << spectrum_precursors.size() << endl;
 #endif
 
     sort(peptide_masses.begin(), peptide_masses.end(), OPXLDataStructs::AASeqWithMassComparator());
@@ -416,7 +415,7 @@ using namespace OpenMS;
     double max_peptide_mass = max_precursor_mass - cross_link_mass_light_ + max_peptide_allowed_error;
 
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "Filtering peptides with precursors" << endl;
+    OPENMS_LOG_DEBUG << "Filtering peptides with precursors" << endl;
 #endif
 
     // search for the first mass greater than the maximum, use everything before that peptide
@@ -439,7 +438,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "New scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
+      OPENMS_LOG_DEBUG << "New scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
 #endif
       const PeakSpectrum& spectrum_light = spectra[scan_index];
       const double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
@@ -621,7 +620,7 @@ using namespace OpenMS;
         double candidate_mz = (alpha.getMonoWeight() + beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "Pair: " << alpha.toString() << "-" << beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
+          OPENMS_LOG_DEBUG << "Pair: " << alpha.toString() << "-" << beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
               << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
         }
 #endif
@@ -671,15 +670,15 @@ using namespace OpenMS;
           DataArrays::IntegerDataArray theo_charges_beta;
           DataArrays::IntegerDataArray exp_charges;
 
-          auto theo_alpha_it = getDataArrayByName(theoretical_spec_linear_alpha.getIntegerDataArrays(), "Charges");
+          auto theo_alpha_it = getDataArrayByName(theoretical_spec_linear_alpha.getIntegerDataArrays(), "charge");
           theo_charges_alpha = *theo_alpha_it;
           if (theoretical_spec_linear_beta.size() > 0)
           {
-            auto theo_beta_it = getDataArrayByName(theoretical_spec_linear_beta.getIntegerDataArrays(), "Charges");
+            auto theo_beta_it = getDataArrayByName(theoretical_spec_linear_beta.getIntegerDataArrays(), "charge");
             theo_charges_beta = *theo_beta_it;
           }
 
-          auto exp_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "Charges");
+          auto exp_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "charge");
           if (exp_it != linear_peaks.getIntegerDataArrays().end())
           {
             if (!exp_it->empty())
@@ -697,15 +696,15 @@ using namespace OpenMS;
           DataArrays::IntegerDataArray theo_charges_beta;
           DataArrays::IntegerDataArray exp_charges;
 
-          auto theo_alpha_it = getDataArrayByName(theoretical_spec_xlinks_alpha.getIntegerDataArrays(), "Charges");
+          auto theo_alpha_it = getDataArrayByName(theoretical_spec_xlinks_alpha.getIntegerDataArrays(), "charge");
           theo_charges_alpha = *theo_alpha_it;
           if (theoretical_spec_xlinks_beta.size() > 0)
           {
-            auto theo_beta_it = getDataArrayByName(theoretical_spec_xlinks_beta.getIntegerDataArrays(), "Charges");
+            auto theo_beta_it = getDataArrayByName(theoretical_spec_xlinks_beta.getIntegerDataArrays(), "charge");
             theo_charges_beta = *theo_beta_it;
           }
 
-          auto exp_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "Charges");
+          auto exp_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "charge");
           exp_charges = *exp_it;
 
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_alpha, xlink_peaks, theo_charges_alpha, exp_charges, ppm_error_array_xlinks_alpha);
@@ -721,9 +720,9 @@ using namespace OpenMS;
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "matched peaks: " << matched_alpha_count + matched_beta_count << endl;
-          LOG_DEBUG << "theoretical peaks: " << theor_alpha_count + theor_beta_count << endl;
-          LOG_DEBUG << "exp peaks: " << all_peaks.size() << endl;
+          OPENMS_LOG_DEBUG << "matched peaks: " << matched_alpha_count + matched_beta_count << endl;
+          OPENMS_LOG_DEBUG << "theoretical peaks: " << theor_alpha_count + theor_beta_count << endl;
+          OPENMS_LOG_DEBUG << "exp peaks: " << all_peaks.size() << endl;
         }
 #endif
 
@@ -875,11 +874,11 @@ using namespace OpenMS;
           // num_iso_peaks array from deisotoping
           if (deisotope)
           {
-            auto num_iso_peaks_array_it = getDataArrayByName(all_peaks.getIntegerDataArrays(), "NumIsoPeaks");
+            auto num_iso_peaks_array_it = getDataArrayByName(all_peaks.getIntegerDataArrays(), "iso_peak_count");
             DataArrays::IntegerDataArray num_iso_peaks_array = *num_iso_peaks_array_it;
-            auto num_iso_peaks_array_linear_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "NumIsoPeaks");
+            auto num_iso_peaks_array_linear_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "iso_peak_count");
             DataArrays::IntegerDataArray num_iso_peaks_array_linear = *num_iso_peaks_array_linear_it;
-            auto num_iso_peaks_array_xlinks_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "NumIsoPeaks");
+            auto num_iso_peaks_array_xlinks_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "iso_peak_count");
             DataArrays::IntegerDataArray num_iso_peaks_array_xlinks = *num_iso_peaks_array_xlinks_it;
 
             csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
@@ -891,7 +890,7 @@ using namespace OpenMS;
 
             if (!matched_spec_linear_alpha.empty())
             {
-              for (auto match : matched_spec_linear_alpha)
+              for (const auto& match : matched_spec_linear_alpha)
               {
                 iso_peaks_linear_alpha.push_back(num_iso_peaks_array_linear[match.second]);
               }
@@ -900,7 +899,7 @@ using namespace OpenMS;
 
             if (!matched_spec_linear_beta.empty())
             {
-              for (auto match : matched_spec_linear_beta)
+              for (const auto& match : matched_spec_linear_beta)
               {
                 iso_peaks_linear_beta.push_back(num_iso_peaks_array_linear[match.second]);
               }
@@ -909,7 +908,7 @@ using namespace OpenMS;
 
             if (!matched_spec_xlinks_alpha.empty())
             {
-              for (auto match : matched_spec_xlinks_alpha)
+              for (const auto& match : matched_spec_xlinks_alpha)
               {
                 iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array_xlinks[match.second]);
               }
@@ -921,7 +920,7 @@ using namespace OpenMS;
 
             if (!matched_spec_xlinks_beta.empty())
             {
-              for (auto match : matched_spec_xlinks_beta)
+              for (const auto& match : matched_spec_xlinks_beta)
               {
                 iso_peaks_xlinks_beta.push_back(num_iso_peaks_array_xlinks[match.second]);
               }
@@ -1032,7 +1031,7 @@ using namespace OpenMS;
           // write fragment annotations
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "Start writing annotations" << endl;
+          OPENMS_LOG_DEBUG << "Start writing annotations" << endl;
 #endif
 
           vector<PeptideHit::PeakAnnotation> frag_annotations;
@@ -1044,7 +1043,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "End writing fragment annotations, size: " << frag_annotations.size() << endl;
+          OPENMS_LOG_DEBUG << "End writing fragment annotations, size: " << frag_annotations.size() << endl;
 #endif
 
           // make annotations unique
@@ -1091,14 +1090,14 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Next Spectrum #############################################" << endl;
+      OPENMS_LOG_DEBUG << "Next Spectrum #############################################" << endl;
 #endif
     } // end of matching / scoring, end of parallel for-loop
 
     progresslogger.endProgress();
 
 #ifdef DEBUG_OPENPEPXLALGO
-    LOG_DEBUG << "# Peptide IDs: " << peptide_ids.size() << " | # all_top_csms: " << all_top_csms.size() << endl;
+    OPENMS_LOG_DEBUG << "# Peptide IDs: " << peptide_ids.size() << " | # all_top_csms: " << all_top_csms.size() << endl;
 #endif
 
     peptide_ids = OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits_);
@@ -1117,6 +1116,11 @@ using namespace OpenMS;
     pep_indexing.run(fasta_db, protein_ids, peptide_ids);
 
     OPXLHelper::addProteinPositionMetaValues(peptide_ids);
+    OPXLHelper::addBetaAccessions(peptide_ids);
+    OPXLHelper::addXLTargetDecoyMV(peptide_ids);
+    OPXLHelper::removeBetaPeptideHits(peptide_ids);
+    OPXLHelper::computeDeltaScores(peptide_ids);
+    OPXLHelper::addPercolatorFeatureList(protein_ids[0]);
     return OpenPepXLAlgorithm::ExitCodes::EXECUTION_OK;
   }
 
@@ -1143,7 +1147,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << " heavy_light comparison, matching peaks without shift: " << matched_fragments_without_shift.size() << endl;
+      OPENMS_LOG_DEBUG << " heavy_light comparison, matching peaks without shift: " << matched_fragments_without_shift.size() << endl;
 #endif
 
       // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
@@ -1151,7 +1155,7 @@ using namespace OpenMS;
       PeakSpectrum::IntegerDataArray spectrum_heavy_charges;
       PeakSpectrum::IntegerDataArray spectrum_light_iso_peaks;
 
-      auto spectrum_heavy_charges_it = getDataArrayByName(spectrum_heavy.getIntegerDataArrays(), "Charges");
+      auto spectrum_heavy_charges_it = getDataArrayByName(spectrum_heavy.getIntegerDataArrays(), "charge");
       if (spectrum_heavy_charges_it != spectrum_heavy.getIntegerDataArrays().end())
       {
         if (!spectrum_heavy_charges_it->empty())
@@ -1159,7 +1163,7 @@ using namespace OpenMS;
           spectrum_heavy_charges = *spectrum_heavy_charges_it;
         }
       }
-      auto spectrum_light_iso_peaks_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "NumIsoPeaks");
+      auto spectrum_light_iso_peaks_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "iso_peak_count");
       if (spectrum_light_iso_peaks_it != spectrum_light.getIntegerDataArrays().end())
       {
         if (!spectrum_light_iso_peaks_it->empty())
@@ -1171,13 +1175,13 @@ using namespace OpenMS;
       if (deisotope)
       {
         xlink_peaks.getIntegerDataArrays().resize(2);
-        xlink_peaks.getIntegerDataArrays()[0].setName("Charges");
-        xlink_peaks.getIntegerDataArrays()[1].setName("NumIsoPeaks");
+        xlink_peaks.getIntegerDataArrays()[0].setName("charge");
+        xlink_peaks.getIntegerDataArrays()[1].setName("iso_peak_count");
       }
       else
       {
         xlink_peaks.getIntegerDataArrays().resize(1);
-        xlink_peaks.getIntegerDataArrays()[0].setName("Charges");
+        xlink_peaks.getIntegerDataArrays()[0].setName("charge");
       }
 
       // keep track of matched peaks
@@ -1188,7 +1192,7 @@ using namespace OpenMS;
       {
         PeakSpectrum spectrum_heavy_to_light;
         PeakSpectrum::IntegerDataArray spectrum_heavy_to_light_charges;
-        spectrum_heavy_to_light_charges.setName("Charges");
+        spectrum_heavy_to_light_charges.setName("charge");
         double mass_shift = cross_link_mass_iso_shift / charge;
 
         // transform heavy spectrum
@@ -1213,7 +1217,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Spectrum heavy to light: " << spectrum_heavy_to_light.size() << endl;
+        OPENMS_LOG_DEBUG << "Spectrum heavy to light: " << spectrum_heavy_to_light.size() << endl;
 #endif
 
         // align peaks from light spectrum with shifted peaks from heavy spectrum
@@ -1228,7 +1232,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "matched with shift: " << matched_fragments_with_shift.size() << endl;
+          OPENMS_LOG_DEBUG << "matched with shift: " << matched_fragments_with_shift.size() << endl;
 #endif
 
           // fill xlink_peaks spectrum with matched peaks from the light spectrum and add the currently considered charge
@@ -1252,7 +1256,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "done shifting peaks, total xlink peaks: " << xlink_peaks.size() << endl;
+      OPENMS_LOG_DEBUG << "done shifting peaks, total xlink peaks: " << xlink_peaks.size() << endl;
 #endif
 
       // generate linear peaks spectrum, include charges determined through deisotoping in preprocessing
@@ -1260,15 +1264,15 @@ using namespace OpenMS;
 
       PeakSpectrum::IntegerDataArray spectrum_light_charges;
 
-      auto spectrum_light_charges_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "Charges");
+      auto spectrum_light_charges_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "charge");
       if (spectrum_light_charges_it != spectrum_light.getIntegerDataArrays().end())
       {
         if (!spectrum_light_charges_it->empty())
         {
           spectrum_light_charges = *spectrum_light_charges_it;
           linear_peaks.getIntegerDataArrays().resize(2);
-          linear_peaks.getIntegerDataArrays()[0].setName("Charges");
-          linear_peaks.getIntegerDataArrays()[1].setName("NumIsoPeaks");
+          linear_peaks.getIntegerDataArrays()[0].setName("charge");
+          linear_peaks.getIntegerDataArrays()[1].setName("iso_peak_count");
         }
       }
 
@@ -1283,12 +1287,12 @@ using namespace OpenMS;
       }
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "done creating linear ion spectrum, total linear peaks: " << linear_peaks.size() << endl;
+      OPENMS_LOG_DEBUG << "done creating linear ion spectrum, total linear peaks: " << linear_peaks.size() << endl;
 #endif
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Peaks to match: " << linear_peaks.size() << endl;
+      OPENMS_LOG_DEBUG << "Peaks to match: " << linear_peaks.size() << endl;
 #endif
 
       // TODO make this a tool parameter ? Leave it out completely? Comparing Light/Heavy spectra should already be good enough filtering
@@ -1310,7 +1314,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "paired up, linear peaks: " << linear_peaks.size() << " | xlink peaks: " << xlink_peaks.size() << " | all peaks: " << all_peaks.size() << endl;
+      OPENMS_LOG_DEBUG << "paired up, linear peaks: " << linear_peaks.size() << " | xlink peaks: " << xlink_peaks.size() << " | all peaks: " << all_peaks.size() << endl;
 #endif
 
   #ifdef _OPENMP
@@ -1325,8 +1329,8 @@ using namespace OpenMS;
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "spectrum_linear_peaks: " << preprocessed_pair_spectra.spectra_linear_peaks[pair_index].size() << endl;
-          LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
+          OPENMS_LOG_DEBUG << "spectrum_linear_peaks: " << preprocessed_pair_spectra.spectra_linear_peaks[pair_index].size() << endl;
+          OPENMS_LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
         }
 #endif
 

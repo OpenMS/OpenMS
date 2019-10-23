@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2019-02-13T11:26:38" search_engine="AccurateMassSearch" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2019-03-28T17:59:31" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -121,6 +121,7 @@
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[36310.164094606996514]"/>
 			<UserParam type="float" name="FWHM" value="6.25"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1Na1"/>
 		</feature>
 		<feature id="f_12112469906802307848">
 			<position dim="0">308.25</position>
@@ -713,6 +714,7 @@
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[2.15267481468212e06, 1.99952370346936e05, 13890.889608368199333]"/>
 			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1Na1"/>
 		</feature>
 		<feature id="f_2737147212367465006">
 			<position dim="0">284.75</position>
@@ -2541,6 +2543,7 @@
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[9.86488096925674e05]"/>
 			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na2"/>
 		</feature>
 		<feature id="f_425533765783660679">
 			<position dim="0">258.75</position>
@@ -2614,6 +2617,7 @@
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[35837.46716858039872]"/>
 			<UserParam type="float" name="FWHM" value="3.5"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
 		</feature>
 	</featureList>
 </featureMap>

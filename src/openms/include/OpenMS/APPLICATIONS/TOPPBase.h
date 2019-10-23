@@ -80,7 +80,7 @@ namespace OpenMS
     std::string when_where; ///< suggested format: journal. year; volume, issue: pages
     std::string doi;        ///< plain DOI (no urls), e.g. 10.1021/pr100177k
 
-                            /// mangle members to string
+    /// mangle members to string
     std::string toString() const
     {
       return authors + ". " + title + ". " + when_where + ". doi:" + doi + ".";
@@ -373,6 +373,8 @@ private:
       The subsection extends until the last colon (":"). If there is no subsection, the empty string is returned.
     */
     String getSubsection_(const String& name) const;
+
+    String getDocumentationURL() const;
 
     /// Returns the default parameters
     Param getDefaultParameters_() const;
@@ -913,9 +915,6 @@ protected:
 
     /// Write common tool description (CTD) file
     bool writeCTD_();
-
-    /// Write WSDL file and validate it. Returns EXECUTION_OK or INTERNAL_ERROR (if validation failed)
-    ExitCodes writeWSDL_(const String& filename);
 
     /**
       @brief Test mode

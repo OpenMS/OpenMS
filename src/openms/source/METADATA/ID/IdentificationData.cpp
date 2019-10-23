@@ -173,6 +173,12 @@ namespace OpenMS
   IdentificationData::ScoreTypeRef
   IdentificationData::registerScoreType(const ScoreType& score)
   {
+    if (score.cv_term.getAccession().empty() && score.cv_term.getName().empty())
+    {
+      String msg = "score type must have an accession or a name";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
     pair<ScoreTypes::iterator, bool> result;
     result = score_types_.insert(score);
     if (!result.second && (score.higher_better != result.first->higher_better))
@@ -282,7 +288,7 @@ namespace OpenMS
     {
       checkScoreTypes_(group.scores);
 
-      for (auto ref : group.parent_molecule_refs)
+      for (const auto& ref : group.parent_molecule_refs)
       {
         if (!isValidHashedReference_(ref, parent_molecule_lookup_))
         {
@@ -355,7 +361,7 @@ namespace OpenMS
   IdentificationData::MatchGroupRef
   IdentificationData::registerQueryMatchGroup(const QueryMatchGroup& group)
   {
-    for (auto ref : group.query_match_refs)
+    for (const auto& ref : group.query_match_refs)
     {
       if (!isValidHashedReference_(ref, query_match_lookup_))
       {
@@ -414,7 +420,7 @@ namespace OpenMS
   {
     for (ScoreTypeRef it = score_types_.begin(); it != score_types_.end(); ++it)
     {
-      if (it->name == score_name)
+      if (it->cv_term.getName() == score_name)
       {
         return make_pair(it, true);
       }
@@ -738,7 +744,7 @@ namespace OpenMS
     }
     if (warn)
     {
-      LOG_WARN << "Warning: filtering removed elements from parent molecule groups - associated scores may not be valid any more" << endl;
+      OPENMS_LOG_WARN << "Warning: filtering removed elements from parent molecule groups - associated scores may not be valid any more" << endl;
     }
 
     // remove entries from query match groups based on molecule-query matches:
@@ -768,7 +774,7 @@ namespace OpenMS
     }
     if (warn)
     {
-      LOG_WARN << "Warning: filtering removed elements from query match groups - associated scores may not be valid any more" << endl;
+      OPENMS_LOG_WARN << "Warning: filtering removed elements from query match groups - associated scores may not be valid any more" << endl;
     }
   }
 

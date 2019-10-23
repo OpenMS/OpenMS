@@ -82,8 +82,17 @@ public:
     /// default constructor
     ConvexHull2D();
 
+    /// Copy constructor
+    ConvexHull2D(const ConvexHull2D&) = default;
+
+    /// Move constructor
+    ConvexHull2D(ConvexHull2D&&) = default;
+
     /// assignment operator
     ConvexHull2D& operator=(const ConvexHull2D& rhs);
+
+    /// move assignment operator
+    ConvexHull2D& operator=(ConvexHull2D&&) & = default;
 
     /// equality operator
     bool operator==(const ConvexHull2D& rhs) const;

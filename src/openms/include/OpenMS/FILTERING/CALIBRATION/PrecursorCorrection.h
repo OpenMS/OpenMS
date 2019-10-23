@@ -57,9 +57,9 @@ namespace OpenMS
   Supported methods:
   getPrecursors: Extract precursors and associated information (mz, scan index).
   writeHist: Write output .csv for validation purposes (corrected, uncorrected).
-  correctToNearestMS1Peak: Correct to the peak in closest proximity in a certrain mass range.
+  correctToNearestMS1Peak: Correct to the peak in closest proximity in a certain mass range.
   correctToHighestIntensityMS1Peak: Correct to the peak with the highest intensity in a certain mass range.
-  correctToNearestFeature: Use feature information to reannotate a precursor (e.g. falsely assigned to non mono-isotopic trace).
+  correctToNearestFeature: Use feature information to re-annotate a precursor (e.g. falsely assigned to non mono-isotopic trace).
   */
 class OPENMS_DLLAPI PrecursorCorrection
 {
@@ -157,8 +157,8 @@ class OPENMS_DLLAPI PrecursorCorrection
      @param mz_tolerance: double tolerance used for precursor correction in mass range.
      @param ppm: bool enables usage of ppm.
      @param believe_charge: bool only add features that match the precursor charge.
-     @param keep_original: bool this will create a copy of the precursor and tandem spectrum for the new mono-istopic trace and retain the original one.
-     @param all_matching_features: bool correction is perfored for all features in question not only the closest one.
+     @param keep_original: bool this will create a copy of the precursor and tandem spectrum for the new mono-isotopic trace and retain the original one.
+     @param all_matching_features: bool correction is performed for all features in question not only the closest one.
      @param max_trace: integer maximal number of traces used.
      @param debug_level: integer debug level.
      @return set of Size with corrected precursor information.
@@ -195,11 +195,11 @@ class OPENMS_DLLAPI PrecursorCorrection
                             const double rt_tolerance);
 
       /**
-      @brief Check precursor and feature compatiblity
+      @brief Check precursor and feature compatibility
       If the precursor mz is in one of the masstraces the feature is compatible.
-      Dependend on 13C mass difference and charge.
+      Dependent on 13C mass difference and charge.
 
-      @param feature: constatnt Feature.
+      @param feature: constant Feature.
       @param pc_mz: double precursor mass to charge.
       @param mz_tolerance: double mass to charge tolerance.
       @param max_trace_number: Size maximum number of mass traces.

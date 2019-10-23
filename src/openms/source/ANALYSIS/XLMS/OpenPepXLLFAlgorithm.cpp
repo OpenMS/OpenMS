@@ -71,7 +71,7 @@ using namespace OpenMS;
   OpenPepXLLFAlgorithm::OpenPepXLLFAlgorithm()
     : DefaultParamHandler("OpenPepXLLFAlgorithm")
   {
-    defaults_.setValue("decoy_string", "decoy", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     StringList bool_strings = ListUtils::create<String>("true,false");
     defaults_.setValue("decoy_prefix", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
     defaults_.setValidStrings("decoy_prefix", bool_strings);
@@ -205,18 +205,18 @@ using namespace OpenMS;
 
     if (fixed_unique.size() != fixedModNames_.size())
     {
-      LOG_DEBUG << "duplicate fixed modification provided." << endl;
+      OPENMS_LOG_DEBUG << "duplicate fixed modification provided." << endl;
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
 
     set<String> var_unique(varModNames_.begin(), varModNames_.end());
     if (var_unique.size() != varModNames_.size())
     {
-      LOG_DEBUG << "duplicate variable modification provided." << endl;
+      OPENMS_LOG_DEBUG << "duplicate variable modification provided." << endl;
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
-    vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames_);
-    vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames_);
+    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(fixedModNames_);
+    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(varModNames_);
 
     // Precursor Purity precalculation
     progresslogger.startProgress(0, 1, "Computing precursor purities...");
@@ -246,9 +246,8 @@ using namespace OpenMS;
     digestor.setEnzyme(enzyme_name_);
     digestor.setMissedCleavages(missed_cleavages_);
 
-    StringList ms_runs;
-    unprocessed_spectra.getPrimaryMSRunPath(ms_runs);
-    protein_ids[0].setPrimaryMSRunPath(ms_runs);
+    // TODO: this should probably be set in the tool where the input filename is available
+    protein_ids[0].setPrimaryMSRunPath({}, unprocessed_spectra);
 
     ProteinIdentification::SearchParameters search_params = protein_ids[0].getSearchParameters();
     String searched_charges((String(min_precursor_charge_)));
@@ -334,7 +333,7 @@ using namespace OpenMS;
     specGen_mainscore.setParameters(specGenParams_mainscore);
 
 #ifdef DEBUG_OPENPEPXLLFALGO
-    LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
+    OPENMS_LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
 #endif
 
     search_params = protein_ids[0].getSearchParameters();
@@ -353,7 +352,7 @@ using namespace OpenMS;
     sort(spectrum_precursors.begin(), spectrum_precursors.end());
 
 #ifdef DEBUG_OPENPEPXLLFALGO
-    LOG_DEBUG << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
+    OPENMS_LOG_DEBUG << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
 #endif
 
     sort(peptide_masses.begin(), peptide_masses.end(), OPXLDataStructs::AASeqWithMassComparator());
@@ -375,7 +374,7 @@ using namespace OpenMS;
     double max_peptide_mass = max_precursor_mass - cross_link_mass_ + max_peptide_allowed_error;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
-    LOG_DEBUG << "Filtering peptides with precursors" << endl;
+    OPENMS_LOG_DEBUG << "Filtering peptides with precursors" << endl;
 #endif
 
     // search for the first mass greater than the maximim, cut off everything larger
@@ -389,7 +388,7 @@ using namespace OpenMS;
     Size spectrum_counter = 0;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
-    LOG_DEBUG << "Spectra left after preprocessing and filtering: " << spectra.size() << " of " << unprocessed_spectra.size() << endl;
+    OPENMS_LOG_DEBUG << "Spectra left after preprocessing and filtering: " << spectra.size() << " of " << unprocessed_spectra.size() << endl;
 #endif
 
 // #ifdef _OPENMP
@@ -408,7 +407,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Size of enumerated candidates: " << double(cross_link_candidates.size()) * sizeof(OPXLDataStructs::ProteinProteinCrossLink) / 1024.0 / 1024.0 << " mb" << endl;
+      OPENMS_LOG_DEBUG << "Size of enumerated candidates: " << double(cross_link_candidates.size()) * sizeof(OPXLDataStructs::ProteinProteinCrossLink) / 1024.0 / 1024.0 << " mb" << endl;
 #endif
 
 #ifdef _OPENMP
@@ -560,7 +559,7 @@ using namespace OpenMS;
         double candidate_mz = (alpha.getMonoWeight() + beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "Pair: " << alpha.toString() << "-" << beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
+          OPENMS_LOG_DEBUG << "Pair: " << alpha.toString() << "-" << beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
             << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
         }
 #endif
@@ -636,9 +635,9 @@ using namespace OpenMS;
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "Spectrum sizes: " << spectrum.size() << " || " << theoretical_spec_linear_alpha.size() <<  " | " << theoretical_spec_linear_beta.size()
+          OPENMS_LOG_DEBUG << "Spectrum sizes: " << spectrum.size() << " || " << theoretical_spec_linear_alpha.size() <<  " | " << theoretical_spec_linear_beta.size()
                                 <<  " | " << theoretical_spec_xlinks_alpha.size() <<  " | " << theoretical_spec_xlinks_beta.size() << endl;
-          LOG_DEBUG << "Matched peaks: " << matched_spec_linear_alpha.size() << " | " << matched_spec_linear_beta.size()
+          OPENMS_LOG_DEBUG << "Matched peaks: " << matched_spec_linear_alpha.size() << " | " << matched_spec_linear_beta.size()
                                 <<  " | " << matched_spec_xlinks_alpha.size() <<  " | " << matched_spec_xlinks_beta.size() << endl;
         }
 #endif
@@ -652,7 +651,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Computing Intsum..." << endl;
+        OPENMS_LOG_DEBUG << "Computing Intsum..." << endl;
 #endif
 
         // compute intsum score
@@ -684,7 +683,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Computing TIC..." << endl;
+        OPENMS_LOG_DEBUG << "Computing TIC..." << endl;
 #endif
 
         // compute weighted TIC
@@ -697,7 +696,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Computing Match-Odds..." << endl;
+        OPENMS_LOG_DEBUG << "Computing Match-Odds..." << endl;
 #endif
 
         // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
@@ -794,11 +793,11 @@ using namespace OpenMS;
         {
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "Computing Iso Peak summeries..." << endl;
+          OPENMS_LOG_DEBUG << "Computing Iso Peak summeries..." << endl;
 #endif
 
           DataArrays::IntegerDataArray num_iso_peaks_array;
-          auto num_iso_peaks_array_it = getDataArrayByName(spectrum.getIntegerDataArrays(), "NumIsoPeaks");
+          auto num_iso_peaks_array_it = getDataArrayByName(spectrum.getIntegerDataArrays(), "iso_peak_count");
           num_iso_peaks_array = *num_iso_peaks_array_it;
 
           OPXLHelper::isoPeakMeans(csm, num_iso_peaks_array, matched_spec_linear_alpha, matched_spec_linear_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta);
@@ -815,7 +814,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Computing ppm error summeries..." << endl;
+        OPENMS_LOG_DEBUG << "Computing ppm error summeries..." << endl;
 #endif
 
         // TODO find a better way to compute the absolute sum
@@ -919,7 +918,7 @@ using namespace OpenMS;
         // write fragment annotations
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Start writing annotations" << endl;
+        OPENMS_LOG_DEBUG << "Start writing annotations" << endl;
 #endif
 
         vector<PeptideHit::PeakAnnotation> frag_annotations;
@@ -931,7 +930,7 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "End writing annotations, size: " << frag_annotations.size() << endl;
+        OPENMS_LOG_DEBUG << "End writing annotations, size: " << frag_annotations.size() << endl;
 #endif
 
         // make annotations unique
@@ -976,7 +975,7 @@ using namespace OpenMS;
       }
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Next Spectrum ##################################" << endl;
+      OPENMS_LOG_DEBUG << "Next Spectrum ##################################" << endl;
 #endif
     }
 
@@ -997,5 +996,10 @@ using namespace OpenMS;
     pep_indexing.run(fasta_db, protein_ids, peptide_ids);
 
     OPXLHelper::addProteinPositionMetaValues(peptide_ids);
+    OPXLHelper::addBetaAccessions(peptide_ids);
+    OPXLHelper::addXLTargetDecoyMV(peptide_ids);
+    OPXLHelper::removeBetaPeptideHits(peptide_ids);
+    OPXLHelper::computeDeltaScores(peptide_ids);
+    OPXLHelper::addPercolatorFeatureList(protein_ids[0]);
     return OpenPepXLLFAlgorithm::ExitCodes::EXECUTION_OK;
   }

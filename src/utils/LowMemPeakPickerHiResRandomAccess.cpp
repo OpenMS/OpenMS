@@ -157,7 +157,7 @@ protected:
     /*
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }

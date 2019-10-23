@@ -117,7 +117,7 @@ namespace OpenMS
 
   void IonizationSimulation::ionize(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus, SimTypes::MSSimExperiment& experiment)
   {
-    LOG_INFO << "Ionization Simulation ... started" << std::endl;
+    OPENMS_LOG_INFO << "Ionization Simulation ... started" << std::endl;
 
     // clear the consensus map
     charge_consensus = ConsensusMap();
@@ -154,7 +154,7 @@ namespace OpenMS
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
     defaults_.setValidStrings("ionization_type", ListUtils::create<String>("MALDI,ESI"));
 
-    defaults_.setValue("esi:ionized_residues", ListUtils::create<String>("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ES ionization. The N-term is always assumed to carry a charge. This parameter will be ignored during MALDI ionization.");
+    defaults_.setValue("esi:ionized_residues", ListUtils::create<String>("Arg,Lys,His"), "List of residues (as three letter code) that will be considered during ES ionization. The N-term is always assumed to carry a charge. This parameter will be ignored during MALDI ionization");
     StringList valid_ionized_residues = ListUtils::create<String>("Ala,Cys,Asp,Glu,Phe,Gly,His,Ile,Lys,Leu,Met,Asn,Pro,Gln,Arg,Sec,Ser,Thr,Val,Trp,Tyr");
     defaults_.setValidStrings("esi:ionized_residues", valid_ionized_residues);
     defaults_.setValue("esi:charge_impurity", ListUtils::create<String>("H+:1"), "List of charged ions that contribute to charge with weight of occurrence (their sum is scaled to 1 internally), e.g. ['H:1'] or ['H:0.7' 'Na:0.3'], ['H:4' 'Na:1'] (which internally translates to ['H:0.8' 'Na:0.2'])");
@@ -163,12 +163,12 @@ namespace OpenMS
 
     // ionization probabilities
     defaults_.setValue("esi:ionization_probability", 0.8, "Probability for the binomial distribution of the ESI charge states");
-    defaults_.setValue("maldi:ionization_probabilities", ListUtils::create<double>("0.9,0.1"), "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
+    defaults_.setValue("maldi:ionization_probabilities", DoubleList{0.9, 0.1, 0.0}, "List of probabilities for different charge states (starting at charge=1, 2, ...) during MALDI ionization (the list must sum up to 1.0)");
 
     // maximal size of map in mz dimension
-    defaults_.setValue("mz:lower_measurement_limit", 200.0, "Lower m/z detector limit.");
+    defaults_.setValue("mz:lower_measurement_limit", 200.0, "Lower m/z detector limit");
     defaults_.setMinFloat("mz:lower_measurement_limit", 0.0);
-    defaults_.setValue("mz:upper_measurement_limit", 2500.0, "Upper m/z detector limit.");
+    defaults_.setValue("mz:upper_measurement_limit", 1200.0, "Upper m/z detector limit");
     defaults_.setMinFloat("mz:upper_measurement_limit", 0.0);
 
     defaultsToParam_();
@@ -281,7 +281,7 @@ public:
     // features discarded - out of mz detection range
     Size undetected_features_count = 0;
 
-    LOG_INFO << "Simulating " << features.size() << " features" << std::endl;
+    OPENMS_LOG_INFO << "Simulating " << features.size() << " features" << std::endl;
 
     this->startProgress(0, features.size(), "Ionization");
     Size progress(0);
@@ -323,7 +323,7 @@ public:
         }
         catch (...) // overflow (e.g. intensity = 1e6); underflow can currently not occur (see DigestSimulation:204) but would be covered as well
         {
-          LOG_WARN << "Protein abundance of " << features[index].getIntensity() << " is too high!"
+          OPENMS_LOG_WARN << "Protein abundance of " << features[index].getIntensity() << " is too high!"
                     << "Please use values in [0," << std::numeric_limits<AbundanceType>::max() << +"]! This will fail!";
           abundance = 1; // keep on going for now, but fail after parallel region;
           omp_exception = true;
@@ -508,8 +508,8 @@ public:
     // swap feature maps
     features.swap(copy_map);
 
-    LOG_INFO << "#Peptides not ionized: " << uncharged_feature_count << std::endl;
-    LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
+    OPENMS_LOG_INFO << "#Peptides not ionized: " << uncharged_feature_count << std::endl;
+    OPENMS_LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
 
     features.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     charge_consensus.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
@@ -608,11 +608,11 @@ public:
       // swap feature maps
       features.swap(copy_map);
 
-      LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
+      OPENMS_LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
     }
     catch (std::exception& e)
     {
-      LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
+      OPENMS_LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
       throw;
     }
 

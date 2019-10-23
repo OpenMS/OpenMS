@@ -48,11 +48,11 @@ namespace OpenMS
 {
 
   AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier)
-    : 
+    :
     name_(name),
     ef_(adduct),
     charge_(charge),
-    mol_multiplier_(mol_multiplier) 
+    mol_multiplier_(mol_multiplier)
   {
     if (charge_ == 0)
     {
@@ -108,10 +108,15 @@ namespace OpenMS
   {
     return charge_;
   }
-    
+
   const String& AdductInfo::getName() const
   {
     return name_;
+  }
+
+  const EmpiricalFormula& AdductInfo::getEmpiricalFormula() const
+  {
+    return ef_;
   }
 
   AdductInfo AdductInfo::parseAdductString(const String& adduct)
@@ -119,9 +124,9 @@ namespace OpenMS
     // adduct string looks like this:
     // M+2K-H;1+   or
     // 2M+CH3CN+Na;1+  (i.e. multimers are supported)
-      
+
     // do some sanity checks on the string
-      
+
     // retrieve adduct and charge
     String cp_str(adduct);
     cp_str.removeWhitespaces();
@@ -147,7 +152,7 @@ namespace OpenMS
 
     // get charge and sign (throws ConversionError if not an integer)
     int charge = charge_str.substr(0, charge_str.size() - 1).toInt();
-      
+
     if (charge_str.suffix(1) == "+")
     {
       if (charge < 0)
@@ -182,7 +187,7 @@ namespace OpenMS
     op_str.substitute("+", "%+%");
     // split while keeping + and - as separate entries
     op_str.split("%", list);
-      
+
     // some further sanity check if adduct formula is correct
     String m_part(list[0]);
     // std::cout << m_part.at(m_part.size() - 1) << std::endl;
@@ -230,7 +235,7 @@ namespace OpenMS
       }
 
       EmpiricalFormula ef_part(formula_str);
-      LOG_DEBUG << "Adducts: " << stoichio_factor << "*" << formula_str << " == " << stoichio_factor * ef_part.getMonoWeight() << std::endl;
+      OPENMS_LOG_DEBUG << "Adducts: " << stoichio_factor << "*" << formula_str << " == " << stoichio_factor * ef_part.getMonoWeight() << std::endl;
 
       if (op_plus)
       {
@@ -459,7 +464,7 @@ namespace OpenMS
 
   const std::vector<double>& AccurateMassSearchResult::getMasstraceIntensities() const
   {
-    return mass_trace_intensities_;  
+    return mass_trace_intensities_;
   }
 
   void AccurateMassSearchResult::setMasstraceIntensities(const std::vector<double>& mti)
@@ -498,7 +503,7 @@ namespace OpenMS
     }
     os << "\n";
     os << "isotope similarity score: " << amsr.isotopes_sim_score_ << "\n";
-    
+
     // restore precision
     os.precision(old_precision);
     return os;
@@ -532,12 +537,15 @@ namespace OpenMS
     defaults_.setValue("negative_adducts", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
                                                                                  "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
+
+    defaults_.setValue("use_feature_adducts", "false", "Whether to filter AMS candidates mismatching available feature adduct annotation.");
+    defaults_.setValidStrings("use_feature_adducts", ListUtils::create<String>("false,true"));
+
     defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
     defaults_.setValidStrings("keep_unidentified_masses", ListUtils::create<String>(("false,true")));
 
-    defaults_.setValue("mzTab:exportIsotopeIntensities", 0, "[featureXML input only] Number of extra columns in mzTab output, which provide intensities up to the x'th isotope. '0' to deactivate, '1' for monoisotopic peak, etc. If a feature does not have a certain isotope, 'null' will be reported.");
-    defaults_.setMinInt("mzTab:exportIsotopeIntensities", 0);
-
+    defaults_.setValue("mzTab:exportIsotopeIntensities", "false", "[featureXML input only] Export column with available isotope trace intensities (opt_global_MTint)");
+    defaults_.setValidStrings("mzTab:exportIsotopeIntensities", ListUtils::create<String>("false,true"));
 
     defaultsToParam_();
   }
@@ -548,7 +556,7 @@ namespace OpenMS
 
 /// public methods
 
-  void AccurateMassSearchEngine::queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
+  void AccurateMassSearchEngine::queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct) const
   {
     if (!is_initialized_)
     {
@@ -580,6 +588,12 @@ namespace OpenMS
         // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
         continue;
       }
+
+      if ((observed_adduct != EmpiricalFormula()) && (observed_adduct != it->getEmpiricalFormula()))
+      { // If feature has no adduct annotation, method call defaults to empty EF(). If feature is annotated with an adduct, it must match.
+        continue;
+      }
+
 
       // get potential hits as indices in masskey_table
       double neutral_mass = it->getNeutralMass(observed_mz); // calculate mass of uncharged small molecule without adduct mass
@@ -617,7 +631,7 @@ namespace OpenMS
         if (!it->isCompatible(EmpiricalFormula(mass_mappings_[i].formula)))
         {
           // only written if TOPP tool has --debug
-          LOG_DEBUG << "'" << mass_mappings_[i].formula << "' cannot have adduct '" << it->getName() << "'. Omitting.\n";
+          OPENMS_LOG_DEBUG << "'" << mass_mappings_[i].formula << "' cannot have adduct '" << it->getName() << "'. Omitting.\n";
           continue;
         }
 
@@ -675,18 +689,26 @@ namespace OpenMS
 
     std::vector<AccurateMassSearchResult> results_part;
 
-    queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
+    bool use_feature_adducts = param_.getValue("use_feature_adducts").toString() == "true";
+    if (use_feature_adducts && feature.metaValueExists("dc_charge_adducts"))
+    {
+      queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part, EmpiricalFormula(feature.getMetaValue("dc_charge_adducts")));
+    }
+    else
+    {
+      queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
+    }
 
-    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
+    bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 
     for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
     {
       results_part[hit_idx].setObservedRT(feature.getRT());
       results_part[hit_idx].setSourceFeatureIndex(feature_index);
       results_part[hit_idx].setObservedIntensity(feature.getIntensity());
-      
+
       std::vector<double> mti;
-      if (isotope_export > 0)
+      if (isotope_export)
       {
           if (feature.metaValueExists("masstrace_intensity"))
           {
@@ -694,7 +716,7 @@ namespace OpenMS
           }
         results_part[hit_idx].setMasstraceIntensities(mti);
       }
-      
+
       // append
       results.push_back(results_part[hit_idx]);
     }
@@ -757,7 +779,7 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
-    
+
     String ion_mode_internal(ion_mode_);
     if (ion_mode_ == "auto")
     {
@@ -783,10 +805,10 @@ namespace OpenMS
       {
         if (!fmap[i].metaValueExists("num_of_masstraces"))
         {
-          LOG_WARN << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
+          OPENMS_LOG_WARN << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
         }
         else if ((Size)fmap[i].getMetaValue("num_of_masstraces") > 1)
-        { // compute isotope pattern similarities (do not take the best-scoring one, since it might have really bad ppm or other properties -- 
+        { // compute isotope pattern similarities (do not take the best-scoring one, since it might have really bad ppm or other properties --
           // it is impossible to decide here which one is best
           for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
           {
@@ -815,13 +837,13 @@ namespace OpenMS
 
     if (fmap.empty())
     {
-      LOG_INFO << "FeatureMap was empty! No hits found!" << std::endl;
+      OPENMS_LOG_INFO << "FeatureMap was empty! No hits found!" << std::endl;
     }
     else
     { // division by 0 if used on empty fmap
-      LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
+      OPENMS_LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
     }
-  
+
     exportMzTab_(overall_results, 1, mztab_out);
 
     return;
@@ -926,7 +948,7 @@ namespace OpenMS
     MzTabString null_location;
     run_md.location = null_location;
     md.ms_run[1] = run_md;
-        
+
     // do not use overall_results.begin()->at(0).getIndividualIntensities().size(); since the first entry might be empty (no hit)
     Size n_study_variables = number_of_maps;
 
@@ -947,7 +969,7 @@ namespace OpenMS
     std::map<String, UInt> adduct_stats; // adduct --> # occurences
     std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count each feature only once)
 
-    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
+    bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
@@ -1014,7 +1036,7 @@ namespace OpenMS
             mztab_row_record.calc_mass_to_charge = mass_to_charge;
 
             // set charge field
-            MzTabDouble mcharge;
+            MzTabInteger mcharge;
             mcharge.set((*tab_it)[hit_idx].getCharge());
             mztab_row_record.charge = mcharge;
           }
@@ -1138,7 +1160,7 @@ namespace OpenMS
           col0.second = ppmerr;
           optionals.push_back(col0);
 
-          // set found adduct ion          
+          // set found adduct ion
           MzTabString addion;
           if (db_hit)
           {
@@ -1168,9 +1190,8 @@ namespace OpenMS
           col2.second = sim_score;
           optionals.push_back(col2);
 
-          // TODO: What is happening here?
           // mass trace intensities (use NULL if not present)
-          if (isotope_export > 0)
+          if (isotope_export)
           {
               MzTabString trace_int; // implicitly NULL
 
@@ -1186,9 +1207,8 @@ namespace OpenMS
 
               MzTabOptionalColumnEntry col_mt;
               col_mt.first = String("opt_global_MTint");
-              col_mt.second = trace_int;
+              col_mt.second = MzTabString(mt_int_str);
               optionals.push_back(col_mt);
-
           }
 
           // set neutral mass
@@ -1204,7 +1224,7 @@ namespace OpenMS
           col3.second = neutral_mass_string;
           optionals.push_back(col3);
 
-          // set id group; rows with the same id group number originated from the same feature          
+          // set id group; rows with the same id group number originated from the same feature
           String id_group_temp(id_group);
           MzTabString id_group_str;
           id_group_str.set(id_group_temp);
@@ -1222,12 +1242,12 @@ namespace OpenMS
     mztab_out.setSmallMoleculeSectionRows(all_sm_rows);
 
     // print some adduct stats:
-    LOG_INFO << "Hits by adduct: #peaks explained (# matching db entries)'\n";
+    OPENMS_LOG_INFO << "Hits by adduct: #peaks explained (# matching db entries)'\n";
     for (std::map<String, UInt>::const_iterator it = adduct_stats.begin(); it != adduct_stats.end(); ++it)
     {
-      LOG_INFO << "  '" << it->first << "' : " << adduct_stats_unique[it->first].size() << " (" << it->second << ")\n";
+      OPENMS_LOG_INFO << "  '" << it->first << "' : " << adduct_stats_unique[it->first].size() << " (" << it->second << ")\n";
     }
-    LOG_INFO << std::endl;
+    OPENMS_LOG_INFO << std::endl;
 
   }
 
@@ -1279,7 +1299,7 @@ namespace OpenMS
       std::stringstream str_buf;
       std::istream_iterator<String> eol;
 
-      // LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
+      // OPENMS_LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
 
       std::ifstream ifs(filename.c_str());
       while (getline(ifs, line))
@@ -1328,7 +1348,7 @@ namespace OpenMS
 
         while (istr_it != eol)
         {
-          // LOG_DEBUG << *istr_it << " ";
+          // OPENMS_LOG_DEBUG << *istr_it << " ";
           if (word_count == 0)
           {
             entry.mass = istr_it->toDouble();
@@ -1350,7 +1370,7 @@ namespace OpenMS
           ++word_count;
           ++istr_it;
         }
-        // LOG_DEBUG << std::endl;
+        // OPENMS_LOG_DEBUG << std::endl;
 
         if (entry.massIDs.empty())
         {
@@ -1361,7 +1381,7 @@ namespace OpenMS
     }
     std::sort(mass_mappings_.begin(), mass_mappings_.end(), CompareEntryAndMass_());
 
-    LOG_INFO << "Read " << mass_mappings_.size() << " entries from mapping file!" << std::endl;
+    OPENMS_LOG_INFO << "Read " << mass_mappings_.size() << " entries from mapping file!" << std::endl;
 
     return;
   }
@@ -1383,7 +1403,7 @@ namespace OpenMS
 
       std::ifstream ifs(filename.c_str());
       String line;
-      // LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
+      // OPENMS_LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
 
       std::vector<String> parts;
       while (getline(ifs, line))
@@ -1432,14 +1452,14 @@ namespace OpenMS
       result.push_back(AdductInfo::parseAdductString(*it));
     }
 
-    LOG_INFO << "Read " << result.size() << " entries from adduct file '" << fname << "'." << std::endl;
+    OPENMS_LOG_INFO << "Read " << result.size() << " entries from adduct file '" << fname << "'." << std::endl;
 
     return;
   }
 
   void AccurateMassSearchEngine::searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const
   {
-    //LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
+    //OPENMS_LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
 
     // binary search for formulas which are within diff_mz distance
     if (mass_mappings_.empty())
@@ -1503,7 +1523,7 @@ namespace OpenMS
       {
         return p.getIntensity();
       });
-    
+
     // same for observed isotope distribution
     std::vector<double> observed_iso_dist;
     if (num_traces > 0)

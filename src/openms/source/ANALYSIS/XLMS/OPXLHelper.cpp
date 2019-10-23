@@ -37,6 +37,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 // turn on additional debug output
 // #define DEBUG_OPXLHELPER
@@ -209,28 +211,22 @@ namespace OpenMS
     }
   }
 
-  vector<ResidueModification> OPXLHelper::getModificationsFromStringList(StringList modNames)
-  {
-    vector<ResidueModification> modifications;
-
-    // iterate over modification names and add to vector
-    for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
-    {
-      String modification(*mod_it);
-      modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
-    }
-
-    return modifications;
-  }
-
-  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide)
+  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(
+    vector<FASTAFile::FASTAEntry> fasta_db,
+    EnzymaticDigestion digestor,
+    Size min_peptide_length,
+    StringList cross_link_residue1,
+    StringList cross_link_residue2,
+    const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+    const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
+    Size max_variable_mods_per_peptide)
   {
     multimap<StringView, AASequence> processed_peptides;
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
 
     bool n_term_linker = false;
     bool c_term_linker = false;
-    for (String res : cross_link_residue1)
+    for (const String& res : cross_link_residue1)
     {
       if (res == "N-term")
       {
@@ -241,7 +237,7 @@ namespace OpenMS
         c_term_linker = true;
       }
     }
-    for (String res : cross_link_residue2)
+    for (const String& res : cross_link_residue2)
     {
       if (res == "N-term")
       {
@@ -287,14 +283,14 @@ namespace OpenMS
         }
         else
         {
-          for (String res : cross_link_residue1)
+          for (const String& res : cross_link_residue1)
           {
             if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
             {
               skip = false;
             }
           }
-          for (String res : cross_link_residue2)
+          for (const String& res : cross_link_residue2)
           {
             if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
             {
@@ -318,8 +314,8 @@ namespace OpenMS
 
         // generate all modified variants of a peptide
         AASequence aas = AASequence::fromString(cit->getString());
-        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
-        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
+        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
         {
@@ -352,7 +348,7 @@ namespace OpenMS
   {
     bool n_term_linker = false;
     bool c_term_linker = false;
-    for (String res : cross_link_residue1)
+    for (const String& res : cross_link_residue1)
     {
       if (res == "N-term")
       {
@@ -363,7 +359,7 @@ namespace OpenMS
         c_term_linker = true;
       }
     }
-    for (String res : cross_link_residue2)
+    for (const String& res : cross_link_residue2)
     {
       if (res == "N-term")
       {
@@ -698,13 +694,13 @@ namespace OpenMS
 
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "Searching mono-link for " << residue << " | " << alpha_pos << endl;
+        OPENMS_LOG_DEBUG << "Searching mono-link for " << residue << " | " << alpha_pos << endl;
 #endif
         ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, residue, ResidueModification::ANYWHERE);
 
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-        LOG_DEBUG << "number of modifications fitting the diff mass: " << mods.size() << endl;
+        OPENMS_LOG_DEBUG << "number of modifications fitting the diff mass: " << mods.size() << endl;
 #endif
 
         bool mod_set = false;
@@ -716,7 +712,7 @@ namespace OpenMS
             {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-              LOG_DEBUG << "applied modification: " << mods[s] << endl;
+              OPENMS_LOG_DEBUG << "applied modification: " << mods[s] << endl;
 #endif
               seq_alpha.setModification(alpha_pos, mods[s]);
               mod_set = true;
@@ -728,7 +724,7 @@ namespace OpenMS
         {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-          LOG_DEBUG << "No residue specific mono-link found, searching for terminal mods..." << endl;
+          OPENMS_LOG_DEBUG << "No residue specific mono-link found, searching for terminal mods..." << endl;
 #endif
           ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, "", alpha_term_spec);
           if (mods.size() > 0)
@@ -745,7 +741,7 @@ namespace OpenMS
             {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-              LOG_DEBUG << "Setting N-term mono-link: " << mods[mod_index] << endl;
+              OPENMS_LOG_DEBUG << "Setting N-term mono-link: " << mods[mod_index] << endl;
 #endif
               seq_alpha.setNTerminalModification(mods[mod_index]);
             }
@@ -753,7 +749,7 @@ namespace OpenMS
             {
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-              LOG_DEBUG << "Setting C-term mono-link: " << mods[mod_index] << endl;
+              OPENMS_LOG_DEBUG << "Setting C-term mono-link: " << mods[mod_index] << endl;
 #endif
               seq_alpha.setCTerminalModification(mods[mod_index]);
             }
@@ -765,19 +761,19 @@ namespace OpenMS
         {
           seq_alpha.setModification(alpha_pos, mods[0]);
           mod_set = true;
-          ph_alpha.setMetaValue("xl_mod", mods[0]);
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, mods[0]);
         }
         if (!mod_set) // If no equivalent mono-link exists in the UNIMOD or XLMOD databases, use the given name to construct a placeholder
         {
           String mod_name = String("unknown mono-link " + top_csms_spectrum[i].cross_link.cross_linker_name + " mass " + String(top_csms_spectrum[i].cross_link.cross_linker_mass));
-          ph_alpha.setMetaValue("xl_mod", mod_name);
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, mod_name);
         }
       }
       else
       {
-        ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, top_csms_spectrum[i].cross_link.cross_linker_name);
       }
-      ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS, DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
 
       String alpha_term = "ANYWHERE";
       if (alpha_term_spec == ResidueModification::N_TERM)
@@ -803,11 +799,11 @@ namespace OpenMS
       vector<PeptideHit> phs;
       if (beta_pos >= 0)
       {
-        ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue(beta_pos));
       }
       else
       {
-        ph_alpha.setMetaValue("xl_pos2", DataValue("-"));
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue("-"));
       }
 
       ph_alpha.setSequence(seq_alpha);
@@ -816,50 +812,46 @@ namespace OpenMS
       ph_alpha.setRank(DataValue(i+1));
 
       ph_alpha.setMetaValue("xl_chain", "MS:1002509");  // donor (longer, heavier, alphabetically earlier)
-      ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
-      ph_alpha.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, DataValue(alpha_pos));
+      ph_alpha.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectra[scan_index].getNativeID());
       ph_alpha.setMetaValue("spectrum_index", scan_index);
-      ph_alpha.setMetaValue("xl_type", xltype);
-      ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
-      ph_alpha.setMetaValue("xl_term_spec", alpha_term);
-      ph_alpha.setMetaValue("precursor_correction", top_csms_spectrum[i].precursor_correction);
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, xltype);
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK, DataValue(i + 1));
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, alpha_term);
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, beta_term);
+      ph_alpha.setMetaValue(Constants::UserParam::PRECURSOR_ASSIGNMENT_CORRECTION, top_csms_spectrum[i].precursor_correction);
 
       if (scan_index_heavy != scan_index)
       {
-        ph_alpha.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
-        ph_alpha.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
-        ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT, spectra[scan_index_heavy].getRT());
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ, spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF, spectra[scan_index_heavy].getNativeID());
         ph_alpha.setMetaValue("spectrum_index_heavy", scan_index_heavy);
       }
-      ph_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, top_csms_spectrum[i].precursor_error_ppm);
+      ph_alpha.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, top_csms_spectrum[i].precursor_error_ppm);
 
-      ph_alpha.setMetaValue("OpenXQuest:xquest_score", top_csms_spectrum[i].xquest_score);
-      ph_alpha.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
-      ph_alpha.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
-      ph_alpha.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
-      ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
-      ph_alpha.setMetaValue("OpenXQuest:intsum_alpha", top_csms_spectrum[i].intsum_alpha);
-      ph_alpha.setMetaValue("OpenXQuest:intsum_beta", top_csms_spectrum[i].intsum_beta);
-      ph_alpha.setMetaValue("OpenXQuest:total_current", top_csms_spectrum[i].total_current);
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_SCORE, top_csms_spectrum[i].score); // important for Percolator feature set because the PeptideHit score might be overwritten by a q-value
+      ph_alpha.setMetaValue("OpenPepXL:xquest_score", top_csms_spectrum[i].xquest_score);
+      ph_alpha.setMetaValue("OpenPepXL:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
+      ph_alpha.setMetaValue("OpenPepXL:xcorr common", top_csms_spectrum[i].xcorrc_max);
+      ph_alpha.setMetaValue("OpenPepXL:match-odds", top_csms_spectrum[i].match_odds);
+      ph_alpha.setMetaValue("OpenPepXL:intsum", top_csms_spectrum[i].int_sum);
+      ph_alpha.setMetaValue("OpenPepXL:intsum_alpha", top_csms_spectrum[i].intsum_alpha);
+      ph_alpha.setMetaValue("OpenPepXL:intsum_beta", top_csms_spectrum[i].intsum_beta);
+      ph_alpha.setMetaValue("OpenPepXL:total_current", top_csms_spectrum[i].total_current);
 
-      ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
-      ph_alpha.setMetaValue("OpenXQuest:TIC", top_csms_spectrum[i].percTIC);
-      ph_alpha.setMetaValue("OpenXQuest:prescore", top_csms_spectrum[i].pre_score);
+      ph_alpha.setMetaValue("OpenPepXL:wTIC", top_csms_spectrum[i].wTIC);
+      ph_alpha.setMetaValue("OpenPepXL:TIC", top_csms_spectrum[i].percTIC);
+      ph_alpha.setMetaValue("OpenPepXL:prescore", top_csms_spectrum[i].pre_score);
 
-      ph_alpha.setMetaValue("OpenXQuest:log_occupancy", top_csms_spectrum[i].log_occupancy);
-      ph_alpha.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
-      ph_alpha.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
+      ph_alpha.setMetaValue("OpenPepXL:log_occupancy", top_csms_spectrum[i].log_occupancy);
+      ph_alpha.setMetaValue("OpenPepXL:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
+      ph_alpha.setMetaValue("OpenPepXL:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
 
       ph_alpha.setMetaValue("matched_xlink_alpha",top_csms_spectrum[i].matched_xlink_alpha);
       ph_alpha.setMetaValue("matched_xlink_beta",top_csms_spectrum[i].matched_xlink_beta);
       ph_alpha.setMetaValue("matched_linear_alpha",top_csms_spectrum[i].matched_linear_alpha);
       ph_alpha.setMetaValue("matched_linear_beta",top_csms_spectrum[i].matched_linear_beta);
-
-      // ph_alpha.setMetaValue("num_iso_peaks_mean", top_csms_spectrum[i].num_iso_peaks_mean);
-      // ph_alpha.setMetaValue("num_iso_peaks_mean_linear_alpha", top_csms_spectrum[i].num_iso_peaks_mean_linear_alpha);
-      // ph_alpha.setMetaValue("num_iso_peaks_mean_linear_beta", top_csms_spectrum[i].num_iso_peaks_mean_linear_beta);
-      // ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_alpha", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_alpha);
-      // ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_beta", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_beta);
 
       ph_alpha.setMetaValue("ppm_error_abs_sum_linear_alpha", top_csms_spectrum[i].ppm_error_abs_sum_linear_alpha);
       ph_alpha.setMetaValue("ppm_error_abs_sum_linear_beta", top_csms_spectrum[i].ppm_error_abs_sum_linear_beta);
@@ -884,84 +876,27 @@ namespace OpenMS
 
 #ifdef DEBUG_OPXLHELPER
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Annotations of size " << ph_alpha.getPeakAnnotations().size() << endl;
+      OPENMS_LOG_DEBUG << "Annotations of size " << ph_alpha.getPeakAnnotations().size() << endl;
 #endif
 
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
       {
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, (*top_csms_spectrum[i].cross_link.beta).toString());
+
         ph_beta.setSequence(*top_csms_spectrum[i].cross_link.beta);
         ph_beta.setCharge(precursor_charge);
         ph_beta.setScore(top_csms_spectrum[i].score);
-        ph_beta.setRank(DataValue(i+1));
-        ph_alpha.setMetaValue("beta_sequence", (*top_csms_spectrum[i].cross_link.beta).toString());
-        ph_beta.setMetaValue("beta_sequence", (*top_csms_spectrum[i].cross_link.beta).toString());
+
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
-        ph_beta.setMetaValue("xl_pos", DataValue(alpha_pos));
-        ph_beta.setMetaValue("xl_pos2", DataValue(beta_pos));
-        ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+        ph_beta.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectra[scan_index].getNativeID());
         ph_beta.setMetaValue("spectrum_index", scan_index);
-        ph_beta.setMetaValue("xl_type", xltype);
-        ph_beta.setMetaValue("xl_rank", DataValue(i + 1));
-        ph_beta.setMetaValue("xl_term_spec", beta_term);
-        ph_beta.setMetaValue("precursor_correction", top_csms_spectrum[i].precursor_correction);
-
-        if (scan_index_heavy != scan_index)
-        {
-          ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
-          ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
-          ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
-          ph_beta.setMetaValue("spectrum_index_heavy", scan_index_heavy);
-        }
-        ph_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, top_csms_spectrum[i].precursor_error_ppm);
-
-        ph_beta.setMetaValue("OpenXQuest:xquest_score", top_csms_spectrum[i].xquest_score);
-        ph_beta.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
-        ph_beta.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
-        ph_beta.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
-        ph_beta.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
-        ph_beta.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
-        ph_beta.setMetaValue("OpenXQuest:TIC", top_csms_spectrum[i].percTIC);
-        ph_beta.setMetaValue("OpenXQuest:prescore", top_csms_spectrum[i].pre_score);
-
-        ph_beta.setMetaValue("OpenXQuest:log_occupancy", top_csms_spectrum[i].log_occupancy);
-        ph_beta.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
-        ph_beta.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
-        ph_beta.setMetaValue("selected", "false");
-
-        ph_beta.setMetaValue("matched_xlink_alpha",top_csms_spectrum[i].matched_xlink_alpha);
-        ph_beta.setMetaValue("matched_xlink_beta",top_csms_spectrum[i].matched_xlink_beta);
-        ph_beta.setMetaValue("matched_linear_alpha",top_csms_spectrum[i].matched_linear_alpha);
-        ph_beta.setMetaValue("matched_linear_beta",top_csms_spectrum[i].matched_linear_beta);
-
-        // ph_beta.setMetaValue("num_iso_peaks_mean", top_csms_spectrum[i].num_iso_peaks_mean);
-        // ph_beta.setMetaValue("num_iso_peaks_mean_linear_alpha", top_csms_spectrum[i].num_iso_peaks_mean_linear_alpha);
-        // ph_beta.setMetaValue("num_iso_peaks_mean_linear_beta", top_csms_spectrum[i].num_iso_peaks_mean_linear_beta);
-        // ph_beta.setMetaValue("num_iso_peaks_mean_xlinks_alpha", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_alpha);
-        // ph_beta.setMetaValue("num_iso_peaks_mean_xlinks_beta", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_beta);
-
-        ph_beta.setMetaValue("ppm_error_abs_sum_linear_alpha", top_csms_spectrum[i].ppm_error_abs_sum_linear_alpha);
-        ph_beta.setMetaValue("ppm_error_abs_sum_linear_beta", top_csms_spectrum[i].ppm_error_abs_sum_linear_beta);
-        ph_beta.setMetaValue("ppm_error_abs_sum_xlinks_alpha", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_alpha);
-        ph_beta.setMetaValue("ppm_error_abs_sum_xlinks_beta", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_beta);
-
-        ph_beta.setMetaValue("ppm_error_abs_sum_linear", top_csms_spectrum[i].ppm_error_abs_sum_linear);
-        ph_beta.setMetaValue("ppm_error_abs_sum_xlinks", top_csms_spectrum[i].ppm_error_abs_sum_xlinks);
-        ph_beta.setMetaValue("ppm_error_abs_sum_alpha", top_csms_spectrum[i].ppm_error_abs_sum_alpha);
-        ph_beta.setMetaValue("ppm_error_abs_sum_beta", top_csms_spectrum[i].ppm_error_abs_sum_beta);
-        ph_beta.setMetaValue("ppm_error_abs_sum", top_csms_spectrum[i].ppm_error_abs_sum);
-
-        ph_beta.setMetaValue("precursor_total_intensity", top_csms_spectrum[i].precursor_total_intensity);
-        ph_beta.setMetaValue("precursor_target_intensity", top_csms_spectrum[i].precursor_target_intensity);
-        ph_beta.setMetaValue("precursor_signal_proportion", top_csms_spectrum[i].precursor_signal_proportion);
-        ph_beta.setMetaValue("precursor_target_peak_count", top_csms_spectrum[i].precursor_target_peak_count);
-        ph_beta.setMetaValue("precursor_residual_peak_count", top_csms_spectrum[i].precursor_residual_peak_count);
 
         phs.push_back(ph_alpha);
         phs.push_back(ph_beta);
       }
       else
       {
-        ph_alpha.setMetaValue("beta_sequence", "-");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, "-");
         phs.push_back(ph_alpha);
       }
 
@@ -977,9 +912,9 @@ namespace OpenMS
         specIDs = spectra[scan_index].getNativeID();
       }
 
-      peptide_id.setMetaValue("spectrum_reference", specIDs);
+      peptide_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, specIDs);
       peptide_id.setHits(phs);
-      peptide_id.setScoreType("OpenXQuest:combined score");
+      peptide_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
 
 // This critical section is called this way, because access to all_top_csms also happens in OpenPepXLAlgorithm and OpenPepXLLFAlgorithm.
 // Access to peptide_ids is also critical, but it is only accessed here during parallel processing.
@@ -997,6 +932,8 @@ namespace OpenMS
   {
     for (PeptideIdentification& id : peptide_ids)
     {
+      if (id.getHits().empty()) continue;
+
       PeptideHit& ph_alpha = id.getHits()[0];
       String prot1_pos;
 
@@ -1005,12 +942,15 @@ namespace OpenMS
       for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
       {
         // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-        Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue("xl_pos")).toInt() + 1;
+        Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt() + 1;
         prot1_pos = prot1_pos + "," + prot_link_pos;
       }
       // remove leading "," of first position
-      prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
-      ph_alpha.setMetaValue("XL_Protein_position_alpha", prot1_pos);
+      if (!prot1_pos.empty())
+      {
+        prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
+      }
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1_PROT, prot1_pos);
 
       // cross-link position in Protein (beta)
       if (id.getHits().size() == 2)
@@ -1023,63 +963,247 @@ namespace OpenMS
         for (std::vector<PeptideEvidence>::const_iterator pev = pevs_beta.begin(); pev != pevs_beta.end(); ++pev)
         {
           // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-          Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue("xl_pos2")).toInt() + 1;
+          Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() + 1;
           prot2_pos = prot2_pos + "," + prot_link_pos;
           prot2_accessions = prot2_accessions + "," + pev->getProteinAccession();
         }
         // remove leading "," of first position
-        prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
-        ph_beta.setMetaValue("XL_Protein_position_alpha", prot1_pos);
-        ph_alpha.setMetaValue("XL_Protein_position_beta", prot2_pos);
-        ph_beta.setMetaValue("XL_Protein_position_beta", prot2_pos);
-
-        prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
-        ph_alpha.setMetaValue("accessions_beta", prot2_accessions);
-        ph_beta.setMetaValue("accessions_beta", prot2_accessions);
-
-        if (String(ph_alpha.getMetaValue("target_decoy")).hasSubstring("target") &&
-              String(ph_beta.getMetaValue("target_decoy")).hasSubstring("target")) // "target" and "target+decoy" will be treated as "target"
+        if (!prot2_pos.empty())
         {
-          // if both alpha's and beta's accession lists contain at least one target each, the cross-link will be treated as a target
-          ph_alpha.setMetaValue("xl_target_decoy", "target");
-          ph_beta.setMetaValue("xl_target_decoy", "target");
+          prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
         }
-        else // if at least one of the two accession lists only contains decoys, the cross-link will be treated as a decoy
-        {
-          ph_alpha.setMetaValue("xl_target_decoy", "decoy");
-          ph_beta.setMetaValue("xl_target_decoy", "decoy");
-        }
+        ph_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1_PROT, prot1_pos);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT, prot2_pos);
+        ph_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT, prot2_pos);
       }
       else
       {
-        ph_alpha.setMetaValue("accessions_beta", "-");
         // second cross-link position in Protein (loop-links)
-        if (ph_alpha.getMetaValue("xl_pos2") != "-")
+        if (ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2) != "-")
         {
           String prot2_pos;
           for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
           {
             // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-            Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue("xl_pos2")).toInt() + 1;
+            Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() + 1;
             prot2_pos = prot2_pos + "," + prot_link_pos;
           }
           // remove leading "," of first position
-          prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
-          ph_alpha.setMetaValue("XL_Protein_position_beta", prot2_pos);
+          if (!prot2_pos.empty())
+          {
+            prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+          }
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT, prot2_pos);
         }
         else
         {
-          ph_alpha.setMetaValue("XL_Protein_position_beta", "-");
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2_PROT, "-");
+        }
+      }
+    }
+  }
+
+  void OPXLHelper::addBetaAccessions(std::vector< PeptideIdentification > & peptide_ids)
+  {
+    for (PeptideIdentification& id : peptide_ids)
+    {
+      if (id.getHits().empty()) continue;
+
+      PeptideHit& ph_alpha = id.getHits()[0];
+
+      if (id.getHits().size() == 2)
+      {
+        PeptideHit& ph_beta = id.getHits()[1];
+        String prot2_accessions;
+
+        const std::vector<PeptideEvidence> pevs_beta = ph_beta.getPeptideEvidences();
+        for (std::vector<PeptideEvidence>::const_iterator pev = pevs_beta.begin(); pev != pevs_beta.end(); ++pev)
+        {
+          prot2_accessions = prot2_accessions + "," + pev->getProteinAccession();
         }
 
-        if (String(ph_alpha.getMetaValue("target_decoy")).hasSubstring("target")) // "target" and "target+decoy" will be treated as "target"
+        if (!prot2_accessions.empty())
         {
-          ph_alpha.setMetaValue("xl_target_decoy", "target");
+          prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
+        }
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, prot2_accessions);
+        ph_beta.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, prot2_accessions);
+      }
+      else
+      {
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, "-");
+      }
+    }
+  }
+
+  void OPXLHelper::addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids)
+  {
+    for (PeptideIdentification& id : peptide_ids)
+    {
+      if (id.getHits().empty()) continue;
+
+      PeptideHit& ph_alpha = id.getHits()[0];
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_ALPHA, ph_alpha.getMetaValue(Constants::UserParam::TARGET_DECOY));
+
+      // cross-link position in Protein (beta)
+      if (id.getHits().size() == 2)
+      {
+        PeptideHit& ph_beta = id.getHits()[1];
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA, ph_beta.getMetaValue(Constants::UserParam::TARGET_DECOY));
+
+        // if at least one of the two accession lists only contains decoys, the cross-link will be treated as a decoy
+        if ( (!String(ph_alpha.getMetaValue(Constants::UserParam::TARGET_DECOY)).hasSubstring("target")) ||
+             (!String(ph_beta.getMetaValue(Constants::UserParam::TARGET_DECOY)).hasSubstring("target")) )
+        {
+          ph_alpha.setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
+        }
+      }
+      else
+      {
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_TARGET_DECOY_BETA, "-");
+      }
+    }
+  }
+
+  void OPXLHelper::removeBetaPeptideHits(std::vector< PeptideIdentification > & peptide_ids)
+  {
+    // add PeptideEvidence data from Beta peptides as MetaValues to the Alpha peptide and remove the Beta PeptideHit
+    for (PeptideIdentification& id : peptide_ids)
+    {
+      if (id.getHits().size() == 2 && id.getHits()[1].getMetaValue("xl_chain") == "MS:1002510")
+      {
+
+        const std::vector<PeptideEvidence>& peptide_evidences = id.getHits()[1].getPeptideEvidences();
+        String pre, post, start, end;
+        for (const PeptideEvidence& pe : peptide_evidences)
+        {
+          if (!pre.empty())
+          {
+            pre += ",";
+            post += ",";
+            start += ",";
+            end += ",";
+          }
+          pre += pe.getAABefore();
+          post += pe.getAAAfter();
+          start += pe.getStart();
+          end += pe.getEnd();
+        }
+
+        std::vector<PeptideHit> hits;
+        PeptideHit hit = id.getHits()[0];
+        hit.removeMetaValue("xl_chain");
+        hit.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_PRE, pre);
+        hit.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_POST, post);
+        hit.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_START, start);
+        hit.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_END, end);
+        hits.push_back(hit);
+        id.setHits(hits);
+      }
+    }
+
+    // Collect PeptideHits to the same spectrum under one PeptideIdentification
+    map<String, PeptideIdentification> new_peptide_ids;
+    for (PeptideIdentification& id : peptide_ids)
+    {
+      if (id.getHits().size() > 0)
+      {
+        PeptideHit& hit = id.getHits()[0];
+        PeptideIdentification new_id;
+        String current_spectrum = id.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+        if (new_peptide_ids.find(current_spectrum) != new_peptide_ids.end())
+        {
+          new_id = (*new_peptide_ids.find(current_spectrum)).second;
         }
         else
         {
-          ph_alpha.setMetaValue("xl_target_decoy", "decoy");
+          new_id.setRT(id.getRT());
+          new_id.setMZ(id.getMZ());
+          new_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
+          new_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, current_spectrum);
         }
+        hit.removeMetaValue("xl_chain");
+        new_id.insertHit(hit);
+        new_peptide_ids[current_spectrum] = new_id;
+
+      }
+    }
+    vector<PeptideIdentification> new_peptide_ids_vector;
+    for (pair<String, PeptideIdentification> mit : new_peptide_ids)
+    {
+      new_peptide_ids_vector.push_back(mit.second);
+    }
+    peptide_ids = new_peptide_ids_vector;
+  }
+
+  void OPXLHelper::addPercolatorFeatureList(ProteinIdentification& prot_id)
+  {
+    // add features for percolator
+    /* default features added in PercolatorAdapter:
+    * SpecId, ScanNr, ExpMass, CalcMass, mass,
+    * peplen, charge#min..#max, enzN, enzC, enzInt, dm, absdm
+    */
+    StringList feature_set;
+    feature_set
+      << Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM
+      << Constants::UserParam::OPENPEPXL_SCORE
+      << Constants::UserParam::PRECURSOR_ASSIGNMENT_CORRECTION
+      << "OpenPepXL:xquest_score"
+      << "OpenPepXL:xcorr xlink"
+      << "OpenPepXL:xcorr common"
+      << "OpenPepXL:match-odds"
+      << "OpenPepXL:intsum"
+      << "OpenPepXL:wTIC"
+      << "OpenPepXL:TIC"
+      << "OpenPepXL:prescore"
+      << "OpenPepXL:log_occupancy"
+      << "OpenPepXL:log_occupancy_alpha"
+      << "OpenPepXL:log_occupancy_beta"
+      << "matched_xlink_alpha"
+      << "matched_xlink_beta"
+      << "matched_linear_alpha"
+      << "matched_linear_beta"
+      << "ppm_error_abs_sum_linear_alpha"
+      << "ppm_error_abs_sum_linear_beta"
+      << "ppm_error_abs_sum_xlinks_alpha"
+      << "ppm_error_abs_sum_xlinks_beta"
+      << "ppm_error_abs_sum_linear"
+      << "ppm_error_abs_sum_xlinks"
+      << "ppm_error_abs_sum_alpha"
+      << "ppm_error_abs_sum_beta"
+      << "ppm_error_abs_sum"
+      << "precursor_total_intensity"
+      << "precursor_target_intensity"
+      << "precursor_signal_proportion"
+      << "precursor_target_peak_count"
+      << "precursor_residual_peak_count";
+
+    ProteinIdentification::SearchParameters search_params = prot_id.getSearchParameters();
+    search_params.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
+    search_params.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    prot_id.setSearchParameters(search_params);
+  }
+
+  void OPXLHelper::computeDeltaScores(std::vector< PeptideIdentification > & peptide_ids)
+  {
+    for (PeptideIdentification& pep_id : peptide_ids)
+    {
+      pep_id.sort();
+      vector<PeptideHit>& phs = pep_id.getHits();
+
+      // at least two PeptideHits needed for an actual delta score
+      if (phs.size() > 1)
+      {
+        for (Size rank = 0; rank < phs.size()-1; ++rank)
+        {
+          double delta_score = phs[rank+1].getScore() / phs[rank].getScore();
+          phs[rank].setMetaValue(Constants::UserParam::DELTA_SCORE, delta_score);
+        }
+      }
+      // set delta score to 0 for the last ranked PeptideHit, or if only one Peptide hit is available
+      if (phs.size() > 0)
+      {
+        phs[phs.size()-1].setMetaValue(Constants::UserParam::DELTA_SCORE, 0.0);
       }
     }
   }
@@ -1092,16 +1216,22 @@ namespace OpenMS
 
     for (PeptideIdentification& id : peptide_ids)
     {
-      spectrum_indices.insert(id.getHits()[0].getMetaValue("spectrum_index"));
+      if (!id.getHits().empty())
+      {
+        spectrum_indices.insert(id.getHits()[0].getMetaValue("spectrum_index"));
+      }
     }
 
     for (String index : spectrum_indices)
     {
       for (PeptideIdentification& id : peptide_ids)
       {
-        if (String(id.getHits()[0].getMetaValue("spectrum_index")) == index)
+        if (!id.getHits().empty())
         {
-          current_spectrum_peptide_ids.push_back(id);
+          if (String(id.getHits()[0].getMetaValue("spectrum_index")) == index)
+          {
+            current_spectrum_peptide_ids.push_back(id);
+          }
         }
       }
 
@@ -1116,10 +1246,13 @@ namespace OpenMS
       Size rank_count(1);
       for (PeptideIdentification& current_id : current_spectrum_peptide_ids)
       {
-        current_id.getHits()[0].setMetaValue("xl_rank", rank_count);
-        if (current_id.getHits().size() > 1)
+        if (!current_id.getHits().empty())
         {
-          current_id.getHits()[1].setMetaValue("xl_rank", rank_count);
+          current_id.getHits()[0].setMetaValue("xl_rank", rank_count);
+          if (current_id.getHits().size() == 2)
+          {
+            current_id.getHits()[1].setMetaValue("xl_rank", rank_count);
+          }
         }
         rank_count++;
       }
@@ -1199,7 +1332,7 @@ namespace OpenMS
 
     if (!matched_spec_linear_alpha.empty())
     {
-      for (auto match : matched_spec_linear_alpha)
+      for (const auto& match : matched_spec_linear_alpha)
       {
         iso_peaks_linear_alpha.push_back(num_iso_peaks_array[match.second]);
       }
@@ -1208,7 +1341,7 @@ namespace OpenMS
 
     if (!matched_spec_linear_beta.empty())
     {
-      for (auto match : matched_spec_linear_beta)
+      for (const auto& match : matched_spec_linear_beta)
       {
         iso_peaks_linear_beta.push_back(num_iso_peaks_array[match.second]);
       }
@@ -1217,7 +1350,7 @@ namespace OpenMS
 
     if (!matched_spec_xlinks_alpha.empty())
     {
-      for (auto match : matched_spec_xlinks_alpha)
+      for (const auto& match : matched_spec_xlinks_alpha)
       {
         iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array[match.second]);
       }
@@ -1226,7 +1359,7 @@ namespace OpenMS
 
     if (!matched_spec_xlinks_beta.empty())
     {
-      for (auto match : matched_spec_xlinks_beta)
+      for (const auto& match : matched_spec_xlinks_beta)
       {
         iso_peaks_xlinks_beta.push_back(num_iso_peaks_array[match.second]);
       }

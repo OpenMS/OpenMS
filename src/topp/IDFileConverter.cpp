@@ -99,6 +99,10 @@ represented in the simpler idXML format.
 
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant
 information for the use of ProteinProphet.
+We use the following heuristic: if peptideprophet_analyzed is set, we take the scores from the idXML as is and assume
+the PeptideHits contain all necessary information. If peptideprophet is not set, we only provide ProteinProphet-compatible
+results with probability-based scores (i.e. Percolator with PEP score or scores from IDPosteriorErrorProbability). All
+secondary or non-probability main scores will be written as "search_scores" only.
 
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
 
@@ -195,7 +199,7 @@ private:
 #pragma omp critical (IDFileConverter_ERROR)
 #endif
           {
-            LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
+            OPENMS_LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
             ret = false;
           }
         }
@@ -233,6 +237,7 @@ protected:
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
     registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
+    registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
   }
 
@@ -397,7 +402,12 @@ protected:
         if (!mz_file.empty())
         {
           SpectrumMetaDataLookup::addMissingSpectrumReferences(
-            peptide_identifications, mz_file, false, !getFlag_("no_spectra_data_override"), protein_identifications);
+            peptide_identifications, 
+            mz_file, 
+            false, 
+            !getFlag_("no_spectra_data_override"),
+            !getFlag_("no_spectra_references_override"),
+            protein_identifications);
 
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
           if (add_ions > 0)
@@ -409,7 +419,7 @@ protected:
 
       else if (in_type == FileTypes::MZIDENTML)
       {
-        LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
+        OPENMS_LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
         MzIdentMLFile().load(in, protein_identifications,
                              peptide_identifications);
 
@@ -493,7 +503,7 @@ protected:
             }
             else
             {
-              LOG_ERROR << "XTandem xml: Error: id '" << id << "' not found in peak map!" << endl;
+              OPENMS_LOG_ERROR << "XTandem xml: Error: id '" << id << "' not found in peak map!" << endl;
             }
           }
         }

@@ -105,6 +105,12 @@ Geometric Tools (Wildmagic)
  https://www.geometrictools.com/
  - License:
  http://www.boost.org/LICENSE_1_0.txt
+ 
+HDF5
+ - URL:
+ https://www.hdfgroup.org/solutions/hdf5/
+ - License:
+ https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/COPYING
 
 SQLite:
  - URL:
@@ -118,6 +124,13 @@ KissFFT
  - License:
  https://sourceforge.net/p/kissfft/code/ci/default/tree/COPYING
 
+---------------------   Raw file conversion:  ------------------------
+
+RawFileReader (via ThermoRawFileParser)
+- URL:
+https://github.com/compomics/ThermoRawFileParse
+- License:
+https://github.com/compomics/ThermoRawFileParser/blob/master/LICENSE
 
 ---------------------   Search engines:  ------------------------
  
@@ -194,3 +207,11 @@ MaRaCluster:
   https://github.com/statisticalbiotechnology/maracluster
   - License
   http://www.apache.org/licenses/LICENSE-2.0.html
+
+---------------------   CMake Modules:  ------------------------
+
+GetGitRevisionDescription and findCppCheck:
+  - URL and source code:
+  https://github.com/rpavlik/cmake-modules
+  - License
+  http://www.boost.org/LICENSE_1_0.txt

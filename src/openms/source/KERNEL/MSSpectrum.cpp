@@ -54,6 +54,7 @@ namespace OpenMS
 
     for (Size i = 0; i < float_data_arrays_.size(); ++i)
     {
+      if (float_data_arrays_[i].empty()) continue;
       if (float_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" +
@@ -71,6 +72,7 @@ namespace OpenMS
 
     for (Size i = 0; i < string_data_arrays_.size(); ++i)
     {
+      if (string_data_arrays_[i].empty()) continue;
       if (string_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
@@ -87,6 +89,7 @@ namespace OpenMS
 
     for (Size i = 0; i < integer_data_arrays_.size(); ++i)
     {
+      if (integer_data_arrays_[i].empty()) continue;
       if (integer_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
@@ -130,6 +133,7 @@ namespace OpenMS
   void MSSpectrum::clear(bool clear_meta_data)
   {
     ContainerType::clear();
+    ContainerType::shrink_to_fit(); 
 
     if (clear_meta_data)
     {
@@ -140,9 +144,13 @@ namespace OpenMS
       drift_time_unit_ = MSSpectrum::DriftTimeUnit::NONE;
       ms_level_ = 1;
       name_.clear();
+      name_.shrink_to_fit();
       float_data_arrays_.clear();
+      float_data_arrays_.shrink_to_fit();
       string_data_arrays_.clear();
+      string_data_arrays_.shrink_to_fit();
       integer_data_arrays_.clear();
+      integer_data_arrays_.shrink_to_fit();
     }
   }
 
@@ -256,6 +264,8 @@ namespace OpenMS
 
   void MSSpectrum::sortByPosition()
   {
+    if (isSorted()) return;
+
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
@@ -284,6 +294,9 @@ namespace OpenMS
 
   void MSSpectrum::sortByIntensity(bool reverse)
   {
+    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()))) return;
+    else if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess())) return;
+
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       if (reverse)
@@ -327,13 +340,7 @@ namespace OpenMS
 
   bool MSSpectrum::isSorted() const
   {
-    if (this->size() < 2) return true;
-
-    for (Size i = 1; i < this->size(); ++i)
-    {
-      if (this->operator[](i - 1).getMZ() > this->operator[](i).getMZ()) return false;
-    }
-    return true;
+    return std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
   }
 
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const

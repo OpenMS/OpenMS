@@ -570,7 +570,7 @@ protected:
 
     for (Int my_local_pos = 0; my_local_pos < spec_size; ++my_local_pos)
     {
-      value = 0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
+      value = 0; T_boundary_left = 0; T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
       old = 0; old_pos = (my_local_pos - from_max_to_left_ - 1 >= 0) ? c_ref[my_local_pos - from_max_to_left_ - 1].getMZ() : c_ref[0].getMZ() - min_spacing_;
       my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ * charge);
       c_diff = 0;
@@ -613,7 +613,7 @@ protected:
 
     for (Int my_local_pos = 0; my_local_pos < spec_size; ++my_local_pos)
     {
-      value = 0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
+      value = 0; T_boundary_left = 0; T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
 
 
       my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ * charge);
@@ -715,7 +715,7 @@ protected:
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
-        share = candidates[i + 1].getIntensity(), share_pos = candidates[i + 1].getMZ();
+        share = candidates[i + 1].getIntensity(); share_pos = candidates[i + 1].getMZ();
         bwd = (share - candidates[i].getIntensity()) / (share_pos - candidates[i].getMZ());
         fwd = (candidates[i + 2].getIntensity() - share) / (candidates[i + 2].getMZ() - share_pos);
 
@@ -733,7 +733,7 @@ protected:
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
-        share = candidates[i + 1].getIntensity(), share_pos = candidates[i + 1].getMZ();
+        share = candidates[i + 1].getIntensity(); share_pos = candidates[i + 1].getMZ();
         bwd = (share - candidates[i].getIntensity()) / (share_pos - candidates[i].getMZ());
         fwd = (candidates[i + 2].getIntensity() - share) / (candidates[i + 2].getMZ() - share_pos);
 
@@ -1051,8 +1051,8 @@ protected:
     {
 
       Box& c_box = iter->second;
-      av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
-      virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
+      av_score = 0; av_mz = 0; av_intens = 0; av_abs_intens = 0; count = 0;
+      virtual_av_mz = 0; virtual_av_intens = 0; virtual_av_abs_intens = 0; virtual_count = 0;
 
       //Now, let's get the RT boundaries for the box
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
@@ -1624,8 +1624,8 @@ protected:
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
       Box& c_box = iter->second;
-      av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
-      virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
+      av_score = 0; av_mz = 0; av_intens = 0; av_abs_intens = 0; count = 0;
+      virtual_av_mz = 0; virtual_av_intens = 0; virtual_av_abs_intens = 0; virtual_count = 0;
 
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
       {
@@ -1780,7 +1780,7 @@ protected:
 
       c_charge = best_charge_index + 1; //that's the finally predicted charge state for the pattern
 
-      av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0;
+      av_intens = 0; av_ref_intens = 0; av_score = 0; av_mz = 0; av_RT = 0;
       //Now, let's get the RT boundaries for the box
       std::vector<DPosition<2> > point_set;
       double sum_of_ref_intenses_l;
@@ -1924,7 +1924,7 @@ protected:
     if (check_PPMs)
     {
       reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
       typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
@@ -1946,7 +1946,7 @@ protected:
         }
       }
       reals = checkPPMTheoModel_(ref, h_iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       if (real_mz <= 0 || real_intens <= 0)
       {
         return false;
@@ -1958,7 +1958,7 @@ protected:
     else
     {
       reals = std::pair<double, double>(seed_mz, ref_iter->getIntensity());
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
       if (real_mz <= 0 || real_intens <= 0)
       {
@@ -1980,7 +1980,7 @@ protected:
             return false;
           }
         }
-        real_mz = h_iter->getMZ(), real_intens = h_iter->getIntensity();
+        real_mz = h_iter->getMZ(); real_intens = h_iter->getIntensity();
         if (real_mz <= 0 || real_intens <= 0)
         {
           return false;
@@ -2042,10 +2042,10 @@ protected:
     if (check_PPMs)
     {
       reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
-      typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+      auto h_iter = ref_iter, hc_iter = ref_iter;
       while (h_iter != ref.begin())
       {
         --h_iter;
@@ -2065,7 +2065,7 @@ protected:
       }
       ++h_iter;
       reals = checkPPMTheoModel_(ref, h_iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
       std::cout << "Plausibility check old_mz: " << iter->getMZ() << "\t" << real_mz << std::endl;
@@ -2082,11 +2082,11 @@ protected:
     else
     {
       reals = std::pair<double, double>(seed_mz, ref_iter->getIntensity());
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
       if (real_mz <= 0 || real_intens <= 0)
       {
-        typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+        auto h_iter = ref_iter, hc_iter = ref_iter;
         while (h_iter != ref.begin())
         {
           --h_iter;
@@ -2104,7 +2104,7 @@ protected:
             return false;
           }
         }
-        real_mz = h_iter->getMZ(), real_intens = h_iter->getIntensity();
+        real_mz = h_iter->getMZ(); real_intens = h_iter->getIntensity();
         if (real_mz <= 0 || real_intens <= 0)
         {
           return false;

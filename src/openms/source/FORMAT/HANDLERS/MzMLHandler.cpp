@@ -79,7 +79,7 @@ namespace OpenMS
       // check the version number of the mzML handler
       if (VersionInfo::VersionDetails::create(version_) == VersionInfo::VersionDetails::EMPTY)
       {
-        LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
+        OPENMS_LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
       }
     }
 
@@ -121,7 +121,7 @@ namespace OpenMS
     void MzMLHandler::getCounts(Size& spectra_counts, Size& chromatogram_counts)
     {
       if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
-      { 
+      {
         spectra_counts = std::max(scan_count_total_, 0); // default is -1; if no specs were found, report 0
         chromatogram_counts = std::max(chrom_count_total_, 0);
       }
@@ -166,7 +166,7 @@ namespace OpenMS
             }
             catch (...)
             {
-#pragma omp critical(HandleException)
+#pragma omp atomic
               ++errCount;
             }
           }
@@ -252,7 +252,7 @@ namespace OpenMS
       chromatogram_data_.clear();
     }
 
-    void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
+    void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                            const Size n,
                                            SpectrumType& spectrum) const
     {
@@ -422,10 +422,10 @@ namespace OpenMS
 
       // the most common case: no ranges, 64 / 32 precision
       //  -> this saves about 10 % load time
-      if ( mz_precision_64 && !int_precision_64 && 
-           input_data.size() == 2 &&  
-           !peak_file_options.hasMZRange() && 
-           !peak_file_options.hasIntensityRange() 
+      if ( mz_precision_64 && !int_precision_64 &&
+           input_data.size() == 2 &&
+           !peak_file_options.hasMZRange() &&
+           !peak_file_options.hasIntensityRange()
          )
       {
         std::vector< double >::const_iterator mz_it = input_data[mz_index].floats_64.begin();
@@ -457,7 +457,7 @@ namespace OpenMS
           // Only if there are more than 2 data arrays, we need to check
           // for meta data (as there will always be an m/z and intensity
           // array)
-          if (input_data.size() > 2) 
+          if (input_data.size() > 2)
           {
             addSpectrumMetaData_(input_data, n, spectrum);
           }
@@ -665,35 +665,35 @@ namespace OpenMS
       }
     }
 
+
     void MzMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      static const XMLCh* s_count = xercesc::XMLString::transcode("count");
-      static const XMLCh* s_default_array_length = xercesc::XMLString::transcode("defaultArrayLength");
-      static const XMLCh* s_array_length = xercesc::XMLString::transcode("arrayLength");
-      static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
-      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-      static const XMLCh* s_id = xercesc::XMLString::transcode("id");
-      //~ static const XMLCh * s_cvref = xercesc::XMLString::transcode("cvRef"); TODO
-      static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
-      static const XMLCh* s_version = xercesc::XMLString::transcode("version");
-      static const XMLCh* s_version_mzml = xercesc::XMLString::transcode("mzML:version");
-      static const XMLCh* s_order = xercesc::XMLString::transcode("order");
-      static const XMLCh* s_location = xercesc::XMLString::transcode("location");
-      static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
-      static const XMLCh* s_software_ref = xercesc::XMLString::transcode("softwareRef");
-      static const XMLCh* s_source_file_ref = xercesc::XMLString::transcode("sourceFileRef");
-      static const XMLCh* s_default_instrument_configuration_ref = xercesc::XMLString::transcode("defaultInstrumentConfigurationRef");
-      static const XMLCh* s_instrument_configuration_ref = xercesc::XMLString::transcode("instrumentConfigurationRef");
-      static const XMLCh* s_default_data_processing_ref = xercesc::XMLString::transcode("defaultDataProcessingRef");
-      static const XMLCh* s_data_processing_ref = xercesc::XMLString::transcode("dataProcessingRef");
-      static const XMLCh* s_start_time_stamp = xercesc::XMLString::transcode("startTimeStamp");
-      static const XMLCh* s_external_spectrum_id = xercesc::XMLString::transcode("externalSpectrumID");
-      static const XMLCh* s_default_source_file_ref = xercesc::XMLString::transcode("defaultSourceFileRef");
-      static const XMLCh* s_scan_settings_ref = xercesc::XMLString::transcode("scanSettingsRef");
-
+      constexpr XMLCh s_count[] = {'c','o','u','n','t', 0};
+      constexpr XMLCh s_default_array_length[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr XMLCh s_array_length[] = { 'a','r','r','a','y','L','e','n','g','t','h' , 0};
+      constexpr XMLCh s_accession[] = { 'a','c','c','e','s','s','i','o','n' , 0};
+      constexpr XMLCh s_name[] = { 'n','a','m','e' , 0};
+      constexpr XMLCh s_type[] = { 't','y','p','e' , 0};
+      constexpr XMLCh s_value[] = { 'v','a','l','u','e' , 0};
+      constexpr XMLCh s_unit_accession[] = { 'u','n','i','t','A','c','c','e','s','s','i','o','n' , 0};
+      constexpr XMLCh s_id[] = { 'i','d' , 0};
+      constexpr XMLCh s_ref[] = { 'r','e','f' , 0};
+      constexpr XMLCh s_version[] = { 'v','e','r','s','i','o','n' , 0};
+      constexpr XMLCh s_version_mzml[] = { 'm','z','M','L',':','v','e','r','s','i','o','n' , 0};
+      constexpr XMLCh s_order[] = { 'o','r','d','e','r' , 0};
+      constexpr XMLCh s_location[] = { 'l','o','c','a','t','i','o','n' , 0};
+      constexpr XMLCh s_sample_ref[] = { 's','a','m','p','l','e','R','e','f' , 0};
+      constexpr XMLCh s_software_ref[] = { 's','o','f','t','w','a','r','e','R','e','f' , 0};
+      constexpr XMLCh s_source_file_ref[] = { 's','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr XMLCh s_spectrum_ref[] = { 's','p','e','c','t','r','u','m','R','e','f' , 0};
+      constexpr XMLCh s_default_instrument_configuration_ref[] = { 'd','e','f','a','u','l','t','I','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr XMLCh s_instrument_configuration_ref[] = { 'i','n','s','t','r','u','m','e','n','t','C','o','n','f','i','g','u','r','a','t','i','o','n','R','e','f' , 0};
+      constexpr XMLCh s_default_data_processing_ref[] = { 'd','e','f','a','u','l','t','D','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr XMLCh s_data_processing_ref[] = { 'd','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
+      constexpr XMLCh s_start_time_stamp[] = { 's','t','a','r','t','T','i','m','e','S','t','a','m','p' , 0};
+      constexpr XMLCh s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
+      constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr XMLCh s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
 
@@ -718,7 +718,7 @@ namespace OpenMS
       if (tag == "spectrum")
       {
         // for cppcheck
-        static const XMLCh* s_spot_id = xercesc::XMLString::transcode("spotID");
+        constexpr XMLCh s_spot_id[] = { 's','p','o','t','I','D', 0 };
 
         //number of peaks
         spec_ = SpectrumType();
@@ -873,7 +873,7 @@ namespace OpenMS
       {
         current_id_ = attributeAsString_(attributes, s_id);
         // Name of the source file, without reference to location (either URI or local path). e.g. "control.mzML"
-        String name_of_file = attributeAsString_(attributes, s_name); 
+        String name_of_file = attributeAsString_(attributes, s_name);
 
         //URI-formatted location where the file was retrieved.
         String path_to_file = attributeAsString_(attributes, s_location);
@@ -1057,7 +1057,7 @@ namespace OpenMS
         }
         catch (Exception::ParseError& /*e*/)
         {
-          LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" <<
+          OPENMS_LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" <<
           "The software tool which generated this mzML should be fixed. Please notify the maintainers." << std::endl;
         }
         processing_[current_id_].push_back(dp);
@@ -1114,6 +1114,13 @@ namespace OpenMS
           {
             spec_.getPrecursors().back().setMetaValue("external_spectrum_id", external_spectrum_id);
           }
+
+          //spectrum_ref => meta data
+          String spectrum_ref;
+          if (optionalAttributeAsString_(spectrum_ref, attributes, s_spectrum_ref))
+          {
+            spec_.getPrecursors().back().setMetaValue("spectrum_ref",  spectrum_ref);
+          }
           //reset selected ion count
           selected_ion_count_ = 0;
         }
@@ -1169,11 +1176,11 @@ namespace OpenMS
 
     void MzMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
-      static const XMLCh* s_chromatogram = xercesc::XMLString::transcode("chromatogram");
-      static const XMLCh* s_spectrum_list = xercesc::XMLString::transcode("spectrumList");
-      static const XMLCh* s_chromatogram_list = xercesc::XMLString::transcode("chromatogramList");
-      static const XMLCh* s_mzml = xercesc::XMLString::transcode("mzML");
+      constexpr XMLCh s_spectrum[] = { 's','p','e','c','t','r','u','m' , 0};
+      constexpr XMLCh s_chromatogram[] = { 'c','h','r','o','m','a','t','o','g','r','a','m' , 0};
+      constexpr XMLCh s_spectrum_list[] = { 's','p','e','c','t','r','u','m','L','i','s','t' , 0};
+      constexpr XMLCh s_chromatogram_list[] = { 'c','h','r','o','m','a','t','o','g','r','a','m','L','i','s','t' , 0};
+      constexpr XMLCh s_mzml[] = { 'm','z','M','L' , 0};
 
       open_tags_.pop_back();
 
@@ -1194,7 +1201,7 @@ namespace OpenMS
           else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
           }
           */
-          
+
           // Move current data to (temporary) spectral data object
           SpectrumData tmp;
           tmp.spectrum = std::move(spec_);
@@ -1650,15 +1657,24 @@ namespace OpenMS
 
         if (accession == "MS:1000744") //selected ion m/z
         {
-          //this overwrites the m/z of the isolation window, as it is probably more accurate
-          if (in_spectrum_list_)
+          double this_mz = value.toDouble();
+          Precursor& precursor = in_spectrum_list_ ?
+            spec_.getPrecursors().back() : chromatogram_.getPrecursor();
+          if (this_mz != precursor.getMZ())
           {
-            spec_.getPrecursors().back().setMZ(value.toDouble());
+            if (options_.getPrecursorMZSelectedIon())
+            {
+              // overwrite the m/z of the isolation window:
+              precursor.setMetaValue("isolation window target m/z",
+                                     precursor.getMZ());
+              precursor.setMZ(this_mz);
+            }
+            else // keep precursor m/z from isolation window
+            {
+              precursor.setMetaValue("selected ion m/z", this_mz);
+            }
           }
-          else
-          {
-            chromatogram_.getPrecursor().setMZ(value.toDouble());
-          }
+          // don't need to do anything if the two m/z values are the same
         }
         else if (accession == "MS:1000041") //charge state
         {
@@ -3363,7 +3379,7 @@ namespace OpenMS
           {
             unitstring = "MS:" + unitstring;
           }
-          else 
+          else
           {
             warning(LOAD, String("Unhandled unit ontology '") );
           }
@@ -3376,7 +3392,7 @@ namespace OpenMS
       return cvTerm;
     }
 
-    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator) const
+    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude) const
     {
       std::vector<String> cvParams;
       std::vector<String> userParams;
@@ -3386,6 +3402,8 @@ namespace OpenMS
 
       for (std::vector<String>::iterator key = keys.begin(); key != keys.end(); ++key)
       {
+        if (exclude.count(*key)) continue; // skip excluded entries
+
         // special treatment of GO and BTO terms
         // <cvParam cvRef="BTO" accession="BTO:0000199" name="cardiac muscle"/>
 
@@ -3457,7 +3475,7 @@ namespace OpenMS
               {
                 unitstring = "MS:" + unitstring;
               }
-              else 
+              else
               {
                 warning(LOAD, String("Unhandled unit ontology '") );
               }
@@ -3696,17 +3714,30 @@ namespace OpenMS
 
     void MzMLHandler::writePrecursor_(std::ostream& os, const Precursor& precursor, const Internal::MzMLValidator& validator)
     {
-      os << "\t\t\t\t\t<precursor>\n";
+      // optional attributes
+      String external_spectrum_id =
+          precursor.metaValueExists("external_spectrum_id") ?
+          " externalSpectrumID=\"" + precursor.getMetaValue("external_spectrum_id").toString() + "\"" :
+          "";
+      String spectrum_ref =
+          precursor.metaValueExists("spectrum_ref") ?
+          " spectrumRef=\"" + precursor.getMetaValue("spectrum_ref").toString() + "\"":
+          "";
+
+      os << "\t\t\t\t\t<precursor" + external_spectrum_id + spectrum_ref + ">\n";
       //--------------------------------------------------------------------------------------------
       //isolation window (optional)
       //--------------------------------------------------------------------------------------------
 
+      // precursor m/z may come from "selected ion":
+      double mz = precursor.getMetaValue("isolation window target m/z",
+                                         precursor.getMZ());
       // Note that TPP parsers break when the isolation window is written out
       // in mzML files and the precursorMZ gets set to zero.
-      if (precursor.getMZ() > 0.0 && !options_.getForceTPPCompatability() )
+      if (mz > 0.0 && !options_.getForceTPPCompatability())
       {
         os << "\t\t\t\t\t\t<isolationWindow>\n";
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << mz << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
         if (precursor.getIsolationWindowLowerOffset() > 0.0)
         {
           os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
@@ -3729,9 +3760,12 @@ namespace OpenMS
           precursor.getDriftTime() >= 0.0 ||
           precursor.getPossibleChargeStates().size() > 0)
       {
+        // precursor m/z may come from "isolation window":
+        mz = precursor.getMetaValue("selected ion m/z",
+                                    precursor.getMZ());
         os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
         os << "\t\t\t\t\t\t\t<selectedIon>\n";
-        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << mz << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
         if (options_.getForceTPPCompatability() || precursor.getCharge() != 0)
         {
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
@@ -3836,8 +3870,10 @@ namespace OpenMS
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
       }
-      //as "precursor" has no own user param its userParam is stored here
-      writeUserParam_(os, precursor, 7, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator);
+      // as "precursor" has no own user param its userParam is stored here;
+      // don't write out parameters that are used internally to distinguish
+      // between precursor m/z values from different sources:
+      writeUserParam_(os, precursor, 7, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator, {"isolation window target m/z", "selected ion m/z", "external_spectrum_id", "spectrum_ref"});
       os << "\t\t\t\t\t\t</activation>\n";
       os << "\t\t\t\t\t</precursor>\n";
 
@@ -4223,7 +4259,7 @@ namespace OpenMS
         {
           for (Size i = 0; i < exp[s].getFloatDataArrays()[m].getDataProcessing().size(); ++i)
           {
-            writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i, 
+            writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i,
                 exp[s].getFloatDataArrays()[m].getDataProcessing()[i]->getSoftware(), validator);
           }
         }
@@ -4834,7 +4870,7 @@ namespace OpenMS
       {
         for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
         {
-          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, 
+          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m,
               exp[s].getFloatDataArrays()[m].getDataProcessing(), validator);
         }
       }
@@ -4882,7 +4918,7 @@ namespace OpenMS
         native_id = String("spectrum=") + s;
       }
 
-      long offset = os.tellp();
+      Int64 offset = os.tellp();
       spectra_offsets_.push_back(make_pair(native_id, offset + 3));
 
       // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
@@ -5029,7 +5065,7 @@ namespace OpenMS
       for (Size j = 0; j < spec.getAcquisitionInfo().size(); ++j)
       {
         const Acquisition& ac = spec.getAcquisitionInfo()[j];
-        os << "\t\t\t\t\t<scan "; // TODO 
+        os << "\t\t\t\t\t<scan "; // TODO
         if (ac.getIdentifier() != "")
         {
           os << "externalSpectrumID=\"" << ac.getIdentifier() << "\"";
@@ -5037,7 +5073,7 @@ namespace OpenMS
         os << ">\n";
         if (j == 0)
         {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() 
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT()
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
           // if drift time was never set, don't report it
           if (spec.getDriftTime() >= 0.0)
@@ -5439,7 +5475,7 @@ namespace OpenMS
                                          Size c,
                                          const Internal::MzMLValidator& validator)
     {
-      long offset = os.tellp();
+      Int64 offset = os.tellp();
       chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
 
       // TODO native id with chromatogram=?? prefix?
@@ -5449,7 +5485,7 @@ namespace OpenMS
       // write cvParams (chromatogram type)
       if (chromatogram.getChromatogramType() == ChromatogramSettings::MASS_CHROMATOGRAM)
       {
-        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"mass chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"ion current chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
       {

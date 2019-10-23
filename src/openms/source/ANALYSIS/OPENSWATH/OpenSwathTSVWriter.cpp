@@ -41,14 +41,12 @@ namespace OpenMS
   OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename, 
                                          const String& input_filename,
                                          bool ms1_scores, 
-                                         bool sonar, 
-                                         bool uis_scores) :
+                                         bool sonar) :
     ofs(output_filename.c_str()),
     input_filename_(input_filename),
     doWrite_(!output_filename.empty()),
     use_ms1_traces_(ms1_scores),
-    sonar_(sonar),
-    enable_uis_scoring_(uis_scores)
+    sonar_(sonar)
     {
     }
 
@@ -70,14 +68,12 @@ namespace OpenMS
           << "FullPeptideName" << "\t"
           << "Charge" << "\t"
           << "m/z" << "\t"
-          << "masserror_ppm" << "\t"
           << "Intensity" << "\t"
           << "ProteinName" << "\t"
           << "GeneName" << "\t"
           << "decoy" << "\t"
           << "assay_rt" <<"\t"
           << "delta_rt" << "\t"
-          << "rt_fwhm" << "\t"
           << "leftWidth" <<
         "\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier\tinitialPeakQuality" <<
         "\trightWidth\trt_score\tsn_ratio\ttotal_xic\tvar_bseries_score\tvar_dotprod_score" <<
@@ -86,6 +82,8 @@ namespace OpenMS
         "\tvar_library_rootmeansquare\tvar_library_sangle\tvar_log_sn_score\tvar_manhatt_score" <<
         "\tvar_massdev_score\tvar_massdev_score_weighted\tvar_norm_rt_score\tvar_xcorr_coelution" <<
         "\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted" <<
+        "\tvar_im_xcorr_shape\tvar_im_xcorr_coelution\tvar_im_delta_score\tvar_im_ms1_delta_score" <<
+        "\tim_drift\tim_drift_weighted" <<
         "\tvar_yseries_score\tvar_elution_model_fit_score";
       if (use_ms1_traces_)
       {
@@ -98,30 +96,11 @@ namespace OpenMS
       }
       if (use_ms1_traces_)
       {
-        ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Fragment_Annotation";
+        ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Annotation";
       }
-      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation";
-      if (enable_uis_scoring_)
-      {
-        ofs << "\t" << "uis_target_transition_names"
-            << "\t" << "uis_target_var_ind_log_intensity"
-            << "\t" << "uis_target_num_transitions"
-            << "\t" << "uis_target_var_ind_xcorr_coelution"
-            << "\t" << "uis_target_main_var_ind_xcorr_shape"
-            << "\t" << "uis_target_var_ind_log_sn_score"
-            << "\t" << "uis_target_var_ind_massdev_score"
-            << "\t" << "uis_target_var_ind_isotope_correlation"
-            << "\t" << "uis_target_var_ind_isotope_overlap"
-            << "\t" << "uis_decoy_transition_names"
-            << "\t" << "uis_decoy_var_ind_log_intensity"
-            << "\t" << "uis_decoy_num_transitions"
-            << "\t" << "uis_decoy_var_ind_xcorr_coelution"
-            << "\t" << "uis_decoy_main_var_ind_xcorr_shape"
-            << "\t" << "uis_decoy_var_ind_log_sn_score"
-            << "\t" << "uis_decoy_var_ind_massdev_score"
-            << "\t" << "uis_decoy_var_ind_isotope_correlation"
-            << "\t" << "uis_decoy_var_ind_isotope_overlap";
-      }
+      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation" << "\t" 
+          << "rt_fwhm" << "\t"
+          << "masserror_ppm";
       ofs << "\n";
     }
 
@@ -218,7 +197,6 @@ namespace OpenMS
             + "\t" + full_peptide_name
             + "\t" + (String)pep.charge
             + "\t" + (String)transition->precursor_mz
-            + "\t" + (feature_it->metaValueExists("masserror_ppm") ? ListUtils::concatenate(feature_it->getMetaValue("masserror_ppm").toDoubleList(), ";") : "")
             + "\t" + (String)feature_it->getIntensity()
             + "\t" + protein_name
             + "\t" + gene_name
@@ -226,7 +204,6 @@ namespace OpenMS
             // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
             + "\t" + (String)feature_it->getMetaValue("assay_rt")
             + "\t" + (String)feature_it->getMetaValue("delta_rt")
-            + "\t" + ListUtils::concatenate(rt_fwhm, ";")
             + "\t" + (String)feature_it->getMetaValue("leftWidth")
             + "\t" + main_var
             + "\t" + (String)feature_it->getMetaValue("norm_RT")
@@ -258,6 +235,14 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("var_xcorr_coelution_weighted")
             + "\t" + (String)feature_it->getMetaValue("var_xcorr_shape")
             + "\t" + (String)feature_it->getMetaValue("var_xcorr_shape_weighted")
+
+            + "\t" + (String)feature_it->getMetaValue("var_im_xcorr_shape")
+            + "\t" + (String)feature_it->getMetaValue("var_im_xcorr_coelution")
+            + "\t" + (String)feature_it->getMetaValue("var_im_delta_score")
+            + "\t" + (String)feature_it->getMetaValue("var_im_ms1_delta_score")
+            + "\t" + (String)feature_it->getMetaValue("im_drift")
+            + "\t" + (String)feature_it->getMetaValue("im_drift_weighted")
+
             + "\t" + (String)feature_it->getMetaValue("var_yseries_score")
             + "\t" + (String)feature_it->getMetaValue("var_elution_model_fit_score");
 
@@ -287,27 +272,9 @@ namespace OpenMS
               line += "\t" + ListUtils::concatenate(aggr_prec_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_prec_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_prec_Fragment_Annotation, ";");
             }
             line += "\t" + ListUtils::concatenate(aggr_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_Fragment_Annotation, ";");
-            if (enable_uis_scoring_)
-            {
-              line += "\t" + (String)feature_it->getMetaValue("id_target_transition_names")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_intensity")
-              + "\t" + (String)feature_it->getMetaValue("id_target_num_transitions")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_coelution")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_shape")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_sn_score")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_massdev_score")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_correlation")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_overlap")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_transition_names")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_intensity")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_num_transitions")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_coelution")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_shape")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_sn_score")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_massdev_score")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_correlation")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_overlap");
-            }
+            line += "\t" + ListUtils::concatenate(rt_fwhm, ";");
+            line += "\t" + (feature_it->metaValueExists("masserror_ppm") ? ListUtils::concatenate(feature_it->getMetaValue("masserror_ppm").toDoubleList(), ";") : "");
+
             line += "\n";
             result += line;
         } // end of iteration

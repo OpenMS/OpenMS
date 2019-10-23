@@ -143,10 +143,10 @@ public:
     {}
 
     /// Copy constructor
-    Peak2D(const Peak2D & p) :
-      position_(p.position_),
-      intensity_(p.intensity_)
-    {}
+    Peak2D(const Peak2D & p) = default;
+
+    /// Move constructor
+    Peak2D(Peak2D&&) = default;
 
     /**
       @brief Destructor
@@ -219,15 +219,10 @@ public:
     ///@}
 
     /// Assignment operator
-    Peak2D & operator=(const Peak2D & rhs)
-    {
-      if (this == &rhs) return *this;
+    Peak2D & operator=(const Peak2D & rhs) = default;
 
-      intensity_ = rhs.intensity_;
-      position_ = rhs.position_;
-
-      return *this;
-    }
+    /// Move assignment operator
+    Peak2D& operator=(Peak2D&&) & = default;
 
     /// Equality operator
     bool operator==(const Peak2D & rhs) const

@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/sachsenb/OpenMS/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/media/sachsenb/Samsung_T5/OpenMS/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2018-05-04T17:07:54" search_engine="SimpleSearchEngine" search_engine_version="2.4.0-alpha" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-08-09T13:58:52" search_engine="SimpleSearchEngine" search_engine_version="2.4.0-develop-2019-08-09" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="test2_rev" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="BSA2" score="0" sequence="" >
+			<ProteinHit id="PH_1" accession="BSA2" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="BSA3" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="BSA3" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[file://./KKramer_150612_yeastTAP_4_120min.raw]"/>
+			<UserParam type="stringList" name="spectra_data" value="[file://SimpleSearchEngine_1.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="520.262817382812" RT="2655.095703125" >
-			<PeptideHit score="20.3423871533647" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" >
+			<PeptideHit score="20.34238715336474" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="0"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" >
-			<PeptideHit score="44.95562558097" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.6689453125" >
+			<PeptideHit score="44.955625580969979" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="1"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="775.38720703125" RT="4923.77734375" >
-			<PeptideHit score="42.1529394535928" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="[" aa_after="A" start="0" end="22" protein_refs="PH_2" >
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="775.38720703125" RT="4923.77734375" >
+			<PeptideHit score="42.152939453592808" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="[" aa_after="A" start="0" end="22" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>

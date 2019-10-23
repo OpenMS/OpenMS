@@ -42,12 +42,11 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Search query, e.g. spectrum or feature.
+    /** @brief Search query, e.g. spectrum or feature.
     */
     struct DataQuery: public MetaInfoInterface
     {
-      // spectrum or feature ID (from the file referenced by "input_file_ref"):
+      /// spectrum or feature ID (from the file referenced by "input_file_ref"):
       String data_id;
 
       // @TODO: make this non-optional (i.e. required)?

@@ -137,7 +137,7 @@ namespace OpenMS
       /**
       @brief logs number of features and spectra used
 
-      Prints the number of features and spectra used (LOG_INFO)
+      Prints the number of features and spectra used (OPENMS_LOG_INFO)
 
       @param featureinfo: Path to featureXML
       @param feature_mapping: FeatureToMs2Indices with feature mapping
@@ -159,7 +159,7 @@ namespace OpenMS
       */
       const vector<String> callSiriusQProcess(const String& tmp_ms_file,
                                               const String& tmp_out_dir,
-                                              String& executable,
+                                              String& executable, // TODO: Why not const?
                                               const String& out_csifingerid);
 
     private:

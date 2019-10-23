@@ -84,7 +84,7 @@ include(${PROJECT_SOURCE_DIR}/configh.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
-# all the dependency libraries are linked into libOpenMS.so, except Qt
+# all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${LIBSVM_LIBRARIES}
                           ${XercesC_LIBRARY}
@@ -93,11 +93,13 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
                           ${SQLite_LIBRARY}
+                          ${HDF5_CXX_LIBRARIES}
                           ${GLPK_LIBRARIES}
+                          ${CMAKE_DL_LIBS}
                           ${Qt5Core_LIBRARIES}
                           ${Qt5Network_LIBRARIES})
 
-# xerces requires linking against CoreFoundation&CoreServices
+# xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
 if(APPLE)
   find_library(CoreFoundation_LIBRARY CoreFoundation )
@@ -117,12 +119,14 @@ endif()
 
 set (OPENMS_CONTRIB_INCLUDE_DIRS "")
 if (OPENMS_CONTRIB_LIBS)
- set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
+  set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
 endif()
 
+## Sort include directories into contrib ones (prefered in order) and system ones.
 foreach (includedir
          ${SEQAN_INCLUDE_DIRS}
          ${SQLite_INCLUDE_DIR}
+         ${HDF5_INCLUDE_DIRS}
          ${LIBSVM_INCLUDE_DIRS}
          ${EIGEN3_INCLUDE_DIR}
          ${WM5_INCLUDE_DIRS}
@@ -140,23 +144,24 @@ foreach (includedir
   endif()
 endforeach()
 
-#set(OpenMS_sources ${OpenMS_sources} openms_pch.cpp)
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY} ${ISOSPEC_INCLUDE_DIRECTORY} 
-                   EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS}
-                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
+                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
+                                    ${ISOSPEC_INCLUDE_DIRECTORY}
+                                    ${JSON_INCLUDE_DIRECTORY}
+                   EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS} #root folder
+                                     ${EVERGREEN_INCLUDE_DIRECTORY}
                                      ${INCLUDES_FROM_CONTRIB}
                                      ${INCLUDES_FROM_SYSTEM}
+                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES} #Includes boost which could be non-contrib
                                      ${Qt5Core_INCLUDE_DIRS}
                                      ${Qt5Network_INCLUDE_DIRS}
-                                     ${JSON_INCLUDE_DIRECTORY}
-                                     LINK_LIBRARIES OpenSwathAlgo 
-                                     ${OPENMS_DEP_LIBRARIES}
+                   LINK_LIBRARIES OpenSwathAlgo
+                                  ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
                    
 #------------------------------------------------------------------------------

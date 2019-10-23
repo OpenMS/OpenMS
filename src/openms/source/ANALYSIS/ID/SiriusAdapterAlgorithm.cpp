@@ -497,9 +497,21 @@ namespace OpenMS
         }
         executable = qsiriuspathenv;
       }
+
       const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
       LOG_WARN << "Executable is: " + exe << std::endl;
       return exe;
+      // TODO: from upstream not sure which one is better
+      // normalize file path
+      // QString exe = executable.toQString();
+      // QFileInfo file_info(exe);
+      // exe = file_info.canonicalFilePath();
+  
+      //OPENMS_LOG_WARN << "Executable is: " + String(exe) << std::endl;
+      // const String path_to_executable = File::path(exe);
+      // executable_workdir = std::make_pair(exe.toStdString(), path_to_executable);
+      
+      // return executable_workdir;
     }
 
     SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct()
@@ -528,15 +540,30 @@ namespace OpenMS
           FeatureXMLFile fxml;
           FeatureMap feature_map;
           fxml.load(featureinfo, feature_map);
-          
+
           UInt num_masstrace_filter = getFilterByNumMassTraces();
           double precursor_mz_tol = getPrecursorMzTolerance();
           double precursor_rt_tol = getPrecursorRtTolerance();
 
+// TODO: from upstream:
+//
+//          bool feature_only;
+//          if (sirius_algo.feature_only_ == "true") feature_only = true;
+//          else if (sirius_algo.feature_only_ == "false") feature_only = false;
+//          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature only is either true or false");
+//
+//          unsigned int num_masstrace_filter = sirius_algo.filter_by_num_masstraces_;
+//          double precursor_mz_tol = sirius_algo.precursor_mz_tolerance_;
+//          double precursor_rt_tol = sirius_algo.precursor_rt_tolerance_;
+//          bool ppm_prec;
+//          if (sirius_algo.precursor_mz_tolerance_unit_ == "ppm") ppm_prec = true;
+//          else if (sirius_algo.precursor_mz_tolerance_unit_ == "Da") ppm_prec = false;
+//          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor m/z tolerance unit is either ppm or Da");
+
           if (num_masstrace_filter != 1 && !isFeatureOnly())
           {
             num_masstrace_filter = 1;
-            LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
+            OPENMS_LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
           }
 
           // filter feature by number of masstraces
@@ -575,12 +602,12 @@ namespace OpenMS
       // number of features to be processed
       if (isFeatureOnly() && !featureinfo.empty())
       {
-        LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
       }
       else if (!featureinfo.empty())
       {
-        LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-        LOG_INFO << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
       } 
       else
       {
@@ -594,8 +621,9 @@ namespace OpenMS
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
                                                                          const String& tmp_out_dir,
-                                                                               String& executable,
+                                                                         String& executable, // TODO: why not const.
                                                                          const String& out_csifingerid)
+
     {
       // Get the command line parameters from all the subtools
       QStringList config_params = nightsky_config.getCommandLine();

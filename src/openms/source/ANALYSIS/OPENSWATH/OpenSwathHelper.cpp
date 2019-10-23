@@ -54,7 +54,7 @@ namespace OpenMS
   }
 
   void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
-                                      double& lower, double& upper)
+                                      double& lower, double& upper, double& center)
   {
     if (swath_map.empty() || swath_map[0].getPrecursors().empty())
     {
@@ -63,6 +63,7 @@ namespace OpenMS
     const std::vector<Precursor>& first_prec = swath_map[0].getPrecursors();
     lower = first_prec[0].getMZ() - first_prec[0].getIsolationWindowLowerOffset();
     upper = first_prec[0].getMZ() + first_prec[0].getIsolationWindowUpperOffset();
+    center = first_prec[0].getMZ();
     UInt expected_mslevel = swath_map[0].getMSLevel();
 
     for (Size index = 0; index < swath_map.size(); index++)

@@ -34,7 +34,6 @@
 
 
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
-#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <boost/math/distributions/binomial.hpp>
 #include <numeric>

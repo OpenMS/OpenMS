@@ -59,12 +59,12 @@ namespace OpenMS
       progresslogger.setProgress(proteins_counter);
       IdentificationData::ScoreType score_type(prot.getScoreType(),
                                                prot.isHigherScoreBetter());
-      IdentificationData::ScoreTypeRef score_ref =
+      IdentificationData::ScoreTypeRef prot_score_ref =
         id_data.registerScoreType(score_type);
 
       IdentificationData::DataProcessingSoftware software(
         prot.getSearchEngine(), prot.getSearchEngineVersion());
-      software.assigned_scores.push_back(score_ref);
+      software.assigned_scores.push_back(prot_score_ref);
       IdentificationData::ProcessingSoftwareRef software_ref =
         id_data.registerDataProcessingSoftware(software);
 
@@ -104,7 +104,7 @@ namespace OpenMS
         parent.coverage = hit.getCoverage() / 100.0; // we don't want percents
         static_cast<MetaInfoInterface&>(parent) = hit;
         IdentificationData::AppliedProcessingStep applied(step_ref);
-        applied.scores[score_ref] = hit.getScore();
+        applied.scores[prot_score_ref] = hit.getScore();
         parent.steps_and_scores.push_back(applied);
         id_data.registerParentMolecule(parent);
       }
@@ -274,16 +274,16 @@ namespace OpenMS
           software.setName(ana_res.score_type); // e.g. "peptideprophet"
           IdentificationData::AppliedProcessingStep sub_applied;
           IdentificationData::ScoreType main_score;
-          main_score.name = ana_res.score_type + "_probability";
+          main_score.cv_term.setName(ana_res.score_type + "_probability");
           main_score.higher_better = ana_res.higher_is_better;
           IdentificationData::ScoreTypeRef main_score_ref =
             id_data.registerScoreType(main_score);
           software.assigned_scores.push_back(main_score_ref);
           sub_applied.scores[main_score_ref] = ana_res.main_score;
-          for (const pair<String, double>& sub_pair : ana_res.sub_scores)
+          for (const pair<const String, double>& sub_pair : ana_res.sub_scores)
           {
             IdentificationData::ScoreType sub_score;
-            sub_score.name = sub_pair.first;
+            sub_score.cv_term.setName(sub_pair.first);
             IdentificationData::ScoreTypeRef sub_score_ref =
               id_data.registerScoreType(sub_score);
             software.assigned_scores.push_back(sub_score_ref);
@@ -326,7 +326,7 @@ namespace OpenMS
         pair<vector<PeptideHit>, IdentificationData::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
-    const String& ppm_error_name = Constants::PRECURSOR_ERROR_PPM_USERPARAM;
+    const String& ppm_error_name = Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
 
     for (const IdentificationData::MoleculeQueryMatch& query_match :
            id_data.getMoleculeQueryMatches())
@@ -398,7 +398,7 @@ namespace OpenMS
         // add meta values for "secondary" scores:
         for (auto it = ++scores.begin(); it != scores.end(); ++it)
         {
-          hit_copy.setMetaValue(it->first->name, it->second);
+          hit_copy.setMetaValue(it->first->cv_term.getName(), it->second);
         }
         auto pos =
           query_match.peak_annotations.find(applied.processing_step_opt);
@@ -424,7 +424,7 @@ namespace OpenMS
       peptide.setMetaValue("spectrum_reference", query.data_id);
       peptide.setHits(psm.second.first);
       const IdentificationData::ScoreType& score_type = *psm.second.second;
-      peptide.setScoreType(score_type.name);
+      peptide.setScoreType(score_type.cv_term.getName());
       peptide.setHigherScoreBetter(score_type.higher_better);
       if (psm.first.second) // processing step given
       {
@@ -476,7 +476,7 @@ namespace OpenMS
           // add meta values for "secondary" scores:
           for (auto it = ++scores.begin(); it != scores.end(); ++it)
           {
-            hit_copy.setMetaValue(it->first->name, it->second);
+            hit_copy.setMetaValue(it->first->cv_term.getName(), it->second);
           }
           prot_data[applied.processing_step_opt].first.push_back(hit_copy);
           prot_data[applied.processing_step_opt].second = scores[0].first;
@@ -530,7 +530,7 @@ namespace OpenMS
         {
           const IdentificationData::ScoreType& score_type =
             *pd_pos->second.second;
-          protein.setScoreType(score_type.name);
+          protein.setScoreType(score_type.cv_term.getName());
           protein.setHigherScoreBetter(score_type.higher_better);
         }
       }
@@ -550,7 +550,7 @@ namespace OpenMS
               // @TODO: what if there are several scores?
               new_group.probability = group.scores.begin()->second;
             }
-            for (auto parent_ref : group.parent_molecule_refs)
+            for (const auto& parent_ref : group.parent_molecule_refs)
             {
               new_group.accessions.push_back(parent_ref->accession);
             }
@@ -783,12 +783,12 @@ namespace OpenMS
     const map<IdentificationData::ScoreTypeRef, Size>& scores,
     map<Size, MzTabParameter>& output)
   {
-    for (const pair<IdentificationData::ScoreTypeRef, Size>& score_pair :
+    for (const pair<const IdentificationData::ScoreTypeRef, Size>& score_pair :
            scores)
     {
       const IdentificationData::ScoreType& score_type = *score_pair.first;
       MzTabParameter param;
-      param.setName(score_type.name); // or "score_type.cv_term.getName()"?
+      param.setName(score_type.cv_term.getName());
       param.setAccession(score_type.cv_term.getAccession());
       param.setCVLabel(score_type.cv_term.getCVIdentifierRef());
       output[score_pair.second] = param;
@@ -860,7 +860,7 @@ namespace OpenMS
     {
       charges = ListUtils::create<Int>(pisp.charges);
     }
-    catch (Exception::ConversionError& e) { // X! Tandem notation, e.g. "+1-+4"?
+    catch (Exception::ConversionError& /*e*/) { // X! Tandem notation, e.g. "+1-+4"?
       charges = ListUtils::create<Int>(pisp.charges, '-');
       if ((charges.size() == 2) && (charges[0] < charges[1]))
       {

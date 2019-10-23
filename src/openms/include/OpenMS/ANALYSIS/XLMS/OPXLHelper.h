@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <numeric>
 
 namespace OpenMS
@@ -108,13 +109,6 @@ namespace OpenMS
       static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, const std::vector< double >& spectrum_precursors, std::vector< int >& precursor_correction_positions, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
 
       /**
-       * @brief A helper function, that turns a StringList with modification names into a vector of ResidueModifications
-       * @param modNames The list of modification names
-       * @return A vector of modifications
-       */
-      static std::vector<ResidueModification> getModificationsFromStringList(StringList modNames);
-
-      /**
        * @brief Digests a database with the given EnzymaticDigestion settings and precomputes masses for all peptides
 
           Also keeps track of the peptides at protein terminals and builds peptide candidates with all possible modification patterns
@@ -134,7 +128,11 @@ namespace OpenMS
        * @param c_term_linker True, if the cross-linker can react with the C-terminal of a protein
        * @return A vector of AASeqWithMass containing the peptides, their masses and information about terminal peptides
        */
-      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide);
+      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db,
+        EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2,
+        const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+        const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
+        Size max_variable_mods_per_peptide);
 
       /**
        * @brief Builds specific cross-link candidates with all possible combinations of linked positions from peptide pairs. Used to build candidates for the precursor mass window of a single MS2 spectrum.
@@ -191,9 +189,39 @@ namespace OpenMS
 
       /**
        * @brief adds MetaValues for cross-link positions to PeptideHits
-       * @param peptide_ids The vector of peptide_ids containing XL-MS search results, after mapping of peptides to proteins
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
        */
       static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief adds xl_target_decoy MetaValue that combines alpha and beta target_decoy info
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
+       */
+      static void addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief adds accessions_beta MetaValue to alpha peptides for TOPPView visualization and CSV table output
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
+       */
+      static void addBetaAccessions(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief removes beta peptides from cross-link IDs, since all info is already contained in the alpha peptide hits
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits
+       */
+      static void removeBetaPeptideHits(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief adds the list of features that percolator should use for OpenPepXL
+       * @param search_params The search parameters of OpenPepXL
+       */
+      static void addPercolatorFeatureList(ProteinIdentification& prot_id);
+
+      /**
+       * @brief sorts PeptideHits for each PeptideIdentification by score and adds the delta score as a MetaValue
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results without beta PeptideHits
+       */
+      static void computeDeltaScores(std::vector< PeptideIdentification >& peptide_ids);
 
       /**
        * @brief combines all hits to spectrum pairs with the same light spectrum into one ranked list
@@ -202,7 +230,7 @@ namespace OpenMS
        * This function collects PeptideIdentifications from all spectrum pairs with the same light spectrum,
        * then resorts them by the score, makes them unique in case of equal candidates and reduces their number down to the chosen number of reported top hits.
        *
-       * @param peptide_ids PeptideIdentifications from a Cross-Linking MS search with labaled linkers
+       * @param peptide_ids PeptideIdentifications from a Cross-Linking MS search with labeled linkers
        * @param number_top_hits The chosen number of reported top hits
        */
       static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits);

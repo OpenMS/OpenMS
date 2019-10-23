@@ -60,7 +60,7 @@ namespace OpenMS
       return false;
     }
 
-    if (verbose) LOG_INFO << "Running R script '" << fullscript << "' ...";
+    if (verbose) OPENMS_LOG_INFO << "Running R script '" << fullscript << "' ...";
 
     QStringList args;
     args << "--vanilla" << "--quiet" << fullscript.toQString();
@@ -74,23 +74,23 @@ namespace OpenMS
     {
       if (verbose)
       {
-        LOG_INFO << " failed" << std::endl;
-        LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
-        LOG_ERROR << QString(p.readAllStandardError()).toStdString();
-        LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
-        LOG_ERROR << QString(p.readAllStandardOutput()).toStdString();
-        LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
+        OPENMS_LOG_INFO << " failed" << std::endl;
+        OPENMS_LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
+        OPENMS_LOG_ERROR << QString(p.readAllStandardError()).toStdString();
+        OPENMS_LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
+        OPENMS_LOG_ERROR << QString(p.readAllStandardOutput()).toStdString();
+        OPENMS_LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
       }
       return false;
     }
-    if (verbose) LOG_INFO << " success" << std::endl;
+    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
 
     return true;
   }
 
   bool RWrapper::findR( const QString& executable /*= "Rscript"*/, bool verbose /*= true*/ )
   {
-    if (verbose) LOG_INFO << "Finding R interpreter 'Rscript' ...";
+    if (verbose) OPENMS_LOG_INFO << "Finding R interpreter 'Rscript' ...";
 
     QStringList args(QStringList() << "--vanilla" << "-e" << "sessionInfo()");
     QProcess p;
@@ -102,29 +102,29 @@ namespace OpenMS
     {
       if (verbose)
       {
-        LOG_INFO << " failed" << std::endl;
+        OPENMS_LOG_INFO << " failed" << std::endl;
         String out = QString(p.readAllStandardOutput()).toStdString();
-        LOG_ERROR << "Error: Could not find or run '" << executable.toStdString() << "' executable (FailedToStart).\n";
+        OPENMS_LOG_ERROR << "Error: Could not find or run '" << executable.toStdString() << "' executable (FailedToStart).\n";
         if (!out.empty())
         {
-          LOG_ERROR << "Output was:\n------>\n"
+          OPENMS_LOG_ERROR << "Output was:\n------>\n"
                     << out
                     << "\n<------\n";
         }
-        LOG_ERROR << "Please install 'Rscript', make sure it's in PATH and is flagged as executable." << std::endl;
+        OPENMS_LOG_ERROR << "Please install 'Rscript', make sure it's in PATH and is flagged as executable." << std::endl;
       }
 
       return false;
     }
-    if (verbose) LOG_INFO << " success" << std::endl;
+    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
 
-    if (verbose) LOG_INFO << "Trying to invoke 'Rscript' ...";
+    if (verbose) OPENMS_LOG_INFO << "Trying to invoke 'Rscript' ...";
     if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0)
     {
       if (verbose)
       {
-        LOG_INFO << " failed" << std::endl;
-        LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ").toStdString() << "')\n"
+        OPENMS_LOG_INFO << " failed" << std::endl;
+        OPENMS_LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ").toStdString() << "')\n"
                   << "Output was:\n------>\n"
                   << QString(p.readAllStandardOutput()).toStdString()
                   << "\n<------\n"
@@ -132,7 +132,7 @@ namespace OpenMS
       }
       return false;
     }
-    if (verbose) LOG_INFO << " success" << std::endl;
+    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
 
     return true;
   }
@@ -146,7 +146,7 @@ namespace OpenMS
     }
     catch (...)
     {
-      if (verbose) LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl;
+      if (verbose) OPENMS_LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl;
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, script_file);
     }
     return s;

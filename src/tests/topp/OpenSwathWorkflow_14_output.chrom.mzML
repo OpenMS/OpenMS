@@ -45,7 +45,7 @@
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<chromatogramList count="24" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="0_Precursor_i0" index="0" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -81,193 +81,8 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="2_Precursor_i0" index="1" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
-					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="437.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="437.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-							</selectedIon>
-						</selectedIonList>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="204">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="104">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-			<chromatogram id="3_Precursor_i0" index="2" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
-					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="462.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="462.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-							</selectedIon>
-						</selectedIonList>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEC"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="204">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="104">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-			<chromatogram id="4_Precursor_i0" index="3" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
-					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="487.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-							</selectedIon>
-						</selectedIonList>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDED"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="204">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="104">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-			<chromatogram id="6_Precursor_i0" index="4" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
-					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="500.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-							</selectedIon>
-						</selectedIonList>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEF"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="204">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="104">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>pm2+Qjz4IUMzbIFDf0TCQ8v6CETafDVELdhhRMoEhETE/pBEc5qVRMT+kETKBIRELdhhRNp8NUTL+ghEf0TCQzNsgUM8+CFDpm2+Qg==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-			<chromatogram id="5_Precursor_i0" index="5" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
-					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="510.05" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="510.05" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-							</selectedIon>
-						</selectedIonList>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEE"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="204">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="104">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>pm2+Qjz4IUMzbIFDf0TCQ8v6CETafDVELdhhRMoEhETE/pBEc5qVRMT+kETKBIRELdhhRNp8NUTL+ghEf0TCQzNsgUM8+CFDpm2+Qg==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-			<chromatogram id="0" index="6" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="0" index="1" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -303,8 +118,8 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="1" index="7" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="1" index="2" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -340,8 +155,8 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="2" index="8" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="2" index="3" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -377,8 +192,45 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="3" index="9" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="2_Precursor_i0" index="4" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="437.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="437.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="204">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="104">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="3" index="5" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="437.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -414,8 +266,8 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="4" index="10" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="4" index="6" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="437.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -451,8 +303,8 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="5" index="11" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="5" index="7" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="437.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -488,8 +340,45 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="6" index="12" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="3_Precursor_i0" index="8" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="462.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="462.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEC"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="204">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="104">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="6" index="9" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="462.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -525,8 +414,8 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="7" index="13" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="7" index="10" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="462.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -562,8 +451,8 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="8" index="14" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="8" index="11" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="462.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -599,8 +488,45 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="9" index="15" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="4_Precursor_i0" index="12" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="487.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDED"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="204">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="104">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="9" index="13" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -636,8 +562,8 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="10" index="16" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="10" index="14" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -673,8 +599,8 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="11" index="17" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+			<chromatogram id="11" index="15" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -710,8 +636,82 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
+			<chromatogram id="6_Precursor_i0" index="16" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="500.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEF"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="204">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="104">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>pm2+Qjz4IUMzbIFDf0TCQ8v6CETafDVELdhhRMoEhETE/pBEc5qVRMT+kETKBIRELdhhRNp8NUTL+ghEf0TCQzNsgUM8+CFDpm2+Qg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="5_Precursor_i0" index="17" defaultArrayLength="19">
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="510.05" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="510.05" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEE"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="204">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAAAAAAJEAAAAAAAAA0QAAAAAAAAD5AAAAAAAAAREAAAAAAAABJQAAAAAAAAE5AAAAAAACAUUAAAAAAAABUQAAAAAAAgFZAAAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQAAAAAAAwGJAAAAAAAAAZEAAAAAAAEBlQAAAAAAAgGZAAAAAAADAZ0A=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="104">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>pm2+Qjz4IUMzbIFDf0TCQ8v6CETafDVELdhhRMoEhETE/pBEc5qVRMT+kETKBIRELdhhRNp8NUTL+ghEf0TCQzNsgUM8+CFDpm2+Qg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
 			<chromatogram id="15" index="18" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -748,7 +748,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="12" index="19" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="510.05" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -785,7 +785,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="16" index="20" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -822,7 +822,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="13" index="21" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="510.05" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -859,7 +859,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="17" index="22" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -896,7 +896,7 @@
 				</binaryDataArrayList>
 			</chromatogram>
 			<chromatogram id="14" index="23" defaultArrayLength="19">
-				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
+				<cvParam cvRef="MS" accession="MS:1000810" name="ion current chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="510.05" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -938,23 +938,23 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="0_Precursor_i0">3033</offset>
-		<offset idRef="2_Precursor_i0">5338</offset>
-		<offset idRef="3_Precursor_i0">7643</offset>
-		<offset idRef="4_Precursor_i0">9948</offset>
-		<offset idRef="6_Precursor_i0">12253</offset>
-		<offset idRef="5_Precursor_i0">14560</offset>
-		<offset idRef="0">16867</offset>
-		<offset idRef="1">19164</offset>
-		<offset idRef="2">21461</offset>
-		<offset idRef="3">23758</offset>
-		<offset idRef="4">26055</offset>
-		<offset idRef="5">28353</offset>
-		<offset idRef="6">30651</offset>
-		<offset idRef="7">32949</offset>
-		<offset idRef="8">35247</offset>
-		<offset idRef="9">37545</offset>
-		<offset idRef="10">39843</offset>
-		<offset idRef="11">42142</offset>
+		<offset idRef="0">5338</offset>
+		<offset idRef="1">7635</offset>
+		<offset idRef="2">9932</offset>
+		<offset idRef="2_Precursor_i0">12229</offset>
+		<offset idRef="3">14534</offset>
+		<offset idRef="4">16831</offset>
+		<offset idRef="5">19128</offset>
+		<offset idRef="3_Precursor_i0">21425</offset>
+		<offset idRef="6">23730</offset>
+		<offset idRef="7">26027</offset>
+		<offset idRef="8">28325</offset>
+		<offset idRef="4_Precursor_i0">30623</offset>
+		<offset idRef="9">32929</offset>
+		<offset idRef="10">35227</offset>
+		<offset idRef="11">37526</offset>
+		<offset idRef="6_Precursor_i0">39825</offset>
+		<offset idRef="5_Precursor_i0">42133</offset>
 		<offset idRef="15">44441</offset>
 		<offset idRef="12">46742</offset>
 		<offset idRef="16">49043</offset>

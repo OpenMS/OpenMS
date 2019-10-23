@@ -148,9 +148,9 @@ private:
     const String& sequence_unmodified_str = peptide_hit_sequence.toUnmodifiedString();
     if (sequence_comparison_method == "substring") 
     {
-      for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
+      for (const String & s : whitelist)
       {
-        if (sequence_str.hasSubstring(*seq_it) || sequence_unmodified_str.hasSubstring(*seq_it))
+        if (sequence_str.hasSubstring(s) || sequence_unmodified_str.hasSubstring(s))
         {
           return true;
         }
@@ -158,9 +158,9 @@ private:
     } 
     else if (sequence_comparison_method == "exact")
     {
-      for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
+      for (const String & s : whitelist)
       {
-       if (sequence_str == *seq_it || sequence_unmodified_str ==  *seq_it)
+       if (sequence_str == s || sequence_unmodified_str == s)
        {
          return true;
        }
@@ -316,6 +316,7 @@ protected:
     registerFlag_("peak_options:sort_peaks", "Sorts the peaks according to m/z");
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file");
+    registerFlag_("peak_options:remove_empty", "Removes spectra and chromatograms without peaks.");
     registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
@@ -380,7 +381,7 @@ protected:
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Consensus feature data options");
-    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Maps to be extracted from a consensus", false);
+    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Non-empty list of maps to be extracted from a consensus (indices are 0-based).", false);
     registerFlag_("consensus:map_and", "Consensus features are kept only if they contain exactly one feature from each map (as given above in 'map')");
 
     // black and white listing
@@ -679,6 +680,19 @@ protected:
         exp.setChromatograms(vector<MSChromatogram >());
       }
 
+      bool remove_empty = getFlag_("peak_options:remove_empty");
+      if (remove_empty)
+      {
+        auto& spectra = exp.getSpectra();
+        spectra.erase(
+          remove_if(spectra.begin(), spectra.end(), [](const MSSpectrum & s){ return s.empty();} )
+          ,spectra.end());
+        auto& chroms = exp.getChromatograms();
+        chroms.erase(
+          remove_if(chroms.begin(), chroms.end(), [](const MSChromatogram & c){ return c.empty();} )
+          ,chroms.end());
+      }
+
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -818,7 +832,7 @@ protected:
         exp.sortSpectra(true);
         if (getFlag_("peak_options:sort_peaks"))
         {
-          LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
+          OPENMS_LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
         }
       }
       else if (getFlag_("peak_options:sort_peaks"))
@@ -850,7 +864,7 @@ protected:
       String id_blacklist = getStringOption_("id:blacklist");
       if (!id_blacklist.empty())
       {
-        LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
         bool blacklist_imperfect = getFlag_("id:blacklist_imperfect");
 
         int ret = filterByBlackList(exp, id_blacklist, blacklist_imperfect, getDoubleOption_("id:rt"), getDoubleOption_("id:mz"));
@@ -861,7 +875,7 @@ protected:
       String consensus_blackorwhitelist = getStringOption_("consensus:blackorwhitelist:file");
       if (!consensus_blackorwhitelist.empty())
       {
-        LOG_INFO << "Filtering MS2 spectra from raw file using consensus features ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering MS2 spectra from raw file using consensus features ..." << std::endl;
         IntList il = getIntList_("consensus:blackorwhitelist:maps");
         set<UInt64> maps(il.begin(), il.end());
         double rt_tol = getDoubleOption_("consensus:blackorwhitelist:rt");
@@ -883,7 +897,7 @@ protected:
       String lib_file_name = getStringOption_("spectra:blackorwhitelist:file");
       if (!lib_file_name.empty())
       {
-        LOG_INFO << "Filtering MS2 spectra based on precursor rt, mz, and spectral similarity ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering MS2 spectra based on precursor rt, mz, and spectral similarity ..." << std::endl;
         double tol_rt = getDoubleOption_("spectra:blackorwhitelist:rt");
         double tol_mz = getDoubleOption_("spectra:blackorwhitelist:mz");
         double tol_sim = getDoubleOption_("spectra:blackorwhitelist:similarity_threshold");
@@ -1165,7 +1179,7 @@ protected:
     {
       if (!(peptide_ids[i].hasRT() && peptide_ids[i].hasMZ()))
       {
-        LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
+        OPENMS_LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
         return INCOMPATIBLE_INPUT_DATA;
       }
       Peak2D p;
@@ -1205,18 +1219,18 @@ protected:
       }
     }
 
-    LOG_INFO << "Removing " << blacklist_idx.size() << " MS2 spectra." << endl;
+    OPENMS_LOG_INFO << "Removing " << blacklist_idx.size() << " MS2 spectra." << endl;
     if (ids_covered.size() != ids.size())
     {
       if (!blacklist_imperfect)
       {
-        LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+        OPENMS_LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
                   << "If you are sure unmatched ids are ok, set the 'id:blacklist_imperfect' flag!" << std::endl;
         return UNEXPECTED_RESULT;
       }
       else
       {
-        LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+        OPENMS_LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
                  << "Remove the 'id:blacklist_imperfect' flag of you want this to be an error!" << std::endl;
       }
     }
@@ -1227,7 +1241,7 @@ protected:
 
     for (Size i = 0; i != exp.size(); ++i)
     {
-      if (find(blacklist_idx.begin(), blacklist_idx.end(), i) ==
+      if (blacklist_idx.find(i) ==
           blacklist_idx.end())
       {
         exp2.addSpectrum(exp[i]);
@@ -1298,14 +1312,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
+        if (list_idx.find(i) == list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non MS2 spectra, and MS2 only if in list
       {
-        if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
@@ -1374,14 +1388,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
+        if (list_idx.find(i) == list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non-MS2 spectra + matched MS2 spectra
       {
-        if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
