@@ -117,7 +117,7 @@ namespace OpenMS
       @pre in must have <spectrum> or <chromatogram> as root element.
 
     */
-    void domParseString_(const std::string& in, std::vector<BinaryData>& data);
+    std::string domParseString_(const std::string& in, std::vector<BinaryData>& data);
 
   public:
 
