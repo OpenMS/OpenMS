@@ -101,7 +101,8 @@ namespace OpenMS
         IdentificationData::ParentMolecule parent(hit.getAccession());
         parent.sequence = hit.getSequence();
         parent.description = hit.getDescription();
-        parent.coverage = hit.getCoverage() / 100.0; // we don't want percents
+        // coverage comes in percents, -1 for missing; we want 0 to 1:
+        parent.coverage = max(hit.getCoverage(), 0.0) / 100.0;
         static_cast<MetaInfoInterface&>(parent) = hit;
         IdentificationData::AppliedProcessingStep applied(step_ref);
         applied.scores[prot_score_ref] = hit.getScore();
@@ -451,7 +452,14 @@ namespace OpenMS
       hit.setAccession(parent.accession);
       hit.setSequence(parent.sequence);
       hit.setDescription(parent.description);
-      hit.setCoverage(parent.coverage * 100.0); // convert to percents
+      if (parent.coverage > 0.0)
+      {
+        hit.setCoverage(parent.coverage * 100.0); // convert to percents
+      }
+      else // zero coverage means coverage is unknown
+      {
+        hit.setCoverage(ProteinHit::COVERAGE_UNKNOWN);
+      }
       static_cast<MetaInfoInterface&>(hit) = parent;
       if (!parent.metaValueExists("target_decoy"))
       {
