@@ -169,22 +169,22 @@ private:
 
   // function declarations
   template <typename MapType>
-  void loadInputMaps_(vector<MapType>& maps, StringList& ins, vector<StringList>& ms_run_paths, ConsensusMap& out_map);
+  static void loadInputMaps_(vector<MapType>& maps, StringList& ins, vector<StringList>& ms_run_paths, ConsensusMap& out_map);
   static void setUniqueIds_(vector<FeatureMap>& feature_maps);
   static void getPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts, vector<double>& rts_tmp);
   static void extract_seq_and_rt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, vector<double>& maps_ranges);
   static void buildTree_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, std::vector<BinaryTreeNode>& tree, vector<double>& maps_ranges);
-  void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> &feature_maps,
-          vector<TransformationDescription> &transformations, vector<double> &maps_ranges, ConsensusMap &out_map, bool use_trafo_file, vector<SeqAndRTList>& maps_seqAndRT);
-  void computeTransformationsByID_(vector<FeatureMap>& feature_maps, FeatureMap& last_map, vector<TransformationDescription>& transformations,
-          vector<Size> trafo_order, const Param& model_params, const String& model_type);
-  static void computeTransformationsByTrafo_(vector<SeqAndRTList> &maps_seqAndRT,
-                                      TransformationDescription &last_trafo,
-                                      vector<TransformationDescription> &transformations,
-                                      const Param &model_params, const String &model_type);
-  void computeConsensus_(vector<FeatureMap> feature_maps, const vector<TransformationDescription>& transformations, ConsensusMap& out_map);
-  void storeConsensusFile_(ConsensusMap& out_map, String& out_file);
-  void storeTransformationDescriptions_(const vector<TransformationDescription>& transformations, StringList& trafos);
+  void treeGuidedAlignment_(const std::vector<BinaryTreeNode>& tree, vector<FeatureMap>& feature_maps,
+          vector<TransformationDescription>& transformations, vector<double>& maps_ranges, ConsensusMap& out_map, String transformation_type, vector<SeqAndRTList>& maps_seqAndRT);
+  static void computeTransformationsByID_(vector<FeatureMap>& feature_maps, FeatureMap& last_map, vector<TransformationDescription>& transformations,
+          const vector<Size>& trafo_order, const Param& model_params, const String& model_type);
+  static void computeTransformationsByTrafo_(vector<SeqAndRTList>& maps_seqAndRT,
+                                      TransformationDescription& last_trafo,
+                                      vector<TransformationDescription>& transformations,
+                                      const Param& model_params, const String& model_type);
+  void computeConsensus_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations, ConsensusMap& out_map);
+  static void storeConsensusFile_(ConsensusMap& out_map, String& out_file);
+  static void storeTransformationDescriptions_(const vector<TransformationDescription>& transformations, StringList& trafos);
 
 
   void registerOptionsAndFlags_() override
@@ -197,7 +197,7 @@ private:
     registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. This option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerStringOption_("transformation_type", "string", "true", "Option to decide transformation path during alignment.", false);
-    setValidStrings_("transformation_type",ListUtils::create<String>("false,true"));
+    setValidStrings_("transformation_type",ListUtils::create<String>("trafo,features,peptides"));
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
@@ -229,11 +229,7 @@ private:
     StringList in_files = getStringList_("in");
     String out_file = getStringOption_("out");
     StringList out_trafos = getStringList_("trafo_out");
-    String use_trafo_file = getStringOption_("transformation_type");
-    bool use_file;
-    if (use_trafo_file.size()==0 || use_trafo_file == "true") use_file = true;
-    else use_file = false;
-
+    String transformation_type = getStringOption_("transformation_type");
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -266,7 +262,7 @@ private:
     vector<TransformationDescription> transformations(in_files_size);
 
     // TODO : refacture: compute transformations and consensus within treeGuidedAlignment
-    treeGuidedAlignment_(tree, feature_maps, transformations, maps_ranges, out_map, use_file, maps_seqAndRt);
+    treeGuidedAlignment_(tree, feature_maps, transformations, maps_ranges, out_map, transformation_type, maps_seqAndRt);
 
     //-------------------------------------------------------------
     // writing output
@@ -420,7 +416,8 @@ void TOPPMapAlignerTree::buildTree_(const vector<FeatureMap>& feature_maps, vect
 
 void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> &feature_maps,
                                               vector<TransformationDescription> &transformations,
-                                              vector<double> &maps_ranges, ConsensusMap &out_map, bool use_trafo_file, vector<SeqAndRTList>& maps_seqAndRT)
+                                              vector<double> &maps_ranges, ConsensusMap &out_map, String transformation_type,
+                                              vector<SeqAndRTList>& maps_seqAndRT)
         {
   vector<TransformationDescription> trafo_tmp; // use to align
   TransformationDescription trafo_for_output;
@@ -517,11 +514,11 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
   }
 
   // compute transformations
-  if (use_trafo_file)
+  if (transformation_type.size()==0 || transformation_type == "trafo")
   {
     computeTransformationsByTrafo_(maps_seqAndRT, trafo_for_output, transformations, model_params, model_type);
   }
-  else{
+  else if (transformation_type == "peptides"){
     computeTransformationsByID_(feature_maps, maps_transformed[last_trafo], transformations, map_sets[last_trafo], model_params, model_type);
   }
 
@@ -616,10 +613,10 @@ void TOPPMapAlignerTree::computeTransformationsByTrafo_(vector<SeqAndRTList> &ma
 }
 
 void TOPPMapAlignerTree::computeTransformationsByID_(vector<FeatureMap>& feature_maps, FeatureMap& last_map,
-        vector<TransformationDescription>& transformations, vector<Size> trafo_order, const Param& model_params,
+        vector<TransformationDescription>& transformations, const vector<Size>& trafo_order, const Param& model_params,
         const String& model_type) {
   ProgressLogger progresslogger;
-  progresslogger.setLogType(log_type_);
+  progresslogger.setLogType(CMD);
   progresslogger.startProgress(0, 1, "computing trafoXML files by id");
   auto last_map_it = last_map.begin();
   for (auto & map_idx : trafo_order)
@@ -658,10 +655,10 @@ void TOPPMapAlignerTree::computeTransformationsByID_(vector<FeatureMap>& feature
   progresslogger.endProgress();
 }
 
-void TOPPMapAlignerTree::computeConsensus_(vector<FeatureMap> feature_maps, const vector<TransformationDescription>& transformations, ConsensusMap& out_map) {
+void TOPPMapAlignerTree::computeConsensus_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations, ConsensusMap& out_map) {
 
   ProgressLogger progresslogger;
-  progresslogger.setLogType(log_type_);
+  progresslogger.setLogType(CMD);
   progresslogger.startProgress(0, 1, "compute consensus map");
   auto trafo = transformations.begin();
   for (auto& map : feature_maps)
@@ -694,7 +691,7 @@ void TOPPMapAlignerTree::storeConsensusFile_(ConsensusMap& out_map, String& out_
   ConsensusXMLFile cxml_file;
 
   ProgressLogger progresslogger;
-  progresslogger.setLogType(log_type_);
+  progresslogger.setLogType(CMD);
   progresslogger.startProgress(0, 1, "writing output file");
   // annotate output with data processing info:
   //addDataProcessing_(maps[trafo_order.back()],
@@ -725,7 +722,7 @@ void TOPPMapAlignerTree::storeTransformationDescriptions_(const vector<Transform
                                                           StringList& trafos) {
     // custom progress logger for this task:
     ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
+    progresslogger.setLogType(CMD);
     progresslogger.startProgress(0, trafos.size(),
                                  "writing transformation files");
     for (Size i = 0; i < trafos.size(); ++i)
