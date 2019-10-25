@@ -92,8 +92,11 @@
 #include <boost/math/distributions/beta.hpp>
 
 
+#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
+
 #include <map>
 #include <algorithm>
+#include <iterator>
 
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
@@ -451,7 +454,7 @@ protected:
 
     StringList all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
-    registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin/P", "The enzyme used for peptide digestion.", false);
     setValidStrings_("peptide:enzyme", all_enzymes);
 
     registerTOPPSubsection_("report", "Reporting Options");
@@ -1530,7 +1533,6 @@ static void scoreXLIons_(
     double rp = 0; // normalized intensity rank product
     double wTop50 = 0;
   };
-
 
   class SmallestElements
   {
@@ -4622,12 +4624,11 @@ static void scoreXLIons_(
           for (auto & ph : pi.getHits())
           {
              const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-             double score = ph.getScore();
              if (!is_XL) 
              { 
                for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
                {
-                 ph.setMetaValue(mn,  medians[mn]);   // impute missing with medians
+                 ph.setMetaValue(mn, medians[mn]);   // impute missing with medians
                }
              }
           }
@@ -4635,6 +4636,155 @@ static void scoreXLIons_(
         }
       }
 
+      ///////////////////////////////////////// SVM score recalibration
+      // find size of minority class
+      size_t minority_class(0);
+      map<double, size_t> pep_t;
+      map<double, size_t> pep_d;
+      map<double, size_t> XL_t;
+      map<double, size_t> XL_d;
+
+      for (size_t index = 0; index != peptide_ids.size(); ++index)
+      {
+         if (peptide_ids[index].getHits().empty()) continue;
+         const PeptideHit& ph = peptide_ids[index].getHits()[0];
+         bool is_target = ph.getMetaValue("target_decoy") == "target";
+         bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+         if (is_target)
+         {
+           if (is_XL) 
+           {
+             XL_t[ph.getScore()] = index; 
+           }
+           else 
+           {
+             pep_t[ph.getScore()] = index; 
+           }
+         }
+         else
+         {
+           if (is_XL) 
+           {
+             XL_d[ph.getScore()] = index; 
+           }
+           else 
+           {
+             pep_d[ph.getScore()] = index; 
+           }
+         }
+      }
+      minority_class = std::min({pep_t.size(), pep_d.size(), XL_t.size(), XL_d.size()});
+      cout << "Peptide (target/decoy)\t XL (target/decoy):" << endl;
+      cout << pep_t.size() << "\t" << pep_d.size() << "\t" << XL_t.size() << "\t" << XL_d.size() << endl; 
+
+      // keep only top elements
+      auto right =  std::next(pep_t.begin(), (long unsigned int)(pep_t.size() - minority_class));
+      pep_t.erase(pep_t.begin(), right);
+      pep_d.erase(pep_d.begin(), std::next(pep_d.begin(), pep_d.size() - minority_class));
+      XL_t.erase(XL_t.begin(), next(XL_t.begin(), XL_t.size() - minority_class));
+      XL_d.erase(XL_d.begin(), next(XL_d.begin(), XL_d.size() - minority_class));
+
+      set<size_t> training_indices;
+      for (auto & l : {pep_t, pep_d, XL_t, XL_d})
+      {
+        for (auto & i : l) training_indices.insert(i.second);
+      }
+
+      if (minority_class > 100)
+      {
+        SimpleSVM::PredictorMap predictors;
+        map<Size, Int> labels;
+                
+        StringList feature_set;
+        feature_set
+          << "NuXL:mass_error_p"
+          << "NuXL:err"
+          << "NuXL:total_loss_score"
+          << "NuXL:modds"
+          << "NuXL:immonium_score"
+          << "NuXL:precursor_score"
+          << "NuXL:MIC"
+          << "NuXL:Morph"
+          << "NuXL:total_MIC"
+          << "NuXL:ladder_score"
+          << "NuXL:sequence_score"
+          << "NuXL:total_Morph"
+          << "NuXL:total_HS"
+          << "NuXL:tag_XLed"
+          << "NuXL:tag_unshifted"
+          << "NuXL:tag_shifted"
+          << "NuXL:aminoacid_max_tag"
+          << "NuXL:aminoacid_id_to_max_tag_ratio"
+          << "nr_candidates"
+          << "NuXL:rank_product"
+          << "NuXL:wTop50"
+          << "NuXL:marker_ions_score"
+          << "NuXL:partial_loss_score"
+          << "NuXL:pl_MIC"
+          << "NuXL:pl_err"
+          << "NuXL:pl_Morph"
+          << "NuXL:pl_modds"
+          << "NuXL:pl_pc_MIC"
+          << "NuXL:pl_im_MIC"
+          << "NuXL:isPhospho" 
+          << "NuXL:isXL" 
+          << "NuXL:score"
+          << "isotope_error"
+          << "variable_modifications"
+          << "precursor_intensity_log10"
+          << "NuXL:NA_MASS_z0"
+          << "NuXL:NA_length"   
+          << "nucleotide_mass_tags";
+
+        // copy all scores in predictors ("score" + all from feature_set). 
+        // Only add labels for balanced training set
+        for (size_t index = 0; index != peptide_ids.size(); ++index)
+        {
+           const vector<PeptideHit>& phits = peptide_ids[index].getHits();
+           for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank)
+           {
+             const PeptideHit& ph = phits[psm_rank];
+             bool is_target = ph.getMetaValue("target_decoy") == "target";
+             double score = ph.getScore();
+             predictors["score"].push_back(score);
+             predictors["length"].push_back(ph.getSequence().size());
+             for (auto & f : feature_set)
+             {
+               double value = ph.getMetaValue(f);
+               predictors[f].push_back(value);
+             }
+             // only add label for training data (rank = 0 and previously selected for training)
+             if (psm_rank == 0 && training_indices.count(index) > 0)
+             {
+               labels[predictors["score"].size() - 1] = is_target; 
+             }
+           }
+        }
+  
+        SimpleSVM svm;
+        Param svm_param = svm.getParameters();        
+        svm_param.setValue("log2_C", ListUtils::create<double>("11.0"));
+        svm_param.setValue("log2_gamma", ListUtils::create<double>("-5.0"));
+        svm.setParameters(svm_param);
+        svm.setup(predictors, labels);
+        vector<SimpleSVM::Prediction> predictions;
+        svm.predict(predictions);
+
+        size_t psm_index(0);
+        for (size_t index = 0; index != peptide_ids.size(); ++index)
+        {
+           vector<PeptideHit>& phits = peptide_ids[index].getHits();
+           for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank, ++psm_index)
+           {
+             PeptideHit& ph = phits[psm_rank];
+             ph.setScore(predictions[psm_index].probabilities[1]); // set probability of being a target as score
+           }
+          peptide_ids[index].assignRanks();    
+        }
+#ifdef DEBUG_OpenNuXL
+      IdXMLFile().store(out_idxml + "_svm.idXML", protein_ids, peptide_ids);
+#endif
+      }
       fdr.apply(peptide_ids); 
   
       // write ProteinIdentifications and PeptideIdentifications to IdXML
