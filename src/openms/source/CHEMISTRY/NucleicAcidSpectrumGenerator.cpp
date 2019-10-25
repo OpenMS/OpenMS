@@ -403,7 +403,7 @@ namespace OpenMS
     {
       bool add_precursor =
         ((add_precursor_peaks_ && add_all_precursor_charges_) ||
-         (add_precursor_peaks_ && (z == abs(max_charge))));
+         (add_precursor_peaks_ && (z == (uint)abs(max_charge))));
       addChargedSpectrum_(spectrum, uncharged_spectrum, z * sign,
                           add_precursor);
     }
