@@ -228,9 +228,16 @@ public:
     /**
       @brief returns a single chromatogram
 
-      @param id The index of the chromatogram
+      @param id The native identifier of the chromatogram
     */
     MSChromatogram getChromatogramByNativeId(const std::string& id);
+
+    /**
+      @brief returns a single spectrum
+
+      @param id The native identifier of the spectrum
+    */
+    MSSpectrum getSpectrumByNativeId(const std::string& id);
 
     /**
       @brief returns a single chromatogram
@@ -255,6 +262,8 @@ private:
 
     MSChromatogram getMetaChromatogramById_(const std::string& id);
 
+    MSSpectrum getMetaSpectrumById_(const std::string& id);
+
 protected:
 
     /// The filename of the underlying data file
@@ -265,6 +274,8 @@ protected:
     boost::shared_ptr<PeakMap> meta_ms_experiment_;
     /// Mapping of chromatogram native ids to offsets
     std::unordered_map< std::string, Size > chromatograms_native_ids_;
+    /// Mapping of spectra native ids to offsets
+    std::unordered_map< std::string, Size > spectra_native_ids_;
   };
 
 typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
