@@ -25,7 +25,9 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>" namespace "Open
         shared_ptr[Chromatogram] getChromatogramById(int id_) nogil except +
 
         MSSpectrum getMSSpectrumById(int id_) nogil except +
+        void getMSSpectrumByNativeId(libcpp_string id_, MSSpectrum& spec) nogil except +
         MSChromatogram getMSChromatogramById(int id_) nogil except +
+        void getMSChromatogramByNativeId(libcpp_string id_, MSChromatogram& chrom) nogil except +
 
         void setSkipXMLChecks(bool skip) nogil except +
 
