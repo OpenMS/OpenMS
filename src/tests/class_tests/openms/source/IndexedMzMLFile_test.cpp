@@ -36,8 +36,9 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
+///////////////////////////
+
 #include <OpenMS/FORMAT/FileTypes.h>
 
 // for comparison
@@ -198,7 +199,7 @@ START_SECTION(( OpenMS::MSSpectrum getMSSpectrumById(int id)  ))
 }
 END_SECTION
 
-START_SECTION(( OpenMS::MSSpectrum getMSSpectrumByNativeId(std::string id)  ))
+START_SECTION(( void getMSSpectrumByNativeId(std::string id, OpenMS::MSSpectrum& s) ))
 {
   IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
@@ -207,18 +208,19 @@ START_SECTION(( OpenMS::MSSpectrum getMSSpectrumByNativeId(std::string id)  ))
 
   TEST_EQUAL(file.getNrSpectra(), exp.getSpectra().size())
 
-  OpenMS::MSSpectrum spec = file.getMSSpectrumByNativeId("controllerType=0 controllerNumber=1 scan=1");
+  OpenMS::MSSpectrum spec;
+  file.getMSSpectrumByNativeId("controllerType=0 controllerNumber=1 scan=1", spec);
   TEST_EQUAL(spec.size(), exp.getSpectra()[0].size() )
   TEST_EQUAL(spec.getNativeID(), exp.getSpectra()[0].getNativeID() )
 
   // Test Exceptions
-  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSSpectrumByNativeId("TEST"));
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSSpectrumByNativeId("TEST", spec));
 
   {
     IndexedMzMLHandler file;
     TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
     TEST_EQUAL(file.getParsingSuccess(), false)
-    TEST_EXCEPTION(Exception::IllegalArgument, file.getMSSpectrumByNativeId( "TEST" ));
+    TEST_EXCEPTION(Exception::IllegalArgument, file.getMSSpectrumByNativeId( "TEST", spec ));
   }
 }
 END_SECTION
@@ -253,7 +255,7 @@ START_SECTION(( OpenMS::MSChromatogram getMSChromatogramById(int id) ))
 }
 END_SECTION
 
-START_SECTION(( OpenMS::MSChromatogram getMSChromatogramByNativeId(std::string id) ))
+START_SECTION(( void getMSChromatogramByNativeId(std::string id, OpenMS::MSChromatogram& c) ))
 {
   IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
@@ -262,17 +264,18 @@ START_SECTION(( OpenMS::MSChromatogram getMSChromatogramByNativeId(std::string i
 
   TEST_EQUAL(file.getNrChromatograms(), exp.getChromatograms().size())
 
-  OpenMS::MSChromatogram chrom = file.getMSChromatogramByNativeId("TIC");
+  OpenMS::MSChromatogram chrom;
+  file.getMSChromatogramByNativeId("TIC", chrom);
   TEST_EQUAL(chrom.size(), exp.getChromatograms()[0].size() )
   TEST_EQUAL(chrom.getNativeID(), exp.getChromatograms()[0].getNativeID() )
 
-  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSChromatogramByNativeId("TEST"));
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSChromatogramByNativeId("TEST", chrom));
 
   {
     IndexedMzMLHandler file;
     TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
     TEST_EQUAL(file.getParsingSuccess(), false)
-    TEST_EXCEPTION(Exception::IllegalArgument, file.getMSChromatogramByNativeId( "TEST" ));
+    TEST_EXCEPTION(Exception::IllegalArgument, file.getMSChromatogramByNativeId( "TEST", chrom ));
   }
 }
 END_SECTION

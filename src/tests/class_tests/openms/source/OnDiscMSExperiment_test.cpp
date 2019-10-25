@@ -232,6 +232,8 @@ START_SECTION((MSSpectrum getSpectrum(Size id)))
   TEST_EQUAL(s2.empty(), false);
   TEST_EQUAL(s2.size(), 19914);
   MSSpectrum s3 = tmp2.getSpectrum(1);
+  TEST_EQUAL(s3.empty(), false);
+  TEST_EQUAL(s3.size(), 19800);
 }
 END_SECTION
 
@@ -308,6 +310,27 @@ START_SECTION(MSChromatogram getChromatogramByNativeId(const std::string& id))
   TEST_EQUAL(s.empty(), false);
   TEST_EQUAL(s.size(), 48);
   TEST_EXCEPTION(Exception::IllegalArgument, tmp2.getChromatogramByNativeId("TIK"))
+}
+END_SECTION
+
+START_SECTION(MSMSSpectrum getSpectrumByNativeId(const std::string& id))
+{
+  OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  TEST_EQUAL(tmp.empty(), false);
+  OpenMS::MSSpectrum s = tmp.getSpectrumByNativeId("controllerType=0 controllerNumber=1 scan=1");
+  TEST_EQUAL(s.empty(), false);
+  TEST_EQUAL(s.size(), 19914);
+  s = tmp.getSpectrumByNativeId("controllerType=0 controllerNumber=1 scan=2");
+  TEST_EQUAL(s.empty(), false);
+  TEST_EQUAL(s.size(), 19800);
+  TEST_EXCEPTION(Exception::IllegalArgument, tmp.getSpectrumByNativeId("TIK"))
+
+  OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
+  TEST_EQUAL(tmp2.empty(), false);
+  s = tmp2.getSpectrumByNativeId("controllerType=0 controllerNumber=1 scan=1");
+  TEST_EQUAL(s.empty(), false);
+  TEST_EQUAL(s.size(), 19914);
+  TEST_EXCEPTION(Exception::IllegalArgument, tmp2.getSpectrumByNativeId("TIK"))
 }
 END_SECTION
 
