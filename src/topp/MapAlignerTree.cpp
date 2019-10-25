@@ -175,14 +175,16 @@ private:
   static void extract_seq_and_rt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, vector<double>& maps_ranges);
   static void buildTree_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, std::vector<BinaryTreeNode>& tree, vector<double>& maps_ranges);
   void treeGuidedAlignment_(const std::vector<BinaryTreeNode>& tree, vector<FeatureMap>& feature_maps,
-          vector<TransformationDescription>& transformations, vector<double>& maps_ranges, ConsensusMap& out_map, String transformation_type, vector<SeqAndRTList>& maps_seqAndRT);
+          vector<TransformationDescription>& transformations, vector<double>& maps_ranges, ConsensusMap& out_map,
+          const String& transformation_type, const String& use_fl_rt, vector<SeqAndRTList>& maps_seqAndRT);
   static void computeTransformationsByID_(const String& transformation_type, vector<FeatureMap>& feature_maps, FeatureMap& last_map, vector<TransformationDescription>& transformations,
           const vector<Size>& trafo_order, const Param& model_params, const String& model_type);
   static void computeTransformationsByTrafo_(vector<SeqAndRTList>& maps_seqAndRT,
-                                      TransformationDescription& last_trafo,
+                                      vector<TransformationDescription>& last_trafo,
+                                      const vector<vector<Size>>& trafo_order,
                                       vector<TransformationDescription>& transformations,
                                       const Param& model_params, const String& model_type);
-  void computeConsensus_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations, ConsensusMap& out_map);
+  void computeConsensus_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations, ConsensusMap& out_map, const String& use_fl_rt);
   static void storeConsensusFile_(ConsensusMap& out_map, String& out_file);
   static void storeTransformationDescriptions_(const vector<TransformationDescription>& transformations, StringList& trafos);
 
@@ -198,6 +200,8 @@ private:
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerStringOption_("transformation_type", "string", "trafo", "Option to decide transformation path during alignment.", false);
     setValidStrings_("transformation_type",ListUtils::create<String>("trafo,features,peptides"));
+    registerStringOption_("fl_rt_transform", "string", "true", "With true the FeatureLinkerUnlabeldKD transforms retention times of input files.", false);
+    setValidStrings_("fl_rt_transform", ListUtils::create<String>("true,false"));
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
@@ -230,6 +234,8 @@ private:
     String out_file = getStringOption_("out");
     StringList out_trafos = getStringList_("trafo_out");
     String transformation_type = getStringOption_("transformation_type");
+    String use_fl_rt = getStringOption_("fl_rt_transform");
+
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -262,7 +268,7 @@ private:
     vector<TransformationDescription> transformations(in_files_size);
 
     // TODO : refacture: compute transformations and consensus within treeGuidedAlignment
-    treeGuidedAlignment_(tree, feature_maps, transformations, maps_ranges, out_map, transformation_type, maps_seqAndRt);
+    treeGuidedAlignment_(tree, feature_maps, transformations, maps_ranges, out_map, transformation_type, use_fl_rt, maps_seqAndRt);
 
     //-------------------------------------------------------------
     // writing output
@@ -416,11 +422,12 @@ void TOPPMapAlignerTree::buildTree_(const vector<FeatureMap>& feature_maps, vect
 
 void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> &feature_maps,
                                               vector<TransformationDescription> &transformations,
-                                              vector<double> &maps_ranges, ConsensusMap &out_map, String transformation_type,
-                                              vector<SeqAndRTList>& maps_seqAndRT)
+                                              vector<double> &maps_ranges, ConsensusMap &out_map, const String& transformation_type,
+                                              const String& use_fl_rt, vector<SeqAndRTList>& maps_seqAndRT)
         {
   vector<TransformationDescription> trafo_tmp; // use to align
-  TransformationDescription trafo_for_output;
+  vector<TransformationDescription> trafo_for_output;
+  vector<vector<Size>> trafo_order_for_output(2);
   vector<FeatureMap> maps_transformed;
   maps_transformed = feature_maps;  // copy needed for iterations without loosing original data
   Size last_trafo = 0;  // look up transformation order in map_sets
@@ -486,9 +493,9 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
 
     // needed for following iteration steps
     MapAlignmentTransformer::transformRetentionTimes(maps_transformed[to_transform],
-                                                     transformations_align[0], false);
+                                                     transformations_align[0], true);
     MapAlignmentTransformer::transformRetentionTimes(maps_transformed[ref],
-                                                     transformations_align[1], false);
+                                                     transformations_align[1], true);
 
     // combine aligned maps, store in both, because tree always calls smaller number
     // also possible: feature_maps_transformed[smallerNumber] = ..[ref]+..[to_transform]
@@ -496,7 +503,9 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
     maps_transformed[ref] += maps_transformed[to_transform];
     maps_transformed[ref].updateRanges();
     maps_transformed[to_transform] = maps_transformed[ref];
-    trafo_for_output = transformations_align[0];
+    trafo_for_output = transformations_align;
+    trafo_order_for_output[0] = map_sets[ref];
+    trafo_order_for_output[1] = map_sets[to_transform];
 
     // update transformation order for each map
     vector<Size> tmp;
@@ -518,31 +527,43 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
   // compute transformations
   if (transformation_type.empty() || transformation_type == "trafo")
   {
-    computeTransformationsByTrafo_(maps_seqAndRT, trafo_for_output, transformations, model_params, model_type);
+    computeTransformationsByTrafo_(maps_seqAndRT, trafo_for_output, trafo_order_for_output, transformations, model_params, model_type);
   }
   else {
     computeTransformationsByID_(transformation_type, feature_maps, maps_transformed[last_trafo], transformations, map_sets[last_trafo], model_params, model_type);
   }
 
 
-  computeConsensus_(feature_maps, transformations, out_map);
+  computeConsensus_(feature_maps, transformations, out_map, use_fl_rt);
 }
 
 void TOPPMapAlignerTree::computeTransformationsByTrafo_(vector<SeqAndRTList> &maps_seqAndRt,
-                                                 TransformationDescription &last_trafo,
+                                                 vector<TransformationDescription> &last_trafo,
+                                                 const vector<vector<Size>>& trafo_order,
                                                  vector<TransformationDescription> &transformations,
                                                  const Param &model_params, const String &model_type) {
   ProgressLogger progresslogger;
   progresslogger.setLogType(CMD);
   progresslogger.startProgress(0, maps_seqAndRt.size(), "computing trafoXML files from trafo");
   // need to know which map was reference and which was transformed in last iteration
-  Size map_id = 0;
 
+  vector<Size> trafo(maps_seqAndRt.size());
+  Size counter = 0;
+  for (const auto & trafos : trafo_order)
+  {
+    for (const auto & id : trafos)
+    {
+      trafo[id] = counter;
+    }
+    ++counter;
+  }
+
+  Size map_id = 0;
   for (auto & map : maps_seqAndRt) {
     TransformationDescription::DataPoints trafo_data_tmp;
-    auto trafoit = last_trafo.getDataPoints().begin();
+    auto trafoit = last_trafo[trafo[map_id]].getDataPoints().begin();
     auto mapit = map.begin();
-    while (trafoit != last_trafo.getDataPoints().end() && mapit != map.end()) {
+    while (trafoit != last_trafo[trafo[map_id]].getDataPoints().end() && mapit != map.end()) {
       if (trafoit->note < mapit->first) {
         ++trafoit;
       } else if (trafoit->note > mapit->first) {
@@ -666,7 +687,7 @@ void TOPPMapAlignerTree::computeTransformationsByID_(const String& transformatio
   progresslogger.endProgress();
 }
 
-void TOPPMapAlignerTree::computeConsensus_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations, ConsensusMap& out_map) {
+void TOPPMapAlignerTree::computeConsensus_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations, ConsensusMap& out_map, const String& use_fl_rt) {
 
   ProgressLogger progresslogger;
   progresslogger.setLogType(CMD);
@@ -681,7 +702,7 @@ void TOPPMapAlignerTree::computeConsensus_(vector<FeatureMap>& feature_maps, con
   }
   FeatureGroupingAlgorithmKD link_feature_maps;
   Param p = link_feature_maps.getDefaults();
-  p.setValue("warp:enabled", "true"); // no additional rt transformation by FeatureLinker
+  p.setValue("warp:enabled", use_fl_rt); // no additional rt transformation by FeatureLinker
   link_feature_maps.setParameters(p);
   link_feature_maps.group(feature_maps, out_map);
 
