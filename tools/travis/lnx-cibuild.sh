@@ -12,7 +12,7 @@ export SOURCE_DIRECTORY=`pwd`
 mkdir _build
 
 # assemble a proper build name
-_build_name="travis-ci-"$(cdashify ${TRAVIS_REPO_SLUG})"-"$(cdashify ${TRAVIS_BRANCH})
+_build_name="travis-ci-"$(cdashify ${TRAVIS_REPO_SLUG})"-"$(cdashify ${TRAVIS_BRANCH})"-"${BUILD_TYPE}
 
 # extend with specific information
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
@@ -25,6 +25,11 @@ fi
 
 # append compiler info
 _build_name=${_build_name}"-"${CXX}
+
+# add style to build name if requested
+if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
+  _build_name=${_build_name}"-codingStyle"
+fi
 
 # add style to build name if requested
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
