@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -86,8 +87,7 @@ using namespace std;
     </table>
 </CENTER>
 
-IDFileConverter can be used to convert identification results from external tools/pipelines (like TPP, Sequest, Mascot, OMSSA, X! Tandem)
-into other (OpenMS-specific) formats.
+IDFileConverter can be used to convert identification results from external tools/pipelines (like TPP, Sequest, Mascot, OMSSA, X! Tandem) into other (OpenMS-specific) formats.
 For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. OMSSAAdapter) to avoid the extra conversion step.
 
 The most simple format accepted is '.tsv': A tab separated text file, which contains one or more peptide sequences per line.
@@ -212,11 +212,11 @@ protected:
   {
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
-                       "- a single file in a multi-purpose XML format (.pepXML, .protXML, .idXML, .mzid),\n"
+                       "- a single file in a multi-purpose XML format (.idXML, .mzid, .pepXML, .protXML),\n"
                        "- a single file in a search engine-specific format (Mascot: .mascotXML, OMSSA: .omssaXML, X! Tandem: .xml, Percolator: .psms, xQuest: .xquest.xml),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,mzid,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA,xquest.xml");
@@ -236,9 +236,9 @@ protected:
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
-    registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
-    registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
-    registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
+    registerFlag_("no_spectra_data_override", "[+mz_file only] Avoid overriding 'spectra_data' in protein identifications if 'mz_file' is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same 'mz_file' as used for identification.", true);
+    registerFlag_("no_spectra_references_override", "[+mz_file only] Avoid overriding 'spectrum_reference' in peptide identifications if 'mz_file' is given and a 'spectrum_reference' is already present.", true);
+    registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0, "[+mz_file only] Annotate the identifications with ion matches from spectra in 'mz_file' using the given tolerance (in Da). This will take quite some time.", false, true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -321,7 +321,6 @@ protected:
 
           for (Size j = 0; j < peptide_ids_seq.size(); ++j)
           {
-
             // We have to explicitly set the identifiers, because the normal set ones are composed of search engine name and date, which is the same for a bunch of sequest out-files.
             peptide_ids_seq[j].setIdentifier(*in_files_it + "_" + i);
 
@@ -402,9 +401,9 @@ protected:
         if (!mz_file.empty())
         {
           SpectrumMetaDataLookup::addMissingSpectrumReferences(
-            peptide_identifications, 
-            mz_file, 
-            false, 
+            peptide_identifications,
+            mz_file,
+            false,
             !getFlag_("no_spectra_data_override"),
             !getFlag_("no_spectra_references_override"),
             protein_identifications);
