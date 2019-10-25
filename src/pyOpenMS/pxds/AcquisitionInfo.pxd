@@ -1,8 +1,15 @@
 from Types cimport *
 from libcpp cimport bool
-from String cimport *
 from MetaInfoInterface cimport *
-from Acquisition cimport *
+from smart_ptr cimport shared_ptr
+from libcpp.vector cimport vector as libcpp_vector
+from libcpp.string cimport string as libcpp_string
+from SpectrumSettings cimport *
+from Acquisition  cimport *
+from Peak1D cimport *
+from String cimport *
+from RangeManager cimport *
+from DataArrays cimport *
 
 cdef extern from "<OpenMS/METADATA/AcquisitionInfo.h>" namespace "OpenMS":
 
@@ -19,8 +26,9 @@ cdef extern from "<OpenMS/METADATA/AcquisitionInfo.h>" namespace "OpenMS":
         String getMethodOfCombination() nogil except +
         void setMethodOfCombination(String method) nogil except +
 
-        Size size() nogil except + #wrap-doc:Number a Acquisition objects
+        Size size() nogil except +
+        #void reserve(size_t n) nogil except + 
         Acquisition operator[](int) nogil except + # wrap-upper-limit:size()
-        void push_back(Acquisition)  nogil except + #wrap-doc:Append a Acquisition object
-        void resize(size_t n) nogil except +
-
+        #void assign(libcpp_vector[Acquisition].iterator, libcpp_vector[Acquisition].iterator) nogil except + # wrap-ignore
+        libcpp_vector[Acquisition].iterator begin() nogil except +  # wrap-iter-begin:__iter__(Acquisition)
+        libcpp_vector[Acquisition].iterator end()   nogil except +  # wrap-iter-end:__iter__(Acquisition)
