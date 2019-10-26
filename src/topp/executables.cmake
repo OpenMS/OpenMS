@@ -50,6 +50,7 @@ MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
 MapAlignerTree
+MapAlignerTreeConsensus
 MapNormalizer
 MapRTTransformer
 MapStatistics
