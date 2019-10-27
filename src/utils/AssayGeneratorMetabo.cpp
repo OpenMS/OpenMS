@@ -125,6 +125,9 @@ public:
     TOPPBase("AssayGeneratorMetabo", "Assay library generation from DDA data (Metabolomics)", false)
     {}
 
+private:
+  SiriusAdapterAlgorithm algorithm;
+
 protected:
 
   void registerOptionsAndFlags_() override
@@ -180,7 +183,7 @@ protected:
     registerFlag_("deisotoping:annotate_charge", "Annotate the charge to the peaks", false);
 
     // sirius 
-    registerFullParam_(SiriusAdapterAlgorithm().getDefaults());
+    registerFullParam_(algorithm.getDefaults());
     registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);  
   }
 
@@ -234,13 +237,18 @@ protected:
 
     // param SiriusAdapterAlgorithm
     String executable = getStringOption_("executable");
+
     Param combined; 
-    SiriusAdapterAlgorithm sirius_algo;
-    Param preprocessing = getParam_().copy("preprocessing", false);
-    Param sirius = getParam_().copy("sirius", false);
-    combined.insert("", preprocessing);
-    combined.insert("", sirius);
-    sirius_algo.setParameters(combined);
+    // SiriusAdapterAlgorithm sirius_algo;
+    // Param preprocessing = getParam_().copy("preprocessing", false);
+    // Param sirius = getParam_().copy("sirius", false);
+    // combined.insert("", preprocessing);
+    // combined.insert("", sirius);
+    // sirius_algo.setParameters(combined);
+
+    writeDebug_("Parameters passed to SiriusAdapterAlgorithm", algorithm.getParameters(), 3);
+
+    algorithm.updateExistingParameter(getParam_());
     
     // SIRIUS workspace (currently needed for fragmentation trees)
     String sirius_workspace_directory = getStringOption_("out_workspace_directory");
@@ -347,11 +355,10 @@ protected:
       vector<FeatureMap> v_fp; // copy FeatureMap via push_back
       KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
       FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
-      SiriusAdapterAlgorithm::preprocessingSirius(id[file_counter],
+      algorithm.preprocessingSirius(id[file_counter],
                                                   spectra,
                                                   v_fp,
                                                   fp_map_kd,
-                                                  sirius_algo,
                                                   feature_mapping);
     
       // filter known_unkowns based on description (UNKNOWN) (AMS)
@@ -394,30 +401,25 @@ protected:
   
         // write msfile and store the compound information in CompoundInfo Object
         vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
-        bool feature_only = (sirius_algo.getFeatureOnly() == "true") ? true : false;
-        bool no_mt_info = (sirius_algo.getNoMasstraceInfoIsotopePattern() == "true") ? true : false;
-        int isotope_pattern_iterations = sirius_algo.getIsotopePatternIterations();
         SiriusMSFile::store(spectra,
                             tmp_ms_file,
                             feature_mapping,
-                            feature_only,
-                            isotope_pattern_iterations,
-                            no_mt_info,
+                            algorithm.isFeatureOnly(),
+                            algorithm.getIsotopePatternIterations(),
+                            algorithm.isNoMasstraceInfoIsotopePattern(),
                             v_cmpinfo);
 
-        SiriusAdapterAlgorithm::checkFeatureSpectraNumber(id[file_counter],
+        algorithm.logFeatureSpectraNumber(id[file_counter],
                                                           feature_mapping,
-                                                          spectra,
-                                                          sirius_algo);
+                                                          spectra);
   
         // calls SIRIUS and returns vector of paths to sirius folder structure
         std::vector<String> subdirs;
         String out_csifingerid;
-        subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(tmp_ms_file,
+        subdirs = algorithm.callSiriusQProcess(tmp_ms_file,
                                                              tmp_out_dir,
                                                              executable,
-                                                             out_csifingerid,
-                                                             sirius_algo);
+                                                             out_csifingerid);
   
         // sort vector path list
         std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);

@@ -29,11 +29,10 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka $
+// $Authors: Oliver Alka, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <QtCore/QProcess>
@@ -45,9 +44,9 @@
 
 namespace OpenMS
 {
-    using NightSkyName
+    using NightSkyName = String;
     using SiriusName = String;
-    using FingerIdName = String;
+    using FingeridName = String;
     using PassatuttoName = String;
     using OpenMSName = String;
     using DefaultValue = DataValue;
@@ -56,17 +55,17 @@ namespace OpenMS
     SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
       DefaultParamHandler("SiriusAdapterAlgorithm"),
       preprocessing(Preprocessing(this)),
-      nightsky_config(config(this)),
-      nightsky_sirius(sirius(this)),
-      nightsky_fingerid(fingerid(this)),
-      nightsky_passatutto(passatutto(this))
+      nightsky_config(Config(this)),
+      nightsky_sirius(Sirius(this)),
+      nightsky_fingerid(Fingerid(this)),
+      nightsky_passatutto(Passatutto(this))
     {
       // Defines the Parameters for preprocessing and NightSky subtools
       preprocessing.parameters();
       nightsky_config.parameters();
       nightsky_sirius.parameters();
       nightsky_fingerid.parameters();
-      nightsky_passatutto.paramters();
+      nightsky_passatutto.parameters();
 
       defaultsToParam_();
     }
@@ -74,130 +73,145 @@ namespace OpenMS
     void SiriusAdapterAlgorithm::Preprocessing::parameters()
     {
       parameter(
-              OpenMSName("filter_by_num_masstraces"),
-              DefaultValue(1),
-              Description("Number of mass traces each feature has to have to be included. "
-                          "To use this parameter, setting the feature_only flag is necessary"))
-              .withMinInt(1);
+                  OpenMSName("filter_by_num_masstraces"),
+                  DefaultValue(1),
+                  Description("Number of mass traces each feature has to have to be included. "
+                              "To use this parameter, setting the feature_only flag is necessary")
+                ).withMinInt(1);
 
       parameter(
-              OpenMSName("precursor_mz_tolerance"),
-              DefaultValue(0.005),
-              Description("Tolerance window for precursor selection (Feature selection in regard to the precursor)"));
+                  OpenMSName("precursor_mz_tolerance"),
+                  DefaultValue(0.005),
+                  Description("Tolerance window for precursor selection (Feature selection in regard to the precursor)")
+                );
 
       parameter(
-              OpenMSName("precursor_mz_tolerance_unit"),
-              DefaultValue("Da"),
-              Description("Unit of the precursor_mz_tolerance"))
-          .withValidStrings({"Da", "ppm"});
+                  OpenMSName("precursor_mz_tolerance_unit"),
+                  DefaultValue("Da"),
+                  Description("Unit of the precursor_mz_tolerance")
+               ).withValidStrings({"Da", "ppm"});
 
       parameter(
-              OpenMSName("precursor_rt_tolerance"),
-              DefaultValue(5),
-              Description("Tolerance window (left and right) for precursor selection [seconds]"));
+                  OpenMSName("precursor_rt_tolerance"),
+                  DefaultValue(5),
+                  Description("Tolerance window (left and right) for precursor selection [seconds]")
+               );
 
       // defaults_.setValue".", ListUtils::create<String>("advanced"));
       parameter(
-              OpenMSName("isotope_pattern_iterations"),
-              DefaultValue(3),
-              Description("Number of iterations that should be performed to extract the C13 isotope pattern. "
-                          "If no peak is found (C13 distance) the function will abort. "
-                          "Be careful with noisy data - since this can lead to wrong isotope patterns"));
+                  OpenMSName("isotope_pattern_iterations"),
+                  DefaultValue(3),
+                  Description("Number of iterations that should be performed to extract the C13 isotope pattern. "
+                              "If no peak is found (C13 distance) the function will abort. "
+                              "Be careful with noisy data - since this can lead to wrong isotope patterns")
+                );
 
-      flag(OpenMSName("feature_only"),
-           Description("Uses the feature information from in_featureinfo to reduce the search space to MS2 "
-                          "associated with a feature"));
+      flag(
+            OpenMSName("feature_only"),
+            Description("Uses the feature information from in_featureinfo to reduce the search space to MS2 "
+                        "associated with a feature")
+          );
 
-      flag(OpenMSName("no_masstrace_info_isotope_pattern"),
-           Description("Use this flag if the masstrace information from a feature should be discarded "
-                       "and the isotope_pattern_iterations should be used instead"));
+      flag(
+            OpenMSName("no_masstrace_info_isotope_pattern"),
+            Description("Use this flag if the masstrace information from a feature should be discarded "
+                       "and the isotope_pattern_iterations should be used instead")
+          );
     }
 
     void SiriusAdapterAlgorithm::Config::parameters()
     {
+      // TODO: Not sure if we need this parameter at all (?)
+      // -w, --workspace=<workspace>
+      // Specify sirius workspace location. This is the directory
+      // for storing Property files, logs, databases and caches.
+      // This is NOT for the project-space that stores the
+      // results! Default is $USER_HOME/.sirius
+      parameter(
+                 NightSkyName("workspace"),
+                 DefaultValue(),
+                 Description("Specify sirius workspace location. This is the directory\n"
+                             "for storing Property files, logs, databases and caches.\n"
+                             "This is NOT for the project-space that stores the\n"
+                             "results! Default is $USER_HOME/.sirius.")
+               );
 
-      //       -w, --workspace=<workspace>
-      //          Specify sirius workspace location. This is the directory
-      //      for storing Property files, logs, databases and caches.
-      //      This is NOT for the project-space that stores the
-      //      results! Default is $USER_HOME/.sirius
+      // TODO: The project space was previously called workspace in the other version
+      // -o, -p, --output, --project-space=<projectSpaceLocation>
+      // Specify project-space to read from and also write to if
+      // nothing else is specified. For compression use the File
+      // ending .zip or .sirius
+      parameter(
+                 NightSkyName("project-space"),
+                 DefaultValue(),
+                 Description("Specify project-space to read from and also write to if nothing else is specified.")
+               );
 
-      // TODO
+      // TODO: This is only needed to call the .ms file (but not the original input in SIRIUS)
+      // -i, --input=<input>
+      // Input for the analysis. Ths can be either preprocessed mass
+      // spectra in .ms or .mgf file format, LC/MS runs in .mzML/.
+      // mzXml format or already existing SIRIUS project-space(s)
+      // (uncompressed/compressed).
 
-      //      -o, -p, --output, --project-space=<projectSpaceLocation>
-      //          Specify project-space to read from and also write to if
-      //        nothing else is specified. For compression use the File
-      //      ending .zip or .sirius
+      // --maxmz=<maxMz>
+      // Just consider compounds with a precursor mz lower or equal
+      // this maximum mz. All other compounds in the input file
+      // are ignored.
+      parameter(
+                 NightSkyName("maxmz"),
+                 DefaultValue(),
+                 Description("Just consider compounds with a precursor mz lower or equal\n"
+                             "this maximum mz. All other compounds in the input file\n"
+                             "are ignored.")
+               );
 
-      // TODO
+      // --cores, --processors=<numOfCores>
+      // Number of cpu cores to use. If not specified Sirius uses
+      // all available cores.
+      parameter(
+                 NightSkyName("processors"),
+                 DefaultValue(1),
+                 Description("Number of cpu cores to use. If not specified SIRIUS uses all available cores.")
+               );
 
-      //      -i, --input=<input>    Input for the analysis. Ths can be either preprocessed mass
-      //      spectra in .ms or .mgf file format, LC/MS runs in .mzML/.
-      //      mzXml format or already existing SIRIUS project-space(s)
-      //          (uncompressed/compressed).
+      // --ignore-formula
+      // Ignore given molecular formula in .ms or .mgf file format,
+      flag(
+            NightSkyName("ignore-formula"),
+            Description("Ignore given molecular formula in internal .ms format, while processing.")
+          );
 
-      // TODO
-
-      //       --maxmz=<maxMz>    Just consider compounds with a precursor mz lower or equal
-      //      this maximum mz. All other compounds in the input file
-      //      are ignored.
-
-      // TODO
-
-      flag(NightSkyName("ignore-formula"),
-           Description("Ignore given molecular formula in internal .ms format, while processing."));
-
+      // TODO: Not sure if that actually works - it seems there is a problem
+      // TOOD: with the qprocess or the bash script disrupting the shell output in general!
       // -q  suppress shell output
-      flag(NightSkyName("quiet"), Description("Suppress shell output"));
-
-      //      --cores, --processors=<numOfCores>
-      //      Number of cpu cores to use. If not specified Sirius uses
-      //      all available cores.
-
-      // TODO
-
-
-
-      //      night-sky [-hqV] [--ignore-formula] [--recompute]
-//      [--compound-buffer=<initialInstanceBuffer>]
-//      [--cores=<numOfCores>] [--maxmz=<maxMz>]
-//      [--naming-convention=<projectSpaceFilenameFormatter>]
-//      [-o=<projectSpaceLocation>] [-w=<workspace>] [-i=<input>]...
-//      [COMMAND]
-
-
-
-
-
-
-//          --compound-buffer, --initial-compound-buffer=<initialInstanceBuffer>
-//          Number of compounds that will be loaded into the Memory. A
-//      larger buffer ensures that there are enough compounds
-//      available to use all cores efficiently during
-//      computation. A smaller buffer saves Memory. To load all
-//      compounds immediately set it to 0. Default: 2 * --cores
-//
-
-      // TODO
-
+      flag(
+            NightSkyName("q"),
+            Description("Suppress shell output")
+          );
 
       // TODO: Needed?
+      // --compound-buffer, --initial-compound-buffer=<initialInstanceBuffer>
+      // Number of compounds that will be loaded into the Memory. A
+      // larger buffer ensures that there are enough compounds
+      // available to use all cores efficiently during
+      // computation. A smaller buffer saves Memory. To load all
+      // compounds immediately set it to 0. Default: 2 * --cores
 
-//          --naming-convention=<projectSpaceFilenameFormatter>
-//          Specify a format for compounds' output directories. Default
-//                                        %index_%filename_%compoundname
-//                                            --recompute        Recompute ALL results of ALL SubTools that are already
-//      present. By defaults already present results of an
-//      instance will be preserved and the instance will be
-//      skipped for the corresponding Task/Tool
+      // TODO: Needed? Should probably not be changed in the Adapter, but i guess
+      // TODO: I think the mztab-writer still need the information - present in the filename
+      // TODO: This could also lead to errors in the scripts currently used for the
+      // TODO: DIAMetAlyzer
+      // --naming-convention=<projectSpaceFilenameFormatter>
+      //  Specify a format for compounds' output directories. Default
+      //  %index_%filename_%compoundname
 
-
-
-      parameter(
-              SiriusName("NoiseIntensity"),
-              DefaultValue(0),
-              Description("median intensity of noise peaks"))
-         .withMinInt(0);
+      // TODO: Needed?
+      // --recompute
+      // Recompute ALL results of ALL SubTools that are already
+      // present. By defaults already present results of an
+      // instance will be preserved and the instance will be
+      // skipped for the corresponding Task/Tool
 
       // TODO These parameters are currently missing
       // defaults_.setValue("sirius:isotope", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring. Use 'omit' to ignore isotope pattern.");
@@ -219,103 +233,108 @@ namespace OpenMS
       // --ppm-max=<ppmMax>
       // Maximum allowed mass deviation in ppm for decomposing masses.
       parameter(
-              SiriusName("ppm-max"),
-              DefaultValue(10),
-              Description("Maximum allowed mass deviation in ppm for decomposing masses"));
+                 SiriusName("ppm-max"),
+                 DefaultValue(10),
+                 Description("Maximum allowed mass deviation in ppm for decomposing masses [ppm].")
+               );
 
       // --ppm-max-ms2=<ppmMaxMs2>
       // Maximum allowed mass deviation in ppm for decomposing masses in MS2.
       // If not specified, the same value as for the MS1 is used.
       parameter(
-              SiriusName("ppm-max-ms2"),
-              DefaultValue(10),
-              Description("Maximum allowed mass deviation in ppm for decomposing masses in MS2."
-                          "If not specified, the same value as for the MS1 is used."));
+                 SiriusName("ppm-max-ms2"),
+                 DefaultValue(10),
+                 Description("Maximum allowed mass deviation in ppm for decomposing masses in MS2 [ppm]."
+                             "If not specified, the same value as for the MS1 is used. ")
+                );
 
       // --tree-timeout=<treeTimeout>
       // Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time.
       // Default: 0
       parameter(
-              SiriusName("tree-timeout"),
-              DefaultValue(0),
-              Description("Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time"))
-         .withMinInt(0);
+                 SiriusName("tree-timeout"),
+                 DefaultValue(0),
+                 Description("Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time")
+               ).withMinInt(0);
 
       //--compound-timeout=<instanceTimeout>
       // Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.
       // Default: 0
       parameter(
-              SiriusName("compound-timeout"),
-              DefaultValue(100),
-              Description(
-                      "Maximal computation time in seconds for a single compound. 0 for an infinite amount of time."))
-         .withMinInt(0);
+                 SiriusName("compound-timeout"),
+                 DefaultValue(100),
+                 Description("Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.")
+               ).withMinInt(0);
 
       // --no-recalibration
       // Disable Recalibration of input Spectra
       flag(
-              SiriusName("no-recalibration"),
-              Description("Disable Recalibration of input Spectra"));
+            SiriusName("no-recalibration"),
+            Description("Disable Recalibration of input Spectra")
+          );
 
       // -p, --profile=<profile>
       // Name of the configuration profile. Some of the default profiles are: 'qtof', 'orbitrap', 'fticr'.
       parameter(
-              SiriusName("profile"),
-              DefaultValue("qtof"),
-              Description("Name of the configuration profile"))
-         .withValidStrings({"qtof", "orbitrap", "fticr"});
+                 SiriusName("profile"),
+                 DefaultValue("qtof"),
+                 Description("Name of the configuration profile")
+               ).withValidStrings({"qtof", "orbitrap", "fticr"});
 
       // -f, --formula, --formulas=<formula>
       // Specify the neutral molecular formula of the measured compound to compute its tree or a list of candidate
       // formulas the method should discriminate. Omit this option if you want to consider all possible
       // molecular formulas
       parameter(
-              SiriusName("formula"),
-              DefaultValue(""),
-              Description("Specify the neutral molecular formula of the measured "
-                          "compound to compute its tree or a list of candidate "
-                          "formulas the method should discriminate. Omit this "
-                          "option if you want to consider all possible molecular formulas"));
+                 SiriusName("formula"),
+                 DefaultValue(""),
+                 Description("Specify the neutral molecular formula of the measured "
+                             "compound to compute its tree or a list of candidate "
+                             "formulas the method should discriminate. Omit this "
+                             "option if you want to consider all possible molecular formulas")
+               );
 
       // -I, --ions-enforced=<ionsEnforced>
       // the iontype/adduct of the MS/MS data.
       // Example: [M+H]+, [M-H]-, [M+Cl]-, [M+Na]+, [M]+.
       // You can also provide a comma separated list of adducts.
       parameter(
-              SiriusName("ions-enforced"),
-              DefaultValue(-1),
-              Description("the iontype/adduct of the MS/MS data. Example: [M+H]+, "
-                          "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a comma separated list of adducts"));
+                 SiriusName("ions-enforced"),
+                 DefaultValue(-1),
+                 Description("the iontype/adduct of the MS/MS data. Example: [M+H]+, "
+                             "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a comma separated list of adducts")
+               );
 
-      //-c, --candidates=<numberOfCandidates>
-      //         Number of formula candidates in the output.
+      // -c, --candidates=<numberOfCandidates>
+      // Number of formula candidates in the output.
       parameter(
-              SiriusName("candidates"),
-              DefaultValue(5),
-              Description("The number of formula candidates in the SIRIUS output"))
-         .withMinInt(1);
+                 SiriusName("candidates"),
+                 DefaultValue(5),
+                 Description("The number of formula candidates in the SIRIUS output")
+               ).withMinInt(1);
 
       // --candidates-per-ion=<numberOfCandidatesPerIon>
-      //        Minimum number of candidates in the output for each
+      // Minimum number of candidates in the output for each
       // ionization. Set to force output of results for each
       // possible ionization, even if not part of highest
       // ranked results.
       parameter(
-              SiriusName("candidates-per-ion"),
-              DefaultValue(-1),
-              Description("Minimum number of candidates in the output for each "
-                          "ionization. Set to force output of results for each "
-                          "possible ionization, even if not part of highest "
-                          "ranked results. -1 omits parameter in Sirius."));
+                 SiriusName("candidates-per-ion"),
+                 DefaultValue(-1),
+                 Description("Minimum number of candidates in the output for each "
+                             "ionization. Set to force output of results for each "
+                             "possible ionization, even if not part of highest "
+                             "ranked results. -1 omits parameter in Sirius.")
+                );
 
       // -e, --elements-considered=<detectableElements>
-      //        Set the allowed elements for rare element detection.
-      //        Write SBrClBSe to allow the elements S,Br,Cl,B and Se.
+      // Set the allowed elements for rare element detection.
+      // Write SBrClBSe to allow the elements S,Br,Cl,B and Se.
       parameter(
-              SiriusName("elements-considered"),
-              DefaultValue(""),
-              Description("Set the allowed elements for rare element detection. "
-                          "Write SBrClBSe to allow the elements S,Br,Cl,B and Se."));
+                 SiriusName("elements-considered"),
+                 DefaultValue(""),
+                 Description("Set the allowed elements for rare element detection. "
+                             "Write SBrClBSe to allow the elements S,Br,Cl,B and Se."));
 
       // -E, --elements-enforced=<enforcedElements>
       // Enforce elements for molecular formula determination.
@@ -323,137 +342,124 @@ namespace OpenMS
       // minimal and maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1-2]. When one number is
       // given then it is interpreted as upper bound. Default is CHNOP
       parameter(
-              SiriusName("elements-enforced"),
-              DefaultValue(""),
-              Description("Enforce elements for molecular formula determination. "
-                          "Write CHNOPSCl to allow the elements C, H, N, O, P, S "
-                          "and Cl. Add numbers in brackets to restrict the "
-                          "minimal and maximal allowed occurrence of these "
-                          "elements: CHNOP[5]S[8]Cl[1-2]. When one number is "
-                          "given then it is interpreted as upper bound. Default is CHNOP"));
+                 SiriusName("elements-enforced"),
+                 DefaultValue(""),
+                 Description("Enforce elements for molecular formula determination. "
+                             "Write CHNOPSCl to allow the elements C, H, N, O, P, S "
+                             "and Cl. Add numbers in brackets to restrict the "
+                             "minimal and maximal allowed occurrence of these "
+                             "elements: CHNOP[5]S[8]Cl[1-2]. When one number is "
+                             "given then it is interpreted as upper bound. Default is CHNOP")
+                );
 
       // --no-isotope-score=<isotopeHandling>
-      //         Disable isotope pattern score.
-      flag(SiriusName("no-isotope-score"),
-           Description("Disable isotope pattern score."));
+      // Disable isotope pattern score.
+      flag(
+            SiriusName("no-isotope-score"),
+            Description("Disable isotope pattern score.")
+          );
 
       // --no-isotope-filter
       // Disable molecular formula filter. When filtering is enabled, molecular formulas are excluded if their
       // theoretical isotope pattern does not match the theoretical one, even if their MS/MS pattern has high score.
-      flag(SiriusName("no-isotope-filter"),
-           Description("Disable molecular formula filter. When filtering is enabled, molecular formulas are "
-                      "excluded if their theoretical isotope pattern does not match the theoretical one, even if "
-                      "their MS/MS pattern has high score."));
+      flag(
+            SiriusName("no-isotope-filter"),
+            Description("Disable molecular formula filter. When filtering is enabled, molecular formulas are "
+                        "excluded if their theoretical isotope pattern does not match the theoretical one, even if "
+                        "their MS/MS pattern has high score.")
+          );
 
       // -i, --ions-considered=<ionsConsidered>
-      //  the iontype/adduct of the MS/MS data. Example: [M+H]+,
+      // The iontype/adduct of the MS/MS data. Example: [M+H]+,
       // [M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a
       // comma separated list of adducts.
       parameter(
-              SiriusName("ions-considered"),
-              DefaultValue(""),
-              Description("the iontype/adduct of the MS/MS data. "
-                          "Example: [M+H]+, [M-H]-, [M+Cl]-, [M+Na]+, [M]+. "
-                          "You can also provide a comma separated list of adducts."));
+                 SiriusName("ions-considered"),
+                 DefaultValue(""),
+                 Description("the iontype/adduct of the MS/MS data. "
+                             "Example: [M+H]+, [M-H]-, [M+Cl]-, [M+Na]+, [M]+. "
+                             "You can also provide a comma separated list of adducts.")
+                );
 
-//      Identify molecular formula for each compound individually using fragmentation
-//      trees and isotope patterns.
-//          --ppm-max=<ppmMax>    Maximum allowed mass deviation in ppm for decomposing
-//      masses.
-//          --ppm-max-ms2=<ppmMaxMs2>
-//          Maximum allowed mass deviation in ppm for decomposing
-//      masses in MS2. If not specified, the same value as for
-//      the MS1 is used.
-//          --tree-timeout=<treeTimeout>
-//          Time out in seconds per fragmentation tree computations.
-//      0 for an infinite amount of time. Default: 0
-//          --compound-timeout=<instanceTimeout>
-//          Maximal computation time in seconds for a single
-//      compound. 0 for an infinite amount of time. Default: 0
-//          --no-recalibration    Disable Recalibration of input Spectra
-//      -p, --profile=<profile>   Name of the configuration profile. Some of the default
-//        profiles are: 'qtof', 'orbitrap', 'fticr'.
-//                                          -c, --candidates=<numberOfCandidates>
-//          Number of formula candidates in the output.
-//          --candidates-per-ion=<numberOfCandidatesPerIon>
-//          Minimum number of candidates in the output for each
-//      ionization. Set to force output of results for each
-//      possible ionization, even if not part of highest
-//      ranked results.
-//             -e, --elements-considered=<detectableElements>
-//          Set the allowed elements for rare element detection.
-//                                                                 Write SBrClBSe to allow the elements S,Br,Cl,B and Se.
-//                                                                                                                    -E, --elements-enforced=<enforcedElements>
-//          Enforce elements for molecular formula determination.
-//                                                                  Write CHNOPSCl to allow the elements C, H, N, O, P, S
-//                                                                                                                      and Cl. Add numbers in brackets to restrict the
-//      minimal and maximal allowed occurrence of these
-//      elements: CHNOP[5]S[8]Cl[1-2]. When one number is
-//      given then it is interpreted as upper bound. Default
-//      is CHNOP
-//      -d, --db=<database>       Search formulas in given database: all, pubchem, bio,
-//        kegg, hmdb
-//              -f, --formula, --formulas=<formulaWhiteList>
-//          Specify the neutral molecular formula of the measured
-//      compound to compute its tree or a list of candidate
-//      formulas the method should discriminate. Omit this
-//      option if you want to consider all possible molecular
-//      formulas
-//      --no-isotope-filter   Disable molecular formula filter. When filtering is
-//      enabled, molecular formulas are excluded if their
-//        theoretical isotope pattern does not match the
-//      theoretical one, even if their MS/MS pattern has high
-//      score.
-//          --no-isotope-score    Disable isotope pattern score.
-//                                                        -i, --ions-considered=<ionsConsidered>
-//          the iontype/adduct of the MS/MS data. Example: [M+H]+,
-//      [M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a
-//      comma separated list of adducts.
-//                              -I, --ions-enforced=<ionsEnforced>
-//          the iontype/adduct of the MS/MS data. Example: [M+H]+,
-//      [M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a
-//      comma separated list of adducts.
-//                              -h, --help                Show this help message and exit.
-//                                                                                   -V, --version             Print version information and exit.
-//                                                                                                                                           -1, --ms1=<ms1>           MS1 spectrum file name
-//      -2, --ms2=<ms2>           MS2 spectra file names
-//      -z, mz, precursor, --parentmass=<parentMz>
-//          the mass of the parent ion
+      // -d, --db=<database>
+      // Search formulas in given database: all, pubchem, bio, kegg, hmdb
+      parameter(
+                 SiriusName("db"),
+                 DefaultValue("all"),
+                 Description("Search formulas in given database: all, pubchem, bio, "
+                             "kegg, hmdb")
+               ).withValidStrings({"all", "pubchem", "bio", "kegg", "hmdb"});
 
+      // -I, --ions-enforced=<ionsEnforced>
+      // The iontype/adduct of the MS/MS data. Example: [M+H]+,
+      // [M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a
+      // comma separated list of adducts.
+      parameter(
+                 SiriusName("ions-enforced"),
+                 DefaultValue(""),
+                 Description("The iontype/adduct of the MS/MS data. Example: [M+H]+, \n"
+                             "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a \n"
+                             "comma separated list of adducts.")
+               );
 
+      // Parameters / Information covered by the .ms file:
+      // -1, --ms1=<ms1> MS1 spectrum file name
+      // -2, --ms2=<ms2> MS2 spectra file names
+      // -z, mz, precursor, --parentmass=<parentMz> The mass of the parent ion
     }
 
-    void SiriusAdapterAlgorihtm::FingerID::parameters()
+    void SiriusAdapterAlgorithm::Fingerid::parameters()
     {
-//      Identify molecular structure for each compound Individually using CSI:FingerID.
-//          --info, --webservice-info
-//      information about connection of CSI:FingerID Webservice
-//      -c, --candidates=<numberOfCandidates>
-//          Number of molecular structure candidates in the output.
-//                                                          -d, --db , --fingeriddb, --fingerid-db, --fingerid_db=<database>
-//          search structure in given database. By default the same database
-//      for molecular formula search is also used for structure search.
-//                                                                        If no database is used for molecular formula search, PubChem is
-//      used for structure search.
-//                         -h, --help      Show this help message and exit.
-//                                                                    -s, --formula-score=<predictors>
-//          Specifies the Score that is used to rank the list Molecular
-//      Formula Identifications before the thresholds for CSI:FingerID
-//      predictions are calculated.
-//                      -V, --version   Print version information and exit.
+      // -c, --candidates=<numberOfCandidates>
+      // Number of molecular structure candidates in the output.
+      parameter(
+                 FingeridName("candidates"),
+                 DefaultValue(10),
+                 Description("Number of molecular structure candidates in the output.")
+               ).withMinInt(1);
+
+      // TODO: Not sure how to work custom databases in (?)
+      // TODO: Could use some predefinded custom1 custom2 custom3 custom4,
+      // TODO: Which would have to be renamed and but in the appropriate
+      // TODO: location in the SIRIUS directory
+      // -d, --db , --fingeriddb, --fingerid-db, --fingerid_db=<database>
+      // Search structure in given database. By default the same database
+      // for molecular formula search is also used for structure search.
+      // If no database is used for molecular formula search, PubChem is
+      // used for structure search.
+
+      //TODO: set valid strings
+      parameter(
+                 FingeridName("fingerid-db"),
+                 DefaultValue(""),
+                 Description("Search structure in given database. By default the same database\n"
+                             "for molecular formula search is also used for structure search.\n"
+                             "If no database is used for molecular formula search, PubChem is\n"
+                             "used for structure search.")
+                ).withValidStrings({"","",""});
+
+      // -s, --formula-score=<predictors>
+      // Specifies the Score that is used to rank the list Molecular
+      // Formula Identifications before the thresholds for CSI:FingerID
+      // predictions are calculated.
+      //TODO: set valid strings
+      parameter(
+                 FingeridName("formula-score"),
+                 DefaultValue(""),
+                 Description("Specifies the Score that is used to rank the list Molecular\n"
+                             "Formula Identifications before the thresholds for CSI:FingerID˜n"
+                             "predictions are calculated.")
+                ).withValidStrings({"","",""});
 
     }
 
-    void SiriusAdapterAlgorithm:::Passatutto::parameters()
+    void SiriusAdapterAlgorithm::Passatutto::parameters()
     {
 //      Usage: night-sky passatutto [-hV] [COMMAND]
 //      Compute a decoy database based on the input spectra. If no molecular formula is
 //      provided in the input, the top scoring formula is used.
 //      -h, --help      Show this help message and exit.
 //      -V, --version   Print version information and exit.
-//      Commands:
-//      fingerid, F  Identify molecular structure for each compound Individually
-//      using CSI:FingerID.
     }
 
     void SiriusAdapterAlgorithm::updateExistingParameter(const OpenMS::Param &param)
@@ -499,8 +505,9 @@ namespace OpenMS
       }
 
       const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
-      LOG_WARN << "Executable is: " + exe << std::endl;
+      OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
       return exe;
+
       // TODO: from upstream not sure which one is better
       // normalize file path
       // QString exe = executable.toQString();
@@ -614,7 +621,7 @@ namespace OpenMS
         long count_ms2 = count_if(spectra.begin(), spectra.end(),
                 [](const MSSpectrum &spectrum) { return spectrum.getMSLevel() == 2; });
 
-        LOG_INFO << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
+        OPENMS_LOG_INFO << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
       }
     }
 
@@ -625,26 +632,41 @@ namespace OpenMS
                                                                          const String& out_csifingerid)
 
     {
-      // Get the command line parameters from all the subtools
+      // get the command line parameters from all the subtools
       QStringList config_params = nightsky_config.getCommandLine();
       QStringList sirius_params = nightsky_sirius.getCommandLine();
+      QStringList fingerid_params = nightsky_fingerid.getCommandLine();
 
       const bool run_csifingerid = ! out_csifingerid.empty();
 
-      // Structure of the command line passed to NightSky
+      // structure of the command line passed to NightSky
       QStringList command_line = QStringList({tmp_ms_file.toQString(), "config"}) + config_params + sirius_params + QStringList("sirius");
 
-      if (run_csifingerid)
+      // TODO: add passatutto - where does this parameter come from, since it will be an initial parameter of the SiriusAdaper?
+      // TODO: e.g. add .msp output as spectral library - with target and decoys based on SIRIUS / Passatutto
+      // TODO: look at https://github.com/OpenMS/OpenMS/blob/develop/src/openms/source/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.cpp
+      // TODO: Parser already for SIRIUS (targets) - SiriusFragmentAnnotation.cpp
+      // TODO: e.g. MSPGenericFile::store based on MSExperiment (handling exact mass switch beforehand if needed, by SiriusAdapter::export)
+      // TODO: annotate
+      // if (run_passatutto)
       {
-        command_line << "fingerid";
+        command_line << "passatutto";
       }
 
-      LOG_INFO << "Running NightSky with the following command line parameters: " << endl;
+      // TODO: add fingerid params (see above)
+      if (run_csifingerid)
+      {
+        command_line << "fingerid " << fingerid_params;
+      }
+
+      // TODO: deprecation of Writer functions? (= No optimal mztab-m reader yet! What to do with the data?)
+
+      OPENMS_LOG_INFO << "Running NightSky with the following command line parameters: " << endl;
       for (const auto &param: command_line)
       {
-        LOG_INFO << param.toStdString() << " ";
+        OPENMS_LOG_INFO << param.toStdString() << " ";
       }
-      LOG_INFO << endl;
+      OPENMS_LOG_INFO << endl;
 
         // the actual process
         QProcess qp;
@@ -657,12 +679,12 @@ namespace OpenMS
 
         if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
         {
-          LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
+          OPENMS_LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
           const QString sirius_stdout(qp.readAllStandardOutput());
           const QString sirius_stderr(qp.readAllStandardError());
-          LOG_WARN << String(sirius_stdout) << std::endl;
-          LOG_WARN << String(sirius_stderr) << std::endl;
-          LOG_WARN << String(qp.exitCode()) << std::endl;
+          OPENMS_LOG_WARN << String(sirius_stdout) << std::endl;
+          OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
+          OPENMS_LOG_WARN << String(qp.exitCode()) << std::endl;
           qp.close();
 
           throw Exception::InvalidValue(__FILE__,

@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka $
+// $Authors: Oliver Alka, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
 #pragma once 
@@ -65,7 +65,7 @@ namespace OpenMS
       double getPrecursorMzTolerance() const { return preprocessing.getValue("precursor_mz_tolerance"); }
       double getPrecursorRtTolerance() const { return preprocessing.getValue("precursor_rt_tolerance"); }
       bool precursorMzToleranceUnitIsPPM() const { return preprocessing.getValue("precursor_mz_tolerance_unit") == "ppm"; }
-      bool isNoMasstraceInfoIsotopePattern() const { return preprocessing.getValue("no_masstrace_info_isotope_pattern").toBool(); };
+      bool isNoMasstraceInfoIsotopePattern() const { return preprocessing.getValue("no_masstrace_info_isotope_pattern").toBool(); }
       int getIsotopePatternIterations() const { return  preprocessing.getValue("isotope_pattern_iterations"); }
 
       /*
@@ -73,6 +73,14 @@ namespace OpenMS
        */
 
       int getNumberOfCandidates() const { return nightsky_sirius.getValue("candidates");  }
+
+
+
+      /*
+       *  Accessors for Fingerid Parameters
+       */
+
+      // TODO: needed?
 
       /**
        * Updates all parameters that already exist in this DefaultParamHandler
@@ -125,7 +133,6 @@ namespace OpenMS
       @param featureinfo: Path to featureXML
       @param spectra: Input of MSExperiment with spectra information
       @param fp_map_kd: KDTree used for query and match spectra with features
-      @param sirius_algo: Parameters needed for preprocessing
       @param feature_mapping: Empty FeatureToMs2Indices
       */
       void preprocessingSirius(const String& featureinfo,
@@ -205,7 +212,8 @@ namespace OpenMS
               const String &parameter_name,
               const String &parameter_description);
 
-      explicit ParameterSection(SiriusAdapterAlgorithm *enclose): enclose(enclose) {};
+      explicit ParameterSection(SiriusAdapterAlgorithm* enclose): enclose(enclose) {}
+
       virtual void parameters() = 0;
       virtual String sectionName() const = 0;
 
@@ -270,12 +278,26 @@ namespace OpenMS
       void parameters() override;
     };
 
-    // TODO: add subclass for fingerid, passatutto
+    class Fingerid final : public NightSkySubtool
+    {
+      String sectionName() const override { return "fingerid"; }
+    public:
+      explicit Fingerid(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      void parameters() override;
+    };
+
+    class Passatutto final : public NightSkySubtool
+    {
+      String sectionName() const override { return "passatutto"; }
+    public:
+      explicit Passatutto(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      void parameters() override;
+     };
 
     Preprocessing preprocessing;
     Config nightsky_config;
     Sirius nightsky_sirius;
-    FingerID nightsky_fingerid;
+    Fingerid nightsky_fingerid;
     Passatutto nightsky_passatutto;
 
     };
