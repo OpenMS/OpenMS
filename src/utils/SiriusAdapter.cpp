@@ -134,18 +134,21 @@ protected:
     registerInputFile_("in_featureinfo", "<file>", "", "FeatureXML input with feature and adduct information", false);
     setValidFormats_("in_featureinfo", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results", false);
+    registerOutputFile_("out_sirius", "<file>", "", "MzTab output file for SIRIUS results", false);
     setValidFormats_("out_sirius", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
     setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
 
+    registerOutputFile_("out_results","<file>", "", "MzTab-m output file for all results (depending on parameters used)", false);
+    setValidFormats_("out_results", ListUtils::create<String>("mzTab"));
+
     registerOutputFile_("out_ms","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing", false);
     setValidFormats_("out_ms", ListUtils::create<String>("ms"));
 
-    registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
+    registerStringOption_("out_project_space", "<directory>", "", "Output directory for SIRIUS project space", false);
 
-    registerFlag_("converter_mode", "Use this flag in combination with the out_ms file to only convert the input mzML and featureXML to an .ms file. Without further SIRIUS processing.", true);
+    registerFlag_("converter_mode", "Use this flag in combination with the out_ms file to convert the input mzML and featureXML to a .ms file. Without further SIRIUS processing.", true);
 
     addEmptyLine_();
 
@@ -163,7 +166,7 @@ protected:
     String out_csifingerid = getStringOption_("out_fingerid");
     String featureinfo = getStringOption_("in_featureinfo");
     String out_ms = getStringOption_("out_ms");
-    String sirius_workspace_directory = getStringOption_("out_workspace_directory");
+    String sirius_workspace_directory = getStringOption_("out_project_space");
     bool converter_mode = getFlag_("converter_mode");
 
     algorithm.updateExistingParameter(getParam_());

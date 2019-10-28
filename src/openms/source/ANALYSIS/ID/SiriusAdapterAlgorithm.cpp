@@ -55,14 +55,14 @@ namespace OpenMS
     SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
       DefaultParamHandler("SiriusAdapterAlgorithm"),
       preprocessing(Preprocessing(this)),
-      nightsky_config(Config(this)),
+      nightsky_nightsky(Nightsky(this)),
       nightsky_sirius(Sirius(this)),
       nightsky_fingerid(Fingerid(this)),
       nightsky_passatutto(Passatutto(this))
     {
       // Defines the Parameters for preprocessing and NightSky subtools
       preprocessing.parameters();
-      nightsky_config.parameters();
+      nightsky_nightsky.parameters();
       nightsky_sirius.parameters();
       nightsky_fingerid.parameters();
       nightsky_passatutto.parameters();
@@ -119,9 +119,8 @@ namespace OpenMS
           );
     }
 
-    void SiriusAdapterAlgorithm::Config::parameters()
+    void SiriusAdapterAlgorithm::Nightsky::parameters()
     {
-      // TODO: Not sure if we need this parameter at all (?)
       // -w, --workspace=<workspace>
       // Specify sirius workspace location. This is the directory
       // for storing Property files, logs, databases and caches.
@@ -136,23 +135,20 @@ namespace OpenMS
                              "results! Default is $USER_HOME/.sirius.")
                );
 
-      // TODO: The project space was previously called workspace in the other version
       // -o, -p, --output, --project-space=<projectSpaceLocation>
       // Specify project-space to read from and also write to if
       // nothing else is specified. For compression use the File
       // ending .zip or .sirius
-      parameter(
-                 NightSkyName("project-space"),
-                 DefaultValue(),
-                 Description("Specify project-space to read from and also write to if nothing else is specified.")
-               );
 
-      // TODO: This is only needed to call the .ms file (but not the original input in SIRIUS)
+      // this will be called internal using the "out_project_space" parameter (SiriusAdapter)
+
       // -i, --input=<input>
       // Input for the analysis. Ths can be either preprocessed mass
       // spectra in .ms or .mgf file format, LC/MS runs in .mzML/.
       // mzXml format or already existing SIRIUS project-space(s)
       // (uncompressed/compressed).
+
+      // this will be called internal using the preprocessed .ms file
 
       // --maxmz=<maxMz>
       // Just consider compounds with a precursor mz lower or equal
@@ -183,7 +179,7 @@ namespace OpenMS
           );
 
       // TODO: Not sure if that actually works - it seems there is a problem
-      // TOOD: with the qprocess or the bash script disrupting the shell output in general!
+      // TODO: with the qprocess or the bash script disrupting the shell output in general!
       // -q  suppress shell output
       flag(
             NightSkyName("q"),
@@ -212,20 +208,6 @@ namespace OpenMS
       // present. By defaults already present results of an
       // instance will be preserved and the instance will be
       // skipped for the corresponding Task/Tool
-
-      // TODO These parameters are currently missing
-      // defaults_.setValue("sirius:isotope", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring. Use 'omit' to ignore isotope pattern.");
-      // defaults_.setValidStrings("sirius:isotope", ListUtils::create<String>("score,filter,both,omit"));
-      // defaults_.setValue("sirius:top_n_hits", 10, "The number of top hits for each compound written to the CSI:FingerID output");
-      // defaults_.setMinInt("sirius:top_n_hits", 1);
-      // defaults_.setValue("sirius:cores", 1, "The number of cores SIRIUS is allowed to use on the system");
-      // defaults_.setMinInt("sirius:cores", 1);
-      // defaults_.setValue("sirius:auto_charge", "false", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.");
-      // defaults_.setValidStrings("sirius:auto_charge", ListUtils::create<String>("true,false"));
-      // defaults_.setValue("sirius:ion_tree", "false", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", ListUtils::create<String>("advanced"));
-      // defaults_.setValidStrings("sirius:ion_tree", ListUtils::create<String>("true,false"));
-      // defaults_.setValue("sirius:most_intense_ms2", "false", "SIRIUS uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", ListUtils::create<String>("advanced"));
-      // defaults_.setValidStrings("sirius:most_intense_ms2", ListUtils::create<String>("true,false"));
     }
 
     void SiriusAdapterAlgorithm::Sirius::parameters()
@@ -633,14 +615,14 @@ namespace OpenMS
 
     {
       // get the command line parameters from all the subtools
-      QStringList config_params = nightsky_config.getCommandLine();
+      QStringList nightsky_params = nightsky_nightsky.getCommandLine();
       QStringList sirius_params = nightsky_sirius.getCommandLine();
       QStringList fingerid_params = nightsky_fingerid.getCommandLine();
 
       const bool run_csifingerid = ! out_csifingerid.empty();
 
       // structure of the command line passed to NightSky
-      QStringList command_line = QStringList({tmp_ms_file.toQString(), "config"}) + config_params + sirius_params + QStringList("sirius");
+      QStringList command_line = QStringList({"--input", tmp_ms_file.toQString(), "--project-space", tmp_out_dir.toQString()}) + nightsky_params + QStringList("sirius") + sirius_params;
 
       // TODO: add passatutto - where does this parameter come from, since it will be an initial parameter of the SiriusAdaper?
       // TODO: e.g. add .msp output as spectral library - with target and decoys based on SIRIUS / Passatutto
@@ -649,9 +631,9 @@ namespace OpenMS
       // TODO: e.g. MSPGenericFile::store based on MSExperiment (handling exact mass switch beforehand if needed, by SiriusAdapter::export)
       // TODO: annotate
       // if (run_passatutto)
-      {
-        command_line << "passatutto";
-      }
+      //{
+      //  command_line << "passatutto";
+      //}
 
       // TODO: add fingerid params (see above)
       if (run_csifingerid)
@@ -659,49 +641,59 @@ namespace OpenMS
         command_line << "fingerid " << fingerid_params;
       }
 
-      // TODO: deprecation of Writer functions? (= No optimal mztab-m reader yet! What to do with the data?)
-
       OPENMS_LOG_INFO << "Running NightSky with the following command line parameters: " << endl;
       for (const auto &param: command_line)
       {
         OPENMS_LOG_INFO << param.toStdString() << " ";
       }
-      OPENMS_LOG_INFO << endl;
+      OPENMS_LOG_INFO << endl;:q
 
-        // the actual process
-        QProcess qp;
-        QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
+      // the actual process
+      QProcess qp;
+      QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
 
-        //since library paths are relative to sirius executable path
-        qp.setWorkingDirectory(File::path(executable).toQString());
-        qp.start(executable_qstring, command_line); // does automatic escaping etc... start
-        const bool success = qp.waitForFinished(-1);
+      //since library paths are relative to sirius executable path
+      qp.setWorkingDirectory(File::path(executable).toQString());
+      qp.start(executable_qstring, command_line); // does automatic escaping etc... start
 
-        if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
-        {
-          OPENMS_LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
-          const QString sirius_stdout(qp.readAllStandardOutput());
-          const QString sirius_stderr(qp.readAllStandardError());
-          OPENMS_LOG_WARN << String(sirius_stdout) << std::endl;
-          OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
-          OPENMS_LOG_WARN << String(qp.exitCode()) << std::endl;
-          qp.close();
+      std::stringstream ss;
+      ss << "COMMAND: " << executable_qstring.toStdString();
+      for (QStringList::const_iterator it = command_line.begin(); it != command_line.end(); ++it)
+      {
+        ss << " " << it->toStdString();
+      }
+      OPENMS_LOG_WARN << ss.str() << std::endl;
+      OPENMS_LOG_WARN << "Executing: " + executable_qstring.toStdString() << std::endl;
+      // OPENMS_LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
 
-          throw Exception::InvalidValue(__FILE__,
-                                        __LINE__,
-                                        OPENMS_PRETTY_FUNCTION,
-                                        "FATAL: External invocation of Sirius failed!",
-                                         "");
-        }
+      const bool success = qp.waitForFinished(-1);
+
+
+      if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
+      {
+        OPENMS_LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
+        const QString sirius_stdout(qp.readAllStandardOutput());
+        const QString sirius_stderr(qp.readAllStandardError());
+        OPENMS_LOG_WARN << String(sirius_stdout) << std::endl;
+        OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
+        OPENMS_LOG_WARN << String(qp.exitCode()) << std::endl;
         qp.close();
 
-       //extract path to subfolders (sirius internal folder structure)
-       std::vector<String> subdirs;
-        QDirIterator it(tmp_out_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
-        while (it.hasNext())
-        {
-          subdirs.push_back(it.next());
-        }
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      "FATAL: External invocation of Sirius failed!",
+                                      "");
+      }
+      qp.close();
+
+      //extract path to subfolders (sirius internal folder structure)
+      std::vector<String> subdirs;
+      QDirIterator it(tmp_out_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+      while (it.hasNext())
+      {
+        subdirs.push_back(it.next());
+      }
       return subdirs;
     }
 

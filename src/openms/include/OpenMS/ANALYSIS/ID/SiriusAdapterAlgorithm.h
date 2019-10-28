@@ -262,11 +262,11 @@ namespace OpenMS
       void parameters() override;
     };
 
-    class Config final : public NightSkySubtool
+    class Nightsky final : public NightSkySubtool
     {
-      String sectionName() const override { return "config"; }
+      String sectionName() const override { return "nightsky"; }
     public:
-      explicit Config(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      explicit Nightsky(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
       void parameters() override;
     };
 
@@ -295,7 +295,7 @@ namespace OpenMS
      };
 
     Preprocessing preprocessing;
-    Config nightsky_config;
+    Nightsky nightsky_nightsky;
     Sirius nightsky_sirius;
     Fingerid nightsky_fingerid;
     Passatutto nightsky_passatutto;
