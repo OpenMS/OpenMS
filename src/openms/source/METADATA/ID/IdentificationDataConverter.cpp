@@ -327,7 +327,8 @@ namespace OpenMS
         pair<vector<PeptideHit>, IdentificationData::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
-    const String& ppm_error_name = Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
+    const String& ppm_error_name =
+      Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
 
     for (const IdentificationData::MoleculeQueryMatch& query_match :
            id_data.getMoleculeQueryMatches())
@@ -355,6 +356,7 @@ namespace OpenMS
         parent_matches_ptr = &(oligo_ref->parent_matches);
       }
       hit.setCharge(query_match.charge);
+      // @TODO: is this needed? don't we copy over all meta values above?
       if (query_match.metaValueExists(ppm_error_name))
       {
         hit.setMetaValue(ppm_error_name,
@@ -390,6 +392,7 @@ namespace OpenMS
       for (IdentificationData::AppliedProcessingStep applied :
              query_match.steps_and_scores)
       {
+        // @TODO: allow peptide hits without scores?
         if (applied.scores.empty()) continue;
         PeptideHit hit_copy = hit;
         vector<pair<IdentificationData::ScoreTypeRef, double>> scores =
