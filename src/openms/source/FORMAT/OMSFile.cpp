@@ -203,7 +203,7 @@ namespace OpenMS
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error inserting data");
     }
-    return query.lastInsertId().toInt();
+    return query.lastInsertId().toLongLong();
   }
 
 
@@ -241,7 +241,10 @@ namespace OpenMS
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error updating database");
     }
-    if (query.lastInsertId().isValid()) return query.lastInsertId().toInt();
+    if (query.lastInsertId().isValid())
+    {
+      return query.lastInsertId().toLongLong();
+    }
     // else: insert has failed, record must already exist - get the key:
     query.prepare("SELECT id FROM CVTerm "                          \
                   "WHERE accession = :accession AND name = :name");
@@ -255,7 +258,7 @@ namespace OpenMS
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error querying database");
     }
-    return query.value(0).toInt();
+    return query.value(0).toLongLong();
   }
 
 
@@ -936,8 +939,22 @@ namespace OpenMS
       query.bindValue(":parent_id", Key(&(*pair.first)));
       for (const auto& match : pair.second)
       {
-        query.bindValue(":start_pos", uint(match.start_pos));
-        query.bindValue(":end_pos", uint(match.end_pos));
+        if (match.start_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
+        {
+          query.bindValue(":start_pos", uint(match.start_pos));
+        }
+        else // use NULL value
+        {
+          query.bindValue(":start_pos", QVariant(QVariant::Int));
+        }
+        if (match.end_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
+        {
+          query.bindValue(":end_pos", uint(match.end_pos));
+        }
+        else // use NULL value
+        {
+          query.bindValue(":end_pos", QVariant(QVariant::Int));
+        }
         query.bindValue(":left_neighbor", match.left_neighbor.toQString());
         query.bindValue(":right_neighbor", match.right_neighbor.toQString());
         if (!query.exec())
@@ -1075,6 +1092,7 @@ namespace OpenMS
     helper.storeIdentifiedCompounds();
     helper.storeIdentifiedSequences();
     helper.storeMoleculeQueryMatches();
+    // @TODO: store parent molecule groups and molecule-query match groups
   }
 
 
@@ -1125,7 +1143,6 @@ namespace OpenMS
 
   void OMSFile::OMSFileLoad::loadScoreTypes()
   {
-    score_type_refs_.clear();
     if (!tableExists_(db_name_, "ID_ScoreType")) return;
     if (!tableExists_(db_name_, "CVTerm")) // every score type is a CV term
     {
@@ -1135,8 +1152,10 @@ namespace OpenMS
     }
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ScoreType JOIN CVTerm "   \
-                    "ON ID_ScoreType.cv_term_id = CVTerm.id"))
+    // careful - both joined tables have an "id" field, need to exclude one:
+    if (!query.exec("SELECT S.*, C.accession, C.name, C.cv_identifier_ref " \
+                    "FROM ID_ScoreType AS S JOIN CVTerm AS C "          \
+                    "ON S.cv_term_id = C.id"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
@@ -1149,7 +1168,7 @@ namespace OpenMS
       bool higher_better = query.value("higher_better").toInt();
       ID::ScoreType score_type(cv_term, higher_better);
       ID::ScoreTypeRef ref = id_data_.registerScoreType(score_type);
-      score_type_refs_[query.value("id").toInt()] = ref;
+      score_type_refs_[query.value("id").toLongLong()] = ref;
     }
   }
 
@@ -1169,7 +1188,7 @@ namespace OpenMS
     {
       ID::InputFileRef ref =
         id_data_.registerInputFile(query.value("file").toString());
-      input_file_refs_[query.value("id").toInt()] = ref;
+      input_file_refs_[query.value("id").toLongLong()] = ref;
     }
   }
 
@@ -1198,7 +1217,7 @@ namespace OpenMS
     }
     while (query.next())
     {
-      Key id = query.value("id").toInt();
+      Key id = query.value("id").toLongLong();
       ID::DataProcessingSoftware software(query.value("name").toString(),
                                           query.value("version").toString());
       if (have_scores)
@@ -1211,14 +1230,13 @@ namespace OpenMS
         }
         while (subquery.next())
         {
-          Key score_type_id = query.value(0).toInt();
-          // the foreign key constraint should ensure that look-up succeeds:
+          Key score_type_id = subquery.value(0).toLongLong();
           software.assigned_scores.push_back(score_type_refs_[score_type_id]);
         }
       }
       ID::ProcessingSoftwareRef ref =
         id_data_.registerDataProcessingSoftware(software);
-      processing_software_refs_[query.value("id").toInt()] = ref;
+      processing_software_refs_[id] = ref;
     }
   }
 
@@ -1271,7 +1289,7 @@ namespace OpenMS
     String table_name = parent_table + "_AppliedProcessingStep";
     if (!tableExists_(db_name_, table_name)) return false;
 
-    query.setForwardOnly(true);
+    // query.setForwardOnly(true);
     QString sql_select = "SELECT * FROM " + table_name.toQString() +
       " WHERE parent_id = :id ORDER BY processing_step_order ASC";
     query.prepare(sql_select);
@@ -1314,12 +1332,13 @@ namespace OpenMS
       QVariant step_id_opt = query.value("processing_step_id");
       if (!step_id_opt.isNull())
       {
-        step.processing_step_opt = processing_step_refs_[step_id_opt.toInt()];
+        step.processing_step_opt =
+          processing_step_refs_[step_id_opt.toLongLong()];
       }
       QVariant score_type_opt = query.value("score_type_id");
       if (!score_type_opt.isNull())
       {
-        step.scores[score_type_refs_[score_type_opt.toInt()]] =
+        step.scores[score_type_refs_[score_type_opt.toLongLong()]] =
           query.value("score").toDouble();
       }
       result.addProcessingStep(step); // this takes care of merging the steps
@@ -1340,7 +1359,7 @@ namespace OpenMS
     }
     while (query.next())
     {
-      Key id = query.value("id").toInt();
+      Key id = query.value("id").toLongLong();
       ID::DBSearchParam param;
       int molecule_type_index = query.value("molecule_type_id").toInt() - 1;
       param.molecule_type = ID::MoleculeType(molecule_type_index);
@@ -1414,8 +1433,8 @@ namespace OpenMS
                                               "ID_DataProcessingStep");
     while (query.next())
     {
-      Key id = query.value("id").toInt();
-      Key software_id = query.value("software_id").toInt();
+      Key id = query.value("id").toLongLong();
+      Key software_id = query.value("software_id").toLongLong();
       ID::DataProcessingStep step(processing_software_refs_[software_id]);
       String primary_files = query.value("primary_files").toString();
       step.primary_files = ListUtils::create<String>(primary_files);
@@ -1431,7 +1450,7 @@ namespace OpenMS
         }
         while (subquery_file.next())
         {
-          Key input_file_id = subquery_file.value(0).toInt();
+          Key input_file_id = subquery_file.value(0).toLongLong();
           // the foreign key constraint should ensure that look-up succeeds:
           step.input_file_refs.push_back(input_file_refs_[input_file_id]);
         }
@@ -1449,7 +1468,7 @@ namespace OpenMS
       else
       {
         ID::SearchParamRef search_param_ref =
-          search_param_refs_[opt_search_param_id.toInt()];
+          search_param_refs_[opt_search_param_id.toLongLong()];
         ref = id_data_.registerDataProcessingStep(step, search_param_ref);
       }
       processing_step_refs_[id] = ref;
@@ -1479,11 +1498,12 @@ namespace OpenMS
       QVariant input_file_id = query.value("input_file_id");
       if (!input_file_id.isNull())
       {
-        data_query.input_file_opt = input_file_refs_[input_file_id.toInt()];
+        data_query.input_file_opt =
+          input_file_refs_[input_file_id.toLongLong()];
       }
       data_query.rt = query.value("rt").toDouble();
       data_query.mz = query.value("mz").toDouble();
-      Key id = query.value("id").toInt();
+      Key id = query.value("id").toLongLong();
       if (have_meta_info)
       {
         handleQueryMetaInfo_(subquery_info, data_query, id);
@@ -1524,7 +1544,7 @@ namespace OpenMS
       parent.description = query.value("description").toString();
       parent.coverage = query.value("coverage").toDouble();
       parent.is_decoy = query.value("is_decoy").toInt();
-      Key id = query.value("id").toInt();
+      Key id = query.value("id").toLongLong();
       if (have_meta_info)
       {
         handleQueryMetaInfo_(subquery_info, parent, id);
@@ -1571,7 +1591,7 @@ namespace OpenMS
         query.value("name").toString(),
         query.value("smile").toString(),
         query.value("inchi").toString());
-      Key id = query.value("id").toInt();
+      Key id = query.value("id").toLongLong();
       if (have_meta_info)
       {
         handleQueryMetaInfo_(subquery_info, compound, id);
@@ -1600,11 +1620,14 @@ namespace OpenMS
     while (query.next())
     {
       ID::ParentMoleculeRef ref =
-        parent_molecule_refs_[query.value("parent_id").toInt()];
-      ID::MoleculeParentMatch match(query.value("start_pos").toInt(),
-                                    query.value("end_pos").toInt(),
-                                    query.value("left_neighbor").toString(),
-                                    query.value("right_neighbor").toString());
+        parent_molecule_refs_[query.value("parent_id").toLongLong()];
+      ID::MoleculeParentMatch match;
+      QVariant start_pos = query.value("start_pos");
+      QVariant end_pos = query.value("end_pos");
+      if (!start_pos.isNull()) match.start_pos = start_pos.toInt();
+      if (!end_pos.isNull()) match.end_pos = end_pos.toInt();
+      match.left_neighbor = query.value("left_neighbor").toString();
+      match.right_neighbor = query.value("right_neighbor").toString();
       parent_matches[ref].insert(match);
     }
   }
@@ -1646,7 +1669,7 @@ namespace OpenMS
     }
     while (query.next())
     {
-      Key id = query.value("id").toInt();
+      Key id = query.value("id").toLongLong();
       String sequence = query.value("identifier").toString();
       ID::IdentifiedPeptide peptide(AASequence::fromString(sequence));
       if (have_meta_info)
@@ -1675,7 +1698,7 @@ namespace OpenMS
     }
     while (query.next())
     {
-      Key id = query.value("id").toInt();
+      Key id = query.value("id").toLongLong();
       String sequence = query.value("identifier").toString();
       ID::IdentifiedOligo oligo(NASequence::fromString(sequence));
       if (have_meta_info)
@@ -1711,7 +1734,8 @@ namespace OpenMS
       boost::optional<ID::ProcessingStepRef> processing_step_opt = boost::none;
       if (!processing_step_id.isNull())
       {
-        processing_step_opt = processing_step_refs_[processing_step_id.toInt()];
+        processing_step_opt =
+          processing_step_refs_[processing_step_id.toLongLong()];
       }
       PeptideHit::PeakAnnotation ann;
       ann.annotation = query.value("peak_annotation").toString();
@@ -1743,7 +1767,6 @@ namespace OpenMS
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
                                          "ID_MoleculeQueryMatch");
-
     QSqlQuery subquery_ann(db);
     bool have_peak_annotations =
       tableExists_(db_name_, "ID_MoleculeQueryMatch_PeakAnnotation");
@@ -1757,9 +1780,9 @@ namespace OpenMS
 
     while (query.next())
     {
-      Key id = query.value("id").toInt();
-      Key molecule_id = query.value("identified_molecule_id").toInt();
-      Key query_id = query.value("data_query_id").toInt();
+      Key id = query.value("id").toLongLong();
+      Key molecule_id = query.value("identified_molecule_id").toLongLong();
+      Key query_id = query.value("data_query_id").toLongLong();
       ID::MoleculeQueryMatch match(identified_molecule_refs_[molecule_id],
                                    data_query_refs_[query_id],
                                    query.value("charge").toInt());
@@ -1794,6 +1817,7 @@ namespace OpenMS
     helper.loadIdentifiedCompounds();
     helper.loadIdentifiedSequences();
     helper.loadMoleculeQueryMatches();
+    // @TODO: load parent molecule groups and molecule-query match groups
   }
 
 }

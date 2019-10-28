@@ -116,6 +116,14 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
              out.getIdentifiedCompounds().size());
   TEST_EQUAL(ids.getMoleculeQueryMatches().size(),
              out.getMoleculeQueryMatches().size());
+  auto it1 = ids.getMoleculeQueryMatches().begin();
+  auto it2 = out.getMoleculeQueryMatches().begin();
+  for (; (it1 != ids.getMoleculeQueryMatches().end()) &&
+         (it2 != out.getMoleculeQueryMatches().end()); ++it1, ++it2)
+  {
+    TEST_EQUAL(it1->steps_and_scores.size(),
+               it2->steps_and_scores.size());
+  }
 }
 END_SECTION
 
