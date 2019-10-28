@@ -369,21 +369,21 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Setting empty MS runs paths." << std::endl;
       this->setMetaValue("spectra_data", DataValue(s));
       return;
-    }     
+    }
 
     for (const String& filename : s)
     {
       if (!filename.hasSuffix("mzML"))
       {
-        OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
-                        << "Filename: '" << filename << "'" << std::endl;                          
+        OPENMS_LOG_WARN << "To ensure traceability of results please prefer mzML files as primary MS runs.\n"
+                        << "Filename: '" << filename << "'" << std::endl;
       }
     }
 
     this->setMetaValue("spectra_data", DataValue(s));
   }
 
-  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);
@@ -394,7 +394,7 @@ namespace OpenMS
     else
     {
       setPrimaryMSRunPath(s);
-    }        
+    }
   }
 
   /// get the file path to the first MS runs
@@ -411,7 +411,7 @@ namespace OpenMS
     if (this->metaValueExists("spectra_data"))
     {
       StringList tmp = this->getMetaValue("spectra_data");
-      tmp.insert(tmp.end(),toAdd.begin(),toAdd.end());
+      tmp.insert(tmp.end(), toAdd.begin(), toAdd.end());
       this->setMetaValue("spectra_data", DataValue(tmp));
     }
     else
