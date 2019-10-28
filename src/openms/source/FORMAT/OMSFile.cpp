@@ -702,8 +702,22 @@ namespace OpenMS
       {
         query.bindValue(":input_file_id", QVariant(QVariant::String)); // NULL
       }
-      query.bindValue(":rt", data_query.rt);
-      query.bindValue(":mz", data_query.mz);
+      if (data_query.rt == data_query.rt)
+      {
+        query.bindValue(":rt", data_query.rt);
+      }
+      else // NaN
+      {
+        query.bindValue(":rt", QVariant(QVariant::Double)); // NULL
+      }
+      if (data_query.mz == data_query.mz)
+      {
+        query.bindValue(":mz", data_query.mz);
+      }
+      else // NaN
+      {
+        query.bindValue(":mz", QVariant(QVariant::Double)); // NULL
+      }
       if (!query.exec())
       {
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1501,13 +1515,12 @@ namespace OpenMS
         data_query.input_file_opt =
           input_file_refs_[input_file_id.toLongLong()];
       }
-      data_query.rt = query.value("rt").toDouble();
-      data_query.mz = query.value("mz").toDouble();
+      QVariant rt = query.value("rt");
+      if (!rt.isNull()) data_query.rt = rt.toDouble();
+      QVariant mz = query.value("mz");
+      if (!mz.isNull()) data_query.mz = mz.toDouble();
       Key id = query.value("id").toLongLong();
-      if (have_meta_info)
-      {
-        handleQueryMetaInfo_(subquery_info, data_query, id);
-      }
+      if (have_meta_info) handleQueryMetaInfo_(subquery_info, data_query, id);
       ID::DataQueryRef ref = id_data_.registerDataQuery(data_query);
       data_query_refs_[id] = ref;
     }

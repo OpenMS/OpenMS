@@ -423,8 +423,9 @@ namespace OpenMS
       const IdentificationData::DataQuery& query = *psm.first.first;
       PeptideIdentification peptide;
       static_cast<MetaInfoInterface&>(peptide) = query;
-      peptide.setRT(query.rt);
-      peptide.setMZ(query.mz);
+      // set RT and m/z if they aren't missing (NaN):
+      if (query.rt == query.rt) peptide.setRT(query.rt);
+      if (query.mz == query.mz) peptide.setMZ(query.mz);
       peptide.setMetaValue("spectrum_reference", query.data_id);
       peptide.setHits(psm.second.first);
       const IdentificationData::ScoreType& score_type = *psm.second.second;
@@ -521,7 +522,10 @@ namespace OpenMS
         IdentificationData::ProcessingStepRef step_ref = *step_ref_opt;
         protein.setIdentifier(String(Size(&(*step_ref))));
         protein.setDateTime(step_ref->date_time);
-        protein.setPrimaryMSRunPath(step_ref->primary_files);
+        if (!step_ref->primary_files.empty())
+        {
+          protein.setPrimaryMSRunPath(step_ref->primary_files);
+        }
         const Software& software = *step_ref->software_ref;
         protein.setSearchEngine(software.getName());
         protein.setSearchEngineVersion(software.getVersion());
