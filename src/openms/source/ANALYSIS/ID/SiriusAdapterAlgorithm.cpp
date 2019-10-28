@@ -646,7 +646,7 @@ namespace OpenMS
       {
         OPENMS_LOG_INFO << param.toStdString() << " ";
       }
-      OPENMS_LOG_INFO << endl;:q
+      OPENMS_LOG_INFO << endl;
 
       // the actual process
       QProcess qp;
