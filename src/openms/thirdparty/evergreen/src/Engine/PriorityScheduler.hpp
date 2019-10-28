@@ -118,6 +118,16 @@ public:
     }
 
     MessagePasser<VARIABLE_KEY>*dest_mp = edge->dest;
+
+    #ifdef PRINT_MESSAGES
+    std::cout << "Message Passed: " << std::endl;
+    std::cout << "FROM  ";
+    edge->source->print(std::cout);
+    std::cout << "  TO  ";
+    edge->dest->print(std::cout);
+    std::cout << "  WITH  " << edge->get_message() << std::endl;
+    #endif
+
     dest_mp->receive_message_in_and_update(edge->dest_edge_index);
 
     // Iterate through the outgoing edges other than the one just

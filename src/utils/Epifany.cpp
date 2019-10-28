@@ -118,13 +118,13 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    //TODO support seperate runs
+    //TODO support separate runs
     registerInputFileList_("in", "<file>", StringList(), "Input: identification results");
-    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
-    registerInputFile_("exp_design", "<file>", "", "(Currently unused) Input: experimental design", false);
-    setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    //registerInputFile_("exp_design", "<file>", "", "(Currently unused) Input: experimental design", false);
+    //setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
-    setValidFormats_("out", ListUtils::create<String>("idXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
 
     registerStringOption_("protein_fdr",
                           "<option>",
@@ -145,6 +145,14 @@ protected:
                        " Also adds the resolved ambiguity groups to output.", false, false);
     setValidStrings_("greedy_group_resolution", {"none","remove_associations_only","remove_proteins_wo_evidence"});
 
+    registerDoubleOption_("min_psms_extreme_probability",
+        "<float>",
+        0.0,
+        "Set PSMs with probability lower than this to this minimum probability.", false, true);
+    registerDoubleOption_("max_psms_extreme_probability",
+        "<float>",
+        1.0,
+        "Set PSMs with probability higher than this to this maximum probability.", false, false);
 
     addEmptyLine_();
 
@@ -238,10 +246,12 @@ protected:
     vector<ProteinIdentification> mergedprots{1};
     vector<PeptideIdentification> mergedpeps;
 
+    OPENMS_LOG_INFO << "Loading input..." << std::endl;
     if (files.size() > 1)
     {
       for (String& file : files)
       {
+        //TODO this only works for idXML
         vector<ProteinIdentification> prots;
         vector<PeptideIdentification> peps;
         idXMLf.load(file, prots, peps);
@@ -264,56 +274,13 @@ protected:
       mergedprots[0].getProteinGroups().clear();
     }
 
-    //TODO BIG! This should be done only when we do not want to use run information.
-    // maybe add experimental design here too.
-    //TODO move everything here to BPI anyway
-    IDFilter::keepBestPerPeptidePerRun(mergedprots, mergedpeps, true, true, static_cast<unsigned int>(epifany_param.getValue("top_PSMs")));
-
-    IDFilter::removeEmptyIdentifications(mergedpeps);
-
-    convertPSMScores_(mergedpeps);
-
-    double min_nonnull_obs_probability = getDoubleOption_("min_psms_extreme_probability");
-    double max_nonone_obs_probability = getDoubleOption_("max_psms_extreme_probability");
-    // Currently unused
-    /*bool datadependent_extrema_removal = false;
-    if (datadependent_extrema_removal)
-    {
-      pair<double,double> minmax = checkExtremePSMScores_(mergedpeps);
-      min_nonnull_obs_probability = minmax.first;
-      max_nonone_obs_probability = minmax.second;
-    }
-     */
-    if (min_nonnull_obs_probability > 0.0 || max_nonone_obs_probability < 1.0 )
-    {
-      removeExtremeValues_(mergedpeps, min_nonnull_obs_probability, max_nonone_obs_probability);
-    }
-
-    double pre_filter = getDoubleOption_("psm_probability_cutoff");
-    if (pre_filter > min_nonnull_obs_probability)
-    {
-      OPENMS_LOG_INFO << "Removing PSMs with probability < " << pre_filter << std::endl;
-      IDFilter::filterHitsByScore(mergedpeps, pre_filter);
-      IDFilter::removeEmptyIdentifications(mergedpeps);
-    }
-
-    if (mergedpeps.empty())
-    {
-      OPENMS_LOG_ERROR << "No PSMs found. Please check input. Aborting." << std::endl;
-      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
-    }
-
-    //TODO also convert potential PEPs to PPs in ProteinHits? In case you want to use them as priors or
-    // emergency posteriors?
-
     // Currently this is needed because otherwise there might be proteins with a previous score
     // that get evaluated during FDR without a new posterior being set.
     // Alternative would be to reset scores but this does not work well if you wanna work with i.e. user priors
     IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
 
-    OPENMS_LOG_INFO << "Loading, merging, filtering took " << sw.toString() << std::endl;
+    OPENMS_LOG_INFO << "Loading took " << sw.toString() << std::endl;
     sw.reset();
-    OPENMS_LOG_INFO << "Graph now consists of " << mergedprots[0].getHits().size() << " proteins and " << mergedpeps.size() << " peptides." << std::endl;
 
     BayesianProteinInferenceAlgorithm bpi1(getIntOption_("debug"));
     bpi1.setParameters(epifany_param);
@@ -356,6 +323,7 @@ protected:
       FalseDiscoveryRate fdr;
       Param fdrparam = fdr.getParameters();
       fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
+      fdrparam.setValue("add_decoy_proteins","true");
       fdr.setParameters(fdrparam);
       fdr.applyBasic(mergedprots[0], true);
     }
@@ -365,8 +333,18 @@ protected:
              mergedprots[0].getIndistinguishableProteins().size() <<
              " indist. groups." << std::endl;
 
+    //sort for output because they might have been added in a different order
+    std::sort(
+        mergedprots[0].getIndistinguishableProteins().begin(),
+        mergedprots[0].getIndistinguishableProteins().end(),
+        [](const ProteinIdentification::ProteinGroup& f,
+            const ProteinIdentification::ProteinGroup& g)
+            {return f.accessions < g.accessions;});
+
+
     idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
     return ExitCodes::EXECUTION_OK;
+
 
     // Some thoughts about how to leverage info from different runs.
     //Fractions: Always merge (not much to leverage, maybe agreement at borders)

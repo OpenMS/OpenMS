@@ -50,6 +50,7 @@
 #include <QtWidgets/QRadioButton>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QCheckBox>
+#include <QProcess>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
@@ -162,68 +163,71 @@ namespace OpenMS
 
   void ToolsDialog::createINI_()
   {
-    String call = String("\"") + File::findExecutable(getTool()) + "\"" + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
-
-    if (system(call.c_str()) != 0)
+    QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
+    QProcess qp;
+    String executable = File::findExecutable(getTool());
+    qp.start(executable.toQString(), args);
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
+    if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      QMessageBox::critical(this, "Error", (String("Could not execute '") + call + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+      QMessageBox::critical(this, "Error", (String("Could not execute '") + executable + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+      return;
     }
     else if (!File::exists(ini_file_))
     {
-      QMessageBox::critical(this, "Error", (String("Could not open '") + ini_file_ + "'!").c_str());
+      QMessageBox::critical(this, "Error", (String("Could find requested INI file '") + ini_file_ + "'!").c_str());
+      return;
     }
-    else
+
+    enable_();
+    if (!arg_param_.empty())
     {
-      enable_();
-      if (!arg_param_.empty())
-      {
-        tool_desc_->clear();
-        arg_param_.clear();
-        vis_param_.clear();
-        editor_->clear();
-        arg_map_.clear();
-      }
-
-      ParamXMLFile paramFile;
-      paramFile.load((ini_file_).c_str(), arg_param_);
-
-      tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
-      vis_param_ = arg_param_.copy(getTool() + ":1:", true);
-      vis_param_.remove("log");
-      vis_param_.remove("no_progress");
-      vis_param_.remove("debug");
-
-      editor_->load(vis_param_);
-
-      String str;
-      QStringList arg_list;
-      for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
-      {
-        str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
-        if (str.size() != 0 && str.find(":") == String::npos)
-        {
-          arg_map_.insert(make_pair(str, iter.getName()));
-          arg_list << QStringList(str.c_str());
-        }
-      }
-
-      arg_list.push_front("<select>");
-      input_combo_->clear();
-      output_combo_->clear();
-      input_combo_->addItems(arg_list);
-      Int pos = arg_list.indexOf("in");
-      if (pos != -1)
-      {
-        input_combo_->setCurrentIndex(pos);
-      }
-      output_combo_->addItems(arg_list);
-      pos = arg_list.indexOf("out");
-      if (pos != -1 && getTool() != "FileInfo")
-      {
-        output_combo_->setCurrentIndex(pos);
-      }
-      editor_->setFocus(Qt::MouseFocusReason);
+      tool_desc_->clear();
+      arg_param_.clear();
+      vis_param_.clear();
+      editor_->clear();
+      arg_map_.clear();
     }
+
+    ParamXMLFile paramFile;
+    paramFile.load((ini_file_).c_str(), arg_param_);
+
+    tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
+    vis_param_ = arg_param_.copy(getTool() + ":1:", true);
+    vis_param_.remove("log");
+    vis_param_.remove("no_progress");
+    vis_param_.remove("debug");
+
+    editor_->load(vis_param_);
+
+    String str;
+    QStringList arg_list;
+    for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
+    {
+      str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
+      if (str.size() != 0 && str.find(":") == String::npos)
+      {
+        arg_map_.insert(make_pair(str, iter.getName()));
+        arg_list << QStringList(str.c_str());
+      }
+    }
+
+    arg_list.push_front("<select>");
+    input_combo_->clear();
+    output_combo_->clear();
+    input_combo_->addItems(arg_list);
+    Int pos = arg_list.indexOf("in");
+    if (pos != -1)
+    {
+      input_combo_->setCurrentIndex(pos);
+    }
+    output_combo_->addItems(arg_list);
+    pos = arg_list.indexOf("out");
+    if (pos != -1 && getTool() != "FileInfo")
+    {
+      output_combo_->setCurrentIndex(pos);
+    }
+    editor_->setFocus(Qt::MouseFocusReason);
   }
 
   void ToolsDialog::setTool_(int i)

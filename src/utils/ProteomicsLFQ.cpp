@@ -327,8 +327,13 @@ protected:
     if (ic.getCalibrationPoints().size() <= 1) return;
 
     // choose calibration model based on number of calibration points
-    MZTrafoModel::MODELTYPE md = (ic.getCalibrationPoints().size() == 2) ? MZTrafoModel::LINEAR : MZTrafoModel::QUADRATIC;
-    bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
+
+    // there seem to be some problems with the QUADRATIC model that we first need to investigate
+    //MZTrafoModel::MODELTYPE md = (ic.getCalibrationPoints().size() == 2) ? MZTrafoModel::LINEAR : MZTrafoModel::QUADRATIC;
+    //bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
+
+    MZTrafoModel::MODELTYPE md = MZTrafoModel::LINEAR;
+    bool use_RANSAC = true;
 
     Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
     Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
@@ -501,7 +506,7 @@ protected:
             transformations[i]);
         } catch (Exception::IllegalArgument& e)
         {
-         OPENMS_LOG_WARN << e.getMessage() << endl;
+          OPENMS_LOG_WARN << e.getMessage() << endl;
         }
           
         if (debug_level_ > 666)
@@ -723,6 +728,17 @@ protected:
       const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
       IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
 
+      if (protein_ids.size() != 1)
+      {
+        OPENMS_LOG_FATAL_ERROR << "Exactly one protein identification run must be annotated in " << id_file_abs_path << endl;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
+
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeDecoyHits(protein_ids);
+      IDFilter::removeEmptyIdentifications(peptide_ids);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+
       // add to the (global) set of fixed and variable modifications
       for (auto & p : protein_ids)
       {
@@ -742,12 +758,6 @@ protected:
         {
           ph.clearMetaInfo();
         }
-      }
-
-      if (protein_ids.size() != 1)
-      {
-        OPENMS_LOG_FATAL_ERROR << "Exactly one protein identification run must be annotated in " << id_file_abs_path << endl;
-        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
 
       // annotate experimental design
@@ -879,7 +889,6 @@ protected:
       StringList feature_msfile_ref;
       feature_msfile_ref.push_back(mz_file);
       fm.setPrimaryMSRunPath(feature_msfile_ref);
-      feature_maps.push_back(fm);
 
       FeatureFinderIdentificationAlgorithm ffi;
       ffi.getMSData().swap(ms_centroided);
@@ -894,12 +903,21 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
+      FeatureMap tmp = fm;
       ffi.run(peptide_ids, 
         protein_ids, 
         ext_peptide_ids, 
         ext_protein_ids, 
-        feature_maps.back(), 
+        tmp,
         seeds);
+
+      for (auto & f : tmp)
+      {
+        f.clearMetaInfo();
+        f.setSubordinates({});
+        f.setConvexHulls({});
+      }
+      feature_maps.push_back(tmp);
       
       if (debug_level_ > 666)
       {

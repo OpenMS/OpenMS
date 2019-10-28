@@ -113,11 +113,13 @@ namespace OpenMS
     while (!ifs.eof())
     {
       TextFile::getLine(ifs, line);
-      double rt, intensity;
-      int ret = std::sscanf(line.c_str(), "%lf\t%*s\t%lf", &rt, &intensity);
-      if (ret == 2)
+      std::vector<String> substrings;
+      line.split('\t', substrings);
+      if (substrings.size() == 3)
       {
-        chromatogram.push_back(ChromatogramPeak(rt, intensity));
+        chromatogram.push_back(ChromatogramPeak(
+          removeCommasAndParseDouble(substrings[0]),
+          removeCommasAndParseDouble(substrings[2])));
       }
       else if (line.empty())
       {
@@ -130,5 +132,10 @@ namespace OpenMS
     }
     ifs.close();
     experiment.addChromatogram(chromatogram);
+  }
+
+  double ChromeleonFile::removeCommasAndParseDouble(String& number) const
+  {
+    return number.remove(',').toDouble();
   }
 }

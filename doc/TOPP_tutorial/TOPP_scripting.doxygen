@@ -35,6 +35,335 @@
 //##############################################################################
 
 /**
+        @page TOPP_example_qualitycontrol Quality Control
+
+        @section TOPP_example_qualitycontrol_section Quality Control
+
+        @b Goal: Check the quality of the data (currently, on label-free workflow data is supported).
+
+        The QualityControl TOPP tool is able to check the quality of different aspects if enough data is provided.
+        Depending on the given data this tool executes different metrics that have access to all of their required
+        files (see section 'Metrics'). They will then add new metavalues to the data and write all possible
+        information into the mzTab output file. This mzTab file can then be processed using your custom scripts or
+        via the R package (see <a href="https://github.com/cbielow/PTXQC/" target="blank_">PTXQC</a>).
+
+        @section TOPP_example_qualitycontrol_section2 Workflow
+
+        @image html TOPP_qualitycontrol.png
+        @image latex TOPP_qualitycontrol.png "" width=10cm
+        
+        An example workflow can be found in OpenMS/share/OpenMS/examples/TOPPAS/QualityControl.toppas.
+
+
+        @section  TOPP_example_qualitycontrol_section3 Metrics
+        This Table shows what each of the included metrics does, what they need to be executed and what they add to
+        the data or what they return.
+        
+        @subsection TOPP_example_qualitycontrol_section3_subsection Input Data
+        
+        PostFDR FeatureXML: A FeatureXML after FDR filtering. <br>
+        Contaminants Fasta file: A Fasta file containing contaminant proteins. <br>
+        Raw mzML file: An unchanged mzML file. <br>
+        InternalCalibration MzML file: An MzML file after internal calibration. <br>
+        TrafoXML file: The RT alignment function as obtained from a MapAligner.
+
+        <TABLE border=1>
+
+        <TR>
+            <TH>
+                <b><br>Contaminants</b>
+            </TH><TH></TH>
+        </TR>
+        <TR>
+            <TD>
+                <b>Required input data:</b> Contaminants Fasta file, PostFDR FeatureXML
+            </TD>
+            <TD>
+                <b> Output</b>
+            </TD>
+        </TR>
+        <TR>
+            <TD>
+                @b Description: <br>
+                The Contaminants metric takes the contaminants database and digests the protein sequences with the
+                digestion enzyme that is given in the featureXML.
+                Afterwards it checks whether each of all peptide sequences of the featureXML (including the
+                unassigned PeptideIdentifications) is registered in the contaminants database.
+            </TD>
+            <TD>
+                <b> Changes in files:</b> <br>
+                Metavalue: <br>
+                <ul>
+                <li>'is_contaminant' set to '1' or to '0' if the peptide is found in the contaminant database or not
+                and sets a '0' if not.<br> </li>
+                </ul>
+                <b> Other outputs:</b> <br>
+                Returns:<br>
+                <ul>
+                <li>Contaminant ratio of all peptides</li>
+                <li>Contaminant ratio of all assigned peptides</li>
+                <li>Contaminant ratio of all unassigned peptides</li>
+                <li>Intensity ratio of all contaminants in the assigned peptides</li>
+                <li>Number of empty features, Number of all found features</li>
+                </ul>
+            </TD>
+        </TR>
+
+        <TR>
+            <TH>
+                <br><b>FragmentMassError</b>
+            </TH><TH></TH>
+        </TR>
+        <TR>
+             <TD>
+                  <b>Required input data:</b> PostFDR FeatureXML, raw mzML file
+             </TD>
+             <TD>
+                  <b>Output</b>
+             </TD>
+        </TR>
+        <TR>
+             <TD>
+                  @b Description: <br>
+                  The FragmentMassError metric computes a list of fragment mass errors for each annotated MS2 spectrum in ppm and Da.
+                  Afterwards it calculates the mass delta between observed and theoretical peaks. <br>
+             </TD>
+
+             <TD>
+                  <b> Changes in files:</b> <br>
+                  Metavalue: <br>
+                  <ul>
+                  <li>'fragment_mass_error_ppm' set to the fragment mass error in parts per million</li>
+                  <li>'fragment_mass_error_da' set to the fragment mass error in Dalton</li>
+                  </ul>
+                  <b> Other Output:</b> <br>
+                  Returns: <br>
+                  <ul>
+                  <li>Average and variance of fragment mass errors in ppm</li>
+                  </ul>
+             </TD>
+        </TR>
+        <TR>
+            <TH>
+                <br><b>MissedCleavages</b>
+            </TH><TH></TH>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Required input data:</b> PostFDR FeatureXML
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Description: <br>
+                   This MissedCleavages metric counts the number of MissedCleavages per PeptideIdentification given a FeatureMap
+                   and returns an agglomeration statistic (observed counts).
+                   Additionally the first PeptideHit of each PeptideIdentification in the FeatureMap is augmented with metavalues.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   Metavalue:<br>
+                   <ul>
+                   <li>'missed_cleavages'</li>
+                   </ul>
+                   <b> Other Output:</b> <br>
+                   Returns: <br>
+                   <ul>
+                   <li>Frequency map of missed cleavages as key/value pairs.</li>
+                   </ul>
+              </TD>
+        </TR>
+        <TR>
+            <TH>
+                <br><b>MS2IdentificationRate</b>
+            </TH><TH></TH>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Required input data:</b> PostFDR FeatureXML, raw mzML file
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Description: <br>
+                   The MS2IdentificationRate metric calculates the Rate of the MS2 identification as follows:
+                   The number of all PeptideIdentifications are counted and that number is divided by the total
+                   number of MS2 spectra.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   This metric does not change anything in the data.<br>
+                   <b> Other Output:</b> <br>
+                   Returns: <br>
+                   <ul>
+                   <li>Number of PeptideIdentifications</li>
+                   <li>Number of MS2 spectra</li>
+                   <li>Ratio of #pepID/#MS2</li>
+                   </ul>
+              </TD>
+        </TR>
+        <TR>
+            <TH>
+                <br><b>MzCalibration</b>
+            </TH><TH></TH>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Required input data:</b> PostFDR FeatureXML<br>
+                   <b>Optional input data:</b> InternalCalibration MzML file
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Description: <br>
+                   This metric adds new metavalues to the first (best) hit of each PeptideIdentification.
+                   For this metric it is also possible to use this without an MzML File, but then only uncalibrated m/z error (ppm) will be reported.
+                   However for full functionality a PeakMap/MSExperiment with original m/z-values before m/z calibration generated by InternalCalibration has to be given.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   Metavalues: <br>
+                   <ul>
+                   <li>'mz_raw'set to m/z value of original experiment</li>
+                   <li>'mz_ref' set to m/z value of calculated reference</li>
+                   <li>'uncalibrated_mz_error_ppm' set to uncalibrated m/z error in parts per million</li>
+                   <li>'calibrated_mz_error_ppm' set to calibrated m/z error in parts per million</li>
+                   </ul>
+                   <b> Other Output:</b> <br>
+                   No additional output.
+              </TD>
+        </TR>
+        <TR>
+            <TH>
+                <br><b>RTAlignment</b>
+            </TH><TH></TH>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Required input data:</b> PostFDR FeatureXML, trafoXML file
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Description: <br>
+                   The RTAlignment metric checks what the retention time was before the alignment
+                   and how it is after the alignment. These two values are added to the metavalues
+                   in the PeptideIdentification.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   Metavalues: <br>
+                   <ul>
+                   <li>'rt_align'set to retention time after alignment</li>
+                   <li>'rt_raw' set to retention time before alignment</li>
+                   </ul>
+                   <b> Other Output:</b> <br>
+                   No additional output.
+              </TD>
+        </TR>
+        <TR>
+            <TH>
+                <br><b>TIC</b>
+            </TH><TH></TH>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Required input data:</b> raw mzML file
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Description: <br>
+                   This TIC metric calculates the total ion count of an MSExperiment if a bin size in RT seconds
+                   greater than 0 is given. All MS1 abundances within a bin are summed up.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   This metric does not change anything in the data.<br>
+                   <b> Other Output:</b> <br>
+                   Returns:<br>
+                   <ul>
+                   <li>TIC chromatograms</li>
+                   </ul>
+              </TD>
+        </TR>
+        <TR>
+            <TH>
+                <br><b>TopNoverRT</b>
+            </TH><TH></TH>
+        </TR>
+        <TR>
+              <TD>
+                   <b>Required input data:</b> PostFDR FeatureXML, raw mzML file
+              </TD>
+              <TD>
+                   <b>Output</b>
+              </TD>
+        </TR>
+        <TR>
+              <TD>
+                   @b Description: <br>
+                   The TopNoverRT metric calculates the ScanEventNumber (number of the MS2 scans after the MS1 scan) and adds
+                   them as the new metavalue 'ScanEventNumber' to the PeptideIdentifications. It finds
+                   all unidentified MS2-Spectra and adds corresponding 'empty' PeptideIdentifications without sequence as
+                   placeholders to the unassigned PeptideIdentification list. Furthermore
+                   it adds the metavalue 'identified' to the PeptideIdentification.
+              </TD>
+
+              <TD>
+                   <b> Changes in files:</b> <br>
+                   Metavalues: <br>
+                   <ul>
+                    <li>'ScanEventNumber' set to the calculated value</li>
+                    <li>'identified' set to '+' or '-'</li>
+                   </ul>
+                   If provided:
+                   <ul>
+                     <li>'FWHM' set to RT peak width for all assigned PIs</li>
+                     <li>'ion_injection_time'set to injection time from MS2 spectrum</li>
+                     <li>'activation_method'set to activation method from MS2 spectrum</li>
+                     <li>'total_ion_count'set to summed intensity from MS2 spectrum</li>
+                     <li>'base_peak_intensity'set to highest intensity from MS2 spectrum</li>
+                   </ul>
+                   Additionally: <br>
+                   <ul>
+                    <li>Adds empty PeptideIdentifications</li>
+                   </ul>
+                   <b> Other Output:</b> <br>
+                   No additional output.
+              </TD>
+        </TR>
+
+
+
+
+        </TABLE>
+
+*/
+
+//##############################################################################
+
+/**
 	@page TOPP_general General introduction
 
 	This tutorial will give you a brief overview of the most important TOPP tools.
@@ -84,6 +413,7 @@
 	- @b -write_ini &lt;file&gt; Writes an example INI file
 	- @b -no_progress Disables progress logging to command line
 	- @b --help Shows a help page for the command line and INI file options
+  - @b --helphelp Shows a detailed (including advanced parameters) help page for the command line and INI file options
 
 	<HR>
 	@section TOPP_parameters TOPP INI files
@@ -333,8 +663,8 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	@section TOPP_example_signalprocessing_parameters Finding the right parameters for the 
 	NoiseFilters, the BaselineFilter and the PeakPickers
 
-	Finding the right parameters is not trivial. The default parameters	will not work on most datasets.
-	In order to find good parameters, we propose the	following procedure:
+	Finding the right parameters is not trivial. The default parameters will not work on most datasets.
+	In order to find good parameters, we propose the following procedure:
 	-# Load the data in TOPPView
 	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
 	-# Experiment with the parameters until you have found the proper settings
@@ -758,3 +1088,5 @@ TextImporter -in infile.txt -out outfile.featureXML
 IDFileConverter -in infile.pepXML -out outfile.idXML
 		@endcode
 */
+
+

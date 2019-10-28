@@ -229,7 +229,6 @@ namespace OpenMS
         {
         public :
           MSstatsTMTLine_(
-              bool _has_fraction,
               const String& _accession,
               const String& _sequence,
               const String& _precursor_charge,
@@ -240,8 +239,7 @@ namespace OpenMS
               const String& _mixture,
               const String& _techrepmixture,
               const String& _fraction
-          ): has_fraction_(_has_fraction),
-             accession_(_accession),
+          ): accession_(_accession),
              sequence_(_sequence),
              precursor_charge_(_precursor_charge),
              channel_(_channel),
@@ -269,7 +267,7 @@ namespace OpenMS
                     + delim + run_
                     + delim + mixture_
                     + delim + techrepmixture_
-                    + (this->has_fraction_ ? delim + String(fraction_) : "");
+                    + delim + String(fraction_);
           }
 
           friend bool operator<(const MSstatsTMTLine_ &l,
@@ -281,7 +279,6 @@ namespace OpenMS
 
 
         private:
-          bool has_fraction_;
           String accession_;
           String sequence_;
           String precursor_charge_;

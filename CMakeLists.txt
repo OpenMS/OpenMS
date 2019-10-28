@@ -48,9 +48,9 @@ SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # require at least gcc 4.9 due to bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
-    message(FATAL_ERROR "GCC version must be at least 4.9!")
+  # require at least gcc 4.8 for full C++11 support
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
+    message(FATAL_ERROR "GCC version must be at least 4.8!")
   endif()
 endif()
 
@@ -291,11 +291,11 @@ is_valid_package(${PACKAGE_TYPE})
 ## Warn here because you need the signing identity before the app bundles are defined in the
 ## src subfolder
 if("${PACKAGE_TYPE}" STREQUAL "dmg")
-  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "")
-    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY being set. "
+  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
+    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
                          "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
   else()
-    ## CPack has a special variable for it.
+    ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
   endif()
 endif()

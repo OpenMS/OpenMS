@@ -311,9 +311,11 @@ namespace OpenMS
       delete hover_edge_;
       hover_edge_ = nullptr;
     }
-
-    topoSort();
-    updateEdgeColors();
+    else
+    {  // edge was added ...
+      topoSort();
+      updateEdgeColors();
+    }
   }
 
   TOPPASVertex* TOPPASScene::getVertexAt_(const QPointF& pos)
@@ -552,7 +554,6 @@ namespace OpenMS
     foreach(TOPPASVertex* vertex, vertices_)
     {
       vertex->setDFSColor(TOPPASVertex::DFS_WHITE);
-      vertex->setDFSParent(nullptr);
     }
     foreach(TOPPASVertex* vertex, vertices_)
     {
@@ -591,7 +592,6 @@ namespace OpenMS
       TOPPASVertex* target = (*it)->getTargetVertex();
       if (target->getDFSColor() == TOPPASVertex::DFS_WHITE)
       {
-        target->setDFSParent(vertex);
         if (dfsVisit_(target))
         {
           // back edge found
@@ -1460,27 +1460,27 @@ namespace OpenMS
     writeToLogFile_(text.toQString());
   }
 
-  void TOPPASScene::topoSort()
+  void TOPPASScene::topoSort(bool resort_all)
   {
-    for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+    UInt topo_counter {1};
+    for (TOPPASVertex* tv : vertices_)
     {
-      (*it)->setTopoSortMarked(false);
+      if (resort_all) tv->setTopoSortMarked(false);
+      else if (tv->isTopoSortMarked()) ++topo_counter; // count number of existing/sorted vertices to get correct offset for new vertices
     }
-
-    bool topo_sort_finished = false;
-    UInt topo_counter = 1;
-    while (!topo_sort_finished)
+  
+    while (true)
     {
       bool some_vertex_not_finished = false;
-      for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+      for (TOPPASVertex* tv : vertices_)
       {
-        if ((*it)->isTopoSortMarked())
+        if (tv->isTopoSortMarked())
         {
           continue;
         }
         
         bool has_unmarked_predecessors = false;
-        for (TOPPASVertex::ConstEdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
+        for (TOPPASVertex::ConstEdgeIterator e_it = tv->inEdgesBegin(); e_it != tv->inEdgesEnd(); ++e_it)
         {
           TOPPASVertex* v = (*e_it)->getSourceVertex();
           if (!(v->isTopoSortMarked()))
@@ -1496,28 +1496,31 @@ namespace OpenMS
         else
         { // mark this node
           // update name of input node
-          TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
+          TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
           if (iflv)
           {
             //check if key was modified by user. if yes, don't update it
-            QString old_topo_nr = QString::number((*it)->getTopoNr());
+            QString old_topo_nr = QString::number(tv->getTopoNr());
             if (old_topo_nr == iflv->getKey() || iflv->getKey() == "")
             {
               iflv->setKey(QString::number(topo_counter));
             }
           }
 
-          (*it)->setTopoNr(topo_counter);
-          (*it)->setTopoSortMarked(true);
+          tv->setTopoNr(topo_counter);
+          tv->setTopoSortMarked(true);
 
           ++topo_counter;
         }
       }
       if (!some_vertex_not_finished)
       {
-        topo_sort_finished = true;
+        break; // all sorted
       }
     }
+
+    // sort vertices in list by their TopoNr, so that they keep their numbering when deleting edges
+    std::sort(vertices_.begin(), vertices_.end(), [](TOPPASVertex* a, TOPPASVertex* b) { return a->getTopoNr() < b->getTopoNr();});
 
     update(sceneRect());
   }

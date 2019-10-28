@@ -83,8 +83,6 @@ namespace OpenMS
       {}
     };
 
-  
-
     /** 
       @brief Extract calibrants from Raw data (mzML)
 

@@ -189,7 +189,7 @@ public:
     /// Sets the file name
     void setSaveFileName(const String & name);
     /// Performs a topological sort of all vertices
-    void topoSort();
+    void topoSort(bool resort_all = true);
     /// Returns the name of the directory for output files
     const QString & getOutDir() const;
     /// Returns the name of the directory for temporary files
