@@ -92,7 +92,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
       spectrum_ms_file.close();
     } 
    
-    const std::string pathtocsicsv = it + "/summary_csi_fingerid.csv";
+    const std::string pathtocsicsv = it + "/structure_candidates.csv";
 
     ifstream file(pathtocsicsv);
 

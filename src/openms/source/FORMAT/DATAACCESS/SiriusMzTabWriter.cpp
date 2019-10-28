@@ -95,7 +95,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
     }
 
     // extract data from summary_sirius.csv
-    const std::string pathtosiriuscsv = it + "/summary_sirius.csv";
+    const std::string pathtosiriuscsv = it + "/formula_candidates.csv";
 
     ifstream file(pathtosiriuscsv);
     if (file) 
