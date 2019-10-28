@@ -39,6 +39,8 @@ namespace OpenMS
     /// default destructor
     ~SpectrumDeconvolution();
 
+    bool empty();
+
     std::vector<PeakGroup>& getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                    std::vector<double> &prevMinBinLogMassVector,
                                                      FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
@@ -95,7 +97,7 @@ namespace OpenMS
                                 double &massBinMinValue,
                                 float *sumLogIntensities,
                                 Byte **chargeRanges,
-                                FLASHDeconvHelperStructs::PrecalcularedAveragine &avg
+                                int &msLevel
     );
 
     void setFilters();

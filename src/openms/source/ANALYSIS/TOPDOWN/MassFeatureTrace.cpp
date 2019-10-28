@@ -25,6 +25,9 @@ namespace OpenMS
     for (auto &pg : peakGroups)
     {
       auto &spec = pg.spec;
+      if(spec->getMSLevel() != 1){
+        continue;
+      }
 
       if (indexSpecMap.find(pg.specIndex) == indexSpecMap.end()){
         indexSpecMap[pg.specIndex] = MSSpectrum();
@@ -50,7 +53,10 @@ namespace OpenMS
 
     for (auto &pg : peakGroups)
     {
-      //      auto &spec = pg.spec;
+      auto &spec = pg.spec;
+      if(spec->getMSLevel() != 1){
+        continue;
+      }
       auto &pgMap = peakGroupMap[pg.specIndex];
 
       pgMap[pg.monoisotopicMass] = pg;

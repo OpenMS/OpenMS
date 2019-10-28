@@ -18,18 +18,9 @@ namespace OpenMS
   /// default destructor
   SpectrumDeconvolution::~SpectrumDeconvolution()
   {
-
-    //MSSpectrum spec;
-    //    Parameter param;
-    //    std::vector<LogMzPeak> logMzPeaks;
-    //    boost::dynamic_bitset<> massBinsForThisSpectrum;
-    //
-    //    boost::dynamic_bitset<> massBins;
-    //    boost::dynamic_bitset<> mzBins;
-    //
-    //    std::vector<PeakGroup> peakGroups;
-    //
-
+    if (logMzPeaks.empty()){
+      return;
+    }
     std::vector<LogMzPeak>().swap(logMzPeaks);
     std::vector<PeakGroup>().swap(peakGroups);
     delete[] binOffsets;
@@ -187,6 +178,7 @@ namespace OpenMS
     int hChargeSize = (int) param.hCharges.size();
     int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
 
+
     long binEnd = (long) massBins.size();
     auto candidateMassBinsForThisSpectrum = boost::dynamic_bitset<>(massBins.size());
 
@@ -197,7 +189,7 @@ namespace OpenMS
     auto mzBinIndex = mzBins.find_first();
     std::fill_n(massIntensitites, massBins.size(), 0);
 
-    if(msLevel == 1)
+    if(msLevel==1)
     {
       Byte *prevCharges = new Byte[massBins.size()];
       std::fill_n(prevCharges, massBins.size(), (Byte) (chargeRange + 2));
@@ -425,7 +417,7 @@ namespace OpenMS
       {
         long maxIndex = -1;
         float maxCount = -1e11;
-        Byte charge = 0;
+       // Byte charge = 0;
 
         for (Byte j = 0; j < chargeRange; j++)
         {
@@ -448,10 +440,10 @@ namespace OpenMS
           { // no signal
             continue;
           }
-          maxChargeRanges[massBinIndex] = std::max(maxChargeRanges[massBinIndex], charge);
-          minChargeRanges[massBinIndex] = std::min(minChargeRanges[massBinIndex], charge);
+          maxChargeRanges[massBinIndex] = std::max(maxChargeRanges[massBinIndex], j);
+          minChargeRanges[massBinIndex] = std::min(minChargeRanges[massBinIndex], j);
           massBinsForThisSpectrum[massBinIndex] = candidateMassBinsForThisSpectrum[massBinIndex];
-          mzChargeRanges[mzBinIndex] = charge;//minChargeRanges[maxIndex];//...
+          mzChargeRanges[mzBinIndex] = j;//minChargeRanges[maxIndex];//...
           massBins[massBinIndex] = true;
         }
 
@@ -477,8 +469,13 @@ namespace OpenMS
     long binThresholdMinMass = (long) getBinNumber(log(param.minMass), massBinMinValue, param.binWidth);
     long binThresholdMaxMass = (long) std::min(massBins.size(),
                                                1 + getBinNumber(log(param.maxMass), massBinMinValue, param.binWidth));
+    //auto y = 1;
+
     auto candidateMassBins = getCandidateMassBinsForThisSpectrum(massIntensities, mzIntensities, msLevel);
 
+   // if (msLevel == 2){
+   //   std::cout<<candidateMassBins.count()<<std::endl;
+   // }
     auto perMassChargeRanges = updateMassBins_(candidateMassBins,
                                                massIntensities,
                                                binThresholdMinMass,
@@ -718,7 +715,7 @@ namespace OpenMS
   void SpectrumDeconvolution::getCandidatePeakGroups(double &mzBinMinValue, double &massBinMinValue,
                                                      float *massIntensities,
                                                      Byte **chargeRanges,
-                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg
+                                                     int &msLevel
   )
   {
     double binWidth = param.binWidth;
@@ -731,7 +728,7 @@ namespace OpenMS
     auto maxIsotopeCount = param.maxIsotopeCount;;//avg.getMostAbundantIndex(exp(logM));
 
     int logMzPeakSize = (int) logMzPeaks.size();
-    Size massBinSize = massBins.size();
+    //Size massBinSize = massBins.size();
     int *currentPeakIndex = new int[param.chargeRange];
     std::fill_n(currentPeakIndex, param.chargeRange, 0);
 
@@ -799,7 +796,7 @@ namespace OpenMS
         {
           continue;
         }
-       // std::cout<<2<<std::endl;
+
         int charge = j + minCharge;
         auto &cpi = currentPeakIndex[j];
         double maxIntensity = 0.0;
@@ -959,12 +956,21 @@ namespace OpenMS
 
   }
 
+  bool SpectrumDeconvolution::empty(){
+    return logMzPeaks.empty();
+  }
 
   std::vector<SpectrumDeconvolution::PeakGroup> &SpectrumDeconvolution::getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                                                                                   std::vector<double> &prevMinBinLogMassVector,
                                                                                                   FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
                                                                                                   int msLevel)
   {
+    if(logMzPeaks.empty()){
+      auto tmp = std::vector<SpectrumDeconvolution::PeakGroup>();
+      return tmp;
+    }
+
+
     double massBinMaxValue = std::min(
         logMzPeaks[logMzPeaks.size() - 1].logMz -
         filter[param.chargeRange - param.minContinuousChargePeakCount - 1],
@@ -1007,19 +1013,24 @@ namespace OpenMS
     unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector);
 
     ////////
+    auto y = 1; // TODO
+
     auto perMassChargeRanges = updateMassBins(massBinMinValue, massIntensities,
-                                              mzBinIntensities, msLevel);
+                                              mzBinIntensities, y);
 
-
-     getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
+    getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
                            massIntensities,
-                           perMassChargeRanges, avg);
+                           perMassChargeRanges, y);
 
+    //if(msLevel == 1)
+    {
+      //std::cout<<massBins.count()<< "\t" << peakGroups.size()<<std::endl;
 
-    PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
-    peakGroups = scorer.scoreAndFilterPeakGroups(avg);
+      PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
+      peakGroups = scorer.scoreAndFilterPeakGroups(avg);
+    }
+
     ////////
-
 
     if (!prevMassBinVector.empty() && prevMassBinVector.size() >= (Size) param.numOverlappedScans)
     {

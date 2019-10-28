@@ -41,7 +41,9 @@ namespace OpenMS
 
     void removeOverlappingPeakGroups();
 
-    void updatePerChargeIsotopeIntensity(
+    std::vector<int> updatePerChargeIsotopeIntensity(
+        double **intensityGrid,
+        double **intensityGrid2,
         double *perIsotopeIntensity,
         double *perChargeIntensity,
         PeakGroup &pg);
@@ -50,6 +52,8 @@ namespace OpenMS
 
 
     static double getCosine(std::vector<double> &a, std::vector<double> &b, int off = 0);
+
+    static double getCosine(double *a, double *b, int size);
 
     static double getCosine(double *a,
                             int &aStart,

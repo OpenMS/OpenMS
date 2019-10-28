@@ -135,6 +135,28 @@ namespace OpenMS
     return n / sqrt(d);
   }
 
+  double PeakGroupScoring::getCosine(double *a, double *b, int size)
+  {
+    double n = .0, d1 = .0, d2 = .0;
+    //int overlapCntr = 0;
+    for (Size j = 0; j < size; j++)
+    {
+      d1 += a[j] * a[j];
+      d2 += b[j] * b[j];
+      n += a[j] * b[j];
+      //  if(a[j] > 0 && b[j] > 0) overlapCntr++;
+    }
+
+    //if(overlapCntr < 2) return 0; //
+    double d = (d1 * d2);
+    if (d <= 0)
+    {
+      return 0;
+    }
+    return n / sqrt(d);
+  }
+
+
   double PeakGroupScoring::getCosine(std::vector<double> &a, std::vector<double> &b, int off)
   {
     double n = .0, d1 = .0, d2 = .0;
@@ -305,6 +327,18 @@ namespace OpenMS
 
     auto perIsotopeIntensity = new double[param.maxIsotopeCount];
     auto perChargeIntensity = new double[param.chargeRange];
+    auto intensityGrid = new double*[param.chargeRange];
+
+    for (int i = 0;  i < param.chargeRange ; i++)
+    {
+      intensityGrid[i] = new double[param.maxIsotopeCount];
+    }
+    auto intensityGrid2 = new double*[param.maxIsotopeCount];
+
+    for (int i = 0;  i < param.maxIsotopeCount ; i++)
+    {
+      intensityGrid2[i] = new double[param.chargeRange];
+    }
 
     for (auto &pg : peakGroups)
     {
@@ -312,9 +346,67 @@ namespace OpenMS
       {
         continue;
       }
-      updatePerChargeIsotopeIntensity(
+
+      auto indices = updatePerChargeIsotopeIntensity(
+          intensityGrid,intensityGrid2,
           perIsotopeIntensity, perChargeIntensity,
           pg);
+
+      if(indices[0]<0 || indices[1]<0){
+        continue;
+      }
+
+      int tmp = 0;
+      for(int i=indices[0];i<param.chargeRange-1;i++){
+        auto int1 = intensityGrid[i];
+        auto int2 = intensityGrid[i+1];
+        auto cos = getCosine(int1, int2, param.maxIsotopeCount);
+        if (cos > .5){
+          tmp++;
+        }else{
+          break;
+        }
+      }
+      for(int i=indices[0]-1;i>=1;i--){
+        auto int1 = intensityGrid[i];
+        auto int2 = intensityGrid[i-1];
+        auto cos = getCosine(int1, int2, param.maxIsotopeCount);
+        if (cos > .5){
+          tmp++;
+        }else{
+          break;
+        }
+      }
+
+      if(tmp <2){
+        continue;
+      }
+
+      tmp = 0;
+      for(int i=indices[1];i<param.maxIsotopeCount-1;i++){
+        auto int1 = intensityGrid2[i];
+        auto int2 = intensityGrid2[i+1];
+        auto cos = getCosine(int1, int2, param.chargeRange);
+        if (cos > .5){
+          tmp++;
+        }else{
+          break;
+        }
+      }
+      for(int i=indices[1]-1;i>=1;i--){
+        auto int1 = intensityGrid2[i];
+        auto int2 = intensityGrid2[i-1];
+        auto cos = getCosine(int1, int2, param.chargeRange);
+        if (cos > .5){
+          tmp++;
+        }else{
+          break;
+        }
+      }
+
+      if(tmp <2){
+        continue;
+      }
 
       pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.chargeRange);
 
@@ -323,14 +415,14 @@ namespace OpenMS
         continue;
       }
 
-      bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
-                                                             param.chargeRange,
-                                                             param.minContinuousChargePeakCount);
+     // bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
+                                                          //   param.chargeRange,
+                                                        //     param.minContinuousChargePeakCount);
 
-      if (!isChargeWellDistributed)
-      {
-        continue;
-      }
+     // if (!isChargeWellDistributed)
+     // {
+       // continue;
+    //  }
 
       int offset = 0;
       pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getMass(),
@@ -356,6 +448,16 @@ namespace OpenMS
     removeOverlappingPeakGroups();
     //removeHarmonicPeakGroups(filteredPeakGroups, param);
 
+    for (int i = 0;  i < param.chargeRange ; i++)
+    {
+      delete[] intensityGrid[i];
+    }
+    delete[] intensityGrid;
+    for (int i = 0;  i < param.maxIsotopeCount ; i++)
+    {
+      delete[] intensityGrid2[i];
+    }
+    delete[] intensityGrid2;
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
 
@@ -413,16 +515,31 @@ namespace OpenMS
   }
 
 
-  void PeakGroupScoring::updatePerChargeIsotopeIntensity(
+  std::vector<int> PeakGroupScoring::updatePerChargeIsotopeIntensity(
+      double **intensityGrid,
+      double **intensityGrid2,
       double *perIsotopeIntensity,
       double *perChargeIntensity,
       PeakGroup &pg)
   {
     std::fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
     std::fill_n(perChargeIntensity, param.chargeRange, 0);
+    for (int j = 0; j < param.chargeRange; ++j)
+    {
+      std::fill_n(intensityGrid[j], param.maxIsotopeCount, 0);
+    }
+
+    for (int j = 0; j < param.maxIsotopeCount; ++j)
+    {
+      std::fill_n(intensityGrid2[j], param.chargeRange, 0);
+    }
 
     int minCharge = param.chargeRange + param.minCharge + 1;
     int maxCharge = 0;
+    double maxIntensity = -1;
+    int maxIntChargeIndex = -1;
+    double maxIntensity2 = -1;
+    int maxIntIsoIndex = -1;
 
     for (auto &p : pg.peaks)
     {
@@ -436,10 +553,23 @@ namespace OpenMS
       int index = p.charge - param.minCharge;
       perIsotopeIntensity[p.isotopeIndex] += p.intensity;
       perChargeIntensity[index] += p.intensity;
+      intensityGrid[index][p.isotopeIndex] += p.intensity;
+      intensityGrid2[p.isotopeIndex][index] += p.intensity;
+
+      if(maxIntensity < intensityGrid[index][p.isotopeIndex]){
+        maxIntensity = intensityGrid[index][p.isotopeIndex];
+        maxIntChargeIndex = index;
+      }
+
+      if(maxIntensity2 < intensityGrid2[p.isotopeIndex][index]){
+        maxIntensity2 = intensityGrid2[p.isotopeIndex][index];
+        maxIntIsoIndex = p.isotopeIndex;
+      }
     }
     pg.maxCharge = maxCharge;
     pg.minCharge = minCharge;
 
+    return std::vector<int>{maxIntChargeIndex, maxIntIsoIndex};
   }
 
 }
