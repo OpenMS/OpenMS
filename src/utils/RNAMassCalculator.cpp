@@ -33,13 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <iomanip> // for "setprecision"
-#include <iostream>
 #include <ostream>
 
 using namespace OpenMS;

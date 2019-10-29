@@ -35,6 +35,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 

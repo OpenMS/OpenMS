@@ -45,9 +45,11 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 

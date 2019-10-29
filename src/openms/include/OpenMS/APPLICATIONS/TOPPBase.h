@@ -37,30 +37,24 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/APPLICATIONS/ParameterInformation.h>
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <fstream>
 
-#include <QStringList>
-
+class QStringList;
 
 namespace OpenMS
 {
-
+  class FeatureMap;
   class ConsensusMap;
+  struct ParameterInformation;
+
   /**
     @brief Stores Citations for individual TOPP tools.
 
@@ -892,18 +886,7 @@ protected:
     void addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for peak maps
-    void addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
-    {
-      boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
-      for (Size i = 0; i < map.size(); ++i)
-      {
-        map[i].getDataProcessing().push_back(dp_);
-      }
-      for (Size i = 0; i < map.getNrChromatograms(); ++i)
-      {
-        map.getChromatogram(i).getDataProcessing().push_back(dp_);
-      }
-    }
+    void addDataProcessing_(PeakMap& map, const DataProcessing& dp) const;
 
     ///Returns the data processing information
     DataProcessing getProcessingInfo_(DataProcessing::ProcessingAction action) const;

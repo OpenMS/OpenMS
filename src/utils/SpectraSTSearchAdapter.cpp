@@ -32,15 +32,16 @@
 // $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <QtCore/QProcess>
-#include <iostream>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QProcess>
-#include <QDir>
+
 #include <sstream> 
+
+#include <QDir>
+#include <QProcess>
 
 using namespace OpenMS;
 using namespace std;
