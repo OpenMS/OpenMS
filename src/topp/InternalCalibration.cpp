@@ -45,6 +45,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
+#include <OpenMS/KERNEL/FeatureMap.h>
+
 #include <vector>
 
 using namespace OpenMS;

@@ -36,13 +36,14 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <cstdlib>
 ///////////////////////////

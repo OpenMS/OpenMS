@@ -34,14 +34,9 @@
 
 #pragma once
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
-#include <algorithm>
 
 //-------------------------------------------------------------
 // Doxygen docu

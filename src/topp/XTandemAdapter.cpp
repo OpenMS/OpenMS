@@ -43,7 +43,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 
