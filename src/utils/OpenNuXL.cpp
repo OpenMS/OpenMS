@@ -114,6 +114,7 @@
 //#define FILTER_BAD_SCORES_ID_TAGS filter out some good hits
 //#define FILTER_AMBIGIOUS_PEAKS 
 //#define FILTER_NO_ARBITRARY_TAG_PRESENT
+#define SVM_RECALIBRATE
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -1631,19 +1632,22 @@ static void scoreXLIons_(
       aa_plus_adduct_mass[m][r] = 0;
     }
 
-    // output ambigious masses
-    cout << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
-    cout << "Total\tResidue\tAdduct" << endl;
-    for (auto& m : aa_plus_adduct_mass)
-    {
-      double mass = m.first;
-      if (m.second.size() == 1) continue; // more than one residue / adduct registered for that mass
-      for (auto& a : m.second)
-      {
-        cout << mass << "\t" << a.first->getOneLetterCode() << "\t+\t" << a.second << endl;
-      }
-    } 
 
+    if (debug_level_ > 0)
+    {
+      // output ambigious masses
+      cout << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
+      cout << "Total\tResidue\tAdduct" << endl;
+      for (auto& m : aa_plus_adduct_mass)
+      {
+        double mass = m.first;
+        if (m.second.size() == 1) continue; // more than one residue / adduct registered for that mass
+        for (auto& a : m.second)
+        {
+          cout << mass << "\t" << a.first->getOneLetterCode() << "\t+\t" << a.second << endl;
+        }
+      } 
+    }
 
     map<double, size_t> adduct_mass_count;
     map<double, size_t> aa_plus_adduct_mass_count;
@@ -4636,9 +4640,9 @@ static void scoreXLIons_(
         }
       }
 
+#ifdef SVM_RECALIBRATE
       ///////////////////////////////////////// SVM score recalibration
       // find size of minority class
-      size_t minority_class(0);
       map<double, size_t> pep_t;
       map<double, size_t> pep_d;
       map<double, size_t> XL_t;
@@ -4650,40 +4654,41 @@ static void scoreXLIons_(
          const PeptideHit& ph = peptide_ids[index].getHits()[0];
          bool is_target = ph.getMetaValue("target_decoy") == "target";
          bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+         double score = ph.getScore();
          if (is_target)
          {
            if (is_XL) 
            {
-             XL_t[ph.getScore()] = index; 
+             XL_t[score] = index; 
            }
            else 
            {
-             pep_t[ph.getScore()] = index; 
+             pep_t[score] = index; 
            }
          }
          else
          {
            if (is_XL) 
            {
-             XL_d[ph.getScore()] = index; 
+             XL_d[score] = index; 
            }
            else 
            {
-             pep_d[ph.getScore()] = index; 
+             pep_d[score] = index; 
            }
          }
       }
-      minority_class = std::min({pep_t.size(), pep_d.size(), XL_t.size(), XL_d.size()});
+      size_t minority_class = std::min({pep_t.size(), pep_d.size(), XL_t.size(), XL_d.size()});
       cout << "Peptide (target/decoy)\t XL (target/decoy):" << endl;
       cout << pep_t.size() << "\t" << pep_d.size() << "\t" << XL_t.size() << "\t" << XL_d.size() << endl; 
 
-      // keep only top elements
-      auto right =  std::next(pep_t.begin(), (long unsigned int)(pep_t.size() - minority_class));
-      pep_t.erase(pep_t.begin(), right);
-      pep_d.erase(pep_d.begin(), std::next(pep_d.begin(), pep_d.size() - minority_class));
+      // keep only top elements (=highest scoring hits) for all classes
+      pep_t.erase(pep_t.begin(), next(pep_t.begin(), pep_t.size() - minority_class));
+      pep_d.erase(pep_d.begin(), next(pep_d.begin(), pep_d.size() - minority_class));
       XL_t.erase(XL_t.begin(), next(XL_t.begin(), XL_t.size() - minority_class));
       XL_d.erase(XL_d.begin(), next(XL_d.begin(), XL_d.size() - minority_class));
 
+      // training indices = index of peptide id that correspond to top scoring hits (of the 4 classes)
       set<size_t> training_indices;
       for (auto & l : {pep_t, pep_d, XL_t, XL_d})
       {
@@ -4763,8 +4768,9 @@ static void scoreXLIons_(
   
         SimpleSVM svm;
         Param svm_param = svm.getParameters();        
-        svm_param.setValue("log2_C", ListUtils::create<double>("11.0"));
-        svm_param.setValue("log2_gamma", ListUtils::create<double>("-5.0"));
+        svm_param.setValue("kernel", "linear");
+        //svm_param.setValue("log2_C", ListUtils::create<double>("11.0"));
+        //svm_param.setValue("log2_gamma", ListUtils::create<double>("-5.0"));
         svm.setParameters(svm_param);
         svm.setup(predictors, labels);
         vector<SimpleSVM::Prediction> predictions;
@@ -4781,10 +4787,9 @@ static void scoreXLIons_(
            }
           peptide_ids[index].assignRanks();    
         }
-#ifdef DEBUG_OpenNuXL
-      IdXMLFile().store(out_idxml + "_svm.idXML", protein_ids, peptide_ids);
-#endif
+        // IdXMLFile().store(out_idxml + "_svm.idXML", protein_ids, peptide_ids);
       }
+#endif
       fdr.apply(peptide_ids); 
   
       // write ProteinIdentifications and PeptideIdentifications to IdXML
