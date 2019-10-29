@@ -6,7 +6,7 @@ from libcpp.pair cimport pair as libcpp_pair
 from libcpp.map cimport map as libcpp_map
 from libcpp.set cimport set as libcpp_set
 from libcpp.string cimport string as libcpp_string
-from smart_ptr cimport shared_ptr
+from libcpp.memory cimport shared_ptr
 
 # include macros
 cdef extern from "<OpenMS/config.h>":

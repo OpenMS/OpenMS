@@ -1,6 +1,6 @@
 from libcpp.map cimport map as libcpp_map
 from libcpp cimport bool
-from smart_ptr cimport shared_ptr
+from libcpp.memory cimport shared_ptr
 from Types cimport *
 from ProgressLogger cimport *
 from DefaultParamHandler cimport *

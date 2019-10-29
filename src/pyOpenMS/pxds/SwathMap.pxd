@@ -1,5 +1,5 @@
 from Types cimport *
-from smart_ptr cimport shared_ptr
+from libcpp.memory cimport shared_ptr
 from OpenSwathDataStructures cimport *
 from ISpectrumAccess cimport *
 

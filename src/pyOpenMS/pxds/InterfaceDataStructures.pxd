@@ -1,4 +1,4 @@
-from smart_ptr cimport shared_ptr
+from libcpp.memory cimport shared_ptr
 from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Interfaces":

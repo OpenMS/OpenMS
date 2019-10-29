@@ -1,5 +1,5 @@
 from Types  cimport *
-from smart_ptr cimport shared_ptr
+from libcpp.memory cimport shared_ptr
 from libcpp.string cimport string as libcpp_string
 from libcpp.vector cimport vector as libcpp_vector
 from OpenSwathDataStructures cimport *

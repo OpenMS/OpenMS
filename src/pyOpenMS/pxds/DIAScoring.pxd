@@ -1,6 +1,6 @@
 from Types cimport *
 from String cimport *
-from smart_ptr cimport shared_ptr
+from libcpp.memory cimport shared_ptr
 from OpenSwathDataStructures cimport *
 from LightTargetedExperiment cimport *
 from AASequence cimport *

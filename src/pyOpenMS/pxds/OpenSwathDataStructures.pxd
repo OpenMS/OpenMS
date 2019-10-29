@@ -1,5 +1,5 @@
 from Types cimport *
-from smart_ptr cimport shared_ptr
+from libcpp.memory cimport shared_ptr
 
 cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace "OpenSwath":
 

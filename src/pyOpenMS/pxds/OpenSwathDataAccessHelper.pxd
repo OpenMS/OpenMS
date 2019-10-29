@@ -1,4 +1,4 @@
-from smart_ptr cimport shared_ptr
+from libcpp.memory cimport shared_ptr
 from TargetedExperiment cimport *
 from TargetedExperimentHelper cimport *
 from OpenSwathDataStructures cimport *

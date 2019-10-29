@@ -155,7 +155,7 @@ def doCythonCodeGeneration(modname, allDecl_mapping, instance_map, converters):
     autowrap_include_dirs = autowrap.generate_code(allDecl_mapping[modname]["decls"], instance_map,
                                                         target=m_filename, debug=False, manual_code=manual_code,
                                                         extra_cimports=cimports,
-                                                        include_boost=False, include_numpy=True, allDecl=allDecl_mapping)
+                                                        include_boost=False, include_numpy=True, allDecl=allDecl_mapping, shared_ptr="std")
     allDecl_mapping[modname]["inc_dirs"] = autowrap_include_dirs
     return autowrap_include_dirs
 
