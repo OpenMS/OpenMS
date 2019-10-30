@@ -67,6 +67,7 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#include <memory>
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
@@ -2344,7 +2345,7 @@ namespace OpenMS
 
   void TOPPBase::addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
   {
-    boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+    std::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
     for (Size i = 0; i < map.size(); ++i)
     {
       map[i].getDataProcessing().push_back(dp_);
