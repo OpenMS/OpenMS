@@ -834,21 +834,18 @@ protected:
     /**
       @brief Checks if an input file exists, is readable and is not empty
 
-      If @p treat_as_executable is true, filename will be searched in PATH as well and its content
-      changed to a full path.
       The @em filename is a URI to the file to be read and @em param_name gives the name of the parameter
       , e.g. "in" which specified the filename (this is useful for error messages when the file cannot be read, so the
       user can immediately see which parameter to change). If no parameter is responsible for the
       name of the input file, then leave @em param_name empty.
       @param filename An absolute or relative path+filename
       @param param_name Name of the parameter the filename value was provided by
-      @param treat_as_executable Find the @p filename using the systems PATH (similar to `which`/`where` commands)
 
       @exception Exception::FileNotFound is thrown if the file is not found
       @exception Exception::FileNotReadable is thrown if the file is not readable
       @exception Exception::FileEmpty is thrown if the file is empty
     */
-    void inputFileReadable_(String& filename, const String& param_name, bool treat_as_executable = false) const;
+    void inputFileReadable_(const String& filename, const String& param_name) const;
 
     /**
       @brief Checks if an output file is writable

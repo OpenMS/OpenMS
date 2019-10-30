@@ -650,9 +650,7 @@ namespace OpenMS
         str_tmp = "";
 
       //DESCRIPTION
-      String desc_tmp = it->description;
-      desc_tmp.firstToUpper();
-
+      String desc_tmp = String(it->description).firstToUpper();
       //DEFAULT
       StringList addons;
       switch (it->type)
@@ -1258,7 +1256,18 @@ namespace OpenMS
       // check if files are readable/writable
       if (p.type == ParameterInformation::INPUT_FILE)
       {
-        if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(tmp, name, ListUtils::contains(p.tags, "is_executable"));
+        if (ListUtils::contains(p.tags, "is_executable"))
+        {
+          if (File::findExecutable(tmp))
+          {
+            writeDebug_("Input file resolved to '" + tmp + "'", 2);
+          }
+          else
+          {
+            throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp);
+          }
+        }
+        if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(tmp, name);
       }
       else if (p.type == ParameterInformation::OUTPUT_FILE)
       {
@@ -1411,9 +1420,8 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
-    for (StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+    for (String& tmp : tmp_list)
     {
-      String tmp(*it);
       writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
       // if required or set by user, do some validity checks
@@ -1422,7 +1430,18 @@ namespace OpenMS
         //check if files are readable/writable
         if (p.type == ParameterInformation::INPUT_FILE_LIST)
         {
-          if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(tmp, name, ListUtils::contains(p.tags, "is_executable"));
+          if (ListUtils::contains(p.tags, "is_executable"))
+          {
+            if (File::findExecutable(tmp))
+            {
+              writeDebug_("Input file resolved to '" + tmp + "'", 2);
+            }
+            else
+            {
+              throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp);
+            }
+          }
+          if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(tmp, name);
         }
         else if (p.type == ParameterInformation::OUTPUT_FILE_LIST)
         {
@@ -1443,19 +1462,16 @@ namespace OpenMS
           }
           else if (p.type == ParameterInformation::INPUT_FILE_LIST)
           {
-            //create upper case list of valid formats
-            StringList formats = p.valid_strings;
-            StringListUtils::toUpper(formats);
-            //determine file type as string
+            // determine file type as string
             String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
             bool invalid = false;
-            //Wrong or unknown ending
-            if (!ListUtils::contains(formats, format))
+            // Wrong or unknown ending
+            if (!ListUtils::contains(p.valid_strings, format, ListUtils::CASE::INSENSITIVE))
             {
               if (format == "UNKNOWN") //Unknown ending => check content
               {
                 format = FileTypes::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
-                if (!ListUtils::contains(formats, format))
+                if (!ListUtils::contains(p.valid_strings, format, ListUtils::CASE::INSENSITIVE))
                 {
                   if (format == "UNKNOWN") //Unknown format => warning as this might by the wrong format
                   {
@@ -1474,9 +1490,7 @@ namespace OpenMS
             }
             if (invalid)
             {
-              String valid_formats = "";
-              valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-              throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");
+              throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") + "'.");
             }
           }
           else if (p.type == ParameterInformation::OUTPUT_FILE_LIST)
@@ -1961,7 +1975,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPBase::inputFileReadable_(String& filename, const String& param_name, bool treat_as_executable) const
+  void TOPPBase::inputFileReadable_(const String& filename, const String& param_name) const
   {
     writeDebug_("Checking input file '" + filename + "'", 2);
 
@@ -1973,19 +1987,7 @@ namespace OpenMS
       message = "Cannot read input file given from parameter '-" + param_name + "'!\n";
 
     // check file existance
-    if (treat_as_executable)
-    {
-      if (File::findExecutable(filename))
-      {
-        writeDebug_("Input file resolved to '" + filename + "'", 2);
-      }
-      else
-      {
-        OPENMS_LOG_ERROR << message;
-        throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
-    }
-    else if (!File::exists(filename))
+    if (!File::exists(filename))
     {
       OPENMS_LOG_ERROR << message;
       throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);

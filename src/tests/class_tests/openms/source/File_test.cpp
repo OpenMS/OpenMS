@@ -274,7 +274,6 @@ START_SECTION(static bool findExecutable(OpenMS::String& exe_filename))
   TEST_EQUAL(File::findExecutable(find), true)
   TEST_EQUAL(find.hasSuffix("echo"), true) // should be /usr/bin/echo or similar
 #endif
-
 }
 END_SECTION
 
@@ -292,7 +291,6 @@ START_SECTION(static StringList getPathLocations(const String& path = std::geten
 #else
   TEST_EQUAL(ListUtils::contains(l, "/usr/bin/"), true)
 #endif
-
 }
 END_SECTION
 
