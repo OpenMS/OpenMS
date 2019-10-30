@@ -4769,12 +4769,23 @@ static void scoreXLIons_(
         SimpleSVM svm;
         Param svm_param = svm.getParameters();        
         svm_param.setValue("kernel", "linear");
-        //svm_param.setValue("log2_C", ListUtils::create<double>("11.0"));
-        //svm_param.setValue("log2_gamma", ListUtils::create<double>("-5.0"));
         svm.setParameters(svm_param);
         svm.setup(predictors, labels);
         vector<SimpleSVM::Prediction> predictions;
         svm.predict(predictions);
+        std::map<String, double> feature_weights;
+        svm.getFeatureWeights(feature_weights);
+        cout << "Feature weights:" << endl;
+        for (const auto& m : feature_weights)
+        {
+          cout << m.first << "\t" << m.second << endl;
+        }
+        cout << "Feature scaling:" << endl;
+        auto feature_scaling = svm.getScaling();
+        for (const auto& m : feature_scaling)
+        {
+          cout << m.first << "\t" << m.second.first << "\t" << m.second.second << endl;
+        }
 
         size_t psm_index(0);
         for (size_t index = 0; index != peptide_ids.size(); ++index)
