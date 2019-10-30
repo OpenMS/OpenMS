@@ -33,12 +33,15 @@
 // --------------------------------------------------------------------------
 
 // Files
+#include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
+
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
+
+#include <OpenMS/METADATA/ExperimentalSettings.h>
 
 #include <OpenMS/SYSTEM/File.h>
 

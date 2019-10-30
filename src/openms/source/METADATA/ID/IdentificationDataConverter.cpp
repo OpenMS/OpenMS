@@ -101,7 +101,8 @@ namespace OpenMS
         IdentificationData::ParentMolecule parent(hit.getAccession());
         parent.sequence = hit.getSequence();
         parent.description = hit.getDescription();
-        parent.coverage = hit.getCoverage() / 100.0; // we don't want percents
+        // coverage comes in percents, -1 for missing; we want 0 to 1:
+        parent.coverage = max(hit.getCoverage(), 0.0) / 100.0;
         static_cast<MetaInfoInterface&>(parent) = hit;
         IdentificationData::AppliedProcessingStep applied(step_ref);
         applied.scores[prot_score_ref] = hit.getScore();
@@ -274,7 +275,7 @@ namespace OpenMS
           software.setName(ana_res.score_type); // e.g. "peptideprophet"
           IdentificationData::AppliedProcessingStep sub_applied;
           IdentificationData::ScoreType main_score;
-          main_score.name = ana_res.score_type + "_probability";
+          main_score.cv_term.setName(ana_res.score_type + "_probability");
           main_score.higher_better = ana_res.higher_is_better;
           IdentificationData::ScoreTypeRef main_score_ref =
             id_data.registerScoreType(main_score);
@@ -283,7 +284,7 @@ namespace OpenMS
           for (const pair<const String, double>& sub_pair : ana_res.sub_scores)
           {
             IdentificationData::ScoreType sub_score;
-            sub_score.name = sub_pair.first;
+            sub_score.cv_term.setName(sub_pair.first);
             IdentificationData::ScoreTypeRef sub_score_ref =
               id_data.registerScoreType(sub_score);
             software.assigned_scores.push_back(sub_score_ref);
@@ -398,7 +399,7 @@ namespace OpenMS
         // add meta values for "secondary" scores:
         for (auto it = ++scores.begin(); it != scores.end(); ++it)
         {
-          hit_copy.setMetaValue(it->first->name, it->second);
+          hit_copy.setMetaValue(it->first->cv_term.getName(), it->second);
         }
         auto pos =
           query_match.peak_annotations.find(applied.processing_step_opt);
@@ -424,7 +425,7 @@ namespace OpenMS
       peptide.setMetaValue("spectrum_reference", query.data_id);
       peptide.setHits(psm.second.first);
       const IdentificationData::ScoreType& score_type = *psm.second.second;
-      peptide.setScoreType(score_type.name);
+      peptide.setScoreType(score_type.cv_term.getName());
       peptide.setHigherScoreBetter(score_type.higher_better);
       if (psm.first.second) // processing step given
       {
@@ -451,7 +452,14 @@ namespace OpenMS
       hit.setAccession(parent.accession);
       hit.setSequence(parent.sequence);
       hit.setDescription(parent.description);
-      hit.setCoverage(parent.coverage * 100.0); // convert to percents
+      if (parent.coverage > 0.0)
+      {
+        hit.setCoverage(parent.coverage * 100.0); // convert to percents
+      }
+      else // zero coverage means coverage is unknown
+      {
+        hit.setCoverage(ProteinHit::COVERAGE_UNKNOWN);
+      }
       static_cast<MetaInfoInterface&>(hit) = parent;
       if (!parent.metaValueExists("target_decoy"))
       {
@@ -476,7 +484,7 @@ namespace OpenMS
           // add meta values for "secondary" scores:
           for (auto it = ++scores.begin(); it != scores.end(); ++it)
           {
-            hit_copy.setMetaValue(it->first->name, it->second);
+            hit_copy.setMetaValue(it->first->cv_term.getName(), it->second);
           }
           prot_data[applied.processing_step_opt].first.push_back(hit_copy);
           prot_data[applied.processing_step_opt].second = scores[0].first;
@@ -530,7 +538,7 @@ namespace OpenMS
         {
           const IdentificationData::ScoreType& score_type =
             *pd_pos->second.second;
-          protein.setScoreType(score_type.name);
+          protein.setScoreType(score_type.cv_term.getName());
           protein.setHigherScoreBetter(score_type.higher_better);
         }
       }
@@ -788,7 +796,7 @@ namespace OpenMS
     {
       const IdentificationData::ScoreType& score_type = *score_pair.first;
       MzTabParameter param;
-      param.setName(score_type.name); // or "score_type.cv_term.getName()"?
+      param.setName(score_type.cv_term.getName());
       param.setAccession(score_type.cv_term.getAccession());
       param.setCVLabel(score_type.cv_term.getCVIdentifierRef());
       output[score_pair.second] = param;

@@ -39,30 +39,38 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
-#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
 
-#include <iostream>
+#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
+#include <OpenMS/APPLICATIONS/ParameterInformation.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+
 
 #include <QDir>
 #include <QFile>
 #include <QProcess>
+#include <QStringList>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -1660,7 +1668,7 @@ namespace OpenMS
     } 
 
     bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
-    if (debug_level_ >= 10 || any_failure)
+    if (debug_level_ >= 4 || any_failure)
     {
       if (any_failure)
       {
@@ -2330,6 +2338,21 @@ namespace OpenMS
   void TOPPBase::addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
   {
     map.getDataProcessing().push_back(dp);
+  }
+
+  ///Data processing setter for peak maps
+
+  void TOPPBase::addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
+  {
+    boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+    for (Size i = 0; i < map.size(); ++i)
+    {
+      map[i].getDataProcessing().push_back(dp_);
+    }
+    for (Size i = 0; i < map.getNrChromatograms(); ++i)
+    {
+      map.getChromatogram(i).getDataProcessing().push_back(dp_);
+    }
   }
 
   String TOPPBase::getDocumentationURL() const

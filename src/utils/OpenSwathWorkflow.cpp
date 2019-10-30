@@ -396,7 +396,7 @@ using namespace OpenMS;
     <tr>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_Fragment_Annotation </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=2> Annotation of fragment ion traces separated by semicolon </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Annotation of fragment ion traces separated by semicolon </td>
     </tr>
 
 
