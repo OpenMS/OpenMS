@@ -228,10 +228,10 @@ public:
     static StringList getPathLocations(const String& path = std::getenv("PATH"));
 
     /**
-      @brief Searches for an executable with the given name
+      @brief Searches for an executable with the given name (similar to @em where (Windows) or @em which (Linux/MacOS)
 
       This function can be used to find the full path+filename to an executable in
-      the PATH environment.
+      the PATH environment. Only the @em first hit (by order in PATH) is returned.
       If the @p exe_filename has a relative or full path which points to an existing file, PATH information will not be used.
       The function returns true if the filename was found (exists) and false otherwise.
       Note: this does not require the file to have executable permission set (this is not tested)
