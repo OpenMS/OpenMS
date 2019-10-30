@@ -136,7 +136,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file, e.g. 'c:\\program files\\luciphor2.jar'", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
     registerStringOption_("fragment_method", "<choice>", fragment_methods_[0], "Fragmentation method", false);
     setValidStrings_("fragment_method", fragment_methods_);
@@ -185,8 +185,7 @@ protected:
     registerDoubleOption_("rt_tolerance", "<num>", 0.01, "Set the retention time tolerance (for the mapping of identifications to spectra in case multiple search engines were used)", false);
     setMinFloat_("rt_tolerance", 0.0);
     
-    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
-
+    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"is_executable"});
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
   }
@@ -566,16 +565,6 @@ protected:
     int java_permgen = getIntOption_("java_permgen");
 
     QString executable = getStringOption_("executable").toQString();
-    
-    // Hack for KNIME. Looks for LUCIPHOR_PATH in the environment which is set in binaries.ini
-    QProcessEnvironment env;
-    String luciphorpath = "LUCIPHOR_PATH";
-    QString qluciphorpath = env.systemEnvironment().value(luciphorpath.toQString());
-
-    if (!qluciphorpath.isEmpty())
-    {
-      executable = qluciphorpath;
-    }
 
     QStringList process_params; // the actual process is Java, not LuciPHOr2!
     process_params << java_memory;

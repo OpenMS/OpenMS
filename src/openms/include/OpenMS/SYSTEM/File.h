@@ -216,12 +216,39 @@ public:
     static String findDatabase(const String& db_name);
 
     /**
+      @brief Extract list of directories from a concatenated string (usually $PATH).
+
+      Depending on platform, the components are split based on ":" (Linux/Mac) or ";" (Windows).
+      All paths use the '/' as separator and end in '/'.
+      E.g. for 'PATH=/usr/bin:/home/unicorn' the result is {"/usr/bin/", "/home/unicorn/"}
+            or 'PATH=c:\temp;c:\Windows' the result is {"c:/temp/", "c:/Windows/"}
+
+      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).  
+    */
+    static StringList getPathLocations(const String& path = std::getenv("PATH"));
+
+    /**
+      @brief Searches for an executable with the given name
+
+      This function can be used to find the full path+filename to an executable in
+      the PATH environment.
+      If the @p exe_filename has a relative or full path which points to an existing file, PATH information will not be used.
+      The function returns true if the filename was found (exists) and false otherwise.
+      Note: this does not require the file to have executable permission set (this is not tested)
+      The returned content of @p exe_filename is only valid if true is returned.
+
+      @param [in/out] exe_filename The executable to search for.
+      @return true if @p exe_filename could be resolved to a full path and it exists
+    */
+    static bool findExecutable(OpenMS::String& exe_filename);
+
+    /**
       @brief Searches for an executable with the given name.
 
       @param toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.
     */
-    static String findExecutable(const String& toolName);
+    static String findSiblingTOPPExecutable(const String& toolName);
 
     /**
       @brief Obtain a temporary filename, ensuring automatic deletion upon exit
@@ -249,6 +276,19 @@ private:
     /// Check if the given path is a valid OPENMS_DATA_PATH
     static bool isOpenMSDataPath_(const String& path);
 
+#ifdef OPENMS_WINDOWSPLATFORM
+    /**
+      @brief Get list of file suffices to try during search on PATH (usually .exe, .bat etc)
+
+      Input could be ".COM;.EXE;.BAT;.CMD;.VBS".
+      If the result does not contain at least ".exe", then we assume the environment variable is broken and return a
+      fallback, i.e. {".exe", ".bat"}.
+
+      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).
+
+    */
+    static StringList executableExtensions_(const String& ext = std::getenv("PATHEXT"));
+#endif
 
     /**
       @brief Internal helper class, which holds temporary filenames and deletes these files at program exit
