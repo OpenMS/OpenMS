@@ -176,7 +176,7 @@ namespace OpenMS
       return tmp_struct;
     } 
 
-    void SiriusAdapterAlgorithm::removeSiriusTmp(int debug_level, String tmp_dir_path, String tmp_file_path)
+    void SiriusAdapterAlgorithm::removeSiriusTmp(const int& debug_level, const String& tmp_dir_path, const String& tmp_file_path)
     {
       // clean tmp directory if debug level < 2 
       if (debug_level >= 2)

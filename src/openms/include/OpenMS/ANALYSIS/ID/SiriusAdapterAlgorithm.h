@@ -76,7 +76,7 @@ namespace OpenMS
       @param tmp_file_path Path to temporary file
       */
 
-      static void removeSiriusTmp(int debug_level, String tmp_dir_path, String tmp_file_path);
+      static void removeSiriusTmp(const int& debug_level, const String& tmp_dir_path, const String& tmp_file_path);
 
       /**
       @brief Checks if executable was povided 
