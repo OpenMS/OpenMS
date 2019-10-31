@@ -69,6 +69,16 @@ namespace OpenMS
       static SiriusAdapterAlgorithm::SiriusTmpStruct constructSiriusTmpStruct();
 
       /**
+      @brief Removes temporary directory and file structure
+
+      @param debug_level Debug level
+      @param tmp_dir_path Path to temporary directory
+      @param tmp_file_path Path to temporary file
+      */
+
+      static void removeSiriusTmp(int debug_level, String tmp_dir_path, String tmp_file_path);
+
+      /**
       @brief Checks if executable was povided 
 
       @return Pair "path to executable" and "path to the working directory"

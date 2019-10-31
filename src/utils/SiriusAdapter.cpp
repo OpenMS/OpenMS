@@ -224,8 +224,13 @@ protected:
     if (!out_ms.empty() && converter_mode)
     {
       QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
+      
+      // clean tmp directory if debug level < 2 
+      SiriusAdapterAlgorithm::removeSiriusTmp(debug_level_, tmp_dir, tmp_ms_file);
+
       OPENMS_LOG_WARN << "SiriusAdapter was used in converter mode and is terminated after openms preprocessing. \n"
-                  "If you would like to run SIRIUS internally please disable the converter mode." << std::endl; 
+                         "If you would like to run SIRIUS internally please disable the converter mode." << std::endl;
+      
       return EXECUTION_OK;
     }
 
@@ -287,24 +292,7 @@ protected:
       OPENMS_LOG_INFO << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
     }
 
-    // clean tmp directory if debug level < 2 
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (tmp_dir.empty() == false)
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::removeDir(tmp_dir.toQString());
-      }
-      if (tmp_ms_file.empty() == false)
-      {
-        writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::remove(tmp_ms_file); // remove msfile
-      }
-    }
+    SiriusAdapterAlgorithm::removeSiriusTmp(debug_level_, tmp_dir, tmp_ms_file);
 
     return EXECUTION_OK;
   }
