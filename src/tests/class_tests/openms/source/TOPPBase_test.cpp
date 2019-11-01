@@ -678,9 +678,9 @@ END_SECTION
 
 START_SECTION(([EXTRA]void inputFileReadable_(const String& filename, const String& param_name) const))
 	TOPPBaseTest tmp;
-	TEST_EXCEPTION(Exception::FileNotFound,tmp.inputFileReadable("/this/file/does/not/exist.txt","someparam"));
-	TEST_EXCEPTION(Exception::FileEmpty,tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_empty.txt"), "someparam"));
-	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"),"ini");
+	TEST_EXCEPTION(Exception::FileNotFound, tmp.inputFileReadable("/this/file/does/not/exist.txt", "someparam"));
+	TEST_EXCEPTION(Exception::FileEmpty, tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_empty.txt"), "someparam"));
+	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"), "ini");
 END_SECTION
 
 START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const String& param_name) const))

@@ -165,6 +165,27 @@ public:
       return find_if(container.begin(), container.end(), DoubleTolerancePredicate_(elem, tolerance)) != container.end();
     }
 
+
+    enum class CASE { SENSITIVE, INSENSITIVE};
+    /**
+    @brief Checks whether the String @p elem is contained in the given container (potentially case insensitive)
+
+    @param container The container of String to check.
+    @param elem The element to check whether it is in the container or not.
+    @param case_sensitive Do the comparison case sensitive or insensitive
+
+    @return True if @p elem is contained in @p container, false otherwise.
+    */
+    static bool contains(const std::vector<String>& container, String elem, const CASE cs)
+    {
+      if (cs == CASE::SENSITIVE) return contains(container, elem);
+      // case INsensitive ...
+      elem.toLower();
+      return find_if(container.begin(), container.end(), [&elem](String ce) {
+        return elem == ce.toLower();
+      }) != container.end();
+    }
+
     /**
       @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
 

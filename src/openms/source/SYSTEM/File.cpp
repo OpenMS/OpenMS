@@ -647,7 +647,64 @@ namespace OpenMS
     return p;
   }
 
-  String File::findExecutable(const OpenMS::String& toolName)
+#ifdef OPENMS_WINDOWSPLATFORM
+  StringList File::executableExtensions_(const String& ext)
+  {
+    // check if content of env-var %PATHEXT% makes sense
+    StringList exts;
+    ext.split(';', exts);
+    // sanity check
+    if (ListUtils::contains(exts, ".exe", ListUtils::CASE::INSENSITIVE)) return exts;
+    // .. use fallback otherwise
+    else return {".exe", ".bat" };
+  }
+#endif
+
+  StringList File::getPathLocations(const String& path)
+  {
+    // split by ":" or ";", depending on platform
+    StringList paths;
+#ifdef OPENMS_WINDOWSPLATFORM
+    path.split(';', paths);
+#else
+    path.split(':', paths);
+#endif
+    // ensure it ends with '/'
+    for (String& p : paths) p.substitute('\\', '/').ensureLastChar('/');
+    return paths;
+  }
+
+  bool File::findExecutable(OpenMS::String& exe_filename)
+  {
+    if (exists(exe_filename)) return true;
+
+    StringList paths = getPathLocations();
+    StringList exe_filenames = { exe_filename };
+#ifdef OPENMS_WINDOWSPLATFORM
+    // try extensions like .exe on Windows
+    if (!exe_filename.has('.'))
+    {
+      StringList exts = executableExtensions_();
+      for (String& ext : exts) ext = exe_filename + ext;
+      exe_filenames = exts;
+    }
+#endif
+    // try all filenames (on Windows its potentially more than one) in each path...
+    for (const String& p : paths)
+    {
+      for (const String& fn : exe_filenames)
+      {
+        if (exists(p + fn))
+        {
+          exe_filename = p + fn;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  String File::findSiblingTOPPExecutable(const OpenMS::String& toolName)
   {
     // we first try the executablePath
     String exec = File::getExecutablePath() + toolName;
