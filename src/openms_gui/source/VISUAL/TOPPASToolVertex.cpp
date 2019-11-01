@@ -117,7 +117,7 @@ namespace OpenMS
   {
     // this is the only exception for writing directly to the tmpDir, instead of a subdir of tmpDir, as scene()->getTempDir() might not be available yet
     QString ini_file = File::getTemporaryFile().toQString();
-    QString program = File::findExecutable(name_).toQString();
+    QString program = File::findSiblingTOPPExecutable(name_).toQString();
     QStringList arguments;
     arguments << "-write_ini" << ini_file;
 
@@ -642,7 +642,7 @@ namespace OpenMS
         }
       }
       toolScheduledSlot();
-      ts->enqueueProcess(TOPPASScene::TOPPProcess(p, File::findExecutable(name_).toQString(), args, this));
+      ts->enqueueProcess(TOPPASScene::TOPPProcess(p, File::findSiblingTOPPExecutable(name_).toQString(), args, this));
     }
 
     // run pending processes

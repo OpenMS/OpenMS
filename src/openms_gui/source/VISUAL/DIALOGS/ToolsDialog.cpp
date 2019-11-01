@@ -165,7 +165,7 @@ namespace OpenMS
   {
     QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
     QProcess qp;
-    String executable = File::findExecutable(getTool());
+    String executable = File::findSiblingTOPPExecutable(getTool());
     qp.start(executable.toQString(), args);
     const bool success = qp.waitForFinished(-1); // wait till job is finished
     if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)

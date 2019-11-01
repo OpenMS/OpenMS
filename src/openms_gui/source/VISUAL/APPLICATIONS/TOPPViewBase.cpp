@@ -3081,7 +3081,7 @@ namespace OpenMS
     try
     {
       // find correct location of TOPP tool
-      tool_executable = File::findExecutable(topp_.tool).toQString();
+      tool_executable = File::findSiblingTOPPExecutable(topp_.tool).toQString();
     }
     catch (Exception::FileNotFound& /*ex*/)
     {

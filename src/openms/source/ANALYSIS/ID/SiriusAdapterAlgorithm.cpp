@@ -134,37 +134,6 @@ namespace OpenMS
       most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
     }   
 
-    std::pair<String, String> SiriusAdapterAlgorithm::checkSiriusExecutablePath(String& executable)
-    { 
-      std::pair<String, String> executable_workdir;
-      // if executable was not provided
-      if (executable.empty())
-      {
-        const QProcessEnvironment env;
-        const String& qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
-        if (qsiriuspathenv.empty())
-        {
-          throw Exception::InvalidValue(__FILE__,
-                                        __LINE__, 
-                                        OPENMS_PRETTY_FUNCTION, 
-                                        "FATAL: Executable of Sirius could not be found. Please either use SIRIUS_PATH env variable or provide with -executable",
-                                         "");
-        }
-        executable = qsiriuspathenv;
-      }
-
-      // normalize file path
-      QString exe = executable.toQString();
-      QFileInfo file_info(exe);
-      exe = file_info.canonicalFilePath();
-  
-      OPENMS_LOG_WARN << "Executable is: " + String(exe) << std::endl;
-      const String path_to_executable = File::path(exe);
-      executable_workdir = std::make_pair(exe.toStdString(), path_to_executable);
-      
-      return executable_workdir;
-    }
-
     SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct()
     {
       SiriusTmpStruct tmp_struct;
@@ -341,9 +310,8 @@ namespace OpenMS
   
       // the actual process
       QProcess qp;
-      std::pair<String, String> exe_wd = SiriusAdapterAlgorithm::checkSiriusExecutablePath(executable);
-      QString exe = exe_wd.first.toQString();
-      QString wd = exe_wd.second.toQString(); 
+      QString exe = executable.toQString();
+      QString wd = File::path(executable).toQString();
       qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
       qp.start(exe, process_params); // does automatic escaping etc... start
       std::stringstream ss;

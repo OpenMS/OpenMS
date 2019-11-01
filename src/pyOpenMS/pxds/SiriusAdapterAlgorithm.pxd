@@ -22,8 +22,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
         SiriusTmpStruct constructSiriusTmpStruct() nogil except +
 
-        libcpp_pair[String, String] checkSiriusExecutablePath(String& executable) nogil except +
-
         void preprocessingSirius(String featureinfo,
                                  MSExperiment& spectra,                
                                  libcpp_vector[FeatureMap]& v_fp,

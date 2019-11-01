@@ -141,7 +141,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
-    registerInputFile_("executable", "<file>", "MSGFPlus.jar", "MS-GF+ .jar file, e.g. 'c:\\program files\\MSGFPlus.jar'", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<file>", "MSGFPlus.jar", "The MSGFPlus Java archive file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
@@ -196,7 +196,7 @@ protected:
 
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
 
-    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"is_executable"});
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
   }
@@ -485,16 +485,6 @@ protected:
         protocol_code = 0;
     }
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
-
-    // Hack for KNIME. Looks for MSGFPLUS_PATH in the environment which is set in binaries.ini
-    QProcessEnvironment env;
-    String msgfpath = "MSGFPLUS_PATH";
-    QString qmsgfpath = env.systemEnvironment().value(msgfpath.toQString());
-
-    if (!qmsgfpath.isEmpty())
-    {
-      executable = qmsgfpath;
-    }
 
     QStringList process_params; // the actual process is Java, not MS-GF+!
     process_params << java_memory
