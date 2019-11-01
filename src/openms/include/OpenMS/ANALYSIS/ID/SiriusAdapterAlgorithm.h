@@ -69,16 +69,6 @@ namespace OpenMS
       static SiriusAdapterAlgorithm::SiriusTmpStruct constructSiriusTmpStruct();
 
       /**
-      @brief Checks if executable was povided 
-
-      @return Pair "path to executable" and "path to the working directory"
-
-      @param executable Path to the executable
-      */
-      static std::pair<String, String> checkSiriusExecutablePath(String& executable);
-
-
-      /**
       @brief Preprocessing needed for SIRIUS
 
       @return FeatureToMS2Indices
