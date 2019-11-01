@@ -664,7 +664,11 @@ namespace OpenMS
   {
     // split by ":" or ";", depending on platform
     StringList paths;
-    path.split(QDir::listSeparator().toLatin1(), paths);
+#ifdef OPENMS_WINDOWSPLATFORM
+    path.split(';', paths);
+#else
+    path.split(':', paths);
+#endif
     // ensure it ends with '/'
     for (String& p : paths) p.substitute('\\', '/').ensureLastChar('/');
     return paths;
