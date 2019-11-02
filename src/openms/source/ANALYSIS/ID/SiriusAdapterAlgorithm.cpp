@@ -134,38 +134,18 @@ namespace OpenMS
       most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
     }   
 
-    SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct()
+    SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct(int debug_level)
     {
       SiriusTmpStruct tmp_struct;
       QString base_dir = File::getTempDirectory().toQString();
       tmp_struct.tmp_dir = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
       tmp_struct.tmp_ms_file = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
       tmp_struct.tmp_out_dir = QDir(tmp_struct.tmp_dir.toQString()).filePath("sirius_out");
+      tmp_struct.removeable = true;
+      tmp_struct.debug_level = debug_level;
 
       return tmp_struct;
     } 
-
-    void SiriusAdapterAlgorithm::removeSiriusTmp(const int& debug_level, const String& tmp_dir_path, const String& tmp_file_path)
-    {
-      // clean tmp directory if debug level < 2 
-      if (debug_level >= 2)
-      {
-        OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir_path << " and msfile at this location "<< tmp_file_path << ". Set debug level to 1 or lower to remove them." << std::endl;
-      }
-      else
-      {
-        if (tmp_dir_path.empty() == false)
-        {
-          OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir_path << ". Set debug level to 2 or higher to keep it." << std::endl;
-          File::removeDir(tmp_dir_path.toQString());
-        }
-        if (tmp_file_path.empty() == false)
-        {
-          OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_file_path << ". Set debug level to 2 or higher to keep it." << std::endl;
-          File::remove(tmp_file_path); 
-        }
-      }
-    }
     
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,

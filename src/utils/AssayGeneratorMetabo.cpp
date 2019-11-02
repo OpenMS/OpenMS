@@ -387,7 +387,7 @@ protected:
       else if (use_fragment_annotation && !executable.empty())
       {
         // make temporary files
-        SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct();
+        SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct(debug_level_);
         String tmp_dir = sirius_tmp.tmp_dir;
         String tmp_ms_file = sirius_tmp.tmp_ms_file;
         String tmp_out_dir = sirius_tmp.tmp_out_dir;
@@ -453,9 +453,6 @@ protected:
             OPENMS_LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run AssayGeneratorMetabo with debug >= 2." << std::endl;
           }
         }
-
-        // remove temporary SiriusAdapter file structure
-        SiriusAdapterAlgorithm::removeSiriusTmp(debug_level_, tmp_dir, tmp_ms_file);
        
         // pair compoundInfo and fragment annotation msspectrum (using the mid)
         for (const auto& cmp : v_cmpinfo)

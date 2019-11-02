@@ -56,9 +56,46 @@ namespace OpenMS
       /// Struct for temporary folder structure
       struct SiriusTmpStruct
       {
+        bool removeable;
+        int debug_level;
+
         String tmp_dir;
         String tmp_ms_file;
         String tmp_out_dir;
+
+        SiriusTmpStruct() : removeable(false) {}
+        ~SiriusTmpStruct(){ if (removeable) removeSiriusTmp(debug_level, tmp_dir, tmp_ms_file); }
+
+        /**
+        @brief Removes temporary directory and file structure
+
+        @param debug_level Debug level
+        @param tmp_dir Path to temporary directory
+        @param tmp_ms_file Path to temporary ms file
+        */
+
+        void removeSiriusTmp(int debug_level, const String& tmp_dir, const String& tmp_ms_file)
+        {
+          // clean tmp directory if debug level < 2 
+          if (debug_level >= 2)
+          {
+            OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir << " and msfile at this location "<< tmp_ms_file << ". Set debug level to 1 or lower to remove them." << std::endl;
+          }
+          else
+          {
+            if (!tmp_dir.empty())
+            {
+              OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir << ". Set debug level to 2 or higher to keep it." << std::endl;
+              File::removeDir(tmp_dir.toQString());
+            }
+            if (!tmp_ms_file.empty())
+            {
+              OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_ms_file << ". Set debug level to 2 or higher to keep it." << std::endl;
+              File::remove(tmp_ms_file); 
+            }
+          }
+        }
+
       };
 
       /**
@@ -66,17 +103,8 @@ namespace OpenMS
 
         @return SiriusTmpStruct
       */
-      static SiriusAdapterAlgorithm::SiriusTmpStruct constructSiriusTmpStruct();
+      static SiriusAdapterAlgorithm::SiriusTmpStruct constructSiriusTmpStruct(int debug_level);
 
-      /**
-      @brief Removes temporary directory and file structure
-
-      @param debug_level Debug level
-      @param tmp_dir_path Path to temporary directory
-      @param tmp_file_path Path to temporary file
-      */
-
-      static void removeSiriusTmp(const int& debug_level, const String& tmp_dir_path, const String& tmp_file_path);
 
       /**
       @brief Preprocessing needed for SIRIUS

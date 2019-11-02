@@ -192,7 +192,7 @@ protected:
     f.load(in, spectra);
 
     // make temporary files
-    SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct();
+    SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct(debug_level_);
     String tmp_dir = sirius_tmp.tmp_dir;
     String tmp_ms_file = sirius_tmp.tmp_ms_file;
     String tmp_out_dir = sirius_tmp.tmp_out_dir;
@@ -232,9 +232,6 @@ protected:
     {
       QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
       
-      // clean tmp directory if debug level < 2 
-      SiriusAdapterAlgorithm::removeSiriusTmp(debug_level_, tmp_dir, tmp_ms_file);
-
       OPENMS_LOG_WARN << "SiriusAdapter was used in converter mode and is terminated after openms preprocessing. \n"
                          "If you would like to run SIRIUS internally please disable the converter mode." << std::endl;
       
@@ -298,8 +295,6 @@ protected:
       QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
       OPENMS_LOG_INFO << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
     }
-
-    SiriusAdapterAlgorithm::removeSiriusTmp(debug_level_, tmp_dir, tmp_ms_file);
 
     return EXECUTION_OK;
   }
