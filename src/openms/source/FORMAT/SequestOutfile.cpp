@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
