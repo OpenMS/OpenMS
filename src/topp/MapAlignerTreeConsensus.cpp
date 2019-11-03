@@ -137,35 +137,42 @@ private:
 
   // function declarations
   template <typename MapType>
-  static void loadInputMaps_(vector<MapType>& maps, const StringList& in_files, ConsensusMap& out_map);
+  static void loadInputMaps_(vector<MapType>& maps, const StringList& in_files, vector<StringList>& ms_run_locations);
   static void setUniqueIds_(vector<FeatureMap>& feature_maps);
   static void getPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts);
   static void extract_seq_and_rt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt);
   static void buildTree_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, std::vector<BinaryTreeNode>& tree);
-  void treeGuidedAlignment_(const std::vector<BinaryTreeNode>& tree, const vector<ConsensusMap>& consensus_maps,
-                            vector<TransformationDescription>& transformations, ConsensusMap& out_map);
+  void treeGuidedAlignment_(const std::vector<BinaryTreeNode>& tree, vector<ConsensusMap>& consensus_maps,
+                            TransformationDescription& transformation, ConsensusMap& out_map, vector<FeatureMap>& feature_maps, Size& last_map_idx);
+  void createTransformationFiles_(const vector<FeatureMap> &feature_maps, const ConsensusMap &out_map,
+                                  const TransformationDescription &last_trafo_descr,
+                                  vector<TransformationDescription> &transformations);
+  void storeConsensusFile_(ConsensusMap& out_map, String& out_file);
 
 
   void registerOptionsAndFlags_() override
   {
-    //TOPPFeatureLinkerBase::registerOptionsAndFlags_();
-    registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input files", true);
-    setValidFormats_("in", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    TOPPFeatureLinkerBase::registerOptionsAndFlags_();
+    //registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input files", true);
+    //setValidFormats_("in", ListUtils::create<String>("featureXML"));
+    //registerOutputFile_("out", "<file>", "", "Output file", true);
+    //setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. This option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerStringOption_("transformation_type", "string", "trafo", "Option to decide transformation path during alignment.", false);
     setValidStrings_("transformation_type",ListUtils::create<String>("trafo,features,peptides"));
     registerStringOption_("fl_rt_transform", "string", "true", "With true the FeatureLinkerUnlabeldKD transforms retention times of input files.", false);
     setValidStrings_("fl_rt_transform", ListUtils::create<String>("true,false"));
-    registerSubsection_("algorithm", "Algorithm parameters section");
+    //registerStringOption_("keep_subelements", "string", "true", "kepp subelements after grouping features", false);
+    //setValidStrings_("keep_subelements", ListUtils::create<String>("true,false"));
+    registerSubsection_("align_algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
+    registerSubsection_("linker_algorithm", "FeatureGroupingAlgorithm");
   }
 
   Param getSubsectionDefaults_(const String&  section) const override
   {
-    if (section == "algorithm")
+    if (section == "align_algorithm")
     {
       MapAlignmentAlgorithmIdentification algo;
       return algo.getParameters();
@@ -174,6 +181,13 @@ private:
     {
       return TOPPMapAlignerBase::getModelDefaults("b_spline");
     }
+    if (section == "linker_algorithm")
+    {
+      FeatureGroupingAlgorithmKD algo;
+      Param p = algo.getParameters();
+      return p;
+    }
+
 
     return Param(); // this shouldn't happen
   }
@@ -195,22 +209,32 @@ private:
     //-------------------------------------------------------------
     Size in_files_size = in_files.size();
     ConsensusMap out_map(in_files_size);
+    vector<StringList> ms_run_paths(in_files_size);
     vector<FeatureMap> feature_maps(in_files_size);
-    loadInputMaps_(feature_maps, in_files, out_map);
+    loadInputMaps_(feature_maps, in_files, ms_run_paths);
+    std::cout << "in_files size: " << in_files.size() << " maps size: " << feature_maps.size() << std::endl;
+
+    setUniqueIds_(feature_maps);
 
     // ------------- convert to ConsensusMap----------------------
     vector<ConsensusMap> consensus_maps(feature_maps.size());
-    Int max_num_peaks_considered_ = 10000; // convert uses size of map, if this value is higher
+    Int max_num_peaks_considered_ = 500; // convert uses size of map, if this value is higher
     for (Size i = 0; i < feature_maps.size(); ++i)
     {
-      // unique ids kept and ranges updated by convert
-      MapConversion::convert(1, feature_maps[i], consensus_maps[i], max_num_peaks_considered_);
+      // unique ids and ranges updated by convert
+      MapConversion::convert(0, feature_maps[i], consensus_maps[i], max_num_peaks_considered_);
+      consensus_maps[i].getColumnHeaders()[0].filename = ms_run_paths[i].front();
+      consensus_maps[i].getColumnHeaders()[0].unique_id = feature_maps[i].getUniqueId();
+      //consensus_maps[i].updateUniqueIdToIndex();
+
+      std::cout << "map headers: " << consensus_maps[i].getColumnHeaders()[0].filename << std::endl;
+      std::cout << "map headers: " << consensus_maps[i].getColumnHeaders()[0].size << std::endl;
+      std::cout << "map headers: " << consensus_maps[i].getColumnHeaders()[0].unique_id << std::endl;
     }
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    setUniqueIds_(feature_maps);
 
     // get Peptide/ RT tuple for all features, seperated by input file
     vector<SeqAndRTList> maps_seqAndRt(in_files_size);
@@ -223,18 +247,32 @@ private:
     ClusterAnalyzer ca;
     OPENMS_LOG_INFO << "alignment follows tree: " << ca.newickTree(tree) << endl;
 
-    // to store transformations
-    vector<TransformationDescription> transformations(in_files_size);
+    // to store last transformation
+    TransformationDescription transformation;
 
 
     // TODO : refacture: compute transformations and consensus within treeGuidedAlignment
-    treeGuidedAlignment_(tree, consensus_maps, transformations, out_map);
+    Size last_map_idx;
+    treeGuidedAlignment_(tree, consensus_maps, transformation, out_map, feature_maps, last_map_idx);
 
+    vector<TransformationDescription> transformations;
+    createTransformationFiles_(feature_maps, out_map, transformation, transformations);
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
     // store transformed map
-    //storeConsensusFile_(out_map, out_file);
+    /*
+    std::cout << "UID header 0: " << out_map.getColumnHeaders()[0].unique_id << std::endl;
+    out_map.getColumnHeaders()[0].unique_id = feature_maps[0].getUniqueId();
+    out_map.getColumnHeaders()[0].size = feature_maps[0].size();
+    out_map.getColumnHeaders()[0].filename = ms_run_paths[0][0];
+
+    out_map.getColumnHeaders()[1].unique_id = feature_maps[1].getUniqueId();
+    out_map.getColumnHeaders()[1].size = feature_maps[1].size();
+    out_map.getColumnHeaders()[1].filename = ms_run_paths[1][0];
+     */
+
+    storeConsensusFile_(consensus_maps[last_map_idx], out_file);
 
     // store transformations
     //storeTransformationDescriptions_(transformations, out_trafos);
@@ -244,13 +282,10 @@ private:
 };
 
 template<typename MapType>
-void TOPPMapAlignerTree::loadInputMaps_(vector<MapType>& maps, const StringList& in_files,
-                                        ConsensusMap& out_map)
+void TOPPMapAlignerTree::loadInputMaps_(vector<MapType>& maps, const StringList& in_files, vector<StringList>& ms_run_locations)
 {
-  vector<StringList> ms_run_paths(in_files.size());
   FeatureXMLFile fxml_file;
   FeatureFileOptions param = fxml_file.getOptions();
-  StringList ms_run_locations;
 
   // to save memory don't load convex hulls and subordinates
   param.setLoadSubordinates(false);
@@ -258,28 +293,22 @@ void TOPPMapAlignerTree::loadInputMaps_(vector<MapType>& maps, const StringList&
   fxml_file.setOptions(param);
 
   ProgressLogger progresslogger;
+  Size progress = 0;
   progresslogger.setLogType(TOPPFeatureLinkerBase::CMD);
   progresslogger.startProgress(0, in_files.size(), "loading input files");
   for (Size i = 0; i < in_files.size(); ++i)
   {
     progresslogger.setProgress(i);
     fxml_file.load(in_files[i], maps[i]);
-    maps[i].getPrimaryMSRunPath(ms_run_paths[i]);
-    if (ms_run_paths[i].size() > 1 || ms_run_paths[i].empty())
+    maps[i].getPrimaryMSRunPath(ms_run_locations[i]);
+
+    // associate mzML file with map i in consensusXML
+    if (ms_run_locations[i].size() > 1 || ms_run_locations[i].empty())
     {
       OPENMS_LOG_WARN << "Exactly one MS runs should be associated with a FeatureMap. "
-                      << ms_run_paths[i].size()
+                      << ms_run_locations[i].size()
                       << " provided." << endl;
     }
-    else
-    {
-      out_map.getColumnHeaders()[i].filename = ms_run_paths[i].front();
-    }
-    out_map.getColumnHeaders()[i].size = maps[i].size();
-    out_map.getColumnHeaders()[i].unique_id = maps[i].getUniqueId();
-
-    // copy over information on the primary MS run
-    //ms_run_locations.insert(ms_run_locations[i].end(), ms_run_paths.begin(), ms_run_paths.end());
 
     // to save memory, remove convex hulls, subordinates:
     for (auto it = maps[i].begin(); it != maps[i].end();
@@ -300,6 +329,7 @@ void TOPPMapAlignerTree::loadInputMaps_(vector<MapType>& maps, const StringList&
       }
     }
     maps[i].updateRanges();
+    progresslogger.setProgress(progress++);
   }
   progresslogger.endProgress();
 }
@@ -310,8 +340,11 @@ void TOPPMapAlignerTree::setUniqueIds_(vector<FeatureMap> &feature_maps) {
   {
     maps += map;
   }
-  if (maps.applyMemberFunction(&UniqueIdInterface::setUniqueId))
-  {
+  Size setUID = maps.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  Size resolveUID = maps.resolveUniqueIdConflicts();
+  std::cout << "setUID: " << setUID << " resolve: " << resolveUID << std::endl;
+  //if (maps.applyMemberFunction(&UniqueIdInterface::setUniqueId))
+  //{
     auto maps_it = maps.begin();
     for (auto& map : feature_maps)
     {
@@ -324,7 +357,7 @@ void TOPPMapAlignerTree::setUniqueIds_(vector<FeatureMap> &feature_maps) {
         ++maps_it;
       }
     }
-  }
+  //}
 }
 
 void TOPPMapAlignerTree::getPeptideSequences_(const vector<PeptideIdentification>& peptides,
@@ -367,12 +400,10 @@ void TOPPMapAlignerTree::buildTree_(const vector<FeatureMap>& feature_maps, vect
   ch.cluster<SeqAndRTList, PeptideIdentificationsPearsonDistance>(maps_seqAndRt, pepDist, sl, tree, dist_matrix);
 }
 
-void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode>& tree, const vector<ConsensusMap>& consensus_maps,
-        vector<TransformationDescription>& transformations, ConsensusMap& out_map)
+void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode>& tree, vector<ConsensusMap>& consensus_maps,
+        TransformationDescription& transformation, ConsensusMap& out_map, vector<FeatureMap>& feature_maps, Size& last_map_idx)
         {
   MapAlignmentAlgorithmIdentification algorithm;
-  Param algo_params = getParam_().copy("algorithm:", true);
-  algorithm.setParameters(algo_params);
   algorithm.setLogType(CMD);
 
   Param model_params = getParam_().copy("model:", true);
@@ -380,33 +411,118 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode>&
   model_params = model_params.copy(model_type+":", true);
 
   FeatureGroupingAlgorithmKD link_feature_maps;
-  Param p = link_feature_maps.getDefaults();
-  p.setValue("warp:enabled", true); // no additional rt transformation by FeatureLinker
+  Param p = getParam_().copy("linker_algorithm:", true);
+  //hard coded, weil ich es anders nicht hin bekomme :(
+  p.setValue("keep_subelements", true);
+  p.setValue("nr_partitions", 1);
+  p.setValue("warp:enabled", "false");
+  p.setValue("mz_unit", "Da");
+  p.setValue("warp:mz_tol", 0.3);
+  p.setValue("link:rt_tol", 100.0);
+  p.setValue("link:mz_tol", 0.3);
+
   link_feature_maps.setParameters(p);
 
-  Size last_node; // use to know where last consensus is stored
+  //last_map_idx = 0; // use to know where last consensus is stored
   // align maps tree guided
+  vector<vector<Size>> order(feature_maps.size());
+  for (Size i = 0; i < feature_maps.size(); ++i)
+  {
+    order[i].push_back(i);
+  }
   for (const auto & node : tree)
   {
     vector<ConsensusMap> to_align;
     vector<TransformationDescription> tmp_trafoDesc;
+    order[node.left_child].insert(order[node.left_child].end(), order[node.right_child].begin(), order[node.right_child].end());
     to_align.push_back(consensus_maps[node.left_child]);
     to_align.push_back(consensus_maps[node.right_child]);
     algorithm.align(to_align, tmp_trafoDesc);
     tmp_trafoDesc[0].fitModel(model_type, model_params);
     tmp_trafoDesc[1].fitModel(model_type, model_params);
-    for (Size i = 0; i < to_align.size(), ++i)
+    for (Size i = 0; i < to_align.size(); ++i)
     {
+
       MapAlignmentTransformer::transformRetentionTimes(to_align[i], tmp_trafoDesc[i]);
       to_align[i].updateRanges();
+
     }
-    // use featureGrouping to get consensus od alignment
-    link_feature_maps.group(to_align, consensus_maps[node.left_child]);
-    last_node = node.left_child;  // need to know position of last consensus
+    // use featureGrouping to get consensus of alignment
+    ConsensusMap cons_tmp;
+    link_feature_maps.group(to_align, cons_tmp);
+    consensus_maps[node.left_child].clear();
+    consensus_maps[node.left_child] = cons_tmp;
+    /*
+    for (auto & map_idx : order[node.left_child])
+    {
+      StringList ms_runs;
+      feature_maps[map_idx].getPrimaryMSRunPath(ms_runs);
+      consensus_maps[node.left_child].getColumnHeaders()[map_idx].filename =ms_runs[0];
+      consensus_maps[node.left_child].getColumnHeaders()[map_idx].size = feature_maps[map_idx].size();
+      consensus_maps[node.left_child].getColumnHeaders()[map_idx].unique_id = feature_maps[map_idx].getUniqueId();
+    }
+    Size ensuredIDs = consensus_maps[node.left_child].applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+    std::cout << "ensured nach grouping: " << ensuredIDs << std::endl;
+     */
+    last_map_idx = node.left_child;  // need to know position of last consensus
     //consensus_maps[node.right_child] = consensus_maps[node.left_child]; // not needed because tree always links to left child?
+    link_feature_maps.transferSubelements(to_align, consensus_maps[node.left_child]);
+    consensus_maps[node.left_child].sortPeptideIdentificationsByMapIndex();
   }
 
-  out_map = consensus_maps[last_node];
+  out_map = consensus_maps[last_map_idx];
+  std::cout << "resolveUniquIDs in out map: " << out_map.resolveUniqueIdConflicts() << std::endl;
+}
+
+void TOPPMapAlignerTree::createTransformationFiles_(const vector<FeatureMap> &feature_maps, const ConsensusMap &out_map,
+                                                    const TransformationDescription &last_trafo_descr,
+                                                    vector<TransformationDescription> &transformations) {
+  for (const auto & map : feature_maps)
+  {
+    UInt64 unique_id_map = map.getUniqueId();
+    for (auto & header : out_map.getColumnHeaders())
+    {
+      //if (header.unique_id)
+    }
+  }
+
+}
+
+void TOPPMapAlignerTree::storeConsensusFile_(ConsensusMap& out_map, String& out_file) {
+  ConsensusXMLFile cxml_file;
+
+  ProgressLogger progresslogger;
+  progresslogger.setLogType(CMD);
+  progresslogger.startProgress(0, 1, "writing output file");
+  // annotate output with data processing info:
+  //addDataProcessing_(maps[trafo_order.back()],
+  //                   getProcessingInfo_(DataProcessing::ALIGNMENT));
+  //assign unique ids
+  //Size ensuredIDs = out_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+  // annotate output with data processing info
+
+  //out_map.sortPeptideIdentificationsByMapIndex();
+  addDataProcessing_(out_map,
+                     getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+  cxml_file.store(out_file, out_map);
+  progresslogger.endProgress();
+
+  // some statistics
+  map<Size, UInt> num_consfeat_of_size;
+  for (ConsensusMap::const_iterator cmit = out_map.begin();
+       cmit != out_map.end(); ++cmit)
+  {
+    ++num_consfeat_of_size[cmit->size()];
+  }
+
+  OPENMS_LOG_INFO << "Number of consensus features:" << endl;
+  for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin();
+       i != num_consfeat_of_size.rend(); ++i)
+  {
+    OPENMS_LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6)
+                    << i->second << endl;
+  }
+  OPENMS_LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
 }
 
 
