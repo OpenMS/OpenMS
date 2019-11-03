@@ -201,15 +201,16 @@ private:
     registerStringOption_("transformation_type", "string", "trafo", "Option to decide transformation path during alignment.", false);
     setValidStrings_("transformation_type",ListUtils::create<String>("trafo,features,peptides"));
     registerStringOption_("fl_rt_transform", "string", "true", "With true the FeatureLinkerUnlabeldKD transforms retention times of input files.", false);
-    setValidStrings_("fl_rt_transform", ListUtils::create<String>("true,false"));
-    registerSubsection_("algorithm", "Algorithm parameters section");
+    setValidStrings_("fl_rt_transform", {"true", "false"});
+    registerSubsection_("align_algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
+    registerSubsection_("linker_algorithm", "Options to choose parameter for FeatureFroupingAlgorithmKD");
   }
 
   // getSubsectionDefaults of TOPPMapAlignerBase geht nicht, da von TOPPFeatureLinkerBase geerbt:
   Param getSubsectionDefaults_(const String&  section) const override
   {
-    if (section == "algorithm")
+    if (section == "align_algorithm")
     {
       MapAlignmentAlgorithmIdentification algo;
       return algo.getParameters();
@@ -217,6 +218,11 @@ private:
     if (section == "model")
     {
       return TOPPMapAlignerBase::getModelDefaults("b_spline");
+    }
+    if(section == "linker_algorithm")
+    {
+      FeatureGroupingAlgorithmKD algo;
+      return algo.getParameters();
     }
 
     return Param(); // this shouldn't happen
@@ -451,7 +457,7 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
   }
 
   MapAlignmentAlgorithmIdentification algorithm;
-  Param algo_params = getParam_().copy("algorithm:", true);
+  Param algo_params = getParam_().copy("align_algorithm:", true);
   algorithm.setParameters(algo_params);
   algorithm.setLogType(log_type_);
 
@@ -478,14 +484,6 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
 
     // without set reference
     algorithm.align(to_align, transformations_align);
-    /*
-    if (transformations_align[0].getDataPoints()[0].first == transformations_align[0].getDataPoints()[0].second)
-    {
-      swap(to_transform, ref);
-      swap(transformations_align[0], transformations_align[1]);
-      std::cout << "nach swap: " << transformations_align[0].getDataPoints()[0].first << " : " << transformations_align[0].getDataPoints()[0].second << std::endl;
-    }
-    */
 
     // transform retention times of non-identity for next iteration
     transformations_align[0].fitModel(model_type, model_params);
@@ -493,9 +491,9 @@ void TOPPMapAlignerTree::treeGuidedAlignment_(const std::vector<BinaryTreeNode> 
 
     // needed for following iteration steps
     MapAlignmentTransformer::transformRetentionTimes(maps_transformed[to_transform],
-                                                     transformations_align[0], true);
+                                                     transformations_align[0], false);
     MapAlignmentTransformer::transformRetentionTimes(maps_transformed[ref],
-                                                     transformations_align[1], true);
+                                                     transformations_align[1], false);
 
     // combine aligned maps, store in both, because tree always calls smaller number
     // also possible: feature_maps_transformed[smallerNumber] = ..[ref]+..[to_transform]
@@ -701,8 +699,7 @@ void TOPPMapAlignerTree::computeConsensus_(vector<FeatureMap>& feature_maps, con
     ++trafo;
   }
   FeatureGroupingAlgorithmKD link_feature_maps;
-  Param p = link_feature_maps.getDefaults();
-  p.setValue("warp:enabled", use_fl_rt); // no additional rt transformation by FeatureLinker
+  Param p = getParam_().copy("linker_algorithm:", true);
   link_feature_maps.setParameters(p);
   link_feature_maps.group(feature_maps, out_map);
 
