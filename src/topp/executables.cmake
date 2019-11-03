@@ -92,6 +92,7 @@ QualityControl
 RTModel
 RTPredict
 SeedListGenerator
+SequenceRemover
 SpecLibSearcher
 SpectraFilterBernNorm
 SpectraFilterMarkerMower
