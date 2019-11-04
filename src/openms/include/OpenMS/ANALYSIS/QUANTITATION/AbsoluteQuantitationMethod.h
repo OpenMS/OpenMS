@@ -52,6 +52,9 @@ namespace OpenMS
   class OPENMS_DLLAPI AbsoluteQuantitationMethod
   {
 public:
+    bool operator==(const AbsoluteQuantitationMethod& other) const;
+    bool operator!=(const AbsoluteQuantitationMethod& other) const;
+
     void setComponentName(const String& component_name); ///< Component name setter
     String getComponentName() const; ///< Component name getter
 
