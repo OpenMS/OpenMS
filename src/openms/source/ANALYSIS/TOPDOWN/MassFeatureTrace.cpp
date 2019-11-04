@@ -48,6 +48,9 @@ namespace OpenMS
       map.addSpectrum(iter->second);
     }
 
+    if(map.size() < 3){
+      return;
+    }
     //std::cout<<map.size()<< " " <<tmp<< std::endl;
     peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
 

@@ -78,6 +78,8 @@ namespace OpenMS
 
     std::map<UInt, std::vector<std::vector<Size>>> prevMassBinMap;
     std::map<UInt,std::vector<double>> prevMinBinLogMassMap;
+    std::map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
+
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       auto msLevel =  it->getMSLevel();
@@ -85,6 +87,10 @@ namespace OpenMS
       {
         continue;
       }
+
+      //if(qspecCntr > 50){
+      //  break; //
+      //}
 
       float progress = (float) (it - map.begin()) / map.size();
       if (progress > prevProgress + .01)
@@ -94,14 +100,69 @@ namespace OpenMS
       }
 
       specCntr++;
+
+
       auto sd = SpectrumDeconvolution(*it, param);
 
       if(prevMassBinMap.find(msLevel) == prevMassBinMap.end()){
         prevMassBinMap[msLevel] = std::vector<std::vector<Size>>();
         prevMinBinLogMassMap[msLevel] = std::vector<double>();
       }
+      auto precursorMsLevel = msLevel - 1;
+
+      // to find precursor peaks with assigned charges..
+      if (peakChargeMap.find(precursorMsLevel) == peakChargeMap.end())
+      {
+        param.currentChargeRange = param.chargeRange;
+        param.currentMaxMass = param.maxMass;
+      }else{
+        auto &subPeakChargeMap = peakChargeMap[precursorMsLevel];
+        int mc = -1;
+        double mm = -1;
+        for(auto &pre : it->getPrecursors()){
+          auto startMz = pre.getIsolationWindowLowerOffset() > 100.0 ? pre.getIsolationWindowLowerOffset() : -pre.getIsolationWindowLowerOffset() + pre.getMZ();
+          auto endMz = pre.getIsolationWindowUpperOffset() > 100.0 ? pre.getIsolationWindowUpperOffset() : pre.getIsolationWindowUpperOffset() + pre.getMZ();
+
+          for(auto iter = subPeakChargeMap.begin(); iter != subPeakChargeMap.end(); ++iter)
+          {
+            auto& mz = iter->first;
+            if(mz < startMz){
+              continue;
+            }
+            if(mz > endMz){
+              break;
+            }
+            int pc = subPeakChargeMap[mz];
+            mc = mc > pc? mc : pc;
+            double pm = mc * mz;
+            mm = mm > pm ? mm : pm;
+          }
+        }
+        if(mc > 0){
+          param.currentChargeRange = mc;
+          param.currentMaxMass = mm;
+          //std::cout<<1<<std::endl;
+        }else{
+          param.currentChargeRange = param.chargeRange;
+          param.currentMaxMass = param.maxMass;
+        }
+      }
 
       auto & peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap[msLevel], prevMinBinLogMassMap[msLevel],avg, msLevel);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
+
+      auto subPeakChargeMap = std::map<double, int>();
+      for (auto& pg : peakGroups)
+      {
+        for(auto& p : pg.peaks){
+          int mc = p.charge;
+          if (subPeakChargeMap.find(p.mz) == subPeakChargeMap.end()){
+            int pc = subPeakChargeMap[p.mz];
+            mc = mc > pc? mc : pc;
+          }
+          subPeakChargeMap[p.mz] = mc;
+        }
+      }
+      peakChargeMap[msLevel] = subPeakChargeMap;
 
       if (peakGroups.empty())
       {

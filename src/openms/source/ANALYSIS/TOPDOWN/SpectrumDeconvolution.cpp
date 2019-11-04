@@ -174,7 +174,7 @@ namespace OpenMS
   boost::dynamic_bitset<> SpectrumDeconvolution::getCandidateMassBinsForThisSpectrum(float *massIntensitites,
                                                                                      float *mzIntensities, int &msLevel)
   {
-    int chargeRange = param.chargeRange;
+    int chargeRange = param.currentChargeRange;
     int hChargeSize = (int) param.hCharges.size();
     int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
 
@@ -259,6 +259,7 @@ namespace OpenMS
                   }
                   maxHint = hintensity;
                   maxHcharge = k;
+                  break;
                 }
               }
             }
@@ -307,6 +308,20 @@ namespace OpenMS
       delete[] noise;
 
     }else{
+      Byte *prevCharges = new Byte[massBins.size()];
+      std::fill_n(prevCharges, massBins.size(), (Byte) (chargeRange + 2));
+
+      auto *prevIntensities = new float[massBins.size()];
+      std::fill_n(prevIntensities, massBins.size(), 1);
+
+      //auto noise = new float *[hChargeSize + 1];
+      //for (auto k = 0; k < hChargeSize + 1; k++)
+      //{
+      //  noise[k] = new float[massBins.size()];
+      //  std::fill_n(noise[k], massBins.size(), 0);
+      //}
+
+      float factor = 10.0; //
       while (mzBinIndex != mzBins.npos)
       {
         auto &intensity = mzIntensities[mzBinIndex];
@@ -323,15 +338,66 @@ namespace OpenMS
             break;
           }
 
-          massIntensitites[massBinIndex] += intensity;
-          if (!candidateMassBinsForThisSpectrum[massBinIndex])
+          auto cd = prevCharges[massBinIndex] - j;
+          auto &prevIntensity = prevIntensities[massBinIndex];
+          float minInt = std::min(intensity, prevIntensity);
+          float maxInt = std::max(intensity, prevIntensity);
+          float id = maxInt / minInt;
+
+          if (cd != 1 || id > factor)
           {
-            candidateMassBinsForThisSpectrum[massBinIndex] =
-                ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount;
+             continuousChargePeakPairCount[massBinIndex] = 0;
           }
+          else
+          {
+            int maxHcharge = -1;
+            float maxHint = .0;
+            for (auto k = 0; k < hChargeSize; k++)
+            {
+              auto hmzBinIndex = massBinIndex - hBinOffsets[k][j];
+              if (hmzBinIndex > 0 && hmzBinIndex < (long) mzBins.size() && mzBins[hmzBinIndex])
+              {
+                auto &hintensity = mzIntensities[hmzBinIndex];
+                if (hintensity > minInt
+                    && hintensity < factor * maxInt
+                    )
+                {
+                  //noise[k][massBinIndex] += hintensity;
+
+                  if (hintensity < maxHint)
+                  {
+                    continue;
+                  }
+                  maxHint = hintensity;
+                  maxHcharge = k;
+                }
+              }
+            }
+
+            if (maxHcharge >= 0)
+            {
+              continuousChargePeakPairCount[massBinIndex] = 0;
+            }
+            else
+            {
+              massIntensitites[massBinIndex] += intensity;
+              if (!candidateMassBinsForThisSpectrum[massBinIndex])
+              {
+                candidateMassBinsForThisSpectrum[massBinIndex] =
+                    ++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount;
+              }
+            }
+          }
+          prevIntensity = intensity;
+          prevCharges[massBinIndex] = j;
         }
         mzBinIndex = mzBins.find_next(mzBinIndex);
       }
+
+      delete[] prevIntensities;
+      delete[] prevCharges;
+
+
     }
     delete[] continuousChargePeakPairCount;
     return candidateMassBinsForThisSpectrum;
@@ -344,7 +410,7 @@ namespace OpenMS
                                                 int &msLevel
   )
   {
-    int chargeRange = param.chargeRange;
+    int chargeRange = param.currentChargeRange;
     // auto binWidth = param.binWidth;
     Byte *maxChargeRanges = new Byte[massBins.size()];
     std::fill_n(maxChargeRanges, massBins.size(), 0);
@@ -443,7 +509,7 @@ namespace OpenMS
           maxChargeRanges[massBinIndex] = std::max(maxChargeRanges[massBinIndex], j);
           minChargeRanges[massBinIndex] = std::min(minChargeRanges[massBinIndex], j);
           massBinsForThisSpectrum[massBinIndex] = candidateMassBinsForThisSpectrum[massBinIndex];
-          mzChargeRanges[mzBinIndex] = j;//minChargeRanges[maxIndex];//...
+          //mzChargeRanges[mzBinIndex] = j;//minChargeRanges[maxIndex];//...
           massBins[massBinIndex] = true;
         }
 
@@ -468,7 +534,7 @@ namespace OpenMS
   {
     long binThresholdMinMass = (long) getBinNumber(log(param.minMass), massBinMinValue, param.binWidth);
     long binThresholdMaxMass = (long) std::min(massBins.size(),
-                                               1 + getBinNumber(log(param.maxMass), massBinMinValue, param.binWidth));
+                                               1 + getBinNumber(log(param.currentMaxMass), massBinMinValue, param.binWidth));
     //auto y = 1;
 
     auto candidateMassBins = getCandidateMassBinsForThisSpectrum(massIntensities, mzIntensities, msLevel);
@@ -476,6 +542,7 @@ namespace OpenMS
    // if (msLevel == 2){
    //   std::cout<<candidateMassBins.count()<<std::endl;
    // }
+    //auto y = 1;//
     auto perMassChargeRanges = updateMassBins_(candidateMassBins,
                                                massIntensities,
                                                binThresholdMinMass,
@@ -721,16 +788,16 @@ namespace OpenMS
     double binWidth = param.binWidth;
     double tol = param.tolerance * 2;
     int minCharge = param.minCharge;
-    int chargeRange = param.chargeRange;
+    int chargeRange = param.currentChargeRange;
     auto mzBinSize = mzBins.size();
     auto massBinSize = massBins.size();
 //    int maxIsotopeCount = param.maxIsotopeCount;
-    auto maxIsotopeCount = param.maxIsotopeCount;;//avg.getMostAbundantIndex(exp(logM));
+    auto maxIsotopeCount = param.maxIsotopeCount;//avg.getMostAbundantIndex(exp(logM));
 
     int logMzPeakSize = (int) logMzPeaks.size();
     //Size massBinSize = massBins.size();
-    int *currentPeakIndex = new int[param.chargeRange];
-    std::fill_n(currentPeakIndex, param.chargeRange, 0);
+    int *currentPeakIndex = new int[chargeRange];
+    std::fill_n(currentPeakIndex, chargeRange, 0);
 
     peakGroups.reserve(massBins.count());
     auto &minChargeRanges = chargeRanges[0];
@@ -973,17 +1040,17 @@ namespace OpenMS
 
     double massBinMaxValue = std::min(
         logMzPeaks[logMzPeaks.size() - 1].logMz -
-        filter[param.chargeRange - param.minContinuousChargePeakCount - 1],
-        log(param.maxMass));
+        filter[param.currentChargeRange - param.minContinuousChargePeakCount - 1],
+        log(param.currentMaxMass));
 
     double massBinMinValue = logMzPeaks[0].logMz - filter[param.minContinuousChargePeakCount];
     double mzBinMinValue = logMzPeaks[0].logMz;
     double mzBinMaxValue = logMzPeaks[logMzPeaks.size() - 1].logMz;
     Size massBinNumber = getBinNumber(massBinMaxValue, massBinMinValue, param.binWidth) + 1;
 
-    binOffsets = new long[param.chargeRange];
+    binOffsets = new long[param.currentChargeRange];
 
-    for (int i = 0; i < param.chargeRange; i++)
+    for (int i = 0; i < param.currentChargeRange; i++)
     {
       binOffsets[i] = (long) round((mzBinMinValue - filter[i] - massBinMinValue) *
                                    param.binWidth);
@@ -992,8 +1059,8 @@ namespace OpenMS
     hBinOffsets = new long *[param.hCharges.size()];
     for (Size k = 0; k < param.hCharges.size(); k++)
     {
-      hBinOffsets[k] = new long[param.chargeRange];
-      for (int i = 0; i < param.chargeRange; i++)
+      hBinOffsets[k] = new long[param.currentChargeRange];
+      for (int i = 0; i < param.currentChargeRange; i++)
       {
         hBinOffsets[k][i] = (long) round((mzBinMinValue - harmonicFilter[k][i] - massBinMinValue) *
                                          param.binWidth);
@@ -1013,22 +1080,19 @@ namespace OpenMS
     unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector);
 
     ////////
-    auto y = 1; // TODO
+   // auto y = 1; // TODO
 
     auto perMassChargeRanges = updateMassBins(massBinMinValue, massIntensities,
-                                              mzBinIntensities, y);
+                                              mzBinIntensities, msLevel);
 
     getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
                            massIntensities,
-                           perMassChargeRanges, y);
+                           perMassChargeRanges, msLevel);
 
-    //if(msLevel == 1)
-    {
-      //std::cout<<massBins.count()<< "\t" << peakGroups.size()<<std::endl;
 
-      PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
-      peakGroups = scorer.scoreAndFilterPeakGroups(avg);
-    }
+    PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
+    peakGroups = scorer.scoreAndFilterPeakGroups(avg);
+   // std::cout<<" "<<peakGroups.size()<<std::endl;
 
     ////////
 

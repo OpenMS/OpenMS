@@ -91,10 +91,10 @@ protected:
     registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
 
-    registerDoubleOption_("minIC", "<cosine threshold 0 - 1>", .9, "cosine threshold between avg. and observed isotope pattern", false, false);
-    registerDoubleOption_("minCC", "<cosine threshold 0 - 1>", .7, "cosine threshold between per-charge-intensity and fitted gaussian distribution", false, false);
-    registerDoubleOption_("minICS", "<cosine threshold 0 - 1>", .9, "cosine threshold between avg. and observed isotope pattern (spectrum level)", false, true);
-    registerDoubleOption_("minCCS", "<cosine threshold 0 - 1>", .7, "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level)", false, true);
+    registerDoubleOption_("minIC", "<cosine threshold 0 - 1>", .7, "cosine threshold between avg. and observed isotope pattern", false, false);
+    registerDoubleOption_("minCC", "<cosine threshold 0 - 1>", .5, "cosine threshold between per-charge-intensity and fitted gaussian distribution", false, false);
+    registerDoubleOption_("minICS", "<cosine threshold 0 - 1>", .7, "cosine threshold between avg. and observed isotope pattern (spectrum level)", false, true);
+    registerDoubleOption_("minCCS", "<cosine threshold 0 - 1>", .5, "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level)", false, true);
 
     registerIntOption_("minCP", "<min continuous charge peak count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
 
@@ -599,7 +599,7 @@ protected:
 
   static void writePeakGroupMfile(PeakGroup &pg, Parameter &param, fstream &fs)//, fstream &fsm, fstream &fsp)
   {
-    if (pg.peaks.empty())
+    if (pg.peaks.empty())//
     {
       return;
     }

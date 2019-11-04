@@ -55,6 +55,13 @@ namespace OpenMS
 
     static double getCosine(double *a, double *b, int size);
 
+    static double getCorrelation(double *a,
+                                 int &aStart,
+                                 int &aEnd,
+                                 IsotopeDistribution &b,
+                                 int &bSize,
+                                 int offset);
+
     static double getCosine(double *a,
                             int &aStart,
                             int &aEnd,

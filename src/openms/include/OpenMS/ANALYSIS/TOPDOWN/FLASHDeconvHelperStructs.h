@@ -58,6 +58,7 @@ namespace OpenMS
         int minCharge;
         double minMass;
         double maxMass;
+        double currentMaxMass;
         double tolerance;
         String fileName;// up to here: ordinary user accessible parameters
 
@@ -77,6 +78,7 @@ namespace OpenMS
         double minRTSpan;
         std::vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
         int chargeRange;
+        int currentChargeRange;
         double binWidth;
         int minNumOverLappedScans = 1;
         int numOverlappedScans = minNumOverLappedScans;

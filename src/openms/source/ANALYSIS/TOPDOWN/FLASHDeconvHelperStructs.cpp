@@ -61,6 +61,7 @@ namespace OpenMS
       iso.trimRight(0.01 * iso.getMostAbundant().getIntensity());
       isotopes.push_back(iso);
       double norm = .0;
+     // double mean = .0;
       Size mostAbundantIndex = 0;
       double mostAbundantInt = 0;
 
