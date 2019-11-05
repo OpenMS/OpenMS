@@ -40,6 +40,7 @@
 
 using namespace OpenMS;
 using namespace std;
+using namespace boost;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -62,27 +63,27 @@ class TOPPSequenceRemover :
 {
 public:
   TOPPSequenceRemover() :
-          TOPPMapAlignerBase("SequenceRemover", "Removes 'n' sequences from peptides randomly from featureXML files.")
+          TOPPMapAlignerBase("SequenceRemover", "Removes features from featureXML files if they contain randomly selected sequences.")
   {
 
   }
 
   // function declarations
-  void loadInputMaps_(vector<FeatureMap>& maps, StringList& ins, FeatureXMLFile& fxml_file);
-  void storeFeatureXMLs_(const vector<FeatureMap>& feature_maps, const StringList& out_files, FeatureXMLFile& fxml_file);
+  void loadInputMap_(FeatureMap& map, String& in, FeatureXMLFile& fxml_file);
+  void storeOutFiles_(const vector<FeatureMap>& out_maps, const StringList& out_files, FeatureXMLFile& fxml_file);
+  void storeRemovedOutFiles_(const vector<FeatureMap>& removed_maps, const StringList& removed_out_files, FeatureXMLFile& fxml_file);
 
 protected:
   void registerOptionsAndFlags_() override
   {
     TOPPMapAlignerBase::registerOptionsAndFlags_("featureXML", REF_NONE);
-    /*
-    registerInputFile_("ins", "<files>", "", "input files");
-    setValidFormats_("ins", {"featureXML"});
-    registerOutputFile_("outs", "<files>", "", "output files");
-    setValidFormats_("outs", {"featureXML"});
-     */
-    registerIntOption_("number_of_sequences", "<int>", 1, "Number of randomly chosen peptide sequences to remove", false);
-    setMinInt_("number_of_sequences", 1);
+    registerOutputFileList_("removed_out", "<files>", StringList(), "Output files containing removed features.", true);
+    setValidFormats_("removed_out", {"featureXML"});
+    registerDoubleOption_("percent_to_remove", "<double>", 0.1, "Percentage of peptide identifications to be remove", false, false);
+    setMinFloat_("percent_to_remove", 0.0);
+    setMaxFloat_("percent_to_remove", 1.0);
+    registerIntOption_("map_index", "<int>", 1, "Index of featureXML file from which peptide identifications are randomly chosen; starts with 1", false, false);
+    setMinInt_("map_index", 1);
   }
 
   ExitCodes main_(int, const char**) override
@@ -93,87 +94,142 @@ protected:
     //-------------------------------------------------------------
     StringList ins = getStringList_("in");
     StringList outs = getStringList_("out");
-    Size number_of_sequences = getIntOption_("number_of_sequences");
+    StringList removed_outs = getStringList_("removed_out");
+    double percent_to_remove = getDoubleOption_("percent_to_remove");
+    Size map_index = getIntOption_("map_index")-1;
 
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
     vector<FeatureMap> maps(ins.size());
-    loadInputMaps_(maps, ins, fxml_file);
+
+    if (map_index > (ins.size()-1))
+    {
+      OPENMS_LOG_WARN << "Map_index doesn't match the number of input files. Choose peptide Identifications from input file 1" << endl;
+      map_index = 0;
+    }
+
+    loadInputMap_(maps[map_index], ins[map_index], fxml_file);
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    vector<String> to_remove(number_of_sequences);
-    for (Size i = 0; i < number_of_sequences; ++i)
-    {
-      Size rand = std::rand();
-      std::cout << "rand int: " << rand << std::endl;
-      Size rand_map_idx = rand % maps.size();
-      Size rand_feature_idx = rand % maps[rand_map_idx].size();
-      Size rand_pep_idx = rand % maps[rand_map_idx][rand_feature_idx].getPeptideIdentifications().size();
-      // remove sequence from best hit
-      to_remove[i] = maps[rand_map_idx][rand_feature_idx].getPeptideIdentifications()[rand_pep_idx].getHits()[0].getSequence().toString();
-    }
-    AASequence empty_seq;
-    empty_seq.fromString("");
+    // determine amount of peptide ids to be removed
+    Size to_be_removed = (Size)ceil(maps[map_index].size()*percent_to_remove);
+    OPENMS_LOG_INFO << to_be_removed << "peptide identifications to be removed." << std::endl;
 
-    for ( auto & map : maps )
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
+    progresslogger.startProgress(0, 1, "determining sequences to be removed");
+    vector<FeatureMap> removed_pep_ids(ins.size());
+    vector<PeptideIdentification> pep_to_remove(to_be_removed);
+    set<String> seq_to_remove;
+    boost::random::mt19937 gen;
+    while (seq_to_remove.size() < to_be_removed)
     {
-      for (auto & feature : map)
+      boost::random::uniform_int_distribution<> dist(0, maps[map_index].size()-1);
+      int feature_idx = dist(gen);
+      //OPENMS_LOG_INFO << "feature index chosen: " << feature_idx << std::endl;
+
+      boost::random::uniform_int_distribution<> rand_pep_idx(0, maps[map_index][feature_idx].getPeptideIdentifications().size()-1);
+      int pep_idx = rand_pep_idx(gen);
+      //OPENMS_LOG_INFO << "peptide index chosen: " << pep_idx << std::endl;
+      // get sequence from best hit
+      seq_to_remove.insert(maps[map_index][feature_idx].getPeptideIdentifications()[pep_idx].getHits()[0].getSequence().toString());
+    }
+    progresslogger.endProgress();
+
+    vector<FeatureMap> out_maps(ins.size());
+    vector<FeatureMap> removed_maps(ins.size());
+
+    Size progress = 0;
+    progresslogger.startProgress(0, ins.size(), "removing features from maps");
+    for (Size i = 0; i < ins.size(); ++i)
+    {
+      progresslogger.setProgress(progress);
+      // load map after map and clear after use because of copies
+      if (i != map_index)
       {
-        for (auto pep_it = feature.getPeptideIdentifications().begin(); pep_it != feature.getPeptideIdentifications().end(); ++pep_it)
+        loadInputMap_(maps[i], ins[i], fxml_file);
+      }
+      //copy all properties
+      out_maps[i] = maps[i];
+      //.. but delete feature information
+      out_maps[i].clear(false);
+      removed_maps[i] = out_maps[i];
+
+      for (auto & feature : maps[i])
+      {
+        bool remove = false;
+        for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
         {
-          if (! pep_it->getHits().empty())
-          {
-            for (auto hit_it = pep_it->getHits().begin(); hit_it != pep_it->getHits().end(); ++hit_it)
+          //loop over all peptideHits
+          for (const auto & pep_hit_it : pep_id_it->getHits()) {
+            if (seq_to_remove.find(pep_hit_it.getSequence().toString()) != seq_to_remove.end()) // PeptideHit contains sequence to be removed
             {
-              for (auto & seq : to_remove)
-              {
-                if (hit_it->getSequence().toString() == seq)
-                {
-                  hit_it->setSequence(empty_seq);
-                  OPENMS_LOG_INFO << "removed sequence: " << seq << std::endl;
-                }
-              }
+              remove = true;
             }
           }
         }
+        // transfer feature to corresponding map
+        if (remove)
+        {
+          removed_maps[i].push_back(feature);
+        }
+        else{
+          out_maps[i].push_back(feature);
+        }
+        remove = false;
       }
+      maps[i].clear(true);
+      removed_maps[i].updateRanges();
+      out_maps[i].updateRanges();
+      OPENMS_LOG_INFO << removed_maps[i].size() << " features from map " << (i+1) << " removed and " << out_maps[i].size() << " features kept." << endl;
+      ++progress;
     }
+    progresslogger.endProgress();
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    storeFeatureXMLs_(maps, outs, fxml_file);
+    storeOutFiles_(out_maps, outs, fxml_file);
+    storeRemovedOutFiles_(removed_maps, removed_outs, fxml_file);
 
     return EXECUTION_OK;
   }
 
 };
 
-void TOPPSequenceRemover::loadInputMaps_(vector<FeatureMap>& maps, StringList& ins, FeatureXMLFile& fxml_file)
+void TOPPSequenceRemover::loadInputMap_(FeatureMap& map, String& in, FeatureXMLFile& fxml_file)
 {
   ProgressLogger progresslogger;
   progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
-  progresslogger.startProgress(0, ins.size(), "loading input files");
-  for (Size i = 0; i < ins.size(); ++i)
+  progresslogger.startProgress(0, 1, "loading input file "+in);
+    fxml_file.load(in, map);
+  progresslogger.endProgress();
+}
+
+void TOPPSequenceRemover::storeOutFiles_(const vector<FeatureMap>& out_maps, const StringList& out_files, FeatureXMLFile& fxml_file) {
+
+  ProgressLogger progresslogger;
+  progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
+  progresslogger.startProgress(0, out_maps.size(), "writing output files");
+  for (Size i = 0; i < out_files.size(); ++i)
   {
     progresslogger.setProgress(i);
-    fxml_file.load(ins[i], maps[i]);
+    fxml_file.store(out_files[i], out_maps[i]);
   }
   progresslogger.endProgress();
 }
 
-void TOPPSequenceRemover::storeFeatureXMLs_(const vector<FeatureMap>& feature_maps, const StringList& out_files, FeatureXMLFile& fxml_file) {
-
+void TOPPSequenceRemover::storeRemovedOutFiles_(const vector<FeatureMap>& removed_maps, const StringList& removed_out_files, FeatureXMLFile& fxml_file){
   ProgressLogger progresslogger;
   progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
-  progresslogger.startProgress(0, feature_maps.size(), "writing output files");
-  for (Size i = 0; i < out_files.size(); ++i)
+  progresslogger.startProgress(0, removed_maps.size(), "writing files containing removed features");
+  for (Size i = 0; i < removed_out_files.size(); ++i)
   {
     progresslogger.setProgress(i);
-    fxml_file.store(out_files[i], feature_maps[i]);
+    fxml_file.store(removed_out_files[i], removed_maps[i]);
   }
   progresslogger.endProgress();
 }
