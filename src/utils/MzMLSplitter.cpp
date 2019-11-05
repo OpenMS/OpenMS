@@ -39,6 +39,7 @@
 
 #include <QFile>
 #include <iomanip>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;

@@ -48,15 +48,18 @@
 #include <QtNetwork/QHostInfo>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#  include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
-#else
+#include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #endif
 
-using namespace std;
+#ifdef OPENMS_HAS_UNISTD_H
+#include <unistd.h> // for readLink() and getpid()
+#endif
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
+
+using namespace std;
 
 namespace OpenMS
 {

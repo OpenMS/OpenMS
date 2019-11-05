@@ -104,7 +104,7 @@ namespace OpenMS
     defaults_.setValue("uis_threshold_peak_area", 0, "Peak area threshold to consider identification transition (set to -1 to consider all)");
     defaults_.setValue("scoring_model", "default", "Scoring model to use", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("scoring_model", ListUtils::create<String>("default,single_transition"));
-    defaults_.setValue("im_extra_drift", 0.0, "Extra drift time to extract for IM scoring (as a fraction, e.g. 0.25 means 25\% extra on each side)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("im_extra_drift", 0.0, "Extra drift time to extract for IM scoring (as a fraction, e.g. 0.25 means 25% extra on each side)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("im_extra_drift", 0.0);
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());

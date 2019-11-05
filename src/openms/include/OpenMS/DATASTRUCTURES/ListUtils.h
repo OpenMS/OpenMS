@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -43,9 +43,6 @@
 #include <cmath>
 #include <iterator>
 #include <vector>
-
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/trim.hpp>
 
 namespace OpenMS
 {
@@ -238,6 +235,28 @@ public:
 
   };
 
+  namespace detail
+  {
+    template <typename T>
+    T convert(const String& s);
+  
+    template<>
+    inline Int convert(const String& s)
+    {
+      return s.toInt();
+    }
+    template<>
+    inline double convert(const String& s)
+    {
+      return s.toDouble();
+    }
+    template<>
+    inline float convert(const String& s)
+    {
+      return s.toFloat();
+    }
+  }
+
   template <typename T>
   inline std::vector<T> ListUtils::create(const std::vector<String>& s)
   {
@@ -247,9 +266,9 @@ public:
     {
       try
       {
-        c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it))); // succeeds only if the whole output can be explained, i.e. "1.3 3" will fail (which is good)
+        c.push_back(detail::convert<T>(String(*it).trim())); // succeeds only if the whole output can be explained, i.e. "1.3 3" will fail (which is good)
       }
-      catch (boost::bad_lexical_cast&)
+      catch (...)
       {
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + *it + "'");
       }

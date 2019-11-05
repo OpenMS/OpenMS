@@ -38,10 +38,10 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
 #include <boost/regex.hpp>
-
 #include <string>
 #include <vector>
-#include <functional>
+
+#include <functional> // for std::function
 
 namespace OpenMS
 {
