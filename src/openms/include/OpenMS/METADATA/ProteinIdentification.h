@@ -391,11 +391,10 @@ public:
     void setPrimaryMSRunPath(const StringList& s);
     /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
     void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
-    void addPrimaryMSRunPath(const String& toAdd);
-    void addPrimaryMSRunPath(const StringList& toAdd);
+    void addPrimaryMSRunPath(const String& s);
+    void addPrimaryMSRunPath(const StringList& s);
     /// get the file path to the first MS run
-    void getPrimaryMSRunPath(StringList& toFill) const;
-    void getPrimaryMSRunPath(std::set<String>& toFill) const;
+    void getPrimaryMSRunPath(StringList& output) const;
     /// if this object has inference data
     bool hasInferenceData() const;
     bool hasInferenceEngineAsSearchEngine() const;

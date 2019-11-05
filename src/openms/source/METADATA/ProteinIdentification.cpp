@@ -32,14 +32,14 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
-
 #include <OpenMS/METADATA/PeptideIdentification.h>
+
 #include <numeric>
 #include <unordered_set>
 
@@ -364,23 +364,15 @@ namespace OpenMS
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
   {
+    setMetaValue("spectra_data", DataValue(StringList()));
     if (s.empty())
     {
-      OPENMS_LOG_WARN << "Setting empty MS runs paths." << std::endl;
-      this->setMetaValue("spectra_data", DataValue(s));
-      return;
+      OPENMS_LOG_WARN << "Setting an empty value for primary MS runs paths." << std::endl;
     }
-
-    for (const String& filename : s)
+    else
     {
-      if (!filename.hasSuffix("mzML"))
-      {
-        OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
-                        << "Filename: '" << filename << "'" << std::endl;
-      }
+      addPrimaryMSRunPath(s);
     }
-
-    this->setMetaValue("spectra_data", DataValue(s));
   }
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
@@ -398,51 +390,35 @@ namespace OpenMS
   }
 
   /// get the file path to the first MS runs
-  void ProteinIdentification::getPrimaryMSRunPath(StringList& toFill) const
+  void ProteinIdentification::getPrimaryMSRunPath(StringList& output) const
   {
     if (this->metaValueExists("spectra_data"))
     {
-      toFill = this->getMetaValue("spectra_data");
+      output = this->getMetaValue("spectra_data");
     }
   }
 
-  void ProteinIdentification::addPrimaryMSRunPath(const StringList& toAdd)
+  void ProteinIdentification::addPrimaryMSRunPath(const StringList& s)
   {
-    if (this->metaValueExists("spectra_data"))
+    for (const String& filename : s)
     {
-      StringList tmp = this->getMetaValue("spectra_data");
-      tmp.insert(tmp.end(),toAdd.begin(),toAdd.end());
-      this->setMetaValue("spectra_data", DataValue(tmp));
+      FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
+
+      if (filetype != FileTypes::MZML)
+      {
+        OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS runs.\n"
+                        << "Filename: '" << filename << "'" << std::endl;
+      }
     }
-    else
-    {
-      this->setMetaValue("spectra_data", DataValue(toAdd));
-    }
+
+    StringList spectra_data = getMetaValue("spectra_data", DataValue(StringList()));
+    spectra_data.insert(spectra_data.end(), s.begin(), s.end());
+    this->setMetaValue("spectra_data", spectra_data);
   }
 
-
-  void ProteinIdentification::addPrimaryMSRunPath(const String& toAdd)
+  void ProteinIdentification::addPrimaryMSRunPath(const String& s)
   {
-    if (this->metaValueExists("spectra_data"))
-    {
-      StringList tmp = this->getMetaValue("spectra_data");
-      tmp.push_back(toAdd);
-      this->setMetaValue("spectra_data", DataValue(tmp));
-    }
-    else
-    {
-      this->setMetaValue("spectra_data", DataValue(toAdd));
-    }
-  }
-
-  /// get the file path to the first MS runs
-  void ProteinIdentification::getPrimaryMSRunPath(set<String>& toFill) const
-  {
-    if (this->metaValueExists("spectra_data"))
-    {
-      const auto& strlist = this->getMetaValue("spectra_data").toStringList();
-      toFill = set<String>(strlist.begin(),strlist.end());
-    }
+    addPrimaryMSRunPath(StringList({s}));
   }
 
   //TODO find a more robust way to figure that out. CV Terms?
