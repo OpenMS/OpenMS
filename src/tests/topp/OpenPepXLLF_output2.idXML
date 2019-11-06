@@ -33,7 +33,8 @@
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<UserParam type="string" name="SpectrumIdentificationProtocol" value="MS:1002494"/>
-			<UserParam type="stringList" name="spectra_data" value="[file://OpenPepXLLF_input2.mzML]"/>
+            <UserParam type="stringList" name="spectra_data_raw" value="[file:///D:\RAW\ETHZurich_2018_05\BSA_PDH_CID\aleitner_C1708_079.raw]"/>
+            <UserParam type="stringList" name="spectra_data" value="[file://OpenPepXLLF_input2.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="440.218688964843977" RT="273.605999999999995" spectrum_reference="controllerType=0 controllerNumber=1 scan=505" >
 			<PeptideHit score="-0.07670961257237" sequence="C(Carbamidomethyl)ASIQK" charge="3" aa_before="R" aa_after="F" start="198" end="203" protein_refs="PH_0" >
