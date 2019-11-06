@@ -362,16 +362,17 @@ namespace OpenMS
     protein_hits_.push_back(std::forward<ProteinHit>(protein_hit));
   }
 
-  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, bool raw)
   {
-    setMetaValue("spectra_data", DataValue(StringList()));
+    String meta_name = raw ? "spectra_data_raw" : "spectra_data";
+    setMetaValue(meta_name, DataValue(StringList()));
     if (s.empty())
     {
       OPENMS_LOG_WARN << "Setting an empty value for primary MS runs paths." << std::endl;
     }
     else
     {
-      addPrimaryMSRunPath(s);
+      addPrimaryMSRunPath(s, raw);
     }
   }
 
@@ -379,46 +380,55 @@ namespace OpenMS
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);
-    if (ms_path.size() == 1 && ms_path[0].hasSuffix("mzML") && File::exists(ms_path[0]))
+    if (ms_path.size() == 1)
     {
-      setPrimaryMSRunPath(ms_path);
+      FileTypes::Type filetype = FileHandler::getTypeByFileName(ms_path[0]);
+      if ((filetype == FileTypes::MZML) && File::exists(ms_path[0]))
+      {
+        setMetaValue("spectra_data", DataValue(StringList({ms_path[0]})));
+        return; // don't do anything else in this case
+      }
+      if (filetype == FileTypes::RAW)
+      {
+        setMetaValue("spectra_data_raw", DataValue(StringList({ms_path[0]})));
+      }
     }
-    else
-    {
-      setPrimaryMSRunPath(s);
-    }
+    setPrimaryMSRunPath(s);
   }
 
   /// get the file path to the first MS runs
-  void ProteinIdentification::getPrimaryMSRunPath(StringList& output) const
+  void ProteinIdentification::getPrimaryMSRunPath(StringList& output, bool raw) const
   {
-    if (this->metaValueExists("spectra_data"))
+    String meta_name = raw ? "spectra_data_raw" : "spectra_data";
+    if (metaValueExists(meta_name))
     {
-      output = this->getMetaValue("spectra_data");
+      output = getMetaValue(meta_name);
     }
   }
 
-  void ProteinIdentification::addPrimaryMSRunPath(const StringList& s)
+  void ProteinIdentification::addPrimaryMSRunPath(const StringList& s, bool raw)
   {
-    for (const String& filename : s)
+    String meta_name = raw ? "spectra_data_raw" : "spectra_data";
+    if (!raw) // mzML files expected
     {
-      FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
-
-      if (filetype != FileTypes::MZML)
+      for (const String& filename : s)
       {
-        OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS runs.\n"
-                        << "Filename: '" << filename << "'" << std::endl;
+        FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
+        if (filetype != FileTypes::MZML)
+        {
+          OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS runs.\n"
+                          << "Filename: '" << filename << "'" << std::endl;
+        }
       }
     }
-
-    StringList spectra_data = getMetaValue("spectra_data", DataValue(StringList()));
+    StringList spectra_data = getMetaValue(meta_name, DataValue(StringList()));
     spectra_data.insert(spectra_data.end(), s.begin(), s.end());
-    this->setMetaValue("spectra_data", spectra_data);
+    setMetaValue(meta_name, spectra_data);
   }
 
-  void ProteinIdentification::addPrimaryMSRunPath(const String& s)
+  void ProteinIdentification::addPrimaryMSRunPath(const String& s, bool raw)
   {
-    addPrimaryMSRunPath(StringList({s}));
+    addPrimaryMSRunPath(StringList({s}), raw);
   }
 
   //TODO find a more robust way to figure that out. CV Terms?
