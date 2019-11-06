@@ -197,5 +197,11 @@ namespace OpenMS
     /// Helper function to export DB search parameters to legacy format
     static ProteinIdentification::SearchParameters exportDBSearchParameters_(
       IdentificationData::SearchParamRef ref);
+
+    /// Helper function to export (primary) MS run information to legacy format
+    static void exportMSRunInformation_(
+      IdentificationData::ProcessingStepRef step_ref,
+      ProteinIdentification& protein);
+
   };
 }

@@ -36,6 +36,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace std;
 
@@ -72,8 +73,12 @@ namespace OpenMS
         importDBSearchParameters_(prot.getSearchParameters(), id_data);
 
       IdentificationData::DataProcessingStep step(software_ref);
-      prot.getPrimaryMSRunPath(step.primary_files);
-      for (const String& path : step.primary_files)
+      // ideally, this should give us the raw files:
+      prot.getPrimaryMSRunPath(step.primary_files, true);
+      // ... and this should give us mzML files:
+      vector<String> spectrum_files;
+      prot.getPrimaryMSRunPath(spectrum_files);
+      for (const String& path : spectrum_files)
       {
         IdentificationData::InputFileRef file_ref =
           id_data.registerInputFile(path);
@@ -518,7 +523,7 @@ namespace OpenMS
         IdentificationData::ProcessingStepRef step_ref = *step_ref_opt;
         protein.setIdentifier(String(Size(&(*step_ref))));
         protein.setDateTime(step_ref->date_time);
-        protein.setPrimaryMSRunPath(step_ref->primary_files);
+        exportMSRunInformation_(step_ref, protein);
         const Software& software = *step_ref->software_ref;
         protein.setSearchEngine(software.getName());
         protein.setSearchEngineVersion(software.getVersion());
@@ -935,6 +940,55 @@ namespace OpenMS
     static_cast<MetaInfoInterface&>(pisp) = dbsp;
 
     return pisp;
+  }
+
+
+  void IdentificationDataConverter::exportMSRunInformation_(
+    IdentificationData::ProcessingStepRef step_ref,
+    ProteinIdentification& protein)
+  {
+    // are input files mzMLs?
+    // @TODO: what if there's a mix of mzMLs and other files?
+    bool mzml_inputs = false;
+    vector<String> mzml_files;
+    for (IdentificationData::InputFileRef input_ref : step_ref->input_file_refs)
+    {
+      FileTypes::Type type = FileHandler::getTypeByFileName(*input_ref);
+      if (type == FileTypes::MZML)
+      {
+        mzml_inputs = true;
+        mzml_files.push_back(*input_ref);
+      }
+      else
+      {
+        mzml_inputs = false;
+        break;
+      }
+    }
+    if (mzml_inputs)
+    {
+      protein.setPrimaryMSRunPath(mzml_files);
+      // also store raw files (or equivalent):
+      protein.setPrimaryMSRunPath(step_ref->primary_files, true);
+      return;
+    }
+    // alternatively, are the primary files mzMLs?
+    bool mzml_primaries = false;
+    for (const String& file : step_ref->primary_files)
+    {
+      FileTypes::Type type = FileHandler::getTypeByFileName(file);
+      if (type == FileTypes::MZML)
+      {
+        mzml_primaries = true;
+      }
+      else
+      {
+        mzml_primaries = false;
+        break;
+      }
+    }
+    // store as (raw) primary files depending on file type:
+    protein.setPrimaryMSRunPath(step_ref->primary_files, !mzml_primaries);
   }
 
 } // end namespace OpenMS
