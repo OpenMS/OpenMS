@@ -387,10 +387,10 @@ protected:
       else if (use_fragment_annotation && !executable.empty())
       {
         // make temporary files
-        SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct(debug_level_);
-        String tmp_dir = sirius_tmp.tmp_dir;
-        String tmp_ms_file = sirius_tmp.tmp_ms_file;
-        String tmp_out_dir = sirius_tmp.tmp_out_dir;
+        SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
+        String tmp_dir = sirius_tmp.getTmpDir();
+        String tmp_ms_file = sirius_tmp.getTmpMsFile();
+        String tmp_out_dir = sirius_tmp.getTmpOutDir();
   
         // write msfile and store the compound information in CompoundInfo Object
         vector<SiriusMSFile::CompoundInfo> v_cmpinfo;

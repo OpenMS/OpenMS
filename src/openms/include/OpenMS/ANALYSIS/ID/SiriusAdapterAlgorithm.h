@@ -43,6 +43,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
+#include <QDir>
+
 #include <QString>
 
 namespace OpenMS
@@ -54,17 +56,52 @@ namespace OpenMS
       SiriusAdapterAlgorithm();
 
       /// Struct for temporary folder structure
-      struct SiriusTmpStruct
+      struct SiriusTemporaryFileSystemObjects
       {
-        bool removeable;
-        int debug_level;
+      public:
 
-        String tmp_dir;
-        String tmp_ms_file;
-        String tmp_out_dir;
+        SiriusTemporaryFileSystemObjects(int debug_level) : removeable_(false) { constructSiriusTemporaryFileSystemObjects_(debug_level); }
 
-        SiriusTmpStruct() : removeable(false) {}
-        ~SiriusTmpStruct(){ if (removeable) removeSiriusTmp(debug_level, tmp_dir, tmp_ms_file); }
+        ~SiriusTemporaryFileSystemObjects(){ if (removeable_) removeSiriusTemporaryFileSystemObjects_(debug_level_, tmp_dir_, tmp_ms_file_); }
+
+        String getTmpDir()
+        {
+          return tmp_dir_;
+        }
+
+        String getTmpOutDir()
+        {
+          return tmp_out_dir_;
+        } 
+
+        String getTmpMsFile()
+        {
+          return tmp_ms_file_;
+        }
+      
+      private:
+        bool removeable_;
+        int debug_level_;
+
+        String tmp_dir_;
+        String tmp_ms_file_;
+        String tmp_out_dir_;
+
+        /**
+        @brief Construct temporary folder structure for SIRIUS (SiriusTmpStruct)
+        @param debug_level Debug level
+        @return SiriusTmpStruct
+        */
+
+        void constructSiriusTemporaryFileSystemObjects_(int debug_level)
+        {
+          QString base_dir = File::getTempDirectory().toQString();
+          tmp_dir_ = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
+          tmp_ms_file_ = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
+          tmp_out_dir_ = QDir(tmp_dir_.toQString()).filePath("sirius_out");
+          removeable_ = true;
+          debug_level_ = debug_level;
+        } 
 
         /**
         @brief Removes temporary directory and file structure
@@ -74,7 +111,7 @@ namespace OpenMS
         @param tmp_ms_file Path to temporary ms file
         */
 
-        void removeSiriusTmp(int debug_level, const String& tmp_dir, const String& tmp_ms_file)
+        void removeSiriusTemporaryFileSystemObjects_(int debug_level, const String& tmp_dir, const String& tmp_ms_file)
         {
           // clean tmp directory if debug level < 2 
           if (debug_level >= 2)
@@ -97,14 +134,6 @@ namespace OpenMS
         }
 
       };
-
-      /**
-        @brief Construct temporary folder structure for SIRIUS (SiriusTmpStruct)
-
-        @return SiriusTmpStruct
-      */
-      static SiriusAdapterAlgorithm::SiriusTmpStruct constructSiriusTmpStruct(int debug_level);
-
 
       /**
       @brief Preprocessing needed for SIRIUS
