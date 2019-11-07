@@ -175,9 +175,13 @@ private:
   void computeTransformationsByID_(vector<FeatureMap>& feature_maps, FeatureMap& last_map,
           vector<TransformationDescription>& transformations, const vector<Size>& trafo_order,
           const Param& model_params, const String& model_type);
+  void computeTransformationsByOrigInFeature_(vector<FeatureMap>& feature_maps, FeatureMap& last_map,
+                                             vector<TransformationDescription>& transformations, const vector<Size>& trafo_order, const Param& model_params,
+                                             const String& model_type);
   void computeTransformedFeatureMaps_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations);
   void storeFeatureXMLs_(const vector<FeatureMap>& feature_maps, const StringList& out_files, FeatureXMLFile& fxml_file);
   void storeTransformationDescriptions_(const vector<TransformationDescription>& transformations, StringList& trafos);
+  double getOrigRT(const MetaInfoInterface& feature);
 
 
   void registerOptionsAndFlags_() override
@@ -427,7 +431,7 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
       transformations_align[0].fitModel(model_type, model_params);
       // needed for following iteration steps; store_original_rt is default false
       MapAlignmentTransformer::transformRetentionTimes(maps_transformed[to_transform],
-                                                       transformations_align[0]);
+                                                       transformations_align[0], true);
     }
     else{
       OPENMS_LOG_INFO << "no use of an internal reference for alignment"  << endl;
@@ -440,9 +444,9 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
 
       // needed for following iteration steps; store_original_rt is default false
       MapAlignmentTransformer::transformRetentionTimes(maps_transformed[to_transform],
-                                                       transformations_align[0]);
+                                                       transformations_align[0], true);
       MapAlignmentTransformer::transformRetentionTimes(maps_transformed[ref],
-                                                       transformations_align[1]);
+                                                       transformations_align[1], true);
     }
 
     // combine aligned maps, store in both, because tree always calls smaller number
@@ -450,6 +454,7 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
     // or use pointer
     maps_transformed[ref] += maps_transformed[to_transform];
     maps_transformed[ref].updateRanges();
+    // TODO : ref auf maps_transformed[ref]?
     maps_transformed[to_transform] = maps_transformed[ref];
     trafo_for_output = transformations_align;
     trafo_order_for_output[0] = map_sets[ref];
@@ -457,13 +462,46 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
 
     // update transformation order for each map
     map_sets[ref].insert(map_sets[ref].end(), map_sets[to_transform].begin(), map_sets[to_transform].end());
+    // not insert, but resize?!
+    //map_sets[ref].resize()
     map_sets[to_transform] = map_sets[ref];
 
     transformations_align.clear();
     to_align.clear();
   }
 
-  computeTransformationsByID_(feature_maps, maps_transformed[last_trafo], transformations, map_sets[last_trafo], model_params, model_type);
+  //computeTransformationsByID_(feature_maps, maps_transformed[last_trafo], transformations, map_sets[last_trafo], model_params, model_type);
+  computeTransformationsByOrigInFeature_(feature_maps,maps_transformed[last_trafo], transformations, map_sets[last_trafo], model_params, model_type);
+}
+
+void TOPPMapAlignerTreeGuided::computeTransformationsByOrigInFeature_(vector<FeatureMap>& feature_maps, FeatureMap& last_map,
+                                                                     vector<TransformationDescription>& transformations, const vector<Size>& trafo_order, const Param& model_params,
+                                                                     const String& model_type)
+{
+  FeatureMap::const_iterator fit = last_map.begin();
+  for (auto & map_idx : trafo_order)
+  {
+    TransformationDescription::DataPoints trafo_data_tmp;
+
+    for (Size i = 0; i < feature_maps[map_idx].size(); ++i)
+    {
+      TransformationDescription::DataPoint point;
+      if (fit->metaValueExists("original_RT"))
+      {
+        point.first = fit->getMetaValue("original_RT");
+      }
+      else{
+        point.first = fit->getRT();
+      }
+      point.second = fit->getRT();
+      point.note = fit->getUniqueId();
+      trafo_data_tmp.push_back(point);
+      ++fit;
+    }
+    transformations[map_idx] = TransformationDescription(trafo_data_tmp);
+    transformations[map_idx].fitModel(model_type, model_params);
+    trafo_data_tmp.clear();
+  }
 }
 
 void TOPPMapAlignerTreeGuided::computeTransformationsByID_(vector<FeatureMap>& feature_maps, FeatureMap& last_map,
@@ -499,15 +537,13 @@ void TOPPMapAlignerTreeGuided::computeTransformedFeatureMaps_(vector<FeatureMap>
   ProgressLogger progresslogger;
   progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
   progresslogger.startProgress(0, feature_maps.size(), "computing feature maps");
-  auto trafo = transformations.begin();
   for (Size i = 0; i < feature_maps.size(); ++i)
   {
     progresslogger.setProgress(i);
-    MapAlignmentTransformer::transformRetentionTimes(feature_maps[i], *trafo, false);
-    feature_maps[i].updateRanges(); // without: LeakSanitizer detects memory leaks
+    MapAlignmentTransformer::transformRetentionTimes(feature_maps[i], transformations[i], true);
+    //feature_maps[i].updateRanges(); // without: LeakSanitizer detects memory leaks
     // annotate output with data processing info
     addDataProcessing_(feature_maps[i], getProcessingInfo_(DataProcessing::ALIGNMENT));
-    ++trafo;
   }
   progresslogger.endProgress();
 }
