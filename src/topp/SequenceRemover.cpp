@@ -69,7 +69,7 @@ public:
   }
 
   // function declarations
-  void loadInputMap_(FeatureMap& map, String& in, FeatureXMLFile& fxml_file);
+  void loadInputMap_(FeatureMap& map, const String& in, FeatureXMLFile& fxml_file);
   void storeOutFiles_(const vector<FeatureMap>& out_maps, const StringList& out_files, FeatureXMLFile& fxml_file);
   void storeRemovedOutFiles_(const vector<FeatureMap>& removed_maps, const StringList& removed_out_files, FeatureXMLFile& fxml_file);
 
@@ -121,8 +121,6 @@ protected:
     ProgressLogger progresslogger;
     progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
     progresslogger.startProgress(0, 1, "determining sequences to be removed");
-    vector<FeatureMap> removed_pep_ids(ins.size());
-    vector<PeptideIdentification> pep_to_remove(to_be_removed);
     set<String> seq_to_remove;
     boost::random::mt19937 gen;
     while (seq_to_remove.size() < to_be_removed)
@@ -139,7 +137,7 @@ protected:
     }
     progresslogger.endProgress();
 
-    vector<FeatureMap> out_maps(ins.size());
+    vector<FeatureMap> kept_maps(ins.size());
     vector<FeatureMap> removed_maps(ins.size());
 
     Size progress = 0;
@@ -153,10 +151,10 @@ protected:
         loadInputMap_(maps[i], ins[i], fxml_file);
       }
       //copy all properties
-      out_maps[i] = maps[i];
+      kept_maps[i] = maps[i];
       //.. but delete feature information
-      out_maps[i].clear(false);
-      removed_maps[i] = out_maps[i];
+      kept_maps[i].clear(false);
+      removed_maps[i] = kept_maps[i];
 
       for (auto & feature : maps[i])
       {
@@ -177,14 +175,13 @@ protected:
           removed_maps[i].push_back(feature);
         }
         else{
-          out_maps[i].push_back(feature);
+          kept_maps[i].push_back(feature);
         }
-        remove = false;
       }
       maps[i].clear(true);
       removed_maps[i].updateRanges();
-      out_maps[i].updateRanges();
-      OPENMS_LOG_INFO << removed_maps[i].size() << " features from map " << (i+1) << " removed and " << out_maps[i].size() << " features kept." << endl;
+      kept_maps[i].updateRanges();
+      OPENMS_LOG_INFO << removed_maps[i].size() << " features from map " << (i+1) << " removed and " << kept_maps[i].size() << " features kept." << endl;
       ++progress;
     }
     progresslogger.endProgress();
@@ -192,7 +189,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    storeOutFiles_(out_maps, outs, fxml_file);
+    storeOutFiles_(kept_maps, outs, fxml_file);
     storeRemovedOutFiles_(removed_maps, removed_outs, fxml_file);
 
     return EXECUTION_OK;
@@ -200,7 +197,7 @@ protected:
 
 };
 
-void TOPPSequenceRemover::loadInputMap_(FeatureMap& map, String& in, FeatureXMLFile& fxml_file)
+void TOPPSequenceRemover::loadInputMap_(FeatureMap& map, const String& in, FeatureXMLFile& fxml_file)
 {
   ProgressLogger progresslogger;
   progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
