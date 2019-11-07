@@ -202,6 +202,5 @@ namespace OpenMS
     static void exportMSRunInformation_(
       IdentificationData::ProcessingStepRef step_ref,
       ProteinIdentification& protein);
-
   };
 }
