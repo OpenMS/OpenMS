@@ -131,8 +131,7 @@ private:
   static void extract_seq_and_rt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, vector<double>& maps_ranges);
   static void buildTree_(const vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, vector<double>& maps_ranges);
   void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> feature_maps_transformed,
-          vector<double> &maps_ranges, const bool& use_internal_ref, const bool& use_ranges, FeatureMap& map_transformed,
-          vector<Size>& trafo_order, const Param& model_params, const String& model_type);
+          vector<double> &maps_ranges, FeatureMap& map_transformed, vector<Size>& trafo_order, const Param& model_params, const String& model_type);
   static void computeTransformationsByOrigInFeature_(vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
           vector<TransformationDescription>& transformations, const vector<Size>& trafo_order, const Param& model_params,
           const String& model_type);
@@ -174,8 +173,6 @@ private:
     StringList in_files = getStringList_("in");
     StringList out_files = getStringList_("out");
     StringList out_trafos = getStringList_("trafo_out");
-    bool use_internal_ref = getStringOption_("use_internal_reference").toQString() == "true";
-    bool use_ranges = getStringOption_("use_ranges").toQString() == "true";
 
     Param model_params = getParam_().copy("model:", true);
     String model_type = "b_spline";
@@ -211,7 +208,7 @@ private:
     vector<Size> trafo_order;
     FeatureMap map_transformed;
     // alignment uses copy of feature_maps, returning result within map_transformed (to keep original data)
-    treeGuidedAlignment_(tree, feature_maps, maps_ranges, use_internal_ref, use_ranges, map_transformed, trafo_order, model_params, model_type);
+    treeGuidedAlignment_(tree, feature_maps, maps_ranges, map_transformed, trafo_order, model_params, model_type);
 
     //-------------------------------------------------------------
     // generating output
@@ -298,7 +295,7 @@ void TOPPMapAlignerTreeGuided::buildTree_(const vector<FeatureMap>& feature_maps
 }
 
 void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> feature_maps_transformed,
-        vector<double> &maps_ranges, const bool& use_internal_ref, const bool& use_ranges, FeatureMap& map_transformed,
+        vector<double> &maps_ranges, FeatureMap& map_transformed,
         vector<Size>& trafo_order, const Param& model_params, const String& model_type)
 {
   vector<TransformationDescription> trafo_tmp; // use to align
@@ -320,6 +317,9 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
   Param algo_params = getParam_().copy("align_algorithm:", true);
   algorithm.setParameters(algo_params);
   algorithm.setLogType(log_type_);
+
+  bool use_internal_ref = getStringOption_("use_internal_reference").toQString() == "true";
+  bool use_ranges = getStringOption_("use_ranges").toQString() == "true";
 
   for (const auto& node : tree)
   {
