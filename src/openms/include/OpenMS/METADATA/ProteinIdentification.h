@@ -237,16 +237,16 @@ public:
 
       SearchParameters();
       /// Copy constructor
-      SearchParameters(const SearchParameters &) = default;
+      SearchParameters(const SearchParameters&) = default;
       /// Move constructor
       SearchParameters(SearchParameters&&) = default;
       /// Destructor
       ~SearchParameters() = default;
 
       /// Assignment operator
-      SearchParameters & operator=(const SearchParameters &) = default;
+      SearchParameters& operator=(const SearchParameters&) = default;
       /// Move assignment operator
-      SearchParameters& operator=(SearchParameters&&) & = default;
+      SearchParameters& operator=(SearchParameters&&)& = default;
 
       bool operator==(const SearchParameters& rhs) const;
 
@@ -282,13 +282,13 @@ public:
     ///@name Protein hit information (public members)
     //@{
     /// Returns the protein hits
-    const std::vector<ProteinHit> & getHits() const;
+    const std::vector<ProteinHit>& getHits() const;
     /// Returns the protein hits (mutable)
-    std::vector<ProteinHit> & getHits();
+    std::vector<ProteinHit>& getHits();
     /// Appends a protein hit
-    void insertHit(const ProteinHit & input);
+    void insertHit(const ProteinHit& input);
     /// Appends a protein hit
-    void insertHit(ProteinHit && input);
+    void insertHit(ProteinHit&& input);
 
     /**
         @brief Sets the protein hits
@@ -305,7 +305,7 @@ public:
     /// Returns the protein groups (mutable)
     std::vector<ProteinGroup>& getProteinGroups();
     /// Appends a new protein group
-    void insertProteinGroup(const ProteinGroup & group);
+    void insertProteinGroup(const ProteinGroup& group);
 
     /// Returns the indistinguishable proteins
     const std::vector<ProteinGroup>& getIndistinguishableProteins() const;
@@ -350,7 +350,7 @@ public:
     */
     void computeModifications(
       const std::vector<PeptideIdentification>& pep_ids,
-      const StringList & skip_modifications);
+      const StringList& skip_modifications);
 
 
     ///@name General information
@@ -382,20 +382,27 @@ public:
     /// Returns the search parameters
     const SearchParameters& getSearchParameters() const;
     /// Returns the search parameters (mutable)
-    SearchParameters& getSearchParameters();    
+    SearchParameters& getSearchParameters();
     /// Returns the identifier
     const String& getIdentifier() const;
     /// Sets the identifier
     void setIdentifier(const String& id);
-    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-    void setPrimaryMSRunPath(const StringList& s);
+    /**
+       Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
+
+       @param raw Store paths to the raw files (or equivalent) rather than mzMLs
+    */
+    void setPrimaryMSRunPath(const StringList& s, bool raw = false);
     /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
-    void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
-    void addPrimaryMSRunPath(const String& toAdd);
-    void addPrimaryMSRunPath(const StringList& toAdd);
-    /// get the file path to the first MS run
-    void getPrimaryMSRunPath(StringList& toFill) const;
-    void getPrimaryMSRunPath(std::set<String> &toFill) const;
+    void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
+    void addPrimaryMSRunPath(const String& s, bool raw = false);
+    void addPrimaryMSRunPath(const StringList& s, bool raw = false);
+    /**
+       Get the file paths to the primary MS runs
+
+       @param raw Get raw files (or equivalent) instead of mzMLs
+    */
+    void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
     /// if this object has inference data
     bool hasInferenceData() const;
     bool hasInferenceEngineAsSearchEngine() const;

@@ -15,6 +15,7 @@
 			<ProteinHit id="PH_2" accession="BSA3" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
+            <UserParam type="stringList" name="spectra_data_raw" value="[file://./KKramer_150612_yeastTAP_4_120min.raw]"/>
 			<UserParam type="stringList" name="spectra_data" value="[file://SimpleSearchEngine_1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" >
