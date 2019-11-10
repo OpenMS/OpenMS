@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julia Thueringer $
-// $Authors: Julia Thueringer $
+// $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
@@ -56,7 +56,7 @@ using namespace std;
 /**
   @page TOPP_MapAlignerTree MapAlignerTree
 
-  @brief Corrects retention time distortions between maps, using a tree and identifies features?
+  @brief Corrects retention time distortions between maps, using a tree constructed with single linkage
 */
 
 // We do not want this class to show up in the docu:
@@ -79,7 +79,6 @@ private:
   class PeptideIdentificationsPearsonDistance
   {
   public:
-    // no const SeqAndRTList because want to access entries
     float operator()(SeqAndRTList& map_first, SeqAndRTList& map_second) const
     {
       // create vectors for both maps containing RTs of identical peptide sequences and
@@ -128,10 +127,10 @@ private:
   template <typename MapType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FeatureXMLFile& fxml_file);
   static void getPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts, vector<double>& rts_tmp);
-  static void extract_seq_and_rt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, vector<double>& maps_ranges);
-  static void buildTree_(const vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, vector<double>& maps_ranges);
+  static void extractSeqAndRt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, vector<vector<double>>& maps_ranges);
+  static void buildTree_(vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, vector<vector<double>>& maps_ranges);
   void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> feature_maps_transformed,
-          vector<double> &maps_ranges, FeatureMap& map_transformed, vector<Size>& trafo_order, const Param& model_params, const String& model_type);
+          vector<vector<double>> &maps_ranges, FeatureMap& map_transformed, vector<Size>& trafo_order, const Param& model_params, const String& model_type);
   static void computeTransformationsByOrigInFeature_(vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
           vector<TransformationDescription>& transformations, const vector<Size>& trafo_order, const Param& model_params,
           const String& model_type);
@@ -143,8 +142,6 @@ private:
   void registerOptionsAndFlags_() override
   {
     TOPPMapAlignerBase::registerOptionsAndFlags_("featureXML", REF_FLEXIBLE);
-    registerStringOption_("use_internal_reference", "string", "false", "Internally the map with the largest rt range is determined as reference for the alignment, otherwise centroid.", false);
-    setValidStrings_("use_internal_reference", {"true", "false"});
     registerStringOption_("use_ranges", "string", "true", "Use map with larger 10/90 percentiles range as reference.", false);
     setValidStrings_("use_ranges", {"true", "false"});
     registerSubsection_("align_algorithm", "Algorithm parameters section");
@@ -197,7 +194,7 @@ private:
     // calculations
     //-------------------------------------------------------------
 
-    vector<double> maps_ranges(in_files_size);  // to save ranges for alignment (larger rt_range -> reference)
+    vector<vector<double>> maps_ranges(in_files_size);  // to save ranges for alignment (larger rt_range -> reference)
     std::vector<BinaryTreeNode> tree;    // to construct tree with pearson coefficient
     buildTree_(feature_maps, tree, maps_ranges);
 
@@ -259,13 +256,11 @@ void TOPPMapAlignerTreeGuided::getPeptideSequences_(const vector<PeptideIdentifi
   }
 }
 
-void TOPPMapAlignerTreeGuided::extract_seq_and_rt_(const vector<FeatureMap>& feature_maps,
-                                             vector<SeqAndRTList>& maps_seqAndRt, vector<double>& maps_ranges)
+void TOPPMapAlignerTreeGuided::extractSeqAndRt_(const vector<FeatureMap>& feature_maps,
+                                                vector<SeqAndRTList>& maps_seqAndRt, vector<vector<double>>& maps_ranges)
 {
   for (Size i = 0; i < feature_maps.size(); ++i)
   {
-    double percentile10;
-    double percentile90;
     vector<double> rts_tmp(feature_maps[i].size());
     for (auto feature_it = feature_maps[i].begin(); feature_maps[i].end() != feature_it; ++feature_it)
     {
@@ -275,42 +270,34 @@ void TOPPMapAlignerTreeGuided::extract_seq_and_rt_(const vector<FeatureMap>& fea
     }
     sort(rts_tmp.begin(), rts_tmp.end());
 
-    percentile10 = rts_tmp[rts_tmp.size()*0.1];
-    percentile90 = rts_tmp[rts_tmp.size()*0.9];
-
-    maps_ranges[i] = percentile90 - percentile10;
+    maps_ranges[i] = rts_tmp;
     rts_tmp.clear();
   }
 }
 
-void TOPPMapAlignerTreeGuided::buildTree_(const vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, vector<double>& maps_ranges)
+void TOPPMapAlignerTreeGuided::buildTree_(vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, vector<vector<double>>& maps_ranges)
 {
-  vector<SeqAndRTList> maps_seqAndRt(feature_maps.size());
-  extract_seq_and_rt_(feature_maps, maps_seqAndRt, maps_ranges);
-  PeptideIdentificationsPearsonDistance pepDist;
+  vector<SeqAndRTList> maps_seq_and_rt(feature_maps.size());
+  extractSeqAndRt_(feature_maps, maps_seq_and_rt, maps_ranges);
+  PeptideIdentificationsPearsonDistance pep_dist;
   SingleLinkage sl;
   DistanceMatrix<float> dist_matrix;
   ClusterHierarchical ch;
-  ch.cluster<SeqAndRTList, PeptideIdentificationsPearsonDistance>(maps_seqAndRt, pepDist, sl, tree, dist_matrix);
+  ch.cluster<SeqAndRTList, PeptideIdentificationsPearsonDistance>(maps_seq_and_rt, pep_dist, sl, tree, dist_matrix);
 }
 
 void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> feature_maps_transformed,
-        vector<double> &maps_ranges, FeatureMap& map_transformed,
+        vector<vector<double>> &maps_ranges, FeatureMap& map_transformed,
         vector<Size>& trafo_order, const Param& model_params, const String& model_type)
 {
-  vector<TransformationDescription> trafo_tmp; // use to align
-  Size last_trafo = 0;  // look up transformation order in map_sets
-
+  Size last_trafo = 0;  // to get final transformation order from map_sets
   vector<TransformationDescription> transformations_align;  // temporary for aligner output
-  Size ref;
-  Size to_transform;
-  // helper to reorganize rt transformations
+
+  // helper to memorize rt transformation order
   vector<vector<Size>> map_sets(feature_maps_transformed.size());
   for (Size i = 0; i < feature_maps_transformed.size(); ++i)
   {
-    vector<Size> tmp;
-    tmp.push_back(i);
-    map_sets[i] = tmp;
+    map_sets[i].push_back(i);
   }
 
   MapAlignmentAlgorithmIdentification algorithm;
@@ -318,8 +305,9 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
   algorithm.setParameters(algo_params);
   algorithm.setLogType(log_type_);
 
-  bool use_internal_ref = getStringOption_("use_internal_reference").toQString() == "true";
   bool use_ranges = getStringOption_("use_ranges").toQString() == "true";
+  Size ref;
+  Size to_transform;
 
   for (const auto& node : tree)
   {
@@ -331,16 +319,18 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
     {
       OPENMS_LOG_INFO << "use larger range"  << endl;
       //  determine the map with larger RT range for 10/90 percentile (->reference)
-      if (maps_ranges[node.left_child] > maps_ranges[node.right_child]) {
+      double left_range = maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.9] - maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.1];
+      double right_range = maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.9] - maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.1];
+
+      if (left_range > right_range) {
         ref = node.left_child;
         to_transform = node.right_child;
-        maps_ranges[node.right_child] = maps_ranges[node.left_child]; // after transformation same range for both maps :(
-        // TODO: check, whether new calculation of range is better
       } else {
         ref = node.right_child;
         to_transform = node.left_child;
-        maps_ranges[node.left_child] = maps_ranges[node.right_child]; // after transformation same range for both maps
       }
+      std::vector<double> tmp;
+      std::merge(maps_ranges[node.right_child].begin(), maps_ranges[node.right_child].end(), maps_ranges[node.left_child].begin(), maps_ranges[node.left_child].end(), std::back_inserter(tmp));
     }
     else{
       OPENMS_LOG_INFO << "use larger map size"  << endl;
@@ -353,7 +343,6 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
         to_transform = node.left_child;
       }
     }
-
     last_trafo = to_transform;
     to_align.push_back(feature_maps_transformed[to_transform]);
     to_align.push_back(feature_maps_transformed[ref]);
@@ -361,32 +350,12 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
     // ----------------
     // perform alignment
     // ----------------
-    if (use_internal_ref)
-    {
-      OPENMS_LOG_INFO << "use internal reference for alignment"  << endl;
-      // with set reference
-      algorithm.align(to_align, transformations_align, 1);
-      // transform retention times of non-identity for next iteration
-      transformations_align[0].fitModel(model_type, model_params);
-      // needed for following iteration steps; store_original_rt is default false
-      MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[to_transform],
-                                                       transformations_align[0], true);
-    }
-    else{
-      OPENMS_LOG_INFO << "no use of an internal reference for alignment"  << endl;
-      // without set reference
-      algorithm.align(to_align, transformations_align);
-
-      // transform retention times of non-identity for next iteration
-      transformations_align[0].fitModel(model_type, model_params);
-      transformations_align[1].fitModel(model_type, model_params);
-
-      // needed for following iteration steps; store_original_rt is default false
-      MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[to_transform],
-                                                       transformations_align[0], true);
-      MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[ref],
-                                                       transformations_align[1], true);
-    }
+    OPENMS_LOG_INFO << "use internal reference for alignment"  << endl;
+    algorithm.align(to_align, transformations_align, 1);
+    // transform retention times of non-identity for next iteration
+    transformations_align[0].fitModel(model_type, model_params);
+    MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[to_transform],
+                                                     transformations_align[0], true);
 
     // combine aligned maps, store in both, because tree always calls smaller number
     // also possible: feature_maps_transformed[smallerNumber] = ..[ref]+..[to_transform]
@@ -395,7 +364,7 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
     feature_maps_transformed[ref].updateRanges();
     feature_maps_transformed[to_transform] = feature_maps_transformed[ref];
 
-    // update transformation order for each map
+    // update order of alignment for both aligned maps
     map_sets[ref].insert(map_sets[ref].end(), map_sets[to_transform].begin(), map_sets[to_transform].end());
     map_sets[to_transform] = map_sets[ref];
 
