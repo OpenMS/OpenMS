@@ -45,6 +45,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -388,9 +389,6 @@ protected:
       {
         // make temporary files
         SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
-        String tmp_dir = sirius_tmp.getTmpDir();
-        String tmp_ms_file = sirius_tmp.getTmpMsFile();
-        String tmp_out_dir = sirius_tmp.getTmpOutDir();
   
         // write msfile and store the compound information in CompoundInfo Object
         vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
@@ -398,7 +396,7 @@ protected:
         bool no_mt_info = (sirius_algo.getNoMasstraceInfoIsotopePattern() == "true") ? true : false;
         int isotope_pattern_iterations = sirius_algo.getIsotopePatternIterations();
         SiriusMSFile::store(spectra,
-                            tmp_ms_file,
+                            sirius_tmp.getTmpMsFile(),
                             feature_mapping,
                             feature_only,
                             isotope_pattern_iterations,
@@ -413,8 +411,8 @@ protected:
         // calls SIRIUS and returns vector of paths to sirius folder structure
         std::vector<String> subdirs;
         String out_csifingerid;
-        subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(tmp_ms_file,
-                                                             tmp_out_dir,
+        subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(sirius_tmp.getTmpMsFile(),
+                                                             sirius_tmp.getTmpOutDir(),
                                                              executable,
                                                              out_csifingerid,
                                                              sirius_algo);
@@ -443,7 +441,7 @@ protected:
           sirius_workspace_directory = String(sw_dir.absolutePath());
 
           // move tmp folder to new location
-          bool copy_status = File::copyDirRecursively(tmp_dir.toQString(), sirius_workspace_directory.toQString());
+          bool copy_status = File::copyDirRecursively(sirius_tmp.getTmpDir().toQString(), sirius_workspace_directory.toQString());
           if (copy_status)
           {
             OPENMS_LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;

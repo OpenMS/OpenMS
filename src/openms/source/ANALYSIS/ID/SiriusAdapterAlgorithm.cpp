@@ -33,11 +33,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
+
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QProcess>
 #include <QDir>
+#include <QString>
 #include <QDirIterator>
 
 #include <fstream>
@@ -133,6 +138,54 @@ namespace OpenMS
       no_recalibration_ = param_.getValue("sirius:no_recalibration");
       most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
     }   
+
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::SiriusTemporaryFileSystemObjects(int debug_level)
+    {
+      QString base_dir = File::getTempDirectory().toQString();
+      tmp_dir_ = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
+      tmp_ms_file_ = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
+      tmp_out_dir_ = QDir(tmp_dir_.toQString()).filePath("sirius_out");
+      debug_level_ = debug_level;
+    }
+
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::~SiriusTemporaryFileSystemObjects()
+    {
+      constexpr int debug_threshold = 2;
+
+      // clean tmp directory if debug level < debug threshold
+      if (debug_level_ >= debug_threshold)
+      {
+        OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir_ << " and msfile at this location "<< tmp_ms_file_ << ". Set debug level to 1 or lower to remove them." << std::endl;
+      }
+      else
+      {
+        if (!tmp_dir_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir_ << ". Set debug level to 2 or higher to keep it." << std::endl;
+          File::removeDir(tmp_dir_.toQString());
+        }
+        if (!tmp_ms_file_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_ms_file_ << ". Set debug level to 2 or higher to keep it." << std::endl;
+          File::remove(tmp_ms_file_);
+        }
+      }
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpDir() const
+    {
+      return tmp_dir_;
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpOutDir() const
+    {
+      return tmp_out_dir_;
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpMsFile() const
+    {
+      return tmp_ms_file_;
+    }
     
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,

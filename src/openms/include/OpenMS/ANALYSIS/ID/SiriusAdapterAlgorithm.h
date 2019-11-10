@@ -35,20 +35,16 @@
 #pragma once 
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-
-#include <QDir>
-
-#include <QString>
+class QDir;
 
 namespace OpenMS
 {
+  class KDTreeFeatureMaps;
+  class FeatureMap;
+  class File;
+
   class OPENMS_DLLAPI SiriusAdapterAlgorithm : public DefaultParamHandler
     {
     public:
@@ -60,78 +56,22 @@ namespace OpenMS
       {
       public:
 
-        SiriusTemporaryFileSystemObjects(int debug_level) : removeable_(false) { constructSiriusTemporaryFileSystemObjects_(debug_level); }
+        /// Construct temporary folder structure for SIRIUS (SiriusTemporaryFileSystemObjects)
+        SiriusTemporaryFileSystemObjects(int debug_level);
 
-        ~SiriusTemporaryFileSystemObjects(){ if (removeable_) removeSiriusTemporaryFileSystemObjects_(debug_level_, tmp_dir_, tmp_ms_file_); }
+        /// Destructor of SiriusTemporaryFileSystemObjects based on debug level
+        ~SiriusTemporaryFileSystemObjects();
 
-        String getTmpDir()
-        {
-          return tmp_dir_;
-        }
-
-        String getTmpOutDir()
-        {
-          return tmp_out_dir_;
-        } 
-
-        String getTmpMsFile()
-        {
-          return tmp_ms_file_;
-        }
+        const String& getTmpDir() const;
+        const String& getTmpOutDir() const;
+        const String& getTmpMsFile() const;
       
       private:
-        bool removeable_;
         int debug_level_;
 
         String tmp_dir_;
         String tmp_ms_file_;
         String tmp_out_dir_;
-
-        /**
-        @brief Construct temporary folder structure for SIRIUS (SiriusTmpStruct)
-        @param debug_level Debug level
-        @return SiriusTmpStruct
-        */
-
-        void constructSiriusTemporaryFileSystemObjects_(int debug_level)
-        {
-          QString base_dir = File::getTempDirectory().toQString();
-          tmp_dir_ = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
-          tmp_ms_file_ = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
-          tmp_out_dir_ = QDir(tmp_dir_.toQString()).filePath("sirius_out");
-          removeable_ = true;
-          debug_level_ = debug_level;
-        } 
-
-        /**
-        @brief Removes temporary directory and file structure
-
-        @param debug_level Debug level
-        @param tmp_dir Path to temporary directory
-        @param tmp_ms_file Path to temporary ms file
-        */
-
-        void removeSiriusTemporaryFileSystemObjects_(int debug_level, const String& tmp_dir, const String& tmp_ms_file)
-        {
-          // clean tmp directory if debug level < 2 
-          if (debug_level >= 2)
-          {
-            OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir << " and msfile at this location "<< tmp_ms_file << ". Set debug level to 1 or lower to remove them." << std::endl;
-          }
-          else
-          {
-            if (!tmp_dir.empty())
-            {
-              OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir << ". Set debug level to 2 or higher to keep it." << std::endl;
-              File::removeDir(tmp_dir.toQString());
-            }
-            if (!tmp_ms_file.empty())
-            {
-              OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_ms_file << ". Set debug level to 2 or higher to keep it." << std::endl;
-              File::remove(tmp_ms_file); 
-            }
-          }
-        }
 
       };
 
