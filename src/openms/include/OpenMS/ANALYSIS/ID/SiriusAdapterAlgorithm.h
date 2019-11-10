@@ -37,8 +37,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
-class QDir;
-
 namespace OpenMS
 {
   class KDTreeFeatureMaps;

@@ -155,18 +155,18 @@ namespace OpenMS
       // clean tmp directory if debug level < debug threshold
       if (debug_level_ >= debug_threshold)
       {
-        OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir_ << " and msfile at this location "<< tmp_ms_file_ << ". Set debug level to 1 or lower to remove them." << std::endl;
+        OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir_ << " and msfile at this location "<< tmp_ms_file_ << ". Set debug level lower than " << debug_threshold << " to remove them." << std::endl;
       }
       else
       {
         if (!tmp_dir_.empty())
         {
-          OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir_ << ". Set debug level to 2 or higher to keep it." << std::endl;
+          OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
           File::removeDir(tmp_dir_.toQString());
         }
         if (!tmp_ms_file_.empty())
         {
-          OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_ms_file_ << ". Set debug level to 2 or higher to keep it." << std::endl;
+          OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_ms_file_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
           File::remove(tmp_ms_file_);
         }
       }
