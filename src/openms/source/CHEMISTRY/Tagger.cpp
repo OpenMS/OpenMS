@@ -64,13 +64,23 @@ namespace OpenMS
 
       const double gap = mzs[j] - mzs[i];
       //cout << i << "\t" << j << "\t" << mzs[i] << "\t" << mzs[j] << "\t" << gap << endl;
-      if (gap > max_gap_) { return; } // already too far away - continue with next parent
+      if ((gap * charge) > max_gap_) { return; } // already too far away - continue with next parent
       const char aa = getAAByMass_(gap * charge);
+
+      // if (aa != ' ')
+      // {
+        // std::cout << "ADDED residue: " << aa << " | mzi: " << mzs[i] << " | mzj: " << mzs[j] << " | gap: " << gap << " | decharged gap: " << (gap * charge) << std::endl;
+      // }
+
       if (aa == ' ') { ++j; continue; } // can't extend tag
       tag += aa;
       getTag_(tag, mzs, j, tags, charge);
 
-      if (tag.size() >= min_tag_length_) tags.push_back(tag);
+      if (tag.size() >= min_tag_length_)
+      {
+        tags.push_back(tag);
+        // std::cout << "ADDED TAG: " << tag << std::endl;
+      }
 
       // if aa is "L", then also add "I" as an alternative residue and extend the tag again
       // this will add redundancy, (and redundant runtime) but we avoid dealing with J and ambigous matching to I and L later on
@@ -79,8 +89,12 @@ namespace OpenMS
         tag.pop_back();
         tag.push_back('I');
         getTag_(tag, mzs, j, tags, charge);
+        if (tag.size() >= min_tag_length_)
+        {
+          tags.push_back(tag);
+          // std::cout << "ADDED TAG: " << tag << std::endl;
+        }
       }
-      if (tag.size() >= min_tag_length_) tags.push_back(tag);
       tag.pop_back();  // remove last string
       ++j;
     }
