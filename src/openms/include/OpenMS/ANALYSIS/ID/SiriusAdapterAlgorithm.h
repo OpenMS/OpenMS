@@ -50,7 +50,7 @@ namespace OpenMS
       SiriusAdapterAlgorithm();
 
       /// Struct for temporary folder structure
-      struct SiriusTemporaryFileSystemObjects
+      struct OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
       {
       public:
 
