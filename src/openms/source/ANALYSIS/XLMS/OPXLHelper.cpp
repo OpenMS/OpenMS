@@ -1313,7 +1313,7 @@ namespace OpenMS
     // std::cout << "TEST TAG number of precursors before sequence tag filtering: " << candidates.size() << std::endl;
 
     // an empty vector of sequence tags implies no filtering should be done in this case
-    if (tags.size() > 0)
+    if (use_sequence_tags)
     {
       // std::cout << "TEST TAGs : ";
       // for (const auto& tag : tags)
@@ -1321,7 +1321,7 @@ namespace OpenMS
       //   std::cout << tag << " | ";
       // }
       // std::cout << std::endl;
-      OPXLHelper::filterPrecursorsByTags(candidates, tags);
+      OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
     }
     // std::cout << "TEST TAG number of precursors after sequence tag filtering : " << candidates.size() << std::endl;
 
@@ -1430,30 +1430,41 @@ namespace OpenMS
     candidates = filtered_candidates;
   }
 
-  void OPXLHelper::filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, const std::vector<std::string>& tags)
+  void OPXLHelper::filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags)
   {
     std::vector <OPXLDataStructs::XLPrecursor> filtered_candidates;
+    std::vector< int > filtered_precursor_correction_positions;
 
     // brute force string comparisons for now, faster than Aho-Corasick for small tag sets
-    for (const OPXLDataStructs::XLPrecursor& candidate : candidates)
+    for (Size i = 0; i < candidates.size(); ++i)
+    //for (const OPXLDataStructs::XLPrecursor& candidate : candidates)
     {
+      // std::cout << "TAGGER FILTER candidate: " << candidate.alpha_seq << " | " << candidate.beta_seq << std::endl;
       // iterate over copies, so that we can reverse them
       for (std::string tag : tags)
       {
-        if (candidate.alpha_seq.hasSubstring(tag) || candidate.beta_seq.hasSubstring(tag))
+        // std::cout << "TAGGER FILTER tag: " << tag << std::endl;
+        if (candidates[i].alpha_seq.hasSubstring(tag) || candidates[i].beta_seq.hasSubstring(tag))
         {
-          filtered_candidates.push_back(candidate);
+          filtered_candidates.push_back(candidates[i]);
+          filtered_precursor_correction_positions.push_back(precursor_correction_positions[i]);
+          // std::cout << "TAGGER candidate accepted!" << std::endl;
           break;
         }
+
         std::reverse(tag.begin(), tag.end());
-        if (candidate.alpha_seq.hasSubstring(tag) || candidate.beta_seq.hasSubstring(tag))
+        // std::cout << "TAGGER FILTER rev tag: " << tag << std::endl;
+        if (candidates[i].alpha_seq.hasSubstring(tag) || candidates[i].beta_seq.hasSubstring(tag))
         {
-          filtered_candidates.push_back(candidate);
+          filtered_candidates.push_back(candidates[i]);
+          filtered_precursor_correction_positions.push_back(precursor_correction_positions[i]);
+          // std::cout << "TAGGER candidate accepted!" << std::endl;
           break;
         }
       }
     }
     candidates = filtered_candidates;
+    precursor_correction_positions = filtered_precursor_correction_positions;
   }
 
   void OPXLHelper::filterCandidatesByTagTrie(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, const std::vector<std::string>& tags)

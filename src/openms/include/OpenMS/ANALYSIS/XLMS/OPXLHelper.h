@@ -299,7 +299,7 @@ namespace OpenMS
        * @param candidates The list of XLPrecursors as enumerated by e.g. enumerateCrossLinksAndMasses
        * @param tags The list of tags for the current spectrum produced by the Tagger
        */
-      static void filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, const std::vector<std::string>& tags);
+      static void filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags);
 
       /**
        * @brief Filters the list of candidates for cases that include at least one of the tags in at least one of the two sequences
