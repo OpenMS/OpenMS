@@ -127,13 +127,13 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
   {
     if (f.second.size() > 1)
     {
-      OPENMS_LOG_INFO << "Theoretical indistinguishable cross-link adducts detected: "  << endl;
+      OPENMS_LOG_DEBUG << "Theoretical indistinguishable cross-link adducts detected: "  << endl;
       for (auto const & m : f.second)
       {
-        OPENMS_LOG_INFO << "\tPrecursor: " << m.first << "\t and cross-linked nucleotide: " << m.second << endl;
+        OPENMS_LOG_DEBUG << "\tPrecursor: " << m.first << "\t and cross-linked nucleotide: " << m.second << endl;
         for (auto const & fragment_mass : f.first.second)
         {
-          OPENMS_LOG_INFO << "\tFragment mass: " << fragment_mass << endl;
+          OPENMS_LOG_DEBUG << "\tFragment mass: " << fragment_mass << endl;
         }
       }      
     }

@@ -114,7 +114,7 @@
 //#define FILTER_BAD_SCORES_ID_TAGS filter out some good hits
 //#define FILTER_AMBIGIOUS_PEAKS 
 //#define FILTER_NO_ARBITRARY_TAG_PRESENT
-#define SVM_RECALIBRATE
+//#define SVM_RECALIBRATE
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -1292,7 +1292,6 @@ score += ah.mass_error_p     *   1.15386068
            + isXL * 3.0 * ah.marker_ions_score
            + 3.0 * ah.total_MIC + ah.ladder_score;
 */
-
     return 
              10.0 * ah.total_loss_score
            +  1.0 * ah.partial_loss_score
@@ -1314,9 +1313,35 @@ score += ah.mass_error_p     *   1.15386068
            5010 with perc auf 2-
 */
 
-
-
-//    return -7.9010278  + 0.7545435 * ah.total_loss_score + 3.1219378 * ah.sequence_score  + 0.33 * ah.mass_error_p + 0.01*ah.total_MIC;
+/*
+    return 
+       (ah.MIC - 0.00693372) * 0.00317232 
+    + (ah.Morph - 2.00693) * -5.67908 
+    + (ah.err - 1.8356e-05) * 0.0074405
+    + (ah.immonium_score) *   3.87159
+    + (isXL) *  -2.8901
+ +   (ah.ladder_score - 0.0381864) * 2.09632
+ +   (ah.marker_ions_score) *  2.53656
+ +   (ah.mass_error_p - 0.6439) * 0.189849
+ +   (ah.modds - 3.37613e-07) * 9.42353
+ +   (ah.partial_loss_score) * 4.22367
+ +   (ah.pl_MIC) * 0.0770935
+ +   (ah.pl_Morph) * -4.25703
+ +   (ah.pl_err - 0.000214374) * -0.059863
+ +   (ah.pl_im_MIC) *  -0.367491
+ +   (ah.pl_modds) *  2.29632
+ +   (ah.pl_pc_MIC) *  1.13888
+ +   (ah.precursor_score) * -0.597915
+ +   (ah.rank_product - 1) * 0.460718
+ +   (ah.sequence_score - 0.0218818) * -4.68762
+ +   (ah.tag_XLed) * 2.61103
+ +   (ah.tag_shifted) * -0.10144
+ +   (ah.tag_unshifted - 1) * 10.8324
+ +   (ah.total_MIC - 0.0100453) * 0.836277
+ +   (ah.total_loss_score - 0.106861) * 34.8899
+ +   (ah.wTop50 - 2) * -0.248061
+ +   (ah.sequence.size() - 6) * 0.00656285; // length
+*/
   }
 
 
@@ -1742,16 +1767,19 @@ static void scoreXLIons_(
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].setName("longest_tag");
     }
 
-    cout << "Distinct residue + adduct masses (including residues without shift): " << aa_plus_adduct_mass_count.size() << endl; 
-    // Calculate background statistics on shifts
-    cout << "mass\tresidue\tshift:" << endl;
-    for (const auto& mra : aa_plus_adduct_mass)
+    if (debug_level_ > 0) 
     {
-      double m = mra.first;
-      const map<const Residue*, double>& residue2adduct = mra.second;
-      for (auto& r2a : residue2adduct)
+      cout << "Distinct residue + adduct masses (including residues without shift): " << aa_plus_adduct_mass_count.size() << endl; 
+      // Calculate background statistics on shifts
+      cout << "mass\tresidue\tshift:" << endl;
+      for (const auto& mra : aa_plus_adduct_mass)
       {
-        cout << m << "\t" << r2a.first->getOneLetterCode() << "\t" << r2a.second << endl;
+        double m = mra.first;
+        const map<const Residue*, double>& residue2adduct = mra.second;
+        for (auto& r2a : residue2adduct)
+        {
+          cout << m << "\t" << r2a.first->getOneLetterCode() << "\t" << r2a.second << endl;
+        }
       }
     }
 
@@ -1774,7 +1802,7 @@ static void scoreXLIons_(
       }
     }
 
-    cout << "Total counts per residue:" << endl;
+    if (debug_level_ > 0) { cout << "Total counts per residue:" << endl; }
 
 #ifdef FILTER_AMBIGIOUS_PEAKS
     mass2high_frequency_.clear();
@@ -1787,7 +1815,10 @@ static void scoreXLIons_(
         double current_mass = m2c.first;
         size_t current_residue_count = m2c.second;
         size_t unmodified_residue_count = mass2count.begin()->second;
-        cout << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
+        if (debug_level_ > 0)
+        {
+          cout << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
+        }
         double frequency_normalized = (double)current_residue_count / unmodified_residue_count;  // frequency relative to unmodified residue
 
 #ifdef FILTER_AMBIGIOUS_PEAKS
@@ -1799,18 +1830,21 @@ static void scoreXLIons_(
       }
     }
 
-    cout << "Normalized counts per residue:" << endl;
-    for (const auto& aa2 : aa2mass2count)
+    if (debug_level_ > 0)
     {
-      auto& mass2count = aa2.second;
-      for (const auto m2c : mass2count)
+      cout << "Normalized counts per residue:" << endl;
+      for (const auto& aa2 : aa2mass2count)
       {
-        // normalize by counts
-        double current_mass = m2c.first;
-        size_t current_residue_count = m2c.second;
-        size_t unmodified_residue_count = mass2count.begin()->second;
-        double frequency_normalized = (double)current_residue_count / unmodified_residue_count;
-        cout << aa2.first->getName() << "\t" << current_mass << "\t" << frequency_normalized << endl ; // aa mass count
+        auto& mass2count = aa2.second;
+        for (const auto m2c : mass2count)
+        {
+          // normalize by counts
+          double current_mass = m2c.first;
+          size_t current_residue_count = m2c.second;
+          size_t unmodified_residue_count = mass2count.begin()->second;
+          double frequency_normalized = (double)current_residue_count / unmodified_residue_count;
+          cout << aa2.first->getName() << "\t" << current_mass << "\t" << frequency_normalized << endl ; // aa mass count
+        }
       }
     }
 
@@ -3823,6 +3857,7 @@ static void scoreXLIons_(
                        true); // annotate charge  
     progresslogger.endProgress();
 
+    progresslogger.startProgress(0, 1, "Calculate Nucleotide Tags...");
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
 
     // build multimap of precursor mass to scan index (and perform some mass and length based filtering)
@@ -4577,7 +4612,7 @@ static void scoreXLIons_(
          sd += pow(m.second - mean, 2.0);
       }
       sd = sqrt(1.0/(double)i * sd);
-      cout << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << endl;
+      cout << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << " calculated based on " << i << " ids." << endl;
   
       if (filter_pc_mass_error)
       {
@@ -4599,6 +4634,7 @@ static void scoreXLIons_(
 
       if (impute_decoy_medians)
       {
+        cout << "Imputing decoy medians." << endl;
         // calculate median score of decoys for specific meta value
         auto metaMedian = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
         {
@@ -4699,7 +4735,8 @@ static void scoreXLIons_(
       {
         SimpleSVM::PredictorMap predictors;
         map<Size, Int> labels;
-                
+
+/*                
         StringList feature_set;
         feature_set
           << "NuXL:mass_error_p"
@@ -4740,9 +4777,155 @@ static void scoreXLIons_(
           << "NuXL:NA_MASS_z0"
           << "NuXL:NA_length"   
           << "nucleotide_mass_tags";
+*/
+
+        // feature set that can be calculated on-line during scoring
+        StringList feature_set;
+        feature_set
+          << "NuXL:mass_error_p"
+          << "isotope_error"
+          << "NuXL:err"
+          << "NuXL:total_loss_score"
+          << "NuXL:immonium_score"
+          << "NuXL:precursor_score"
+          << "NuXL:MIC"
+          << "NuXL:Morph"
+          << "NuXL:modds"
+          << "NuXL:partial_loss_score"
+          << "NuXL:pl_MIC"
+          << "NuXL:pl_err"
+          << "NuXL:pl_Morph"
+          << "NuXL:pl_im_MIC"
+          << "NuXL:pl_modds"
+          << "NuXL:pl_pc_MIC"
+          << "NuXL:total_MIC"
+          << "NuXL:marker_ions_score"
+          << "NuXL:ladder_score"
+          << "NuXL:sequence_score"
+          << "NuXL:tag_XLed"
+          << "NuXL:tag_unshifted"
+          << "NuXL:tag_shifted"
+          << "NuXL:rank_product"
+          << "NuXL:isXL" 
+          << "NuXL:wTop50";
+/*
+ *
+Feature weights:
+NuXL:NA_MASS_z0 1.30088
+NuXL:NA_length  -1.40758
+NuXL:aminoacid_id_to_max_tag_ratio      0.92732
+NuXL:aminoacid_max_tag  -0.744218
+(NuXL:score      3.74526)
+(score   3.74526)
+NuXL:total_HS   3.90137
+NuXL:total_Morph        2.24353
+
+NuXL:err        0.118611
+NuXL:immonium_score     1.70748
+NuXL:modds      1.76435
+NuXL:isXL       -2.21505
+NuXL:ladder_score       2.02304
+NuXL:marker_ions_score  1.26403
+NuXL:mass_error_p       0.253748
+NuXL:partial_loss_score 0.587148
+NuXL:pl_modds   0.324605
+NuXL:pl_pc_MIC  0.176533
+NuXL:pl_im_MIC  -0.2534
+NuXL:pl_MIC     -0.177937
+NuXL:pl_Morph   -1.58991
+NuXL:pl_err     -0.0100689
+NuXL:total_loss_score   3.73413
+NuXL:MIC        0.564764
+NuXL:Morph      3.04116
+NuXL:sequence_score     -1.59204
+NuXL:tag_XLed   1.63176
+NuXL:tag_shifted        -0.176563
+NuXL:tag_unshifted      3.73061
+NuXL:total_MIC  0.575831
+NuXL:wTop50     -0.137687
+length  0.195985
+NuXL:precursor_score    -0.513751
+NuXL:rank_product       0.349211
+
+
+nr_candidates   0.453777
+nucleotide_mass_tags    0.00899349
+precursor_intensity_log10       -0.383641
+variable_modifications  -0.0944707
+
+ * */
+
+/*
+ * mean ppm error: 0.0569701 sd: 0.447449 5*sd: 2.23725
+ * Peptide (target/decoy)   XL (target/decoy):
+ * 3975    3011    9613    4045
+ * Predictor 'isotope_error' is uninformative.
+ * Training SVM on 12044 observations. Classes:
+ * - '0': 6022 observations
+ *   - '1': 6022 observations
+ *   Running cross-validation to find optimal SVM parameters...
+ *   Best cross-validation performance: 83.4772% correct
+ *   Best SVM parameters: log2_C = 5, log2_gamma = 0
+ *   Number of support vectors in the final model: 4252
+ *   Feature weights:
+ *   NuXL:MIC        0.00317232
+ *   NuXL:Morph      -5.67908
+ *   NuXL:err        0.0074405
+ *   NuXL:immonium_score     3.87159
+ *   NuXL:isXL       -2.8901
+ *   NuXL:ladder_score       2.09632
+ *   NuXL:marker_ions_score  2.53656
+ *   NuXL:mass_error_p       0.189849
+ *   NuXL:modds      9.42353
+ *   NuXL:partial_loss_score 4.22367
+ *   NuXL:pl_MIC     0.0770935
+ *   NuXL:pl_Morph   -4.25703
+ *   NuXL:pl_err     -0.059863
+ *   NuXL:pl_im_MIC  -0.367491
+ *   NuXL:pl_modds   2.29632
+ *   NuXL:pl_pc_MIC  1.13888
+ *   NuXL:precursor_score    -0.597915
+ *   NuXL:rank_product       0.460718
+ *   NuXL:sequence_score     -4.68762
+ *   NuXL:tag_XLed   2.61103
+ *   NuXL:tag_shifted        -0.10144
+ *   NuXL:tag_unshifted      10.8324
+ *   NuXL:total_MIC  0.836277
+ *   NuXL:total_loss_score   34.8899
+ *   NuXL:wTop50     -0.248061
+ *   length  0.00656285
+ *   Feature scaling:
+ *   NuXL:MIC        0.00693372      0.798143
+ *   NuXL:Morph      2.00693 50.6892
+ *   NuXL:err        1.8356e-05      0.0286427
+ *   NuXL:immonium_score     0       0.0684432
+ *   NuXL:isXL       0       1
+ *   NuXL:ladder_score       0.0381864       1.11803
+ *   NuXL:marker_ions_score  0       0.12167
+ *   NuXL:mass_error_p       0.6439  1
+ *   NuXL:modds      3.37613e-07     22.9923
+ *   NuXL:partial_loss_score 0       38.5117
+ *   NuXL:pl_MIC     0       0.352322
+ *   NuXL:pl_Morph   0       20.2243
+ *   NuXL:pl_err     0.000214374     0.02
+ *   NuXL:pl_im_MIC  0       0.115692
+ *   NuXL:pl_modds   0       7.26252
+ *   NuXL:pl_pc_MIC  0       0.33534
+ *   NuXL:precursor_score    0       0.299693
+ *   NuXL:rank_product       1       149.905
+ *   NuXL:sequence_score     0.0218818       1.11803
+ *   NuXL:tag_XLed   0       21
+ *   NuXL:tag_shifted        0       17
+ *   NuXL:tag_unshifted      1       33
+ *   NuXL:total_MIC  0.0100453       0.844876
+ *   NuXL:total_loss_score   0.106861        119.842
+ *   NuXL:wTop50     2       229
+ *   length  6       48
+ */
 
         // copy all scores in predictors ("score" + all from feature_set). 
         // Only add labels for balanced training set
+        size_t current_row(0);
         for (size_t index = 0; index != peptide_ids.size(); ++index)
         {
            const vector<PeptideHit>& phits = peptide_ids[index].getHits();
@@ -4751,7 +4934,7 @@ static void scoreXLIons_(
              const PeptideHit& ph = phits[psm_rank];
              bool is_target = ph.getMetaValue("target_decoy") == "target";
              double score = ph.getScore();
-             predictors["score"].push_back(score);
+             // predictors["score"].push_back(score);
              predictors["length"].push_back(ph.getSequence().size());
              for (auto & f : feature_set)
              {
@@ -4761,20 +4944,26 @@ static void scoreXLIons_(
              // only add label for training data (rank = 0 and previously selected for training)
              if (psm_rank == 0 && training_indices.count(index) > 0)
              {
-               labels[predictors["score"].size() - 1] = is_target; 
+               labels[current_row] = is_target;
              }
+             ++current_row;
            }
         }
   
         SimpleSVM svm;
         Param svm_param = svm.getParameters();        
-        svm_param.setValue("kernel", "linear");
+//        svm_param.setValue("kernel", "linear");
+        svm_param.setValue("kernel", "RBF");
+//        svm_param.setValue("log2_C", ListUtils::create<double>("0"));
+//        svm_param.setValue("log2_gamma", ListUtils::create<double>("1"));
         svm.setParameters(svm_param);
         svm.setup(predictors, labels);
         vector<SimpleSVM::Prediction> predictions;
+        cout << "Predicting class probabilities:" << endl;
         svm.predict(predictions);
         std::map<String, double> feature_weights;
         svm.getFeatureWeights(feature_weights);
+ /*
         cout << "Feature weights:" << endl;
         for (const auto& m : feature_weights)
         {
@@ -4786,7 +4975,7 @@ static void scoreXLIons_(
         {
           cout << m.first << "\t" << m.second.first << "\t" << m.second.second << endl;
         }
-
+*/
         size_t psm_index(0);
         for (size_t index = 0; index != peptide_ids.size(); ++index)
         {
@@ -4964,7 +5153,7 @@ static void scoreXLIons_(
       }
       else
       {
-         if (sufficient_PSMs_for_score_recalibration == false) OPENMS_LOG_WARN << "Too few PSMs for score recalibration. Skipped." << endl;
+        if (sufficient_PSMs_for_score_recalibration == false) OPENMS_LOG_WARN << "Too few PSMs for score recalibration. Skipped." << endl;
       }
     }
     else  // no decoys
