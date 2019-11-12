@@ -178,7 +178,7 @@ using namespace OpenMS;
 
     number_top_hits_ = static_cast<Int>(param_.getValue("algorithm:number_top_hits"));
     deisotope_mode_ = static_cast<String>(param_.getValue("algorithm:deisotope"));
-    use_sequence_tags_ = (param_.getValue("algorithm:use_sequence_tags") == "true" ? true : false);
+    use_sequence_tags_ = param_.getValue("algorithm:use_sequence_tags") == "true";
     sequence_tag_min_length_ = static_cast<Size>(param_.getValue("algorithm:sequence_tag_min_length"));
 
     add_y_ions_ = param_.getValue("ions:y_ions");
@@ -420,8 +420,7 @@ using namespace OpenMS;
       }
 
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > top_csms_spectrum;
-      vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates;
-      cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_, use_sequence_tags_, tags);
+      vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_, use_sequence_tags_, tags);
 
       all_candidates_count += cross_link_candidates.size();
 
