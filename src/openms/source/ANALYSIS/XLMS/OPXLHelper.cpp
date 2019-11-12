@@ -1389,38 +1389,7 @@ namespace OpenMS
     }
   }
 
-  void OPXLHelper::filterCandidatesByTags(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, const std::vector<std::string>& tags)
-  {
-    std::vector <OPXLDataStructs::ProteinProteinCrossLink> filtered_candidates;
-
-    // brute force string comparisons using hasSubstring()
-    for (const OPXLDataStructs::ProteinProteinCrossLink& candidate : candidates)
-    {
-      String alpha = candidate.alpha->toUnmodifiedString();
-      String beta;
-      if (candidate.beta)
-      {
-        beta = candidate.beta->toUnmodifiedString();
-      }
-      for (std::string tag : tags)
-      {
-        if (alpha.hasSubstring(tag) || beta.hasSubstring(tag))
-        {
-          filtered_candidates.push_back(candidate);
-          break;
-        }
-        std::reverse(tag.begin(), tag.end());
-        if (alpha.hasSubstring(tag) || beta.hasSubstring(tag))
-        {
-          filtered_candidates.push_back(candidate);
-          break;
-        }
-      }
-    }
-    candidates = filtered_candidates;
-  }
-
-  void OPXLHelper::filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags)
+    void OPXLHelper::filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags)
   {
     std::vector <OPXLDataStructs::XLPrecursor> filtered_candidates;
     std::vector< int > filtered_precursor_correction_positions;
@@ -1449,65 +1418,6 @@ namespace OpenMS
     }
     candidates = filtered_candidates;
     precursor_correction_positions = filtered_precursor_correction_positions;
-  }
-
-  void OPXLHelper::filterCandidatesByTagTrie(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, const std::vector<std::string>& tags)
-  {
-    std::vector <OPXLDataStructs::ProteinProteinCrossLink> filtered_candidates;
-
-    // prepare trie
-    AhoCorasickAmbiguous::PeptideDB tag_DB;
-    for (const std::string& tag : tags)
-    {
-      appendValue(tag_DB, tag.c_str());
-    }
-    AhoCorasickAmbiguous::FuzzyACPattern pattern;
-    // make trie from: set of tags, max. ambiguous, max. mismatches, and the pattern that will contain the trie
-    AhoCorasickAmbiguous::initPattern(tag_DB, 0, 0, pattern);
-
-    // init algorithm
-    AhoCorasickAmbiguous fuzzyAC;
-
-    for (const OPXLDataStructs::ProteinProteinCrossLink& candidate : candidates)
-    {
-      String alpha = candidate.alpha->toUnmodifiedString();
-
-      fuzzyAC.setProtein(alpha);
-      if (fuzzyAC.findNext(pattern))
-      {
-        filtered_candidates.push_back(candidate);
-        continue;
-      }
-
-      alpha.reverse();
-      fuzzyAC.setProtein(alpha);
-      if (fuzzyAC.findNext(pattern))
-      {
-        filtered_candidates.push_back(candidate);
-        continue;
-      }
-
-      if (candidate.beta)
-      {
-        String beta = candidate.beta->toUnmodifiedString();
-        fuzzyAC.setProtein(beta);
-        if (fuzzyAC.findNext(pattern))
-        {
-          filtered_candidates.push_back(candidate);
-          continue;
-        }
-
-        beta.reverse();
-        fuzzyAC.setProtein(beta);
-        if (fuzzyAC.findNext(pattern))
-        {
-          filtered_candidates.push_back(candidate);
-          continue;
-        }
-      }
-    }
-
-    candidates = filtered_candidates;
   }
 
   void OPXLHelper::filterPrecursorsByTagTrie(std::vector <OPXLDataStructs::XLPrecursor>& candidates, const std::vector<std::string>& tags)

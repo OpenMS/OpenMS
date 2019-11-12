@@ -61,7 +61,6 @@ namespace OpenMS
       // generate tags from mass vector @p mzs using the standard residues in ResidueDB
       void getTag(const std::vector<double>& mzs, std::vector<std::string>& tags) const;
       void getTag(const MSSpectrum& spec, std::vector<std::string>& tags) const;
-      void setMinCharge(size_t min_charge);
       void setMaxCharge(size_t max_charge);
 
     private:

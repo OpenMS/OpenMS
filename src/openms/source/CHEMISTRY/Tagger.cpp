@@ -182,10 +182,6 @@ namespace OpenMS
     for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
     getTag(mzs, tags);
   }
-  void Tagger::setMinCharge(size_t min_charge)
-  {
-    min_charge_ = min_charge;
-  }
   void Tagger::setMaxCharge(size_t max_charge)
   {
     max_charge_ = max_charge;

@@ -285,14 +285,7 @@ namespace OpenMS
        */
       static void isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta);
 
-      /**
-       * @brief Filters the list of candidates for cases that include at least one of the tags in at least one of the two sequences
-
-       * @param candidates The list of ProteinProteinCrossLinks as enumerated by e.g. collectPrecursorCandidates
-       * @param tags The list of tags for the current spectrum produced by the Tagger
-       */
-      static void filterCandidatesByTags(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, const std::vector<std::string>& tags);
-
+      // TODO this is the only filtering function currently in use, the other one is here for comparison and benchmarking purposes
       /**
        * @brief Filters the list of candidates for cases that include at least one of the tags in at least one of the two sequences
 
@@ -300,16 +293,6 @@ namespace OpenMS
        * @param tags The list of tags for the current spectrum produced by the Tagger
        */
       static void filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags);
-
-      /**
-       * @brief Filters the list of candidates for cases that include at least one of the tags in at least one of the two sequences
-
-          uses the Aho-Corasick algorithm
-
-       * @param candidates The list of candidates as enumerated by e.g. collectPrecursorCandidates
-       * @param tags The list of tags for the current spectrum produced by the Tagger
-       */
-      static void filterCandidatesByTagTrie(std::vector <OPXLDataStructs::ProteinProteinCrossLink>& candidates, const std::vector<std::string>& tags);
 
       /**
        * @brief Filters the list of candidates for cases that include at least one of the tags in at least one of the two sequences
