@@ -544,7 +544,7 @@ START_SECTION(filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>&
   TEST_EQUAL(precursors.size(), 15990);
 
   // filter candidates
-  OPXLHelper::filterPrecursorsByTags(precursors, tags);
+  OPXLHelper::filterPrecursorsByTags(precursors, spectrum_precursor_correction_positions, tags);
   TEST_EQUAL(precursors.size(), 4092);
   // std::cout << std::endl;
 
