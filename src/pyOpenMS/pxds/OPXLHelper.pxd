@@ -98,6 +98,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                                                                             StringList cross_link_residue1,
                                                                             StringList cross_link_residue2,
                                                                             String cross_link_name,
+                                                                            bool use_sequence_tags,
                                                                             libcpp_vector[ string ] tags) nogil except +
 
         double computePrecursorError(CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge) nogil except +
@@ -107,4 +108,8 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                           libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_linear_alpha,
                           libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_linear_beta,
                           libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_alpha,
-                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_beta)  nogil except +
+                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_beta) nogil except +
+
+        void filterPrecursorsByTags(libcpp_vector[ XLPrecursor ]& candidates,
+                                    libcpp_vector[ int ]& precursor_correction_positions,
+                                    const libcpp_vector[ string ]& tags) nogil except +
