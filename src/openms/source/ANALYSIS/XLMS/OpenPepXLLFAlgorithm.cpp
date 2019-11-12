@@ -421,17 +421,7 @@ using namespace OpenMS;
 
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > top_csms_spectrum;
       vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates;
-
-      // for (string& tag : tags)
-      // {
-      //   cout << "TAGGER TAG: " << tag << endl;
-      // }
-
-      // if sequence tags are applied, but no tags were found, do not bother with enumerating candidates
-      // if ( (!use_sequence_tags_) || (use_sequence_tags_ && tags.size() > 0) )
-      // {
       cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_, use_sequence_tags_, tags);
-      // }
 
       all_candidates_count += cross_link_candidates.size();
 

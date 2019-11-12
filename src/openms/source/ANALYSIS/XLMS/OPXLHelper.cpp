@@ -1309,21 +1309,11 @@ namespace OpenMS
     std::vector< int > precursor_correction_positions;
     candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursor_vector, precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 
-    // std::cout << "TEST TAG number of tags: " << tags.size() << std::endl;
-    // std::cout << "TEST TAG number of precursors before sequence tag filtering: " << candidates.size() << std::endl;
-
     // an empty vector of sequence tags implies no filtering should be done in this case
     if (use_sequence_tags)
     {
-      // std::cout << "TEST TAGs : ";
-      // for (const auto& tag : tags)
-      // {
-      //   std::cout << tag << " | ";
-      // }
-      // std::cout << std::endl;
       OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
     }
-    // std::cout << "TEST TAG number of precursors after sequence tag filtering : " << candidates.size() << std::endl;
 
     vector< int > precursor_corrections;
     for (Size pc = 0; pc < precursor_correction_positions.size(); ++pc)
@@ -1437,28 +1427,22 @@ namespace OpenMS
 
     // brute force string comparisons for now, faster than Aho-Corasick for small tag sets
     for (Size i = 0; i < candidates.size(); ++i)
-    //for (const OPXLDataStructs::XLPrecursor& candidate : candidates)
     {
-      // std::cout << "TAGGER FILTER candidate: " << candidate.alpha_seq << " | " << candidate.beta_seq << std::endl;
       // iterate over copies, so that we can reverse them
       for (std::string tag : tags)
       {
-        // std::cout << "TAGGER FILTER tag: " << tag << std::endl;
         if (candidates[i].alpha_seq.hasSubstring(tag) || candidates[i].beta_seq.hasSubstring(tag))
         {
           filtered_candidates.push_back(candidates[i]);
           filtered_precursor_correction_positions.push_back(precursor_correction_positions[i]);
-          // std::cout << "TAGGER candidate accepted!" << std::endl;
           break;
         }
 
         std::reverse(tag.begin(), tag.end());
-        // std::cout << "TAGGER FILTER rev tag: " << tag << std::endl;
         if (candidates[i].alpha_seq.hasSubstring(tag) || candidates[i].beta_seq.hasSubstring(tag))
         {
           filtered_candidates.push_back(candidates[i]);
           filtered_precursor_correction_positions.push_back(precursor_correction_positions[i]);
-          // std::cout << "TAGGER candidate accepted!" << std::endl;
           break;
         }
       }

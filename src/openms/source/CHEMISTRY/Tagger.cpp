@@ -63,14 +63,10 @@ namespace OpenMS
       if (tag.size() == max_tag_length_) { return; } // maximum tag size reached? - continue with next parent
 
       const double gap = mzs[j] - mzs[i];
-      //cout << i << "\t" << j << "\t" << mzs[i] << "\t" << mzs[j] << "\t" << gap << endl;
       if ((gap * charge) > max_gap_) { return; } // already too far away - continue with next parent
       const char aa = getAAByMass_(gap * charge);
 
-      // if (aa != ' ')
-      // {
-        // std::cout << "ADDED residue: " << aa << " | mzi: " << mzs[i] << " | mzj: " << mzs[j] << " | gap: " << gap << " | decharged gap: " << (gap * charge) << std::endl;
-      // }
+
 
       if (aa == ' ') { ++j; continue; } // can't extend tag
       tag += aa;
@@ -79,7 +75,6 @@ namespace OpenMS
       if (tag.size() >= min_tag_length_)
       {
         tags.push_back(tag);
-        // std::cout << "ADDED TAG: " << tag << std::endl;
       }
 
       // if aa is "L", then also add "I" as an alternative residue and extend the tag again
@@ -92,7 +87,6 @@ namespace OpenMS
         if (tag.size() >= min_tag_length_)
         {
           tags.push_back(tag);
-          // std::cout << "ADDED TAG: " << tag << std::endl;
         }
       }
       tag.pop_back();  // remove last string
@@ -112,22 +106,17 @@ namespace OpenMS
 
     for (const auto& r : aas)
     {
-      // std::string letter;
       const char letter = r->getOneLetterCode()[0];
       const double mass = r->getMonoWeight(Residue::Internal);
       mass2aa[mass] = letter;
-      // std::cout << "TEST TAGGER added residue: " << letter << " | mass: " << mass << std::endl;
     }
 
     // for fixed modifications, replace the unmodified residue with the modified one
     for (const auto& mod : fixed_mods)
     {
       const ResidueModification* rm = ModificationsDB::getInstance()->getModification(mod);
-      // std::cout << "TEST TAGGER rm.getOrigin(): " << rm->getOrigin() << " | rm.getName(): " << rm->getName() << " | rm.getId(): " << rm->getId() << std::endl;
       Residue r = *(ResidueDB::getInstance()->getResidue(rm->getOrigin()));
-      // std::cout << "TEST TAGGER unmodified residue mass: " << r.getMonoWeight(Residue::Internal) << std::endl;
       r.setModification(rm->getId());
-      // std::cout << "TEST TAGGER modified residue mass: " << r.getMonoWeight(Residue::Internal) << std::endl;
 
       // remove the unmodified residue
       // this requires searching the map by value, but this is only done once when the Tagger is initialized
@@ -135,14 +124,12 @@ namespace OpenMS
       {
         if (it->second == rm->getOrigin())
         {
-          // std::cout << "TEST TAGGER removed residue: " << it->second << std::endl;
           mass2aa.erase(it);
           break;
         }
       }
       const char name = rm->getOrigin();
       const double mass = r.getMonoWeight(Residue::Internal);
-      // std::cout << "TEST TAGGER added residue: " << name << " | mass: " << mass << std::endl;
       mass2aa[mass] = name;
     }
 
@@ -150,14 +137,10 @@ namespace OpenMS
     for (const auto& mod : var_mods)
     {
       const ResidueModification* rm = ModificationsDB::getInstance()->getModification(mod);
-      // std::cout << "TEST TAGGER rm.getOrigin(): " << rm->getOrigin() << " | rm.getName(): " << rm->getName() << " | rm.getId(): " << rm->getId() << std::endl;
       Residue r = *(ResidueDB::getInstance()->getResidue(rm->getOrigin()));
-      // std::cout << "TEST TAGGER unmodified residue mass: " << r.getMonoWeight(Residue::Internal) << std::endl;
       r.setModification(rm->getId());
-      // std::cout << "TEST TAGGER modified residue mass: " << r.getMonoWeight(Residue::Internal) << std::endl;
-      const char name = rm->getOrigin(); // + std::string("(") + rm->getId() + std::string(")");
+      const char name = rm->getOrigin();
       const double mass = r.getMonoWeight(Residue::Internal);
-      // std::cout << "TEST TAGGER added residue: " << name << " | mass: " << mass << std::endl;
       mass2aa[mass] = name;
     }
 
