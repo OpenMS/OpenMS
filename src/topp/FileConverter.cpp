@@ -328,19 +328,19 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
-    String formats("mzML,mzXML,mgf,raw,cachedMzML,mzData,dta,dta2d,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
-    setValidFormats_("in", ListUtils::create<String>(formats));
-    setValidStrings_("in_type", ListUtils::create<String>(formats));
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta"};
+    setValidFormats_("in", input_formats);
+    setValidStrings_("in_type", input_formats);
     
     registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    formats = "mzML,mzXML,cachedMzML,mgf,featureXML,consensusXML,edta,mzData,dta2d,csv";
+    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv"};
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>(formats));
+    setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
-    setValidStrings_("out_type", ListUtils::create<String>(formats));
+    setValidStrings_("out_type", output_formats);
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
     registerFlag_("force_MaxQuant_compatibility", "[mzXML output only] Make sure that MaxQuant can read the mzXML and set the msManufacturer to 'Thermo Scientific'.", true);
