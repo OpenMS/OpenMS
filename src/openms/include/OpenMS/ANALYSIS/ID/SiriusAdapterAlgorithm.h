@@ -34,14 +34,14 @@
 
 #pragma once 
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
-  class KDTreeFeatureMaps;
   class FeatureMap;
   class File;
+  class KDTreeFeatureMaps;
 
   class OPENMS_DLLAPI SiriusAdapterAlgorithm : public DefaultParamHandler
     {

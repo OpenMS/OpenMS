@@ -32,25 +32,21 @@
 // $Authors: Oliver Alka, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-
-#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h> // store
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h> // read
-#include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h> // read
-
-#include <QtCore/QProcess>
-#include <QDir>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDebug>
+#include <QDir>
 #include <QDirIterator>
-
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <QtCore/QProcess>
 #include <fstream>
 
 using namespace OpenMS;

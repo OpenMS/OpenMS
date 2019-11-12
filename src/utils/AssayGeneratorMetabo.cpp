@@ -32,32 +32,28 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <algorithm>
-#include <map> //insert
-
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
-#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h> 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDir>
+#include <algorithm>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;

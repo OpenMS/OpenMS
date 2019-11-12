@@ -33,14 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-#include <cstdint>
-#include <QDir>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <QDir>
+#include <cstdint>
 
 using namespace OpenMS;
 using namespace std;

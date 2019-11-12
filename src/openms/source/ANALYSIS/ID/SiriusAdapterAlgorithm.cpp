@@ -33,18 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtCore/QProcess>
 #include <QDir>
-#include <QString>
 #include <QDirIterator>
-
+#include <QString>
+#include <QtCore/QProcess>
 #include <fstream>
 
 namespace OpenMS
