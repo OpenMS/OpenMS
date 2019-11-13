@@ -1,7 +1,6 @@
 from libcpp cimport bool
 from MetaInfoInterface cimport *
-from MetaInfoRegistry cimport *
-from Types cimport *
+from libcpp.vector cimport vector as libcpp_vector
 from DataValue cimport *
 from String cimport *
 
@@ -23,4 +22,4 @@ cdef extern from "<OpenMS/METADATA/Acquisition.h>" namespace "OpenMS":
 		DataValue getMetaValue(String) nogil except +
 		void setMetaValue(String, DataValue) nogil except +
 		bool metaValueExists(String) nogil except +
-		void removeMetaValue(String) nogil except +
+		void removeMetaValue(String) nogil except +	
