@@ -19,7 +19,3 @@ cdef extern from "<OpenMS/METADATA/Acquisition.h>" namespace "OpenMS":
 		void setIdentifier(const String &identifier) nogil except +
 
 		void getKeys(libcpp_vector[String] & keys)
-		DataValue getMetaValue(String) nogil except +
-		void setMetaValue(String, DataValue) nogil except +
-		bool metaValueExists(String) nogil except +
-		void removeMetaValue(String) nogil except +	
