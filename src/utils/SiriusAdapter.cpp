@@ -32,24 +32,21 @@
 // $Authors: Oliver Alka, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-
-#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h> // store
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h> // read
-#include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h> // read
-
-#include <QtCore/QProcess>
-#include <QDir>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDebug>
+#include <QDir>
 #include <QDirIterator>
-
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <QtCore/QProcess>
 #include <fstream>
 
 using namespace OpenMS;
@@ -192,10 +189,7 @@ protected:
     f.load(in, spectra);
 
     // make temporary files
-    SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct();
-    String tmp_dir = sirius_tmp.tmp_dir;
-    String tmp_ms_file = sirius_tmp.tmp_ms_file;
-    String tmp_out_dir = sirius_tmp.tmp_out_dir;
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
 
     // run masstrace filter and feature mapping
     vector<FeatureMap> v_fp; // copy FeatureMap via push_back
@@ -220,7 +214,7 @@ protected:
     bool no_mt_info = (sirius_algo.getNoMasstraceInfoIsotopePattern() == "true") ? true : false;
     int isotope_pattern_iterations = sirius_algo.getIsotopePatternIterations();
     SiriusMSFile::store(spectra,
-                        tmp_ms_file,
+                        sirius_tmp.getTmpMsFile(),
                         feature_mapping,
                         feature_only,
                         isotope_pattern_iterations,
@@ -230,16 +224,18 @@ protected:
     // converter_mode enabled (only needed for SiriusAdapter)
     if (!out_ms.empty() && converter_mode)
     {
-      QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
+      QFile::copy(sirius_tmp.getTmpMsFile().toQString(), out_ms.toQString());
+      
       OPENMS_LOG_WARN << "SiriusAdapter was used in converter mode and is terminated after openms preprocessing. \n"
-                  "If you would like to run SIRIUS internally please disable the converter mode." << std::endl; 
+                         "If you would like to run SIRIUS internally please disable the converter mode." << std::endl;
+      
       return EXECUTION_OK;
     }
 
     // calls Sirius and returns vector of paths to sirius folder structure
     std::vector<String> subdirs;
-    subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(tmp_ms_file,
-                                                         tmp_out_dir,
+    subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(sirius_tmp.getTmpMsFile(),
+                                                         sirius_tmp.getTmpOutDir(),
                                                          executable,
                                                          out_csifingerid,
                                                          sirius_algo);
@@ -276,7 +272,7 @@ protected:
       sirius_workspace_directory = String(sw_dir.absolutePath());
       
       // move tmp folder to new location
-      bool copy_status = File::copyDirRecursively(tmp_dir.toQString(), sirius_workspace_directory.toQString());
+      bool copy_status = File::copyDirRecursively(sirius_tmp.getTmpDir().toQString(), sirius_workspace_directory.toQString());
       if (copy_status)
       { 
         OPENMS_LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
@@ -290,27 +286,8 @@ protected:
     // should the ms file be retained (non-converter mode)
     if (!out_ms.empty())
     {  
-      QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
+      QFile::copy(sirius_tmp.getTmpMsFile().toQString(), out_ms.toQString());
       OPENMS_LOG_INFO << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
-    }
-
-    // clean tmp directory if debug level < 2 
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (tmp_dir.empty() == false)
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::removeDir(tmp_dir.toQString());
-      }
-      if (tmp_ms_file.empty() == false)
-      {
-        writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::remove(tmp_ms_file); // remove msfile
-      }
     }
 
     return EXECUTION_OK;

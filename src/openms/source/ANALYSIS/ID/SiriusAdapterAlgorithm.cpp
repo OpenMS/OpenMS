@@ -33,13 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
-#include <QtCore/QProcess>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <QDirIterator>
-
+#include <QString>
+#include <QtCore/QProcess>
 #include <fstream>
 
 namespace OpenMS
@@ -134,16 +136,53 @@ namespace OpenMS
       most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
     }   
 
-    SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct()
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::SiriusTemporaryFileSystemObjects(int debug_level)
     {
-      SiriusTmpStruct tmp_struct;
       QString base_dir = File::getTempDirectory().toQString();
-      tmp_struct.tmp_dir = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
-      tmp_struct.tmp_ms_file = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
-      tmp_struct.tmp_out_dir = QDir(tmp_struct.tmp_dir.toQString()).filePath("sirius_out");
+      tmp_dir_ = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
+      tmp_ms_file_ = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
+      tmp_out_dir_ = QDir(tmp_dir_.toQString()).filePath("sirius_out");
+      debug_level_ = debug_level;
+    }
 
-      return tmp_struct;
-    } 
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::~SiriusTemporaryFileSystemObjects()
+    {
+      constexpr int debug_threshold = 2;
+
+      // clean tmp directory if debug level < debug threshold
+      if (debug_level_ >= debug_threshold)
+      {
+        OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir_ << " and msfile at this location "<< tmp_ms_file_ << ". Set debug level lower than " << debug_threshold << " to remove them." << std::endl;
+      }
+      else
+      {
+        if (!tmp_dir_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
+          File::removeDir(tmp_dir_.toQString());
+        }
+        if (!tmp_ms_file_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_ms_file_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
+          File::remove(tmp_ms_file_);
+        }
+      }
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpDir() const
+    {
+      return tmp_dir_;
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpOutDir() const
+    {
+      return tmp_out_dir_;
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpMsFile() const
+    {
+      return tmp_ms_file_;
+    }
     
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,

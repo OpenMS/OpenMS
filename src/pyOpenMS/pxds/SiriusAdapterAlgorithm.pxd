@@ -20,8 +20,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         Int getCandidates() nogil except +
         Int getTopNHits() nogil except +
 
-        SiriusTmpStruct constructSiriusTmpStruct() nogil except +
-
         void preprocessingSirius(String featureinfo,
                                  MSExperiment& spectra,                
                                  libcpp_vector[FeatureMap]& v_fp,
@@ -42,11 +40,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
  
-    cdef cppclass SiriusTmpStruct "OpenMS::SiriusAdapterAlgorithm::SiriusTmpStruct":
-        SiriusTmpStruct()
-        SiriusTmpStruct(SiriusTmpStruct)
+    cdef cppclass SiriusTemporaryFileSystemObjects "OpenMS::SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects":
+        SiriusTemporaryFileSystemObjects(int debug_level)
+        SiriusTemporaryFileSystemObjects(SiriusTemporaryFileSystemObjects)
         
-        String tmp_dir 
-        String tmp_ms_file 
-        String tmp_out_dir 
+        String getTmpDir() nogil except +
+        String getTmpOutDir() nogil except +
+        String getTmpMsFile() nogil except + 
 
