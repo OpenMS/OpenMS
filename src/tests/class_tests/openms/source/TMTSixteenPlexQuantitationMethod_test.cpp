@@ -237,11 +237,33 @@ END_SECTION
 
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
 {
+
+  double test_matrix[16][16] = {{0.9198,0,0.0071,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                {0,0.9186,0,0.0188,0,0,0,0,0,0,0,0,0,0,0,0},
+                                {0.0802,0,0.9235,0,0.0134,0,0,0,0,0,0,0,0,0,0,0},
+                                {0,0.0746,0,0.9145,0,0.0241,0,0,0,0,0,0,0,0,0,0},
+                                {0,0,0.0694,0,0.9307,0,0.0234,0,0,0,0,0,0,0,0,0},
+                                {0,0,0,0.0667,0,0.9211,0,0.0353,0,0,0,0,0,0,0,0},
+                                {0,0,0,0,0.0559,0,0.9247,0,0.0267,0,0,0,0,0,0,0},
+                                {0,0,0,0,0,0.0548,0,0.919,0,0.0392,0,0,0,0,0,0},
+                                {0,0,0,0,0,0,0.0519,0,0.9317,0,0.0369,0,0,0,0,0},
+                                {0,0,0,0,0,0,0,0.0457,0,0.9235,0,0.0322,0,0,0,0},
+                                {0,0,0,0,0,0,0,0,0.0416,0,0.9317,0,0.0411,0,0,0},
+                                {0,0,0,0,0,0,0,0,0,0.0373,0,0.9402,0,0.0385,0,0},
+                                {0,0,0,0,0,0,0,0,0,0,0.0314,0,0.9389,0,0.0463,0},
+                                {0,0,0,0,0,0,0,0,0,0,0,0.0276,0,0.9457,0,0.0522},
+                                {0,0,0,0,0,0,0,0,0,0,0,0,0.02,0,0.9419,0},
+                                {0,0,0,0,0,0,0,0,0,0,0,0,0,0.0158,0,0.9392}};
+
+  Matrix<double> test_Matrix;
+	test_Matrix.setMatrix<16,16>(test_matrix);
+
   TMTSixteenPlexQuantitationMethod quant_meth;
 
   // we only check the default matrix here which is an identity matrix
-  // for tmt10plex
+  // for tmt16plex
   Matrix<double> m = quant_meth.getIsotopeCorrectionMatrix();
+
   TEST_EQUAL(m.rows(), 16)
   TEST_EQUAL(m.cols(), 16)
 
@@ -252,8 +274,8 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   {
     for(Matrix<double>::SizeType j = 0; j < m.cols(); ++j)
     {
-      if (i == j) TEST_REAL_SIMILAR(m(i,j), 1.0)
-      else TEST_REAL_SIMILAR(m(i,j), 0.0)
+      if (i == j) TEST_REAL_SIMILAR(m(i,j), test_Matrix(i,j))
+      else TEST_REAL_SIMILAR(m(i,j), test_Matrix(i,j))
     }
   }
 }
