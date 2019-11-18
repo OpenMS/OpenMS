@@ -91,8 +91,8 @@ protected:
     registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
 
-    registerDoubleOption_("minIC", "<cosine threshold 0 - 1>", .8, "cosine threshold between avg. and observed isotope pattern", false, false);
-    registerDoubleOption_("minCC", "<cosine threshold 0 - 1>", .8, "cosine threshold between per-charge-intensity and fitted gaussian distribution", false, false);
+    registerDoubleOption_("minIC", "<cosine threshold 0 - 1>", .7, "cosine threshold between avg. and observed isotope pattern", false, false);
+    registerDoubleOption_("minCC", "<cosine threshold 0 - 1>", .7, "cosine threshold between per-charge-intensity and fitted gaussian distribution", false, false);
     registerDoubleOption_("minICS", "<cosine threshold 0 - 1>", .5, "cosine threshold between avg. and observed isotope pattern (spectrum level)", false, true);
     registerDoubleOption_("minCCS", "<cosine threshold 0 - 1>", .5, "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level)", false, true);
 
