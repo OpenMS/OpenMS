@@ -36,7 +36,9 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
-#include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -47,12 +49,8 @@ START_TEST(DiaPrescore2, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-
-
 START_SECTION ( [EXTRA] testscorefunction)
 {
-
-
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
   OpenSwath::BinaryDataArrayPtr data1(new OpenSwath::BinaryDataArray);
@@ -88,7 +86,7 @@ START_SECTION ( [EXTRA] testscorefunction)
   sptr->setIntensityArray( data2);
 
   double mzres, intensityres;
-  OpenSwath::integrateWindow(sptr,499.,501.,mzres, intensityres);
+  DIAHelpers::integrateWindow(sptr,499.,501.,mzres, intensityres);
 
   TEST_REAL_SIMILAR(mzres, 499.392014652015);
   TEST_REAL_SIMILAR(intensityres,273 );
@@ -100,7 +98,7 @@ START_SECTION ( [EXTRA] testscorefunction)
   // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  OpenSwath::integrateWindow(sptr,499.6,501.4,mzres, intensityres);
+  DIAHelpers::integrateWindow(sptr,499.6,501.4,mzres, intensityres);
 
   std::cout << "mz" << mzres << std::endl;
   std::cout << "intensity" << intensityres << std::endl;
@@ -112,14 +110,13 @@ START_SECTION ( [EXTRA] testscorefunction)
   wincenter.push_back(200.);
   wincenter.push_back(500.);
   wincenter.push_back(600.);
-  OpenSwath::integrateWindows(sptr,wincenter,0.5, intresv, mzresv);
+  DIAHelpers::integrateWindows(sptr,wincenter,0.5, intresv, mzresv);
   TEST_REAL_SIMILAR(mzresv[0], 300);
   TEST_REAL_SIMILAR(intresv[0],0 );
   TEST_REAL_SIMILAR(mzresv[1],200 );
   TEST_REAL_SIMILAR(intresv[1],0 );
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

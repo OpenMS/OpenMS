@@ -6,7 +6,6 @@ from String cimport *
 from Types cimport *
 from MetaInfoInterface cimport *
 from PeptideHit cimport *
-from ProteinHit cimport *
 
 cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
 

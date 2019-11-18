@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_7765414056999294261" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_7765414056999294261" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FileConverter" version="version_string" />
 		<processingAction name="File format conversion" />
@@ -399,6 +399,7 @@
 		</PeptideHit>
 		<PeptideHit score="-2.26500010490417" sequence="APAGN" charge="1" aa_before="N" aa_after="V" protein_refs="PH_172">
 		</PeptideHit>
+		<UserParam type="int" name="map_index" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="114.09" RT="4149.49" >
 		<PeptideHit score="-1.75" sequence="MWN" charge="1" aa_before="T" aa_after="G" protein_refs="PH_175">
@@ -421,16 +422,17 @@
 		</PeptideHit>
 		<PeptideHit score="-2.5239999294281" sequence="TGAMA" charge="1" aa_before="L" aa_after="Y" protein_refs="PH_182">
 		</PeptideHit>
+		<UserParam type="int" name="map_index" value="0"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="1">
 		<map id="0" name="" label="" size="31">
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_8350558342054392910" quality="0">
-			<centroid rt="306.58" mz="405.85" it="0"/>
+		<consensusElement id="e_8350558342054392910" quality="0.0">
+			<centroid rt="306.579999999999984" mz="405.850000000000023" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="8350558342054392910" rt="306.58" mz="405.85" it="0"/>
+				<element map="0" id="8350558342054392910" rt="306.579999999999984" mz="405.850000000000023" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="405.85" RT="306.58" >
 				<PeptideHit score="-1.65100002288818" sequence="AATY" charge="1" aa_before="L" aa_after="Q" protein_refs="PH_0">
@@ -453,18 +455,19 @@
 				</PeptideHit>
 				<PeptideHit score="-2.65199995040894" sequence="KSCS" charge="1" aa_before="S" aa_after="C" protein_refs="PH_9">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_1406559801721872943" quality="0">
-			<centroid rt="306.58" mz="426.849" it="0"/>
+		<consensusElement id="e_1406559801721872943" quality="0.0">
+			<centroid rt="306.579999999999984" mz="426.84899999999999" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="1406559801721872943" rt="306.58" mz="426.849" it="0"/>
+				<element map="0" id="1406559801721872943" rt="306.579999999999984" mz="426.84899999999999" it="0.0"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_17798387198899580015" quality="0">
-			<centroid rt="312.738" mz="484.83" it="0"/>
+		<consensusElement id="e_17798387198899580015" quality="0.0">
+			<centroid rt="312.738" mz="484.829999999999984" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="17798387198899580015" rt="312.738" mz="484.83" it="0"/>
+				<element map="0" id="17798387198899580015" rt="312.738" mz="484.829999999999984" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="484.83" RT="312.738" >
 				<PeptideHit score="-1.56599998474121" sequence="GAGGMGG" charge="1" aa_before="G" aa_after="A" protein_refs="PH_14">
@@ -487,12 +490,13 @@
 				</PeptideHit>
 				<PeptideHit score="-1.77999997138977" sequence="GAGDST" charge="1" aa_before="A" aa_after="E" protein_refs="PH_22">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_12344545729241841954" quality="0">
-			<centroid rt="312.738" mz="506.815" it="0"/>
+		<consensusElement id="e_12344545729241841954" quality="0.0">
+			<centroid rt="312.738" mz="506.814999999999998" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="12344545729241841954" rt="312.738" mz="506.815" it="0"/>
+				<element map="0" id="12344545729241841954" rt="312.738" mz="506.814999999999998" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="506.815" RT="312.738" >
 				<PeptideHit score="-2.58800005912781" sequence="SKVA" charge="1" aa_before="I" aa_after="F" protein_refs="PH_10">
@@ -503,12 +507,13 @@
 				</PeptideHit>
 				<PeptideHit score="-2.65100002288818" sequence="APDT" charge="1" aa_before="A" aa_after="T" protein_refs="PH_13">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_11920699214055941682" quality="0">
-			<centroid rt="3112.53" mz="496.244" it="0"/>
+		<consensusElement id="e_11920699214055941682" quality="0.0">
+			<centroid rt="3112.5300000000002" mz="496.244000000000028" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="11920699214055941682" rt="3112.53" mz="496.244" it="0"/>
+				<element map="0" id="11920699214055941682" rt="3112.5300000000002" mz="496.244000000000028" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="496.244" RT="3112.53" >
 				<PeptideHit score="-2.66000008583069" sequence="LYCS" charge="1" aa_before="M" aa_after="G" protein_refs="PH_23">
@@ -519,18 +524,19 @@
 				</PeptideHit>
 				<PeptideHit score="-2.72000002861023" sequence="GEIPA" charge="1" aa_before="I" aa_after="V" protein_refs="PH_26">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_4482357996615428211" quality="0">
-			<centroid rt="3840.95" mz="430.212" it="0"/>
+		<consensusElement id="e_4482357996615428211" quality="0.0">
+			<centroid rt="3840.949999999999818" mz="430.211999999999989" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="4482357996615428211" rt="3840.95" mz="430.212" it="0"/>
+				<element map="0" id="4482357996615428211" rt="3840.949999999999818" mz="430.211999999999989" it="0.0"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_8982977762164862963" quality="0">
-			<centroid rt="3849.22" mz="446.081" it="0"/>
+		<consensusElement id="e_8982977762164862963" quality="0.0">
+			<centroid rt="3849.2199999999998" mz="446.081000000000017" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="8982977762164862963" rt="3849.22" mz="446.081" it="0"/>
+				<element map="0" id="8982977762164862963" rt="3849.2199999999998" mz="446.081000000000017" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="446.081" RT="3849.22" >
 				<PeptideHit score="-1.2960000038147" sequence="AWGY" charge="1" aa_before="P" aa_after="S" protein_refs="PH_27">
@@ -553,18 +559,19 @@
 				</PeptideHit>
 				<PeptideHit score="-2.12100005149841" sequence="DFKS" charge="1" aa_before="T" aa_after="D" protein_refs="PH_36">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_6480306120740844650" quality="0">
-			<centroid rt="3870.67" mz="453.233" it="0"/>
+		<consensusElement id="e_6480306120740844650" quality="0.0">
+			<centroid rt="3870.670000000000073" mz="453.233000000000004" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="6480306120740844650" rt="3870.67" mz="453.233" it="0"/>
+				<element map="0" id="6480306120740844650" rt="3870.670000000000073" mz="453.233000000000004" it="0.0"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_5218366941595319798" quality="0">
-			<centroid rt="3880.9" mz="400.172" it="0"/>
+		<consensusElement id="e_5218366941595319798" quality="0.0">
+			<centroid rt="3880.900000000000091" mz="400.172000000000025" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="5218366941595319798" rt="3880.9" mz="400.172" it="0"/>
+				<element map="0" id="5218366941595319798" rt="3880.900000000000091" mz="400.172000000000025" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="400.172" RT="3880.9" >
 				<PeptideHit score="-2.11100006103516" sequence="AASVV" charge="1" aa_before="E" aa_after="*" protein_refs="PH_37">
@@ -587,22 +594,24 @@
 				</PeptideHit>
 				<PeptideHit score="-2.53399991989136" sequence="DIPT" charge="1" aa_before="V" aa_after="P" protein_refs="PH_46">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_5333031710178693707" quality="0">
-			<centroid rt="3892.26" mz="437.227" it="0"/>
+		<consensusElement id="e_5333031710178693707" quality="0.0">
+			<centroid rt="3892.260000000000218" mz="437.226999999999975" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="5333031710178693707" rt="3892.26" mz="437.227" it="0"/>
+				<element map="0" id="5333031710178693707" rt="3892.260000000000218" mz="437.226999999999975" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="437.227" RT="3892.26" >
 				<PeptideHit score="-2.49799990653992" sequence="AHGN" charge="1" aa_before="H" aa_after="G" protein_refs="PH_47">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_10879153961746990385" quality="0">
-			<centroid rt="3892.26" mz="526.264" it="0"/>
+		<consensusElement id="e_10879153961746990385" quality="0.0">
+			<centroid rt="3892.260000000000218" mz="526.26400000000001" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="10879153961746990385" rt="3892.26" mz="526.264" it="0"/>
+				<element map="0" id="10879153961746990385" rt="3892.260000000000218" mz="526.26400000000001" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="526.264" RT="3892.26" >
 				<PeptideHit score="-0.0359999984502792" sequence="FEPVPTAI" charge="2" aa_before="F" aa_after="R" protein_refs="PH_48">
@@ -625,18 +634,19 @@
 				</PeptideHit>
 				<PeptideHit score="-1.22200000286102" sequence="YDAHISPA" charge="2" aa_before="S" aa_after="A" protein_refs="PH_57">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_15989098223833503442" quality="0">
-			<centroid rt="3896.37" mz="416.173" it="0"/>
+		<consensusElement id="e_15989098223833503442" quality="0.0">
+			<centroid rt="3896.369999999999891" mz="416.173000000000002" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="15989098223833503442" rt="3896.37" mz="416.173" it="0"/>
+				<element map="0" id="15989098223833503442" rt="3896.369999999999891" mz="416.173000000000002" it="0.0"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_9906295880291651689" quality="0">
-			<centroid rt="3900.47" mz="414.206" it="0"/>
+		<consensusElement id="e_9906295880291651689" quality="0.0">
+			<centroid rt="3900.4699999999998" mz="414.206000000000017" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="9906295880291651689" rt="3900.47" mz="414.206" it="0"/>
+				<element map="0" id="9906295880291651689" rt="3900.4699999999998" mz="414.206000000000017" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="414.206" RT="3900.47" >
 				<PeptideHit score="-2.01099991798401" sequence="RMGY" charge="1" aa_before="L" aa_after="E" protein_refs="PH_58">
@@ -659,12 +669,13 @@
 				</PeptideHit>
 				<PeptideHit score="-2.40700006484985" sequence="QQRP" charge="1" aa_before="H" aa_after="I" protein_refs="PH_67">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_5887356329948937646" quality="0">
-			<centroid rt="3903.97" mz="809.894" it="0"/>
+		<consensusElement id="e_5887356329948937646" quality="0.0">
+			<centroid rt="3903.9699999999998" mz="809.894000000000006" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="5887356329948937646" rt="3903.97" mz="809.894" it="0"/>
+				<element map="0" id="5887356329948937646" rt="3903.9699999999998" mz="809.894000000000006" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="809.894" RT="3903.97" >
 				<PeptideHit score="-2.64299988746643" sequence="TYM" charge="1" aa_before="S" aa_after="R" protein_refs="PH_38">
@@ -687,12 +698,13 @@
 				</PeptideHit>
 				<PeptideHit score="-2.87299990653992" sequence="PTAAG" charge="1" aa_before="S" aa_after="E" protein_refs="PH_76">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_6094505305209605969" quality="0">
-			<centroid rt="3912.22" mz="523.229" it="0"/>
+		<consensusElement id="e_6094505305209605969" quality="0.0">
+			<centroid rt="3912.2199999999998" mz="523.229000000000042" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="6094505305209605969" rt="3912.22" mz="523.229" it="0"/>
+				<element map="0" id="6094505305209605969" rt="3912.2199999999998" mz="523.229000000000042" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="523.229" RT="3912.22" >
 				<PeptideHit score="1.97099995613098" sequence="PGDAGHTR" charge="1" aa_before="L" aa_after="V" protein_refs="PH_77">
@@ -715,12 +727,13 @@
 				</PeptideHit>
 				<PeptideHit score="1.08899998664856" sequence="AAGFWYP" charge="1" aa_before="R" aa_after="V" protein_refs="PH_86">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_18098118596553240659" quality="0">
-			<centroid rt="3940.03" mz="569.239" it="0"/>
+		<consensusElement id="e_18098118596553240659" quality="0.0">
+			<centroid rt="3940.0300000000002" mz="569.239000000000033" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="18098118596553240659" rt="3940.03" mz="569.239" it="0"/>
+				<element map="0" id="18098118596553240659" rt="3940.0300000000002" mz="569.239000000000033" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="569.239" RT="3940.03" >
 				<PeptideHit score="-1.43099999427795" sequence="HVAGAA" charge="1" aa_before="E" aa_after="F" protein_refs="PH_87">
@@ -735,34 +748,37 @@
 				</PeptideHit>
 				<PeptideHit score="-2.43799996376038" sequence="SYWA" charge="1" aa_before="Y" aa_after="D" protein_refs="PH_92">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_15652141835159938212" quality="0">
-			<centroid rt="3945.15" mz="534.233" it="0"/>
+		<consensusElement id="e_15652141835159938212" quality="0.0">
+			<centroid rt="3945.150000000000091" mz="534.232999999999947" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="15652141835159938212" rt="3945.15" mz="534.233" it="0"/>
+				<element map="0" id="15652141835159938212" rt="3945.150000000000091" mz="534.232999999999947" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="534.233" RT="3945.15" >
 				<PeptideHit score="-1.13699996471405" sequence="ANIVGP" charge="1" aa_before="F" aa_after="R" protein_refs="PH_93">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_599348512361307872" quality="0">
-			<centroid rt="3949.25" mz="583.243" it="0"/>
+		<consensusElement id="e_599348512361307872" quality="0.0">
+			<centroid rt="3949.25" mz="583.243000000000052" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="599348512361307872" rt="3949.25" mz="583.243" it="0"/>
+				<element map="0" id="599348512361307872" rt="3949.25" mz="583.243000000000052" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="583.243" RT="3949.25" >
 				<PeptideHit score="-1.92999994754791" sequence="AWKK" charge="1" aa_before="I" aa_after="T" protein_refs="PH_94">
 				</PeptideHit>
 				<PeptideHit score="-1.94900000095367" sequence="AWQK" charge="1" aa_before="A" aa_after="T" protein_refs="PH_95">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_2637402346116824200" quality="0">
-			<centroid rt="3954.38" mz="493.182" it="0"/>
+		<consensusElement id="e_2637402346116824200" quality="0.0">
+			<centroid rt="3954.380000000000109" mz="493.182000000000016" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="2637402346116824200" rt="3954.38" mz="493.182" it="0"/>
+				<element map="0" id="2637402346116824200" rt="3954.380000000000109" mz="493.182000000000016" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="493.182" RT="3954.38" >
 				<PeptideHit score="-0.857999980449677" sequence="AVPAAR" charge="1" aa_before="L" aa_after="R" protein_refs="PH_96">
@@ -785,18 +801,19 @@
 				</PeptideHit>
 				<PeptideHit score="-1.10500001907349" sequence="AVPALL" charge="1" aa_before="E" aa_after="E" protein_refs="PH_30">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_4414002922297518744" quality="0">
-			<centroid rt="3960.52" mz="479.241" it="0"/>
+		<consensusElement id="e_4414002922297518744" quality="0.0">
+			<centroid rt="3960.519999999999982" mz="479.240999999999985" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="4414002922297518744" rt="3960.52" mz="479.241" it="0"/>
+				<element map="0" id="4414002922297518744" rt="3960.519999999999982" mz="479.240999999999985" it="0.0"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_2915417007224777904" quality="0">
-			<centroid rt="3965.65" mz="477.237" it="0"/>
+		<consensusElement id="e_2915417007224777904" quality="0.0">
+			<centroid rt="3965.650000000000091" mz="477.237000000000023" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="2915417007224777904" rt="3965.65" mz="477.237" it="0"/>
+				<element map="0" id="2915417007224777904" rt="3965.650000000000091" mz="477.237000000000023" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="477.237" RT="3965.65" >
 				<PeptideHit score="-0.287999987602234" sequence="QRPYLGGVV" charge="2" aa_before="K" aa_after="F" protein_refs="PH_104">
@@ -819,12 +836,13 @@
 				</PeptideHit>
 				<PeptideHit score="-0.977999985218048" sequence="RISGRGRAI" charge="2" aa_before="T" aa_after="G" protein_refs="PH_112">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_1125929225320899819" quality="0">
-			<centroid rt="3976.17" mz="430.225" it="0"/>
+		<consensusElement id="e_1125929225320899819" quality="0.0">
+			<centroid rt="3976.170000000000073" mz="430.225000000000023" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="1125929225320899819" rt="3976.17" mz="430.225" it="0"/>
+				<element map="0" id="1125929225320899819" rt="3976.170000000000073" mz="430.225000000000023" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="430.225" RT="3976.17" >
 				<PeptideHit score="-2.60800004005432" sequence="SQQN" charge="1" aa_before="L" aa_after="Y" protein_refs="PH_113">
@@ -833,12 +851,13 @@
 				</PeptideHit>
 				<PeptideHit score="-2.84100008010864" sequence="KQNS" charge="1" aa_before="K" aa_after="I" protein_refs="PH_115">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_14230304345525297614" quality="0">
-			<centroid rt="3984.41" mz="607.283" it="0"/>
+		<consensusElement id="e_14230304345525297614" quality="0.0">
+			<centroid rt="3984.409999999999855" mz="607.283000000000015" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="14230304345525297614" rt="3984.41" mz="607.283" it="0"/>
+				<element map="0" id="14230304345525297614" rt="3984.409999999999855" mz="607.283000000000015" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="607.283" RT="3984.41" >
 				<PeptideHit score="-0.852999985218048" sequence="EADDSSVLAIEH" charge="3" aa_before="V" aa_after="L" protein_refs="PH_116">
@@ -861,12 +880,13 @@
 				</PeptideHit>
 				<PeptideHit score="-1.09099996089935" sequence="DGHLNEAAGEFAG" charge="3" aa_before="E" aa_after="L" protein_refs="PH_124">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_5910964731362124182" quality="0">
-			<centroid rt="4002.81" mz="662.305" it="0"/>
+		<consensusElement id="e_5910964731362124182" quality="0.0">
+			<centroid rt="4002.809999999999945" mz="662.30499999999995" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="5910964731362124182" rt="4002.81" mz="662.305" it="0"/>
+				<element map="0" id="5910964731362124182" rt="4002.809999999999945" mz="662.30499999999995" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="662.305" RT="4002.81" >
 				<PeptideHit score="-1.8400000333786" sequence="MWNR" charge="1" aa_before="L" aa_after="G" protein_refs="PH_125">
@@ -875,12 +895,13 @@
 				</PeptideHit>
 				<PeptideHit score="-2.58899998664856" sequence="MWRN" charge="1" aa_before="D" aa_after="G" protein_refs="PH_127">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_12130803533387223338" quality="0">
-			<centroid rt="4046.77" mz="643.347" it="0"/>
+		<consensusElement id="e_12130803533387223338" quality="0.0">
+			<centroid rt="4046.769999999999982" mz="643.34699999999998" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="12130803533387223338" rt="4046.77" mz="643.347" it="0"/>
+				<element map="0" id="12130803533387223338" rt="4046.769999999999982" mz="643.34699999999998" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="643.347" RT="4046.77" >
 				<PeptideHit score="-0.802999973297119" sequence="SGWSAR" charge="1" aa_before="A" aa_after="R" protein_refs="PH_128">
@@ -903,12 +924,13 @@
 				</PeptideHit>
 				<PeptideHit score="-1.25100004673004" sequence="SSQGAIT" charge="1" aa_before="P" aa_after="T" protein_refs="PH_137">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_3457319091775253923" quality="0">
-			<centroid rt="4070.27" mz="624.347" it="0"/>
+		<consensusElement id="e_3457319091775253923" quality="0.0">
+			<centroid rt="4070.269999999999982" mz="624.34699999999998" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="3457319091775253923" rt="4070.27" mz="624.347" it="0"/>
+				<element map="0" id="3457319091775253923" rt="4070.269999999999982" mz="624.34699999999998" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="624.347" RT="4070.27" >
 				<PeptideHit score="-0.601999998092651" sequence="GSRGDGP" charge="1" aa_before="R" aa_after="L" protein_refs="PH_138">
@@ -931,12 +953,13 @@
 				</PeptideHit>
 				<PeptideHit score="-1.057000041008" sequence="ARGWGP" charge="1" aa_before="K" aa_after="Y" protein_refs="PH_145">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_3819428448485815653" quality="0">
-			<centroid rt="4073.35" mz="563.3" it="0"/>
+		<consensusElement id="e_3819428448485815653" quality="0.0">
+			<centroid rt="4073.349999999999909" mz="563.299999999999955" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="3819428448485815653" rt="4073.35" mz="563.3" it="0"/>
+				<element map="0" id="3819428448485815653" rt="4073.349999999999909" mz="563.299999999999955" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="563.3" RT="4073.35" >
 				<PeptideHit score="-0.71399998664856" sequence="LARVPA" charge="1" aa_before="W" aa_after="*" protein_refs="PH_146">
@@ -959,12 +982,13 @@
 				</PeptideHit>
 				<PeptideHit score="-1.52900004386902" sequence="IARTY" charge="1" aa_before="E" aa_after="R" protein_refs="PH_153">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_11485771712075315892" quality="0">
-			<centroid rt="4084.98" mz="428.222" it="0"/>
+		<consensusElement id="e_11485771712075315892" quality="0.0">
+			<centroid rt="4084.980000000000018" mz="428.22199999999998" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="11485771712075315892" rt="4084.98" mz="428.222" it="0"/>
+				<element map="0" id="11485771712075315892" rt="4084.980000000000018" mz="428.22199999999998" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="428.222" RT="4084.98" >
 				<PeptideHit score="-1.25100004673004" sequence="SRSAAA" charge="1" aa_before="G" aa_after="G" protein_refs="PH_154">
@@ -987,30 +1011,32 @@
 				</PeptideHit>
 				<PeptideHit score="-2.19700002670288" sequence="HDGFS" charge="1" aa_before="E" aa_after="L" protein_refs="PH_36">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_1069762103160952688" quality="0">
-			<centroid rt="4088.05" mz="432.838" it="0"/>
+		<consensusElement id="e_1069762103160952688" quality="0.0">
+			<centroid rt="4088.050000000000182" mz="432.838000000000022" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="1069762103160952688" rt="4088.05" mz="432.838" it="0"/>
+				<element map="0" id="1069762103160952688" rt="4088.050000000000182" mz="432.838000000000022" it="0.0"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_10797331616286057459" quality="0">
-			<centroid rt="4101.48" mz="432.278" it="0"/>
+		<consensusElement id="e_10797331616286057459" quality="0.0">
+			<centroid rt="4101.479999999999563" mz="432.27800000000002" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="10797331616286057459" rt="4101.48" mz="432.278" it="0"/>
+				<element map="0" id="10797331616286057459" rt="4101.479999999999563" mz="432.27800000000002" it="0.0"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_10323114465236158952" quality="0">
-			<centroid rt="4149.49" mz="450.26" it="0"/>
+		<consensusElement id="e_10323114465236158952" quality="0.0">
+			<centroid rt="4149.489999999999782" mz="450.259999999999991" it="0.0"/>
 			<groupedElementList>
-				<element map="0" id="10323114465236158952" rt="4149.49" mz="450.26" it="0"/>
+				<element map="0" id="10323114465236158952" rt="4149.489999999999782" mz="450.259999999999991" it="0.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="450.26" RT="4149.49" >
 				<PeptideHit score="-2.33899998664856" sequence="RDAA" charge="1" aa_before="L" aa_after="A" protein_refs="PH_173">
 				</PeptideHit>
 				<PeptideHit score="-2.40700006484985" sequence="RDSG" charge="1" aa_before="A" aa_after="S" protein_refs="PH_174">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 	</consensusElementList>

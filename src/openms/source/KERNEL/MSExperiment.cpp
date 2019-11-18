@@ -503,7 +503,10 @@ namespace OpenMS
       }
       else
       {
-        String ms_run_location = path + "/" + filename;
+        // use Windows or UNIX path separator?
+        String actual_path = path.hasPrefix("file:///") ? path.substr(8) : path;
+        String sep = (actual_path.has('\\') && !actual_path.has('/')) ? "\\" : "/";
+        String ms_run_location = path + sep + filename;
         toFill.push_back(ms_run_location);
       }
     }

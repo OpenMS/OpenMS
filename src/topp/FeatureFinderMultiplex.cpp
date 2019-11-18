@@ -85,7 +85,6 @@
 
 using namespace std;
 using namespace OpenMS;
-using namespace boost::math;
 
 //-------------------------------------------------------------
 //Doxygen docu

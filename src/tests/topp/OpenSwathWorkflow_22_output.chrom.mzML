@@ -85,15 +85,15 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEA_Precursor_i0" index="1" defaultArrayLength="50">
+			<chromatogram id="PEPTIDEA_Precursor_i1" index="1" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="413.5033548378" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="413.5033548378" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
 							</selectedIon>
 						</selectedIonList>
@@ -114,15 +114,89 @@
 						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
 						<binary>eJxzUGGAAy4g7sABALAcDS8=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="152">
+					<binaryDataArray encodedLength="20">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
-						<binary>eJxzOL27gQEI7q7o3HRk1/uD7id+nlW+fOe62R37B0xPOp7fePXj7bsPez9nfvv2I+33nr+//u/5m/b724/Mb3s/v/vw4+2NVx3PmZ7YPzC7c+e68uWfZ91PvD94ZFfnprsrVOe69N2rTExGQABqQ0bf</binary>
+						<binary>eJxzeP//AAOdAAA3tgLv</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="tr1" index="2" defaultArrayLength="50">
+			<chromatogram id="PEPTIDEA_Precursor_i2" index="2" defaultArrayLength="50">
+				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="414.5067096756" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="414.5067096756" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="24">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGGAAy4g7sABALAcDS8=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="20">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJxzeP//AAOdAAA3tgLv</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="PEPTIDEA_Precursor_i3" index="3" defaultArrayLength="50">
+				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="415.5100645134" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="415.5100645134" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="24">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGGAAy4g7sABALAcDS8=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="20">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJxzeP//AAOdAAA3tgLv</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="tr1" index="4" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -159,7 +233,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="tr2" index="3" defaultArrayLength="50">
+			<chromatogram id="tr2" index="5" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -196,7 +270,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="3" index="4" defaultArrayLength="50">
+			<chromatogram id="3" index="6" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -233,7 +307,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_Precursor_i0" index="5" defaultArrayLength="50">
+			<chromatogram id="PEPTIDEB_Precursor_i0" index="7" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -270,15 +344,15 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_Precursor_i0" index="6" defaultArrayLength="50">
+			<chromatogram id="PEPTIDEB_Precursor_i1" index="8" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="418.5033548378" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="418.5033548378" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
 							</selectedIon>
 						</selectedIonList>
@@ -299,15 +373,89 @@
 						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
 						<binary>eJxzUGGAAy4g7sABALAcDS8=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="152">
+					<binaryDataArray encodedLength="20">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
-						<binary>eJxzOL27gQEI7q7o3HRk1/uD7id+nlW+fOe62R37B0xPOp7fePXj7bsPez9nfvv2I+33nr+//u/5m/b724/Mb3s/v/vw4+2NVx3PmZ7YPzC7c+e68uWfZ91PvD94ZFfnprsrVOe69N2rTExGQABqQ0bf</binary>
+						<binary>eJxzeP//AAOdAAA3tgLv</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="4" index="7" defaultArrayLength="50">
+			<chromatogram id="PEPTIDEB_Precursor_i2" index="9" defaultArrayLength="50">
+				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="419.5067096756" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="419.5067096756" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="24">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGGAAy4g7sABALAcDS8=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="20">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJxzeP//AAOdAAA3tgLv</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="PEPTIDEB_Precursor_i3" index="10" defaultArrayLength="50">
+				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="420.5100645134" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="420.5100645134" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="24">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGGAAy4g7sABALAcDS8=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="20">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJxzeP//AAOdAAA3tgLv</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="4" index="11" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -344,7 +492,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="5" index="8" defaultArrayLength="50">
+			<chromatogram id="5" index="12" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -381,7 +529,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="6" index="9" defaultArrayLength="50">
+			<chromatogram id="6" index="13" defaultArrayLength="50">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -424,17 +572,21 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="PEPTIDEA_Precursor_i0">3268</offset>
-		<offset idRef="PEPTIDEA_Precursor_i0">5564</offset>
-		<offset idRef="tr1">7860</offset>
-		<offset idRef="tr2">10175</offset>
-		<offset idRef="3">12490</offset>
-		<offset idRef="PEPTIDEB_Precursor_i0">14803</offset>
-		<offset idRef="PEPTIDEB_Precursor_i0">17099</offset>
-		<offset idRef="4">19395</offset>
-		<offset idRef="5">21708</offset>
-		<offset idRef="6">24021</offset>
+		<offset idRef="PEPTIDEA_Precursor_i1">5564</offset>
+		<offset idRef="PEPTIDEA_Precursor_i2">7745</offset>
+		<offset idRef="PEPTIDEA_Precursor_i3">9926</offset>
+		<offset idRef="tr1">12107</offset>
+		<offset idRef="tr2">14422</offset>
+		<offset idRef="3">16737</offset>
+		<offset idRef="PEPTIDEB_Precursor_i0">19050</offset>
+		<offset idRef="PEPTIDEB_Precursor_i1">21346</offset>
+		<offset idRef="PEPTIDEB_Precursor_i2">23527</offset>
+		<offset idRef="PEPTIDEB_Precursor_i3">25708</offset>
+		<offset idRef="4">27890</offset>
+		<offset idRef="5">30204</offset>
+		<offset idRef="6">32518</offset>
 	</index>
 </indexList>
-<indexListOffset>26368</indexListOffset>
+<indexListOffset>34866</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

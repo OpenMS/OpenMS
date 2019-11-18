@@ -32,49 +32,42 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
+#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlFragmentAnnotationHelper.h>
-
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-
-// preprocessing and filtering
-#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <boost/regex.hpp>
 
 #include <map>
 #include <algorithm>

@@ -45,9 +45,11 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -220,7 +222,7 @@ protected:
     //-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
     //-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
     //registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
-    registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 
     //registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to idXML");
@@ -412,7 +414,7 @@ protected:
     OMSSAVersion omssa_version_i;
     if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + omssa_executable + " -version'. Make sure that OMSSA exists and the path given in '-omssa_executable' is correct!");
+      writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + omssa_executable + " -version'. Make sure that the OMSSA executable given in '-omssa_executable' is correct!");
       return ILLEGAL_PARAMETERS;
     }
     else

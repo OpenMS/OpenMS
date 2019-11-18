@@ -3,6 +3,7 @@ from MSSpectrum cimport *
 from MSExperiment cimport *
 from Peak1D cimport *
 from PeptideIdentification cimport *
+from ProteinIdentification cimport *
 from SpectrumLookup cimport *
 
 cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS":

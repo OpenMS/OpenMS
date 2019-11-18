@@ -41,10 +41,10 @@
 
         @b Goal: Check the quality of the data (currently, on label-free workflow data is supported).
 
-        The QualityControl TOPP tool is able to check the quality of different aspects if enough data is provided.
-        Depending on the given data this tool executes different metrics that have access to all of their required
-        files (see section 'Metrics'). They will then add new metavalues to the data and write all possible
-        information into the mzTab output file. This mzTab file can then be processed using your custom scripts or
+        The QualityControl TOPP tool computes and collects data which allow to compute QC metrics to check the quality of LC-MS data.
+        Depending on the given input data this tool collects data for metrics (see section 'Metrics' below).
+        New metavalues will be added to existing data and the information will be written out in mzTab format.
+        This mzTab file can then be processed using your custom scripts or
         via the R package (see <a href="https://github.com/cbielow/PTXQC/" target="blank_">PTXQC</a>).
 
         @section TOPP_example_qualitycontrol_section2 Workflow
@@ -70,9 +70,9 @@
         <TABLE border=1>
 
         <TR>
-            <TH colspan="2">
+            <TH>
                 <b><br>Contaminants</b>
-                </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
             <TD>
@@ -110,9 +110,9 @@
         </TR>
 
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>FragmentMassError</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
              <TD>
@@ -144,9 +144,9 @@
              </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>MissedCleavages</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -178,9 +178,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>MS2IdentificationRate</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -211,9 +211,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>MzCalibration</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -246,9 +246,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>RTAlignment</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -278,9 +278,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>TIC</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -308,9 +308,9 @@
               </TD>
         </TR>
         <TR>
-            <TH colspan="2">
+            <TH>
                 <br><b>TopNoverRT</b>
-            </TH>
+            </TH><TH></TH>
         </TR>
         <TR>
               <TD>
@@ -334,18 +334,20 @@
                    <b> Changes in files:</b> <br>
                    Metavalues: <br>
                    <ul>
-                   <li>'ScanEventNumber' set to the calculated value</li>
-                   <li>'identified' set to '+' or '-'</li>
+                    <li>'ScanEventNumber' set to the calculated value</li>
+                    <li>'identified' set to '+' or '-'</li>
+                   </ul>
                    If provided:
-                   <li>'FWHM' set to RT peak width for all assigned PIs</li>
-                   <li>'ion_injection_time'set to injection time from MS2 spectrum</li>
-                   <li>'activation_method'set to activation method from MS2 spectrum</li>
-                   <li>'total_ion_count'set to summed intensity from MS2 spectrum</li>
-                   <li>'base_peak_intensity'set to highest intensity from MS2 spectrum</li>
+                   <ul>
+                     <li>'FWHM' set to RT peak width for all assigned PIs</li>
+                     <li>'ion_injection_time'set to injection time from MS2 spectrum</li>
+                     <li>'activation_method'set to activation method from MS2 spectrum</li>
+                     <li>'total_ion_count'set to summed intensity from MS2 spectrum</li>
+                     <li>'base_peak_intensity'set to highest intensity from MS2 spectrum</li>
                    </ul>
                    Additionally: <br>
                    <ul>
-                   <li>Adds empty PeptideIdentifications</li>
+                    <li>Adds empty PeptideIdentifications</li>
                    </ul>
                    <b> Other Output:</b> <br>
                    No additional output.

@@ -263,7 +263,7 @@ protected:
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
      * @param cp_irt Parameter set for the chromatogram extraction
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param mz_correction_function If correction in m/z is desired, which function should be used
+     * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
      * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
      *        iRT chromatograms will be stored in this file)
@@ -273,12 +273,13 @@ protected:
     */
     TransformationDescription performRTNormalization(const OpenSwath::LightTargetedExperiment & irt_transitions,
       std::vector< OpenSwath::SwathMap > & swath_maps,
+      TransformationDescription& im_trafo,
       double min_rsq,
       double min_coverage,
       const Param & feature_finder_param,
       const ChromExtractParams & cp_irt,
-      const Param & irt_detection_param,
-      const String & mz_correction_function,
+      const Param& irt_detection_param,
+      const Param& calibration_param,
       const String& irt_mzml_out,
       Size debug_level,
       bool sonar = false,
@@ -310,24 +311,20 @@ protected:
      * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
      * @param default_ffparam Parameter set for the feature finding in chromatographic dimension
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param swath_maps The raw data for the m/z correction
-     * @param mz_correction_function If correction in m/z is desired, which function should be used
-     * @param mz_extraction_window Extraction window for calibration in Da or ppm (e.g. 50ppm means extraction +/- 25ppm)
-     * @param ppm Whether the extraction window is given in ppm or Da
+     * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
      *
      * @note This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
     */
     TransformationDescription doDataNormalization_(const OpenSwath::LightTargetedExperiment& transition_exp_,
       const std::vector< OpenMS::MSChromatogram >& chromatograms,
+      TransformationDescription& im_trafo,
+      std::vector< OpenSwath::SwathMap > & swath_maps,
       double min_rsq,
       double min_coverage,
       const Param& default_ffparam,
       const Param& irt_detection_param,
-      std::vector< OpenSwath::SwathMap > & swath_maps,
-      const String & mz_correction_function,
-      double mz_extraction_window,
-      bool ppm);
+      const Param& calibration_param);
 
     /** @brief Simple method to extract chromatograms (for the RT-normalization peptides)
      *
@@ -359,7 +356,7 @@ protected:
   };
 
   /**
-   * @brief Execute all steps in an OpenSwath analysis
+   * @brief Execute all steps in an \ref UTILS_OpenSwathWorkflow "OpenSwath" analysis
    *
    * The workflow will perform a complete OpenSWATH analysis. Optionally, 
    * a calibration of m/z and retention time (mapping peptides to normalized 

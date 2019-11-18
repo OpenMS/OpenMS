@@ -79,6 +79,9 @@ using namespace std;
      </table>
    </CENTER>
 
+   @b Reference: @n
+   Weisser & Choudhary: <a href="https://doi.org/10.1021/acs.jproteome.7b00248">Targeted Feature Detection for Data-Dependent Shotgun Proteomics</a> (J. Proteome Res., 2017, PMID: 28673088).
+
    This tool detects quantitative features in MS1 data based on information from peptide identifications (derived from MS2 spectra).
    It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
@@ -170,7 +173,14 @@ public:
   // TODO
   // cppcheck-suppress uninitMemberVar
   TOPPFeatureFinderIdentification() :
-    TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.")
+    TOPPBase("FeatureFinderIdentification",
+             "Detects features in MS1 data based on peptide identifications.",
+             true,
+             { {"Weisser H, Choudhary JS",
+                "Targeted Feature Detection for Data-Dependent Shotgun Proteomics",
+                "J. Proteome Res. 2017; 16, 8:2964-2974",
+                "10.1021/acs.jproteome.7b00248"} 
+             })
   {
   }
 
