@@ -91,9 +91,9 @@ protected:
     registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
 
-    registerDoubleOption_("minIC", "<cosine threshold 0 - 1>", .7, "cosine threshold between avg. and observed isotope pattern", false, false);
-    registerDoubleOption_("minCC", "<cosine threshold 0 - 1>", .5, "cosine threshold between per-charge-intensity and fitted gaussian distribution", false, false);
-    registerDoubleOption_("minICS", "<cosine threshold 0 - 1>", .7, "cosine threshold between avg. and observed isotope pattern (spectrum level)", false, true);
+    registerDoubleOption_("minIC", "<cosine threshold 0 - 1>", .8, "cosine threshold between avg. and observed isotope pattern", false, false);
+    registerDoubleOption_("minCC", "<cosine threshold 0 - 1>", .8, "cosine threshold between per-charge-intensity and fitted gaussian distribution", false, false);
+    registerDoubleOption_("minICS", "<cosine threshold 0 - 1>", .5, "cosine threshold between avg. and observed isotope pattern (spectrum level)", false, true);
     registerDoubleOption_("minCCS", "<cosine threshold 0 - 1>", .5, "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level)", false, true);
 
     registerIntOption_("minCP", "<min continuous charge peak count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
@@ -144,10 +144,10 @@ protected:
   {
     auto generator = new CoarseIsotopePatternGenerator();
     auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
+    maxIso.trimRight(0.1 * maxIso.getMostAbundant().getIntensity());
     param.maxIsotopeCount = (int) maxIso.size() - 1;
     generator->setMaxIsotope((Size) param.maxIsotopeCount);
-    return FLASHDeconvHelperStructs::PrecalcularedAveragine(100, param.maxMass, 50, generator);
+    return FLASHDeconvHelperStructs::PrecalcularedAveragine(100, param.maxMass, 25, generator);
   }
 
 
@@ -707,7 +707,7 @@ protected:
     }
     fsf << "ID\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
+           "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
 
     return;
   }

@@ -271,7 +271,7 @@ namespace OpenMS
                                              isoSize,
                                              f);
 */
-      if (maxCosine <= cos)
+      if (maxCosine < cos)
       {
         maxCosine = cos;
         offset = f;
@@ -303,9 +303,9 @@ namespace OpenMS
 
     int prevCharge = nonZeroStart;
 
-    int n_r = .0;
-
-    double intensityThreshold = maxPerChargeIntensity / 4.0;//intensities[intensities.size()*95/100] / 5.0;
+    int n_r = 0;
+    //int maxn_r = 0;
+    double intensityThreshold = maxPerChargeIntensity / 10.0;//intensities[intensities.size()*95/100] / 5.0;
     for (int k = prevCharge + 1; k <= nonZeroEnd; k++)
     {
       if (perChargeIntensity[k] <= intensityThreshold)
@@ -317,43 +317,46 @@ namespace OpenMS
       {
         n_r++;
       }
+      //maxn_r = maxn_r < n_r? n_r : maxn_r;
+      if (n_r >= threshold){
+        return true;
+      }
       prevCharge = k;
     }
 
-    if (n_r < threshold)
-    {
-      return false;
-    }
+    return false;
 
 
-    for (int i = 2; i < std::min(7, range); i++)
+    /*for (int i = 2; i < std::min(7, range); i++)
     {
       for (int l = 0; l < i; l++)
       {
         int t = 0;
+        int maxt = 0;
         prevCharge = nonZeroStart + l;
         for (int k = prevCharge + i; k <= nonZeroEnd; k += i)
-        {
-          if (perChargeIntensity[k] <= intensityThreshold)
-          { //
+        {if (perChargeIntensity[k] <= intensityThreshold)
+          {
             continue;
           }
           if (k - prevCharge == i)
           {
             t++;
+          }{
+            t = 0;
           }
+          maxt = maxt < t ? t : maxt;
           prevCharge = k;
         }
-        if (n_r <= t)
+        if (n_r <= maxt)
         {
           return false;
         }
       }
-    }
-    return true;
+    }*/
   }
 
-  std::vector<FLASHDeconvHelperStructs::PeakGroup> & PeakGroupScoring::scoreAndFilterPeakGroups(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
+  std::vector<FLASHDeconvHelperStructs::PeakGroup> & PeakGroupScoring::scoreAndFilterPeakGroups(int msLevel, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
     std::vector<FLASHDeconvAlgorithm::PeakGroup> filteredPeakGroups;
     filteredPeakGroups.reserve(peakGroups.size());
@@ -384,17 +387,17 @@ namespace OpenMS
     auto perIsotopeIntensity = new double[param.maxIsotopeCount];
     auto perChargeIntensity = new double[param.currentChargeRange];
     auto intensityGrid = new double*[param.currentChargeRange];
+    auto intensityGrid2 = new double*[param.maxIsotopeCount];
 
-    for (int i = 0;  i < param.currentChargeRange ; i++)
+    /*for (int i = 0;  i < param.currentChargeRange ; i++)
     {
       intensityGrid[i] = new double[param.maxIsotopeCount];
     }
-    auto intensityGrid2 = new double*[param.maxIsotopeCount];
 
     for (int i = 0;  i < param.maxIsotopeCount ; i++)
     {
       intensityGrid2[i] = new double[param.currentChargeRange];
-    }
+    }*/
 
     for (auto &pg : peakGroups)
     {
@@ -408,14 +411,14 @@ namespace OpenMS
           perIsotopeIntensity, perChargeIntensity,
           pg);
 
-      /*
+/*
       if(indices[0]<0 || indices[1]<0){
         continue;
       }
 
       int tmp = 0;
       double cost = .0;
-      for(int i=indices[0];i<param.chargeRange-1;i++){
+      for(int i=indices[0];i<param.currentChargeRange-1;i++){
         auto int1 = intensityGrid[i];
         auto int2 = intensityGrid[i+1];
         auto cos = getCosine(int1, int2, param.maxIsotopeCount);
@@ -464,22 +467,6 @@ namespace OpenMS
 
       if(tmp <2){
         continue;
-      }
-*/
-      pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.currentChargeRange);
-
-      if (pg.peaks.empty() || (pg.chargeCosineScore < param.minChargeCosineSpec))
-      {
-        continue;
-      }
-
-      /*bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
-                                                             param.chargeRange,
-                                                             param.minContinuousChargePeakCount);
-
-      if (!isChargeWellDistributed)
-      {
-        continue;
       }*/
 
       int offset = 0;
@@ -489,10 +476,28 @@ namespace OpenMS
                                                                        offset,
                                                                        avg);
 
-
       if (pg.peaks.empty() || (pg.isotopeCosineScore < param.minIsotopeCosineSpec))
       {
         continue;
+      }
+
+      pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.currentChargeRange);
+
+      if (pg.peaks.empty() || (pg.chargeCosineScore < param.minChargeCosineSpec))
+      {
+        continue;
+      }
+
+      if(msLevel == 1)
+      {
+        bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
+                                                               param.chargeRange,
+                                                               param.minContinuousChargePeakCount);
+
+        if (!isChargeWellDistributed)
+        {
+          continue;
+        }
       }
 
       pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
@@ -507,15 +512,15 @@ namespace OpenMS
     //std::cout<<" "<<peakGroups.size()<<std::endl;
     //removeHarmonicPeakGroups(filteredPeakGroups, param);
 
-    for (int i = 0;  i < param.currentChargeRange ; i++)
+    /*for (int i = 0;  i < param.currentChargeRange ; i++)
     {
       delete[] intensityGrid[i];
-    }
+    }*/
     delete[] intensityGrid;
-    for (int i = 0;  i < param.maxIsotopeCount ; i++)
+    /*for (int i = 0;  i < param.maxIsotopeCount ; i++)
     {
       delete[] intensityGrid2[i];
-    }
+    }*/
     delete[] intensityGrid2;
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
@@ -544,7 +549,7 @@ namespace OpenMS
         {
           break;
         }
-        select &= pg.intensity > pgo.intensity;
+        select &= pg.intensity >= pgo.intensity;
       }
 
       if (!select)
@@ -558,7 +563,7 @@ namespace OpenMS
         {
           break;
         }
-        select &= pg.intensity > pgo.intensity;
+        select &= pg.intensity >= pgo.intensity;
       }
       if (!select)
       {
@@ -583,7 +588,7 @@ namespace OpenMS
   {
     std::fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
     std::fill_n(perChargeIntensity, param.currentChargeRange, 0);
-    for (int j = 0; j < param.currentChargeRange; ++j)
+    /*for (int j = 0; j < param.currentChargeRange; ++j)
     {
       std::fill_n(intensityGrid[j], param.maxIsotopeCount, 0);
     }
@@ -591,7 +596,7 @@ namespace OpenMS
     for (int j = 0; j < param.maxIsotopeCount; ++j)
     {
       std::fill_n(intensityGrid2[j], param.currentChargeRange, 0);
-    }
+    }*/
 
     int minCharge = param.currentChargeRange + param.minCharge + 1;
     int maxCharge = 0;
@@ -612,10 +617,10 @@ namespace OpenMS
       int index = p.charge - param.minCharge;
       perIsotopeIntensity[p.isotopeIndex] += p.intensity;
       perChargeIntensity[index] += p.intensity;
-      intensityGrid[index][p.isotopeIndex] += p.intensity;
-      intensityGrid2[p.isotopeIndex][index] += p.intensity;
+      //intensityGrid[index][p.isotopeIndex] += p.intensity;
+      //intensityGrid2[p.isotopeIndex][index] += p.intensity;
 
-      if(maxIntensity < intensityGrid[index][p.isotopeIndex]){
+      /*if(maxIntensity < intensityGrid[index][p.isotopeIndex]){
         maxIntensity = intensityGrid[index][p.isotopeIndex];
         maxIntChargeIndex = index;
       }
@@ -623,7 +628,7 @@ namespace OpenMS
       if(maxIntensity2 < intensityGrid2[p.isotopeIndex][index]){
         maxIntensity2 = intensityGrid2[p.isotopeIndex][index];
         maxIntIsoIndex = p.isotopeIndex;
-      }
+      }*/
     }
     pg.maxCharge = maxCharge;
     pg.minCharge = minCharge;

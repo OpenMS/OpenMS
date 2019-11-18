@@ -141,7 +141,7 @@ namespace OpenMS
         if(mc > 0){
           param.currentChargeRange = mc;
           param.currentMaxMass = mm;
-          //std::cout<<1<<std::endl;
+          //std::cout<<mc<< " " << mm << std::endl;
         }else{
           param.currentChargeRange = param.chargeRange;
           param.currentMaxMass = param.maxMass;

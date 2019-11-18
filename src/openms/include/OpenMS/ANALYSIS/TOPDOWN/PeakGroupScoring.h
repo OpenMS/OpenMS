@@ -33,7 +33,7 @@ namespace OpenMS
                                                            int &offset,
                                                            FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
-    std::vector<PeakGroup> & scoreAndFilterPeakGroups(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
+    std::vector<PeakGroup> & scoreAndFilterPeakGroups(int msLevel, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
   protected:
     std::vector<PeakGroup> &peakGroups;

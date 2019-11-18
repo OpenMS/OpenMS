@@ -92,6 +92,8 @@ namespace OpenMS
       std::vector<IsotopeDistribution> isotopes;
       std::vector<double> norms;
       std::vector<Size> mostAbundantIndices;
+      std::vector<Size> leftIndices;
+      std::vector<Size> rightIndices;
 
       double massInterval;
       double minMass;
@@ -99,7 +101,10 @@ namespace OpenMS
       PrecalcularedAveragine(double m, double M, double delta, CoarseIsotopePatternGenerator *generator);
       IsotopeDistribution get(double mass);
       double getNorm(double mass);
+      Size getLeftIndex(double mass);
+      Size getRightIndex(double mass);
       Size getMostAbundantIndex(double mass);
+
     };
 
 

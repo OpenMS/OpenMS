@@ -97,7 +97,7 @@ namespace OpenMS
                                 double &massBinMinValue,
                                 float *sumLogIntensities,
                                 Byte **chargeRanges,
-                                int &msLevel
+                                FLASHDeconvHelperStructs::PrecalcularedAveragine &avg
     );
 
     void setFilters();

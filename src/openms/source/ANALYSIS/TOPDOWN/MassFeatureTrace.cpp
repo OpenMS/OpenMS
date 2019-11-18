@@ -77,10 +77,10 @@ namespace OpenMS
 
     //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
     //                   "Allowed mass deviation (in da).");
-    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6 * 2, "");
+    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6, "");
     mtd_param.setValue("trace_termination_criterion", "outlier", "");
 
-    mtd_param.setValue("reestimate_mt_sd", "true", "");
+    mtd_param.setValue("reestimate_mt_sd", "false", "");
     mtd_param.setValue("quant_method", "area", "");
     mtd_param.setValue("noise_threshold_int", .0, "");
 
@@ -174,15 +174,34 @@ namespace OpenMS
         continue;
       }
 
+      //perIsotopeIntensity, param.maxIsotopeCount
+
+
       if (offset != 0)
       {
         mass += offset * Constants::C13C12_MASSDIFF_U;
         //avgMass += offset * Constants::C13C12_MASSDIFF_U;
         //p.isotopeIndex -= offset;
       }
+
+      int maxi = -1;
+      double maxii = 0;
+      for (int j=0;j<param.maxIsotopeCount;j++)
+      {
+        if (maxii < perIsotopeIntensity[j]){
+          maxii = perIsotopeIntensity[j];
+          maxi = j;
+        }
+      }
+
+      auto sumInt = .0;
+      for (auto& p : mt)
+      {
+        sumInt += p.getIntensity();
+      }
       //auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << std::to_string(mass) << "\t"
-          << std::to_string(mass + massDiff) << "\t"
+          << std::to_string(mass + massDiff) << "\t" // massdiff
           << mt.getSize() << "\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
           //<< getNominalMass(mass) << "\t"
@@ -190,8 +209,8 @@ namespace OpenMS
           << mt.rbegin()->getRT() << "\t"
           << mt.getTraceLength() << "\t"
           << mt[mt.findMaxByIntPeak()].getRT() << "\t"
+          << sumInt << "\t"
           << mt.getMaxIntensity(false) << "\t"
-          // << mt.computePeakArea() << "\t"
           << minCharge << "\t"
           << maxCharge << "\t"
           << charges.count() << "\t"

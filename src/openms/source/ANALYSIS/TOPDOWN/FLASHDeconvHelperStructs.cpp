@@ -58,8 +58,10 @@ namespace OpenMS
         break;
       }
       auto iso = generator->estimateFromPeptideWeight(a);
-      iso.trimRight(0.01 * iso.getMostAbundant().getIntensity());
-      isotopes.push_back(iso);
+      //iso.trimIntensities()
+      auto factor = .1;
+      iso.trimRight(factor * iso.getMostAbundant().getIntensity());
+
       double norm = .0;
      // double mean = .0;
       Size mostAbundantIndex = 0;
@@ -75,9 +77,36 @@ namespace OpenMS
         mostAbundantInt = iso[k].getIntensity();
         mostAbundantIndex = k;
       }
+
+      Size leftIndex = mostAbundantIndex;
+      for (Size k = 0; k <= mostAbundantIndex; k++)
+      {
+        if (iso[k].getIntensity() > mostAbundantInt*factor){
+          break;
+        }
+        norm -= iso[k].getIntensity() * iso[k].getIntensity();
+        leftIndex --;
+        iso[k].setIntensity(0);
+      }
+
+      Size rightIndex = iso.size() - mostAbundantIndex;
+      for (Size k = iso.size()-1; k > mostAbundantIndex; k--)
+      {
+        if (iso[k].getIntensity() > mostAbundantInt*factor){
+          break;
+        }
+        norm -= iso[k].getIntensity() * iso[k].getIntensity();
+        rightIndex -- ;
+        iso[k].setIntensity(0);
+      }
+
+      rightIndices.push_back(rightIndex);
+      leftIndices.push_back(leftIndex);
       mostAbundantIndices.push_back(mostAbundantIndex);
       norms.push_back(norm);
+      isotopes.push_back(iso);
 
+      //std::cout<< a << " " << mostAbundantIndex <<" " << endIndex << std::endl;
       //auto mostAbundant = iso.getMostAbundant();
     }
   }
@@ -96,11 +125,25 @@ namespace OpenMS
     return norms[i];
   }
 
+  Size FLASHDeconvHelperStructs::PrecalcularedAveragine::getLeftIndex(double mass)
+  {
+    Size i = (Size) (.5 + (mass - minMass) / massInterval);
+    i = i >= isotopes.size() ? isotopes.size() - 1 : i;
+    return leftIndices[i];
+  }
+
   Size FLASHDeconvHelperStructs::PrecalcularedAveragine::getMostAbundantIndex(double mass)
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return mostAbundantIndices[i];
+  }
+
+  Size FLASHDeconvHelperStructs::PrecalcularedAveragine::getRightIndex(double mass)
+  {
+    Size i = (Size) (.5 + (mass - minMass) / massInterval);
+    i = i >= isotopes.size() ? isotopes.size() - 1 : i;
+    return rightIndices[i];
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak():
