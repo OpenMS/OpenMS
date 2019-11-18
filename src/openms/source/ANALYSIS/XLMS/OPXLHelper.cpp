@@ -467,6 +467,21 @@ namespace OpenMS
           {
             continue;
           }
+          // if one of the linked residues is already modified with something else, skip this combination of linked positions
+          if ((*peptide_first)[link_pos_first[x]].isModified())
+          {
+            continue;
+          }
+          if (peptide_second != nullptr && (*peptide_second)[link_pos_second[y]].isModified())
+          {
+            continue;
+          }
+          // check for modified residue for loop linked cases
+          if ((seq_second.size() == 0 && link_pos_second[y] != -1) && (*peptide_first)[link_pos_second[y]].isModified())
+          {
+            continue;
+          }
+
           if (alpha_first)
           {
             cross_link_candidate.alpha = peptide_first;
