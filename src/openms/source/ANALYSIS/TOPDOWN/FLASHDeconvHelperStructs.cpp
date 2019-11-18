@@ -59,7 +59,7 @@ namespace OpenMS
       }
       auto iso = generator->estimateFromPeptideWeight(a);
       //iso.trimIntensities()
-      auto factor = .1;
+      auto factor = .05;
       iso.trimRight(factor * iso.getMostAbundant().getIntensity());
 
       double norm = .0;
@@ -89,8 +89,8 @@ namespace OpenMS
         iso[k].setIntensity(0);
       }
 
-      Size rightIndex = iso.size() - mostAbundantIndex;
-      for (Size k = iso.size()-1; k > mostAbundantIndex; k--)
+      Size rightIndex = iso.size() - 1 - mostAbundantIndex;
+      for (Size k = iso.size() - 1; k >= mostAbundantIndex; k--)
       {
         if (iso[k].getIntensity() > mostAbundantInt*factor){
           break;
