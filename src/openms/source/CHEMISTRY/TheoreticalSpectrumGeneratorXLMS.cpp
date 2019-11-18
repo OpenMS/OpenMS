@@ -736,14 +736,14 @@ namespace OpenMS
   {
     double mono_weight = precursor_mass;
     // link_pos can be zero, if the cross-link is N-terminal
-    if (link_pos > 1)
+    if (link_pos > 0)
     {
-      mono_weight -= peptide.getPrefix(link_pos-1).getMonoWeight(Residue::BIon);
+      mono_weight -= peptide.getPrefix(link_pos).getMonoWeight(Residue::BIon);
     }
     // same here for C-terminal links
-    if (link_pos < peptide.size()-1)
+    if (link_pos < peptide.size())
     {
-      mono_weight -= peptide.getSuffix(peptide.size() - link_pos).getMonoWeight(Residue::XIon);
+      mono_weight -= peptide.getSuffix(peptide.size() - link_pos - 1).getMonoWeight(Residue::XIon);
     }
 
     mono_weight += Constants::PROTON_MASS_U * static_cast<double>(charge);
