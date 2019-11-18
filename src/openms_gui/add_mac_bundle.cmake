@@ -125,20 +125,12 @@ execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPU
 message('\${sign_check_out}')" COMPONENT BApplications)
 
                    install(CODE "
-execute_process(COMMAND ditto -c -k --rsrc --keepParent \${CMAKE_INSTALL_PREFIX}/${_name}.app \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip OUTPUT_VARIABLE ditto_out ERROR_VARIABLE ditto_out)
-message('\${ditto_out}')" COMPONENT BApplications)
-
-                   install(CODE "
-execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
+execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
 message('\${notarize_out}')" COMPONENT BApplications)
 
                    install(CODE "
 execute_process(COMMAND spctl -a -v \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE verify_out ERROR_VARIABLE verify_out)
 message('\${verify_out}')" COMPONENT BApplications)
-
-                    install(CODE "
-execute_process(COMMAND rm \${CMAKE_INSTALL_PREFIX}/${_name}.app.zip OUTPUT_VARIABLE remove_out ERROR_VARIABLE remove_out)
-message('\${remove_out}')" COMPONENT BApplications)
                    
 			endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 		endif()
