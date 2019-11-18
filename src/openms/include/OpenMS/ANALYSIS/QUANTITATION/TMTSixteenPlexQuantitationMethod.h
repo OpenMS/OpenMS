@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Samuel Wein $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -41,25 +41,25 @@
 namespace OpenMS
 {
   /**
-    @brief TMT 10plex quantitation to be used with the IsobaricQuantitation.
+    @brief TMT 16plex quantitation to be used with the IsobaricQuantitation.
 
     @htmlinclude OpenMS_TMTSixPlexQuantitationMethod.parameters
   */
-  class OPENMS_DLLAPI TMTTenPlexQuantitationMethod :
+  class OPENMS_DLLAPI TMTSixteenPlexQuantitationMethod :
     public IsobaricQuantitationMethod
   {
 public:
     /// Default c'tor
-    TMTTenPlexQuantitationMethod();
+    TMTSixteenPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTTenPlexQuantitationMethod() = default;
+    ~TMTSixteenPlexQuantitationMethod() = default;
 
     /// Copy c'tor
-    TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other);
+    TMTSixteenPlexQuantitationMethod(const TMTSixteenPlexQuantitationMethod& other);
 
     /// Assignment operator
-    TMTTenPlexQuantitationMethod & operator=(const TMTTenPlexQuantitationMethod& rhs);
+    TMTSixteenPlexQuantitationMethod & operator=(const TMTSixteenPlexQuantitationMethod& rhs);
 
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
@@ -77,7 +77,7 @@ public:
     /// @}
 
   private:
-    /// the actual information on the different tmt10plex channels.
+    /// the actual information on the different tmt16plex channels.
     IsobaricChannelList channels_;
 
     /// The name of the quantitation method.
@@ -95,7 +95,6 @@ public:
 
     /// implemented for DefaultParamHandler
     void updateMembers_() override;
-
   };
 } // namespace
 
