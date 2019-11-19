@@ -43,8 +43,8 @@ steps:
     condition: ne(variables.CONTRIB_RESTORED, 'true')
     inputs:
       targetType: 'inline'
+      workingDirectory: $(Pipeline.Workspace)
       script:
-        cd $(Pipeline.Workspace) &&
         mkdir -p contrib_build &&
         curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -s -o contrib_build.tar.gz &&
         tar xzf contrib_build.tar.gz &&
@@ -55,8 +55,8 @@ steps:
   - task: Bash@3
     inputs:
       targetType: 'inline'
+      workingDirectory: $(Pipeline.Workspace)
       script:
-        cd $(Pipeline.Workspace) &&
         git clone https://github.com/ads00/qt-downloader &&
         chmod +x qt-downloader/qt-downloader &&
         mkdir -p QT
