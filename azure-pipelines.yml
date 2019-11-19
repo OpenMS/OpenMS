@@ -39,10 +39,15 @@ steps:
       script: 
         cd .. &&
         git clone https://github.com/ads00/qt-downloader &&
-        chmod +x qt-downloader/qt-downloader &&
-        ./qt-downloader/qt-downloader windows desktop 5.12.6 win64_msvc2015_64 &&
-        ls -la
-    displayName: Install QT
+        chmod +x qt-downloader/qt-downloader
+    displayName: Install QT installer
+
+  - task: PythonScript@0
+    inputs:
+      scriptSource: 'filePath'
+      scriptPath: '../qt-downloader/qt-downloader'
+      arguments: 'windows desktop 5.12.6 win64_msvc2015_64'
+      workingDirectory: '../'
 
   - task: Bash@3
     condition: false
