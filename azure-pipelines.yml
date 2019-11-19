@@ -10,52 +10,70 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
+  - checkout: self
+    fetchDepth: 5
+    submodules: recursive  
+    path: OpenMS
+
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '3.6'
 
+  - task: CacheBeta@1
+    inputs:
+      key: contrib | $(Agent.OS)
+      path: $(Pipeline.Workspace)/contrib_build
+      cacheHitVar: CONTRIB_RESTORED
+
+  - task: CacheBeta@1
+    inputs:
+      key: qt | $(Agent.OS)
+      path: $(Pipeline.Workspace)/QT
+      cacheHitVar: QT_RESTORED
+
   - script: python -m pip install --upgrade pip setuptools wheel
-    displayName: 'Install tools'
+    displayName: 'Install python tools'
+    condition: ne(variables.QT_RESTORED, 'true')
 
   - script: python -m pip install requests semantic_version lxml
-    displayName: 'Install tools2'
+    displayName: 'Install python packages'
+    condition: ne(variables.QT_RESTORED, 'true')
 
   - task: Bash@3
-    condition: false
+    condition: ne(variables.CONTRIB_RESTORED, 'true')
     inputs:
       targetType: 'inline'
-      script: 
-        cd .. &&
+      script:
+        cd $(Pipeline.Workspace) &&
         mkdir -p contrib_build &&
         curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -s -o contrib_build.tar.gz &&
         tar xzf contrib_build.tar.gz &&
-        ls -la &&
         rm contrib_build.tar.gz
     displayName: Download and extract contrib
+    
 
   - task: Bash@3
     inputs:
       targetType: 'inline'
-      script: 
-        cd .. &&
+      script:
+        cd $(Pipeline.Workspace) &&
         git clone https://github.com/ads00/qt-downloader &&
-        chmod +x qt-downloader/qt-downloader
+        chmod +x qt-downloader/qt-downloader &&
+        mkdir -p QT
     displayName: Install QT installer
+    condition: ne(variables.QT_RESTORED, 'true')
 
   - task: PythonScript@0
     inputs:
       scriptSource: 'filePath'
-      scriptPath: '../qt-downloader/qt-downloader'
+      scriptPath: '$(Pipeline.Workspace)/qt-downloader/qt-downloader'
       arguments: 'windows desktop 5.12.6 win64_msvc2015_64'
-      workingDirectory: '../'
+      workingDirectory: '$(Pipeline.Workspace)/QT'
 
   - task: Bash@3
-    condition: false
     inputs:
       targetType: 'inline'
       script: 
-        cd .. 
-        mkdir -p build
-        cmake
+        ls -la
     displayName: Run CMake
     
