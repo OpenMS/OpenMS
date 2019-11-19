@@ -1312,7 +1312,14 @@ namespace OpenMS
     // an empty vector of sequence tags implies no filtering should be done in this case
     if (use_sequence_tags)
     {
-      OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
+      if (tags.size() > 0)
+      {
+        OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
+      }
+      else
+      {
+        candidates.clear();
+      }
     }
 
     vector< int > precursor_corrections;
