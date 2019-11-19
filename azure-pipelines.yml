@@ -13,7 +13,7 @@ steps:
   - task: Bash@3
     inputs:
       targetType: 'inline'
-      script: wget https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz &&
+      script: curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -o contrib_build.tar.gz &&
        tar xvzf contrib_build.tar.gz && ls -la
     env:
       MySecret: $(Foo)
