@@ -15,11 +15,11 @@ steps:
     inputs:
       targetType: 'inline'
       script: 
-        cd .. 
-        mkdir -p contrib_build
-        curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -o contrib_build.tar.gz
-        tar xvzf contrib_build.tar.gz
-        ls -la
+        cd .. &&
+        mkdir -p contrib_build &&
+        curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -s -o contrib_build.tar.gz &&
+        tar xzf contrib_build.tar.gz &&
+        ls -la &&
         rm contrib_build.tar.gz
     displayName: Download and extract contrib
 
@@ -27,8 +27,8 @@ steps:
     inputs:
       targetType: 'inline'
       script: 
-        cd .. 
-        git clone https://github.com/skalee/non-interactive-qt-installer
+        cd .. &&
+        git clone https://github.com/skalee/non-interactive-qt-installer &&
         chmod +x non-interactive-qt-installer/qt_installer.sh
     displayName: Download thirdparty QT installer
 
