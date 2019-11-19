@@ -32,17 +32,16 @@
 // $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/MzTab.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -95,24 +94,24 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("in", {"featureXML", "consensusXML"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
-    setValidFormats_("out_annotation", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("out_annotation", {"featureXML", "consensusXML"});
 
     // move some params from algorithm section to top level (to support input file functionality)
     Param p = AccurateMassSearchEngine().getDefaults();
     registerTOPPSubsection_("db", "Database files which contain the identifications");
-    registerInputFileList_("db:mapping", "<file(s)>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("db:mapping", ListUtils::create<String>("tsv"));
-    registerInputFileList_("db:struct", "<file(s)>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("db:struct", ListUtils::create<String>("tsv"));
-    registerInputFile_("positive_adducts", "<file>", p.getValue("positive_adducts"), p.getDescription("positive_adducts"), true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("positive_adducts", ListUtils::create<String>("tsv"));
-    registerInputFile_("negative_adducts", "<file>", p.getValue("negative_adducts"), p.getDescription("negative_adducts"), true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("negative_adducts", ListUtils::create<String>("tsv"));
+    registerInputFileList_("db:mapping", "<file(s)>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, {"skipexists"});
+    setValidFormats_("db:mapping", {"tsv"});
+    registerInputFileList_("db:struct", "<file(s)>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, {"skipexists"});
+    setValidFormats_("db:struct", {"tsv"});
+    registerInputFile_("positive_adducts", "<file>", p.getValue("positive_adducts"), p.getDescription("positive_adducts"), true, false, {"skipexists"});
+    setValidFormats_("positive_adducts", {"tsv"});
+    registerInputFile_("negative_adducts", "<file>", p.getValue("negative_adducts"), p.getDescription("negative_adducts"), true, false, {"skipexists"});
+    setValidFormats_("negative_adducts", {"tsv"});
     // addEmptyLine_();
     // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
     registerSubsection_("algorithm", "Algorithm parameters section");
