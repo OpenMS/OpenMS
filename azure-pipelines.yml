@@ -10,6 +10,16 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.6'
+
+  - script: python -m pip install --upgrade pip setuptools wheel
+    displayName: 'Install tools'
+
+  - script: python -m pip install requests semantic_version lxml
+    displayName: 'Install tools2'
+
   - task: Bash@3
     condition: false
     inputs:
@@ -28,28 +38,10 @@ steps:
       targetType: 'inline'
       script: 
         cd .. &&
-        git clone https://github.com/skalee/non-interactive-qt-installer &&
-        chmod +x non-interactive-qt-installer/qt_installer.sh
-    displayName: Download thirdparty QT installer
-
-  - task: file-creator@5
-    inputs:
-      filepath: C:\Qt\qt-script.js
-      filecontent:
-        var InstallComponents = [
-          "qt.qt5.5123.win64_msvc2017_64"
-        ];
-
-        var InstallPath = "C:\\Qt";
-
-  - task: Bash@3
-    inputs:
-      targetType: 'inline'
-      script: 
-        ../non-interactive-qt-installer/qt_installer.sh
-    env:
-      QT_INSTALLER_DOWNLOAD_NAME: "qt-unified-windows-x86-online.exe"
-      QT_INSTALLER_VARS: "C:\\Qt\\qt-script.js"
+        git clone https://github.com/ads00/qt-downloader &&
+        chmod +x qt-downloader/qt-downloader &&
+        ./qt-downloader/qt-downloader windows desktop 5.12.6 win64_msvc2015_64 &&
+        ls -la
     displayName: Install QT
 
   - task: Bash@3
