@@ -11,6 +11,7 @@ pool:
 
 steps:
   - task: Bash@3
+    condition: false
     inputs:
       targetType: 'inline'
       script: 
@@ -28,10 +29,31 @@ steps:
       script: 
         cd .. 
         git clone https://github.com/skalee/non-interactive-qt-installer
+        chmod +x non-interactive-qt-installer/qt_installer.sh
+    displayName: Download thirdparty QT installer
 
-    displayName: Download and install QT
+  - task: file-creator@5
+    inputs:
+      filepath: C:\Qt\qt-script.js
+      filecontent:
+        var InstallComponents = [
+          "qt.qt5.5123.win64_msvc2017_64"
+        ];
+
+        var InstallPath = "C:\\Qt";
 
   - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: 
+        ./non-interactive-qt-installer/qt_installer.sh
+    env:
+      QT_INSTALLER_DOWNLOAD_NAME: "qt-unified-windows-x86-online.exe"
+      QT_INSTALLER_VARS: "C:\\Qt\\qt-script.js"
+    displayName: Install QT
+
+  - task: Bash@3
+    condition: false
     inputs:
       targetType: 'inline'
       script: 
