@@ -9,8 +9,6 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
-variables:
-
 steps:
   - task: Bash@3
     inputs:
