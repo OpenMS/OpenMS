@@ -1,0 +1,22 @@
+# Universal Windows Platform
+# Build a Universal Windows Platform project using Visual Studio.
+# Add steps that test and distribute an app, save build artifacts, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+
+steps:
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: wget https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz &&
+       tar xvzf contrib_build.tar.gz && ls -la
+    env:
+      MySecret: $(Foo)
+    
