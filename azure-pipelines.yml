@@ -13,8 +13,30 @@ steps:
   - task: Bash@3
     inputs:
       targetType: 'inline'
-      script: curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -o contrib_build.tar.gz &&
-       tar xvzf contrib_build.tar.gz && ls -la
-    env:
-      MySecret: $(Foo)
+      script: 
+        cd .. 
+        mkdir -p contrib_build
+        curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -o contrib_build.tar.gz
+        tar xvzf contrib_build.tar.gz
+        ls -la
+        rm contrib_build.tar.gz
+    displayName: Download and extract contrib
+
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: 
+        cd .. 
+        git clone https://github.com/skalee/non-interactive-qt-installer
+
+    displayName: Download and install QT
+
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: 
+        cd .. 
+        mkdir -p build
+        cmake
+    displayName: Run CMake
     
