@@ -69,6 +69,7 @@ steps:
       scriptPath: '$(Pipeline.Workspace)/qt-downloader/qt-downloader'
       arguments: 'windows desktop 5.12.6 win64_msvc2015_64'
       workingDirectory: '$(Pipeline.Workspace)/QT'
+      condition: ne(variables.QT_RESTORED, 'true')
 
   - task: Bash@3
     inputs:
