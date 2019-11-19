@@ -156,17 +156,17 @@ protected:
     registerFullParam_(OpenPepXLAlgorithm().getDefaults());
 
     // output file
-    registerOutputFile_("out_xquestxml", "<file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false, false);
-    setValidFormats_("out_xquestxml", ListUtils::create<String>("xml,xquest.xml"));
-
-    registerOutputFile_("out_xquest_specxml", "<file>", "", "Matched spectra in the xQuest .spec.xml format for spectra visualization in the xQuest results manager.", false, false);
-    setValidFormats_("out_xquest_specxml", ListUtils::create<String>("xml,spec.xml"));
-
-    registerOutputFile_("out_idXML", "<file>", "", "Results in idXML format (at least one of these output parameters should be set, otherwise you will not have any results)", false, false);
+    registerOutputFile_("out_idXML", "<idXML_file>", "", "Results in idXML format (at least one of these output parameters should be set, otherwise you will not have any results)", false, false);
     setValidFormats_("out_idXML", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out_mzIdentML", "<file>","", "Results in mzIdentML (.mzid) format (at least one of these output parameters should be set, otherwise you will not have any results)", false, false);
+    registerOutputFile_("out_mzIdentML", "<mzIdentML_file>","", "Results in mzIdentML (.mzid) format (at least one of these output parameters should be set, otherwise you will not have any results)", false, false);
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
+
+    registerOutputFile_("out_xquestxml", "<xQuestXML_file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false, false);
+    setValidFormats_("out_xquestxml", ListUtils::create<String>("xml,xquest.xml"));
+
+    registerOutputFile_("out_xquest_specxml", "<xQuestSpecXML_file>", "", "Matched spectra in the xQuest .spec.xml format for spectra visualization in the xQuest results manager.", false, false);
+    setValidFormats_("out_xquest_specxml", ListUtils::create<String>("xml,spec.xml"));
   }
 
   ExitCodes main_(int, const char**) override
