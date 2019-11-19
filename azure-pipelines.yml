@@ -40,12 +40,13 @@ steps:
     condition: ne(variables.QT_RESTORED, 'true')
 
   - task: Bash@3
-    condition: ne(variables.CONTRIB_RESTORED, 'true')
+    #condition: ne(variables.CONTRIB_RESTORED, 'true')
     inputs:
       targetType: 'inline'
       workingDirectory: $(Pipeline.Workspace)
       script:
         mkdir -p contrib_build &&
+        cd contrib_build &&
         curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -s -o contrib_build.tar.gz &&
         tar xzf contrib_build.tar.gz &&
         rm contrib_build.tar.gz
@@ -64,12 +65,13 @@ steps:
     condition: ne(variables.QT_RESTORED, 'true')
 
   - task: PythonScript@0
+    condition: ne(variables.QT_RESTORED, 'true')
     inputs:
       scriptSource: 'filePath'
       scriptPath: '$(Pipeline.Workspace)/qt-downloader/qt-downloader'
       arguments: 'windows desktop 5.12.6 win64_msvc2015_64'
       workingDirectory: '$(Pipeline.Workspace)/QT'
-      condition: ne(variables.QT_RESTORED, 'true')
+      
 
   - task: Bash@3
     inputs:
