@@ -53,6 +53,16 @@ def debug(message)
 end
 
 ###############################################################################
+def deletePRL(path)
+  if path.to_s.match(/.*\.app\/.*/)
+    return
+  end
+  if path.to_s.match(/.*\.framework\/.*\.prl/)
+    puts "Deleting #{path}"
+    File.delete(path)
+  end
+end
+
 def fixable(path)
   if path.to_s.match(/.*\.app\/.*/)
     return false
@@ -74,27 +84,11 @@ def fixable(path)
   #  return false
   else
     return false
-  elsif path.to_s.match(/.*\.framework$/)
-    return true
-  elsif path.to_s.match(/.*\.framework\/.*/)
-    return false
-  elsif path.to_s.match(/.*\.dylib$/)
-    return true
-  elsif path.to_s.match(/.*\.so$/)
-    return true
-  elsif File.directory?(path)
-    return false
-  elsif File.executable?(path)
-    return true
-  #elsif path.to_s.match(/.*share\/doc\/.*/)
-  #  return false
-  else
-    return false
   end
 end
 
 def sign(path)
-    `#{$codesign_tool} --deep --no-strict --force -s "#{$signing_id}" "#{path}"`
+    `#{$codesign_tool} --deep --force -s "#{$signing_id}" "#{path}"`
 end
 
 ###############################################################################
@@ -148,6 +142,11 @@ if $signing_id.nil?
   puts "Please provide a signing identity"
   puts usage.to_s
   exit 1
+end
+
+debug "CLEANING frameworks"
+for content in Dir.glob("#{$dir}/**/*")
+  deletePRL($dir + content)
 end
 
 debug "HANDLING DIR"
