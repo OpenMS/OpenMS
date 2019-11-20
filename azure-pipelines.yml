@@ -19,6 +19,7 @@ steps:
     path: OpenMS
 
   - task: UsePythonVersion@0
+    displayName: Set Python to Python3.6 for Qt installer etc.
     inputs:
       versionSpec: '3.6'
 
@@ -27,12 +28,14 @@ steps:
   ## during/inside a PR
   ## In general we could build it here instead of downloading.
   - task: CacheBeta@1
+    displayName: Check for cached contrib
     inputs:
-      key: contrib | $(Agent.OS)
+      key: contrib1 | $(Agent.OS)
       path: $(Pipeline.Workspace)/contrib_build
       cacheHitVar: CONTRIB_RESTORED
 
   - task: CacheBeta@1
+    displayName: Check for cached Qt
     inputs:
       key: qt | $(Agent.OS)
       path: $(Pipeline.Workspace)/QT
@@ -47,7 +50,7 @@ steps:
     condition: ne(variables.QT_RESTORED, 'true')
 
   - task: Bash@3
-    #condition: ne(variables.CONTRIB_RESTORED, 'true')
+    condition: ne(variables.CONTRIB_RESTORED, 'true')
     inputs:
       targetType: 'inline'
       workingDirectory: $(Pipeline.Workspace)
@@ -88,11 +91,16 @@ steps:
         ls -la
     displayName: Check Qt
 
+
+## TODO make distinction between Win and Unix when introducing a build matrix
+## Disabled for now (since Win needs additional variables)
   - task: CMake@1
     condition: false
     inputs:
       cmakeArgs: '-DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6" $(Pipeline.Workspace)/OpenMS'
     
+
+## TODO parameterize the VS version and optionally the target architecture (can be different on other containers)
   - task: BatchScript@1
     inputs:
       filename: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'
@@ -106,4 +114,4 @@ steps:
         set "BOOST_INCLUDEDIR="
         set "BOOST_LIBRARYDIR="
         mkdir build && cd build
-        cmake -DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6/msvc2015_64" $(Pipeline.Workspace)/OpenMS
+        cmake -G "Visual Studio 15 2017 Win64" -DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6/msvc2015_64" $(Pipeline.Workspace)/OpenMS
