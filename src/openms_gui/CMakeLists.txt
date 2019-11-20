@@ -113,9 +113,10 @@ openms_add_library(TARGET_NAME OpenMS_GUI
 
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
+# also adds QT_NO_FLOAT16_OPERATORS to avoid https://bugreports.qt.io/browse/QTBUG-72073 on VS 2017
 if (MSVC)
   set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
-  set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
+  set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags} COMPILE_DEFINITIONS QT_NO_FLOAT16_OPERATORS) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()
 
 #------------------------------------------------------------------------------
