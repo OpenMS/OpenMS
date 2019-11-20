@@ -103,15 +103,40 @@ steps:
 ## TODO parameterize the VS version and optionally the target architecture (can be different on other containers)
   - task: BatchScript@1
     inputs:
+      ## TODO is there a better way to initialize the environment? What if location changes?
       filename: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'
       arguments: 'x64'
       modifyEnvironment: true
 
   - task: CmdLine@2
+    displayName: Configure OpenMS
     inputs:
+      ## TODO add variables for Debug vs Release builds
       script: |
         set "BOOST_ROOT="
         set "BOOST_INCLUDEDIR="
         set "BOOST_LIBRARYDIR="
         mkdir build && cd build
         cmake -G "Visual Studio 15 2017 Win64" -DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6/msvc2015_64" $(Pipeline.Workspace)/OpenMS
+
+  - task: CmdLine@2
+    displayName: Build OpenMS
+    inputs:
+      script: |
+        cd build
+        cmake --build . --config Release --target OpenMS -j 4
+
+  - task: CmdLine@2
+    displayName: Build TOPP
+    inputs:
+      script: |
+        cd build
+        cmake --build . --config Release --target TOPP -j 4
+
+
+  - task: CmdLine@2
+    displayName: Test
+    inputs:
+      script: |
+        cd build
+        ctest -j 4
