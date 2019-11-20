@@ -86,3 +86,17 @@ steps:
       cmakeArgs: '-DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6" $(Pipeline.Workspace)/OpenMS'
 
     
+  - task: BatchScript@1
+    inputs:
+      filename: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'
+      arguments: 'x64'
+      modifyEnvironment: true
+
+  - task: CmdLine@2
+    inputs:
+      script: |
+        set "BOOST_ROOT="
+        set "BOOST_INCLUDEDIR="
+        set "BOOST_LIBRARYDIR="
+        mkdir build && cd build
+        cmake -DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6" $(Pipeline.Workspace)/OpenMS
