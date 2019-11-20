@@ -6,8 +6,9 @@
 trigger:
 - master
 
+## VS2019 is untested yet. We also dont have contrib for it yet.
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'vs2017-win2016'
 
 steps:
   - checkout: self
