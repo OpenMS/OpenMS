@@ -54,6 +54,10 @@ install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dep
   COMPONENT zzz-fixing-dependencies
 )
 
+install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/sign_bins_and_libs.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ )"
+  COMPONENT zzz-sign-bins-and-libs
+)
+
 ## Additionally install TOPPShell into root of install folder
 
 ########################################################### TOPPShell
