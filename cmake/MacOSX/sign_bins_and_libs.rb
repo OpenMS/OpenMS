@@ -48,32 +48,53 @@ $DEBUG = false
 ###############################################################################
 def debug(message)
   if($DEBUG)
-    prefix=""
-    for index in 0 ... $currentIndent
-      prefix += "--"
-    end
-    puts "#{prefix}> #{message}"
+    puts "#{message}"
   end
 end
 
 ###############################################################################
-def fixable(name, path)
-  if File.directory?(path + name)
+def fixable(path)
+  if path.to_s.match(/.*\.app\/.*/)
     return false
-  elsif name.match(/^\./)
+  elsif path.to_s.match(/.*\.app$/)
     return false
-  elsif name.match(/\.app\//)
-    return false
-  else
-    filename = "#{path}/#{name}"
-    debug filename.to_s
-    ## currently we just sign everything else
+  elsif path.to_s.match(/.*\.framework$/)
     return true
+  elsif path.to_s.match(/.*\.framework\/.*/)
+    return false
+  elsif path.to_s.match(/.*\.dylib$/)
+    return true
+  elsif path.to_s.match(/.*\.so$/)
+    return true
+  elsif File.directory?(path)
+    return false
+  elsif File.executable?(path)
+    return true
+  #elsif path.to_s.match(/.*share\/doc\/.*/)
+  #  return false
+  else
+    return false
+  elsif path.to_s.match(/.*\.framework$/)
+    return true
+  elsif path.to_s.match(/.*\.framework\/.*/)
+    return false
+  elsif path.to_s.match(/.*\.dylib$/)
+    return true
+  elsif path.to_s.match(/.*\.so$/)
+    return true
+  elsif File.directory?(path)
+    return false
+  elsif File.executable?(path)
+    return true
+  #elsif path.to_s.match(/.*share\/doc\/.*/)
+  #  return false
+  else
+    return false
   end
 end
 
 def sign(path)
-    `#{$codesign_tool} --deep --force -s #{$signing_id} #{path}`
+    `#{$codesign_tool} --deep --no-strict --force -s "#{$signing_id}" "#{path}"`
 end
 
 ###############################################################################
@@ -110,7 +131,7 @@ opts.each do |opt, arg|
       $codesign_tool = arg
     when '--dir-path'
       $dir = Pathname.new(arg).realpath
-    when '--signing-identity'  
+    when '--signing-identity'
       $signing_id = arg
     when '--verbose'
       $DEBUG = true
@@ -131,7 +152,7 @@ end
 
 debug "HANDLING DIR"
 for content in Dir.glob("#{$dir}/**/*")
-  debug "Handle file #{$dir + content}"
-  sign($dir + content)
+  if fixable($dir + content)
+    sign($dir + content)
+  end
 end
-
