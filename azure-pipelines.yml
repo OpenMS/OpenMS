@@ -82,9 +82,9 @@ steps:
     displayName: Check Qt
 
   - task: CMake@1
+    condition: false
     inputs:
       cmakeArgs: '-DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6" $(Pipeline.Workspace)/OpenMS'
-
     
   - task: BatchScript@1
     inputs:
