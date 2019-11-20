@@ -6,6 +6,8 @@
 trigger:
 - master
 
+## TODO introduce variables for QT version
+
 ## VS2019 is untested yet. We also dont have contrib for it yet.
 pool:
   vmImage: 'vs2017-win2016'
@@ -20,6 +22,10 @@ steps:
     inputs:
       versionSpec: '3.6'
 
+  ## TODO we could also depend on the hash of a file the contains the git revision
+  ## Such that the contrib gets rebuild or re-downloaded in case the contrib changes
+  ## during/inside a PR
+  ## In general we could build it here instead of downloading.
   - task: CacheBeta@1
     inputs:
       key: contrib | $(Agent.OS)
@@ -76,7 +82,7 @@ steps:
 
   - task: Bash@3
     inputs:
-      workingDirectory: $(Pipeline.Workspace)/QT/5.12.6
+      workingDirectory: $(Pipeline.Workspace)/QT/5.12.6/msvc2015_64
       targetType: 'inline'
       script: 
         ls -la
@@ -100,4 +106,4 @@ steps:
         set "BOOST_INCLUDEDIR="
         set "BOOST_LIBRARYDIR="
         mkdir build && cd build
-        cmake -DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6" $(Pipeline.Workspace)/OpenMS
+        cmake -DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6/msvc2015_64" $(Pipeline.Workspace)/OpenMS
