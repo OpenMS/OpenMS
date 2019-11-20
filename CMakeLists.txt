@@ -223,6 +223,13 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
+# Increase Clang Template Depth
+#------------------------------------------------------------------------------
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=1024")
+endif()
+
+#------------------------------------------------------------------------------
 # Enable SIRIUS_test (SiriusAdapter) 
 #------------------------------------------------------------------------------
 option(ENABLE_SIRIUS_TEST "Enable test for fingerid (SiriusAdapter)" ON)
