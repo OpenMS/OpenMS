@@ -169,7 +169,7 @@ namespace OpenMS
           double peptide_weight = sequence.getMonoWeight();
           String rna_name = ph.getMetaValue("NuXL:NA");
           double rna_weight = ph.getMetaValue("NuXL:NA_MASS_z0");
-
+          int isotope_error = ph.getMetaValue("isotope_error");
           // crosslink weight for different charge states
           double weight_z1 = (peptide_weight + rna_weight + 1.0 * Constants::PROTON_MASS_U);
           double weight_z2 = (peptide_weight + rna_weight + 2.0 * Constants::PROTON_MASS_U) / 2.0;
@@ -178,8 +178,10 @@ namespace OpenMS
 
           double xl_weight = peptide_weight + rna_weight;
           double theo_mz = (xl_weight + static_cast<double>(charge) * Constants::PROTON_MASS_U) / (double)charge;
-          double absolute_difference = theo_mz - mz;
-          double ppm_difference =  Math::getPPM(mz, theo_mz);
+
+          double corr_mz = mz - (double)isotope_error * Constants::PROTON_MASS_U / (double)charge;
+          double absolute_difference = theo_mz - corr_mz;
+          double ppm_difference =  Math::getPPM(corr_mz, theo_mz);
 
           String protein_accessions;
           std::set<String> accs = ph.extractProteinAccessionsSet();
