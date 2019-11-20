@@ -62,7 +62,7 @@ def fixable(name, path)
     return false
   elsif name.match(/^\./)
     return false
-  elsif name.match(/\.app//)
+  elsif name.match(/\.app\//)
     return false
   else
     filename = "#{path}/#{name}"
