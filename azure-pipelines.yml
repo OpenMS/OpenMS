@@ -4,139 +4,143 @@
 # https://aka.ms/yaml
 
 trigger:
-- master
+  - master
 
-## TODO introduce variables for QT version
+jobs:
+- job: Default
+  timeoutInMinutes: 360
 
-## VS2019 is untested yet. We also dont have contrib for it yet.
-pool:
-  vmImage: 'vs2017-win2016'
+  ## TODO introduce variables for QT version
 
-steps:
-  - checkout: self
-    fetchDepth: 5
-    submodules: recursive  
-    path: OpenMS
+  ## VS2019 is untested yet. We also dont have contrib for it yet.
+  pool:
+    vmImage: 'vs2017-win2016'
 
-  - task: UsePythonVersion@0
-    displayName: Set Python to Python3.6 for Qt installer etc.
-    inputs:
-      versionSpec: '3.6'
+  steps:
+    - checkout: self
+      fetchDepth: 5
+      submodules: recursive  
+      path: OpenMS
 
-  ## TODO we could also depend on the hash of a file the contains the git revision
-  ## Such that the contrib gets rebuild or re-downloaded in case the contrib changes
-  ## during/inside a PR
-  ## In general we could build it here instead of downloading.
-  - task: CacheBeta@1
-    displayName: Check for cached contrib
-    inputs:
-      key: contrib1 | $(Agent.OS)
-      path: $(Pipeline.Workspace)/contrib_build
-      cacheHitVar: CONTRIB_RESTORED
+    - task: UsePythonVersion@0
+      displayName: Set Python to Python3.6 for Qt installer etc.
+      inputs:
+        versionSpec: '3.6'
 
-  - task: CacheBeta@1
-    displayName: Check for cached Qt
-    inputs:
-      key: qt | $(Agent.OS)
-      path: $(Pipeline.Workspace)/QT
-      cacheHitVar: QT_RESTORED
+    ## TODO we could also depend on the hash of a file the contains the git revision
+    ## Such that the contrib gets rebuild or re-downloaded in case the contrib changes
+    ## during/inside a PR
+    ## In general we could build it here instead of downloading.
+    - task: CacheBeta@1
+      displayName: Check for cached contrib
+      inputs:
+        key: contrib1 | $(Agent.OS)
+        path: $(Pipeline.Workspace)/contrib_build
+        cacheHitVar: CONTRIB_RESTORED
 
-  - script: python -m pip install --upgrade pip setuptools wheel
-    displayName: 'Install python tools'
-    condition: ne(variables.QT_RESTORED, 'true')
+    - task: CacheBeta@1
+      displayName: Check for cached Qt
+      inputs:
+        key: qt | $(Agent.OS)
+        path: $(Pipeline.Workspace)/QT
+        cacheHitVar: QT_RESTORED
 
-  - script: python -m pip install requests semantic_version lxml
-    displayName: 'Install python packages'
-    condition: ne(variables.QT_RESTORED, 'true')
+    - script: python -m pip install --upgrade pip setuptools wheel
+      displayName: 'Install python tools'
+      condition: ne(variables.QT_RESTORED, 'true')
 
-  - task: Bash@3
-    condition: ne(variables.CONTRIB_RESTORED, 'true')
-    inputs:
-      targetType: 'inline'
-      workingDirectory: $(Pipeline.Workspace)
-      script:
-        mkdir -p contrib_build &&
-        cd contrib_build &&
-        curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -s -o contrib_build.tar.gz &&
-        tar xzf contrib_build.tar.gz &&
-        rm contrib_build.tar.gz
-    displayName: Download and extract contrib
-    
+    - script: python -m pip install requests semantic_version lxml
+      displayName: 'Install python packages'
+      condition: ne(variables.QT_RESTORED, 'true')
 
-  - task: Bash@3
-    inputs:
-      targetType: 'inline'
-      workingDirectory: $(Pipeline.Workspace)
-      script:
-        git clone https://github.com/ads00/qt-downloader &&
-        chmod +x qt-downloader/qt-downloader &&
-        mkdir -p QT
-    displayName: Install QT installer
-    condition: ne(variables.QT_RESTORED, 'true')
-
-  - task: PythonScript@0
-    condition: ne(variables.QT_RESTORED, 'true')
-    inputs:
-      scriptSource: 'filePath'
-      scriptPath: '$(Pipeline.Workspace)/qt-downloader/qt-downloader'
-      arguments: 'windows desktop 5.12.6 win64_msvc2015_64'
-      workingDirectory: '$(Pipeline.Workspace)/QT'
+    - task: Bash@3
+      condition: ne(variables.CONTRIB_RESTORED, 'true')
+      inputs:
+        targetType: 'inline'
+        workingDirectory: $(Pipeline.Workspace)
+        script:
+          mkdir -p contrib_build &&
+          cd contrib_build &&
+          curl https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz -s -o contrib_build.tar.gz &&
+          tar xzf contrib_build.tar.gz &&
+          rm contrib_build.tar.gz
+      displayName: Download and extract contrib
       
 
-  - task: Bash@3
-    inputs:
-      workingDirectory: $(Pipeline.Workspace)/QT/5.12.6/msvc2015_64
-      targetType: 'inline'
-      script: 
-        ls -la
-    displayName: Check Qt
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        workingDirectory: $(Pipeline.Workspace)
+        script:
+          git clone https://github.com/ads00/qt-downloader &&
+          chmod +x qt-downloader/qt-downloader &&
+          mkdir -p QT
+      displayName: Install QT installer
+      condition: ne(variables.QT_RESTORED, 'true')
+
+    - task: PythonScript@0
+      condition: ne(variables.QT_RESTORED, 'true')
+      inputs:
+        scriptSource: 'filePath'
+        scriptPath: '$(Pipeline.Workspace)/qt-downloader/qt-downloader'
+        arguments: 'windows desktop 5.12.6 win64_msvc2015_64'
+        workingDirectory: '$(Pipeline.Workspace)/QT'
+        
+
+    - task: Bash@3
+      inputs:
+        workingDirectory: $(Pipeline.Workspace)/QT/5.12.6/msvc2015_64
+        targetType: 'inline'
+        script: 
+          ls -la
+      displayName: Check Qt
 
 
-## TODO make distinction between Win and Unix when introducing a build matrix
-## Disabled for now (since Win needs additional variables)
-  - task: CMake@1
-    condition: false
-    inputs:
-      cmakeArgs: '-DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6" $(Pipeline.Workspace)/OpenMS'
-    
+  ## TODO make distinction between Win and Unix when introducing a build matrix
+  ## Disabled for now (since Win needs additional variables)
+    - task: CMake@1
+      condition: false
+      inputs:
+        cmakeArgs: '-DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6" $(Pipeline.Workspace)/OpenMS'
+      
 
-## TODO parameterize the VS version and optionally the target architecture (can be different on other containers)
-  - task: BatchScript@1
-    inputs:
-      ## TODO is there a better way to initialize the environment? What if location changes?
-      filename: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'
-      arguments: 'x64'
-      modifyEnvironment: true
+  ## TODO parameterize the VS version and optionally the target architecture (can be different on other containers)
+    - task: BatchScript@1
+      inputs:
+        ## TODO is there a better way to initialize the environment? What if location changes?
+        filename: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'
+        arguments: 'x64'
+        modifyEnvironment: true
 
-  - task: CmdLine@2
-    displayName: Configure OpenMS
-    inputs:
-      ## TODO add variables for Debug vs Release builds
-      script: |
-        set "BOOST_ROOT="
-        set "BOOST_INCLUDEDIR="
-        set "BOOST_LIBRARYDIR="
-        mkdir build && cd build
-        cmake -G "Visual Studio 15 2017 Win64" -DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6/msvc2015_64" $(Pipeline.Workspace)/OpenMS
+    - task: CmdLine@2
+      displayName: Configure OpenMS
+      inputs:
+        ## TODO add variables for Debug vs Release builds
+        script: |
+          set "BOOST_ROOT="
+          set "BOOST_INCLUDEDIR="
+          set "BOOST_LIBRARYDIR="
+          mkdir build && cd build
+          cmake -G "Visual Studio 15 2017 Win64" -DOPENMS_CONTRIB_LIBS="$(Pipeline.Workspace)/contrib_build" -DCMAKE_PREFIX_PATH="$(Pipeline.Workspace)/QT/5.12.6/msvc2015_64" $(Pipeline.Workspace)/OpenMS
 
-  - task: CmdLine@2
-    displayName: Build OpenMS
-    inputs:
-      script: |
-        cd build
-        cmake --build . --config Release --target OpenMS -j 4
+    - task: CmdLine@2
+      displayName: Build OpenMS
+      inputs:
+        script: |
+          cd build
+          cmake --build . --config Release --target OpenMS -j 4
 
-  - task: CmdLine@2
-    displayName: Build TOPP
-    inputs:
-      script: |
-        cd build
-        cmake --build . --config Release --target TOPP -j 4
+    - task: CmdLine@2
+      displayName: Build TOPP
+      inputs:
+        script: |
+          cd build
+          cmake --build . --config Release --target TOPP -j 4
 
 
-  - task: CmdLine@2
-    displayName: Test
-    inputs:
-      script: |
-        cd build
-        ctest -j 4
+    - task: CmdLine@2
+      displayName: Test
+      inputs:
+        script: |
+          cd build
+          ctest -j 4
