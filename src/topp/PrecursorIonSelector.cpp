@@ -158,10 +158,10 @@ protected:
     registerInputFile_("db_path", "<db-file>", "", "db file", false);
     setValidFormats_("db_path", ListUtils::create<String>("fasta"));
 
-    registerOutputFile_("rt_model", "<rt-model-file>", "", "SVM Model for RTPredict", false);
+    registerInputFile_("rt_model", "<rt-model-file>", "", "SVM Model for RTPredict", false);
     setValidFormats_("rt_model", ListUtils::create<String>("txt"));
         
-    registerOutputFile_("dt_model", "<dt-model-file>", "", "SVM Model for PTPredict", false);
+    registerInputFile_("dt_model", "<dt-model-file>", "", "SVM Model for PTPredict", false);
     setValidFormats_("dt_model", ListUtils::create<String>("txt"));
     
     registerStringOption_("solver", "<solver-type>", "GLPK", "LP solver type", false, true);
