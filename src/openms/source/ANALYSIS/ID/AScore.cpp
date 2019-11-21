@@ -393,7 +393,7 @@ namespace OpenMS
             + scores[7] * 0.5
             + scores[8] * 0.25
             + scores[9] * 0.25)
-           / 10.0;
+           / 7.0;
   }
 
   vector<Size> AScore::getSites_(const AASequence& without_phospho) const

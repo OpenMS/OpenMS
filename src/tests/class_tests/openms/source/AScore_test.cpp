@@ -189,6 +189,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
 
   vector<ProbablePhosphoSites> sites;
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_1);
+  TEST_REAL_SIMILAR( ranking.rbegin()->first, .4);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_1, sites, permutations,ranking);
   TEST_EQUAL(sites.size(), 3);
   TEST_EQUAL(sites[0].seq_1, 3);
@@ -208,6 +209,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   TEST_EQUAL(sites[2].peak_depth, 1);
 
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_3);
+  TEST_REAL_SIMILAR(ranking.rbegin()->first, .4);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_3, sites, permutations, ranking);
   TEST_EQUAL(sites.size(), 3);
   TEST_EQUAL(sites[0].seq_1, 1);
@@ -227,6 +229,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   TEST_EQUAL(sites[2].peak_depth, 1);
 
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_2);
+  TEST_REAL_SIMILAR(ranking.rbegin()->first, .4);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_2, sites, permutations, ranking);
   TEST_EQUAL(sites.size(), 3);
   TEST_EQUAL(sites[0].seq_1, 2);
@@ -253,6 +256,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   permutations = { {3}, {6} };
 
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_1);
+  TEST_REAL_SIMILAR(ranking.rbegin()->first, 94.10714285714287);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_1, sites, permutations, ranking);
   TEST_EQUAL(sites.size(), 1)
   TEST_EQUAL(sites[0].seq_1, 0)
