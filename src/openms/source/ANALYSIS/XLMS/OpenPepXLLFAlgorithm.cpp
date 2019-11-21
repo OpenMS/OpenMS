@@ -401,9 +401,9 @@ using namespace OpenMS;
     OPENMS_LOG_DEBUG << "Spectra left after preprocessing and filtering: " << spectra.size() << " of " << unprocessed_spectra.size() << endl;
 #endif
 
-// #ifdef _OPENMP
-// #pragma omp parallel for schedule(guided)
-// #endif
+#ifdef _OPENMP
+#pragma omp parallel for schedule(guided)
+#endif
     for (SignedSize scan_index = 0; scan_index < static_cast<SignedSize>(spectra.size()); ++scan_index)
     {
       const PeakSpectrum& spectrum = spectra[scan_index];
@@ -434,9 +434,8 @@ using namespace OpenMS;
 #endif
       {
         spectrum_counter++;
-        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum index: " << scan_index << "\t| at: " << DateTime::now().getTime() << endl;
+        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum ID: " << spectrum.getNativeID() << "\t| at: " << DateTime::now().getTime() << endl;
         cout << "Number of peaks: " << spectrum.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
-        cout << "Spectrum ID: " << spectrum.getNativeID() << endl;
       }
 
       if (cross_link_candidates.size() < 1)
@@ -449,9 +448,9 @@ using namespace OpenMS;
 
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > mainscore_csms_spectrum;
 
-#ifdef _OPENMP
-#pragma omp parallel for schedule(guided)
-#endif
+// #ifdef _OPENMP
+// #pragma omp parallel for schedule(guided)
+// #endif
       for (SignedSize i = 0; i < static_cast<SignedSize>(cross_link_candidates.size()); ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
@@ -1002,7 +1001,7 @@ using namespace OpenMS;
 #pragma omp critical (LOG_DEBUG_access)
       OPENMS_LOG_DEBUG << "Next Spectrum ##################################" << endl;
 #endif
-    }
+    } // end loop over spectra and parallelization
 
     std::cout << std::endl << "Total number of potential candidates searched: " << all_candidates_count << std::endl;
 

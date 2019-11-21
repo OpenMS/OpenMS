@@ -1312,6 +1312,7 @@ namespace OpenMS
     // an empty vector of sequence tags implies no filtering should be done in this case
     if (use_sequence_tags)
     {
+      Size candidates_size = candidates.size();
       if (tags.size() > 0)
       {
         OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
@@ -1319,6 +1320,14 @@ namespace OpenMS
       else
       {
         candidates.clear();
+      }
+#ifdef _OPENMP
+#pragma omp critical (cout_access)
+#endif
+      {
+        std::cout << "Number of sequence tags: " << tags.size() << std::endl;
+        std::cout << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
+        std::cout << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
       }
     }
 
