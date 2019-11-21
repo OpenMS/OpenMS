@@ -16,11 +16,15 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
 
+  
   steps:
     - checkout: self
       fetchDepth: 5
       submodules: recursive  
       path: OpenMS
+
+    - powershell: choco install -y doxygen.install ghostscript svn
+      displayName: Chocolatey Install docu tools
 
     - task: UsePythonVersion@0
       displayName: Set Python to Python3.6 for Qt installer etc.
@@ -128,16 +132,7 @@ jobs:
       inputs:
         script: |
           cd build
-          cmake --build . --config Release --target OpenMS -j 4
-
-    - task: CmdLine@2
-      displayName: Build TOPP
-      inputs:
-        script: |
-          cd build
-          cmake --build . --config Release --target TOPP -j 4
-
-
+          cmake --build . --config Release -j 4
     - task: CmdLine@2
       displayName: Test
       inputs:
