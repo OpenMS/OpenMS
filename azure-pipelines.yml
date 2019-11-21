@@ -132,10 +132,10 @@ jobs:
       inputs:
         script: |
           cd build
-          cmake --build . --config Release -j 4
+          cmake --build . --config Release -j 2
     - task: CmdLine@2
       displayName: Test
       inputs:
         script: |
           cd build
-          ctest -j 4
+          ctest -j 2
