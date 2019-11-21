@@ -271,7 +271,7 @@ namespace OpenMS
                                              isoSize,
                                              f);
 */
-      if (maxCosine < cos)
+      if (maxCosine <= cos)
       {
         maxCosine = cos;
         offset = f;
@@ -305,7 +305,7 @@ namespace OpenMS
 
     int n_r = 0;
     //int maxn_r = 0;
-    double intensityThreshold = maxPerChargeIntensity / 10.0;//intensities[intensities.size()*95/100] / 5.0;
+    double intensityThreshold = maxPerChargeIntensity / 4.0;//intensities[intensities.size()*95/100] / 5.0;
     for (int k = prevCharge + 1; k <= nonZeroEnd; k++)
     {
       if (perChargeIntensity[k] <= intensityThreshold)
@@ -325,7 +325,6 @@ namespace OpenMS
     }
 
     return false;
-
 
     /*for (int i = 2; i < std::min(7, range); i++)
     {
@@ -470,7 +469,7 @@ namespace OpenMS
       }*/
 
       int offset = 0;
-      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getMass(),
+      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getUnchargedMass(),
                                                                        perIsotopeIntensity,
                                                                        param.maxIsotopeCount,
                                                                        offset,
@@ -499,7 +498,7 @@ namespace OpenMS
           continue;
         }
       }
-
+      //std::cout<<offset<<std::endl;
       pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
       filteredPeakGroups.push_back(pg);
 
@@ -531,6 +530,7 @@ namespace OpenMS
 
   void PeakGroupScoring::removeOverlappingPeakGroups()
   { // pgs are sorted
+    //return;
     double tol = param.tolerance;
 
     std::vector<PeakGroup> merged;
@@ -540,7 +540,8 @@ namespace OpenMS
     {
       bool select = true;
       auto &pg = peakGroups[i];
-      double massTol = pg.monoisotopicMass * tol * 2;
+
+      double massTol = pg.monoisotopicMass * tol ;
 
       for (Size j = i + 1; j < peakGroups.size(); j++)
       {

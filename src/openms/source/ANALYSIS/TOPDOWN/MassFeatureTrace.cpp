@@ -49,7 +49,7 @@ namespace OpenMS
     }
 
     if(map.size() < 3){
-      return;
+     // return;
     }
     //std::cout<<map.size()<< " " <<tmp<< std::endl;
     peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
@@ -77,10 +77,10 @@ namespace OpenMS
 
     //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
     //                   "Allowed mass deviation (in da).");
-    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6, "");
+    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6*2, "");
     mtd_param.setValue("trace_termination_criterion", "outlier", "");
 
-    mtd_param.setValue("reestimate_mt_sd", "false", "");
+    mtd_param.setValue("reestimate_mt_sd", "true", "");
     mtd_param.setValue("quant_method", "area", "");
     mtd_param.setValue("noise_threshold_int", .0, "");
 
@@ -102,6 +102,9 @@ namespace OpenMS
 
     for (auto &mt : m_traces)
     {
+      //if (mt.getSize() <= 3){
+      //  continue;
+     // }
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
       boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
@@ -109,8 +112,6 @@ namespace OpenMS
       std::fill_n(perChargeMaxIntensity, param.chargeRange + param.minCharge + 1, 0);
       std::fill_n(perChargeMz, param.chargeRange + param.minCharge + 1, 0);
       std::fill_n(perIsotopeIntensity, param.maxIsotopeCount, 0);
-      double massDiff = 0;
-      double max_intensity = -1;
 
       for (auto &p2 : mt)
       {
@@ -121,12 +122,6 @@ namespace OpenMS
         minCharge = minCharge < pg.minCharge? minCharge : pg.minCharge;
         maxCharge = maxCharge > pg.maxCharge? maxCharge : pg.maxCharge;
 
-        //std::cout<<1<<std::endl;
-        if (pg.intensity > max_intensity)
-        {
-          max_intensity = pg.intensity;
-          massDiff = pg.avgMass - pg.monoisotopicMass;
-        }
         //std::cout<<2<<std::endl;
         for (auto &p : pg.peaks)
         {
@@ -152,11 +147,6 @@ namespace OpenMS
         //std::cout<<3<<std::endl;
       }
 
-      if (massDiff <= 0)
-      {
-        continue;
-      }
-
       double chargeScore = PeakGroupScoring::getChargeFitScore(perChargeIntensity, param.minCharge + param.chargeRange + 1);
       if (chargeScore < param.minChargeCosine) //
       {
@@ -179,19 +169,9 @@ namespace OpenMS
 
       if (offset != 0)
       {
-        mass += offset * Constants::C13C12_MASSDIFF_U;
+        mass += offset * Constants::ISOTOPE_MASSDIFF_55K_U;
         //avgMass += offset * Constants::C13C12_MASSDIFF_U;
         //p.isotopeIndex -= offset;
-      }
-
-      int maxi = -1;
-      double maxii = 0;
-      for (int j=0;j<param.maxIsotopeCount;j++)
-      {
-        if (maxii < perIsotopeIntensity[j]){
-          maxii = perIsotopeIntensity[j];
-          maxi = j;
-        }
       }
 
       auto sumInt = .0;
@@ -199,9 +179,12 @@ namespace OpenMS
       {
         sumInt += p.getIntensity();
       }
+
+      auto massDelta = averagines.getAverageMassDelta(mass);
+
       //auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << std::to_string(mass) << "\t"
-          << std::to_string(mass + massDiff) << "\t" // massdiff
+          << std::to_string(mass + massDelta) << "\t" // massdiff
           << mt.getSize() << "\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
           //<< getNominalMass(mass) << "\t"

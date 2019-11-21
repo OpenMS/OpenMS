@@ -103,7 +103,7 @@ protected:
     registerDoubleOption_("minIT", "<min intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 1% total gradient time)", false, true);
     registerDoubleOption_("minRTspan", "<seconds>", 10.0, "Min feature RT span", false, true);
-    registerIntOption_("writeSpecDeconv", "<1:true 0:false>", 1, "to write per spectrum deconvoluted masses or not. If set, [prefix]PerSpecMasses.tsv is generated", false, true);
+    registerIntOption_("writeSpecDeconv", "<1:true 0:false>", 0, "to write per spectrum deconvoluted masses or not. If set, [prefix]PerSpecMasses.tsv is generated", false, true);
 
     registerIntOption_("maxMSL", "", 1, "maximum MS-level (inclusive) for deconvolution", false, true);
 
@@ -547,7 +547,7 @@ protected:
     fs << "\t";
     for (auto &p : pg.peaks)
     {
-      fs << p.getMass() << ";";
+      fs << p.getUnchargedMass() << ";";
     }
     fs << "\t";
     for (auto &p : pg.peaks)
@@ -560,7 +560,7 @@ protected:
 
     for (auto &p : pg.peaks)
     {
-      auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::C13C12_MASSDIFF_U;
+      auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
       auto diff = tm / p.charge + Constants::PROTON_MASS_U - p.mz;
 
       fs << 100*diff << ";";

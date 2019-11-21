@@ -68,6 +68,10 @@ namespace OpenMS
     // Mass difference between Carbon-13 and Carbon-12 in units
     const double C13C12_MASSDIFF_U = 1.0033548378; // u
 
+    // Mass difference between 55kDa averagine isotopes in units
+    const double ISOTOPE_MASSDIFF_55K_U = 1.002371; // u
+
+
     // Neutron mass
     const double NEUTRON_MASS = 1.6749286E-27; // kg
 

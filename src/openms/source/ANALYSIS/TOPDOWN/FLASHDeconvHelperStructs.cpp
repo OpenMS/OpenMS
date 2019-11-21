@@ -35,14 +35,14 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 
 
-
 namespace OpenMS
 {
   FLASHDeconvHelperStructs::PrecalcularedAveragine::PrecalcularedAveragine(double m,
                                                                            double M,
                                                                            double delta,
-                                                                           CoarseIsotopePatternGenerator* generator)
-      :massInterval(delta), minMass(m)
+                                                                           CoarseIsotopePatternGenerator *generator)
+      :
+      massInterval(delta), minMass(m)
   {
     int i = 0;
     while (true)
@@ -59,11 +59,14 @@ namespace OpenMS
       }
       auto iso = generator->estimateFromPeptideWeight(a);
       //iso.trimIntensities()
-      auto factor = .05;
+
+      //std::cout<< a << " "<<iso[10].getMZ() - iso[9].getMZ()<<std::endl;
+
+      auto factor = .02;
       iso.trimRight(factor * iso.getMostAbundant().getIntensity());
 
       double norm = .0;
-     // double mean = .0;
+      // double mean = .0;
       Size mostAbundantIndex = 0;
       double mostAbundantInt = 0;
 
@@ -81,28 +84,33 @@ namespace OpenMS
       Size leftIndex = mostAbundantIndex;
       for (Size k = 0; k <= mostAbundantIndex; k++)
       {
-        if (iso[k].getIntensity() > mostAbundantInt*factor){
+        if (iso[k].getIntensity() > mostAbundantInt * factor)
+        {
           break;
         }
         norm -= iso[k].getIntensity() * iso[k].getIntensity();
-        leftIndex --;
+        leftIndex--;
         iso[k].setIntensity(0);
       }
 
       Size rightIndex = iso.size() - 1 - mostAbundantIndex;
       for (Size k = iso.size() - 1; k >= mostAbundantIndex; k--)
       {
-        if (iso[k].getIntensity() > mostAbundantInt*factor){
+        if (iso[k].getIntensity() > mostAbundantInt * factor)
+        {
           break;
         }
         norm -= iso[k].getIntensity() * iso[k].getIntensity();
-        rightIndex -- ;
+        rightIndex--;
         iso[k].setIntensity(0);
       }
 
+      //iso.averageMass()
+      //iso[0].getMZ()
+
       rightIndices.push_back(rightIndex);
       leftIndices.push_back(leftIndex);
-      mostAbundantIndices.push_back(mostAbundantIndex);
+      averageMassDelta.push_back(iso.averageMass()-iso[0].getMZ());
       norms.push_back(norm);
       isotopes.push_back(iso);
 
@@ -132,11 +140,11 @@ namespace OpenMS
     return leftIndices[i];
   }
 
-  Size FLASHDeconvHelperStructs::PrecalcularedAveragine::getMostAbundantIndex(double mass)
+  double FLASHDeconvHelperStructs::PrecalcularedAveragine::getAverageMassDelta(double mass)
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-    return mostAbundantIndices[i];
+    return averageMassDelta[i];
   }
 
   Size FLASHDeconvHelperStructs::PrecalcularedAveragine::getRightIndex(double mass)
@@ -146,7 +154,7 @@ namespace OpenMS
     return rightIndices[i];
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak():
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak() :
       mz(0),
       intensity(0),
       logMz(-1000),
@@ -177,11 +185,11 @@ namespace OpenMS
   {
   }
 
-  double FLASHDeconvHelperStructs::LogMzPeak::getMass()
+  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
   {
     if (mass <= 0)
     {
-      mass = exp(logMz) * charge;
+      mass = (mz - Constants::PROTON_MASS_U) * charge;
     }
     return mass;
   }
@@ -231,7 +239,7 @@ namespace OpenMS
                                                                      int offset,
                                                                      int maxIsoIndex)
   {
-    double maxIntensityForMonoIsotopeMass = -1;
+    //
 
     if (offset != 0)
     {
@@ -251,22 +259,32 @@ namespace OpenMS
     }
 
     intensity = .0;
+    //double nominator = .0;
+    //double denominator = .0;
+    double maxIntensityForMonoIsotopeMass = -1;
     for (auto &p : peaks)
     {
       double pi = p.intensity;
       intensity += pi;
+     // auto w = std::sqrt(pi);
+     // denominator += w;
+      // nominator += w * (p.getMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
+
       if (maxIntensityForMonoIsotopeMass > pi)
       {
         continue;
       }
       maxIntensityForMonoIsotopeMass = pi;
-      monoisotopicMass = p.getMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U;
-      //if (updateAvgMass)
-      //{
-      int mostAbundantIndex = averagines.getMostAbundantIndex(monoisotopicMass);
-      avgMass = p.getMass() + (mostAbundantIndex - p.isotopeIndex) * Constants::C13C12_MASSDIFF_U;
-      //}
+      monoisotopicMass = p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
+      //  int mostAbundantIndex = averagines.getMostAbundantIndex(monoisotopicMass);
+      // avgMass = p.getMass() + (mostAbundantIndex - p.isotopeIndex) * Constants::C13C12_MASSDIFF_U;
+
     }
+
+    //monoisotopicMass = nominator / denominator;
+    auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
+    avgMass = monoisotopicMass + massDelta;
+
   }
 
   double FLASHDeconvHelperStructs::getLogMz(double mz)

@@ -91,7 +91,7 @@ namespace OpenMS
     {
       std::vector<IsotopeDistribution> isotopes;
       std::vector<double> norms;
-      std::vector<Size> mostAbundantIndices;
+      std::vector<double> averageMassDelta;
       std::vector<Size> leftIndices;
       std::vector<Size> rightIndices;
 
@@ -103,7 +103,7 @@ namespace OpenMS
       double getNorm(double mass);
       Size getLeftIndex(double mass);
       Size getRightIndex(double mass);
-      Size getMostAbundantIndex(double mass);
+      double getAverageMassDelta(double mass);
 
     };
 
@@ -127,7 +127,7 @@ namespace OpenMS
 
       ~LogMzPeak();
 
-      double getMass();
+      double getUnchargedMass();
 
       bool operator<(const LogMzPeak &a) const;
       bool operator>(const LogMzPeak &a) const;
