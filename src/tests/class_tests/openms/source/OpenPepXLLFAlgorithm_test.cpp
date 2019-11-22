@@ -100,9 +100,9 @@ OpenPepXLLFAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spe
 TEST_EQUAL(exit_code, OpenPepXLLFAlgorithm::EXECUTION_OK)
 TEST_EQUAL(unprocessed_spectra.size(), 127)
 TEST_EQUAL(protein_ids.size(), 1)
-TEST_EQUAL(peptide_ids.size(), 6)
+TEST_EQUAL(peptide_ids.size(), 5)
 TEST_EQUAL(spectra.size(), 127)
-TEST_EQUAL(all_top_csms.size(), 6)
+TEST_EQUAL(all_top_csms.size(), 5)
 
 TEST_EQUAL(peptide_ids[0].getHits().size(), 1)
 TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(), 0.123666)
