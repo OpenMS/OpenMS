@@ -77,10 +77,10 @@ namespace OpenMS
 
     //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
     //                   "Allowed mass deviation (in da).");
-    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6*2, "");
+    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6, "");
     mtd_param.setValue("trace_termination_criterion", "outlier", "");
 
-    mtd_param.setValue("reestimate_mt_sd", "true", "");
+    mtd_param.setValue("reestimate_mt_sd", "false", "");
     mtd_param.setValue("quant_method", "area", "");
     mtd_param.setValue("noise_threshold_int", .0, "");
 
@@ -102,9 +102,9 @@ namespace OpenMS
 
     for (auto &mt : m_traces)
     {
-      //if (mt.getSize() <= 3){
+      if (mt.getSize() < 3){
       //  continue;
-     // }
+      }
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
       boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);

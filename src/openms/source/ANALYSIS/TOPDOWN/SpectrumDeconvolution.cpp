@@ -1037,7 +1037,7 @@ namespace OpenMS
           }
         }
         // std::cout << maxMass<< std::endl;
-        double isoDelta = 2 * param.tolerance * maxMass;
+        double isoDelta = param.tolerance * maxMass;
         int minOff = 10000;
         for (auto &p : pg.peaks)
         {
