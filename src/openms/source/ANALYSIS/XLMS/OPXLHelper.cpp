@@ -1282,7 +1282,6 @@ namespace OpenMS
   {
     // determine candidates
     std::vector< OPXLDataStructs::XLPrecursor > candidates;
-
     std::vector< double > spectrum_precursor_vector;
     std::vector< double > allowed_error_vector;
 
@@ -1322,12 +1321,12 @@ namespace OpenMS
         candidates.clear();
       }
 #ifdef _OPENMP
-#pragma omp critical (cout_access)
+#pragma omp critical (LOG_DEBUG_access)
 #endif
       {
-        std::cout << "Number of sequence tags: " << tags.size() << std::endl;
-        std::cout << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
-        std::cout << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
+        OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
+        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
+        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
       }
     }
 
@@ -1476,8 +1475,6 @@ namespace OpenMS
         }
       }
     }
-
     candidates = filtered_candidates;
   }
-
 }
