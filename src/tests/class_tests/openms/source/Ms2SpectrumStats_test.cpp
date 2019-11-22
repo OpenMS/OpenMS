@@ -90,7 +90,6 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   vector<PeptideIdentification> identifications;
   vector<PeptideIdentification> unassignedIDs;
   Feature f1;
-  f1.setMetaValue("FWHM", 32.21);
   peptide_ID.setMetaValue("spectrum_reference","XTandem::0");
   identifications.push_back(peptide_ID);
   peptide_ID.setMetaValue("spectrum_reference","XTandem::1");
