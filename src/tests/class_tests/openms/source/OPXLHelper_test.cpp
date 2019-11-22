@@ -505,11 +505,11 @@ START_SECTION(filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>&
   tags.push_back("NASA");
   // tags.push_back("JAXA");
 
-  TEST_EQUAL(precursors.size(), 15990);
+  TEST_EQUAL(precursors.size(), 16081);
 
   // filter candidates
   OPXLHelper::filterPrecursorsByTags(precursors, spectrum_precursor_correction_positions, tags);
-  TEST_EQUAL(precursors.size(), 4092);
+  TEST_EQUAL(precursors.size(), 4047);
   // std::cout << std::endl;
 
   // // hasSubstring method runtime benchmark: search those 4092 candidates that do not contain the tags many times
