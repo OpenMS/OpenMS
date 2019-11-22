@@ -1483,14 +1483,13 @@ namespace OpenMS
 
     for (const OPXLDataStructs::XLPrecursor& candidate : candidates)
     {
-
       fuzzyAC.setProtein(candidate.alpha_seq);
       if (fuzzyAC.findNext(pattern))
       {
         filtered_candidates.push_back(candidate);
         continue;
       }
-
+      
       if (candidate.beta_seq.size() > 0)
       {
         // String beta = candidate.beta_seq;
