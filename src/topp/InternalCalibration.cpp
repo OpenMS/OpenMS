@@ -230,8 +230,6 @@ protected:
     setValidFormats_("quality_control:residuals", {"csv"});
     registerOutputFile_("quality_control:residuals_plot", "<image>", "", "Plot image of pre- and post calibration errors.", false);
     setValidFormats_("quality_control:residuals_plot", {"png"});
-
-
   }
 
   ExitCodes main_(int, const char**) override

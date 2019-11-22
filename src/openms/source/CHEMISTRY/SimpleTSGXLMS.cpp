@@ -481,14 +481,22 @@ namespace OpenMS
   {
     double mono_weight = precursor_mass;
     // link_pos can be zero, if the cross-link is N-terminal
-    if (link_pos > 1)
+    if (link_pos > 0)
     {
-      mono_weight -= peptide.getPrefix(link_pos-1).getMonoWeight(Residue::BIon);
+      mono_weight -= peptide.getPrefix(link_pos).getMonoWeight(Residue::BIon);
+    }
+    else
+    {
+      return; // this fragment type is not necessary for links on peptide terminal residues
     }
     // same here for C-terminal links
-    if (link_pos < peptide.size()-1)
+    if (link_pos < peptide.size())
     {
-      mono_weight -= peptide.getSuffix(peptide.size() - link_pos).getMonoWeight(Residue::XIon);
+      mono_weight -= peptide.getSuffix(peptide.size() - link_pos - 1).getMonoWeight(Residue::XIon);
+    }
+    else
+    {
+      return;
     }
 
     mono_weight += Constants::PROTON_MASS_U * static_cast<double>(charge);
@@ -594,13 +602,9 @@ namespace OpenMS
       {
         addXLinkIonPeaks_(spectrum, crosslink, frag_alpha, Residue::ZIon, forward_losses, backward_losses, losses_peptide2, z);
       }
-      if (add_k_linked_ions_)
+      if (add_k_linked_ions_ && !beta.empty())
       {
-        double precursor_mass = alpha.getMonoWeight() + crosslink.cross_linker_mass;
-        if (!beta.empty())
-        {
-          precursor_mass += beta.getMonoWeight();
-        }
+        double precursor_mass = alpha.getMonoWeight() + beta.getMonoWeight() + crosslink.cross_linker_mass;
         AASequence peptide;
         Size link_pos;
         if (frag_alpha)

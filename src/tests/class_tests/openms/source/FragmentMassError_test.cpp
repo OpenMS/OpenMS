@@ -201,6 +201,17 @@ START_TEST(FragmentMassError, "$Id$")
     FeatureMap fmap_auto;
 
     TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, FragmentMassError::ToleranceUnit::AUTO), "There is no information about fragment mass tolerance given in the FeatureXML. Please choose a fragment_mass_unit")
+    
+    //--------------------------------------------------------------------
+    // test with no given fragmentation method
+    //--------------------------------------------------------------------
+    // create MSExperiment with no given fragmentation method
+    exp[0].setPrecursors({});
+    // falls back to CID
+    spectra_map.calculateMap(exp);
+    frag_ma_err.compute(fmap, exp, spectra_map);
+    TEST_REAL_SIMILAR(frag_ma_err.getResults()[1].average_ppm, 5.0)
+    TEST_REAL_SIMILAR(frag_ma_err.getResults()[1].variance_ppm, 0.0)  // offset is constant, i.e. no variance
 
     //--------------------------------------------------------------------
     // test with matching ms1 spectrum
@@ -214,23 +225,6 @@ START_TEST(FragmentMassError, "$Id$")
     spectra_map.calculateMap(exp);
 
     TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err.compute(fmap, exp, spectra_map), "The matching spectrum of the mzML is not an MS2 Spectrum.")
-
-    //--------------------------------------------------------------------
-    // test with no given fragmentation method
-    //--------------------------------------------------------------------
-
-    // put PeptideIdentification with RT matching to MSSpectrum without given fragmentation method to fmap
-    fmap.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::4")});
-
-    // create MSExperiment with no given fragmentation method
-    MSSpectrum ms_spec_2_no_precursor;
-    ms_spec_2_no_precursor.setRT(8);
-    ms_spec_2_no_precursor.setMSLevel(2);
-    ms_spec_2_no_precursor.setNativeID("XTandem::4");
-    exp.setSpectra({ms_spec_2_no_precursor});
-    spectra_map.calculateMap(exp);
-
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, frag_ma_err.compute(fmap, exp, spectra_map), "No fragmentation method given.")
 
     //--------------------------------------------------------------------
     // test with fragmentation method SORI, which is not supported
