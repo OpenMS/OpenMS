@@ -20,9 +20,9 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
                const StringList& var_mods) nogil except +
 
         void getTag(const libcpp_vector[ double ]& mzs,
-                    libcpp_vector[ string ]& tags) nogil except +
+                    libcpp_vector[ String ]& tags) nogil except +
 
         void getTag(const MSSpectrum& spec,
-                    libcpp_vector[ string ]& tags) nogil except +
+                    libcpp_vector[ String ]& tags) nogil except +
 
         void setMaxCharge(size_t max_charge) nogil except +
