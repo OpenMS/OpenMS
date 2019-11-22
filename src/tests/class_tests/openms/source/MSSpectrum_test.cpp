@@ -1237,104 +1237,79 @@ START_SECTION((Size findNearest(CoordinateType mz) const))
 }
 END_SECTION
 
+MSSpectrum spec_test;
+spec_test.push_back({ 412.321, 29.0f });
+spec_test.push_back({ 412.824, 60.0f });
+spec_test.push_back({ 413.8, 34.0f });
+spec_test.push_back({ 414.301, 29.0f });
+spec_test.push_back({ 415.287, 37.0f });
+spec_test.push_back({ 416.293, 31.0f });
+spec_test.push_back({ 418.232, 31.0f });
+spec_test.push_back({ 419.113, 31.0f });
+spec_test.push_back({ 420.13, 201.0f });
+spec_test.push_back({ 423.269, 56.0f });
+spec_test.push_back({ 426.292, 34.0f });
+spec_test.push_back({ 427.28, 82.0f });
+spec_test.push_back({ 428.322, 87.0f });
+spec_test.push_back({ 430.269, 30.0f });
+spec_test.push_back({ 431.246, 29.0f });
+spec_test.push_back({ 432.289, 42.0f });
+spec_test.push_back({ 436.161, 32.0f });
+spec_test.push_back({ 437.219, 54.0f });
+spec_test.push_back({ 439.186, 40.0f });
+spec_test.push_back({ 440.27, 40 });
+spec_test.push_back({ 441.224, 23.0f });
+
 START_SECTION((Size findNearest(CoordinateType mz, CoordinateType tolerance) const))
 {
-  MSSpectrum tmp;
-  Peak1D p;
-  p.setIntensity(29.0f); p.setMZ(412.321); tmp.push_back(p); //0
-  p.setIntensity(60.0f); p.setMZ(412.824); tmp.push_back(p); //1
-  p.setIntensity(34.0f); p.setMZ(413.8); tmp.push_back(p); //2
-  p.setIntensity(29.0f); p.setMZ(414.301); tmp.push_back(p); //3
-  p.setIntensity(37.0f); p.setMZ(415.287); tmp.push_back(p); //4
-  p.setIntensity(31.0f); p.setMZ(416.293); tmp.push_back(p); //5
-  p.setIntensity(31.0f); p.setMZ(418.232); tmp.push_back(p); //6
-  p.setIntensity(31.0f); p.setMZ(419.113); tmp.push_back(p); //7
-  p.setIntensity(201.0f); p.setMZ(420.13); tmp.push_back(p); //8
-  p.setIntensity(56.0f); p.setMZ(423.269); tmp.push_back(p); //9
-  p.setIntensity(34.0f); p.setMZ(426.292); tmp.push_back(p); //10
-  p.setIntensity(82.0f); p.setMZ(427.28); tmp.push_back(p); //11
-  p.setIntensity(87.0f); p.setMZ(428.322); tmp.push_back(p); //12
-  p.setIntensity(30.0f); p.setMZ(430.269); tmp.push_back(p); //13
-  p.setIntensity(29.0f); p.setMZ(431.246); tmp.push_back(p); //14
-  p.setIntensity(42.0f); p.setMZ(432.289); tmp.push_back(p); //15
-  p.setIntensity(32.0f); p.setMZ(436.161); tmp.push_back(p); //16
-  p.setIntensity(54.0f); p.setMZ(437.219); tmp.push_back(p); //17
-  p.setIntensity(40.0f); p.setMZ(439.186); tmp.push_back(p); //18
-  p.setIntensity(40); p.setMZ(440.27); tmp.push_back(p); //19
-  p.setIntensity(23.0f); p.setMZ(441.224); tmp.push_back(p); //20
-
   //test outside mass range
-  TEST_EQUAL(tmp.findNearest(400.0, 1.0), -1);
-  TEST_EQUAL(tmp.findNearest(500.0, 1.0), -1);
+  TEST_EQUAL(spec_test.findNearest(400.0, 1.0), -1);
+  TEST_EQUAL(spec_test.findNearest(500.0, 1.0), -1);
 
   //test mass range borders
-  TEST_EQUAL(tmp.findNearest(412.4, 0.01), -1);
-  TEST_EQUAL(tmp.findNearest(412.4, 0.1), 0);
-  TEST_EQUAL(tmp.findNearest(441.3, 0.01),-1);
-  TEST_EQUAL(tmp.findNearest(441.3, 0.1), 20);
+  TEST_EQUAL(spec_test.findNearest(412.4, 0.01), -1);
+  TEST_EQUAL(spec_test.findNearest(412.4, 0.1), 0);
+  TEST_EQUAL(spec_test.findNearest(441.3, 0.01),-1);
+  TEST_EQUAL(spec_test.findNearest(441.3, 0.1), 20);
 
   //test inside scan
-  TEST_EQUAL(tmp.findNearest(426.29, 0.1), 10);
-  TEST_EQUAL(tmp.findNearest(426.3, 0.1), 10);
-  TEST_EQUAL(tmp.findNearest(427.2, 0.1), 11);
-  TEST_EQUAL(tmp.findNearest(427.3, 0.1), 11);
-  TEST_EQUAL(tmp.findNearest(427.3, 0.001), -1);
+  TEST_EQUAL(spec_test.findNearest(426.29, 0.1), 10);
+  TEST_EQUAL(spec_test.findNearest(426.3, 0.1), 10);
+  TEST_EQUAL(spec_test.findNearest(427.2, 0.1), 11);
+  TEST_EQUAL(spec_test.findNearest(427.3, 0.1), 11);
+  TEST_EQUAL(spec_test.findNearest(427.3, 0.001), -1);
 
   //empty spectrum
-  MSSpectrum tmp2;
-  TEST_EQUAL(tmp2.findNearest(427.3, 1.0, 1.0), -1);
+  MSSpectrum spec_test2;
+  TEST_EQUAL(spec_test2.findNearest(427.3, 1.0, 1.0), -1);
 }
 END_SECTION
 START_SECTION((Size findNearest(CoordinateType mz, CoordinateType left_tolerance, CoordinateType right_tolerance) const))
 {
-  MSSpectrum tmp;
-  Peak1D p;
-  p.setIntensity(29.0f); p.setMZ(412.321); tmp.push_back(p); //0
-  p.setIntensity(60.0f); p.setMZ(412.824); tmp.push_back(p); //1
-  p.setIntensity(34.0f); p.setMZ(413.8); tmp.push_back(p); //2
-  p.setIntensity(29.0f); p.setMZ(414.301); tmp.push_back(p); //3
-  p.setIntensity(37.0f); p.setMZ(415.287); tmp.push_back(p); //4
-  p.setIntensity(31.0f); p.setMZ(416.293); tmp.push_back(p); //5
-  p.setIntensity(31.0f); p.setMZ(418.232); tmp.push_back(p); //6
-  p.setIntensity(31.0f); p.setMZ(419.113); tmp.push_back(p); //7
-  p.setIntensity(201.0f); p.setMZ(420.13); tmp.push_back(p); //8
-  p.setIntensity(56.0f); p.setMZ(423.269); tmp.push_back(p); //9
-  p.setIntensity(34.0f); p.setMZ(426.292); tmp.push_back(p); //10
-  p.setIntensity(82.0f); p.setMZ(427.28); tmp.push_back(p); //11
-  p.setIntensity(87.0f); p.setMZ(428.322); tmp.push_back(p); //12
-  p.setIntensity(30.0f); p.setMZ(430.269); tmp.push_back(p); //13
-  p.setIntensity(29.0f); p.setMZ(431.246); tmp.push_back(p); //14
-  p.setIntensity(42.0f); p.setMZ(432.289); tmp.push_back(p); //15
-  p.setIntensity(32.0f); p.setMZ(436.161); tmp.push_back(p); //16
-  p.setIntensity(54.0f); p.setMZ(437.219); tmp.push_back(p); //17
-  p.setIntensity(40.0f); p.setMZ(439.186); tmp.push_back(p); //18
-  p.setIntensity(40); p.setMZ(440.27); tmp.push_back(p); //19
-  p.setIntensity(23.0f); p.setMZ(441.224); tmp.push_back(p); //20
-
   //test outside mass range
-  TEST_EQUAL(tmp.findNearest(400.0, 1.0, 1.0), -1);
-  TEST_EQUAL(tmp.findNearest(500.0, 1.0, 1.0), -1);
+  TEST_EQUAL(spec_test.findNearest(400.0, 1.0, 1.0), -1);
+  TEST_EQUAL(spec_test.findNearest(500.0, 1.0, 1.0), -1);
 
   //test mass range borders
-  TEST_EQUAL(tmp.findNearest(412.4, 0.01, 0.01), -1);
-  TEST_EQUAL(tmp.findNearest(412.4, 0.1, 0.1), 0);
-  TEST_EQUAL(tmp.findNearest(441.3, 0.01, 0.01),-1);
-  TEST_EQUAL(tmp.findNearest(441.3, 0.1, 0.1), 20);
+  TEST_EQUAL(spec_test.findNearest(412.4, 0.01, 0.01), -1);
+  TEST_EQUAL(spec_test.findNearest(412.4, 0.1, 0.1), 0);
+  TEST_EQUAL(spec_test.findNearest(441.3, 0.01, 0.01),-1);
+  TEST_EQUAL(spec_test.findNearest(441.3, 0.1, 0.1), 20);
 
   //test inside scan
-  TEST_EQUAL(tmp.findNearest(426.29, 0.1, 0.1), 10);
-  TEST_EQUAL(tmp.findNearest(426.3, 0.1, 0.1), 10);
-  TEST_EQUAL(tmp.findNearest(427.2, 0.1, 0.1), 11);
-  TEST_EQUAL(tmp.findNearest(427.3, 0.1, 0.1), 11);
-  TEST_EQUAL(tmp.findNearest(427.3, 0.001, 0.001), -1);
+  TEST_EQUAL(spec_test.findNearest(426.29, 0.1, 0.1), 10);
+  TEST_EQUAL(spec_test.findNearest(426.3, 0.1, 0.1), 10);
+  TEST_EQUAL(spec_test.findNearest(427.2, 0.1, 0.1), 11);
+  TEST_EQUAL(spec_test.findNearest(427.3, 0.1, 0.1), 11);
+  TEST_EQUAL(spec_test.findNearest(427.3, 0.001, 0.001), -1);
 
-  TEST_EQUAL(tmp.findNearest(427.3, 0.1, 0.001), 11);
-  TEST_EQUAL(tmp.findNearest(427.3, 0.001, 1.01), -1);
-  TEST_EQUAL(tmp.findNearest(427.3, 0.001, 1.1), 12);
+  TEST_EQUAL(spec_test.findNearest(427.3, 0.1, 0.001), 11);
+  TEST_EQUAL(spec_test.findNearest(427.3, 0.001, 1.01), -1);
+  TEST_EQUAL(spec_test.findNearest(427.3, 0.001, 1.1), 12);
 
   //empty spectrum
-  MSSpectrum tmp2;
-  TEST_EQUAL(tmp2.findNearest(427.3, 1.0, 1.0), -1);
+  MSSpectrum spec_test2;
+  TEST_EQUAL(spec_test2.findNearest(427.3, 1.0, 1.0), -1);
 }
 END_SECTION
 
@@ -1380,6 +1355,39 @@ START_SECTION( SpectrumSettings::SpectrumType MSSpectrum::getType(const bool que
 
 }
 END_SECTION
+
+
+START_SECTION(ConstIterator getBasePeak() const)
+{
+  const auto it = spec_test.getBasePeak();
+  TEST_REAL_SIMILAR(it->getIntensity(), 201.0)
+  TEST_EQUAL(std::distance(spec_test.begin(), it), 8);
+  MSSpectrum empty;
+  TEST_EQUAL(empty.getBasePeak() == empty.end(), true);
+}
+END_SECTION
+
+
+
+START_SECTION(Iterator getBasePeak())
+{
+  auto it = spec_test.getBasePeak();
+  it->setIntensity(it->getIntensity() + 0.0);
+  TEST_REAL_SIMILAR(it->getIntensity(), 201.0)
+  TEST_EQUAL(std::distance(spec_test.begin(), it), 8);
+}
+END_SECTION
+
+
+
+START_SECTION(PeakType::IntensityType getTIC() const)
+{
+  auto r = spec_test.getTIC();
+  TEST_REAL_SIMILAR(r, 1032.0)
+  TEST_EQUAL(MSSpectrum().getTIC(), 0.0);
+}
+END_SECTION
+
 
 START_SECTION(void clear(bool clear_meta_data))
 {

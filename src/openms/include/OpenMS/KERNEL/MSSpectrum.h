@@ -494,6 +494,16 @@ public:
     SpectrumSettings::SpectrumType getType(const bool query_data) const;
     using SpectrumSettings::getType; // expose base class function
 
+    /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
+    ConstIterator getBasePeak() const;
+
+    /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
+    Iterator getBasePeak();
+
+    /// compute the total ion count (sum of all peak intensities)
+    PeakType::IntensityType getTIC() const;
+
+
 protected:
 
     /// Retention time
