@@ -72,7 +72,6 @@ def fixable(name, path)
     filename = "#{path}/#{name}"
     debug filename.to_s
     otool_out=`otool -L #{filename}`
-    puts otool_out
     return !( otool_out =~ /.*object file.*/ )
   end
 end
@@ -349,6 +348,7 @@ end
 
 debug "HANDLING LIB DIR"
 # fix libraries contained in lib-path
+# recurse two-levels to capture the libraries inside the frameworks
 Dir.chdir("#{$lib_dir}") do
   lib_files = Dir.glob(["*","*/*"])
   for content in lib_files
