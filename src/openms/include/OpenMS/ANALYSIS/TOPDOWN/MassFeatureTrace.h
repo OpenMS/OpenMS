@@ -36,6 +36,7 @@ namespace OpenMS
     ~MassFeatureTrace();
 
     static void findFeatures(std::vector<PeakGroup> &peakGroups,
+                                        int &maxSpecIndex,
                                         int &featureCntr,
                                         std::fstream &fsf,
                                         PrecalcularedAveragine &averagines,

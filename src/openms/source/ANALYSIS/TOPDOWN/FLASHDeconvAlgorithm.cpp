@@ -71,10 +71,8 @@ namespace OpenMS
     //calculateAveragines(param);
     float prevProgress = .0;
     std::vector<PeakGroup> allPeakGroups;
-    allPeakGroups.reserve(100000);
+    allPeakGroups.reserve(200000);
     //to overlap previous mass bins.
-
-    //vector <MSSpectrum> prevSpectra;
 
     std::map<UInt, std::vector<std::vector<Size>>> prevMassBinMap;
     std::map<UInt,std::vector<double>> prevMinBinLogMassMap;
@@ -183,7 +181,7 @@ namespace OpenMS
       }
     }
     printProgress(1); //
-    allPeakGroups.shrink_to_fit();
+    //allPeakGroups.shrink_to_fit();
     return allPeakGroups; //
   }
 

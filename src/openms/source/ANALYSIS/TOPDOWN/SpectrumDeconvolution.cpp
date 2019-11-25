@@ -180,7 +180,6 @@ namespace OpenMS
     int hChargeSize = (int) param.hCharges.size();
     int minContinuousChargePeakCount = param.minContinuousChargePeakCount;
 
-
     long binEnd = (long) massBins.size();
     auto candidateMassBinsForThisSpectrum = boost::dynamic_bitset<>(massBins.size());
 
@@ -250,8 +249,7 @@ namespace OpenMS
               {
                 auto &hintensity = mzIntensities[hmzBinIndex];
                 if (hintensity > minInt
-                    && hintensity < factor * maxInt
-                    )
+                    && hintensity < factor * maxInt)
                 {
                   noise[k][massBinIndex] += hintensity;
 

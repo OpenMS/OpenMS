@@ -317,7 +317,7 @@ protected:
         mtd_param.insert("", common_param);
         mtd_param.remove("chrom_fwhm");
 
-        MassFeatureTrace::findFeatures(peakGroups, featureCntr, fsf, avgine, mtd_param, param); //
+        MassFeatureTrace::findFeatures(peakGroups, qspecCntr, featureCntr, fsf, avgine, mtd_param, param); //
       }
 
       //cout<< "after running" << endl;

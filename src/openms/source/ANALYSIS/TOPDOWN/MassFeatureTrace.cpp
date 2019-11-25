@@ -3,57 +3,64 @@
 //
 
 #include "OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h"
+
 namespace OpenMS
 {
 
   void MassFeatureTrace::findFeatures(std::vector<PeakGroup> &peakGroups,
-                    int &featureCntr,
-                    std::fstream &fsf,
-                    PrecalcularedAveragine &averagines,
+                                      int &maxSpecIndex,
+                                      int &featureCntr,
+                                      std::fstream &fsf,
+                                      PrecalcularedAveragine &averagines,
                                       Param &mtd_param,
                                       Parameter &param)
   {
 
     MSExperiment map;
     boost::unordered_map<float, PeakGroup> *peakGroupMap;
-    // boost::unordered_map<float, MSSpectrum> rtOrignalSpecMap;
     boost::unordered_map<float, int> rtSpecMap;
     std::map<int, MSSpectrum> indexSpecMap;
-
-    int maxSpecIndex = 0;
+    peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
 
     for (auto &pg : peakGroups)
     {
       auto &spec = pg.spec;
-      if(spec->getMSLevel() != 1){
+      if (spec->getMSLevel() != 1)
+      {
         continue;
       }
 
-      if (indexSpecMap.find(pg.specIndex) == indexSpecMap.end()){
+      if (indexSpecMap.find(pg.specIndex) == indexSpecMap.end())
+      {
         indexSpecMap[pg.specIndex] = MSSpectrum();
       }
       auto &deconvSpec = indexSpecMap[pg.specIndex];
       rtSpecMap[spec->getRT()] = pg.specIndex;
-      maxSpecIndex = maxSpecIndex > pg.specIndex ? maxSpecIndex : pg.specIndex ;
+      maxSpecIndex = maxSpecIndex > pg.specIndex ? maxSpecIndex : pg.specIndex;
 
       deconvSpec.setRT(spec->getRT());
       Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);
       deconvSpec.push_back(tp);
+
+      auto &pgMap = peakGroupMap[pg.specIndex];
+      pgMap[pg.monoisotopicMass] = pg;
+
     }
 
     //int tmp = 0;
-    for(auto iter = indexSpecMap.begin(); iter != indexSpecMap.end(); ++iter)
+    for (auto iter = indexSpecMap.begin(); iter != indexSpecMap.end(); ++iter)
     {
-      //tmp+=(iter->second).size();
       map.addSpectrum(iter->second);
     }
 
-    if(map.size() < 3){
-     // return;
+    std::map<int, MSSpectrum>().swap(indexSpecMap);
+
+    if (map.size() < 3)
+    {
+      return;
     }
     //std::cout<<map.size()<< " " <<tmp<< std::endl;
-    peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
-
+    /*
     for (auto &pg : peakGroups)
     {
       auto &spec = pg.spec;
@@ -63,9 +70,7 @@ namespace OpenMS
       auto &pgMap = peakGroupMap[pg.specIndex];
 
       pgMap[pg.monoisotopicMass] = pg;
-      //std::cout<<pg.monoisotopicMass<< " " << pg.specIndex << std::endl;
-
-    }
+    }*/
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
@@ -102,8 +107,9 @@ namespace OpenMS
 
     for (auto &mt : m_traces)
     {
-      if (mt.getSize() < 3){
-      //  continue;
+      if (mt.getSize() < 3)
+      {
+        //  continue;
       }
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
@@ -115,12 +121,12 @@ namespace OpenMS
 
       for (auto &p2 : mt)
       {
-       // std::cout << p2.getRT() << " " << p2.getMZ() << std::endl;
+        // std::cout << p2.getRT() << " " << p2.getMZ() << std::endl;
         int specIndex = rtSpecMap[(float) p2.getRT()];
         auto &pgMap = peakGroupMap[specIndex];
         auto &pg = pgMap[(float) p2.getMZ()];
-        minCharge = minCharge < pg.minCharge? minCharge : pg.minCharge;
-        maxCharge = maxCharge > pg.maxCharge? maxCharge : pg.maxCharge;
+        minCharge = minCharge < pg.minCharge ? minCharge : pg.minCharge;
+        maxCharge = maxCharge > pg.maxCharge ? maxCharge : pg.maxCharge;
 
         //std::cout<<2<<std::endl;
         for (auto &p : pg.peaks)
@@ -142,12 +148,13 @@ namespace OpenMS
           }
           perChargeMaxIntensity[p.charge] = p.intensity;
           perChargeMz[p.charge] = p.mz;
-         // std::cout<<3<<std::endl;
+          // std::cout<<3<<std::endl;
         }
         //std::cout<<3<<std::endl;
       }
 
-      double chargeScore = PeakGroupScoring::getChargeFitScore(perChargeIntensity, param.minCharge + param.chargeRange + 1);
+      double chargeScore = PeakGroupScoring::getChargeFitScore(perChargeIntensity,
+                                                               param.minCharge + param.chargeRange + 1);
       if (chargeScore < param.minChargeCosine) //
       {
         continue;
@@ -156,9 +163,9 @@ namespace OpenMS
       int offset = 0;
       double mass = mt.getCentroidMZ();
       double isoScore = PeakGroupScoring::getIsotopeCosineAndDetermineIsotopeIndex(mass,
-                                                                                       perIsotopeIntensity,
-                                                                                       param.maxIsotopeCount,
-                                                                                        offset,averagines);
+                                                                                   perIsotopeIntensity,
+                                                                                   param.maxIsotopeCount,
+                                                                                   offset, averagines);
       if (isoScore < param.minIsotopeCosine)
       {
         continue;
@@ -175,7 +182,7 @@ namespace OpenMS
       }
 
       auto sumInt = .0;
-      for (auto& p : mt)
+      for (auto &p : mt)
       {
         sumInt += p.getIntensity();
       }
