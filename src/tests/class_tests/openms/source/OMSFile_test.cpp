@@ -61,24 +61,6 @@ IdentificationData ids;
 
 START_SECTION(void store(const String& filename, const IdentificationData& id_data))
 {
-  // empty input:
-  oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_0.oms");
-  OMSFile().store(oms_path, ids);
-
-  sqlite3_stmt* result;
-  SqliteConnector con(oms_path);
-  con.prepareStatement(&result, "SELECT * FROM version;");
-  sqlite3_step(result);
-  TEST_EQUAL(sqlite3_column_count(result), 4);
-  TEST_STRING_EQUAL(sqlite3_column_name(result, 0), "OMSFile");
-  TEST_EQUAL(sqlite3_column_int(result, 0), 1);
-  TEST_STRING_EQUAL(sqlite3_column_name(result, 1), "date");
-  TEST_STRING_EQUAL(sqlite3_column_name(result, 2), "OpenMS");
-  TEST_STRING_EQUAL(sqlite3_column_name(result, 3), "build_date");
-  sqlite3_step(result);
-  TEST_EQUAL(sqlite3_column_type(result, 0), SQLITE_NULL);
-  sqlite3_finalize(result); // free memory
-
   vector<ProteinIdentification> proteins_in;
   vector<PeptideIdentification> peptides_in;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), proteins_in, peptides_in);
@@ -87,9 +69,10 @@ START_SECTION(void store(const String& filename, const IdentificationData& id_da
 
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
 
-  oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_1.oms");
+  NEW_TMP_FILE(oms_path);
+  // oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_1.oms");
   OMSFile().store(oms_path, ids);
-
+  TEST_EQUAL(File::empty(oms_path), false);
 }
 END_SECTION
 
@@ -108,6 +91,8 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   TEST_EQUAL(ids.getDataQueries().size(), out.getDataQueries().size());
   TEST_EQUAL(ids.getParentMolecules().size(),
              out.getParentMolecules().size());
+  TEST_EQUAL(ids.getParentMoleculeGroupings().size(),
+             out.getParentMoleculeGroupings().size());
   TEST_EQUAL(ids.getIdentifiedPeptides().size(),
              out.getIdentifiedPeptides().size());
   TEST_EQUAL(ids.getIdentifiedOligos().size(),

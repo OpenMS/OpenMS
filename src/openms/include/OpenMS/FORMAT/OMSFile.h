@@ -103,6 +103,8 @@ namespace OpenMS
 
       void storeParentMolecules();
 
+      void storeParentMoleculeGroupings();
+
       void storeIdentifiedCompounds();
 
       void storeIdentifiedSequences();
@@ -216,6 +218,8 @@ namespace OpenMS
       void loadDataQueries();
 
       void loadParentMolecules();
+
+      void loadParentMoleculeGroupings();
 
       void loadIdentifiedCompounds();
 

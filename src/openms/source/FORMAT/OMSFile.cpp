@@ -605,7 +605,7 @@ namespace OpenMS
                   ":id, "                                       \
                   ":software_id, "                              \
                   ":primary_files, "                            \
-                  ":data_time, "                                \
+                  ":date_time, "                                \
                   ":search_param_id)");
     bool any_input_files = false;
     // use iterator here because we need one to look up the DB search params:
@@ -771,6 +771,113 @@ namespace OpenMS
     }
     storeScoredProcessingResults_(id_data_.getParentMolecules(),
                                   "ID_ParentMolecule");
+  }
+
+
+  void OMSFile::OMSFileStore::storeParentMoleculeGroupings()
+  {
+    if (id_data_.getParentMoleculeGroupings().empty()) return;
+
+    createTable_("ID_ParentMoleculeGrouping",
+                 "id INTEGER PRIMARY KEY NOT NULL, "  \
+                 "label TEXT, "                       \
+                 "grouping_order INTEGER NOT NULL");
+
+    createTable_(
+      "ID_ParentMoleculeGroup",
+      "id INTEGER PRIMARY KEY NOT NULL, "                               \
+      "grouping_id INTEGER NOT NULL, "                                  \
+      "score_type_id INTEGER, "                                         \
+      "score REAL, "                                                    \
+      "UNIQUE (id, score_type_id), "                                    \
+      "FOREIGN KEY (grouping_id) REFERENCES ID_ParentMoleculeGrouping (id)");
+
+    createTable_(
+      "ID_ParentMoleculeGroup_ParentMolecule",
+      "group_id INTEGER NOT NULL, "                                     \
+      "parent_id INTEGER NOT NULL, "                                    \
+      "UNIQUE (group_id, parent_id), "                                  \
+      "FOREIGN KEY (group_id) REFERENCES ID_ParentMoleculeGroup (id), " \
+      "FOREIGN KEY (parent_id) REFERENCES ID_ParentMolecule (id)");
+
+    QSqlDatabase db = QSqlDatabase::database(db_name_);
+    QSqlQuery query_grouping(db);
+    query_grouping.prepare("INSERT INTO ID_ParentMoleculeGrouping VALUES (" \
+                           ":id, "                                      \
+                           ":label, "                                   \
+                           ":grouping_order)");
+
+    QSqlQuery query_group(db);
+    query_group.prepare("INSERT INTO ID_ParentMoleculeGroup VALUES ("  \
+                        ":id, "                                        \
+                        ":grouping_id, "                               \
+                        ":score_type_id, "                             \
+                        ":score)");
+
+    QSqlQuery query_parent(db);
+    query_parent.prepare(
+      "INSERT INTO ID_ParentMoleculeGroup_ParentMolecule VALUES ("   \
+      ":group_id, "                                                  \
+      ":parent_id)");
+
+    Size counter = 0;
+    for (const ID::ParentMoleculeGrouping& grouping :
+           id_data_.getParentMoleculeGroupings())
+    {
+      Key grouping_id = Key(&grouping);
+      query_grouping.bindValue(":id", grouping_id);
+      query_grouping.bindValue(":label", grouping.label.toQString());
+      query_grouping.bindValue(":grouping_order", int(++counter));
+      if (!query_grouping.exec())
+      {
+        raiseDBError_(query_grouping.lastError(), __LINE__,
+                      OPENMS_PRETTY_FUNCTION, "error inserting data");
+      }
+
+      for (const ID::ParentMoleculeGroup& group : grouping.groups)
+      {
+        Key group_id = Key(&group);
+        query_group.bindValue(":id", group_id);
+        query_group.bindValue(":grouping_id", grouping_id);
+        if (group.scores.empty()) // store group with an empty score
+        {
+          query_group.bindValue(":score_type_id", QVariant(QVariant::Int));
+          query_group.bindValue(":score", QVariant(QVariant::Double));
+          if (!query_group.exec())
+          {
+            raiseDBError_(query_group.lastError(), __LINE__,
+                          OPENMS_PRETTY_FUNCTION, "error inserting data");
+          }
+        }
+        else // store group multiple times with different scores
+        {
+          for (const auto& score_pair : group.scores)
+          {
+            query_group.bindValue(":score_type_id", Key(&(*score_pair.first)));
+            query_group.bindValue(":score", score_pair.second);
+            if (!query_group.exec())
+            {
+              raiseDBError_(query_group.lastError(), __LINE__,
+                            OPENMS_PRETTY_FUNCTION, "error inserting data");
+            }
+          }
+        }
+
+        query_parent.bindValue(":group_id", group_id);
+        for (ID::ParentMoleculeRef parent_ref : group.parent_molecule_refs)
+        {
+          query_parent.bindValue(":parent_id", Key(&(*parent_ref)));
+          if (!query_parent.exec())
+          {
+            raiseDBError_(query_parent.lastError(), __LINE__,
+                          OPENMS_PRETTY_FUNCTION, "error inserting data");
+          }
+        }
+      }
+    }
+
+    storeScoredProcessingResults_(id_data_.getParentMoleculeGroupings(),
+                                  "ID_ParentMoleculeGrouping");
   }
 
 
@@ -1103,10 +1210,11 @@ namespace OpenMS
     helper.storeDataProcessingSteps();
     helper.storeDataQueries();
     helper.storeParentMolecules();
+    helper.storeParentMoleculeGroupings();
     helper.storeIdentifiedCompounds();
     helper.storeIdentifiedSequences();
     helper.storeMoleculeQueryMatches();
-    // @TODO: store parent molecule groups and molecule-query match groups
+    // @TODO: store molecule-query match groups
   }
 
 
@@ -1572,6 +1680,99 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileLoad::loadParentMoleculeGroupings()
+  {
+    if (!tableExists_(db_name_, "ID_ParentMoleculeGrouping")) return;
+
+    QSqlDatabase db = QSqlDatabase::database(db_name_);
+    QSqlQuery query(db);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM ID_ParentMoleculeGrouping "  \
+                    "ORDER BY grouping_order ASC"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    // @TODO: can we combine handling of meta info and applied processing steps?
+    QSqlQuery subquery_info(db);
+    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
+                                                "ID_ParentMoleculeGrouping");
+    QSqlQuery subquery_step(db);
+    bool have_applied_steps =
+      prepareQueryAppliedProcessingStep_(subquery_step,
+                                         "ID_ParentMoleculeGrouping");
+
+    QSqlQuery subquery_group(db);
+    subquery_group.setForwardOnly(true);
+    subquery_group.prepare("SELECT * FROM ID_ParentMoleculeGroup "  \
+                           "WHERE grouping_id = :id");
+
+    QSqlQuery subquery_parent(db);
+    subquery_parent.setForwardOnly(true);
+    subquery_parent.prepare(
+      "SELECT parent_id FROM ID_ParentMoleculeGroup_ParentMolecule " \
+      "WHERE group_id = :id");
+
+    while (query.next())
+    {
+      ID::ParentMoleculeGrouping grouping(query.value("label").toString());
+      Key grouping_id = query.value("id").toLongLong();
+      if (have_meta_info)
+      {
+        handleQueryMetaInfo_(subquery_info, grouping, grouping_id);
+      }
+      if (have_applied_steps)
+      {
+        handleQueryAppliedProcessingStep_(subquery_step, grouping, grouping_id);
+      }
+
+      subquery_group.bindValue(":id", grouping_id);
+      if (!subquery_group.exec())
+      {
+        raiseDBError_(subquery_group.lastError(), __LINE__,
+                      OPENMS_PRETTY_FUNCTION, "error reading from database");
+      }
+
+      // get all groups in this grouping:
+      map<Key, ID::ParentMoleculeGroup> groups_map;
+      while (subquery_group.next())
+      {
+        Key group_id = subquery_group.value("id").toLongLong();
+        QVariant score_type_id = subquery_group.value("score_type_id");
+        if (score_type_id.isNull()) // no scores
+        {
+          groups_map[group_id]; // insert empty group
+        }
+        else
+        {
+          ID::ScoreTypeRef ref = score_type_refs_[score_type_id.toLongLong()];
+          groups_map[group_id].scores[ref] =
+            subquery_group.value("score").toDouble();
+        }
+      }
+      // get parent molecules in each group:
+      for (auto& pair : groups_map)
+      {
+        subquery_parent.bindValue(":id", pair.first);
+        if (!subquery_parent.exec())
+        {
+          raiseDBError_(subquery_parent.lastError(), __LINE__,
+                        OPENMS_PRETTY_FUNCTION, "error reading from database");
+        }
+        while (subquery_parent.next())
+        {
+          Key parent_id = subquery_parent.value(0).toLongLong();
+          pair.second.parent_molecule_refs.insert(
+            parent_molecule_refs_[parent_id]);
+        }
+        grouping.groups.insert(pair.second);
+      }
+
+      id_data_.registerParentMoleculeGrouping(grouping);
+    }
+  }
+
+
   void OMSFile::OMSFileLoad::loadIdentifiedCompounds()
   {
     if (!tableExists_(db_name_, "ID_IdentifiedCompound")) return;
@@ -1827,6 +2028,7 @@ namespace OpenMS
     helper.loadDataProcessingSteps();
     helper.loadDataQueries();
     helper.loadParentMolecules();
+    helper.loadParentMoleculeGroupings();
     helper.loadIdentifiedCompounds();
     helper.loadIdentifiedSequences();
     helper.loadMoleculeQueryMatches();
