@@ -147,6 +147,7 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
+  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_11)
 
   #------------------------------------------------------------------------------
   # Generate export header if requested
