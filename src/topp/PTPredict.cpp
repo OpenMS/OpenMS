@@ -234,7 +234,7 @@ protected:
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        inputFileReadable_((svmfile_name + "_samples").c_str(), "svm_model (derived)");
+        inputFileReadable_((svmfile_name + "_samples"), "svm_model (derived)");
 
         training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
         svm.setTrainingSample(training_data);

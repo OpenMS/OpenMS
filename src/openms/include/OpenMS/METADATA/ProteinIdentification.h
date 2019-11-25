@@ -387,15 +387,22 @@ public:
     const String& getIdentifier() const;
     /// Sets the identifier
     void setIdentifier(const String& id);
-    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-    void setPrimaryMSRunPath(const StringList& s);
+    /**
+       Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
+
+       @param raw Store paths to the raw files (or equivalent) rather than mzMLs
+    */
+    void setPrimaryMSRunPath(const StringList& s, bool raw = false);
     /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
     void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
-    void addPrimaryMSRunPath(const String& toAdd);
-    void addPrimaryMSRunPath(const StringList& toAdd);
-    /// get the file path to the first MS run
-    void getPrimaryMSRunPath(StringList& toFill) const;
-    void getPrimaryMSRunPath(std::set<String>& toFill) const;
+    void addPrimaryMSRunPath(const String& s, bool raw = false);
+    void addPrimaryMSRunPath(const StringList& s, bool raw = false);
+    /**
+       Get the file paths to the primary MS runs
+
+       @param raw Get raw files (or equivalent) instead of mzMLs
+    */
+    void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
     /// if this object has inference data
     bool hasInferenceData() const;
     bool hasInferenceEngineAsSearchEngine() const;

@@ -9,6 +9,7 @@ set(sources_list_h
   DIAHelper.h
   DIAPrescoring.h
   DIAScoring.h
+  IonMobilityScoring.h
   MasstraceCorrelator.h
   MRMAssay.h
   MRMDecoy.h

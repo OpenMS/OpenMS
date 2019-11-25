@@ -37,30 +37,24 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/APPLICATIONS/ParameterInformation.h>
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <fstream>
 
-#include <QStringList>
-
+class QStringList;
 
 namespace OpenMS
 {
-
+  class FeatureMap;
   class ConsensusMap;
+  struct ParameterInformation;
+
   /**
     @brief Stores Citations for individual TOPP tools.
 
@@ -80,7 +74,7 @@ namespace OpenMS
     std::string when_where; ///< suggested format: journal. year; volume, issue: pages
     std::string doi;        ///< plain DOI (no urls), e.g. 10.1021/pr100177k
 
-                            /// mangle members to string
+    /// mangle members to string
     std::string toString() const
     {
       return authors + ". " + title + ". " + when_where + ". doi:" + doi + ".";
@@ -490,16 +484,18 @@ protected:
       @brief Registers an input file option.
 
       Input files behave like string options, but are automatically checked with inputFileReadable_()
-      when the option is accessed in the TOPP tool.
+      when the option is accessed in the TOPP tool. 
+      This may also enable lookup on the PATH or skipping of the existance-check (see @p tags).
 
       @param name Name of the option in the command line and the INI file
       @param argument Argument description text for the help output
       @param default_value Default argument
       @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param required If the user has to provide a value i.e. if the value has to differ from the default (verified in getStringOption())
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
-      @param tags A list of tags, e.g. 'skipexists', specifying the handling of the input file (e.g. when its an executable)
-                      Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for an executable in global PATH)
+      @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
+                      Valid tags: @em 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
+                                  @em 'is_executable' - checks existance of the file first using its actual value, and upon failure also using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
     */
     void registerInputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
@@ -631,9 +627,10 @@ protected:
        @param description Description of the parameter. Indentation of newline is done automatically.
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
-       @param tags A list of tags, e.g. 'skipexists', specifying the handling of the input file (e.g. when its an executable)
-              Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for an executable in global PATH)
-     */
+       @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
+                       Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
+                                   'is_executable' - checks existance of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
+       */
     void registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
     /**
@@ -841,6 +838,8 @@ protected:
       , e.g. "in" which specified the filename (this is useful for error messages when the file cannot be read, so the
       user can immediately see which parameter to change). If no parameter is responsible for the
       name of the input file, then leave @em param_name empty.
+      @param filename An absolute or relative path+filename
+      @param param_name Name of the parameter the filename value was provided by
 
       @exception Exception::FileNotFound is thrown if the file is not found
       @exception Exception::FileNotReadable is thrown if the file is not readable
@@ -892,18 +891,7 @@ protected:
     void addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for peak maps
-    void addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
-    {
-      boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
-      for (Size i = 0; i < map.size(); ++i)
-      {
-        map[i].getDataProcessing().push_back(dp_);
-      }
-      for (Size i = 0; i < map.getNrChromatograms(); ++i)
-      {
-        map.getChromatogram(i).getDataProcessing().push_back(dp_);
-      }
-    }
+    void addDataProcessing_(PeakMap& map, const DataProcessing& dp) const;
 
     ///Returns the data processing information
     DataProcessing getProcessingInfo_(DataProcessing::ProcessingAction action) const;

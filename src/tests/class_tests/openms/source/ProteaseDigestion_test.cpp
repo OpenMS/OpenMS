@@ -546,7 +546,7 @@ START_SECTION((bool isValidProduct(const AASequence& protein, int pep_pos, int p
     pd.setEnzyme("glutamyl endopeptidase");
     pd.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
     //                                  |6*  |11|14*|18 |22|25 |29* |34*
-    prot = AASequence::fromString("MCABCDPLFGKACDPBCRAAAKAARPBBDPBBCDP"); // 4 real cleavages at {(0),11,18,22,25}
+    prot = AASequence::fromString("MCABCDPLFGKACDPHCRAAAKAARPHHDPHHCDP"); // 4 real cleavages at {(0),11,18,22,25}
 
     pd.setMissedCleavages(0); // redundant, by default zero, should be zero
     TEST_EQUAL(pd.isValidProduct(prot, 6, 8, true, true, true), true); // valid C and N-term

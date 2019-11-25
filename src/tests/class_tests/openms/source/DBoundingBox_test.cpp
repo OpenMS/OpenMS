@@ -41,6 +41,9 @@
 
 /////////////////////////////////////////////////////////////
 
+
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
 

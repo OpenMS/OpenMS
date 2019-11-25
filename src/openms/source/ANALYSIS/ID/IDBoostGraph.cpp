@@ -144,6 +144,7 @@ namespace OpenMS
                              const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
+    OPENMS_LOG_INFO << "Building graph on " << idedSpectra.size() << " spectra and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
       buildGraphWithRunInfo_(proteins, idedSpectra, use_top_psms, ed.get_value_or(ExperimentalDesign::fromIdentifications({proteins})));
@@ -162,6 +163,8 @@ namespace OpenMS
                              const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
+    OPENMS_LOG_INFO << "Building graph on " << cmap.size() << " features, " << cmap.getUnassignedPeptideIdentifications().size() <<
+    " unassigned spectra (if chosen) and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
       buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.get_value_or(ExperimentalDesign::fromConsensusMap(cmap)));

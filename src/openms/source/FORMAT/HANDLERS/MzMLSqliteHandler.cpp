@@ -596,23 +596,20 @@ namespace OpenMS
 
       SqliteConnector::prepareStatement(db, &stmt, select_sql);
       sqlite3_step(stmt);
-
+      String tmp;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         MSChromatogram chrom;
         OpenMS::Precursor precursor;
         OpenMS::Product product;
 
-        chrom.setNativeID(String(sqlite3_column_text(stmt, 1)));
+        if (Sql::extractValue(&tmp, stmt, 1)) chrom.setNativeID(tmp);
         if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 2));
         if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) precursor.setDriftTime(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 4));
         if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 5));
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
-        if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
-        {
-          precursor.setMetaValue("peptide_sequence", String(sqlite3_column_text(stmt, 7)));
-        }
+        if (Sql::extractValue(&tmp, stmt, 7)) precursor.setMetaValue("peptide_sequence", tmp);
         // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
         if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 9));
         if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 10));
@@ -679,14 +676,13 @@ namespace OpenMS
 
       SqliteConnector::prepareStatement(db, &stmt, select_sql);
       sqlite3_step(stmt);
-
+      OpenMS::String tmp;
       while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
       {
         MSSpectrum spec;
         OpenMS::Precursor precursor;
         OpenMS::Product product;
-
-        spec.setNativeID(String(sqlite3_column_text(stmt, 1)));
+        if (Sql::extractValue(&tmp, stmt, 1)) spec.setNativeID(tmp);
         if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) spec.setMSLevel(sqlite3_column_int(stmt, 2));
         if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) spec.setRT(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 4));
@@ -694,10 +690,7 @@ namespace OpenMS
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 6));
         if (sqlite3_column_type(stmt, 7) != SQLITE_NULL) precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 7));
         if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
-        if (sqlite3_column_type(stmt, 9) != SQLITE_NULL)
-        {
-          precursor.setMetaValue("peptide_sequence", String(sqlite3_column_text(stmt, 9)));
-        }
+        if (Sql::extractValue(&tmp, stmt, 9)) precursor.setMetaValue("peptide_sequence", tmp);
         // if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 10));
         if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 11));
         if (sqlite3_column_type(stmt, 12) != SQLITE_NULL) product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 12));

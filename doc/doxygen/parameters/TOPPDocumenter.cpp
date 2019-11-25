@@ -42,8 +42,9 @@
 #include <QtCore/QProcess>
 #include <QDir>
 
-#include <fstream>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include <boost/algorithm/string.hpp>
 

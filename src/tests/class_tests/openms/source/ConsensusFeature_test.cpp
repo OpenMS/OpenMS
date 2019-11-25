@@ -56,12 +56,12 @@ START_TEST(ConsensusFeature, "$Id$")
 ConsensusFeature* ptr = nullptr;
 ConsensusFeature* nullPointer = nullptr;
 START_SECTION((ConsensusFeature()))
-	ptr = new ConsensusFeature();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new ConsensusFeature();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~ConsensusFeature()))
-	delete ptr;
+  delete ptr;
 END_SECTION
 
 Feature tmp_feature;
@@ -84,89 +84,89 @@ tmp_feature3.setUniqueId(7);
 
 
 START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( ConsensusFeature const & left, ConsensusFeature const & right ) const))
-	ConsensusFeature c1(tmp_feature);
-	c1.insert(1, tmp_feature);
-	c1.insert(2, tmp_feature3);
+  ConsensusFeature c1(tmp_feature);
+  c1.insert(1, tmp_feature);
+  c1.insert(2, tmp_feature3);
 
-	ConsensusFeature c2(tmp_feature2);
-	c2.insert(1,tmp_feature2);
+  ConsensusFeature c2(tmp_feature2);
+  c2.insert(1,tmp_feature2);
 
-	ConsensusFeature::SizeLess sl;
+  ConsensusFeature::SizeLess sl;
 
-	TEST_EQUAL(sl(c1,c2), 0);
-	TEST_EQUAL(sl(c2,c1), 1);
+  TEST_EQUAL(sl(c1,c2), 0);
+  TEST_EQUAL(sl(c2,c1), 1);
 END_SECTION
 
 START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( ConsensusFeature const & left, UInt64 const & right ) const))
-	ConsensusFeature c1(tmp_feature);
-	c1.insert(1, tmp_feature);
-	c1.insert(2, tmp_feature3);
+  ConsensusFeature c1(tmp_feature);
+  c1.insert(1, tmp_feature);
+  c1.insert(2, tmp_feature3);
 
-	ConsensusFeature c2(tmp_feature);
-	c2.insert(1,tmp_feature);
-	c2.insert(2,tmp_feature2);
-	c2.insert(3,tmp_feature3);
+  ConsensusFeature c2(tmp_feature);
+  c2.insert(1,tmp_feature);
+  c2.insert(2,tmp_feature2);
+  c2.insert(3,tmp_feature3);
 
-	UInt64 rhs_size = c2.size();
+  UInt64 rhs_size = c2.size();
 
-	ConsensusFeature::SizeLess sl;
+  ConsensusFeature::SizeLess sl;
 
-	TEST_EQUAL(sl(c1,rhs_size), 1);
-	TEST_EQUAL(sl(c2,rhs_size), 0);
+  TEST_EQUAL(sl(c1,rhs_size), 1);
+  TEST_EQUAL(sl(c2,rhs_size), 0);
 END_SECTION
 
 START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( UInt64 const & left, ConsensusFeature const & right ) const))
-	ConsensusFeature c1(tmp_feature);
-	c1.insert(1, tmp_feature);
-	c1.insert(2, tmp_feature3);
+  ConsensusFeature c1(tmp_feature);
+  c1.insert(1, tmp_feature);
+  c1.insert(2, tmp_feature3);
 
-	ConsensusFeature c2(tmp_feature);
-	c2.insert(1,tmp_feature);
-	c2.insert(2,tmp_feature2);
-	c2.insert(3,tmp_feature3);
+  ConsensusFeature c2(tmp_feature);
+  c2.insert(1,tmp_feature);
+  c2.insert(2,tmp_feature2);
+  c2.insert(3,tmp_feature3);
 
-	UInt64 lhs_size = c1.size();
+  UInt64 lhs_size = c1.size();
 
-	ConsensusFeature::SizeLess sl;
+  ConsensusFeature::SizeLess sl;
 
-	TEST_EQUAL(sl(lhs_size, c1), 0);
-	TEST_EQUAL(sl(lhs_size, c2), 1);
+  TEST_EQUAL(sl(lhs_size, c1), 0);
+  TEST_EQUAL(sl(lhs_size, c2), 1);
 END_SECTION
 
 START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( const UInt64 & left, const UInt64 & right ) const))
-	ConsensusFeature c1(tmp_feature);
-	c1.insert(1, tmp_feature);
-	c1.insert(2, tmp_feature3);
+  ConsensusFeature c1(tmp_feature);
+  c1.insert(1, tmp_feature);
+  c1.insert(2, tmp_feature3);
 
-	ConsensusFeature c2(tmp_feature);
-	c2.insert(1,tmp_feature);
-	c2.insert(2,tmp_feature2);
-	c2.insert(3,tmp_feature3);
+  ConsensusFeature c2(tmp_feature);
+  c2.insert(1,tmp_feature);
+  c2.insert(2,tmp_feature2);
+  c2.insert(3,tmp_feature3);
 
-	UInt64 lhs_size = c1.size(), rhs_size = c2.size();
+  UInt64 lhs_size = c1.size(), rhs_size = c2.size();
 
-	ConsensusFeature::SizeLess sl;
+  ConsensusFeature::SizeLess sl;
 
-	TEST_EQUAL(sl(lhs_size, rhs_size), 1);
-	TEST_EQUAL(sl(rhs_size, lhs_size), 0);
+  TEST_EQUAL(sl(lhs_size, rhs_size), 1);
+  TEST_EQUAL(sl(rhs_size, lhs_size), 0);
 END_SECTION
 
 START_SECTION(([ConsensusFeature::MapsLess] bool operator () ( ConsensusFeature const & left, ConsensusFeature const & right ) const))
-	ConsensusFeature c1(tmp_feature);
-	c1.insert(1, tmp_feature);
-	c1.insert(2, tmp_feature3);
+  ConsensusFeature c1(tmp_feature);
+  c1.insert(1, tmp_feature);
+  c1.insert(2, tmp_feature3);
 
-	ConsensusFeature c2(tmp_feature);
-	c2.insert(3,tmp_feature);
-	c2.insert(4,tmp_feature2);
-	c2.insert(5,tmp_feature3);
+  ConsensusFeature c2(tmp_feature);
+  c2.insert(3,tmp_feature);
+  c2.insert(4,tmp_feature2);
+  c2.insert(5,tmp_feature3);
 
-	ConsensusFeature::MapsLess ml;
+  ConsensusFeature::MapsLess ml;
 
-	TEST_EQUAL(ml(c1,c1), 0);
-	TEST_EQUAL(ml(c1,c2), 1);
-	TEST_EQUAL(ml(c2,c1), 0);
-	TEST_EQUAL(ml(c2,c2), 0);
+  TEST_EQUAL(ml(c1,c1), 0);
+  TEST_EQUAL(ml(c1,c2), 1);
+  TEST_EQUAL(ml(c2,c1), 0);
+  TEST_EQUAL(ml(c2,c2), 0);
 END_SECTION
 
 START_SECTION((ConsensusFeature& operator=(const ConsensusFeature &rhs)))
@@ -185,7 +185,7 @@ START_SECTION((ConsensusFeature& operator=(const ConsensusFeature &rhs)))
 END_SECTION
 
 START_SECTION((ConsensusFeature(const ConsensusFeature &rhs)))
-
+{
   ConsensusFeature cons(tmp_feature);
   cons.insert(1,tmp_feature);
   ConsensusFeature cons_copy(cons);
@@ -196,6 +196,31 @@ START_SECTION((ConsensusFeature(const ConsensusFeature &rhs)))
   TEST_EQUAL((cons_copy.begin())->getMapIndex(),1)
   TEST_EQUAL((cons_copy.begin())->getUniqueId(),3)
   TEST_EQUAL((cons_copy.begin())->getIntensity(),200)
+}
+END_SECTION
+
+START_SECTION((ConsensusFeature(ConsensusFeature &&rhs)))
+{
+#ifndef OPENMS_COMPILER_MSVC
+  // Ensure that ConsensusFeature has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  // Note that MSVS does not support noexcept move constructors for STL
+  // constructs such as std::map.
+  TEST_EQUAL(noexcept(ConsensusFeature(std::declval<ConsensusFeature&&>())), true)
+#endif
+
+  ConsensusFeature cons(tmp_feature);
+  cons.insert(1,tmp_feature);
+
+  ConsensusFeature cons_copy(std::move(cons));
+
+  TEST_REAL_SIMILAR(cons_copy.getRT(),1.0)
+  TEST_REAL_SIMILAR(cons_copy.getMZ(),2.0)
+  TEST_REAL_SIMILAR(cons_copy.getIntensity(),200.0)
+  TEST_EQUAL((cons_copy.begin())->getMapIndex(),1)
+  TEST_EQUAL((cons_copy.begin())->getUniqueId(),3)
+  TEST_EQUAL((cons_copy.begin())->getIntensity(),200)
+}
 END_SECTION
 
 START_SECTION((void insert(const HandleSetType &handle_set)))
@@ -268,20 +293,20 @@ END_SECTION
 
 START_SECTION((ConsensusFeature(UInt64 map_index, const BaseFeature& element)))
 {
-	BaseFeature f;
+  BaseFeature f;
   f.setCharge(-17);
   f.setRT(44324.6);
   f.setMZ(867.4);
-	f.setIntensity(1000);
+  f.setIntensity(1000);
   f.setUniqueId(23);
-	f.getPeptideIdentifications().resize(1);
-	ConsensusFeature cf(99, f);
+  f.getPeptideIdentifications().resize(1);
+  ConsensusFeature cf(99, f);
 
   TEST_EQUAL(cf.getRT(),44324.6);
   TEST_EQUAL(cf.getMZ(),867.4);
   TEST_EQUAL(cf.getCharge(),-17);
   TEST_EQUAL(cf.getPeptideIdentifications().size(), 1);
-	ConsensusFeature::HandleSetType::const_iterator it = cf.begin();
+  ConsensusFeature::HandleSetType::const_iterator it = cf.begin();
   TEST_EQUAL(it->getMapIndex(), 99)
   TEST_EQUAL(it->getUniqueId(), 23)
   TEST_EQUAL(it->getIntensity(), 1000)
@@ -289,7 +314,7 @@ START_SECTION((ConsensusFeature(UInt64 map_index, const BaseFeature& element)))
 END_SECTION
 
 START_SECTION([EXTRA](ConsensusFeature(UInt64 map_index, const Feature &element)))
- 	ConsensusFeature cons(1,tmp_feature);
+   ConsensusFeature cons(1,tmp_feature);
   cons.setUniqueId(3);
 
   TEST_REAL_SIMILAR(cons.getRT(),1.0)
@@ -447,44 +472,44 @@ START_SECTION((void computeConsensus()))
   ConsensusFeature cons;
   //one point
   cons.insert(2,tmp_feature);
-	cons.computeConsensus();
-	TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
-	TEST_REAL_SIMILAR(cons.getRT(),1.0)
-	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
-	//two points
+  cons.computeConsensus();
+  TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
+  TEST_REAL_SIMILAR(cons.getRT(),1.0)
+  TEST_REAL_SIMILAR(cons.getMZ(),2.0)
+  //two points
   cons.insert(4,tmp_feature2);
-	cons.computeConsensus();
-	TEST_REAL_SIMILAR(cons.getIntensity(),250.0)
-	TEST_REAL_SIMILAR(cons.getRT(),1.5)
-	TEST_REAL_SIMILAR(cons.getMZ(),2.5)
-	//three points
+  cons.computeConsensus();
+  TEST_REAL_SIMILAR(cons.getIntensity(),250.0)
+  TEST_REAL_SIMILAR(cons.getRT(),1.5)
+  TEST_REAL_SIMILAR(cons.getMZ(),2.5)
+  //three points
   cons.insert(6,tmp_feature3);
-	cons.computeConsensus();
-	TEST_REAL_SIMILAR(cons.getIntensity(),300.0)
-	TEST_REAL_SIMILAR(cons.getRT(),2.0)
-	TEST_REAL_SIMILAR(cons.getMZ(),3.0)
+  cons.computeConsensus();
+  TEST_REAL_SIMILAR(cons.getIntensity(),300.0)
+  TEST_REAL_SIMILAR(cons.getRT(),2.0)
+  TEST_REAL_SIMILAR(cons.getMZ(),3.0)
 END_SECTION
 
 START_SECTION((void computeMonoisotopicConsensus()))
   ConsensusFeature cons;
   //one point
   cons.insert(2,tmp_feature);
-	cons.computeMonoisotopicConsensus();
-	TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
-	TEST_REAL_SIMILAR(cons.getRT(),1.0)
-	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
-	//two points
+  cons.computeMonoisotopicConsensus();
+  TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
+  TEST_REAL_SIMILAR(cons.getRT(),1.0)
+  TEST_REAL_SIMILAR(cons.getMZ(),2.0)
+  //two points
   cons.insert(4,tmp_feature2);
-	cons.computeMonoisotopicConsensus();
-	TEST_REAL_SIMILAR(cons.getIntensity(),250.0)
-	TEST_REAL_SIMILAR(cons.getRT(),1.5)
-	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
-	//three points
+  cons.computeMonoisotopicConsensus();
+  TEST_REAL_SIMILAR(cons.getIntensity(),250.0)
+  TEST_REAL_SIMILAR(cons.getRT(),1.5)
+  TEST_REAL_SIMILAR(cons.getMZ(),2.0)
+  //three points
   cons.insert(6,tmp_feature3);
-	cons.computeMonoisotopicConsensus();
-	TEST_REAL_SIMILAR(cons.getIntensity(),300.0)
-	TEST_REAL_SIMILAR(cons.getRT(),2.0)
-	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
+  cons.computeMonoisotopicConsensus();
+  TEST_REAL_SIMILAR(cons.getIntensity(),300.0)
+  TEST_REAL_SIMILAR(cons.getRT(),2.0)
+  TEST_REAL_SIMILAR(cons.getMZ(),2.0)
 END_SECTION
 
 START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensity_weighted_averaging=false)))
@@ -505,57 +530,57 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensit
   //one point
   ConsensusFeature cons;
   Feature tmp_feature;
-	tmp_feature.setRT(100);
-	tmp_feature.setMZ(mz1);
-	tmp_feature.setIntensity(200.0f);
-	tmp_feature.setCharge(3);
-	tmp_feature.ensureUniqueId();
-	fm.push_back(tmp_feature);
+  tmp_feature.setRT(100);
+  tmp_feature.setMZ(mz1);
+  tmp_feature.setIntensity(200.0f);
+  tmp_feature.setCharge(3);
+  tmp_feature.ensureUniqueId();
+  fm.push_back(tmp_feature);
   cons.insert(2,tmp_feature);
-	cons.computeDechargeConsensus(fm);
-	TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
-	TEST_REAL_SIMILAR(cons.getRT(),100)
-	TEST_REAL_SIMILAR(cons.getMZ(), m+m1_add);
+  cons.computeDechargeConsensus(fm);
+  TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
+  TEST_REAL_SIMILAR(cons.getRT(),100)
+  TEST_REAL_SIMILAR(cons.getMZ(), m+m1_add);
 
-	//two points
+  //two points
   Feature tmp_feature2;
-	tmp_feature2.setRT(102);
-	tmp_feature2.setMZ(mz2);
-	tmp_feature2.setIntensity(400.0f);
-	tmp_feature2.setCharge(3);
-	tmp_feature2.ensureUniqueId();
-	tmp_feature2.setMetaValue("dc_charge_adduct_mass", 2*natrium_mass + proton_mass);
-	fm.push_back(tmp_feature2);
-	cons.insert(4,tmp_feature2);
-	cons.computeDechargeConsensus(fm, true);
-	TEST_REAL_SIMILAR(cons.getIntensity(),600.0)
-	TEST_REAL_SIMILAR(cons.getRT(),(100.0/3 + 102.0*2/3))
-	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/3 + (m+m2_add)*2/3))
+  tmp_feature2.setRT(102);
+  tmp_feature2.setMZ(mz2);
+  tmp_feature2.setIntensity(400.0f);
+  tmp_feature2.setCharge(3);
+  tmp_feature2.ensureUniqueId();
+  tmp_feature2.setMetaValue("dc_charge_adduct_mass", 2*natrium_mass + proton_mass);
+  fm.push_back(tmp_feature2);
+  cons.insert(4,tmp_feature2);
+  cons.computeDechargeConsensus(fm, true);
+  TEST_REAL_SIMILAR(cons.getIntensity(),600.0)
+  TEST_REAL_SIMILAR(cons.getRT(),(100.0/3 + 102.0*2/3))
+  TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/3 + (m+m2_add)*2/3))
 
-	cons.computeDechargeConsensus(fm, false);
-	TEST_REAL_SIMILAR(cons.getIntensity(),600.0)
-	TEST_REAL_SIMILAR(cons.getRT(),(100.0/2 + 102.0/2))
-	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/2 + (m+m2_add)/2))
+  cons.computeDechargeConsensus(fm, false);
+  TEST_REAL_SIMILAR(cons.getIntensity(),600.0)
+  TEST_REAL_SIMILAR(cons.getRT(),(100.0/2 + 102.0/2))
+  TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/2 + (m+m2_add)/2))
 
-	//three points
+  //three points
   Feature tmp_feature3;
-	tmp_feature3.setRT(101);
-	tmp_feature3.setMZ(mz3);
-	tmp_feature3.setIntensity(600.0f);
-	tmp_feature3.setCharge(5);
-	tmp_feature3.ensureUniqueId();
-	tmp_feature3.setMetaValue("dc_charge_adduct_mass", 1*natrium_mass + 4*proton_mass);
-	fm.push_back(tmp_feature3);
-	cons.insert(4,tmp_feature3);
-	cons.computeDechargeConsensus(fm, true);
-	TEST_REAL_SIMILAR(cons.getIntensity(),1200.0)
-	TEST_REAL_SIMILAR(cons.getRT(),(100.0/6 + 102.0/3 + 101.0/2))
-	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/6 + (m+m2_add)/3 + (m+m3_add)/2))
+  tmp_feature3.setRT(101);
+  tmp_feature3.setMZ(mz3);
+  tmp_feature3.setIntensity(600.0f);
+  tmp_feature3.setCharge(5);
+  tmp_feature3.ensureUniqueId();
+  tmp_feature3.setMetaValue("dc_charge_adduct_mass", 1*natrium_mass + 4*proton_mass);
+  fm.push_back(tmp_feature3);
+  cons.insert(4,tmp_feature3);
+  cons.computeDechargeConsensus(fm, true);
+  TEST_REAL_SIMILAR(cons.getIntensity(),1200.0)
+  TEST_REAL_SIMILAR(cons.getRT(),(100.0/6 + 102.0/3 + 101.0/2))
+  TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/6 + (m+m2_add)/3 + (m+m3_add)/2))
 
-	cons.computeDechargeConsensus(fm, false);
-	TEST_REAL_SIMILAR(cons.getIntensity(),1200.0)
-	TEST_REAL_SIMILAR(cons.getRT(),(100.0/3 + 102.0/3 + 101.0/3))
-	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/3 + (m+m2_add)/3 + (m+m3_add)/3))
+  cons.computeDechargeConsensus(fm, false);
+  TEST_REAL_SIMILAR(cons.getIntensity(),1200.0)
+  TEST_REAL_SIMILAR(cons.getRT(),(100.0/3 + 102.0/3 + 101.0/3))
+  TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/3 + (m+m2_add)/3 + (m+m3_add)/3))
 
 END_SECTION
 
@@ -565,35 +590,35 @@ END_SECTION
 START_SECTION((Size size() const))
 {
   ConsensusFeature c1(tmp_feature);
-	c1.insert(1, tmp_feature);
-	c1.insert(2, tmp_feature3);
+  c1.insert(1, tmp_feature);
+  c1.insert(2, tmp_feature3);
   TEST_EQUAL(c1.size(), 2)
 
-	ConsensusFeature c2;
+  ConsensusFeature c2;
   TEST_EQUAL(c2.size(), 0)
-	c2.insert(1,tmp_feature2);
-	TEST_EQUAL(c2.size(), 1)
+  c2.insert(1,tmp_feature2);
+  TEST_EQUAL(c2.size(), 1)
 }
 END_SECTION
 
 START_SECTION((const_iterator begin() const))
 {
 
-	ConsensusFeature c;
+  ConsensusFeature c;
   const ConsensusFeature& c2 = c;
   TEST_EQUAL(c2.begin()==c2.end(), true)
-	c.insert(1,tmp_feature2);
+  c.insert(1,tmp_feature2);
   const ConsensusFeature& c3 = c;
-	TEST_EQUAL(c3.begin()->getUniqueId(), 5)
+  TEST_EQUAL(c3.begin()->getUniqueId(), 5)
 }
 END_SECTION
 
 START_SECTION((iterator begin()))
 {
-	ConsensusFeature c;
+  ConsensusFeature c;
   TEST_EQUAL(c.begin()==c.end(), true)
-	c.insert(1,tmp_feature2);
-	TEST_EQUAL(c.begin()->getUniqueId(), 5)
+  c.insert(1,tmp_feature2);
+  TEST_EQUAL(c.begin()->getUniqueId(), 5)
 }
 END_SECTION
 
@@ -609,21 +634,21 @@ END_SECTION
 START_SECTION((const_reverse_iterator rbegin() const))
 {
 
-	ConsensusFeature c;
+  ConsensusFeature c;
   const ConsensusFeature& c2 = c;
   TEST_EQUAL(c2.rbegin()==c2.rend(), true)
-	c.insert(1,tmp_feature2);
+  c.insert(1,tmp_feature2);
   const ConsensusFeature& c3 = c;
-	TEST_EQUAL(c3.rbegin()->getUniqueId(), 5)
+  TEST_EQUAL(c3.rbegin()->getUniqueId(), 5)
 }
 END_SECTION
 
 START_SECTION((reverse_iterator rbegin()))
 {
-	ConsensusFeature c;
+  ConsensusFeature c;
   TEST_EQUAL(c.rbegin()==c.rend(), true)
-	c.insert(1,tmp_feature2);
-	TEST_EQUAL(c.rbegin()->getUniqueId(), 5)
+  c.insert(1,tmp_feature2);
+  TEST_EQUAL(c.rbegin()->getUniqueId(), 5)
 }
 END_SECTION
 
@@ -638,31 +663,31 @@ END_SECTION
 START_SECTION((void clear()))
 {
   ConsensusFeature c1(tmp_feature);
-	c1.insert(1, tmp_feature);
-	c1.insert(2, tmp_feature3);
+  c1.insert(1, tmp_feature);
+  c1.insert(2, tmp_feature3);
   c1.clear();
   TEST_EQUAL(c1.size(), 0)
 
-	ConsensusFeature c2;
+  ConsensusFeature c2;
   TEST_EQUAL(c2.size(), 0)
-	c2.insert(1,tmp_feature2);
+  c2.insert(1,tmp_feature2);
   c2.clear();
-	TEST_EQUAL(c2.size(), 0)
+  TEST_EQUAL(c2.size(), 0)
 }
 END_SECTION
 
 START_SECTION((bool empty() const))
 {
   ConsensusFeature c1(tmp_feature);
-	c1.insert(1, tmp_feature);
-	c1.insert(2, tmp_feature3);
+  c1.insert(1, tmp_feature);
+  c1.insert(2, tmp_feature3);
   TEST_EQUAL(c1.empty(), false)
   c1.clear();
   TEST_EQUAL(c1.empty(), true)
 
-	ConsensusFeature c2;
+  ConsensusFeature c2;
   TEST_EQUAL(c2.size(), 0)
-	c2.insert(1,tmp_feature2);
+  c2.insert(1,tmp_feature2);
   TEST_EQUAL(c2.empty(), false)
   c2.clear();
   TEST_EQUAL(c2.empty(), true)

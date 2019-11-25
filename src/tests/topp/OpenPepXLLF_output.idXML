@@ -28,6 +28,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<UserParam type="string" name="SpectrumIdentificationProtocol" value="MS:1002494"/>
+			<UserParam type="stringList" name="spectra_data_raw" value="[file:///C:\MSData\LRRK2_DSG\GUA1354-S15-A-LRRK2_DSG_A4.raw]"/>
 			<UserParam type="stringList" name="spectra_data" value="[file://OpenPepXLLF_input.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="787.740356445312955" RT="2175.300299999999879" spectrum_reference="controllerType=0 controllerNumber=1 scan=2395" >

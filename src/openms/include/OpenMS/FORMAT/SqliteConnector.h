@@ -302,22 +302,22 @@ protected:
           sqlite3_finalize(stmt);
       */
       template <typename ValueType>
-      void extractValue(ValueType* /* dst */, sqlite3_stmt* /* stmt */, int /* pos */)
+      bool extractValue(ValueType* /* dst */, sqlite3_stmt* /* stmt */, int /* pos */)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Not implemented");
       }
 
-      template <> void extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
-      template <> void extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
-      template <> void extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
-      template <> void extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
       /// Special case where an integer should be stored in a String field
-      void extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
+      bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
 
     }
   }

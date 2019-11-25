@@ -39,8 +39,9 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 
-#include <map>
 #include <algorithm>
+#include <iostream>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;

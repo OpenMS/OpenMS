@@ -809,8 +809,9 @@ protected:
     const vector<String>& primary_files,
     const IdentificationData::DBSearchParam& search_param)
   {
+    String input_file = test_mode_ ? File::basename(in_mzml) : in_mzml;
     IdentificationData::InputFileRef file_ref =
-      id_data.registerInputFile(in_mzml);
+      id_data.registerInputFile(input_file);
     IdentificationData::ScoreType score("hyperscore", true);
     IdentificationData::ScoreTypeRef score_ref =
       id_data.registerScoreType(score);

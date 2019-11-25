@@ -143,6 +143,7 @@ namespace OpenMS
     targetMap[FileTypes::JSON] = "json";
     targetMap[FileTypes::RAW] = "raw";
     targetMap[FileTypes::OMS] = "oms";
+    targetMap[FileTypes::EXE] = "exe";
 
     return targetMap;
   }
