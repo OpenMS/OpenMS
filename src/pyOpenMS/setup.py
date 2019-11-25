@@ -172,7 +172,7 @@ if not iswin:
     if isosx: # MacOS c++11
         extra_compile_args.append("-stdlib=libc++")
         extra_compile_args.append("-mmacosx-version-min=10.7")
-        if (osx_ver >= "10.15.0"): #macOS Catalina
+        if (osx_ver >= "10.15.0" and SYSROOT_OSX_PATH): #macOS Catalina
             extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
