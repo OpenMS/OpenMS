@@ -72,6 +72,7 @@ def fixable(name, path)
     filename = "#{path}/#{name}"
     debug filename.to_s
     otool_out=`otool -L #{filename}`
+    ## Otool returns exit code 0 even if it is not an object file -> check output
     return !( otool_out =~ /.*object file.*/ )
   end
 end
