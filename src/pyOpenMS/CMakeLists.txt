@@ -324,6 +324,7 @@ set(_pyopenms_files
   run_memleaks.py
   doCythonCompileOnly.py
   fix_pyopenms_dependencies_on_mac.sh
+  mac_fix_automation_mojave.sh
 )
 
 foreach(pyfile ${_pyopenms_files})
