@@ -972,11 +972,14 @@ namespace OpenMS
     if (mzml_inputs)
     {
       protein.setPrimaryMSRunPath(mzml_files);
-      // also store raw files (or equivalent):
-      protein.setPrimaryMSRunPath(step_ref->primary_files, true);
+      if (!step_ref->primary_files.empty())
+      { // also store raw files (or equivalent):
+        protein.setPrimaryMSRunPath(step_ref->primary_files, true);
+      }
       return;
     }
     // alternatively, are the primary files mzMLs?
+    if (step_ref->primary_files.empty()) return;
     bool mzml_primaries = false;
     for (const String& file : step_ref->primary_files)
     {
