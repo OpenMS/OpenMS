@@ -47,8 +47,10 @@ namespace OpenMS
    *
    * This class counts the number of MissedCleavages per PeptideIdentification given a FeatureMap
    * and returns an agglomeration statistic (observed counts).
-   * Additionally the PeptideHits in the FeatureMap are augmented with MetaInformation.
-   *
+   * Additionally the PeptideHits in the FeatureMap are augmented with MetaInformation:
+   *  - 'missed_cleavages'
+   *  - 'FWHM' (from feature's 'FWHM' or 'model_FWHM')
+   *  - 'mass' (experimental mass of peptide)
    */
   class OPENMS_DLLAPI MissedCleavages : public QCBase
   {

@@ -39,13 +39,13 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/QC/TopNoverRT.h>
+#include <OpenMS/QC/Ms2SpectrumStats.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 
 ///////////////////////////
 
-START_TEST(TopNoverRT, "$Id$");
+START_TEST(Ms2SpectrumStats, "$Id$");
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -53,26 +53,26 @@ START_TEST(TopNoverRT, "$Id$");
 using namespace OpenMS;
 using namespace std;
 
-TopNoverRT* ptr = nullptr;
-TopNoverRT* nullPointer = nullptr;
+Ms2SpectrumStats* ptr = nullptr;
+Ms2SpectrumStats* nullPointer = nullptr;
 
-START_SECTION(TopNoverRT())
+START_SECTION(Ms2SpectrumStats())
 {
-  ptr = new TopNoverRT;
+  ptr = new Ms2SpectrumStats;
   TEST_NOT_EQUAL(ptr, nullPointer);
 }
 END_SECTION
 
-START_SECTION(~TopNoverRT())
+START_SECTION(~Ms2SpectrumStats())
 {
   delete ptr;
 }
 END_SECTION
 
-TopNoverRT top;
+Ms2SpectrumStats top;
 START_SECTION(const String& getName() const override)
 {
-  TEST_EQUAL(top.getName(), "TopNoverRT")
+  TEST_EQUAL(top.getName(), "Ms2SpectrumStats")
 }
 END_SECTION
 
@@ -90,7 +90,6 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   vector<PeptideIdentification> identifications;
   vector<PeptideIdentification> unassignedIDs;
   Feature f1;
-  f1.setMetaValue("FWHM", 32.21);
   peptide_ID.setMetaValue("spectrum_reference","XTandem::0");
   identifications.push_back(peptide_ID);
   peptide_ID.setMetaValue("spectrum_reference","XTandem::1");
@@ -191,7 +190,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
 
   QCBase::SpectraMap map_to_spectrum(exp);
 
-  TopNoverRT top;
+  Ms2SpectrumStats top;
   vector<PeptideIdentification> new_unassigned_pep_ids;
   new_unassigned_pep_ids = top.compute(exp, fmap, map_to_spectrum);
 
@@ -221,22 +220,15 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   new_unassigned_pep_ids = top.compute(exp, fmap_empty, map_to_spectrum);
   TEST_EQUAL(new_unassigned_pep_ids.size(), 7);
 
-  // empty feature
-  fmap_empty.clear();
-  Feature feature_empty{};
-  fmap_empty.push_back(feature_empty);
-  TEST_EXCEPTION(Exception::MissingInformation, top.compute(exp, fmap_empty, map_to_spectrum));
-
   // empty PeptideIdentifications
   fmap_empty.clear();
-  fmap_empty.push_back(f1); // need a feature with FWHM
-  feature_empty.setPeptideIdentifications( {} );
+  fmap_empty.push_back(f1); // need some non-empty feature
   fmap_empty.setUnassignedPeptideIdentifications( {} );
   new_unassigned_pep_ids = top.compute(exp, fmap_empty, map_to_spectrum);
   TEST_EQUAL(new_unassigned_pep_ids.size(), 5);
   // empty MSExperiment
   PeakMap exp_empty{};
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, top.compute(exp_empty, fmap, map_to_spectrum), "The mzml file / MSExperiment is empty.\n");
+  TEST_EXCEPTION(Exception::MissingInformation, top.compute(exp_empty, fmap, map_to_spectrum));
 
   // test exception PepID without 'spectrum_reference'
   PeptideIdentification pep_no_spec_ref;

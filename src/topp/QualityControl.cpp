@@ -56,7 +56,7 @@
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
-#include <OpenMS/QC/TopNoverRT.h>
+#include <OpenMS/QC/Ms2SpectrumStats.h>
 #include <cstdio>
 
 #include <map>
@@ -292,7 +292,7 @@ protected:
     MzCalibration qc_mz_calibration;
     RTAlignment qc_rt_alignment;
     TIC qc_tic;
-    TopNoverRT qc_top_n_over_rt;
+    Ms2SpectrumStats qc_ms2stats;
 
     // Loop through file lists
     vector<PeptideIdentification> all_new_upep_ids;
@@ -339,11 +339,6 @@ protected:
         qc_frag_mass_err.compute(fmap, exp, spec_map, tolerance_unit, tolerance_value);
       }
 
-      if (isRunnable_(&qc_missed_cleavages, status))
-      {
-        qc_missed_cleavages.compute(fmap);
-      }
-
       if (isRunnable_(&qc_ms2ir, status))
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
@@ -352,6 +347,12 @@ protected:
       if (isRunnable_(&qc_mz_calibration, status))
       {
         qc_mz_calibration.compute(fmap, exp, spec_map);
+      }
+      
+      // after qc_mz_calibration, because it calculates 'mass' metavalue
+      if (isRunnable_(&qc_missed_cleavages, status))
+      {
+        qc_missed_cleavages.compute(fmap);
       }
 
       if (isRunnable_(&qc_rt_alignment, status))
@@ -364,10 +365,10 @@ protected:
         qc_tic.compute(exp);
       }
 
-      if (isRunnable_(&qc_top_n_over_rt, status))
+      if (isRunnable_(&qc_ms2stats, status))
       {
         // copies FWHM metavalue to PepIDs as well
-        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap, spec_map);
+        vector<PeptideIdentification> new_upep_ids = qc_ms2stats.compute(exp, fmap, spec_map);
         // use identifier of CMap for just calculated pepIDs (via common MS-run-path)
         const auto& f_runpath = mp_f.runpath_to_identifier.begin()->first; // just get any runpath from fmap
         const auto ptr_cmap = mp_c.runpath_to_identifier.find(f_runpath);
