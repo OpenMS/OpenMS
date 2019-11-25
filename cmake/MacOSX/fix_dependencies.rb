@@ -71,8 +71,9 @@ def fixable(name, path)
   else
     filename = "#{path}/#{name}"
     debug filename.to_s
-    `otool -L #{filename} 2> /dev/null`
-    return ($? >> 8) == 0
+    otool_out=`otool -L #{filename}`
+    puts otool_out
+    return !( otool_out =~ /.*object file.*/ )
   end
 end
 
@@ -178,11 +179,11 @@ end
 ###############################################################################
 def copyFramework(frameworkPath, targetPath)
   # get framework path (name of dir containing .framework)
-  frameworkDir=frameworkPath.gsub(/(.*\.framework).*/,'\1')
-  frameworkName=frameworkDir.gsub(/(.*\/)([^\/]*\.framework)/,'\2')
+  frameworkDir=frameworkPath.to_s.gsub(/(.*\.framework).*/,'\1')
+  frameworkName=frameworkDir.to_s.gsub(/(.*\/)([^\/]*\.framework)/,'\2')
 
   # the actual lib name
-  internFrameworkDir=frameworkPath.gsub(/(.*\.framework)\/(.*)/,'\2')
+  internFrameworkDir=frameworkPath.to_s.gsub(/(.*\.framework)\/(.*)/,'\2')
   libname=frameworkName+'/'+internFrameworkDir
   # the new path
   newFrameworkPath="#{targetPath}/#{libname}"
@@ -348,15 +349,20 @@ end
 
 debug "HANDLING LIB DIR"
 # fix libraries contained in lib-path
-for content in Dir.entries($lib_dir)
-  if fixable(content, $lib_dir)
-    if isFramework(content)
-#      handleFramework($lib_dir + content, $lib_dir)
-    elsif (content.end_with?(".dylib") or content.end_with?(".so"))
-      handleDyLib($lib_dir + content, $lib_dir)
+Dir.chdir("#{$lib_dir}") do
+  lib_files = Dir.glob(["*","*/*"])
+  for content in lib_files
+    if fixable(content, $lib_dir)
+      if isFramework(content)
+        handleFramework($lib_dir + content, $lib_dir)
+      elsif (content.end_with?(".dylib") or content.end_with?(".so"))
+        handleDyLib($lib_dir + content, $lib_dir)
+      else
+        debug "Skipped #{$lib_dir + content} -- No lib or framework?"
+      end
+    else
+      debug "Skipped #{$lib_dir + content} -- Otool not executable on it."
     end
-  else
-    debug "Skipped #{$lib_dir + content}. No binary or object?"
   end
 end
 
@@ -373,7 +379,7 @@ if !$bin_dir.nil?
         handleBinary($bin_dir + content)
       end
     else
-      debug "Skipped #{$bin_dir + content}. No binary or object?"
+      debug "Skipped #{$bin_dir + content} -- No binary or object?"
     end
   end
 end
