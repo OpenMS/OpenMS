@@ -1400,8 +1400,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(12, 0.9893);
-    isotopes.insert(13, 0.0107);
+    isotopes.insert(12, 0.9893f);
+    isotopes.insert(13, 0.0107f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1515,8 +1515,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(14, 0.99632);
-    isotopes.insert(15, 0.368);
+    isotopes.insert(14, 0.99632f);
+    isotopes.insert(15, 0.368f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1586,8 +1586,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(1, 0.999885);
-    isotopes.insert(2, 0.000115);
+    isotopes.insert(1, 0.999885f);
+    isotopes.insert(2, 0.000115f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1657,9 +1657,9 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(1, 0.99757);
-    isotopes.insert(2, 0.00038);
-    isotopes.insert(3, 0.00205);
+    isotopes.insert(1, 0.99757f);
+    isotopes.insert(2, 0.00038f);
+    isotopes.insert(3, 0.00205f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1697,8 +1697,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(14, 0.99632);
-    isotopes.insert(15, 0.368);
+    isotopes.insert(14, 0.99632f);
+    isotopes.insert(15, 0.368f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1733,8 +1733,8 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    isotopes.insert(12, 0.9893);
-    isotopes.insert(13, 0.010);
+    isotopes.insert(12, 0.9893f);
+    isotopes.insert(13, 0.010f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1771,8 +1771,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(1, 0.999885);
-    isotopes.insert(2, 0.000115);
+    isotopes.insert(1, 0.999885f);
+    isotopes.insert(2, 0.000115f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1810,9 +1810,9 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(1, 0.99757);
-    isotopes.insert(2, 0.00038);
-    isotopes.insert(3, 0.00205);
+    isotopes.insert(1, 0.99757f);
+    isotopes.insert(2, 0.00038f);
+    isotopes.insert(3, 0.00205f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -3331,33 +3331,21 @@ protected:
       {
         if (isotopic_intensities[i] < 1e-4) continue;
         Size consecutive_isotopes = 0;
-        Int j = i;
+        Size j = i;
 
-        while (j >= 0)
+        while (j != -1)
         {
-          if (isotopic_intensities[j] > 1e-4)
-          {
-            ++consecutive_isotopes;
-            --j;
-          }
-          else
-          {
-            break;
-          }
+          if (isotopic_intensities[j] <= 1e-4) break;
+          ++consecutive_isotopes;
+          --j;
         }
         j = i + 1;
 
-        while ((Size)j < isotopic_intensities.size())
+        while (j < isotopic_intensities.size())
         {
-          if (isotopic_intensities[j] > 1e-4)
-          {
-            ++consecutive_isotopes;
-            ++j;
-          }
-          else
-          {
-            break;
-          }
+          if (isotopic_intensities[j] <= 1e-4) break;
+          ++consecutive_isotopes;
+          ++j;
         }
 
         if (consecutive_isotopes < min_consecutive_isotopes)
