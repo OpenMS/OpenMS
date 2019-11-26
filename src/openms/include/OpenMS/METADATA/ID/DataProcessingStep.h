@@ -70,13 +70,14 @@ namespace OpenMS
 
       DataProcessingStep(const DataProcessingStep& other) = default;
 
-      // don't compare meta data (?):
+      // order by date/time first, don't compare meta data (?):
       bool operator<(const DataProcessingStep& other) const
       {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) <
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
+        return (std::tie(date_time, software_ref, input_file_refs,
+                         primary_files, actions) <
+                std::tie(other.date_time, other.software_ref,
+                         other.input_file_refs, other.primary_files,
+                         other.actions));
       }
 
       // don't compare meta data (?):

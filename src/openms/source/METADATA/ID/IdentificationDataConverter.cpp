@@ -422,7 +422,20 @@ namespace OpenMS
       }
     }
 
-    set<boost::optional<IdentificationData::ProcessingStepRef>> steps;
+    using StepOpt = boost::optional<IdentificationData::ProcessingStepRef>;
+    // functor for ordering 'StepOpt' (by date of the steps, if available):
+    struct StepOptCompare
+    {
+      bool operator()(const StepOpt& left, const StepOpt& right) const
+      {
+        // @TODO: should runs without associated step go first or last?
+        if (!left) return bool(right);
+        if (!right) return false;
+        return **left < **right;
+      }
+    };
+    set<StepOpt, StepOptCompare> steps;
+
     for (const auto& psm : psm_data)
     {
       const IdentificationData::DataQuery& query = *psm.first.first;
@@ -448,8 +461,8 @@ namespace OpenMS
       steps.insert(psm.first.second);
     }
 
-    map<boost::optional<IdentificationData::ProcessingStepRef>,
-        pair<vector<ProteinHit>, IdentificationData::ScoreTypeRef>> prot_data;
+    map<StepOpt, pair<vector<ProteinHit>, IdentificationData::ScoreTypeRef>>
+      prot_data;
     for (const auto& parent : id_data.getParentMolecules())
     {
       bool right_type =
