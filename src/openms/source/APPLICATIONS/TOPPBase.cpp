@@ -1315,73 +1315,81 @@ namespace OpenMS
     return tmp;
   }
 
-  void TOPPBase::fileParamValidityCheck_(String& filename, const String& param_name, const ParameterInformation& p) const
+  void TOPPBase::fileParamValidityCheck_(String& param_value, const String& param_name, const ParameterInformation& p) const
   {
     // check if files are readable/writable
     if (p.type == ParameterInformation::INPUT_FILE)
     {
       if (ListUtils::contains(p.tags, "is_executable"))
-      { // will update 'tmp' to absolute path
-        if (File::findExecutable(filename))
+      { // will update to absolute path
+        if (File::findExecutable(param_value))
         {
-          writeDebug_("Input file resolved to '" + filename + "'", 2);
+          writeDebug_("Input file resolved to '" + param_value + "'", 2);
         }
         else
         {
-          writeLog_("Input file '" + filename + "' could not be found (by searching on PATH). "
+          writeLog_("Input file '" + param_value + "' could not be found (by searching on PATH). "
                     "Either provide a full filepath or fix your PATH environment!" + 
                     (p.required ? "" : " Since this file is not strictly required, you might also pass the empty string \"\" as "
                     "argument to prevent it's usage (this might limit the usability of the tool)."));
-          throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+          throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
         }
       }
-      if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(filename, param_name);
+      if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(param_value, param_name);
     }
     else if (p.type == ParameterInformation::OUTPUT_FILE)
     {
-      outputFileWritable_(filename, param_name);
+      outputFileWritable_(param_value, param_name);
     }
 
     // check restrictions
-    if (!p.valid_strings.empty())
+    if (p.valid_strings.empty()) return;
+
+    switch (p.type)
     {
-      if (p.type == ParameterInformation::STRING)
-      {
-        if (find(p.valid_strings.begin(), p.valid_strings.end(), filename) == p.valid_strings.end())
+      case ParameterInformation::STRING:
+        if (!ListUtils::contains(p.valid_strings, param_value))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Invalid value '") + filename + "' for string parameter '" + param_name + "' given. Valid strings are: '" + ListUtils::concatenate(p.valid_strings, "', '") + "'.");
+            String("Invalid value '") + param_value + "' for string parameter '" + param_name + "' given. Valid strings are: '" + 
+            ListUtils::concatenate(p.valid_strings, "', '") + "'.");
         }
-      }
-      else if (p.type == ParameterInformation::INPUT_FILE)
+        break;
+
+      case ParameterInformation::INPUT_FILE:
       {
         // determine file type as string
-        FileTypes::Type f_type = FileHandler::getType(filename);
+        FileTypes::Type f_type = FileHandler::getType(param_value);
         // unknown ending is 'ok'
         if (f_type == FileTypes::UNKNOWN)
         {
-          writeLog_("Warning: Could not determine format of input file '" + filename + "'!");
+          writeLog_("Warning: Could not determine format of input file '" + param_value + "'!");
         }
         else if (!ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Input file '" + filename + "' has invalid format '") + FileTypes::typeToName(f_type) +
+            String("Input file '" + param_value + "' has invalid format '") + FileTypes::typeToName(f_type) +
             "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") + "'.");
         }
+        break;
       }
-      else if (p.type == ParameterInformation::OUTPUT_FILE)
+
+      case ParameterInformation::OUTPUT_FILE:
       {
-        outputFileWritable_(filename, param_name);
+        outputFileWritable_(param_value, param_name);
         // determine file type as string
-        FileTypes::Type f_type = FileHandler::getTypeByFileName(filename);
+        FileTypes::Type f_type = FileHandler::getTypeByFileName(param_value);
         // Wrong ending, unknown is is ok.
         if (f_type != FileTypes::UNKNOWN && !ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Invalid output file extension for file '") + filename + "'. Valid file extensions are: '" +
+            String("Invalid output file extension for file '") + param_value + "'. Valid file extensions are: '" +
             ListUtils::concatenate(p.valid_strings, "','") + "'.");
         }
+        break;
       }
+      default: /*nothing */
+        break;
     }
   }
 
