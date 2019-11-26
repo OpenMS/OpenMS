@@ -154,7 +154,11 @@ def copyLib(lib, targetPath)
   if not File.exist?(newPath)
     debug "Copy #{libBasename} from #{lib} to #{targetPath}"
     `cp #{lib} #{targetPath}`
-    `chmod u+rw #{newPath}`
+    if File.directory?(newPath)
+      `chmod -R u+rwX #{newPath}`
+    else
+      `chmod u+rw #{newPath}`
+    end
   else
     debug "#{libBasename} exists in #{targetPath}"
   end
@@ -192,7 +196,7 @@ def copyFramework(frameworkPath, targetPath)
     debug "Copy fw #{frameworkName} from #{frameworkDir} to #{targetPath}"
     `cp -r #{frameworkDir} #{targetPath}`
     # adjust rights
-    `chmod u+rw #{newFrameworkPath}`
+    `chmod -R u+rwX #{newFrameworkPath}`
   else
     debug "fw #{frameworkName} already exists in #{targetPath}"
   end
