@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" id="LSID1234" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="MSDB" db_version="1.0" taxonomy="" mass_type="average" charges="+1, +2" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="1" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<SearchParameters id="SP_1" db="MSDB" db_version="1.1" taxonomy="" mass_type="monoisotopic" charges="+1, +2, +3" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="1" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Fixed" />
+		<FixedModification name="Fixed2" />
+		<VariableModification name="Variable" />
+		<VariableModification name="Variable2" />
+	</SearchParameters>
+	<IdentificationRun date="2006-01-12T12:13:14" search_engine="Mascot" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="PROT1" score="34.4000015258789" sequence="ABCDEFG" >
+				<UserParam type="string" name="name" value="ProteinHit"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="PROT2" score="24.3999996185303" sequence="ABCDEFG" >
+			</ProteinHit>
+			<UserParam type="string" name="name" value="ProteinIdentification"/>
+			<UserParam type="string" name="protein_group_0" value="0.88,PH_0,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0,PH_0,PH_1"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="MOWSE_reversed" higher_score_better="false" significance_threshold="0" MZ="675.9" RT="1234.5" spectrum_reference="17" >
+			<PeptideHit score="0.9" sequence="PEPTIDER" charge="1" aa_before="A X" aa_after="B X" protein_refs="PH_0 PH_1" >
+				<UserParam type="string" name="name" value="PeptideHit"/>
+			</PeptideHit>
+			<PeptideHit score="1.4" sequence="PEPTIDERR" charge="1" >
+			</PeptideHit>
+			<UserParam type="string" name="name" value="PeptideIdentification"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="44.4" sequence="PEPTIDERRR" charge="2" >
+			</PeptideHit>
+			<PeptideHit score="33.3" sequence="PEPTIDERRRR" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2007-01-12T12:13:14" search_engine="Mascot" search_engine_version="2.1.1" search_parameters_ref="SP_1" >
+		<ProteinIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_2" accession="PROT3" score="100" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="1.4" sequence="PEPTIDERRRRR" charge="1" protein_refs="PH_2" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
