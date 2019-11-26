@@ -768,6 +768,22 @@ protected:
     */
     void checkParam_(const Param& param, const String& filename, const String& location) const;
 
+    /**
+      @brief checks if an input file exists (respecting the flags)
+
+      Checks if String/Format restrictions are met (or throws InvalidParameter() otherwise).
+      
+      For InputFile(s), it checks if the file is readable/findable. 
+      If 'is_executable' is specified as a tag, the filename is searched on PATH and upon success, the full absolute path is returned.
+      
+      For OutputFile(s), it checks if the file is writeable.
+
+      @param filename ...as given via commandline/ini/default
+      @param param_name Name of the parameter (key)
+      @param p All meta information for this param
+
+    */
+    void fileParamValidityCheck_(String& filename, const String& param_name, const ParameterInformation& p) const;
 
     /**
       @brief Checks if the parameters of the provided ini file are applicable to this tool
