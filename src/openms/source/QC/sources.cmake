@@ -7,11 +7,11 @@ set(sources_list
   FragmentMassError.cpp
   MissedCleavages.cpp
   Ms2IdentificationRate.cpp
+  Ms2SpectrumStats.cpp
   MzCalibration.cpp
   QCBase.cpp
   RTAlignment.cpp
   TIC.cpp
-  TopNoverRT.cpp
 )
 
 ### add path to the filenames
