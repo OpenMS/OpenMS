@@ -1400,8 +1400,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(12, 0.9893);
-    isotopes.insert(13, 0.0107);
+    isotopes.insert(12, 0.9893f);
+    isotopes.insert(13, 0.0107f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1515,8 +1515,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(14, 0.99632);
-    isotopes.insert(15, 0.368);
+    isotopes.insert(14, 0.99632f);
+    isotopes.insert(15, 0.368f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1586,8 +1586,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(1, 0.999885);
-    isotopes.insert(2, 0.000115);
+    isotopes.insert(1, 0.999885f);
+    isotopes.insert(2, 0.000115f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1657,9 +1657,9 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(1, 0.99757);
-    isotopes.insert(2, 0.00038);
-    isotopes.insert(3, 0.00205);
+    isotopes.insert(1, 0.99757f);
+    isotopes.insert(2, 0.00038f);
+    isotopes.insert(3, 0.00205f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1697,8 +1697,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(14, 0.99632);
-    isotopes.insert(15, 0.368);
+    isotopes.insert(14, 0.99632f);
+    isotopes.insert(15, 0.368f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1733,8 +1733,8 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    isotopes.insert(12, 0.9893);
-    isotopes.insert(13, 0.010);
+    isotopes.insert(12, 0.9893f);
+    isotopes.insert(13, 0.010f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1771,8 +1771,8 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(1, 0.999885);
-    isotopes.insert(2, 0.000115);
+    isotopes.insert(1, 0.999885f);
+    isotopes.insert(2, 0.000115f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1810,9 +1810,9 @@ public:
     // reset to natural occurance
     IsotopeDistribution isotopes;
     isotopes.clear();
-    isotopes.insert(1, 0.99757);
-    isotopes.insert(2, 0.00038);
-    isotopes.insert(3, 0.00205);
+    isotopes.insert(1, 0.99757f);
+    isotopes.insert(2, 0.00038f);
+    isotopes.insert(3, 0.00205f);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1931,7 +1931,7 @@ public:
 class RIntegration
 {
 public:
-  // Perform a simple check if R and all R dependencies are thereget
+  // Perform a simple check if R and all R dependencies are there
   static bool checkRDependencies(const String& tmp_path, StringList package_names, const QString& executable = QString("R"))
   {
     String random_name = String::random(8);
@@ -2069,7 +2069,7 @@ protected:
     registerInputFile_("in_featureXML", "<file>", "", "Feature data annotated with identifications (IDMapper)");
     setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
 
-    registerInputFile_("r_executable", "<file>", "R", "Path to the R executable (default: 'R')", false);
+    registerInputFile_("r_executable", "<file>", "R", "Path to the R executable (default: 'R')", false, false, {"is_executable"});
 
     registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false);
 
@@ -2931,7 +2931,6 @@ protected:
     Int debug_level = getIntOption_("debug");
     String in_mzml = getStringOption_("in_mzML");
     String in_features = getStringOption_("in_featureXML");
-    QString executable = getStringOption_("r_executable").toQString();
     double mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
     double rt_tolerance_s = getDoubleOption_("rt_tolerance_s");
 
@@ -2952,6 +2951,7 @@ protected:
     // Do we want to create a qc report?  
     if (!qc_output_directory.empty())
     {
+      QString executable = getStringOption_("r_executable").toQString();
       // convert path to absolute path
       QDir qc_dir(qc_output_directory.toQString());
       qc_output_directory = String(qc_dir.absolutePath());
@@ -2968,7 +2968,7 @@ protected:
       bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names, executable);
       if (!R_is_working)
       {
-        OPENMS_LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
+        OPENMS_LOG_INFO << "There was a problem detecting one of the required R libraries." << endl;
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
@@ -3331,33 +3331,21 @@ protected:
       {
         if (isotopic_intensities[i] < 1e-4) continue;
         Size consecutive_isotopes = 0;
-        Int j = i;
+        Size j = i;
 
-        while (j >= 0)
+        while (j != std::numeric_limits<Size>::max()) // unsigned type wrap-around is well defined
         {
-          if (isotopic_intensities[j] > 1e-4)
-          {
-            ++consecutive_isotopes;
-            --j;
-          }
-          else
-          {
-            break;
-          }
+          if (isotopic_intensities[j] <= 1e-4) break;
+          ++consecutive_isotopes;
+          --j;
         }
         j = i + 1;
 
-        while ((Size)j < isotopic_intensities.size())
+        while (j < isotopic_intensities.size())
         {
-          if (isotopic_intensities[j] > 1e-4)
-          {
-            ++consecutive_isotopes;
-            ++j;
-          }
-          else
-          {
-            break;
-          }
+          if (isotopic_intensities[j] <= 1e-4) break;
+          ++consecutive_isotopes;
+          ++j;
         }
 
         if (consecutive_isotopes < min_consecutive_isotopes)
@@ -3634,6 +3622,7 @@ protected:
     // quality report
     if (!qc_output_directory.empty())
     {
+      QString executable = getStringOption_("r_executable").toQString();
       // TODO plot merged is now passed as false
       MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, executable);
     }
