@@ -3333,7 +3333,7 @@ protected:
         Size consecutive_isotopes = 0;
         Size j = i;
 
-        while (j != -1)
+        while (j != std::numeric_limits<Size>::max()) // unsigned type wrap-around is well defined
         {
           if (isotopic_intensities[j] <= 1e-4) break;
           ++consecutive_isotopes;
