@@ -113,10 +113,7 @@ namespace OpenMS
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
-    working_dir_(""),
     working_dir_keep_debug_lvl_(-1),
-    version_(""),
-    verboseVersion_(""),
     official_(official),
     citations_(citations),
     log_type_(ProgressLogger::NONE),
@@ -141,19 +138,11 @@ namespace OpenMS
 
   TOPPBase::~TOPPBase()
   {
-    //delete log file if empty
-    StringList log_files;
-    DataValue topplog = getParam_("log");
-
-    if (!topplog.isEmpty() && !(topplog.toString().empty()))
-      log_files.push_back(topplog.toString());
-    
-    for (Size i = 0; i < log_files.size(); ++i)
+    // delete log file if empty
+    String topplog = getParam_("log");
+    if (!topplog.empty() && File::empty(topplog))
     {
-      if (File::empty(log_files[i]))
-      {
-        File::remove(log_files[i]);
-      }
+      File::remove(topplog);
     }
 
     if (!working_dir_.empty())
@@ -220,7 +209,7 @@ namespace OpenMS
     StringList args;
     for (int i = 0; i < argc; ++i)
     {
-      if (String(argv[i]).has(' ')) args.push_back(String("\"") + argv[i] + String("\"")); // surround with quotes if argument contains a space
+      if (String(argv[i]).has(' ')) args.push_back(String(argv[i]).quote()); // surround with quotes if argument contains a space
       else args.push_back(argv[i]);
     }
     writeDebug_(String(" >> ") + ListUtils::concatenate(args, " "), 1);
@@ -258,288 +247,253 @@ namespace OpenMS
     }
 
     ExitCodes result;
-#ifndef DEBUG_TOPP
     try
     {
-#endif
-    // '-write_ini' given
-    if (param_cmdline_.exists("write_ini"))
-    {
-      String write_ini_file = param_cmdline_.getValue("write_ini");
-      outputFileWritable_(write_ini_file, "write_ini");
-      Param default_params = getDefaultParameters_();
-
-      // check if augmentation with -ini param is needed
-      DataValue in_ini;
-      if (param_cmdline_.exists("ini"))
+      // '-write_ini' given
+      if (param_cmdline_.exists("write_ini"))
       {
-        in_ini = param_cmdline_.getValue("ini");
-      }
-      if (!in_ini.isEmpty())
-      {
-        Param ini_params;
-        ParamXMLFile paramFile;
-        paramFile.load((String)in_ini, ini_params);
+        String write_ini_file = param_cmdline_.getValue("write_ini");
+        outputFileWritable_(write_ini_file, "write_ini");
+        Param default_params = getDefaultParameters_();
 
-        // check if ini parameters are applicable to this tool
-        checkIfIniParametersAreApplicable_(ini_params);
-        // update default params with outdated params given in -ini and be verbose
-        default_params.update(ini_params, false);
-      }
-      ParamXMLFile paramFile;
-      paramFile.store(write_ini_file, default_params);
-      return EXECUTION_OK;
-    }
-
-    // '-write_ctd' given
-    if (param_cmdline_.exists("write_ctd"))
-    {
-      if (!writeCTD_())
-      {
-        writeLog_("Error: Could not write CTD file!");
-        return INTERNAL_ERROR;
-      }
-      return EXECUTION_OK;
-    }
-
-    //-------------------------------------------------------------
-    // load INI file
-    //-------------------------------------------------------------
-    {
-      DataValue value_ini;
-
-      if (param_cmdline_.exists("ini"))
-      {
-        value_ini = param_cmdline_.getValue("ini");
-      }
-      if (!value_ini.isEmpty())
-      {
-        writeDebug_("INI file: " + (String)value_ini, 1);
-        writeDebug_("INI location: " + getIniLocation_(), 1);
-        ParamXMLFile paramFile;
-
-        paramFile.load((String)value_ini, param_inifile_);
-        checkIfIniParametersAreApplicable_(param_inifile_);
-
-        // dissect loaded INI parameters
-        param_instance_ = param_inifile_.copy(getIniLocation_(), true);
-        writeDebug_("Parameters from instance section:", param_instance_, 2);
-        param_common_tool_ = param_inifile_.copy("common:" + tool_name_ + ":", true);
-        writeDebug_("Parameters from common section with tool name:", param_common_tool_, 2);
-        param_common_ = param_inifile_.copy("common:", true);
-        writeDebug_("Parameters from common section without tool name:", param_common_, 2);
-
-        checkIfIniParametersAreApplicable_(param_inifile_);
-
-        // set type on command line if given in .ini file
-        if (param_inifile_.exists(getIniLocation_() + "type") && !param_cmdline_.exists("type"))
-          param_cmdline_.setValue("type", param_inifile_.getValue(getIniLocation_() + "type"));
-      }
-
-      // construct the set of final parameters as they will be available in the main_ method
-      Param finalParam;
-
-      // 1. the CMD parameters
-      writeDebug_("Initialize final param with cmd line:", param_cmdline_, 2);
-      finalParam = param_cmdline_;
-
-      // 2. the instance values from the ini-file
-      writeDebug_("Merging instance section into param:", param_instance_, 2);
-      finalParam.merge(param_instance_);
-
-      // 3. the tools data from the common section
-      writeDebug_("Merging common section with tool name into param:", param_common_tool_, 2);
-      finalParam.merge(param_common_tool_);
-
-      // 4. everything else from the common section
-      writeDebug_("Merging common section without tool name into param:", param_common_, 2);
-      finalParam.merge(param_common_);
-
-
-      finalParam.remove("ini"); // not contained in default params; remove to avoid "unknown param" in update()
-
-      // finally: augment default values with INI/CLI values
-      // note the copy(getIniLocation_(),..) as we want the param tree without instance
-      // information
-      param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
-      if (!param_.update(finalParam, false, false, true, true, OpenMS_Log_warn))
-      {
-        OPENMS_LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
-
-      if (finalParam.exists("type"))
-      {
-        param_.setValue("type", finalParam.getValue("type"));
-      }
-
-      // check if all parameters are registered and have the correct type
-      checkParam_(param_instance_, (String)value_ini, getIniLocation_());
-      checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
-      checkParam_(param_common_, (String)value_ini, "common:");
-
-      // check if the version of the parameters file matches the version of this tool
-      // the parameters and values are all ok, but there might be more valid values now or new parameters which are currently not visible in the outdated INI
-      String file_version = "";
-      if (param_inifile_.exists(tool_name_ + ":version"))
-      {
-        file_version = param_inifile_.getValue(tool_name_ + ":version");
-        if (file_version != version_)
+        // check if augmentation with -ini param is needed
+        DataValue in_ini;
+        if (param_cmdline_.exists("ini"))
         {
-          writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + version_ + ").\n"
-                    "Your current parameters are still valid, but there might be new valid values or even new parameters. Upgrading the INI might be useful.");
+          in_ini = param_cmdline_.getValue("ini");
+          Param ini_params;
+          ParamXMLFile().load((String)in_ini, ini_params);
+          // check if ini parameters are applicable to this tool
+          checkIfIniParametersAreApplicable_(ini_params);
+          // update default params with outdated params given in -ini and be verbose
+          default_params.update(ini_params, false);
+        }
+        ParamXMLFile paramFile;
+        paramFile.store(write_ini_file, default_params);
+        return EXECUTION_OK;
+      }
+
+      // '-write_ctd' given
+      if (param_cmdline_.exists("write_ctd"))
+      {
+        if (!writeCTD_())
+        {
+          writeLog_("Error: Could not write CTD file!");
+          return INTERNAL_ERROR;
+        }
+        return EXECUTION_OK;
+      }
+
+      //-------------------------------------------------------------
+      // load INI file
+      //-------------------------------------------------------------
+      {
+        DataValue value_ini;
+
+        if (param_cmdline_.exists("ini"))
+        {
+          value_ini = param_cmdline_.getValue("ini");
+          writeDebug_("INI file: " + (String)value_ini, 1);
+          writeDebug_("INI location: " + getIniLocation_(), 1);
+
+          ParamXMLFile().load((String)value_ini, param_inifile_);
+          checkIfIniParametersAreApplicable_(param_inifile_);
+
+          // dissect loaded INI parameters
+          param_instance_ = param_inifile_.copy(getIniLocation_(), true);
+          writeDebug_("Parameters from instance section:", param_instance_, 2);
+          param_common_tool_ = param_inifile_.copy("common:" + tool_name_ + ":", true);
+          writeDebug_("Parameters from common section with tool name:", param_common_tool_, 2);
+          param_common_ = param_inifile_.copy("common:", true);
+          writeDebug_("Parameters from common section without tool name:", param_common_, 2);
+        
+          // set type on command line if given in .ini file
+          if (param_inifile_.exists(getIniLocation_() + "type") && !param_cmdline_.exists("type"))
+            param_cmdline_.setValue("type", param_inifile_.getValue(getIniLocation_() + "type"));
+        }
+
+        // construct the set of final parameters as they will be available in the main_ method
+        Param finalParam;
+
+        // 1. the CMD parameters
+        writeDebug_("Initialize final param with cmd line:", param_cmdline_, 2);
+        finalParam = param_cmdline_;
+
+        // 2. the instance values from the ini-file
+        writeDebug_("Merging instance section into param:", param_instance_, 2);
+        finalParam.merge(param_instance_);
+
+        // 3. the tools data from the common section
+        writeDebug_("Merging common section with tool name into param:", param_common_tool_, 2);
+        finalParam.merge(param_common_tool_);
+
+        // 4. everything else from the common section
+        writeDebug_("Merging common section without tool name into param:", param_common_, 2);
+        finalParam.merge(param_common_);
+
+
+        finalParam.remove("ini"); // not contained in default params; remove to avoid "unknown param" in update()
+
+        // finally: augment default values with INI/CLI values
+        // note the copy(getIniLocation_(),..) as we want the param tree without instance
+        // information
+        param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
+        if (!param_.update(finalParam, false, false, true, true, OpenMS_Log_warn))
+        {
+          OPENMS_LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
+          return ILLEGAL_PARAMETERS;
+        }
+
+        if (finalParam.exists("type"))
+        {
+          param_.setValue("type", finalParam.getValue("type"));
+        }
+
+        // check if all parameters are registered and have the correct type
+        checkParam_(param_instance_, (String)value_ini, getIniLocation_());
+        checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
+        checkParam_(param_common_, (String)value_ini, "common:");
+
+        // check if the version of the parameters file matches the version of this tool
+        // the parameters and values are all ok, but there might be more valid values now or new parameters which are currently not visible in the outdated INI
+        String file_version = "";
+        if (param_inifile_.exists(tool_name_ + ":version"))
+        {
+          file_version = param_inifile_.getValue(tool_name_ + ":version");
+          if (file_version != version_)
+          {
+            writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + version_ + ").\n"
+                      "Your current parameters are still valid, but there might be new valid values or even new parameters. Upgrading the INI might be useful.");
+          }
         }
       }
-    }
 
-    // 'test' flag is set
-    if (getFlag_("test"))
-    {
-      test_mode_ = true;
-
-      // initialize the random generator as early as possible!
-      UniqueIdGenerator::setSeed(19991231235959);
-    }
-
-    // enable / disable collection of usage statistics by build variable
-#ifdef ENABLE_UPDATE_CHECK
-    // disable collection of usage statistics if environment variable is present
-    char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
- 
-    // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
-    if (!test_mode_ && (disable_usage == nullptr || strcmp(disable_usage, "OFF") == 0))
-    {
-      UpdateCheck::run(tool_name_, version_, debug_level_);
-    }
-#endif
-
-    //-------------------------------------------------------------
-    // determine and open the real log file
-    //-------------------------------------------------------------
-
-    {
-      DataValue const& value_log = getParam_("log");
-      if (!value_log.isEmpty() && !(value_log.toString() == ""))
+      // 'test' flag is set
+      if (getFlag_("test"))
       {
-        writeDebug_("Log file: " + (String)value_log, 1);
-        log_.close();
-        log_.open(((String)value_log).c_str(), ofstream::out | ofstream::app);
-        writeDebug_("Writing to '" + (String)value_log + '\'', 1);
+        test_mode_ = true;
+
+        // initialize the random generator as early as possible!
+        UniqueIdGenerator::setSeed(19991231235959);
       }
-    }
 
-    //-------------------------------------------------------------
-    // debug level
-    //-------------------------------------------------------------
-    debug_level_ = getParamAsInt_("debug", 0);
-    writeDebug_(String("Debug level (after ini file): ") + String(debug_level_), 1);
-    if (debug_level_ > 0) OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+      // enable / disable collection of usage statistics by build variable
+  #ifdef ENABLE_UPDATE_CHECK
+      // disable collection of usage statistics if environment variable is present
+      char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
+ 
+      // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
+      if (!test_mode_ && (disable_usage == nullptr || strcmp(disable_usage, "OFF") == 0))
+      {
+        UpdateCheck::run(tool_name_, version_, debug_level_);
+      }
+  #endif
 
-    //-------------------------------------------------------------
-    //progress logging
-    //-------------------------------------------------------------
-    if (!getFlag_("no_progress"))
+      //-------------------------------------------------------------
+      // debug level
+      //-------------------------------------------------------------
+      debug_level_ = getParamAsInt_("debug", 0);
+      writeDebug_(String("Debug level (after ini file): ") + String(debug_level_), 1);
+      if (debug_level_ > 0) OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+
+      //-------------------------------------------------------------
+      //progress logging
+      //-------------------------------------------------------------
+      if (!getFlag_("no_progress"))
+      {
+        log_type_ = ProgressLogger::CMD;
+      }
+
+      //----------------------------------------------------------
+      //threads
+      //----------------------------------------------------------
+      TOPPBase::setMaxNumberOfThreads(getParamAsInt_("threads", 1));
+
+      //----------------------------------------------------------
+      //main
+      //----------------------------------------------------------
+      StopWatch sw;
+      sw.start();
+      result = main_(argc, argv);
+      sw.stop();
+      OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
+
+      // useful for benchmarking
+      if (debug_level_ >= 1)
+      {
+        size_t mem_virtual(0);
+        writeLog_(String("Peak Memory Usage: ") + (SysInfo::getProcessPeakMemoryConsumption(mem_virtual) ? String(mem_virtual / 1024) + " MB" : "<unknown>"));
+      }
+    } // end try{}
+    //----------------------------------------------------------
+    //error handling
+    //----------------------------------------------------------
+    // Errors caused by the user
+    catch (UnableToCreateFile& e)
     {
-      log_type_ = ProgressLogger::CMD;
+      writeLog_(String("Error: Unable to write file (") + e.what() + ")");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!", 1);
+      return CANNOT_WRITE_OUTPUT_FILE;
     }
-
-    //----------------------------------------------------------
-    //threads
-    //----------------------------------------------------------
-    Int threads = getParamAsInt_("threads", 1);
-    TOPPBase::setMaxNumberOfThreads(threads);
-
-    //----------------------------------------------------------
-    //main
-    //----------------------------------------------------------
-    StopWatch sw;
-    sw.start();
-    result = main_(argc, argv);
-    sw.stop();
-    OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
-
-    // useful for benchmarking
-    if (debug_level_ >= 1)
+    catch (FileNotFound& e)
     {
-      size_t mem_virtual(0);
-      writeLog_(String("Peak Memory Usage: ") + (SysInfo::getProcessPeakMemoryConsumption(mem_virtual) ? String(mem_virtual / 1024) + " MB" : "<unknown>"));
+      writeLog_(String("Error: File not found (") + e.what() + ")");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return INPUT_FILE_NOT_FOUND;
     }
-
-
-#ifndef DEBUG_TOPP
-  }
-
-  //----------------------------------------------------------
-  //error handling
-  //----------------------------------------------------------
-  // Errors caused by the user
-  catch (UnableToCreateFile& e)
-  {
-    writeLog_(String("Error: Unable to write file (") + e.what() + ")");
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!", 1);
-    return CANNOT_WRITE_OUTPUT_FILE;
-  }
-  catch (FileNotFound& e)
-  {
-    writeLog_(String("Error: File not found (") + e.what() + ")");
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
-    return INPUT_FILE_NOT_FOUND;
-  }
-  catch (FileNotReadable& e)
-  {
-    writeLog_(String("Error: File not readable (") + e.what() + ")");
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
-    return INPUT_FILE_NOT_READABLE;
-  }
-  catch (FileEmpty& e)
-  {
-    writeLog_(String("Error: File empty (") + e.what() + ")");
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
-    return INPUT_FILE_EMPTY;
-  }
-  catch (ParseError& e)
-  {
-    writeLog_(String("Error: Unable to read file (") + e.what() + ")");
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
-    return INPUT_FILE_CORRUPT;
-  }
-  catch (RequiredParameterNotGiven& e)
-  {
-    String what = e.what();
-    if (!what.hasPrefix("'"))
-      what = "'" + what + "'";
-    writeLog_(String("Error: The required parameter ") + what + " was not given or is empty!");
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
-    return MISSING_PARAMETERS;
-  }
-  catch (InvalidParameter& e)
-  {
-    writeLog_(String("Invalid parameter: ") + e.what());
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
-    return ILLEGAL_PARAMETERS;
-  }
-  // Internal errors because of wrong use of this class
-  catch (UnregisteredParameter& e)
-  {
-    writeLog_(String("Internal error: Request for unregistered parameter '") + e.what() + "'");
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
-    return INTERNAL_ERROR;
-  }
-  catch (WrongParameterType& e)
-  {
-    writeLog_(String("Internal error: Request for parameter with wrong type '") + e.what() + "'");
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
-    return INTERNAL_ERROR;
-  }
-  // All other errors
-  catch (BaseException& e)
-  {
-    writeLog_(String("Error: Unexpected internal error (") + e.what() + ")");
-    writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
-    return UNKNOWN_ERROR;
-  }
-#endif
-
+    catch (FileNotReadable& e)
+    {
+      writeLog_(String("Error: File not readable (") + e.what() + ")");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return INPUT_FILE_NOT_READABLE;
+    }
+    catch (FileEmpty& e)
+    {
+      writeLog_(String("Error: File empty (") + e.what() + ")");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return INPUT_FILE_EMPTY;
+    }
+    catch (ParseError& e)
+    {
+      writeLog_(String("Error: Unable to read file (") + e.what() + ")");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return INPUT_FILE_CORRUPT;
+    }
+    catch (RequiredParameterNotGiven& e)
+    {
+      String what = e.what();
+      if (!what.hasPrefix("'"))
+        what = "'" + what + "'";
+      writeLog_(String("Error: The required parameter ") + what + " was not given or is empty!");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return MISSING_PARAMETERS;
+    }
+    catch (InvalidParameter& e)
+    {
+      writeLog_(String("Invalid parameter: ") + e.what());
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return ILLEGAL_PARAMETERS;
+    }
+    // Internal errors because of wrong use of this class
+    catch (UnregisteredParameter& e)
+    {
+      writeLog_(String("Internal error: Request for unregistered parameter '") + e.what() + "'");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return INTERNAL_ERROR;
+    }
+    catch (WrongParameterType& e)
+    {
+      writeLog_(String("Internal error: Request for parameter with wrong type '") + e.what() + "'");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return INTERNAL_ERROR;
+    }
+    // All other errors
+    catch (BaseException& e)
+    {
+      writeLog_(String("Error: Unexpected internal error (") + e.what() + ")");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return UNKNOWN_ERROR;
+    }
     log_.close();
 
     return result;
@@ -730,7 +684,7 @@ namespace OpenMS
       }
 
       //add DEFAULT and RESTRICTIONS
-      if (addons.size() != 0)
+      if (!addons.empty())
       {
         desc_tmp += String(" (") + ListUtils::concatenate(addons, " ") + ")";
       }
@@ -1777,20 +1731,15 @@ namespace OpenMS
 
   void TOPPBase::enableLogging_() const
   {
-    if (!log_.is_open())
+    if (log_.is_open() || !param_.exists("log")) return;
+
+    String log_destination = param_.getValue("log");
+    if (log_destination.empty()) return;
+    log_.open(log_destination, ofstream::out | ofstream::app);
+    if (debug_level_ >= 1)
     {
-      String log_destination = "";
-      if (param_cmdline_.exists("log"))
-        log_destination = param_cmdline_.getValue("log");
-      if (!log_destination.empty())
-      {
-        log_.open(log_destination.c_str(), ofstream::out | ofstream::app);
-        if (debug_level_ >= 1)
-        {
-          cout << "Writing to '" << log_destination << '\'' << "\n";
-          log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
-        }
-      }
+      cout << "Writing to '" << log_destination << '\'' << "\n";
+      log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
     }
   }
 
@@ -2323,20 +2272,16 @@ namespace OpenMS
       if (type_list[i] != "")
         default_params.setValue(this->ini_location_ + "type", type_list[i]);
 
-      std::stringstream* ss = new std::stringstream();
+      std::stringstream ss;
       ParamXMLFile paramFile;
-      paramFile.writeXMLToStream(ss, default_params);
-      String ini_file_str(ss->str());
+      paramFile.writeXMLToStream(&ss, default_params);
+      String ini_file_str(ss.str());
 
       //
       QString docurl = getDocumentationURL().toQString();
       QString category = "";
-      if (official_) // we can only get the docurl/category from registered/official tools
-      {
-        category = ToolHandler::getCategory(tool_name_).toQString();
-      }
-      else if (ToolHandler::getUtilList().count(tool_name_))
-      {
+      if (official_ || ToolHandler::getUtilList().count(tool_name_))
+      { // we can only get the docurl/category from registered/official tools
         category = ToolHandler::getCategory(tool_name_).toQString();
       }
 
@@ -2345,17 +2290,13 @@ namespace OpenMS
       lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
       lines.insert(1, QString("<tool ctdVersion=\"1.7\" version=\"%1\" name=\"%2\" docurl=\"%3\" category=\"%4\" >").arg(version_.toQString(), tool_name_.toQString(), docurl, category));
       lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
-      QString html_doc = tool_description_.toQString();
-      lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
+      lines.insert(3, QString("<manual><![CDATA[") + tool_description_.toQString() + "]]></manual>");
       lines.insert(4, QString("<citations>"));
       lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
       int l = 5;
-      if (!citations_.empty())
+      for (const Citation& c : citations_) 
       {
-        for (Citation c : citations_) 
-        {
-          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
-        }
+        lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
       }
       lines.insert(++l, QString("</citations>"));
 
@@ -2369,7 +2310,6 @@ namespace OpenMS
         return false;
       }
       file.write(ctd_str.c_str());
-      file.close();
     }
 
     return true;
