@@ -48,6 +48,7 @@ $install_name_tool=`which install_name_tool`.strip
 $DEBUG = false
 $currentIndent=0
 $executableId="@executable_path/"
+$EXTRACTFW = false
 
 ###############################################################################
 def debug(message)
@@ -202,11 +203,35 @@ def copyFramework(frameworkPath, targetPath)
 end
 
 ###############################################################################
+def copyLibFromFramework(frameworkPath, targetPath)
+  libname=File.basename(frameworkPath)
+
+  # the new path
+  newFrameworkPath="#{targetPath}/#{libname}"
+
+  if not File.exist?(targetPath + libname)
+    debug "Copy fw #{frameworkName} from #{frameworkDir} to #{targetPath}"
+    # preserve symlinks
+    `cp #{frameworkPath} #{newFrameworkPath}`
+    # adjust rights
+    `chmod u+rwX #{newFrameworkPath}`
+  else
+    debug "fw #{frameworkName} already exists in #{targetPath}"
+  end
+
+  return newFrameworkPath, libname
+end
+
+###############################################################################
 def handleFramework(frameworkPath, targetPath)
   $currentIndent+=1
 
-  # copy framework to target directory
-  newFrameWorkPath, libname= copyFramework(frameworkPath, targetPath)
+  if $EXTRACTFW
+    newFrameWorkPath, libname = copyLibFromFramework(frameworkPath, targetPath)  
+  else
+    # copy framework to target directory
+    newFrameWorkPath, libname= copyFramework(frameworkPath, targetPath)
+  end
 
   if not $handledLibraries.include?(libname)
     # run otool
@@ -297,7 +322,8 @@ opts = GetoptLong.new(
   [ '--install-name-tool', '-i', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--bin-path', '-b', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--plugin-path', '-p', GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--path-prefix', '-e', GetoptLong::OPTIONAL_ARGUMENT ]
+  [ '--path-prefix', '-e', GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--extract-from-framework', '-f', GetoptLong::NO_ARGUMENT]
 )
 
 usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STORE-LIBRARIES
@@ -313,6 +339,8 @@ usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STO
   the path were optional plugin libraries like from QT5 are located
 -e, --path-prefix:
   the prefix that is added to the new install_name (default: @executable_path/)
+-f, --extract-from-framework:
+  extract the linked libraries from their Framework folder. CAUTIION: this does not copy Headers and Resources. Not tested with already present frameworks.
 -v, --verbose:
   increase verbosity
 "
@@ -332,6 +360,8 @@ opts.each do |opt, arg|
       $plugin_dir = Pathname.new(arg).realpath
     when '--path-prefix'
       $executableId = arg
+    when '--extract-from-framework'
+      $EXTRACTFW = true
     when '--verbose'
       $DEBUG = true
   end

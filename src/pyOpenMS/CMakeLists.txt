@@ -480,7 +480,7 @@ add_dependencies(pyopenms_build OpenMS)
 if(APPLE)
 add_custom_command(
   TARGET pyopenms_create_cpp POST_BUILD
-  COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@loader_path/" -v
+  COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
   )
 endif()
 
