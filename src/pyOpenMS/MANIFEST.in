@@ -4,7 +4,7 @@ include pyopenms/*.dll
 include pyopenms/*.dylib
 include pyopenms/*.so
 include pyopenms/*.txt
-include pyopenms/Qt*/*
+graft pyopenms/*.framework
 exclude pyopenms/*.cpp
 global-exclude pyopenms.cpp
 global-exclude HMDB2StructMapping.tsv

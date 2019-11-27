@@ -154,11 +154,7 @@ def copyLib(lib, targetPath)
   if not File.exist?(newPath)
     debug "Copy #{libBasename} from #{lib} to #{targetPath}"
     `cp #{lib} #{targetPath}`
-    if File.directory?(newPath)
-      `chmod -R u+rwX #{newPath}`
-    else
-      `chmod u+rw #{newPath}`
-    end
+    `chmod u+rw #{newPath}`
   else
     debug "#{libBasename} exists in #{targetPath}"
   end
@@ -194,14 +190,15 @@ def copyFramework(frameworkPath, targetPath)
 
   if not File.exist?(targetPath + frameworkName)
     debug "Copy fw #{frameworkName} from #{frameworkDir} to #{targetPath}"
-    `cp -r #{frameworkDir} #{targetPath}`
+    # preserve symlinks
+    `cp -R #{frameworkDir} #{targetPath}`
     # adjust rights
     `chmod -R u+rwX #{newFrameworkPath}`
   else
     debug "fw #{frameworkName} already exists in #{targetPath}"
   end
 
-  return newFrameworkPath, libname
+  return newFrameworkPath, libname 
 end
 
 ###############################################################################
@@ -209,7 +206,7 @@ def handleFramework(frameworkPath, targetPath)
   $currentIndent+=1
 
   # copy framework to target directory
-  newFrameWorkPath, libname=copyFramework(frameworkPath, targetPath)
+  newFrameWorkPath, libname= copyFramework(frameworkPath, targetPath)
 
   if not $handledLibraries.include?(libname)
     # run otool
