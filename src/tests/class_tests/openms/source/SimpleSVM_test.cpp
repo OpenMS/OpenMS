@@ -181,12 +181,13 @@ END_SECTION
 START_SECTION((map<String, pair<double, double>> void getScaling()
                const))
 {
-  auto scaling = svm.getScaling(feat_weights);
+  map<String, double> feat_weights;
+  auto scaling = svm.getScaling();
   for (const auto& s : scaling)
   {
     const String name = s.first;
     const pair<double, double> min_max = s.second;
-    cout << name << "\t" << min_max.first << "\t" << min_max_second << endl;
+    cout << name << "\t" << min_max.first << "\t" << min_max.second << endl;
   }
   TEST_EQUAL(scaling.size(), predictors.size()); // one min/max entry for every predictor
 }
