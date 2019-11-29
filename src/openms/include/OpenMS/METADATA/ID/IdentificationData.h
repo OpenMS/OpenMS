@@ -435,13 +435,6 @@ namespace OpenMS
                  bool require_parent_group = false,
                  bool require_match_group = false);
 
-    /// Helper function to compare two scores
-    static bool isBetterScore(double first, double second, bool higher_better)
-    {
-      if (higher_better) return first > second;
-      return first < second;
-    }
-
   protected:
 
     // containers:

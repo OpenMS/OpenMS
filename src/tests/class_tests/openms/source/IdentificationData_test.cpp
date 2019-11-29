@@ -519,15 +519,6 @@ START_SECTION((void cleanup(bool require_query_match = true, bool require_identi
 }
 END_SECTION
 
-START_SECTION((static bool isBetterScore(double first, double second, bool higher_better)))
-{
-  TEST_EQUAL(IdentificationData::isBetterScore(2.0, 1.0, true), true);
-  TEST_EQUAL(IdentificationData::isBetterScore(2.0, 1.0, false), false);
-  TEST_EQUAL(IdentificationData::isBetterScore(-2.0, 1.0, true), false);
-  TEST_EQUAL(IdentificationData::isBetterScore(-2.0, 1.0, false), true);
-}
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

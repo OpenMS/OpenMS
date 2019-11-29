@@ -439,7 +439,6 @@ namespace OpenMS
   IdentificationData::getBestMatchPerQuery(ScoreTypeRef score_ref) const
   {
     vector<QueryMatchRef> results;
-    bool higher_better = score_ref->higher_better;
     pair<double, bool> best_score = make_pair(0.0, false);
     QueryMatchRef best_ref = query_matches_.end();
     for (QueryMatchRef ref = query_matches_.begin();
@@ -456,8 +455,8 @@ namespace OpenMS
       }
       else if (current_score.second &&
                (!best_score.second ||
-                isBetterScore(current_score.first, best_score.first,
-                              higher_better)))
+                score_ref->isBetterScore(current_score.first,
+                                         best_score.first)))
       {
         // new best score for the current query:
         best_score = current_score;
