@@ -486,6 +486,10 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
   include(cmake/package_components.cmake)
 endif()
 
+
+get_target_property(OUT OpenMS LINK_LIBRARIES)
+message(STATUS ${OUT})
+
 #------------------------------------------------------------------------------
 # Some final messages for the users
 #------------------------------------------------------------------------------

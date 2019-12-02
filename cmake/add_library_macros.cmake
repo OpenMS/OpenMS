@@ -142,6 +142,8 @@ function(openms_add_library)
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
 
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
   #------------------------------------------------------------------------------
   # Include directories
   target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_INTERNAL_INCLUDES})

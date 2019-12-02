@@ -48,7 +48,7 @@ endfunction()
 
 #------------------------------------------------------------------------------
 # find and handle python
-find_package(PythonInterp REQUIRED)
+find_package(Python COMPONENTS Interpreter Development)
 
 # find out python version info
 execute_process(
@@ -168,6 +168,12 @@ else()
         OUTPUT_VARIABLE AUTOWRAP_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+    execute_process(
+        COMMAND
+        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print (''.join([autowrap.__path__[0],'/data_files/autowrap/']))"
+        OUTPUT_VARIABLE AUTOWRAP_INCLUDES
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
     if(_AUTOWRAP_VERSION_OK)
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
@@ -278,6 +284,34 @@ if(NUMPY_MISSING OR CYTHON_MISSING OR NOT CYTHON_VERSION_OK OR NOT AUTOWRAP_VERS
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
+
+
+    
+    # Find NumPy headers
+    exec_program(${PYTHON_EXECUTABLE}
+        ARGS "-c \"import numpy; print(numpy.get_include())\""
+        OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
+        RETURN_VALUE NUMPY_NOT_FOUND
+        )
+    if(NUMPY_NOT_FOUND)
+        message(FATAL_ERROR "NumPy headers not found")
+    endif()
+
+    # Find Python headers
+    exec_program(${PYTHON_EXECUTABLE}
+        ARGS "-c \"import sysconfig; print(sysconfig.get_paths()['include'])\""
+        OUTPUT_VARIABLE PYTHON_INCLUDE_DIRS
+        RETURN_VALUE PYTHON_INCLUDE_DIRS_NOT_FOUND
+        )
+    if(PYTHON_INCLUDE_DIRS_NOT_FOUND)
+        message(FATAL_ERROR "Python headers not found")
+    endif()
+
+    # This goes after, since it uses PythonInterp as a hint
+    if(WIN32)
+        find_package(PythonLibs 3.5 REQUIRED)
+    endif()
+
 
 #------------------------------------------------------------------------------
 # clean python build directory from former cmake run (if exists)
@@ -445,8 +479,6 @@ set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
 #------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
 # add additional sysroot information (osx)
 if (APPLE)
   set(SYSROOT_OSX_PATH ${CMAKE_OSX_SYSROOT})
@@ -472,6 +504,7 @@ set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
   ${OpenMS_INCLUDE_DIRECTORIES}
   ${QT_INCLUDE_DIR}
+  ${PROJECT_SOURCE_DIR}/extra_includes
 )
 
 list(REMOVE_DUPLICATES PYOPENMS_INCLUDE_DIRS)
@@ -520,6 +553,37 @@ endif()
 
 # write configured variables into env.py
 configure_file(${_env_py_in} ${_env_py} @ONLY)
+
+##WARNING DEBUG
+file(GENERATE
+    OUTPUT
+    ${_env_py}
+    INPUT
+    ${_env_py}
+)
+
+
+add_custom_target(pyopenms_cmake)
+set(PYOPENMS_SRC )
+
+foreach(nr RANGE 1 ${PY_NUM_MODULES})
+  list(APPEND PYOPENMS_SRC "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp")
+  Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp" )
+  target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
+  target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
+  target_compile_options(pyopenms_${nr} PRIVATE  -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
+  set_target_properties(pyopenms_${nr} PROPERTIES
+    OUTPUT_NAME pyopenms_${nr}.cpython-37m-darwin
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN 1
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+)
+  add_dependencies(pyopenms_${nr} pyopenms_create_cpp)
+  add_dependencies(pyopenms_cmake pyopenms_${nr}) 
+endforeach()
+
 
 #------------------------------------------------------------------------------
 # create targets in makefile

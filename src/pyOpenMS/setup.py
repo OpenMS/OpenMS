@@ -223,6 +223,10 @@ if not iswin:
 
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
+
+##WARNING debug
+libraries.extend("boost_regex-mt-x64")
+
 for module in mnames:
 
     ext.append(Extension(
