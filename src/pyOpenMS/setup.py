@@ -34,6 +34,7 @@ if iswin and IS_DEBUG:
 import pickle
 import os
 import glob
+import re
 import shutil
 import time
 
