@@ -408,6 +408,8 @@ namespace OpenMS
             return computeFwhmAreaSmooth();
           case MT_QUANT_MEDIAN:
             throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          case MT_QUANT_HEIGHT:
+            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
           default:
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Member 'quant_method_' has unsupported value.", String(quant_method_));
         }
@@ -421,6 +423,8 @@ namespace OpenMS
             return computeFwhmArea();
           case MT_QUANT_MEDIAN:
             return computeMedianIntensity_();
+          case MT_QUANT_HEIGHT:
+            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
           default:
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Member 'quant_method_' has unsupported value.", String(quant_method_));
 
