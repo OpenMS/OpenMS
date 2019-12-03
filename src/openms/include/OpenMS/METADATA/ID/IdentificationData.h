@@ -53,7 +53,7 @@
 namespace OpenMS
 {
   /*!
-    @brief Representation of spectrum identification results and associated data.
+    @brief Representation of spectrum identification results and associated data
 
     This class provides capabilities for storing spectrum identification results from different types of experiments/molecules (proteomics: peptides/proteins, metabolomics: small molecules, "nucleomics": RNA).
     The class design has the following goals:
@@ -179,9 +179,10 @@ namespace OpenMS
       current_step_ref_(processing_steps_.end())
     {
     }
-    // Copy constructor - not allowed, as references would be invalidated:
-    // @TODO: implement using deep copy
+
+    /// Copy constructor - not allowed, as references would be invalidated
     IdentificationData(const IdentificationData& other) = delete;
+    // @TODO: implement copy c'tor using deep copy
 
     /// Move constructor
     IdentificationData(IdentificationData&& other):
@@ -212,12 +213,14 @@ namespace OpenMS
 
     /*!
       @brief Register an input file
+
       @return Reference to the registered file
     */
     InputFileRef registerInputFile(const String& file);
 
     /*!
       @brief Register data processing software
+
       @return Reference to the registered software
     */
     ProcessingSoftwareRef registerDataProcessingSoftware(
@@ -225,12 +228,14 @@ namespace OpenMS
 
     /*!
       @brief Register database search parameters
+
       @return Reference to the registered search parameters
     */
     SearchParamRef registerDBSearchParam(const DBSearchParam& param);
 
     /*!
       @brief Register a data processing step
+
       @return Reference to the registered processing step
     */
     ProcessingStepRef registerDataProcessingStep(const DataProcessingStep&
@@ -238,6 +243,7 @@ namespace OpenMS
 
     /*!
       @brief Register a database search step with associated parameters
+
       @return Reference to the registered processing step
     */
     ProcessingStepRef registerDataProcessingStep(
@@ -245,18 +251,21 @@ namespace OpenMS
 
     /*!
       @brief Register a score type
+
       @return Reference to the registered score type
     */
     ScoreTypeRef registerScoreType(const ScoreType& score);
 
     /*!
       @brief Register a data query (e.g. MS2 spectrum or feature)
+
       @return Reference to the registered data query
     */
     DataQueryRef registerDataQuery(const DataQuery& query);
 
     /*!
       @brief Register a parent molecule (e.g. protein or intact RNA)
+
       @return Reference to the registered parent molecule
     */
     ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent);
@@ -266,6 +275,7 @@ namespace OpenMS
 
     /*!
       @brief Register an identified peptide
+
       @return Reference to the registered peptide
     */
     IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide&
@@ -273,6 +283,7 @@ namespace OpenMS
 
     /*!
       @brief Register an identified compound (small molecule)
+
       @return Reference to the registered compound
     */
     IdentifiedCompoundRef registerIdentifiedCompound(const IdentifiedCompound&
@@ -280,6 +291,7 @@ namespace OpenMS
 
     /*!
       @brief Register an identified RNA oligonucleotide
+
       @return Reference to the registered oligonucleotide
     */
     IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo& oligo);
@@ -389,13 +401,12 @@ namespace OpenMS
 
       This step will be appended to the list of processing steps for all relevant elements that are registered subsequently (unless it is already the last entry in the list).
       If a score type without a software reference is registered, the software reference of this processing step will be applied.
-
       Effective until @ref clearCurrentProcessingStep() is called.
      */
     void setCurrentProcessingStep(ProcessingStepRef step_ref);
 
     /*!
-      Return the current processing step (set via @ref setCurrentProcessingStep()).
+      @brief Return the current processing step (set via @ref setCurrentProcessingStep()).
 
       If no current processing step has been set, @p processing_steps.end() is returned.
     */
@@ -405,12 +416,13 @@ namespace OpenMS
     void clearCurrentProcessingStep();
 
     /// Return the best match for each data query, according to a given score type
-    // @TODO: this currently doesn't take molecule type into account - should it?
     std::vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef
                                                     score_ref) const;
+    // @TODO: this currently doesn't take molecule type into account - should it?
 
     /*!
-      @brief Look up a score type by name
+      @brief Look up a score type by name.
+
       @return A pair: 1. Reference to the score type, if found; 2. Boolean indicating success or failure
     */
     std::pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const;
@@ -419,7 +431,7 @@ namespace OpenMS
     void calculateCoverages(bool check_molecule_length = false);
 
     /*!
-      @brief Clean up the data structure after filtering parts of it
+      @brief Clean up the data structure after filtering parts of it.
 
       Make sure there are no invalid references or "orphan" data entries.
 
@@ -434,6 +446,9 @@ namespace OpenMS
                  bool require_parent_match = true,
                  bool require_parent_group = false,
                  bool require_match_group = false);
+
+    /// Return whether the data structure is empty (no data)
+    bool empty() const;
 
   protected:
 
@@ -615,7 +630,6 @@ namespace OpenMS
 
     /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate
     template <typename ContainerType, typename PredicateType>
-    // static void removeFromSetIf_(ContainerType& container, std::function<bool(RefType)> predicate)
     static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
     {
       for (auto it = container.begin(); it != container.end(); )
@@ -656,7 +670,9 @@ namespace OpenMS
     }
 
 
-    // IDFilter needs access to do its job:
+    // these classes/functions need access to manipulate data:
     friend class IDFilter;
+    // friend static void MapAlignmentTransformer::transformRetentionTimes(
+    //   IdentificationData&, const TransformationDescription&, bool)
   };
 }
