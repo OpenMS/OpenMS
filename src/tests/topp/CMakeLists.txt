@@ -1113,6 +1113,13 @@ set_tests_properties("TOPP_MapAlignerIdentification_5_out2" PROPERTIES DEPENDS "
 add_test("TOPP_MapAlignerIdentification_6" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML -trafo_out MapAlignerIdentification_6_output1.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML)
 add_test("TOPP_MapAlignerIdentification_6_out1" ${DIFF} -in1 MapAlignerIdentification_6_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_6_output1.trafoXML )
 set_tests_properties("TOPP_MapAlignerIdentification_6_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_6")
+# oms (database file) input - files based on "BSA2/3.idXML" from examples:
+add_test("TOPP_MapAlignerIdentification_7" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -in ${DATA_DIR_TOPP}/MapAlignerIdentification_7_input1.oms -out MapAlignerIdentification_7_output1.tmp -trafo_out MapAlignerIdentification_7_output2.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_7_input2.oms)
+# don't compare binary SQLite files:
+# add_test("TOPP_MapAlignerIdentification_7_out1" ${DIFF} -in1 MapAlignerIdentification_7_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_7_output1.oms)
+# set_tests_properties("TOPP_MapAlignerIdentification_7_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_7")
+add_test("TOPP_MapAlignerIdentification_7_out2" ${DIFF} -in1 MapAlignerIdentification_7_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_7_output2.trafoXML)
+set_tests_properties("TOPP_MapAlignerIdentification_7_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_7")
 
 #------------------------------------------------------------------------------
 # MapAlignerSpectrum tests:
