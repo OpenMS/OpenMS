@@ -59,7 +59,7 @@ namespace OpenMS
       }
 
       /*!
-        Add an applied processing step.
+        @brief Add an applied processing step
 
         If the step already exists, scores are merged (existing ones updated).
       */
@@ -123,11 +123,11 @@ namespace OpenMS
       }
 
       /*!
-        Look up a score by score type.
-
-        @return A pair: score (or NaN), success indicator
+        @brief Look up a score by score type
 
         All processing steps are considered, in "most recent first" order.
+
+        @return A pair: score (or NaN), success indicator
       */
       std::pair<double, bool> getScore(ScoreTypeRef score_ref) const
       {
@@ -137,7 +137,7 @@ namespace OpenMS
       }
 
       /*!
-        Look up a score by score type and processing step.
+        @brief Look up a score by score type and processing step
 
         @return A pair: score (or NaN), success indicator
       */
@@ -159,11 +159,11 @@ namespace OpenMS
       }
 
       /*!
-        Look up a score and associated processing step by score type.
-
-        @return A tuple: score (or NaN), processing step reference (option), success indicator
+        @brief Look up a score and associated processing step by score type
 
         All processing steps are considered, in "most recent first" order.
+
+        @return A tuple: score (or NaN), processing step reference (option), success indicator
       */
       std::tuple<double, boost::optional<ProcessingStepRef>, bool>
       getScoreAndStep(ScoreTypeRef score_ref) const
@@ -182,7 +182,43 @@ namespace OpenMS
                                boost::none, false);
       }
 
+      /*!
+        @brief Get the (primary) score from the most recent processing step
+
+        This will fail if no scores have been assigned.
+
+        @return A tuple: score (or NaN), score type reference (option), success indicator
+        */
+      std::tuple<double, boost::optional<ScoreTypeRef>, bool>
+      getMostRecentScore() const
+      {
+        // check steps starting with most recent:
+        for (const auto& step : boost::adaptors::reverse(steps_and_scores))
+        {
+          auto top_score = step.getScoresInOrder(true);
+          if (!top_score.empty())
+          {
+            return std::make_tuple(top_score[0].second, top_score[0].first,
+                                   true);
+          }
+        }
+        return std::make_tuple(std::numeric_limits<double>::quiet_NaN(),
+                               boost::none, false); // no score available
+      }
+
+      /// Return the number of scores associated with this result
+      Size getNumberOfScores() const
+      {
+        Size counter = 0;
+        for (const auto& step : steps_and_scores)
+        {
+          counter += step.scores.size();
+        }
+        return counter;
+      }
+
     protected:
+      /// Constructor
       explicit ScoredProcessingResult(
         const AppliedProcessingSteps& steps_and_scores =
         AppliedProcessingSteps()):
@@ -190,6 +226,7 @@ namespace OpenMS
       {
       }
 
+      /// Copy c'tor
       ScoredProcessingResult(const ScoredProcessingResult&) = default;
     };
 
