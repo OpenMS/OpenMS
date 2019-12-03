@@ -36,6 +36,7 @@
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -211,30 +212,48 @@ private:
     if (!reference_file.empty())
     {
       FileTypes::Type filetype = FileHandler::getType(reference_file);
-      if (filetype == FileTypes::MZML)
+      switch (filetype)
+      {
+      case FileTypes::MZML:
       {
         PeakMap experiment;
         MzMLFile().load(reference_file, experiment);
         algorithm.setReference(experiment);
       }
-      else if (filetype == FileTypes::FEATUREXML)
+      break;
+      case FileTypes::FEATUREXML:
       {
         FeatureMap features;
         FeatureXMLFile().load(reference_file, features);
         algorithm.setReference(features);
       }
-      else if (filetype == FileTypes::CONSENSUSXML)
+      break;
+      case FileTypes::CONSENSUSXML:
       {
         ConsensusMap consensus;
         ConsensusXMLFile().load(reference_file, consensus);
         algorithm.setReference(consensus);
       }
-      else if (filetype == FileTypes::IDXML)
+      break;
+      case FileTypes::IDXML:
       {
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
         IdXMLFile().load(reference_file, proteins, peptides);
         algorithm.setReference(peptides);
+      }
+      break;
+      case FileTypes::OMS:
+      {
+        IdentificationData id_data;
+        OMSFile().load(reference_file, id_data);
+        algorithm.setReference(id_data);
+      }
+      break;
+      default: // to avoid compiler warnings
+        throw Exception::WrongParameterType(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION,
+                                            "reference:file");
       }
     }
 
@@ -243,7 +262,7 @@ private:
 
   void registerOptionsAndFlags_() override
   {
-    String formats = "featureXML,consensusXML,idXML";
+    String formats = "featureXML,consensusXML,idXML,oms";
     TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
     // TODO: potentially move to base class so every aligner has to support design
     registerInputFile_("design", "<file>", "", "Input file containing the experimental design", false);
@@ -288,10 +307,12 @@ private:
 
     vector<TransformationDescription> transformations;
 
+    switch (in_type)
+    {
     //-------------------------------------------------------------
     // perform feature alignment
     //-------------------------------------------------------------
-    if (in_type == FileTypes::FEATUREXML)
+    case FileTypes::FEATUREXML:
     {
       vector<FeatureMap> feature_maps(input_files.size());
       FeatureXMLFile fxml_file;
@@ -305,12 +326,12 @@ private:
       loadInitialMaps_(feature_maps, input_files, fxml_file);
 
       //-------------------------------------------------------------
-      // Extract (optional) fraction identifiers and associate with featureXMLs
+      // extract (optional) fraction identifiers and associate with featureXMLs
       //-------------------------------------------------------------
       String design_file = getStringOption_("design");
 
       // determine map of fractions to runs
-      map<unsigned, vector<String> > frac2files;
+      map<unsigned, vector<String>> frac2files;
 
       // TODO: check if can be put in common helper function
       if (!design_file.empty())
@@ -383,11 +404,12 @@ private:
         storeTransformedMaps_(feature_maps, output_files, fxml_file);
       }
     }
+    break;
 
     //-------------------------------------------------------------
     // perform consensus alignment
     //-------------------------------------------------------------
-    else if (in_type == FileTypes::CONSENSUSXML)
+    case FileTypes::CONSENSUSXML:
     {
       std::vector<ConsensusMap> consensus_maps(input_files.size());
       ConsensusXMLFile cxml_file;
@@ -402,14 +424,15 @@ private:
         storeTransformedMaps_(consensus_maps, output_files, cxml_file);
       }
     }
+    break;
 
     //-------------------------------------------------------------
     // perform peptide alignment
     //-------------------------------------------------------------
-    else if (in_type == FileTypes::IDXML)
+    case FileTypes::IDXML:
     {
-      vector<vector<ProteinIdentification> > protein_ids(input_files.size());
-      vector<vector<PeptideIdentification> > peptide_ids(input_files.size());
+      vector<vector<ProteinIdentification>> protein_ids(input_files.size());
+      vector<vector<PeptideIdentification>> peptide_ids(input_files.size());
       IdXMLFile idxml_file;
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
@@ -437,6 +460,47 @@ private:
         }
         progresslogger.endProgress();
       }
+    }
+    break;
+
+    //-------------------------------------------------------------
+    // perform spectrum match alignment
+    //-------------------------------------------------------------
+    case FileTypes::OMS:
+    {
+      vector<IdentificationData> id_data(input_files.size());
+      OMSFile oms_file;
+      ProgressLogger progresslogger;
+      progresslogger.setLogType(log_type_);
+      progresslogger.startProgress(0, input_files.size(),
+                                   "loading input files");
+      for (Size i = 0; i < input_files.size(); ++i)
+      {
+        progresslogger.setProgress(i);
+        oms_file.load(input_files[i], id_data[i]);
+      }
+      progresslogger.endProgress();
+
+      performAlignment_(algorithm, id_data, transformations, reference_index);
+      applyTransformations_(id_data, transformations);
+
+      if (!output_files.empty())
+      {
+        progresslogger.startProgress(0, output_files.size(),
+                                     "writing output files");
+        for (Size i = 0; i < output_files.size(); ++i)
+        {
+          progresslogger.setProgress(i);
+          oms_file.store(output_files[i], id_data[i]);
+        }
+        progresslogger.endProgress();
+      }
+    }
+    break;
+
+    default: // to avoid compiler warnings
+      throw Exception::WrongParameterType(__FILE__, __LINE__,
+                                          OPENMS_PRETTY_FUNCTION, "in");
     }
 
     if (!trafo_files.empty())

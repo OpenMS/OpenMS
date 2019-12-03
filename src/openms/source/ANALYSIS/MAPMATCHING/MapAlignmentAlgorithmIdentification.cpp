@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -45,9 +46,12 @@ namespace OpenMS
     DefaultParamHandler("MapAlignmentAlgorithmIdentification"),
     ProgressLogger(), reference_index_(-1), reference_(), min_run_occur_(0), min_score_(0.)
   {
-    defaults_.setValue("score_cutoff", "false", "If only IDs above a score cutoff should be used. Used together with min_score.");
-    defaults_.setValidStrings("score_cutoff", {"true","false"});
-    defaults_.setValue("min_score", 0.05, "Minimum score for an ID to be considered. Applies to the last score calculated.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
+    defaults_.setValue("score_type", "", "Name of the score type to use for ranking and filtering (.oms input only). If left empty, a score type is picked automatically.");
+
+    defaults_.setValue("score_cutoff", "false", "Use only IDs above a score cut-off (parameter 'min_score') for alignment?");
+    defaults_.setValidStrings("score_cutoff", {"true", "false"});
+
+    defaults_.setValue("min_score", 0.05, "If 'score_cutoff' is 'true': Minimum score for an ID to be considered.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
 
     defaults_.setValue("min_run_occur", 2, "Minimum number of runs (incl. reference, if any) in which a peptide must occur to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
     defaults_.setMinInt("min_run_occur", 2);
@@ -56,11 +60,10 @@ namespace OpenMS
     defaults_.setMinFloat("max_rt_shift", 0.0);
 
     defaults_.setValue("use_unassigned_peptides", "true", "Should unassigned peptide identifications be used when computing an alignment of feature or consensus maps? If 'false', only peptide IDs assigned to features will be used.");
-    defaults_.setValidStrings("use_unassigned_peptides",
-                              ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_unassigned_peptides", {"true", "false"});
 
     defaults_.setValue("use_feature_rt", "false", "When aligning feature or consensus maps, don't use the retention time of a peptide identification directly; instead, use the retention time of the centroid of the feature (apex of the elution profile) that the peptide was matched to. If different identifications are matched to one feature, only the peptide closest to the centroid in RT is used.\nPrecludes 'use_unassigned_peptides'.");
-    defaults_.setValidStrings("use_feature_rt", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_feature_rt", {"true", "false"});
 
     defaultsToParam_();
   }
@@ -87,8 +90,13 @@ namespace OpenMS
       min_run_occur_ = runs;
     }
     score_cutoff_ = param_.getValue("score_cutoff").toBool();
+    // score type may have been set by reference already - don't overwrite it:
+    if (score_cutoff_ && score_type_.empty())
+    {
+      score_type_ = param_.getValue("score_type");
+    }
     min_score_ = param_.getValue("min_score");
-  }
+}
 
   // RT lists in "rt_data" will be sorted (unless "sorted" is true)
   void MapAlignmentAlgorithmIdentification::computeMedians_(SeqToList& rt_data,
@@ -120,6 +128,93 @@ namespace OpenMS
           const String& seq = pep_it->getHits()[0].getSequence().toString();
           rt_data[seq].push_back(pep_it->getRT());
         }
+      }
+    }
+    return false;
+  }
+
+  IdentificationData::ScoreTypeRef MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& id_data)
+  {
+    IdentificationData::ScoreTypeRef score_ref = id_data.getScoreTypes().end();
+    if (score_type_.empty()) // choose a score type
+    {
+      Size n_multiple_scores = 0;
+      // just find the first molecule-query match that has a score:
+      for (const IdentificationData::MoleculeQueryMatch& match :
+             id_data.getMoleculeQueryMatches())
+      {
+        if (match.getNumberOfScores() > 1) ++n_multiple_scores;
+        if (score_type_.empty())
+        {
+          auto score_info = match.getMostRecentScore();
+          if (get<2>(score_info)) // check success indicator
+          {
+            score_ref = *get<1>(score_info); // unpack the option
+            // make sure to use the same score type from now on:
+            score_type_ = score_ref->cv_term.getName();
+          }
+        }
+      }
+      if (score_type_.empty())
+      {
+        String msg = "no scores found";
+        throw Exception::MissingInformation(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION, msg);
+      }
+      if (n_multiple_scores)
+      {
+        bool all_multiple_scores = (n_multiple_scores ==
+                                    id_data.getMoleculeQueryMatches().size());
+        OPENMS_LOG_WARN
+          << "Warning: no score type (parameter 'score_type') defined and "
+          << (all_multiple_scores ? "all" : "some")
+          << " hits have multiple scores." << endl;
+      }
+      OPENMS_LOG_INFO << "Using score type: " << score_type_ << endl;
+    }
+    else
+    {
+      pair<IdentificationData::ScoreTypeRef, bool> score_found =
+        id_data.findScoreType(score_type_);
+      if (!score_found.second)
+      {
+        String msg = "score type '" + score_type_ + "' not found";
+        throw Exception::MissingInformation(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION, msg);
+      }
+      score_ref = score_found.first;
+    }
+    return score_ref;
+  }
+
+  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
+    IdentificationData& id_data, SeqToList& rt_data)
+  {
+    // @TODO: should this get handled as an error?
+    if (id_data.getMoleculeQueryMatches().empty()) return true;
+
+    IdentificationData::ScoreTypeRef score_ref =
+      handleIdDataScoreType_(id_data);
+
+    vector<IdentificationData::QueryMatchRef> top_hits =
+      id_data.getBestMatchPerQuery(score_ref);
+
+    for (const auto& hit : top_hits)
+    {
+      bool include = true;
+      if (score_cutoff_)
+      {
+        pair<double, bool> result = hit->getScore(score_ref);
+        if (!result.second ||
+            score_ref->isBetterScore(min_score_, result.first))
+        {
+          include = false;
+        }
+      }
+      if (include)
+      {
+        String molecule = hit->getMoleculeAsString();
+        rt_data[molecule].push_back(hit->data_query_ref->rt);
       }
     }
     return false;
