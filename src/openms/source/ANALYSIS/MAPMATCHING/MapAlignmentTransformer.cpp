@@ -210,4 +210,18 @@ namespace OpenMS
     }
   }
 
+
+  void MapAlignmentTransformer::transformRetentionTimes(
+    IdentificationData& id_data, const TransformationDescription& trafo,
+    bool store_original_rt)
+  {
+    for (IdentificationData::DataQuery copy : id_data.getDataQueries())
+    {
+      if (store_original_rt) storeOriginalRT_(copy, copy.rt);
+      copy.rt = trafo.apply(copy.rt);
+      // data is read-only, so we need to merge in the update:
+      id_data.registerDataQuery(copy);
+    }
+  }
+
 }
