@@ -268,7 +268,7 @@ namespace OpenMS
 
     createTable_(
       parent_table + "_MetaInfo",
-      "parent_id INTEGER PRIMARY KEY NOT NULL, "                        \
+      "parent_id INTEGER NOT NULL, "                                    \
       "name TEXT NOT NULL, "                                            \
       "data_value_id INTEGER NOT NULL, "                                \
       "FOREIGN KEY (parent_id) REFERENCES " + parent_table + " (id), "  \
