@@ -47,7 +47,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /// Identified sequence (peptide or oligonucleotide)
+    /// Representation of an identified sequence (peptide or oligonucleotide)
     template <typename SeqType>
     struct IdentifiedSequence: public ScoredProcessingResult
     {
