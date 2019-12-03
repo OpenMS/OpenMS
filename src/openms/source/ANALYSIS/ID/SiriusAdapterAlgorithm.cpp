@@ -413,25 +413,25 @@ namespace OpenMS
       //TODO: set valid strings
       parameter(
                  FingeridName("fingerid-db"),
-                 DefaultValue(""),
+                 DefaultValue("all"),
                  Description("Search structure in given database. By default the same database\n"
                              "for molecular formula search is also used for structure search.\n"
                              "If no database is used for molecular formula search, PubChem is\n"
                              "used for structure search.")
-                ).withValidStrings({"","",""});
+                ).withValidStrings({"all", "pubchem", "bio", "kegg", "hmdb"});
 
       // -s, --formula-score=<predictors>
       // Specifies the Score that is used to rank the list Molecular
       // Formula Identifications before the thresholds for CSI:FingerID
       // predictions are calculated.
-      //TODO: set valid strings
-      parameter(
-                 FingeridName("formula-score"),
-                 DefaultValue(""),
-                 Description("Specifies the Score that is used to rank the list Molecular\n"
-                             "Formula Identifications before the thresholds for CSI:FingerID˜n"
-                             "predictions are calculated.")
-                ).withValidStrings({"","",""});
+      //TODO: set valid strings - what should be the default?
+      //parameter(
+      //           FingeridName("formula-score"),
+      //           DefaultValue(""),
+      //           Description("Specifies the Score that is used to rank the list Molecular\n"
+      //                       "Formula Identifications before the thresholds for CSI:FingerID˜n"
+      //                       "predictions are calculated.")
+      //          ).withValidStrings({"","",""});
 
     }
 

@@ -50,10 +50,12 @@ namespace OpenMS
     SiriusAdapterHit:
     formula (String) - Sumformula
     adduct (String) - Assigned adduct
+    precursor_formula (String) - Sumformula of the precursor (can be the same as formula)
     rank (int)  - Rank of the possible sumformula for a compound (spectrum) calculated by Sirius
-    score (double) - Overall score of the possible sumformula for a compound (spectrum) calculated by Sirius
-    treescore (double) - Fragmentation pattern score
-    isoscore (double) - Isotope pattern score
+    rank_score (double) - Ranking score
+    iso_score (double) - Isotope pattern score
+    tree_score (double) - Fragmentation pattern score
+    sirius_score (double) - Overall score of the possible sumformula for a compound (spectrum) calculated by Sirius
     explainedpeaks (int) - Number of explained peaks
     explainedintensity (double) - Relative amount of explained intensity
 
@@ -74,12 +76,14 @@ namespace OpenMS
     {
       OpenMS::String formula;
       OpenMS::String adduct;
+      OpenMS::String precursor_formula;
       int rank = 0;
-      double score = 0.;
-      double treescore = 0.;
-      double isoscore = 0.;
+      double rank_score = 0.0;
+      double iso_score = 0.0;
+      double tree_score = 0.0;
+      double sirius_score = 0.0;
       int explainedpeaks = 0;
-      double explainedintensity = 0.;
+      double explainedintensity = 0.0;
     };
 
     struct SiriusAdapterIdentification
