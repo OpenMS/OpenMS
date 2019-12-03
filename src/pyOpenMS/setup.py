@@ -137,9 +137,27 @@ include_dirs = [
 # append all include dirs exported by CMake
 include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
 
-include_dirs.extend(LIBRARIES_EXTEND)
-libraries.extend(LIBRARIES_EXTEND)
-library_dirs.extend(LIBRARY_DIRS_EXTEND)
+# static libraries
+objects = []
+add_libs = LIBRARIES_EXTEND.split(";")
+for lib in add_libs:
+  if not iswin:
+    if lib.endswith(".a"):
+      objects.append(lib)
+      name_search = re.search('.*/lib(.*)\.a$', lib)
+      if name_search:
+        libraries.append(name_search.group(1))
+    if lib.endswith(".so") or lib.endswith(".dylib"):
+      name_search = re.search('.*/lib(.*)\.(so|dylib)$', lib)
+      if name_search:
+        libraries.append(name_search.group(1))
+  else:
+    if lib.endswith(".lib"):
+      name_search = re.search('.*/(.*)\.lib$', lib)
+      if name_search:
+        libraries.append(name_search.group(1))
+
+library_dirs.extend(LIBRARY_DIRS_EXTEND.split(";"))
 
 extra_link_args = []
 extra_compile_args = []
@@ -184,6 +202,11 @@ if not iswin:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
 
+
+print(libraries)
+print(library_dirs)
+print(objects)
+
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
 for module in mnames:
@@ -196,6 +219,7 @@ for module in mnames:
         libraries=libraries,
         include_dirs=include_dirs + autowrap_include_dirs,
         extra_compile_args=extra_compile_args,
+        extra_objects=objects,
         extra_link_args=extra_link_args,
 		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
 		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)

@@ -340,9 +340,29 @@ foreach(pyfile ${_sub_pyopenms_files})
   configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/${pyfile} COPYONLY)
 endforeach()
 
+#-----------------------------------------------------------------------------
+# since boost 1.69 there seem to be symbols visible/imported after linking it
+# statically into OpenMS.  Therefore we need to link to it for pyOpenMS as well.
+# Just using the OpenMS dependencies is hard since the CMake variables are
+# a) mangled together with generator expressions (debug and release)
+# b) do not specify if it was a static or dynamic library
+# -> possible to parse and infer but hard to do it right and general
+# We would also need multiple setup.py, one for debug, one for release
+# in case of multiconfig generators.
+# If we only could get rid of distutils in general and do everything with CMake..
+if(NOT WIN32)
+#if(BOOST_USE_STATIC)
+  find_boost(regex) ## variables are not global -> find again
+  #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
+  set(LIBRARIES_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>")
+  set(LIBRARY_DIRS_EXTEND "\$<TARGET_LINKER_FILE_DIR:Boost::regex>")
+  #set(ALL_OPENMS_DEPENDENCIES "\$<FILTER:\$<TARGET_GENEX_EVAL:OpenMS,\$<TARGET_PROPERTY:OpenMS,LINK_LIBRARIES>>,INCLUDE,/>")
+  file(GENERATE
+       OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
+       INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)         
+#endif()
+endif()
 
-
-find_boost()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 #  1 thread for compilation and using 8 modules seems like a reasonable number
@@ -360,9 +380,9 @@ set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 #------------------------------------------------------------------------------
 # If there are other, external libraries that we would like to link, we can
 # specify them here:
-set(INCLUDE_DIRS_EXTEND "")
-set(LIBRARIES_EXTEND "")
-set(LIBRARY_DIRS_EXTEND "")
+#set(INCLUDE_DIRS_EXTEND "")
+#set(LIBRARIES_EXTEND "")
+#set(LIBRARY_DIRS_EXTEND "")
 
 if (WITH_CRAWDAD)
   set(INCLUDE_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", \"${CRAWDAD_INCLUDE_DIRS}/msmat\", ${INCLUDE_DIRS_EXTEND}")
@@ -434,7 +454,6 @@ else()
 endif()
 
 configure_file(${_env_py_in} ${_env_py} @ONLY)
-
 #------------------------------------------------------------------------------
 # create targets in makefile
 
