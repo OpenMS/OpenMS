@@ -56,8 +56,7 @@ namespace OpenMS
     typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
                            IdentifiedOligoRef> IdentifiedMoleculeRef;
 
-    /** @brief Meta data for a search hit (e.g. peptide-spectrum match).
-    */
+    /// Representation of a search hit (e.g. peptide-spectrum match).
     struct MoleculeQueryMatch: public ScoredProcessingResult
     {
       IdentifiedMoleculeRef identified_molecule_ref;
@@ -136,6 +135,21 @@ namespace OpenMS
         String msg = "matched molecule is not an oligonucleotide";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
+      }
+
+      String getMoleculeAsString() const
+      {
+        switch (getMoleculeType())
+        {
+        case MoleculeType::PROTEIN:
+          return getIdentifiedPeptideRef()->sequence.toString();
+        case MoleculeType::COMPOUND:
+          return getIdentifiedCompoundRef()->identifier; // or use "name"?
+        case MoleculeType::RNA:
+          return getIdentifiedOligoRef()->sequence.toString();
+        default:
+          return "";
+        }
       }
 
       MoleculeQueryMatch& operator+=(const MoleculeQueryMatch& other)
