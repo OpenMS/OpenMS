@@ -258,6 +258,10 @@ add_test("TOPP_FeatureFinderMetabo_4" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test
 add_test("TOPP_FeatureFinderMetabo_4_out" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetabo_4.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_4_output.featureXML)
 add_test("TOPP_FeatureFinderMetabo_4_chrom_out" ${DIFF} -whitelist "<chromatogram id=" "<offset" "<userParam name=" -in1 FeatureFinderMetabo_4_chrom.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_4_chrom_output.mzML)
 set_tests_properties("TOPP_FeatureFinderMetabo_4_chrom_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_4")
+add_test("TOPP_FeatureFinderMetabo_5" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out ${DATA_DIR_TOPP}/FeatureFinderMetabo_5.tmp -algorithm:mtd:quant_method max_height)
+add_test("TOPP_FeatureFinderMetabo_5_out" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetabo_5.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_5_output.featureXML)
+set_tests_properties("TOPP_FeatureFinderMetabo_5_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_5")
+
 
 #------------------------------------------------------------------------------
 # FeatureFinderCentroided test
