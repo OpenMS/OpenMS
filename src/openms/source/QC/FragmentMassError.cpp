@@ -50,7 +50,7 @@
 
 namespace OpenMS
 {
-  const std::string FragmentMassError::names_of_toleranceUnit[] = {"ppm", "da", "auto"};
+  const std::string FragmentMassError::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
 
   template <typename MIV>
   void twoSpecErrors (MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
@@ -138,10 +138,14 @@ namespace OpenMS
     {
       if (fmap.getProteinIdentifications().empty() )
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There is no information about fragment mass tolerance given in the FeatureXML. Please choose a fragment_mass_unit");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
       }
       tolerance_unit = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
       tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
+      if (tolerance <= 0.0)
+      { // some engines, e.g. MSGF+ have no fragment tolerance parameter. It will be 0.0.
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
+      }
     }
 
     bool print_warning {false};
