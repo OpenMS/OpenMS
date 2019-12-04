@@ -215,12 +215,18 @@ namespace OpenMS
     IdentificationData& id_data, const TransformationDescription& trafo,
     bool store_original_rt)
   {
-    for (IdentificationData::DataQuery copy : id_data.getDataQueries())
+    // update RTs in-place:
+    for (IdentificationData::DataQueryRef it = id_data.data_queries_.begin();
+         it != id_data.data_queries_.end(); ++it)
     {
-      if (store_original_rt) storeOriginalRT_(copy, copy.rt);
-      copy.rt = trafo.apply(copy.rt);
-      // data is read-only, so we need to merge in the update:
-      id_data.registerDataQuery(copy);
+      id_data.data_queries_.modify(it, [&](IdentificationData::DataQuery& query)
+                                   {
+                                     if (store_original_rt)
+                                     {
+                                       storeOriginalRT_(query, query.rt);
+                                     }
+                                     query.rt = trafo.apply(query.rt);
+                                   });
     }
   }
 

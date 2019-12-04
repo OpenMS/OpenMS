@@ -670,9 +670,8 @@ namespace OpenMS
     }
 
 
-    // these classes/functions need access to manipulate data:
+    // these classes need access to manipulate data:
     friend class IDFilter;
-    // friend static void MapAlignmentTransformer::transformRetentionTimes(
-    //   IdentificationData&, const TransformationDescription&, bool)
+    friend class MapAlignmentTransformer;
   };
 }
