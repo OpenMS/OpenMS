@@ -164,7 +164,7 @@ protected:
     /// Minimum number of runs a peptide must occur in
     Size min_run_occur_;
 
-    /// Use feature RT instead of RT from best peptide ID in the feature.
+    /// Use feature RT instead of RT from best peptide ID in the feature?
     bool use_feature_rt_;
 
     /// Minimum score to reach for a peptide to be considered

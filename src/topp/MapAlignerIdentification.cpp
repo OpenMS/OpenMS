@@ -179,10 +179,11 @@ private:
   void applyTransformations_(vector<DataType>& data,
     const vector<TransformationDescription>& transformations)
   {
+    bool store_original_rt = getFlag_("store_original_rt");
     for (Size i = 0; i < data.size(); ++i)
     {
-      MapAlignmentTransformer::transformRetentionTimes(data[i],
-        transformations[i]);
+      MapAlignmentTransformer::transformRetentionTimes(
+        data[i], transformations[i], store_original_rt);
     }
   }
 
@@ -267,6 +268,9 @@ private:
     // TODO: potentially move to base class so every aligner has to support design
     registerInputFile_("design", "<file>", "", "Input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
+
+    registerFlag_("store_original_rt", "Store the original retention times (before transformation) as meta data in the output?");
+
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
