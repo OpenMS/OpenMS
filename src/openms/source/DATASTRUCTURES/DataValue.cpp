@@ -34,11 +34,12 @@
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <QtCore/QString>
+
+#include <sstream>
 
 using namespace std;
 

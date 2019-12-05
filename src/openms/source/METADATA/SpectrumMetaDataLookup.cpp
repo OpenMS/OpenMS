@@ -185,7 +185,7 @@ namespace OpenMS
     for (vector<PeptideIdentification>::iterator it = peptides.begin();
             it != peptides.end(); ++it)
     {
-      if (boost::math::isnan(it->getRT()))
+      if (std::isnan(it->getRT()))
       {
         if (lookup.empty())
         {

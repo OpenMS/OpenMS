@@ -39,6 +39,8 @@
 #include <OpenMS/CONCEPT/StreamHandler.h>
 ///////////////////////////
 
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
 

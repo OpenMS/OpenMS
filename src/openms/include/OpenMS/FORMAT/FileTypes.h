@@ -112,6 +112,7 @@ namespace OpenMS
       XQUESTXML,          ///< xQuest XML file format for protein-protein cross-link identifications (.xquest.xml)
       JSON,               ///< JavaScript Object Notation file (.json)
       RAW,                ///< Thermo Raw File (.raw)
+      EXE,                ///< Executable (.exe)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

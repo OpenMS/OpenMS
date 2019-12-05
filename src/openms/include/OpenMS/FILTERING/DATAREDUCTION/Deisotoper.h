@@ -59,9 +59,9 @@ class OPENMS_DLLAPI Deisotoper
     of the peak is higher than the previous peak.
 
     Deisotoping is done in-place and if @p annotate_charge is true,
-    an additional IntegerDataArray "charge" will be appended. If 
-    @p annotate_iso_peak_count is true, an additional IntegerDataArray 
-    "iso_peak_count" containing the number of isotopic peaks will be 
+    an additional IntegerDataArray "charge" will be appended. If
+    @p annotate_iso_peak_count is true, an additional IntegerDataArray
+    "iso_peak_count" containing the number of isotopic peaks will be
     appended.
     Existing DataArrays are kept and shrunken to the peaks which
     remain in the spectrum.
@@ -78,6 +78,10 @@ class OPENMS_DLLAPI Deisotoper
    * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
    * @param [annotate_iso_peak_count] Annotate the number of isotopic peaks in a pattern for each monoisotopic peak in the IntegerDataArray: "iso_peak_count"
    * @param [use_decreasing_model] Use a simple averagine model that expects heavier isotopes to have less intensity. If false, no intensity checks are applied.
+   * @param [start_intensity_check] Number of the isotopic peak from which the decreasing model should be applied. <= 1 will force the monoisotopic peak to be the most intense.
+                                    2 will allow the monoisotopic peak to be less intense than the second peak.
+                                    3 will allow the monoisotopic and the second peak to be less intense than the third, etc.
+                                    A number higher than max_isopeaks will effectively disable use_decreasing_model completely.
    * @param [add_up_intensity] Sum up the total intensity of each isotopic pattern into the intensity of the reported monoisotopic peak
    *
    * Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
@@ -94,6 +98,7 @@ class OPENMS_DLLAPI Deisotoper
             bool annotate_charge = false,
             bool annotate_iso_peak_count = false,
             bool use_decreasing_model = true,
+            unsigned int start_intensity_check = 2,
             bool add_up_intensity = false);
 };
 

@@ -20,11 +20,11 @@ set(qc_executables_list
   FragmentMassError_test
   MissedCleavages_test
   Ms2IdentificationRate_test
+  Ms2SpectrumStats_test
   MzCalibration_test
   QCBase_test
   RTAlignment_test
   TIC_test
-  TopNoverRT_test
 )
 
 set(datastructures_executables_list
@@ -489,6 +489,7 @@ set(analysis_executables_list
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
+  TMTSixteenPlexQuantitationMethod_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test

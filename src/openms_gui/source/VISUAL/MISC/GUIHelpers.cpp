@@ -92,12 +92,12 @@ namespace OpenMS
     else
     {
       // we could not find the app, try it the Linux way
-      QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
+      QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
       p->start(toppview_executable, args);
     }
 #else
     // LINUX+WIN
-    QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
+    QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
     p->start(toppview_executable, args);
 #endif
 

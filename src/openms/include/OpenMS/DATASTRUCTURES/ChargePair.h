@@ -79,7 +79,7 @@ public:
     ChargePair& operator=(const ChargePair& rhs);
 
     /// Destructor
-    virtual ~ChargePair();
+    virtual ~ChargePair() = default;
 
     //@}
 

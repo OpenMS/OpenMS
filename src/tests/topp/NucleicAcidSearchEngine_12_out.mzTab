@@ -3,7 +3,7 @@ MTD	mzTab-mode	null
 MTD	mzTab-type	null
 MTD	description	null
 MTD	osm_search_engine_score[1]	[, , hyperscore, ]
-MTD	osm_search_engine_score[2]	[MS, MS:1002354, q-value, ]
+MTD	osm_search_engine_score[2]	[MS, MS:1002354, PSM-level q-value, ]
 MTD	software[1]	[, , NucleicAcidSearchEngine, test]
 MTD	ms_run[1]-location	./NucleicAcidSearchEngine_1.mzML
 

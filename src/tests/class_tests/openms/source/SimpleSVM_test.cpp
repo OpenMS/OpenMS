@@ -39,6 +39,9 @@
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 ///////////////////////////
 
+#include <sstream>
+
+
 using namespace OpenMS;
 using namespace std;
 
