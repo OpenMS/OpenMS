@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("pyOpenMS")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 #------------------------------------------------------------------------------
 # helper to copy/configure files from source to build
@@ -324,6 +324,7 @@ set(_pyopenms_files
   run_memleaks.py
   doCythonCompileOnly.py
   fix_pyopenms_dependencies_on_mac.sh
+  mac_fix_automation_mojave.sh
 )
 
 foreach(pyfile ${_pyopenms_files})
@@ -388,6 +389,13 @@ if (WITH_CRAWDAD)
   set(INCLUDE_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", \"${CRAWDAD_INCLUDE_DIRS}/msmat\", ${INCLUDE_DIRS_EXTEND}")
   set(LIBRARIES_EXTEND "\"Crawdad\", ${LIBRARIES_EXTEND} ${LIBRARIES_EXTEND}")
   set(LIBRARY_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", ${LIBRARY_DIRS_EXTEND}")
+endif()
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# add additional sysroot information (osx)
+if (APPLE)
+  set(SYSROOT_OSX_PATH ${CMAKE_OSX_SYSROOT})
 endif()
 #------------------------------------------------------------------------------
 
