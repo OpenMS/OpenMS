@@ -514,8 +514,8 @@ END_SECTION
 
 START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensity_weighted_averaging=false)))
 
-  double proton_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight();
-  double natrium_mass = ElementDB::getInstance()->getElement("Na")->getMonoWeight();
+  double proton_mass = getElementDBInstance()->getElement("H")->getMonoWeight();
+  double natrium_mass = getElementDBInstance()->getElement("Na")->getMonoWeight();
 
   double m = 1000;
   double m1_add = 0.5;

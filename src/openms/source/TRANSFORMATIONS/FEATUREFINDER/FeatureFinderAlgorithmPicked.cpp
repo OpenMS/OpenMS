@@ -175,7 +175,7 @@ namespace OpenMS
     double abundance_12C = param_.getValue("isotopic_pattern:abundance_12C");
     double abundance_14N = param_.getValue("isotopic_pattern:abundance_14N");
 
-    const Element* carbon_const = ElementDB::getInstance()->getElement("Carbon");
+    const Element* carbon_const = getElementDBInstance()->getElement("Carbon");
     Element* carbon = const_cast<Element*>(carbon_const);
 
     if (param_.getValue("isotopic_pattern:abundance_12C") != defaults_.getValue("isotopic_pattern:abundance_12C"))
@@ -187,7 +187,7 @@ namespace OpenMS
       carbon->setIsotopeDistribution(isotopes);
     }
 
-    const Element* nitrogen_const = ElementDB::getInstance()->getElement("Nitrogen");
+    const Element* nitrogen_const = getElementDBInstance()->getElement("Nitrogen");
     Element* nitrogen = const_cast<Element*>(nitrogen_const);
 
     if (param_.getValue("isotopic_pattern:abundance_14N") != defaults_.getValue("isotopic_pattern:abundance_14N"))

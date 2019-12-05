@@ -158,10 +158,10 @@ START_SECTION(bool operator == (const Element& element) const)
 END_SECTION
 
 START_SECTION(bool operator < (const Element& element) const)
-	const Element * h = ElementDB::getInstance()->getElement("H");
-	const Element * c = ElementDB::getInstance()->getElement("Carbon");
-	const Element * o = ElementDB::getInstance()->getElement("O");
-	const Element * s = ElementDB::getInstance()->getElement("S");
+	const Element * h = getElementDBInstance()->getElement("H");
+	const Element * c = getElementDBInstance()->getElement("Carbon");
+	const Element * o = getElementDBInstance()->getElement("O");
+	const Element * s = getElementDBInstance()->getElement("S");
 	TEST_EQUAL(*h < *c, true)
 	TEST_EQUAL(*c < *o, true)
 	TEST_EQUAL(*c < *c, false)

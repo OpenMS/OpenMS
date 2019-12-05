@@ -36,7 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/config.h>
-
+#include <cstdlib>
 
 namespace OpenMS
 {

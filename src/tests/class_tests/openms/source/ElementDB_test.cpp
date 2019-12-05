@@ -62,7 +62,7 @@ START_SECTION([EXTRA] multithreaded example)
 #pragma omp parallel for reduction(+: test)
   for (int k = 1; k < nr_iterations + 1; k++)
   {
-    auto edb = ElementDB::getInstance();
+    auto edb = getElementDBInstance();
     const Element * e1 = edb->getElement("Carbon");
     test += e1->getAtomicNumber();
   }
@@ -71,7 +71,7 @@ START_SECTION([EXTRA] multithreaded example)
 END_SECTION
 
 START_SECTION(static const ElementDB* getInstance())
-	e_ptr = ElementDB::getInstance();
+	e_ptr = getElementDBInstance();
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
