@@ -679,7 +679,7 @@ namespace OpenMS
 
   bool File::findExecutable(OpenMS::String& exe_filename)
   {
-    if (exists(exe_filename)) return true;
+    if (exists(exe_filename) && !isDirectory(exe_filename)) return true;
 
     StringList paths = getPathLocations();
     StringList exe_filenames = { exe_filename };
