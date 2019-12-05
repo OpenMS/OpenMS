@@ -140,7 +140,6 @@ include_dirs = [
 
 # append all include and library dirs exported by CMake
 include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
-include_dirs.extend(INCLUDE_DIRS_EXTEND)
 library_dirs.extend(LIBRARY_DIRS_EXTEND)
 libraries.extend(LIBRARIES_EXTEND)
 
