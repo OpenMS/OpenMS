@@ -76,11 +76,7 @@ public:
     /// returns a pointer to the singleton instance of the element db
     /// Upon first call, the Elements.xml file is parsed
     /// This is thread safe upon first and subsequent calls.
-    static const ElementDB* getInstance()
-    {
-      static ElementDB db_; // this is thread safe!
-      return &db_;
-    }
+    static const ElementDB* getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
     const Map<String, const Element *> & getNames() const;
