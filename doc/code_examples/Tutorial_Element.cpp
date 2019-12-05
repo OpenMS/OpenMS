@@ -39,7 +39,7 @@ using namespace std;
 
 Int main()
 {
-  const ElementDB * db = getElementDBInstance();
+  const ElementDB * db = ElementDB::getInstance();
 
   // extract carbon element from ElementDB
   // .getResidue("C") would work as well

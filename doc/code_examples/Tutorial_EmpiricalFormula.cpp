@@ -46,7 +46,7 @@ Int main()
   EmpiricalFormula sum = methanol + water;
 
   // get element from ElementDB
-  const Element * carbon = getElementDBInstance()->getElement("Carbon");
+  const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
 
   // output number of carbon atoms and average weight 
   cout << sum << " "
