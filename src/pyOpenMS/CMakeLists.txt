@@ -324,7 +324,6 @@ set(_pyopenms_files
   run_memleaks.py
   doCythonCompileOnly.py
   fix_pyopenms_dependencies_on_mac.sh
-  mac_fix_automation_mojave.sh
 )
 
 foreach(pyfile ${_pyopenms_files})
@@ -341,27 +340,50 @@ foreach(pyfile ${_sub_pyopenms_files})
   configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/${pyfile} COPYONLY)
 endforeach()
 
+
+
+#------------------------------------------------------------------------------
+# If there are other, external libraries that we would like to link, we can
+# specify them here:
+set(INCLUDE_DIRS_EXTEND "")
+set(LIBRARIES_EXTEND "")
+set(LIBRARY_DIRS_EXTEND "")
+
+if (WITH_CRAWDAD)
+  set(INCLUDE_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", \"${CRAWDAD_INCLUDE_DIRS}/msmat\", ${INCLUDE_DIRS_EXTEND}")
+  set(LIBRARIES_EXTEND "\"Crawdad\", ${LIBRARIES_EXTEND} ${LIBRARIES_EXTEND}")
+  set(LIBRARY_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", ${LIBRARY_DIRS_EXTEND}")
+endif()
+
 #-----------------------------------------------------------------------------
 # since boost 1.69 there seem to be symbols visible/imported after linking it
-# statically into OpenMS.  Therefore we need to link to it for pyOpenMS as well.
+# statically into OpenMS. Therefore we need to link to it for pyOpenMS as well.
 # Just using the OpenMS dependencies is hard since the CMake variables are
 # a) mangled together with generator expressions (debug and release)
-# b) do not specify if it was a static or dynamic library
-# -> possible to parse and infer but hard to do it right and general
-# We would also need multiple setup.py, one for debug, one for release
-# in case of multiconfig generators.
+# b) do not specify if it was a static or dynamic library (on Unix this is easy to
+# test from the extension, but not on Windows)
+# c) may include recursively imported targets like Qt which list Qt::Core instead
+# of the actual path
 # If we only could get rid of distutils in general and do everything with CMake..
 if(NOT WIN32)
-#if(BOOST_USE_STATIC)
   find_boost(regex) ## variables are not global -> find again
+  
+  # the following does not work since the FindBoost does not annotate all target_properties,
+  # when run without BOOST_USE_STATIC On or Off.
   #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
+  
+  # the logic for static vs dynamic is in setup.py
   set(LIBRARIES_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>")
   set(LIBRARY_DIRS_EXTEND "\$<TARGET_LINKER_FILE_DIR:Boost::regex>")
+  
+  # the following gets all dependent libraries of OpenMS
+  # for the current config but filters out imported targets unfortunately.
+  # We would need something recursive
   #set(ALL_OPENMS_DEPENDENCIES "\$<FILTER:\$<TARGET_GENEX_EVAL:OpenMS,\$<TARGET_PROPERTY:OpenMS,LINK_LIBRARIES>>,INCLUDE,/>")
+
   file(GENERATE
        OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
-       INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)         
-#endif()
+       INPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 endif()
 
 #------------------------------------------------------------------------------
@@ -378,18 +400,6 @@ endif()
 set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
-#------------------------------------------------------------------------------
-# If there are other, external libraries that we would like to link, we can
-# specify them here:
-#set(INCLUDE_DIRS_EXTEND "")
-#set(LIBRARIES_EXTEND "")
-#set(LIBRARY_DIRS_EXTEND "")
-
-if (WITH_CRAWDAD)
-  set(INCLUDE_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", \"${CRAWDAD_INCLUDE_DIRS}/msmat\", ${INCLUDE_DIRS_EXTEND}")
-  set(LIBRARIES_EXTEND "\"Crawdad\", ${LIBRARIES_EXTEND} ${LIBRARIES_EXTEND}")
-  set(LIBRARY_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", ${LIBRARY_DIRS_EXTEND}")
-endif()
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -440,7 +450,7 @@ foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
 	)
 endforeach()
 	
-# fixup these dependencies
+# fixup these dependencies (i.e. get other dynamic dependencies recursively)
 if (APPLE) ## On APPLE use our script because the executables need to be relinked
 ## this is done before setup.py so that we fixup the resulting pyopenms.so's too
 else()
@@ -461,7 +471,9 @@ else()
     endif()
 endif()
 
+# write configured variables into env.py
 configure_file(${_env_py_in} ${_env_py} @ONLY)
+
 #------------------------------------------------------------------------------
 # create targets in makefile
 
