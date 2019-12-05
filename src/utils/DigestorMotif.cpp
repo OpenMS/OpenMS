@@ -264,7 +264,7 @@ protected:
                 const Size nG = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'G');
                 const Size nL = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'L');
 
-                const ElementDB* db = getElementDBInstance();
+                const ElementDB* db = ElementDB::getInstance();
                 const Element* C = db->getElement("C");
                 const Element* H = db->getElement("H");
                 const Element* N = db->getElement("N");

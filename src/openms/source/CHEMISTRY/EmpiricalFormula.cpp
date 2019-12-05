@@ -119,7 +119,7 @@ namespace OpenMS
 
   bool EmpiricalFormula::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
   {
-    const ElementDB* db = getElementDBInstance();
+    const ElementDB* db = ElementDB::getInstance();
 
     double remaining_weight = average_weight - S * db->getElement("S")->getAverageWeight();
 
@@ -135,7 +135,7 @@ namespace OpenMS
 
   bool EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
   {
-    const ElementDB* db = getElementDBInstance();
+    const ElementDB* db = ElementDB::getInstance();
 
     double avgTotal = (C * db->getElement("C")->getAverageWeight() +
                        H * db->getElement("H")->getAverageWeight() +
@@ -580,7 +580,7 @@ namespace OpenMS
         num = number.toInt();
       }
 
-      const ElementDB* db = getElementDBInstance();
+      const ElementDB* db = ElementDB::getInstance();
       if (db->hasElement(symbol))
       {
         if (num != 0)

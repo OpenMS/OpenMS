@@ -1336,7 +1336,7 @@ public:
   static IsotopePatterns calculateIsotopePatternsFor13CRange(const AASequence& peptide, Size additional_isotopes = 5)
   {
     IsotopePatterns ret;
-    const Element* e1 = getElementDBInstance()->getElement("Carbon");
+    const Element* e1 = ElementDB::getInstance()->getElement("Carbon");
     Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
@@ -1411,19 +1411,19 @@ public:
     const Element * e;
     if (labeling_element == "N")
     {
-      e = getElementDBInstance()->getElement("Nitrogen");
+      e = ElementDB::getInstance()->getElement("Nitrogen");
     }
     else if (labeling_element == "C")
     {
-      e = getElementDBInstance()->getElement("Carbon");
+      e = ElementDB::getInstance()->getElement("Carbon");
     }
     else if (labeling_element == "H")
     {
-      e = getElementDBInstance()->getElement("Hydrogen");
+      e = ElementDB::getInstance()->getElement("Hydrogen");
     }
     else if (labeling_element == "O")
     {
-      e = getElementDBInstance()->getElement("Oxygen");
+      e = ElementDB::getInstance()->getElement("Oxygen");
     }
     else
     {
@@ -1456,7 +1456,7 @@ public:
   {
     IsotopePatterns ret;
 
-    const Element* e1 = getElementDBInstance()->getElement("Nitrogen");
+    const Element* e1 = ElementDB::getInstance()->getElement("Nitrogen");
     Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
@@ -1525,7 +1525,7 @@ public:
   {
     IsotopePatterns ret;
 
-    const Element* e1 = getElementDBInstance()->getElement("Hydrogen");
+    const Element* e1 = ElementDB::getInstance()->getElement("Hydrogen");
     Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
@@ -1596,7 +1596,7 @@ public:
   {
     IsotopePatterns ret;
 
-    const Element* e1 = getElementDBInstance()->getElement("Oxygen");
+    const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
     Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
@@ -1667,7 +1667,7 @@ public:
   static IsotopePatterns calculateIsotopePatternsFor15NRangeOfAveraginePeptide(double mass)
   {
     IsotopePatterns ret;
-    const Element* e1 = getElementDBInstance()->getElement("Nitrogen");
+    const Element* e1 = ElementDB::getInstance()->getElement("Nitrogen");
     Element* e2 = const_cast<Element*>(e1);
 
     // calculate number of expected labeling elements using averagine model
@@ -1706,7 +1706,7 @@ public:
   static IsotopePatterns calculateIsotopePatternsFor13CRangeOfAveraginePeptide(double mass)
   {
     IsotopePatterns ret;
-    const Element* e1 = getElementDBInstance()->getElement("Carbon");
+    const Element* e1 = ElementDB::getInstance()->getElement("Carbon");
     Element* e2 = const_cast<Element*>(e1);
     Size element_count = static_cast<Size>(mass * 0.0444398894906044);
 
@@ -1743,7 +1743,7 @@ public:
   {
     IsotopePatterns ret;
 
-    const Element* e1 = getElementDBInstance()->getElement("Hydrogen");
+    const Element* e1 = ElementDB::getInstance()->getElement("Hydrogen");
     Element* e2 = const_cast<Element*>(e1);
     Size element_count = static_cast<Size>(mass * 0.06981572169);
 
@@ -1781,7 +1781,7 @@ public:
   {
     IsotopePatterns ret;
 
-    const Element* e1 = getElementDBInstance()->getElement("Oxygen");
+    const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
     Element* e2 = const_cast<Element*>(e1);
     Size element_count = static_cast<Size>(mass * 0.01329399039);
 

@@ -69,13 +69,18 @@ namespace OpenMS
   class OPENMS_DLLAPI ElementDB
   {
 public:
-
-    ElementDB();
-    ~ElementDB();
-
+    
     /** @name Accessors
     */
     //@{
+    /// returns a pointer to the singleton instance of the element db
+    /// Upon first call, the Elements.xml file is parsed
+    /// This is thread safe upon first and subsequent calls.
+    static const ElementDB* getInstance()
+    {
+      static ElementDB db_; // this is thread safe!
+      return &db_;
+    }
 
     /// returns a hashmap that contains names mapped to pointers to the elements
     const Map<String, const Element *> & getNames() const;
@@ -145,15 +150,12 @@ protected:
     Map<UInt, const Element *> atomic_numbers_;
 
 private:
+    ElementDB();
+    ~ElementDB();
     ElementDB(const ElementDB& db) = delete;
     ElementDB(const ElementDB&& db) = delete;
     ElementDB& operator=(const ElementDB& db) = delete;
 
   };
-
-  /// returns a pointer to the singleton instance of the element db
-  /// Upon first call, the Elements.xml file is parsed
-  /// This is thread safe upon first and subsequent calls.
-  OPENMS_DLLAPI const ElementDB* getElementDBInstance();
 
 } // namespace OpenMS

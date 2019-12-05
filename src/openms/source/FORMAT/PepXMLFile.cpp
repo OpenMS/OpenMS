@@ -57,7 +57,7 @@ namespace OpenMS
     keep_native_name_(false),
     search_score_summary_(false)
   {
-    const ElementDB* db = getElementDBInstance();
+    const ElementDB* db = ElementDB::getInstance();
     hydrogen_ = *db->getElement("Hydrogen");
   }
 

@@ -347,10 +347,4 @@ namespace OpenMS
     atomic_numbers_.clear();
   }
 
-  const ElementDB* getElementDBInstance()
-  {
-    static ElementDB db_; // this is thread safe since C++11!
-    return &db_;
-  }
-
 } // namespace OpenMS

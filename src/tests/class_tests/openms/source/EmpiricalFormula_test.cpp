@@ -58,7 +58,7 @@ START_TEST(ElementDB, "$Id$")
 
 EmpiricalFormula* e_ptr = nullptr;
 EmpiricalFormula* e_nullPointer = nullptr;
-const ElementDB * db = getElementDBInstance();
+const ElementDB * db = ElementDB::getInstance();
 
 EmpiricalFormula ef_empty;
 
