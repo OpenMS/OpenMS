@@ -340,7 +340,7 @@ usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STO
 -e, --path-prefix:
   the prefix that is added to the new install_name (default: @executable_path/)
 -f, --extract-from-framework:
-  extract the linked libraries from their Framework folder. CAUTIION: this does not copy Headers and Resources. Not tested with already present frameworks.
+  extract the linked libraries from their Framework folder. CAUTION: this does not copy Headers and Resources. Not tested with already present frameworks.
 -v, --verbose:
   increase verbosity
 "

@@ -138,12 +138,16 @@ include_dirs = [
     j(numpy.core.__path__[0], "include"),
 ]
 
-# append all include dirs exported by CMake
+# append all include and library dirs exported by CMake
 include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
+include_dirs.extend(INCLUDE_DIRS_EXTEND)
+library_dirs.extend(LIBRARY_DIRS_EXTEND)
+libraries.extend(LIBRARIES_EXTEND)
 
-# static libraries
+
+# libraries of any type to be parsed and added
 objects = []
-add_libs = LIBRARIES_EXTEND.split(";")
+add_libs = LIBRARIES_TO_BE_PARSED_EXTEND.split(";")
 for lib in add_libs:
   if not iswin:
     if lib.endswith(".a"):
@@ -151,17 +155,19 @@ for lib in add_libs:
       name_search = re.search('.*/lib(.*)\.a$', lib)
       if name_search:
         libraries.append(name_search.group(1))
+        library_dirs.append(os.path.dirname(lib))
     if lib.endswith(".so") or lib.endswith(".dylib"):
       name_search = re.search('.*/lib(.*)\.(so|dylib)$', lib)
       if name_search:
         libraries.append(name_search.group(1))
+        library_dirs.append(os.path.dirname(lib))
   else:
     if lib.endswith(".lib"):
       name_search = re.search('.*/(.*)\.lib$', lib)
       if name_search:
         libraries.append(name_search.group(1))
+        library_dirs.append(os.path.dirname(lib))
 
-library_dirs.extend(LIBRARY_DIRS_EXTEND.split(";"))
 
 extra_link_args = []
 extra_compile_args = []

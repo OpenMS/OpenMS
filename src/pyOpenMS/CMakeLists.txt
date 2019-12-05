@@ -373,8 +373,7 @@ if(NOT WIN32)
   #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
   
   # the logic for static vs dynamic is in setup.py
-  set(LIBRARIES_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>")
-  set(LIBRARY_DIRS_EXTEND "\$<TARGET_LINKER_FILE_DIR:Boost::regex>")
+  set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>")
   
   # the following gets all dependent libraries of OpenMS
   # for the current config but filters out imported targets unfortunately.
