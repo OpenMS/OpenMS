@@ -697,7 +697,7 @@ namespace OpenMS
     {
       for (const String& fn : exe_filenames)
       {
-        if (exists(p + fn))
+        if (exists(p + fn) && !isDirectory(p + fn))
         {
           exe_filename = p + fn;
           return true;
