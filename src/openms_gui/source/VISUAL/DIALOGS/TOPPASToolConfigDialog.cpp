@@ -199,7 +199,7 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.store(tmp_ini_file.toStdString(), arg_param_);
       //restore other parameters that might be missing
-      QString executable = File::findExecutable(tool_name_).toQString();
+      QString executable = File::findSiblingTOPPExecutable(tool_name_).toQString();
       QStringList args;
       args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
       if (tool_type_ != "")

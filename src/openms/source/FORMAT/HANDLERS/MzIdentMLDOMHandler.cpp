@@ -41,6 +41,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <boost/lexical_cast.hpp>
 
 #include <sys/stat.h>
 #include <cerrno>

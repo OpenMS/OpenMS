@@ -875,7 +875,7 @@ namespace OpenMS
         String extra_quotes = "";
 #endif
 
-        String cmd = extra_quotes + "\"" + File::findExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;
+        String cmd = extra_quotes + "\"" + File::findSiblingTOPPExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;
         std::cerr << cmd << "\n\n";
         if (std::system(cmd.c_str()))
         {

@@ -31,7 +31,7 @@
 // $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/TopNoverRT.h>
+#include <OpenMS/QC/Ms2SpectrumStats.h>
 
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -44,11 +44,11 @@ namespace OpenMS
 {
   // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therefor have a entry in the featureMap)
   // MS2 spectra without mate are returned as vector of unassignedPeptideIdentifications (with empty sequence but some metavalue)
-  std::vector<PeptideIdentification> TopNoverRT::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
+  std::vector<PeptideIdentification> Ms2SpectrumStats::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (exp.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The mzml file / MSExperiment is empty.\n");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The mzml file / MSExperiment must not be empty.\n");
     }
 
     setScanEventNumber_(exp);
@@ -58,33 +58,13 @@ namespace OpenMS
       setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum);
     };
     iterateFeatureMap(features, l_f);
-    for (auto& f : features)
-    {
-      if (f.metaValueExists("FWHM")) // from FF-Centroided
-      {
-        for (auto& pi : f.getPeptideIdentifications())
-        {
-          pi.setMetaValue("FWHM", f.getMetaValue("FWHM"));
-        }
-      }
-      else if (f.metaValueExists("model_FWHM")) // from FF-Identification
-      {
-        for (auto& pi : f.getPeptideIdentifications())
-        {
-          pi.setMetaValue("FWHM", f.getMetaValue("model_FWHM")); // use 'FWHM' as target to make meta value unique for downstream processing
-        }
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue 'FWHM' or 'model_FWHM' is missing for a feature in a FeatureMap. Please check your FeatureFinder reports FWHM using these metavalues or add a new mapping here.");
-      }
-    }
-
-    // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT and ScanEventNumber
+    
+    // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT, mz and some meta values
     return getUnassignedPeptideIdentifications_(exp);
   }
-  // if ms2 spetrum not included, add to unassignedPeptideIdentification, set m/z and RT values
-  void TopNoverRT::setScanEventNumber_(const MSExperiment& exp)
+  
+
+  void Ms2SpectrumStats::setScanEventNumber_(const MSExperiment& exp)
   {
     ms2_included_.clear();
     ms2_included_.reserve(exp.size());
@@ -92,7 +72,7 @@ namespace OpenMS
     for (const MSSpectrum& spec : exp.getSpectra())
     {
       if (spec.getMSLevel() == 1)
-      {
+      { // reset 
         scan_event_number = 0;
         ms2_included_.emplace_back(scan_event_number, false);
       }
@@ -117,7 +97,7 @@ namespace OpenMS
   }
 
   // marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
-  void TopNoverRT::setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum)
+  void Ms2SpectrumStats::setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (!peptide_ID.metaValueExists("spectrum_reference"))
     {
@@ -129,73 +109,58 @@ namespace OpenMS
 
     if (spectrum.getMSLevel() == 2)
     {
-      Peak1D::IntensityType bpi;
-      Peak1D::IntensityType tic;
-      getBPIandCIC_(spectrum, bpi, tic);
       ms2_included_[index].ms2_presence = true;
       peptide_ID.setMetaValue("ScanEventNumber", ms2_included_[index].scan_event_number);
       peptide_ID.setMetaValue("identified", 1);
-      peptide_ID.setMetaValue("total_ion_count", tic);
-      peptide_ID.setMetaValue("base_peak_intensity", bpi);
-      annotatePepIDfromSpectrum_(spectrum, peptide_ID);
+      peptide_ID.setMetaValue("total_ion_count", spectrum.getTIC());
+      peptide_ID.setMetaValue("base_peak_intensity", getBPI_(spectrum));
+      annotatePepIDfromSpectrum_(spectrum, peptide_ID); // ion_injection_time and activation_method
     }
   }
 
-  std::vector<PeptideIdentification> TopNoverRT::getUnassignedPeptideIdentifications_(const MSExperiment& exp)
+  std::vector<PeptideIdentification> Ms2SpectrumStats::getUnassignedPeptideIdentifications_(const MSExperiment& exp)
   {
     std::vector<PeptideIdentification> result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
       if (it->ms2_presence) continue;
       
-      Size pos = distance(ms2_included_.begin(), it);
-      if (exp[pos].getMSLevel() != 2) continue;
+      const MSSpectrum& spec = exp.getSpectra()[distance(ms2_included_.begin(), it)];
+      if (spec.getMSLevel() != 2) continue;
 
       PeptideIdentification unidentified_MS2;
-      Peak1D::IntensityType bpi;
-      Peak1D::IntensityType tic;
-      getBPIandCIC_(exp.getSpectra()[pos], bpi, tic);
-      unidentified_MS2.setRT(exp.getSpectra()[pos].getRT());
+      unidentified_MS2.setRT(spec.getRT());
       unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
       unidentified_MS2.setMetaValue("identified", 0);
-      unidentified_MS2.setMZ(exp.getSpectra()[pos].getPrecursors()[0].getMZ());
-      unidentified_MS2.setMetaValue("total_ion_count", tic);
-      unidentified_MS2.setMetaValue("base_peak_intensity", bpi);
-      unidentified_MS2.setMetaValue("spectrum_reference", exp.getSpectra()[pos].getNativeID());
-      annotatePepIDfromSpectrum_(exp.getSpectra()[pos], unidentified_MS2);
+      unidentified_MS2.setMZ(spec.getPrecursors()[0].getMZ());
+      unidentified_MS2.setMetaValue("total_ion_count", spec.getTIC());
+      unidentified_MS2.setMetaValue("base_peak_intensity", getBPI_(spec));
+      unidentified_MS2.setMetaValue("spectrum_reference", spec.getNativeID());
+      annotatePepIDfromSpectrum_(spec, unidentified_MS2); // ion_injection_time and activation_method
       result.push_back(unidentified_MS2);
     }
     return result;
   }
 
+  // calculate maximal and summed intensity
+  MSSpectrum::PeakType::IntensityType Ms2SpectrumStats::getBPI_(const MSSpectrum& spec)
+  {
+    PeakSpectrum::PeakType::IntensityType bpi{ 0 };
+    auto it = spec.getBasePeak();
+    if (it != spec.end()) bpi = it->getIntensity();
+    return bpi;
+  }
+
   // returns the name of the metric
-  const String& TopNoverRT::getName() const
+  const String& Ms2SpectrumStats::getName() const
   {
     return name_;
   }
 
   // required input files
-  QCBase::Status TopNoverRT::requires() const
+  QCBase::Status Ms2SpectrumStats::requires() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
 
-  // calculate maximal and summed intensity
-  void TopNoverRT::getBPIandCIC_(MSSpectrum const &spec,
-                                  Peak1D::IntensityType& bpi,
-                                  Peak1D::IntensityType& tic)
-  {
-    Peak1D::IntensityType peak_max{0};
-    Peak1D::IntensityType sum{0};
-    for (const Peak1D& peak : spec)
-    {
-      sum += peak.getIntensity();
-      if (peak.getIntensity() > peak_max)
-      {
-        peak_max = peak.getIntensity();
-      }
-    }
-    bpi = peak_max;
-    tic = sum;
-  }
 }

@@ -61,6 +61,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         libcpp_vector[Peak1D].iterator begin() nogil except +  # wrap-iter-begin:__iter__(Peak1D)
         libcpp_vector[Peak1D].iterator end()   nogil except +  # wrap-iter-end:__iter__(Peak1D)
 
+        double getTIC() nogil except +
+
         bool operator==(MSSpectrum) nogil except +
         bool operator!=(MSSpectrum) nogil except +
 

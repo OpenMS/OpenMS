@@ -44,7 +44,6 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace std;
-using namespace boost::math;
 
 namespace OpenMS
 {

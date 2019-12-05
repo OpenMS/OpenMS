@@ -41,6 +41,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <sstream>
+
 namespace OpenMS
 {
 
@@ -142,17 +144,13 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      std::string expr;
-      expr.append(e.getFile());
-      expr.append("@");
-      std::stringstream ss;
-      ss << e.getLine(); // we need c++11!! maybe in 2012?
-      expr.append(ss.str());
-      expr.append("-");
-      expr.append(e.getFunction());
-      std::string mess = "- due to that error of type ";
-      mess.append(e.getName());
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, mess);
+      String expr;
+      expr += e.getFile();
+      expr += "@";
+      expr += e.getLine();
+      expr += "-";
+      expr += e.getFunction();
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, String("- due to that error of type ") + e.getName());
     }
   }
 

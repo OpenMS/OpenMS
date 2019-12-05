@@ -7,11 +7,11 @@ set(sources_list_h
   FragmentMassError.h
   MissedCleavages.h
   Ms2IdentificationRate.h
+  Ms2SpectrumStats.h
   MzCalibration.h
   QCBase.h
   RTAlignment.h
   TIC.h
-  TopNoverRT.h
 )
 
 ### add path to the filenames
