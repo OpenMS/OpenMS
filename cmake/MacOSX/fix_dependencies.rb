@@ -199,7 +199,7 @@ def copyFramework(frameworkPath, targetPath)
     debug "fw #{frameworkName} already exists in #{targetPath}"
   end
 
-  return newFrameworkPath, libname 
+  return newFrameworkPath, libname
 end
 
 ###############################################################################
@@ -227,7 +227,7 @@ def handleFramework(frameworkPath, targetPath)
   $currentIndent+=1
 
   if $EXTRACTFW
-    newFrameWorkPath, libname = copyLibFromFramework(frameworkPath, targetPath)  
+    newFrameWorkPath, libname = copyLibFromFramework(frameworkPath, targetPath)
   else
     # copy framework to target directory
     newFrameWorkPath, libname= copyFramework(frameworkPath, targetPath)
@@ -381,7 +381,7 @@ end
 debug "HANDLING LIB DIR"
 # fix libraries contained in lib-path
 # recurse two-levels to capture the libraries inside the frameworks
-Dir.chdir("#{$lib_dir}") do
+Dir.chdir($lib_dir.to_s) do
   lib_files = Dir.glob(["*","*/*"])
   for content in lib_files
     if fixable(content, $lib_dir)
