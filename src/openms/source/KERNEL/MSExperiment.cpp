@@ -503,7 +503,10 @@ namespace OpenMS
       }
       else
       {
-        String ms_run_location = path + "/" + filename;
+        // use Windows or UNIX path separator?
+        String actual_path = path.hasPrefix("file:///") ? path.substr(8) : path;
+        String sep = (actual_path.has('\\') && !actual_path.has('/')) ? "\\" : "/";
+        String ms_run_location = path + sep + filename;
         toFill.push_back(ms_run_location);
       }
     }
@@ -672,20 +675,14 @@ namespace OpenMS
   {
     // The TIC is (re)calculated from the MS1 spectra. Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
     MSChromatogram TIC;
-    for (Base::const_iterator spec_it = spectra_.begin(); spec_it != spectra_.end(); ++spec_it)
+    for (const auto& spec: spectra_)
     {
-      if (spec_it->getMSLevel() == 1)
+      if (spec.getMSLevel() == 1)
       {
-        double totalIntensity = 0;
-        // sum intensities of a spectrum
-        for (SpectrumType::const_iterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
-        {
-          totalIntensity += static_cast<double>(peak_it->getIntensity());
-        }
         // fill chromatogram
         ChromatogramPeakType peak;
-        peak.setRT(spec_it->getRT());
-        peak.setIntensity(totalIntensity);
+        peak.setRT(spec.getRT());
+        peak.setIntensity(spec.getTIC());
         TIC.push_back(peak);
       }
     }

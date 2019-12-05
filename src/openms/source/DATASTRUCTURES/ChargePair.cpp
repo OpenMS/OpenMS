@@ -35,6 +35,8 @@
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
+#include <ostream>
+
 namespace OpenMS
 {
 
@@ -97,11 +99,6 @@ namespace OpenMS
     is_active_ = rhs.is_active_;
 
     return *this;
-  }
-
-  /// Destructor
-  ChargePair::~ChargePair()
-  {
   }
 
   //@}

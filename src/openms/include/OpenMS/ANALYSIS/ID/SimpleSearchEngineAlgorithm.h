@@ -35,40 +35,10 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
-
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-
-#include <OpenMS/CONCEPT/Constants.h>
-
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-// preprocessing and filtering
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/METADATA/SpectrumSettings.h>
-
-#include <map>
-#include <algorithm>
+#include <vector>
 
 namespace OpenMS
 {

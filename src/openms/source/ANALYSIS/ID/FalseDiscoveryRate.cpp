@@ -599,12 +599,10 @@ namespace OpenMS
     fdr_score.higher_better = false;
     if (use_qvalue)
     {
-      fdr_score.name = "q-value";
       fdr_score.cv_term = CVTerm("MS:1002354", "PSM-level q-value", "MS");
     }
     else
     {
-      fdr_score.name = "FDR";
       fdr_score.cv_term = CVTerm("MS:1002355", "PSM-level FDRScore", "MS");
     }
     IdentificationData::ScoreTypeRef fdr_ref =

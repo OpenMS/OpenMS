@@ -152,18 +152,23 @@ protected:
     registerFlag_("load_preprocessing", "The preprocessed db is loaded from file, not calculated.");
     registerFlag_("store_preprocessing", "The preprocessed db is stored.");
     registerFlag_("simulation", "Simulate the whole LC-MS/MS run.");
-    registerStringOption_("sim_results", "<output file>", "", "File containing the results of the simulation run", false);
+    registerOutputFile_("sim_results", "<output file>", "", "File containing the results of the simulation run", false);
+    setValidFormats_("sim_results", ListUtils::create<String>("txt"));
+    
     registerInputFile_("db_path", "<db-file>", "", "db file", false);
     setValidFormats_("db_path", ListUtils::create<String>("fasta"));
 
-    registerStringOption_("rt_model", "<rt-model-file>", "", "SVM Model for RTPredict", false);
-    registerStringOption_("dt_model", "<dt-model-file>", "", "SVM Model for PTPredict", false);
+    registerInputFile_("rt_model", "<rt-model-file>", "", "SVM Model for RTPredict", false);
+    setValidFormats_("rt_model", ListUtils::create<String>("txt"));
+        
+    registerInputFile_("dt_model", "<dt-model-file>", "", "SVM Model for PTPredict", false);
+    setValidFormats_("dt_model", ListUtils::create<String>("txt"));
+    
     registerStringOption_("solver", "<solver-type>", "GLPK", "LP solver type", false, true);
     setValidStrings_("solver", ListUtils::create<String>("GLPK,COINOR"));
     registerStringList_("fixed_modifications", "<mods>", StringList(), "the modifications i.e. Carboxymethyl (C)", false);
     addEmptyLine_();
     registerSubsection_("algorithm", "Settings for the compound list creation and rescoring.");
-
   }
 
   Param getSubsectionDefaults_(const String & /* section*/) const override

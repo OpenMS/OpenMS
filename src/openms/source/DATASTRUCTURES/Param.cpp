@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <QtCore/QString>

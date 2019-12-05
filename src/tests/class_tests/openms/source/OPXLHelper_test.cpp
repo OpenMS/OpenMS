@@ -88,12 +88,12 @@ START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(
 
   std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
 
-  TEST_EQUAL(peptides.size(), 880)
+  TEST_EQUAL(peptides.size(), 886)
   TEST_EQUAL(peptides[5].peptide_mass > 5, true) // not an empty AASequence
   TEST_EQUAL(peptides[5].peptide_mass, peptides[5].peptide_seq.getMonoWeight())
   TEST_EQUAL(peptides[500].peptide_mass > 5, true) // not an empty AASequence
   TEST_EQUAL(peptides[500].peptide_mass, peptides[500].peptide_seq.getMonoWeight())
-  TEST_EQUAL(peptides[668].position, OPXLDataStructs::C_TERM)
+  TEST_EQUAL(peptides[668].position, OPXLDataStructs::INTERNAL)
   TEST_EQUAL(peptides[778].position, OPXLDataStructs::N_TERM)
 END_SECTION
 
@@ -126,8 +126,8 @@ START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLin
   // std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
   TOLERANCE_ABSOLUTE(1e-3)
-  TEST_EQUAL(precursors.size(), 15990)
-  TEST_EQUAL(spectrum_precursor_correction_positions.size(), 15990)
+  TEST_EQUAL(precursors.size(), 16081)
+  TEST_EQUAL(spectrum_precursor_correction_positions.size(), 16081)
   // sample about 1/15 of the data, since a lot of precursors are generated
 
   for (Size i = 0; i < precursors.size(); i += 2000)
@@ -174,7 +174,7 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
       filtered_precursors.push_back(*low_it);
     }
   }
-  TEST_EQUAL(precursors.size(), 15990)
+  TEST_EQUAL(precursors.size(), 16081)
   TEST_EQUAL(filtered_precursors.size(), 35)
   std::vector< int > precursor_corrections(59, 0);
   std::vector< int > precursor_correction_positions(59, 0);
