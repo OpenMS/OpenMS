@@ -42,6 +42,8 @@
 #include <iostream>
 #include <string>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 using namespace OpenMS;
 using namespace std;

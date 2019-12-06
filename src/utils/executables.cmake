@@ -9,8 +9,6 @@ ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector
 DatabaseFilter
-DBsearchDeconvMass
-DBsearchDeconvMass_masslist
 DecoyDatabase
 DeMeanderize
 Digestor
@@ -20,7 +18,6 @@ ERPairFinder
 FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
 FFEval
-    FLASHDeconv_prev
 FuzzyDiff
 IDDecoyProbability
 IDExtractor
