@@ -50,7 +50,7 @@ namespace OpenMS
     readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
   }
 
-  static RibonucleotideDB* RibonucleotideDB::getInstance()
+  RibonucleotideDB* RibonucleotideDB::getInstance()
   {
     static RibonucleotideDB* db_ = nullptr;
     if (db_ == nullptr)
