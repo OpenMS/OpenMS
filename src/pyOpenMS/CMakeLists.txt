@@ -323,7 +323,6 @@ set(_pyopenms_files
   run_nose.py
   run_memleaks.py
   doCythonCompileOnly.py
-  fix_pyopenms_dependencies_on_mac.sh
 )
 
 foreach(pyfile ${_pyopenms_files})
