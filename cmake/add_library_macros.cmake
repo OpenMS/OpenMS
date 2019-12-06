@@ -148,6 +148,9 @@ function(openms_add_library)
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
 
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+
   #------------------------------------------------------------------------------
   # Generate export header if requested
   if(NOT ${openms_add_library_DLL_EXPORT_PATH} STREQUAL "")

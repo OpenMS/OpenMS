@@ -56,15 +56,7 @@ namespace OpenMS
     typedef std::vector<ConstRibonucleotidePtr>::const_iterator ConstIterator;
 
     /// replacement for constructor (singleton pattern)
-    inline static RibonucleotideDB* getInstance()
-    {
-      static RibonucleotideDB* db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new RibonucleotideDB;
-      }
-      return db_;
-    }
+    static RibonucleotideDB* getInstance();
 
     /// destructor
     virtual ~RibonucleotideDB();

@@ -57,6 +57,12 @@ namespace OpenMS
     clear_();
   }
 
+  const ElementDB* ElementDB::getInstance()
+  {
+    static ElementDB* db_ = new ElementDB;
+    return db_;
+  }
+
   const Map<String, const Element*>& ElementDB::getNames() const
   {
     return names_;
