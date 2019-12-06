@@ -50,7 +50,7 @@ namespace OpenMS
 {
   bool ModificationsDB::is_instantiated_ = false;
 
-  ModificationsDB::ModificationsDB* getInstance(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo")
+  ModificationsDB* ModificationsDB::getInstance(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
   {
     static ModificationsDB* db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
     return db_;
