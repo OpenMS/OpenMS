@@ -1,10 +1,10 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.string cimport string as libcpp_string
-from SpectrumSettings cimport *
 from Peak1D cimport *
 from String cimport *
 from RangeManager cimport *
 from DataArrays cimport *
+from SpectrumSettings cimport *
 
 # this class has addons, see the ./addons folder (../addons/MSSpectrum.pyx)
 
@@ -60,6 +60,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void assign(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) nogil except + # wrap-ignore
         libcpp_vector[Peak1D].iterator begin() nogil except +  # wrap-iter-begin:__iter__(Peak1D)
         libcpp_vector[Peak1D].iterator end()   nogil except +  # wrap-iter-end:__iter__(Peak1D)
+
+        double getTIC() nogil except +
 
         bool operator==(MSSpectrum) nogil except +
         bool operator!=(MSSpectrum) nogil except +

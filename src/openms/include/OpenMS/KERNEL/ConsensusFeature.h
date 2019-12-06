@@ -160,7 +160,10 @@ public:
     ConsensusFeature();
 
     /// Copy constructor
-    ConsensusFeature(const ConsensusFeature& rhs);
+    ConsensusFeature(const ConsensusFeature& rhs) = default;
+
+    /// Move constructor
+    ConsensusFeature(ConsensusFeature&& rhs) = default;
 
     /// Constructor from basic feature
     explicit ConsensusFeature(const BaseFeature& feature);
@@ -182,7 +185,10 @@ public:
     ConsensusFeature(UInt64 map_index, const BaseFeature& element);
 
     /// Assignment operator
-    ConsensusFeature& operator=(const ConsensusFeature& rhs);
+    ConsensusFeature& operator=(const ConsensusFeature& rhs) = default;
+
+    /// Move Assignment operator
+    ConsensusFeature& operator=(ConsensusFeature&& rhs) = default;
 
     /// Destructor
     ~ConsensusFeature() override;
@@ -334,6 +340,7 @@ public:
     //@}
 
 private:
+
     HandleSetType handles_;
     std::vector<Ratio> ratios_;
 

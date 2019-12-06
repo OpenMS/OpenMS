@@ -5,6 +5,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
 from String cimport *
 from PeptideIdentification cimport *
+from ProteinIdentification cimport *
 from DateTime cimport *
 
 cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":

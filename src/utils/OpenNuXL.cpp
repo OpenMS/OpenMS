@@ -92,6 +92,7 @@
 #include <boost/math/distributions/beta.hpp>
 
 
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 
 #include <map>
@@ -4590,31 +4591,43 @@ static void scoreXLIons_(
 */
     if (generate_decoys) 
     {
-      map<size_t, double, std::greater<double>> map_index2ppm;
-      size_t i(0);
-      double mean(0);
+      map<double, double, std::greater<double>> map_score2ppm;
       for (size_t index = 0; index != peptide_ids.size(); ++index)
       {
          if (peptide_ids[index].getHits().empty()) continue;
-         if (peptide_ids[index].getHits()[0].getMetaValue("target_decoy") == "target"
-          && (double)peptide_ids[index].getHits()[0].getMetaValue("NuXL:total_loss_score") > 15.0) // not too bad score
+         if (peptide_ids[index].getHits()[0].getMetaValue("target_decoy") == "target")
          {
            double ppm_error = peptide_ids[index].getHits()[0].getMetaValue(OpenMS::Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
-           map_index2ppm[peptide_ids[index].getHits()[0].getScore()] = ppm_error; 
-           mean += ppm_error;
-           ++i;
+           map_score2ppm[peptide_ids[index].getHits()[0].getScore()] = ppm_error; 
          }
       }
-      mean /= i;
-      double sd(0);
-      for (auto & m : map_index2ppm)
+
+      // calculate mean ppm error from top scoring PSMs (max. 1000 considered)
+      double mean(0);
+      size_t c(0);
+      for (auto it = map_score2ppm.begin(); it != map_score2ppm.end(); ++it)
       {
-         sd += pow(m.second - mean, 2.0);
+         mean += it->second;
+         ++c;
+         if (c > 1000) break;
       }
-      sd = sqrt(1.0/(double)i * sd);
-      cout << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << " calculated based on " << i << " ids." << endl;
+      if (c != 0) { mean /= c; }
+
+      double sd(0);
+      auto it = map_score2ppm.begin();
+      for (size_t i = 0; i != c; ++i)
+      {
+         sd += pow(it->second - mean, 2.0);
+         ++it;
+      }
+
+      if (c != 0) 
+      { 
+        sd = sqrt(1.0/static_cast<double>(c) * sd); 
+        cout << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << " calculated based on " << c << " best ids." << endl;
+      } 
   
-      if (filter_pc_mass_error)
+      if (filter_pc_mass_error && c != 0)
       {
         // as we are dealing with a very large search space, filter out all PSMs with mass error > 5 *sd
         for (size_t index = 0; index != peptide_ids.size(); ++index)
@@ -4630,7 +4643,7 @@ static void scoreXLIons_(
         }
         IDFilter::removeEmptyIdentifications(peptide_ids);
       }
-      map_index2ppm.clear(); 
+      map_score2ppm.clear(); 
 
       if (impute_decoy_medians)
       {

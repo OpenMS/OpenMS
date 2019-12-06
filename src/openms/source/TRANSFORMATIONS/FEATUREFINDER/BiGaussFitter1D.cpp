@@ -103,7 +103,7 @@ namespace OpenMS
     // fit offset
     QualityType quality;
     quality = fitOffset_(model, set, stdev1, stdev2, interpolation_step_);
-    if (boost::math::isnan(quality))
+    if (std::isnan(quality))
       quality = -1.0;
 
     return quality;

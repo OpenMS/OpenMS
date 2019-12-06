@@ -32,31 +32,28 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <algorithm>
-#include <map> //insert
-
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
-#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h> 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDir>
+#include <algorithm>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -387,10 +384,7 @@ protected:
       else if (use_fragment_annotation && !executable.empty())
       {
         // make temporary files
-        SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct();
-        String tmp_dir = sirius_tmp.tmp_dir;
-        String tmp_ms_file = sirius_tmp.tmp_ms_file;
-        String tmp_out_dir = sirius_tmp.tmp_out_dir;
+        SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
   
         // write msfile and store the compound information in CompoundInfo Object
         vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
@@ -398,7 +392,7 @@ protected:
         bool no_mt_info = (sirius_algo.getNoMasstraceInfoIsotopePattern() == "true") ? true : false;
         int isotope_pattern_iterations = sirius_algo.getIsotopePatternIterations();
         SiriusMSFile::store(spectra,
-                            tmp_ms_file,
+                            sirius_tmp.getTmpMsFile(),
                             feature_mapping,
                             feature_only,
                             isotope_pattern_iterations,
@@ -413,8 +407,8 @@ protected:
         // calls SIRIUS and returns vector of paths to sirius folder structure
         std::vector<String> subdirs;
         String out_csifingerid;
-        subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(tmp_ms_file,
-                                                             tmp_out_dir,
+        subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(sirius_tmp.getTmpMsFile(),
+                                                             sirius_tmp.getTmpOutDir(),
                                                              executable,
                                                              out_csifingerid,
                                                              sirius_algo);
@@ -443,7 +437,7 @@ protected:
           sirius_workspace_directory = String(sw_dir.absolutePath());
 
           // move tmp folder to new location
-          bool copy_status = File::copyDirRecursively(tmp_dir.toQString(), sirius_workspace_directory.toQString());
+          bool copy_status = File::copyDirRecursively(sirius_tmp.getTmpDir().toQString(), sirius_workspace_directory.toQString());
           if (copy_status)
           {
             OPENMS_LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
@@ -454,25 +448,6 @@ protected:
           }
         }
        
-        // clean tmp directory if debug level < 2 
-        if (debug_level_ >= 2)
-        {
-          writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
-        }
-        else
-        {
-          if (tmp_dir.empty() == false)
-          {
-            writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 0);
-            File::removeDir(tmp_dir.toQString());
-          }
-          if (tmp_ms_file.empty() == false)
-          {
-            writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-            File::remove(tmp_ms_file); // remove msfile
-          }
-        }
-
         // pair compoundInfo and fragment annotation msspectrum (using the mid)
         for (const auto& cmp : v_cmpinfo)
         {

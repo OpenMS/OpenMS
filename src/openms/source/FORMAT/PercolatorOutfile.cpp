@@ -254,7 +254,7 @@ namespace OpenMS
 
       PeptideIdentification peptide;
       peptide.setIdentifier("id");
-      if (!boost::math::isnan(meta_data.rt))
+      if (!std::isnan(meta_data.rt))
       {
         peptide.setRT(meta_data.rt);
       }
@@ -262,7 +262,7 @@ namespace OpenMS
       {
         ++no_rt;
       }
-      if (!boost::math::isnan(meta_data.precursor_mz))
+      if (!std::isnan(meta_data.precursor_mz))
       {
         peptide.setMZ(meta_data.precursor_mz);
       }

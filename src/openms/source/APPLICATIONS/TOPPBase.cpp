@@ -39,30 +39,38 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
-#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
 
-#include <iostream>
+#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
+#include <OpenMS/APPLICATIONS/ParameterInformation.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+
 
 #include <QDir>
 #include <QFile>
 #include <QProcess>
+#include <QStringList>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -642,9 +650,7 @@ namespace OpenMS
         str_tmp = "";
 
       //DESCRIPTION
-      String desc_tmp = it->description;
-      desc_tmp.firstToUpper();
-
+      String desc_tmp = String(it->description).firstToUpper();
       //DEFAULT
       StringList addons;
       switch (it->type)
@@ -1116,14 +1122,19 @@ namespace OpenMS
 
   void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced, const StringList& tags)
   {
-    if (required && default_value != "" && !ListUtils::contains(tags, "skipexists"))
+    int count_conflicting_tags = (ListUtils::contains(tags, "skipexists") + ListUtils::contains(tags, "is_executable"));
+    if (count_conflicting_tags >= 2)
+    {
+      throw Exception::WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'skipexists' and 'is_executable' cannot be combined");
+    }
+    if (required && !default_value.empty() && count_conflicting_tags == 0)
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required InputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));
   }
 
   void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
   {
-    if (required && default_value != "")
+    if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required, advanced));
   }
@@ -1155,7 +1166,12 @@ namespace OpenMS
 
   void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced, const StringList& tags)
   {
-    if (required && default_value.size() > 0 && !ListUtils::contains(tags, "skipexists"))
+    int count_conflicting_tags = (ListUtils::contains(tags, "skipexists") + ListUtils::contains(tags, "is_executable"));
+    if (count_conflicting_tags >= 2)
+    {
+      throw Exception::WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'skipexists' and 'is_executable' cannot be combined");
+    }
+    if (required && !default_value.empty() && count_conflicting_tags == 0)
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required InputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, default_value, description, required, advanced, tags));
   }
@@ -1234,89 +1250,9 @@ namespace OpenMS
     writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
     // if required or set by user, do some validity checks
-    if (p.required || (!getParam_(name).isEmpty() && (tmp != p.default_value) &&
-                       !tmp.empty()))
+    if (p.required || !tmp.empty())
     {
-      // check if files are readable/writable
-      if (p.type == ParameterInformation::INPUT_FILE)
-      {
-        if (!ListUtils::contains(p.tags, "skipexists"))
-        {
-          inputFileReadable_(tmp, name);
-        }
-      }
-      else if (p.type == ParameterInformation::OUTPUT_FILE)
-      {
-        outputFileWritable_(tmp, name);
-      }
-
-      // check restrictions
-      if (p.valid_strings.size() != 0)
-      {
-        if (p.type == ParameterInformation::STRING)
-        {
-          if (find(p.valid_strings.begin(), p.valid_strings.end(), tmp) == p.valid_strings.end())
-          {
-            String valid_strings = ListUtils::concatenate(p.valid_strings, "', '");
-            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
-          }
-        }
-        else if (p.type == ParameterInformation::INPUT_FILE)
-        {
-          //create upper case list of valid formats
-          StringList formats = p.valid_strings;
-          StringListUtils::toUpper(formats);
-          //determine file type as string
-          String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
-          bool invalid = false;
-          //Wrong or unknown ending
-          if (!ListUtils::contains(formats, format))
-          {
-            if (format == "UNKNOWN") //Unknown ending => check content
-            {
-              format = FileTypes::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
-              if (!ListUtils::contains(formats, format))
-              {
-                if (format == "UNKNOWN") //Unknown format => warning as this might by the wrong format
-                {
-                  writeLog_("Warning: Could not determine format of input file '" + tmp + "'!");
-                }
-                else //Wrong ending => invalid
-                {
-                  invalid = true;
-                }
-              }
-            }
-            else //Wrong ending => invalid
-            {
-              invalid = true;
-            }
-          }
-          if (invalid)
-          {
-            String valid_formats = "";
-            valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");
-          }
-        }
-        else if (p.type == ParameterInformation::OUTPUT_FILE)
-        {
-          outputFileWritable_(tmp, name);
-
-          //create upper case list of valid formats
-          StringList formats = p.valid_strings;
-          StringListUtils::toUpper(formats);
-          //determine file type as string
-          String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
-          //Wrong or unknown ending
-          if (!ListUtils::contains(formats, format) && format != "UNKNOWN")
-          {
-            String valid_formats = "";
-            valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");
-          }
-        }
-      }
+      fileParamValidityCheck_(tmp, name, p);
     }
 
     return tmp;
@@ -1379,6 +1315,84 @@ namespace OpenMS
     return tmp;
   }
 
+  void TOPPBase::fileParamValidityCheck_(String& param_value, const String& param_name, const ParameterInformation& p) const
+  {
+    // check if files are readable/writable
+    if (p.type == ParameterInformation::INPUT_FILE)
+    {
+      if (ListUtils::contains(p.tags, "is_executable"))
+      { // will update to absolute path
+        if (File::findExecutable(param_value))
+        {
+          writeDebug_("Input file resolved to '" + param_value + "'", 2);
+        }
+        else
+        {
+          writeLog_("Input file '" + param_value + "' could not be found (by searching on PATH). "
+                    "Either provide a full filepath or fix your PATH environment!" + 
+                    (p.required ? "" : " Since this file is not strictly required, you might also pass the empty string \"\" as "
+                    "argument to prevent it's usage (this might limit the usability of the tool)."));
+          throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
+        }
+      }
+      if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(param_value, param_name);
+    }
+    else if (p.type == ParameterInformation::OUTPUT_FILE)
+    {
+      outputFileWritable_(param_value, param_name);
+    }
+
+    // check restrictions
+    if (p.valid_strings.empty()) return;
+
+    switch (p.type)
+    {
+      case ParameterInformation::STRING:
+        if (!ListUtils::contains(p.valid_strings, param_value))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Invalid value '") + param_value + "' for string parameter '" + param_name + "' given. Valid strings are: '" + 
+            ListUtils::concatenate(p.valid_strings, "', '") + "'.");
+        }
+        break;
+
+      case ParameterInformation::INPUT_FILE:
+      {
+        // determine file type as string
+        FileTypes::Type f_type = FileHandler::getType(param_value);
+        // unknown ending is 'ok'
+        if (f_type == FileTypes::UNKNOWN)
+        {
+          writeLog_("Warning: Could not determine format of input file '" + param_value + "'!");
+        }
+        else if (!ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Input file '" + param_value + "' has invalid format '") + FileTypes::typeToName(f_type) +
+            "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") + "'.");
+        }
+        break;
+      }
+
+      case ParameterInformation::OUTPUT_FILE:
+      {
+        outputFileWritable_(param_value, param_name);
+        // determine file type as string
+        FileTypes::Type f_type = FileHandler::getTypeByFileName(param_value);
+        // Wrong ending, unknown is is ok.
+        if (f_type != FileTypes::UNKNOWN && !ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Invalid output file extension for file '") + param_value + "'. Valid file extensions are: '" +
+            ListUtils::concatenate(p.valid_strings, "','") + "'.");
+        }
+        break;
+      }
+      default: /*nothing */
+        break;
+    }
+  }
+
   StringList TOPPBase::getStringList_(const String& name) const
   {
     const ParameterInformation& p = findEntry_(name);
@@ -1391,97 +1405,19 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     StringList tmp_list = getParamAsStringList_(name, p.default_value);
-    if (p.required && tmp_list.size() == 0)
+    if (p.required && tmp_list.empty())
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
-    for (StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+    for (String& tmp : tmp_list)
     {
-      String tmp(*it);
       writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
       // if required or set by user, do some validity checks
       if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
       {
-        //check if files are readable/writable
-        if (p.type == ParameterInformation::INPUT_FILE_LIST)
-        {
-          if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(tmp, name);
-        }
-        else if (p.type == ParameterInformation::OUTPUT_FILE_LIST)
-        {
-          outputFileWritable_(tmp, name);
-        }
-
-        //check restrictions
-        if (p.valid_strings.size() != 0)
-        {
-          if (p.type == ParameterInformation::STRINGLIST)
-          {
-            if (find(p.valid_strings.begin(), p.valid_strings.end(), tmp) == p.valid_strings.end())
-            {
-              String valid_strings = "";
-              valid_strings.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-              throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
-            }
-          }
-          else if (p.type == ParameterInformation::INPUT_FILE_LIST)
-          {
-            //create upper case list of valid formats
-            StringList formats = p.valid_strings;
-            StringListUtils::toUpper(formats);
-            //determine file type as string
-            String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
-            bool invalid = false;
-            //Wrong or unknown ending
-            if (!ListUtils::contains(formats, format))
-            {
-              if (format == "UNKNOWN") //Unknown ending => check content
-              {
-                format = FileTypes::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
-                if (!ListUtils::contains(formats, format))
-                {
-                  if (format == "UNKNOWN") //Unknown format => warning as this might by the wrong format
-                  {
-                    writeLog_("Warning: Could not determine format of input file '" + tmp + "'!");
-                  }
-                  else //Wrong ending => invalid
-                  {
-                    invalid = true;
-                  }
-                }
-              }
-              else //Wrong ending => invalid
-              {
-                invalid = true;
-              }
-            }
-            if (invalid)
-            {
-              String valid_formats = "";
-              valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-              throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");
-            }
-          }
-          else if (p.type == ParameterInformation::OUTPUT_FILE_LIST)
-          {
-            outputFileWritable_(tmp, name);
-
-            //create upper case list of valid formats
-            StringList formats = p.valid_strings;
-            StringListUtils::toUpper(formats);
-            //determine file type as string
-            String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
-            //Wrong or unknown ending
-            if (!ListUtils::contains(formats, format) && format != "UNKNOWN")
-            {
-              String valid_formats = "";
-              valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-              throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");
-            }
-          }
-        }
+        fileParamValidityCheck_(tmp, name, p);
       }
     }
     return tmp_list;
@@ -1660,7 +1596,7 @@ namespace OpenMS
     } 
 
     bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
-    if (debug_level_ >= 10 || any_failure)
+    if (debug_level_ >= 4 || any_failure)
     {
       if (any_failure)
       {
@@ -1963,7 +1899,7 @@ namespace OpenMS
     else
       message = "Cannot read input file given from parameter '-" + param_name + "'!\n";
 
-    // check file
+    // check file existance
     if (!File::exists(filename))
     {
       OPENMS_LOG_ERROR << message;
@@ -2143,7 +2079,7 @@ namespace OpenMS
 
       case ParameterInformation::FLAG:
         tmp.setValue(name, "false", it->description, tags);
-        tmp.setValidStrings(name, ListUtils::create<String>("true,false"));
+        tmp.setValidStrings(name, {"true","false"});
         break;
 
       case ParameterInformation::INPUT_FILE_LIST:
@@ -2151,12 +2087,8 @@ namespace OpenMS
         tmp.setValue(name, it->default_value, it->description, tags);
         if (it->valid_strings.size() != 0)
         {
-          StringList vss_tmp = it->valid_strings;
-          StringList vss;
-          foreach(String vs, vss_tmp)
-          {
-            vss.push_back("*." + vs);
-          }
+          StringList vss = it->valid_strings;
+          std::transform(vss.begin(), vss.end(), vss.begin(), [](const String& s) {return "*." + s;});
           tmp.setValidStrings(name, vss);
         }
         break;
@@ -2330,6 +2262,21 @@ namespace OpenMS
   void TOPPBase::addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
   {
     map.getDataProcessing().push_back(dp);
+  }
+
+  ///Data processing setter for peak maps
+
+  void TOPPBase::addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
+  {
+    boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+    for (Size i = 0; i < map.size(); ++i)
+    {
+      map[i].getDataProcessing().push_back(dp_);
+    }
+    for (Size i = 0; i < map.getNrChromatograms(); ++i)
+    {
+      map.getChromatogram(i).getDataProcessing().push_back(dp_);
+    }
   }
 
   String TOPPBase::getDocumentationURL() const

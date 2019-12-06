@@ -144,8 +144,10 @@ namespace OpenMS
       tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
     }
 
+    bool print_warning {false};
+
     // computes the FragmentMassError
-    auto lamCompPPM = [&exp, &map_to_spectrum, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
+    auto lamCompPPM = [&exp, &map_to_spectrum, &print_warning, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -177,15 +179,22 @@ namespace OpenMS
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching spectrum of the mzML is not an MS2 Spectrum.");
       }
+      Precursor::ActivationMethod act_method;
       if (exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No fragmentation method given.");
+        if (print_warning) OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+        print_warning = false; // only print it once
+        act_method = Precursor::ActivationMethod::CID;
+      }
+      else
+      {
+        act_method = *exp_spectrum.getPrecursors()[0].getActivationMethods().begin();
       }
 
       //---------------------------------------------------------------------
       // CREATE THEORETICAL SPECTRUM
       //---------------------------------------------------------------------
-      PeakSpectrum theo_spectrum = getTheoSpec_((*exp_spectrum.getPrecursors()[0].getActivationMethods().begin()), seq, charge);
+      PeakSpectrum theo_spectrum = getTheoSpec_(act_method, seq, charge);
 
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM

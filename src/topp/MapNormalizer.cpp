@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;

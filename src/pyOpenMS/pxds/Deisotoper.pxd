@@ -22,5 +22,6 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "Open
                 bool annotate_charge,
                 bool annotate_iso_peak_count,
                 bool use_decreasing_model,
+                unsigned int start_intensity_check,
                 bool add_up_intensity) nogil except + # wrap-attach:Deisotoper
 

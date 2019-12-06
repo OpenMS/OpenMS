@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2018.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
@@ -65,9 +65,9 @@ MetaInfo mi;
 
 START_SECTION((static MetaInfoRegistry& registry()))
 	MetaInfo mi2;
-	mi2.registry().registerName("testname","testdesc","testunit");
-	TEST_EQUAL (mi2.registry().getIndex("testname"),1024);
-	TEST_EQUAL (mi.registry().getIndex("testname"),1024);
+	mi2.registry().registerName("testname", "testdesc", "testunit");
+	TEST_EQUAL(mi2.registry().getIndex("testname"), 1024);
+	TEST_EQUAL(mi.registry().getIndex("testname"), 1024);
 END_SECTION
 
 START_SECTION((void setValue(const String& name, const DataValue& value)))
@@ -78,18 +78,26 @@ START_SECTION((void setValue(UInt index, const DataValue& value)))
 	NOT_TESTABLE //tested in the get method
 END_SECTION
 
-START_SECTION((const DataValue& getValue(UInt index) const))
+START_SECTION((const DataValue& getValue(UInt index, const DataValue& default_value = DataValue::EMPTY) const))
+{
 	string tmp;
-	mi.setValue(1024,String("testtesttest"));
+	mi.setValue(1024, String("testtesttest"));
 	tmp = String(mi.getValue(1024));
-	TEST_EQUAL(tmp,"testtesttest")
+  TEST_EQUAL(tmp, "testtesttest");
+	TEST_EQUAL(mi.getValue(1025) == DataValue::EMPTY, true);
+	TEST_EQUAL(mi.getValue(1025, 10) == DataValue(10), true);
+}
 END_SECTION
 
-START_SECTION((const DataValue& getValue(const String& name) const))
+START_SECTION((const DataValue& getValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const))
+{
 	string tmp;
-	mi.setValue("testname",String("testtesttest2"));
+	mi.setValue("testname", String("testtesttest2"));
 	tmp = String(mi.getValue("testname"));
-	TEST_EQUAL(tmp,"testtesttest2")
+	TEST_EQUAL(tmp, "testtesttest2");
+	TEST_EQUAL(mi.getValue("notdefined") == DataValue::EMPTY, true);
+	TEST_EQUAL(mi.getValue("notdefined", 10) == DataValue(10), true);
+}
 END_SECTION
 
 mi.setValue("cluster_id",4711.12f);

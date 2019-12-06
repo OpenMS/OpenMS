@@ -34,19 +34,22 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FORMAT/MSNumpressCoder.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -686,11 +689,11 @@ protected:
         auto& spectra = exp.getSpectra();
         spectra.erase(
           remove_if(spectra.begin(), spectra.end(), [](const MSSpectrum & s){ return s.empty();} )
-          ,spectra.end()); 
+          ,spectra.end());
         auto& chroms = exp.getChromatograms();
         chroms.erase(
           remove_if(chroms.begin(), chroms.end(), [](const MSChromatogram & c){ return c.empty();} )
-          ,chroms.end()); 
+          ,chroms.end());
       }
 
       //-------------------------------------------------------------

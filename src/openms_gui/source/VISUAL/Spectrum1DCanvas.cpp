@@ -1004,35 +1004,15 @@ namespace OpenMS
   void Spectrum1DCanvas::drawAnnotations(Size layer_index, QPainter& painter)
   {
     LayerData& layer = getLayer_(layer_index);
-    bool flipped = layer.flipped;
     updatePercentageFactor_(layer_index);
-    QPen pen(QColor(layer.param.getValue("annotation_color").toQString()));
-    QPen selected_pen;
+    QColor col{ QColor(layer.param.getValue("annotation_color").toQString()) };
+    // 0: default pen; 1: selected pen
+    QPen pen[2] = { col, col.lighter() };
 
-    // make selected items a little brighter
-    int sel_red = pen.color().red() + 50;
-    int sel_green = pen.color().green() + 50;
-    int sel_blue = pen.color().blue() + 50;
-
-    // check if rgb out of bounds
-    sel_red = sel_red > 255 ? 255 : sel_red;
-    sel_green = sel_green > 255 ? 255 : sel_green;
-    sel_blue = sel_blue > 255 ? 255 : sel_blue;
-
-    selected_pen.setColor(QColor(sel_red, sel_green, sel_blue));
-
-    Annotations1DContainer& c = layer.getCurrentAnnotations();
-    for (Annotations1DContainer::ConstIterator it = c.begin(); it != c.end(); ++it)
+    for (auto& c : layer.getCurrentAnnotations())
     {
-      if (!(*it)->isSelected())
-      {
-        painter.setPen(pen);
-      }
-      else
-      {
-        painter.setPen(selected_pen);
-      }
-      (*it)->draw(this, painter, flipped);
+      painter.setPen(pen[c->isSelected()]);
+      c->draw(this, painter, layer.flipped);
     }
   }
 
@@ -2030,12 +2010,11 @@ namespace OpenMS
     painter.save();
 
     //draw peak-connecting lines between the two spectra
+    painter.setPen(Qt::red);
+    QPoint begin_p, end_p;
     if (mirror_mode_)
     {
-      painter.setPen(Qt::red);
-      QPoint begin_p, end_p;
       double dummy = 0.0;
-
       for (Size i = 0; i < getAlignmentSize(); ++i)
       {
         dataToWidget(aligned_peaks_mz_delta_[i].first, dummy, begin_p);
@@ -2045,8 +2024,6 @@ namespace OpenMS
     }
     else
     {
-      painter.setPen(Qt::red);
-      QPoint begin_p, end_p;
       const ExperimentType::SpectrumType& spectrum_1 = getLayer(alignment_layer_1_).getCurrentSpectrum();
       updatePercentageFactor_(alignment_layer_1_);
       for (Size i = 0; i < getAlignmentSize(); ++i)

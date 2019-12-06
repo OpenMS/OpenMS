@@ -435,6 +435,11 @@ namespace OpenMS
     double operator() (double alpha, double beta, double gamma)
     {
       OPENMS_LOG_INFO << "Evaluating: " << alpha << " " << beta << " " << gamma << std::endl;
+      if (beta - alpha >= 0.3 && alpha + beta <= 1.0)
+      {
+        OPENMS_LOG_INFO << "Skipping improbable parameter combination.. " << std::endl;
+        return 0.;
+      }
       param_.setValue("model_parameters:prot_prior", gamma);
       param_.setValue("model_parameters:pep_emission", alpha);
       param_.setValue("model_parameters:pep_spurious_emission", beta);
@@ -443,8 +448,9 @@ namespace OpenMS
       FalseDiscoveryRate fdr;
       Param fdrparam = fdr.getParameters();
       fdrparam.setValue("conservative",param_.getValue("param_optimize:conservative_fdr"));
+      fdrparam.setValue("add_decoy_proteins","true");
       fdr.setParameters(fdrparam);
-      return fdr.applyEvaluateProteinIDs(ibg_.getProteinIDs(), 1.0, 50, static_cast<double>(param_.getValue("param_optimize:aucweight")));
+      return fdr.applyEvaluateProteinIDs(ibg_.getProteinIDs(), 1.0, 100, static_cast<double>(param_.getValue("param_optimize:aucweight")));
     }
   };
 
@@ -475,13 +481,6 @@ namespace OpenMS
                           "Remove PSMs with probabilities less than or equal this cutoff");
     defaults_.setMinFloat("psm_probability_cutoff", 0.0);
     defaults_.setMaxFloat("psm_probability_cutoff", 1.0);
-
-    defaults_.setValue("min_psms_extreme_probability",
-                          0.0,
-                          "Set PSMs with probability lower than this to this minimum probability.");
-    defaults_.setValue("max_psms_extreme_probability",
-                          1.0,
-                          "Set PSMs with probability higher than this to this maximum probability.");
 
     defaults_.setValue("top_PSMs",
                        1,
@@ -572,16 +571,16 @@ namespace OpenMS
     defaults_.setValue("loopy_belief_propagation:dampening_lambda",
                        1e-3,
                        "Initial value for how strongly should messages be updated in each step. "
-                           "0 = new message overwrites old completely (no dampening),"
-                           "1 = old message stays (no convergence, don't do that)"
+                           "0 = new message overwrites old completely (no dampening; only recommended for trees),"
+                           "0.5 = equal contribution of old and new message (stay below that),"
                            "In-between it will be a convex combination of both. Prevents oscillations but hinders convergence.");
-    defaults_.setMinFloat("loopy_belief_propagation:dampening_lambda", 1e-7);
-    defaults_.setMaxFloat("loopy_belief_propagation:dampening_lambda", 0.5);
+    defaults_.setMinFloat("loopy_belief_propagation:dampening_lambda", 0.0);
+    defaults_.setMaxFloat("loopy_belief_propagation:dampening_lambda", 0.49999);
 
     defaults_.setValue("loopy_belief_propagation:max_nr_iterations",
                        (1ul<<31)-1,
                        "(Unused, autodetermined) If not all messages converge, how many iterations should be done at max?");
-    //I think restricting does not work because it only works for type Int (= int)
+    //I think restricting does not work because it only works for type Int (= int), not unsigned long
     //defaults_.setMinInt("loopy_belief_propagation:max_nr_iterations", 10);
 
     defaults_.setValue("loopy_belief_propagation:p_norm_inference",
@@ -594,7 +593,7 @@ namespace OpenMS
 
     defaults_.addSection("param_optimize","Settings for the parameter optimization.");
     defaults_.setValue("param_optimize:aucweight",
-                       0.2,
+                       0.3,
                        "How important is AUC vs calibration of the posteriors?"
                        " 0 = maximize calibration only,"
                        " 1 = maximize AUC only,"
@@ -615,7 +614,26 @@ namespace OpenMS
 
   void BayesianProteinInferenceAlgorithm::updateMembers_()
   {
-    //Note: this function can be changed, e.g. when we want to do a extremum removal etc. beforehand
+    //Note: the following lambda function can be changed, e.g. when we want to do a extremum removal etc. beforehand
+    /*
+    double min_nonnull_obs_probability = getDoubleOption_("min_psms_extreme_probability");
+    double max_nonone_obs_probability = getDoubleOption_("max_psms_extreme_probability");
+    // Currently unused
+    bool datadependent_extrema_removal = false;
+    if (datadependent_extrema_removal)
+    {
+      pair<double,double> minmax = checkExtremePSMScores_(mergedpeps);
+      min_nonnull_obs_probability = minmax.first;
+      max_nonone_obs_probability = minmax.second;
+    }
+
+    if (min_nonnull_obs_probability > 0.0 || max_nonone_obs_probability < 1.0 )
+    {
+      removeExtremeValues_(mergedpeps, min_nonnull_obs_probability, max_nonone_obs_probability);
+    }
+    */
+    //TODO also convert potential PEPs to PPs in ProteinHits? In case you want to use them as priors or
+    // emergency posteriors?
     //TODO test performance of getting the probability cutoff everytime vs capture free lambda
     double probability_cutoff = param_.getValue("psm_probability_cutoff");
     checkConvertAndFilterPepHits_ = [probability_cutoff](PeptideIdentification &pep_id/*, const String& run_id*/)
@@ -816,7 +834,7 @@ namespace OpenMS
     }
     if (beta > 1.0 || beta < 0.0)
     {
-      beta_search = {0.001};
+      beta_search = {0.01, 0.2, 0.4};
     }
     else
     {
@@ -889,8 +907,17 @@ namespace OpenMS
     //TODO BIG filtering needs to account for run info if used
     std::for_each(peptideIDs.begin(), peptideIDs.end(), checkConvertAndFilterPepHits_);
     IDFilter::removeEmptyIdentifications(peptideIDs);
+    IDFilter::removeUnreferencedProteins(proteinIDs, peptideIDs);
 
     Size nr_top_psms = static_cast<Size>(param_.getValue("top_PSMs"));
+
+    //TODO actually if we just want to use replicate information, we can still filter for best per run,
+    // but the extended model is currently coupled to multiple charge and mod states (which would be removed)
+    if (!use_run_info)
+    {
+      IDFilter::keepBestPerPeptidePerRun(proteinIDs, peptideIDs, true, true, static_cast<unsigned int>(nr_top_psms));
+      IDFilter::removeEmptyIdentifications(peptideIDs);
+    }
 
     FalseDiscoveryRate pepFDR;
     Param p = pepFDR.getParameters();

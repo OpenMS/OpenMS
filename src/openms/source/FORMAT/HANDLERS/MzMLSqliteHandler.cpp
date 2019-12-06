@@ -98,10 +98,10 @@ namespace OpenMS
      *
      * It is designed to work with containers of type MSSpectrum and
      * MSChromatogram to provide a single function for both use-cases.
-     * 
+     *
      */
     template<class ContainerT>
-    void populateContainer_sub_(sqlite3_stmt *stmt, std::vector<ContainerT >& containers)
+    void populateContainer_sub_(sqlite3_stmt *stmt, std::vector<ContainerT>& containers)
     {
       // perform first step
       sqlite3_step(stmt);
@@ -113,7 +113,7 @@ namespace OpenMS
         Size id_orig = sqlite3_column_int( stmt, 0 );
 
         // map the sql table id to the index in the "containers" vector
-        if (sql_container_map.find(id_orig) == sql_container_map.end()) 
+        if (sql_container_map.find(id_orig) == sql_container_map.end())
         {
           Size tmp = sql_container_map.size();
           sql_container_map[id_orig] = tmp;
@@ -125,7 +125,7 @@ namespace OpenMS
 
         if (curr_id >= containers.size())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Data for non-existent spectrum / chromatogram found");
         }
         if (native_id != containers[curr_id].getNativeID())
@@ -150,7 +150,7 @@ namespace OpenMS
 
           void* byte_buffer = reinterpret_cast<void *>(&uncompressed[0]);
           Size buffer_size = uncompressed.size();
-          const double * float_buffer = reinterpret_cast<const double *>(byte_buffer);
+          const double* float_buffer = reinterpret_cast<const double *>(byte_buffer);
           if (buffer_size % sizeof(double) != 0)
           {
             throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
@@ -278,7 +278,7 @@ namespace OpenMS
                       ";";
 
         sqlite3_stmt * stmt;
-        conn.executePreparedStatement(&stmt, select_sql);
+        conn.prepareStatement(&stmt, select_sql);
         sqlite3_step( stmt );
 
         // read data (throw exception if we find multiple runs)
@@ -396,8 +396,8 @@ namespace OpenMS
       SqliteConnector conn(filename_);
 
       int ret(0);
-      sqlite3_stmt * stmt;
-      conn.executePreparedStatement(&stmt, "SELECT COUNT(*) FROM SPECTRUM;");
+      sqlite3_stmt* stmt;
+      conn.prepareStatement(&stmt, "SELECT COUNT(*) FROM SPECTRUM;");
       sqlite3_step(stmt);
       Sql::extractValue<int>(&ret, stmt, 0);
       sqlite3_finalize(stmt);
@@ -407,7 +407,7 @@ namespace OpenMS
 
     std::vector<size_t> MzMLSqliteHandler::getSpectraIndicesbyRT(double RT,
                                                                  double deltaRT,
-                                                                 const std::vector<int> & indices) const
+                                                                 const std::vector<int>& indices) const
     {
       // this is necessary for some applications such as the m/z correction
       SqliteConnector conn(filename_);
@@ -436,7 +436,7 @@ namespace OpenMS
 
       // Execute SQL statement
       sqlite3_stmt * stmt;
-      conn.executePreparedStatement(&stmt, select_sql);
+      conn.prepareStatement(&stmt, select_sql);
       sqlite3_step(stmt);
 
       std::vector<size_t> result;
@@ -446,7 +446,7 @@ namespace OpenMS
         sqlite3_step(stmt);
       }
       sqlite3_finalize(stmt);
-      
+
       return result;
     }
 
@@ -455,8 +455,8 @@ namespace OpenMS
       SqliteConnector conn(filename_);
       int ret(0);
 
-      sqlite3_stmt * stmt;
-      conn.executePreparedStatement(&stmt, "SELECT COUNT(*) FROM CHROMATOGRAM;");
+      sqlite3_stmt* stmt;
+      conn.prepareStatement(&stmt, "SELECT COUNT(*) FROM CHROMATOGRAM;");
       sqlite3_step(stmt);
       Sql::extractValue<int>(&ret, stmt, 0);
       sqlite3_finalize(stmt);
@@ -464,7 +464,7 @@ namespace OpenMS
       return (Size)ret;
     }
 
-    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms) const
+    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3* db, std::vector<MSChromatogram>& chromatograms) const
     {
       std::string select_sql;
       select_sql = "SELECT " \
@@ -479,15 +479,15 @@ namespace OpenMS
 
 
       // Execute SQL statement
-      sqlite3_stmt * stmt;
-      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-      populateContainer_sub_< MSChromatogram > (stmt, chromatograms);
+      sqlite3_stmt* stmt;
+      SqliteConnector::prepareStatement(db, &stmt, select_sql);
+      populateContainer_sub_<MSChromatogram>(stmt, chromatograms);
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db,
+    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3* db,
                                                            std::vector<MSChromatogram>& chromatograms,
-                                                           const std::vector<int> & indices) const
+                                                           const std::vector<int>& indices) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == chromatograms.size(), "Chromatograms and indices need to have the same length.")
@@ -504,13 +504,13 @@ namespace OpenMS
       select_sql += integerConcatenateHelper(indices) + ");";
 
       // Execute SQL statement
-      sqlite3_stmt * stmt;
-      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-      populateContainer_sub_< MSChromatogram > (stmt, chromatograms);
+      sqlite3_stmt* stmt;
+      SqliteConnector::prepareStatement(db, &stmt, select_sql);
+      populateContainer_sub_<MSChromatogram>(stmt, chromatograms);
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra) const
+    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3* db, std::vector<MSSpectrum>& spectra) const
     {
       std::string select_sql;
       select_sql = "SELECT " \
@@ -524,15 +524,15 @@ namespace OpenMS
                     ";";
 
       // Execute SQL statement
-      sqlite3_stmt * stmt;
-      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-      populateContainer_sub_< MSSpectrum> (stmt, spectra);
+      sqlite3_stmt* stmt;
+      SqliteConnector::prepareStatement(db, &stmt, select_sql);
+      populateContainer_sub_<MSSpectrum>(stmt, spectra);
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db,
+    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3* db,
                                                      std::vector<MSSpectrum>& spectra,
-                                                     const std::vector<int> & indices) const
+                                                     const std::vector<int>& indices) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == spectra.size(), "Spectra and indices need to have the same length.")
@@ -549,17 +549,17 @@ namespace OpenMS
       select_sql += integerConcatenateHelper(indices) + ");";
 
       // Execute SQL statement
-      sqlite3_stmt * stmt;
-      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-      populateContainer_sub_< MSSpectrum > (stmt, spectra);
+      sqlite3_stmt* stmt;
+      SqliteConnector::prepareStatement(db, &stmt, select_sql);
+      populateContainer_sub_<MSSpectrum>(stmt, spectra);
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db,
+    void MzMLSqliteHandler::prepareChroms_(sqlite3* db,
                                            std::vector<MSChromatogram>& chromatograms,
-                                           const std::vector<int> & indices) const
+                                           const std::vector<int>& indices) const
     {
-      sqlite3_stmt * stmt;
+      sqlite3_stmt* stmt;
       std::string select_sql;
       select_sql = "SELECT " \
                     "CHROMATOGRAM.ID as chrom_id," \
@@ -594,25 +594,22 @@ namespace OpenMS
       // from sqlite3_column_blob(), sqlite3_column_text(), etc. into
       // sqlite3_free().
 
-      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-      sqlite3_step( stmt );
-
+      SqliteConnector::prepareStatement(db, &stmt, select_sql);
+      sqlite3_step(stmt);
+      String tmp;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         MSChromatogram chrom;
         OpenMS::Precursor precursor;
         OpenMS::Product product;
 
-        chrom.setNativeID(String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 1 ))));
+        if (Sql::extractValue(&tmp, stmt, 1)) chrom.setNativeID(tmp);
         if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 2));
         if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) precursor.setDriftTime(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 4));
         if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 5));
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
-        if (sqlite3_column_type(stmt, 7) != SQLITE_NULL) 
-        {
-          precursor.setMetaValue("peptide_sequence", String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 7 ))));
-        }
+        if (Sql::extractValue(&tmp, stmt, 7)) precursor.setMetaValue("peptide_sequence", tmp);
         // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
         if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 9));
         if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 10));
@@ -677,16 +674,15 @@ namespace OpenMS
       // from sqlite3_column_blob(), sqlite3_column_text(), etc. into
       // sqlite3_free().
 
-      SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-      sqlite3_step( stmt );
-
-      while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+      SqliteConnector::prepareStatement(db, &stmt, select_sql);
+      sqlite3_step(stmt);
+      OpenMS::String tmp;
+      while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
       {
         MSSpectrum spec;
         OpenMS::Precursor precursor;
         OpenMS::Product product;
-
-        spec.setNativeID(String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1))));
+        if (Sql::extractValue(&tmp, stmt, 1)) spec.setNativeID(tmp);
         if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) spec.setMSLevel(sqlite3_column_int(stmt, 2));
         if (sqlite3_column_type(stmt, 3) != SQLITE_NULL) spec.setRT(sqlite3_column_double(stmt, 3));
         if (sqlite3_column_type(stmt, 4) != SQLITE_NULL) precursor.setCharge(sqlite3_column_int(stmt, 4));
@@ -694,10 +690,7 @@ namespace OpenMS
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) precursor.setMZ(sqlite3_column_double(stmt, 6));
         if (sqlite3_column_type(stmt, 7) != SQLITE_NULL) precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 7));
         if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
-        if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) 
-        {
-          precursor.setMetaValue("peptide_sequence", String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 9 ))));
-        }
+        if (Sql::extractValue(&tmp, stmt, 9)) precursor.setMetaValue("peptide_sequence", tmp);
         // if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 10));
         if (sqlite3_column_type(stmt, 11) != SQLITE_NULL) product.setMZ(sqlite3_column_double(stmt, 11));
         if (sqlite3_column_type(stmt, 12) != SQLITE_NULL) product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 12));

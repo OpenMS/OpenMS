@@ -1,7 +1,6 @@
 from Types cimport *
 from DataValue cimport *
 from Feature cimport *
-from ProteinIdentification cimport *
 from AASequence cimport *
 from PeptideEvidence cimport *
 from MetaInfoInterface cimport *

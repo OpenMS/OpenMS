@@ -34,12 +34,13 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Types.h> 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 #include <map>
+#include <sstream>
 
 namespace OpenMS
 {

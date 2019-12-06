@@ -255,7 +255,7 @@ protected:
         #else
                        "percolator",
         #endif
-                       "Percolator executable of the installation e.g. 'percolator.exe'", is_required, !is_advanced_option, ListUtils::create<String>("skipexists")
+                       "The Percolator executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", is_required, !is_advanced_option, {"is_executable"}
     );
     registerFlag_("peptide-level-fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
     registerFlag_("protein-level-fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy-pattern to set the Fasta file and decoy pattern.");
@@ -777,13 +777,6 @@ protected:
     }
 
     const String percolator_executable(getStringOption_("percolator_executable"));
-    writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
-    if (percolator_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("percolator_executable"... ???
-    {
-      writeLog_("No percolator executable specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
     
     if (in_list.empty() && in_osw.empty())
     {

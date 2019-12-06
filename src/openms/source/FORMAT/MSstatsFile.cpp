@@ -32,14 +32,11 @@
 // $Authors: Timo Sachsenberg, Lukas Heumos $
 // --------------------------------------------------------------------------
 
-#include <include/OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
-#include "OpenMS/FORMAT/MSstatsFile.h"
+#include <OpenMS/FORMAT/MSstatsFile.h>
+
+#include <tuple>
 
 using namespace std;
-
-
-OpenMS::MSstatsFile::MSstatsFile() = default;
-OpenMS::MSstatsFile::~MSstatsFile() = default;
 
 const OpenMS::String OpenMS::MSstatsFile::na_string_ = "NA";
 
@@ -527,9 +524,6 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
     design_filenames.push_back(fn);
   }
 
-  // Determine if the experiment has fractions
-  const bool has_fraction = design.isFractionated();
-
   vector< OpenMS::BaseFeature> features;
   vector< String > spectra_paths;
 
@@ -569,12 +563,10 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
   // Extract information from the consensus features.
   OpenMS::MSstatsFile::AggregatedConsensusInfo AggregatedInfo = OpenMS::MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
 
-  // The output file of the MSstats converter
+  // The output file of the MSstatsConverter
   TextFile csv_out;
   csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") +
-    "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture," +
-    String(has_fraction ? "Fraction,": "") + "Intensity,Reference");
-
+    "ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture,Fraction,Intensity,Reference");
 
   // We quantify indistinguishable groups with one (corner case) or multiple proteins.
   // If indistinguishable groups are not annotated (no inference or only trivial inference has been performed) we assume
@@ -647,11 +639,10 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
           // Resolve techrepmixture, run
           const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
           String techrepmixture = String(sampleSection.getFactorValue(sample, mixture)) + "_" + String(openms_fractiongroup);
-          String run = techrepmixture + (has_fraction ? String("_" + String(fraction)) : "");
+          String run = techrepmixture + "_" + String(fraction);
 
           // Assemble MSstats line
           MSstatsTMTLine_ prefix(
-              has_fraction,
               accession,
               sequence,
               precursor_charge,
@@ -661,7 +652,7 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
               String(run),
               sampleSection.getFactorValue(sample, mixture),
               String(techrepmixture),
-              (has_fraction ? String(fraction) : "")
+              String(fraction)
           );
 
           String identifier = current_filename;
