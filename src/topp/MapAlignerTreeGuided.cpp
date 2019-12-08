@@ -163,7 +163,7 @@ private:
       if (pearson_val > 1)
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
-      return (1 - (pearson_val * intercept_size / union_size));
+      return ((1 - pearson_val) * intercept_size / union_size);
     }
   }; // end of PeptideIdentificationsPearsonDifference
 
@@ -171,7 +171,7 @@ private:
   template <typename MapType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FeatureXMLFile& fxml_file);
   static void getPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts, vector<double>& rts_tmp);
-  static void extractSeqAndRt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seqAndRt, vector<vector<double>>& maps_ranges);
+  static void extractSeqAndRt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges);
   static void buildTree_(vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, vector<vector<double>>& maps_ranges);
   void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> feature_maps_transformed,
           vector<vector<double>> &maps_ranges, FeatureMap& map_transformed, vector<Size>& trafo_order, const Param& model_params, const String& model_type);
@@ -301,7 +301,7 @@ void TOPPMapAlignerTreeGuided::getPeptideSequences_(const vector<PeptideIdentifi
 }
 
 void TOPPMapAlignerTreeGuided::extractSeqAndRt_(const vector<FeatureMap>& feature_maps,
-                                                vector<SeqAndRTList>& maps_seqAndRt, vector<vector<double>>& maps_ranges)
+                                                vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges)
 {
   for (Size i = 0; i < feature_maps.size(); ++i)
   {
@@ -309,7 +309,7 @@ void TOPPMapAlignerTreeGuided::extractSeqAndRt_(const vector<FeatureMap>& featur
     for (auto feature_it = feature_maps[i].begin(); feature_maps[i].end() != feature_it; ++feature_it)
     {
       if (!feature_it->getPeptideIdentifications().empty()) {
-        getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seqAndRt[i], rts_tmp);
+        getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seq_and_rt[i], rts_tmp);
       }
     }
     sort(rts_tmp.begin(), rts_tmp.end());
