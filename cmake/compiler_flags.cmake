@@ -114,7 +114,8 @@ elseif (MSVC)
 elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
   # add clang specific warning levels
-  add_compile_options(-Weverything)
+  # we should not use -Weverything routinely https://quuxplusone.github.io/blog/2018/12/06/dont-use-weverything/
+  add_compile_options(-Wall -Wextra)
   # .. and disable some of the harmless ones
   add_compile_options(
                   -Wno-sign-conversion
