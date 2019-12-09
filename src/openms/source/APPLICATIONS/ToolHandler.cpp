@@ -53,7 +53,6 @@ namespace OpenMS
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", "Identification");
     tools_map["CruxAdapter"] = Internal::ToolDescription("CruxAdapter", "Identification");
-    tools_map["DBsearchDeconvMass"] = Internal::ToolDescription("DBsearchDeconvMass", "DB Matching");
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
@@ -194,6 +193,7 @@ namespace OpenMS
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
     util_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", util_category);
     util_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", util_category);
+    util_map["DBsearchDeconvMass"] = Internal::ToolDescription("DBsearchDeconvMass", "DB Matching");
     util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", util_category);
     util_map["DatabaseFilter"]= Internal::ToolDescription("DatabaseFilter", util_category);
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
@@ -203,7 +203,6 @@ namespace OpenMS
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     util_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", util_category);
     util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);
-    util_map["FLASHDeconvAlgorithm"] = Internal::ToolDescription("FLASHDeconvAlgorithm", util_category);
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", util_category);
