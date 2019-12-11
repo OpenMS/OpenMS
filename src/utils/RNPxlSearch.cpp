@@ -1306,7 +1306,7 @@ protected:
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
     Size max_variable_mods_per_peptide,
-    const vector<PrecursorPurity::PurityScores>& purities)
+    const map<String, PrecursorPurity::PurityScores>& purities)
   {
       // remove all but top n scoring (Note: this is currently necessary as postScoreHits_ might reintroduce nucleotide specific hits for fast scoring)
 #ifdef _OPENMP
@@ -1391,7 +1391,15 @@ protected:
 
           if (!purities.empty())
           {
-            ph.setMetaValue("precursor_purity", purities[scan_index].signal_proportion);
+            map<String, PrecursorPurity::PurityScores>::const_iterator it = purities.find(exp[scan_index].getNativeID());
+            if (it != purities.end())
+            {
+              ph.setMetaValue("precursor_purity", it->second.signal_proportion);
+            }
+            else // probably not necessary
+            {
+              ph.setMetaValue("precursor_purity", 0);
+            }
           }
 
           ph.setPeakAnnotations(ah.fragment_annotations);
@@ -1708,7 +1716,7 @@ protected:
     f.setLogType(log_type_);
 
     // load both MS1 and MS2 for precursor purity annotation
-    vector<PrecursorPurity::PurityScores> purities;
+    map<String, PrecursorPurity::PurityScores> purities;
     {
       PeakMap tmp_spectra;
       f.load(in_mzml, tmp_spectra);
