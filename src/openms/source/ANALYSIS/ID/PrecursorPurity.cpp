@@ -38,9 +38,6 @@
 
 #ifdef _OPENMP
 #include <omp.h>
-#define NUMBER_OF_THREADS (omp_get_num_threads())
-#else
-#define NUMBER_OF_THREADS (1)
 #endif
 
 namespace OpenMS

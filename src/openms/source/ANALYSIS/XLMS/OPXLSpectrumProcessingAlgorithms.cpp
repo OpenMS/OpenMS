@@ -45,9 +45,6 @@
 
 #ifdef _OPENMP
 #include <omp.h>
-#define NUMBER_OF_THREADS (omp_get_num_threads())
-#else
-#define NUMBER_OF_THREADS (1)
 #endif
 
 using namespace std;
@@ -129,9 +126,8 @@ namespace OpenMS
 
     PeakMap filtered_spectra;
 
-#ifdef _OPENMP
+
 #pragma omp parallel for
-#endif
     for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
       // for labeled experiments, the pairs of heavy and light spectra are linked by spectra indices from the consensusXML, so the returned number of spectra has to be equal to the input
@@ -179,11 +175,8 @@ namespace OpenMS
           window_mower_filter.filterPeakSpectrum(deisotoped);
           deisotoped.sortByPosition();
 
-#ifdef _OPENMP
 #pragma omp critical (filtered_spectra_access)
-#endif
           filtered_spectra.addSpectrum(deisotoped);
-
         }
       }
       else
@@ -199,9 +192,7 @@ namespace OpenMS
         {
           filtered.sortByPosition();
 
-#ifdef _OPENMP
 #pragma omp critical (filtered_spectra_access)
-#endif
           filtered_spectra.addSpectrum(filtered);
         }
       }
