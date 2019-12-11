@@ -247,9 +247,7 @@ using namespace OpenMS;
     unprocessed_spectra.clear(true);
 
     // Precursor Purity precalculation
-    progresslogger.startProgress(0, 1, "Computing precursor purities...");
     vector<PrecursorPurity::PurityScores> precursor_purities = PrecursorPurity::computePrecursorPurities(picked_spectra, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_);
-    progresslogger.endProgress();
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
@@ -314,10 +312,7 @@ using namespace OpenMS;
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
-
-    progresslogger.startProgress(0, 1, "Digesting peptides...");
     peptide_masses = OPXLHelper::digestDatabase(fasta_db, digestor, peptide_min_size_, cross_link_residue1_, cross_link_residue2_, fixed_modifications,  variable_modifications, max_variable_mods_per_peptide_);
-    progresslogger.endProgress();
 
     // declare and set up spectrum generators
     TheoreticalSpectrumGeneratorXLMS specGen_full;
