@@ -235,7 +235,6 @@ using namespace OpenMS;
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    vector<Size> discarded_spectra;
     spectra = OPXLSpectrumProcessingAlgorithms::preprocessSpectra(unprocessed_spectra, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, peptide_min_size_, min_precursor_charge_, max_precursor_charge_, deisotope, true);
     progresslogger.endProgress();
 
