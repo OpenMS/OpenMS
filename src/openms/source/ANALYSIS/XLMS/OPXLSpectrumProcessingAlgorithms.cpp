@@ -43,6 +43,13 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#define NUMBER_OF_THREADS (omp_get_num_threads())
+#else
+#define NUMBER_OF_THREADS (1)
+#endif
+
 using namespace std;
 
 namespace OpenMS
@@ -98,7 +105,7 @@ namespace OpenMS
     return resulting_spectrum;
   }
 
-  PeakMap OPXLSpectrumProcessingAlgorithms::preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, vector<Size>& discarded_spectra, bool deisotope, bool labeled)
+  PeakMap OPXLSpectrumProcessingAlgorithms::preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, bool deisotope, bool labeled)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -120,15 +127,11 @@ namespace OpenMS
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
 
-    NLargest nlargest_filter = NLargest(500);
-
     PeakMap filtered_spectra;
-    Size MS2_counter(0);
 
-    // TODO does not work multithreaded because of the MS2_counter, find an alternative or keep single threaded
-// #ifdef _OPENMP
-// #pragma omp parallel for
-// #endif
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
     for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
       // for labeled experiments, the pairs of heavy and light spectra are linked by spectra indices from the consensusXML, so the returned number of spectra has to be equal to the input
@@ -136,10 +139,6 @@ namespace OpenMS
       if (exp[exp_index].getMSLevel() != 2)
       {
         continue;
-      }
-      else // MSLevel 2
-      {
-        MS2_counter++;
       }
 
       vector<Precursor> precursor = exp[exp_index].getPrecursors();
@@ -155,13 +154,8 @@ namespace OpenMS
 
       if (!process_this_spectrum)
       {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-        discarded_spectra.push_back(MS2_counter-1);
         continue;
       }
-      exp[exp_index].sortByPosition();
 
       if (deisotope)
       {
@@ -183,21 +177,13 @@ namespace OpenMS
         if (deisotoped.size() > peptide_min_size * 2 || labeled)
         {
           window_mower_filter.filterPeakSpectrum(deisotoped);
-          nlargest_filter.filterPeakSpectrum(deisotoped);
           deisotoped.sortByPosition();
 
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (filtered_spectra_access)
 #endif
           filtered_spectra.addSpectrum(deisotoped);
 
-        }
-        else
-        {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-          discarded_spectra.push_back(MS2_counter-1);
         }
       }
       else
@@ -206,7 +192,6 @@ namespace OpenMS
         if (!labeled) // this kind of filtering is not necessary for labeled cross-links, since they area filtered by comparing heavy and light spectra later
         {
           window_mower_filter.filterPeakSpectrum(filtered);
-          nlargest_filter.filterPeakSpectrum(filtered);
         }
 
         // only consider spectra, that have at least as many peaks as two times the minimal peptide size after filtering
@@ -215,19 +200,12 @@ namespace OpenMS
           filtered.sortByPosition();
 
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (filtered_spectra_access)
 #endif
           filtered_spectra.addSpectrum(filtered);
         }
-        else
-        {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-          discarded_spectra.push_back(MS2_counter-1);
-        }
       }
-    }
+    } // end of parallelized loop over spectra
     return filtered_spectra;
   }
 
