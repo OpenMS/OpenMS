@@ -36,6 +36,13 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#define NUMBER_OF_THREADS (omp_get_num_threads())
+#else
+#define NUMBER_OF_THREADS (1)
+#endif
+
 namespace OpenMS
 {
 
@@ -164,9 +171,9 @@ namespace OpenMS
     return score;
   }
 
-  std::vector<PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
+  std::map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
-    std::vector<PrecursorPurity::PurityScores> purityscores;
+    std::map<String, PrecursorPurity::PurityScores> purityscores;
 
     // TODO throw an exception or at least a warning?
     // if there is no MS1 before the first MS2, the spectra datastructure is not suitable for this function
@@ -177,10 +184,12 @@ namespace OpenMS
     }
 
     // keep the index of the two MS1 spectra flanking the current group of MS2 spectra
-    Size current_parent_index = 0;
-    Size next_parent_index = 0;
+    int current_parent_index = 0;
+    int next_parent_index = 0;
     bool lastMS1(false);
-    for (Size i = 0; i < spectra.size(); ++i)
+
+#pragma omp parallel for schedule(guided)
+    for (int i = 0; i < static_cast<int>(spectra.size()); ++i)
     {
       // change current parent index if a new MS1 spectrum is reached
       if (spectra[i].getMSLevel() == 1)
@@ -217,7 +226,9 @@ namespace OpenMS
           score2 = PrecursorPurity::computePrecursorPurity(spectra[next_parent_index], spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
         }
         PrecursorPurity::PurityScores score = PrecursorPurity::combinePrecursorPurities(score1, score2);
-        purityscores.push_back(score);
+
+#pragma omp critical (purityscores_access)
+        purityscores[spectra[i].getNativeID()] = score;
 
         // std::cout << "Score1 | Spectrum: " << i << " | total intensity: " << score1.total_intensity << " | target intensity: " << score1.target_intensity << " | noise intensity: " << score1.residual_intensity << " | rel_sig: " << score1.signal_proportion << std::endl;
         // std::cout << "Score2 | Spectrum: " << i << " | total intensity: " << score2.total_intensity << " | target intensity: " << score2.target_intensity << " | noise intensity: " << score2.residual_intensity << " | rel_sig: " << score2.signal_proportion << std::endl;
@@ -225,7 +236,7 @@ namespace OpenMS
         // std::cout << "#################################################################################################################" << std::endl;
 
       } // end of MS2 spectrum
-    } // spectra loop
+    } // end of parallelized spectra loop
     return purityscores;
   } // end of function def
 

@@ -78,7 +78,7 @@ namespace OpenMS
      * @param precursor_mass_tolerance The precursor tolerance. Is used for determining the targeted peak and deisotoping.
      * @param precursor_mass_tolerance_unit_ppm The unit of the precursor tolerance
     */
-    static std::vector<PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
+    static std::map<String, PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
 
     /** @brief compute precursor purity metrics for one MS2 precursor
 

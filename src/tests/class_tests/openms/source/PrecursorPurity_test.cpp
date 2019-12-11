@@ -80,39 +80,39 @@ START_SECTION(static PurityScores computePrecursorPurity(const PeakSpectrum& ms1
 
 END_SECTION
 
-START_SECTION(static std::vector<PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm))
+START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm))
 
-  vector<PrecursorPurity::PurityScores> purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
+  map<String, PrecursorPurity::PurityScores> purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
 
-  TEST_REAL_SIMILAR(purityscores[0].total_intensity, 9849578.5)
-  TEST_REAL_SIMILAR(purityscores[0].target_intensity, 9849578.5)
-  TEST_REAL_SIMILAR(purityscores[0].signal_proportion, 1)
-  TEST_EQUAL(purityscores[0].target_peak_count, 2)
-  TEST_EQUAL(purityscores[0].residual_peak_count, 0)
+  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].total_intensity, 9849578.5)
+  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].target_intensity, 9849578.5)
+  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].signal_proportion, 1)
+  TEST_EQUAL(purityscores[spectra[1].getNativeID()].target_peak_count, 2)
+  TEST_EQUAL(purityscores[spectra[1].getNativeID()].residual_peak_count, 0)
 
-  TEST_REAL_SIMILAR(purityscores[1].total_intensity, 22845744.8125)
-  TEST_REAL_SIMILAR(purityscores[1].target_intensity, 16314393.5)
-  TEST_REAL_SIMILAR(purityscores[1].signal_proportion, 0.71411)
-  TEST_EQUAL(purityscores[1].target_peak_count, 2)
-  TEST_EQUAL(purityscores[1].residual_peak_count, 6)
+  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].total_intensity, 22845744.8125)
+  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].target_intensity, 16314393.5)
+  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].signal_proportion, 0.71411)
+  TEST_EQUAL(purityscores[spectra[2].getNativeID()].target_peak_count, 2)
+  TEST_EQUAL(purityscores[spectra[2].getNativeID()].residual_peak_count, 6)
 
-  TEST_REAL_SIMILAR(purityscores[2].total_intensity, 19751783.375)
-  TEST_REAL_SIMILAR(purityscores[2].target_intensity, 16388424)
-  TEST_REAL_SIMILAR(purityscores[2].signal_proportion, 0.82971)
-  TEST_EQUAL(purityscores[2].target_peak_count, 2)
-  TEST_EQUAL(purityscores[2].residual_peak_count, 7)
+  TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].total_intensity, 19751783.375)
+  TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].target_intensity, 16388424)
+  TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].signal_proportion, 0.82971)
+  TEST_EQUAL(purityscores[spectra[3].getNativeID()].target_peak_count, 2)
+  TEST_EQUAL(purityscores[spectra[3].getNativeID()].residual_peak_count, 7)
 
-  TEST_REAL_SIMILAR(purityscores[3].total_intensity, 23979143.35156)
-  TEST_REAL_SIMILAR(purityscores[3].target_intensity, 17510631.5)
-  TEST_REAL_SIMILAR(purityscores[3].signal_proportion, 0.73024)
-  TEST_EQUAL(purityscores[3].target_peak_count, 2)
-  TEST_EQUAL(purityscores[3].residual_peak_count, 9)
+  TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].total_intensity, 23979143.35156)
+  TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].target_intensity, 17510631.5)
+  TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].signal_proportion, 0.73024)
+  TEST_EQUAL(purityscores[spectra[4].getNativeID()].target_peak_count, 2)
+  TEST_EQUAL(purityscores[spectra[4].getNativeID()].residual_peak_count, 9)
 
-  TEST_REAL_SIMILAR(purityscores[4].total_intensity, 11964238)
-  TEST_REAL_SIMILAR(purityscores[4].target_intensity, 11964238)
-  TEST_REAL_SIMILAR(purityscores[4].signal_proportion, 1)
-  TEST_EQUAL(purityscores[4].target_peak_count, 2)
-  TEST_EQUAL(purityscores[4].residual_peak_count, 0)
+  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].total_intensity, 11964238)
+  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].target_intensity, 11964238)
+  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].signal_proportion, 1)
+  TEST_EQUAL(purityscores[spectra[5].getNativeID()].target_peak_count, 2)
+  TEST_EQUAL(purityscores[spectra[5].getNativeID()].residual_peak_count, 0)
 
 
 END_SECTION
