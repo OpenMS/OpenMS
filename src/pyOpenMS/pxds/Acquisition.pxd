@@ -17,5 +17,3 @@ cdef extern from "<OpenMS/METADATA/Acquisition.h>" namespace "OpenMS":
 		bool operator!=(Acquisition &rhs) nogil except +
 		String getIdentifier() nogil except +
 		void setIdentifier(const String &identifier) nogil except +
-
-		void getKeys(libcpp_vector[String] & keys)
