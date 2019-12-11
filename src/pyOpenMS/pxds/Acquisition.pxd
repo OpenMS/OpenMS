@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/Acquisition.h>" namespace "OpenMS":
 	
 	cdef cppclass Acquisition(MetaInfoInterface):
 		# wrap-inherits:
-		#    MetaInfoInterface
+		#  MetaInfoInterface
 
 		Acquisition() nogil except +
 		Acquisition(Acquisition) nogil except +
