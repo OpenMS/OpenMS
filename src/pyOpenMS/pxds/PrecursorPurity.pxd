@@ -1,6 +1,6 @@
 from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.map cimport map as libcpp_map
+# from libcpp.map cimport map as libcpp_map
 from libcpp cimport bool
 from MSSpectrum cimport *
 from MSExperiment cimport *
@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PrecursorPurity.h>" namespace "OpenMS":
         PrecursorPurity() nogil except +
         PrecursorPurity(PrecursorPurity) nogil except + # wrap-ignore
 
-        libcpp_map[String, PurityScores] computePrecursorPurities(MSExperiment spectra,
-                                                             double precursor_mass_tolerance,
-                                                             bool precursor_mass_tolerance_unit_ppm) nogil except +
+        # libcpp_map[String, PurityScores] computePrecursorPurities(MSExperiment spectra,
+        #                                                     double precursor_mass_tolerance,
+        #                                                     bool precursor_mass_tolerance_unit_ppm) nogil except +
 
         PurityScores computePrecursorPurity(MSSpectrum ms1,
                                             Precursor pre,
