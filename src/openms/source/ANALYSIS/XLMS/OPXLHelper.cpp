@@ -462,11 +462,38 @@ namespace OpenMS
           OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate;
           cross_link_candidate.precursor_correction = precursor_corrections[i];
           cross_link_candidate.cross_linker_name = cross_link_name;
-          // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination, also pos1 > pos2 would be the same link as pos1 < pos2
-          if (((seq_second.size() == 0) && (link_pos_first[x] >= link_pos_second[y])) && (link_pos_second[y] != -1))
+
+          // filter out unnecessary loop-link candidates that we would not trust in a manual validation anyway
+          if ((seq_second.size() == 0) && (link_pos_second[y] != -1)) // if it is a loop-link
+          {
+            // if the positions are the same, then it is linking the same residue with itself
+            // also pos1 > pos2 would be the same link as pos1 < pos2 with switched positions
+            if ( (link_pos_first[x] >= link_pos_second[y]) ) continue;
+
+            // don't consider loop-links linking very close residues (y > x is already established, so no need for abs())
+            if ( (link_pos_second[y] - link_pos_first[x]) < 3 ) continue;
+
+            // don't consider loop-links, that link to residues on the fringe of the peptide sequence
+            // because for those there won't be sufficient fragmentation for sequencing on at least one end of the peptide
+            // we want at least 3 residues on each side
+            if ( (link_pos_first[x] < 3) || (link_pos_second[y] > static_cast<int>(seq_first.size()) - 4) ) continue;
+          }
+
+          // if one of the linked residues is already modified with something else, skip this combination of linked positions
+          if ((*peptide_first)[link_pos_first[x]].isModified())
           {
             continue;
           }
+          if (peptide_second != nullptr && (*peptide_second)[link_pos_second[y]].isModified())
+          {
+            continue;
+          }
+          // check for modified residue for loop linked cases
+          if ((seq_second.size() == 0 && link_pos_second[y] != -1) && (*peptide_first)[link_pos_second[y]].isModified())
+          {
+            continue;
+          }
+
           if (alpha_first)
           {
             cross_link_candidate.alpha = peptide_first;

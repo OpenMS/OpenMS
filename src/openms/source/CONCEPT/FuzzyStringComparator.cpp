@@ -39,6 +39,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <fstream>
+#include <istream>
 #include <iomanip>
 #include <iostream>
 

@@ -32,14 +32,11 @@
 // $Authors: Timo Sachsenberg, Lukas Heumos $
 // --------------------------------------------------------------------------
 
-#include <include/OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
-#include "OpenMS/FORMAT/MSstatsFile.h"
+#include <OpenMS/FORMAT/MSstatsFile.h>
+
+#include <tuple>
 
 using namespace std;
-
-
-OpenMS::MSstatsFile::MSstatsFile() = default;
-OpenMS::MSstatsFile::~MSstatsFile() = default;
 
 const OpenMS::String OpenMS::MSstatsFile::na_string_ = "NA";
 

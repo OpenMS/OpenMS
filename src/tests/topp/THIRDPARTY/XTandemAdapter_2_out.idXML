@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/abi-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/OMSSAAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/abi-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
 	<IdentificationRun date="2014-05-27T14:37:29" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
@@ -10,7 +10,8 @@
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="BSA2 ##2" score="-14.8999996185303" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[file:///C:/testing/test_file_path/test_file_name.raw]"/>
+			<UserParam type="stringList" name="spectra_data_raw" value="[file:///C:/testing/test_file_path/test_file_name.raw]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/abi-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" spectrum_reference="spectrum=1" >
 			<PeptideHit score="77.9" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0"  end="27" protein_refs="PH_1" >

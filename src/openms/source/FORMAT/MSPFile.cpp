@@ -432,7 +432,7 @@ namespace OpenMS
         {
           if (rich_spec.getStringDataArrays()[k].getName() == "IonName")
           {
-            ion_name = k;
+            ion_name = (int)k;
             break;
           }
         }

@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 
+#include <ostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -150,8 +152,8 @@ namespace OpenMS
 
   std::ostream & operator<<(std::ostream & os, const ExperimentalSettings & /*exp*/)
   {
-    os << "-- EXPERIMENTALSETTINGS BEGIN --" << std::endl;
-    os << "-- EXPERIMENTALSETTINGS END --" << std::endl;
+    os << "-- EXPERIMENTALSETTINGS BEGIN --\n";
+    os << "-- EXPERIMENTALSETTINGS END --\n";
     return os;
   }
 

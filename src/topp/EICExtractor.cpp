@@ -413,7 +413,6 @@ public:
       tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
       tf_single_header1 << description << "" << "" << "" << "";
       tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity";
-
       for (Size i = 0; i < cm.size(); ++i)
       {
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";

@@ -143,20 +143,19 @@ namespace OpenMS
                                            bool allow_random_asp_pro_cleavage) const
     {
     // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
-    // M or MX at the N-terminus might have been cleaved.
+    // M or MX at the N-terminus might have been cleaved off 
     if (allow_nterm_protein_cleavage && (pos <= 2) && (sequence[0] == 'M'))
-    {
-      // check the N-terminal peptide for a C-terminal cleavage site:
+    { // reset the peptide to full length on N-terminus
       length += pos;
       pos = 0;
     }
-
-    if (pos >= (int)sequence.size())
+    const int seq_size = (int)sequence.size();
+    if (pos >= seq_size)
     {
       OPENMS_LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
-    if (pos + length > (int)sequence.size())
+    if (pos + length > seq_size)
     {
       OPENMS_LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
@@ -179,56 +178,56 @@ namespace OpenMS
       const std::vector<int> cleavage_positions = tokenize_(sequence, pos, end); // has 'pos' as first site
       return (cleavage_positions.size() - 1) <= missed_cleavages_;
     }
-    else // either SPEC_SEMI or SPEC_FULL
-    {
-      bool spec_c = false, spec_n = false;
-      // tokenize_ is really slow, so reduce work by working on substring with +-2 chars margin:
-      const std::vector<int> cleavage_positions = tokenize_(sequence, pos - 2, end + 2); // has max(0,pos-2) as first site 
+    
+    // either SPEC_SEMI or SPEC_FULL
+    bool spec_c = false, spec_n = false;
+    // tokenize_ is really slow, so reduce work by working on substring with +-2 chars margin:
+    const std::vector<int> cleavage_positions = tokenize_(sequence, pos - 2, end + 2); // has max(0,pos-2) as first site 
       
-      //
-      // test each terminal end of the fragment
-      //
-      // left end (N-term for peptides):
-      if (std::find(cleavage_positions.begin(), cleavage_positions.end(), pos) != cleavage_positions.end())
-      { // '0' is included in cleavage_positions, so starting fragments will be found as well
-        spec_n = true;
-      }
-      // pos is > 0 at this point, so [pos-1] is valid
-      else if (allow_random_asp_pro_cleavage && (sequence[pos - 1] == 'D') && (sequence[pos] == 'P'))
-      {
-        spec_n = true;
-      }
-
-      // right end (C-term for peptides):
-      if (end == (int)sequence.size())
-      { // full length match (end of sequence is not in cleavage_positions)
-        spec_c = true;
-      }
-      else if (std::find(cleavage_positions.rbegin(), cleavage_positions.rend(), end) != cleavage_positions.rend())
-      { // use rbegin() since we expect this to be the correct hit
-        spec_c = true;
-      }
-      else if (allow_random_asp_pro_cleavage && (sequence[end - 1] == 'D') && (sequence[end] == 'P'))
-      {
-        spec_c = true;
-      }
-
-      if ((spec_n && spec_c) || // full spec
-           ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
-      {
-        if (ignore_missed_cleavages) return true;
-        return (countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_);
-        }
-      return false;
+    //
+    // test each terminal end of the fragment
+    //
+    // left end (N-term for peptides):
+    if (std::find(cleavage_positions.begin(), cleavage_positions.end(), pos) != cleavage_positions.end())
+    { // '0' is included in cleavage_positions, so starting fragments will be found as well
+      spec_n = true;
     }
+    // pos is > 0 at this point, so [pos-1] is valid
+    else if (allow_random_asp_pro_cleavage && (sequence[pos - 1] == 'D') && (sequence[pos] == 'P'))
+    {
+      spec_n = true;
+    }
+
+    // right end (C-term for peptides):
+    if (end == seq_size)
+    { // full length match (end of sequence is not in cleavage_positions)
+      spec_c = true;
+    }
+    else if (std::find(cleavage_positions.rbegin(), cleavage_positions.rend(), end) != cleavage_positions.rend())
+    { // use rbegin() since we expect this to be the correct hit
+      spec_c = true;
+    }
+    else if (allow_random_asp_pro_cleavage && (sequence[end - 1] == 'D') && (sequence[end] == 'P'))
+    {
+      spec_c = true;
+    }
+
+    if ((spec_n && spec_c) || // full spec
+          ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
+    {
+      if (ignore_missed_cleavages) return true;
+      return countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_;
+    }
+
+    return false;
   }
 
   Size EnzymaticDigestion::countMissedCleavages_(const std::vector<int>& cleavage_positions, Size seq_start, Size seq_end) const
   {
     Size count(0);
-    for (auto it = cleavage_positions.begin(); it != cleavage_positions.end(); ++it)
+    for (int pos : cleavage_positions)
     { // count MCs within fragment borders
-      if (((int)seq_start < *it) && (*it < (int)seq_end)) ++count;
+      if (((int)seq_start < pos) && (pos < (int)seq_end)) ++count;
     }
     return count;
   }

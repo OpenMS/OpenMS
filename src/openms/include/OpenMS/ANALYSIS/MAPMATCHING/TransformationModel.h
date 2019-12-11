@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <tuple>
+
 namespace OpenMS
 {
   /**
