@@ -7,6 +7,9 @@ iswin = sys.platform == "win32"
 
 # osx ?
 isosx = sys.platform == "darwin"
+if isosx:
+    import platform
+    osx_ver = platform.mac_ver()[0] #e.g. ('10.15.1', ('', '', ''), 'x86_64')
 
 import sys
 single_threaded = False
@@ -23,7 +26,7 @@ from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONT
                   QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
                   OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
-                  PY_NUM_MODULES, PY_NUM_THREADS)
+                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -34,6 +37,7 @@ if iswin and IS_DEBUG:
 import pickle
 import os
 import glob
+import re
 import shutil
 import time
 
@@ -134,12 +138,35 @@ include_dirs = [
     j(numpy.core.__path__[0], "include"),
 ]
 
-# append all include dirs exported by CMake
+# append all include and library dirs exported by CMake
 include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
-
-include_dirs.extend(LIBRARIES_EXTEND)
-libraries.extend(LIBRARIES_EXTEND)
 library_dirs.extend(LIBRARY_DIRS_EXTEND)
+libraries.extend(LIBRARIES_EXTEND)
+
+
+# libraries of any type to be parsed and added
+objects = []
+add_libs = LIBRARIES_TO_BE_PARSED_EXTEND.split(";")
+for lib in add_libs:
+  if not iswin:
+    if lib.endswith(".a"):
+      objects.append(lib)
+      name_search = re.search('.*/lib(.*)\.a$', lib)
+      if name_search:
+        libraries.append(name_search.group(1))
+        library_dirs.append(os.path.dirname(lib))
+    if lib.endswith(".so") or lib.endswith(".dylib"):
+      name_search = re.search('.*/lib(.*)\.(so|dylib)$', lib)
+      if name_search:
+        libraries.append(name_search.group(1))
+        library_dirs.append(os.path.dirname(lib))
+  else:
+    if lib.endswith(".lib"):
+      name_search = re.search('.*/(.*)\.lib$', lib)
+      if name_search:
+        libraries.append(name_search.group(1))
+        library_dirs.append(os.path.dirname(lib))
+
 
 extra_link_args = []
 extra_compile_args = []
@@ -153,9 +180,10 @@ if iswin:
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
+    library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
     # we need to manually link to the Qt Frameworks
     extra_compile_args = ["-Qunused-arguments"]
-
+    extra_link_args = ["-Wl,-rpath","-Wl,@loader_path/"]
 if IS_DEBUG:
     extra_compile_args.append("-g2")
 
@@ -169,6 +197,8 @@ if not iswin:
     if isosx: # MacOS c++11
         extra_compile_args.append("-stdlib=libc++")
         extra_compile_args.append("-mmacosx-version-min=10.7")
+        if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
+            extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
     extra_compile_args.append("-Wno-deprecated-register")
@@ -195,6 +225,7 @@ for module in mnames:
         libraries=libraries,
         include_dirs=include_dirs + autowrap_include_dirs,
         extra_compile_args=extra_compile_args,
+        extra_objects=objects,
         extra_link_args=extra_link_args,
 		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
 		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)

@@ -517,13 +517,13 @@ namespace OpenMS
     defaults_.setValue("mass_error_value", 5.0, "Tolerance allowed for accurate mass search.");
 
     defaults_.setValue("mass_error_unit", "ppm", "Unit of mass error (ppm or Da)");
-    defaults_.setValidStrings("mass_error_unit", ListUtils::create<String>(("ppm,Da")));
+    defaults_.setValidStrings("mass_error_unit", {"ppm", "Da"});
 
     defaults_.setValue("ionization_mode", "positive", "Positive or negative ionization mode? If 'auto' is used, the first feature of the input map must contain the meta-value 'scan_polarity'. If its missing, the tool will exit with error.");
-    defaults_.setValidStrings("ionization_mode", ListUtils::create<String>(("positive,negative,auto")));
+    defaults_.setValidStrings("ionization_mode", {"positive", "negative", "auto"});
 
     defaults_.setValue("isotopic_similarity", "false", "Computes a similarity score for each hit (only if the feature exhibits at least two isotopic mass traces).");
-    defaults_.setValidStrings("isotopic_similarity", ListUtils::create<String>(("false,true")));
+    defaults_.setValidStrings("isotopic_similarity", {"false", "true"});
 
     defaults_.setValue("db:mapping", ListUtils::create<String>("CHEMISTRY/HMDBMappingFile.tsv"), "Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
@@ -533,19 +533,19 @@ namespace OpenMS
                                                                         "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
     defaults_.setValue("positive_adducts", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
-                                                                                 "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
+                                                                                 "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used.", {"advanced"});
     defaults_.setValue("negative_adducts", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
-                                                                                 "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
+                                                                                 "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used.", {"advanced"});
 
     defaults_.setValue("use_feature_adducts", "false", "Whether to filter AMS candidates mismatching available feature adduct annotation.");
-    defaults_.setValidStrings("use_feature_adducts", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("use_feature_adducts", {"false", "true"});
 
     defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
-    defaults_.setValidStrings("keep_unidentified_masses", ListUtils::create<String>(("false,true")));
+    defaults_.setValidStrings("keep_unidentified_masses", {"false", "true"});
 
     defaults_.setValue("mzTab:exportIsotopeIntensities", "false", "[featureXML input only] Export column with available isotope trace intensities (opt_global_MTint)");
-    defaults_.setValidStrings("mzTab:exportIsotopeIntensities", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("mzTab:exportIsotopeIntensities", {"false", "true"});
 
     defaultsToParam_();
   }
@@ -1268,9 +1268,7 @@ namespace OpenMS
     if (db_struct_file_.empty()) db_struct_file_ = defaults_.getValue("db:struct").toStringList();
 
     pos_adducts_fname_ = (String)param_.getValue("positive_adducts");
-    if (pos_adducts_fname_.trim().empty()) pos_adducts_fname_ = (String)defaults_.getValue("positive_adducts");
     neg_adducts_fname_ = (String)param_.getValue("negative_adducts");
-    if (neg_adducts_fname_.trim().empty()) neg_adducts_fname_ = (String)defaults_.getValue("negative_adducts");
 
     keep_unidentified_masses_ = param_.getValue("keep_unidentified_masses").toBool();
     // database names might have changed, so parse files again before next query

@@ -50,6 +50,12 @@ namespace OpenMS
 {
   bool ModificationsDB::is_instantiated_ = false;
 
+  ModificationsDB* ModificationsDB::getInstance(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
+  {
+    static ModificationsDB* db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
+    return db_;
+  }
+
   ModificationsDB::ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
   {
     if (!unimod_file.empty())
@@ -68,7 +74,6 @@ namespace OpenMS
     }
     is_instantiated_ = true;
   }
-
 
   ModificationsDB::~ModificationsDB()
   {

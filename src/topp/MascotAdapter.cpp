@@ -44,7 +44,6 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <map>
-#include <iostream>
 #include <fstream>
 #include <string>
 
@@ -293,8 +292,6 @@ protected:
     StringList variable_mods;
     ProteinIdentification protein_identification;
     vector<PeptideIdentification> identifications;
-    IntList charges;
-    StringList parts;
     double precursor_mass_tolerance(0);
     double peak_mass_tolerance(0);
     double pep_ident(0), sigthreshold(0), pep_homol(0), prot_score(0), pep_score(0);
@@ -317,6 +314,7 @@ protected:
     date_time.now();
     date_time_string = date_time.get();
     date_time_string.substitute(':', '.');        // Windows does not allow ":" in filenames!
+    StringList parts;
     date_time_string.split(' ', parts);
 
     mascot_infile_name = parts[0] + "_" + parts[1] + "_" + mascot_infile_name;
@@ -389,17 +387,16 @@ protected:
 
     /// charges
     parts = getStringList_("charges");
-
-    for (Size i = 0; i < parts.size(); i++)
+    IntList charges;
+    for (String& c : parts)
     {
-      temp_charge = parts[i];
-      if (temp_charge[temp_charge.size() - 1] == '-' || temp_charge[0] == '-')
+      if (c.hasPrefix("-") || c.hasSuffix("-"))
       {
-        charges.push_back(-1 * (parts[i].remove('-').toInt()));
+        charges.push_back(-1 * (c.remove('-').toInt()));
       }
       else
       {
-        charges.push_back(parts[i].remove('+').toInt());
+        charges.push_back(c.remove('+').toInt());
       }
     }
     if (charges.empty())

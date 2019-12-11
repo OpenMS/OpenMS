@@ -36,14 +36,10 @@
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
-#include <boost/assign/list_of.hpp>
-
-using namespace boost::assign;
-
 namespace OpenMS
 {
 const String TMTTenPlexQuantitationMethod::name_ = "tmt10plex";
-const std::vector<String> TMTTenPlexQuantitationMethod::channel_names_ = list_of("126")("127N")("127C")("128N")("128C")("129N")("129C")("130N")("130C")("131");
+const std::vector<String> TMTTenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131"};
 
 TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
 {
@@ -79,10 +75,6 @@ TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
     setDefaultParams_();
 }
 
-TMTTenPlexQuantitationMethod::~TMTTenPlexQuantitationMethod()
-{
-}
-
 void TMTTenPlexQuantitationMethod::setDefaultParams_()
 {
     defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");
@@ -99,16 +91,16 @@ void TMTTenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131).");
     defaults_.setValidStrings("reference_channel", TMTTenPlexQuantitationMethod::channel_names_);
 
-    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0"),
+    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/0.0/5.09/0.0,"
+                                                                      "0.0/0.25/5.27/0.0,"
+                                                                      "0.0/0.37/5.36/0.15,"
+                                                                      "0.0/0.65/4.17/0.1,"
+                                                                      "0.08/0.49/3.06/0.0,"
+                                                                      "0.01/0.71/3.07/0.0,"
+                                                                      "0.0/1.32/2.62/0.0,"
+                                                                      "0.02/1.28/2.75/2.53,"
+                                                                      "0.03/2.08/2.23/0.0,"
+                                                                      "0.08/1.99/1.65/0.0"),
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();

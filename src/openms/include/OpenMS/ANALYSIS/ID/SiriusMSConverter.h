@@ -34,10 +34,9 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
-
 #include <fstream>
 
 namespace OpenMS

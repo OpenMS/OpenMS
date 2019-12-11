@@ -131,7 +131,7 @@ class TOPPPepNovoAdapter :
       registerOutputFile_("out", "<file>", "", "output file ");
       setValidFormats_("out",ListUtils::create<String>("idXML"));
 
-      registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, ListUtils::create<String>("skipexists"));
+      registerInputFile_("pepnovo_executable","<file>", "", "The PepNovo executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
       registerStringOption_("model_directory", "<file>", "", "Name of the directory where the model files are kept.",true);
 
       addEmptyLine_ ();
