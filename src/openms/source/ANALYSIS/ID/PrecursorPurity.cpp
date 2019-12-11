@@ -59,23 +59,12 @@ namespace OpenMS
     auto lower_it = ms1.MZBegin(lower);
     auto upper_it = ms1.MZEnd(upper);
 
-    // std::cout << "charge: " << charge << " | lower: " << lower << " | target: " << target_mz << " | upper: " << upper << std::endl;
-    // std::cout << "lower offset: " << pre.getIsolationWindowLowerOffset() << " | upper offset: " << pre.getIsolationWindowUpperOffset() << std::endl;
-    // std::cout << "lower peak: " << (*lower_it).getMZ() << " | upper peak: " << (*upper_it).getMZ() << std::endl;
-
     PeakSpectrum isolated_window;
     while (lower_it != upper_it)
     {
       isolated_window.push_back(*lower_it);
       lower_it++;
     }
-
-    // std::cout << "Isolation window peaks: " << isolated_window.size();
-    // for (const auto& peak : isolated_window)
-    // {
-    //   std::cout << " | " << peak.getMZ();
-    // }
-    // std::cout << std::endl;
 
     // total intensity in isolation window
     double total_intensity(0);
@@ -101,12 +90,10 @@ namespace OpenMS
       iso++;
     }
 
-    // std::cout << "target peaks: ";
     // deisotoping (try to find isotopic peaks of the precursor mass, even if the actual precursor peak is missing)
     while (true) // runs as long as the next mz is within the isolation window
     {
       double next_peak = target_mz + (iso * Constants::C13C12_MASSDIFF_U / charge);
-      // std::cout << iso << " : iso | " << next_peak << " : next peak | ";
 
       // stop loop when new mz is outside the isolation window
       // changes through the isotope index iso
@@ -119,24 +106,12 @@ namespace OpenMS
       {
         target_intensity += isolated_window[next_iso_index].getIntensity();
 
-        // std::cout << isolated_window[next_iso_index].getMZ() << " : matched | ";
-
         isolated_window.erase(isolated_window.begin()+next_iso_index);
         target_peak_count++;
       }
       // always increment iso to progress the loop
       iso++;
     }
-    // std::cout << std::endl;
-
-    // // std::cout << "noise peaks: ";
-    // double noise_intensity(0);
-    // for (const auto& peak : isolated_window)
-    // {
-    //   noise_intensity += peak.getIntensity();
-    //   // std::cout << peak.getMZ() << " | ";
-    // }
-    // // std::cout << std::endl;
 
     double rel_sig(0);
     if (target_intensity > 0.0)
@@ -175,8 +150,6 @@ namespace OpenMS
   {
     std::map<String, PrecursorPurity::PurityScores> purityscores;
 
-    // TODO throw an exception or at least a warning?
-    // if there is no MS1 before the first MS2, the spectra datastructure is not suitable for this function
     if (spectra[0].getMSLevel() == 2)
     {
       OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Will be skipped!\n";
@@ -217,7 +190,6 @@ namespace OpenMS
           }
         }
 
-        // std::cout << "MS1 Spectrum: " << spectra[current_parent_index].getNativeID() << " | MS2 : " << spectra[i].getNativeID() << std::endl;
         PrecursorPurity::PurityScores score1 = PrecursorPurity::computePrecursorPurity(spectra[current_parent_index], spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
         // use default values of 0, if there is an MS2 spectrum without an MS1 after it (may happen for the last group of MS2 spectra)
         PrecursorPurity::PurityScores score2;
@@ -229,11 +201,6 @@ namespace OpenMS
 
 #pragma omp critical (purityscores_access)
         purityscores[spectra[i].getNativeID()] = score;
-
-        // std::cout << "Score1 | Spectrum: " << i << " | total intensity: " << score1.total_intensity << " | target intensity: " << score1.target_intensity << " | noise intensity: " << score1.residual_intensity << " | rel_sig: " << score1.signal_proportion << std::endl;
-        // std::cout << "Score2 | Spectrum: " << i << " | total intensity: " << score2.total_intensity << " | target intensity: " << score2.target_intensity << " | noise intensity: " << score2.residual_intensity << " | rel_sig: " << score2.signal_proportion << std::endl;
-        // std::cout << "Combin | Spectrum: " << i << " | total intensity: " << score.total_intensity << " | target intensity: " << score.target_intensity << " | noise intensity: " << score.residual_intensity << " | rel_sig: " << score.signal_proportion << std::endl;
-        // std::cout << "#################################################################################################################" << std::endl;
 
       } // end of MS2 spectrum
     } // end of parallelized spectra loop
