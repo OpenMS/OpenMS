@@ -108,4 +108,4 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                           libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_linear_alpha,
                           libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_linear_beta,
                           libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_alpha,
-                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_beta)  nogil except +
+                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_beta) nogil except +
