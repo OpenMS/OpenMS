@@ -96,7 +96,6 @@ search_algorithm.setParameters(algo_param);
 OpenPepXLLFAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spectra, fasta_db, protein_ids, peptide_ids, all_top_csms, spectra);
 
 TEST_EQUAL(exit_code, OpenPepXLLFAlgorithm::EXECUTION_OK)
-TEST_EQUAL(unprocessed_spectra.size(), 127)
 TEST_EQUAL(protein_ids.size(), 1)
 TEST_EQUAL(peptide_ids.size(), 5)
 TEST_EQUAL(spectra.size(), 127)
