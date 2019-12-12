@@ -642,8 +642,8 @@ namespace OpenMS
         "ID_DataProcessingStep_InputFile",
         "processing_step_id INTEGER NOT NULL, "                         \
         "input_file_id INTEGER NOT NULL, "                              \
-        "FOREIGN KEY processing_step_id REFERENCES ID_DataProcessingStep (id), " \
-        "FOREIGN KEY input_file_id REFERENCES ID_InputFile (id), "      \
+        "FOREIGN KEY (processing_step_id) REFERENCES ID_DataProcessingStep (id), " \
+        "FOREIGN KEY (input_file_id) REFERENCES ID_InputFile (id), "      \
         "UNIQUE (processing_step_id, input_file_id)");
 
       query.prepare("INSERT INTO ID_DataProcessingStep_InputFile VALUES (" \
