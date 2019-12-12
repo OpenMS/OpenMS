@@ -39,6 +39,7 @@
 #include <OpenMS/METADATA/ID/DBSearchParam.h>
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
 #include <OpenMS/METADATA/ID/IdentifiedSequence.h>
+#include <OpenMS/METADATA/ID/InputFile.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/MoleculeParentMatch.h>
 #include <OpenMS/METADATA/ID/MoleculeQueryMatch.h>
@@ -94,6 +95,7 @@ namespace OpenMS
     using MoleculeType = IdentificationDataInternal::MoleculeType;
     using MassType = IdentificationDataInternal::MassType;
 
+    using InputFile = IdentificationDataInternal::InputFile;
     using InputFiles = IdentificationDataInternal::InputFiles;
     using InputFileRef = IdentificationDataInternal::InputFileRef;
 
@@ -216,7 +218,7 @@ namespace OpenMS
 
       @return Reference to the registered file
     */
-    InputFileRef registerInputFile(const String& file);
+    InputFileRef registerInputFile(const InputFile& file);
 
     /*!
       @brief Register data processing software
