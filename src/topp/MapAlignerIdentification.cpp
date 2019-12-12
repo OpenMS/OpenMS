@@ -485,6 +485,33 @@ private:
       }
       progresslogger.endProgress();
 
+      // add data processing information:
+      DateTime processing_time = DateTime::now(); // use same for each file
+      IdentificationData::DataProcessingSoftware sw(toolName_(), version_);
+      if (test_mode_) sw.setVersion("test");
+      String reference_file = getStringOption_("reference:file");
+      for (IdentificationData& id : id_data)
+      {
+        IdentificationData::ProcessingSoftwareRef sw_ref =
+          id.registerDataProcessingSoftware(sw);
+        IdentificationData::DataProcessingStep step(sw_ref);
+        for (const String& input_file : input_files)
+        {
+          IdentificationData::InputFileRef ref =
+            id.registerInputFile(input_file);
+          step.input_file_refs.push_back(ref);
+        }
+        if (!reference_file.empty())
+        {
+          IdentificationData::InputFileRef ref =
+            id.registerInputFile(reference_file);
+          step.input_file_refs.push_back(ref);
+        }
+        step.date_time = processing_time;
+        step.actions.insert(DataProcessing::ALIGNMENT);
+        id.registerDataProcessingStep(step);
+      }
+
       performAlignment_(algorithm, id_data, transformations, reference_index);
       applyTransformations_(id_data, transformations);
 
