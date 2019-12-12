@@ -73,6 +73,6 @@ namespace OpenMS
       size_t max_charge_; // < maximal fragment charge
       std::map<double, char> mass2aa;
       char getAAByMass_(double m) const;
-      void getTag_(std::string& tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags) const;
+      void getTag_(std::string& tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags, const size_t charge) const;
   };
 }
