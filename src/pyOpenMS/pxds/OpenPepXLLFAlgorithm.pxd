@@ -30,3 +30,4 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>" namespace "Open
         EXECUTION_OK
         ILLEGAL_PARAMETERS
         UNEXPECTED_RESULT
+        INCOMPATIBLE_INPUT_DATA
