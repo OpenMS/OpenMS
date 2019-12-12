@@ -441,7 +441,7 @@ using namespace OpenMS;
 
       cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum ID: " << spectrum.getNativeID() << "\t| at: " << DateTime::now().getTime() << endl;
       cout << "Number of peaks: " << spectrum.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
- 
+
       if (cross_link_candidates.size() < 1)
       {
         continue;
@@ -967,6 +967,8 @@ using namespace OpenMS;
       OPENMS_LOG_DEBUG << "Next Spectrum ##################################" << endl;
 #endif
     }
+
+    std::cout << std::endl << "Total number of potential candidates searched: " << all_candidates_count << std::endl;
 
     // end of matching / scoring
     progresslogger.endProgress();
