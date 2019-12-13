@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -50,8 +51,8 @@ namespace OpenMS
     if (m < min_gap_ || m > max_gap_) return ' ';
 
     const double delta = Math::ppmToMass(ppm_, m);
-    auto left = mass2aa.lower_bound(m - delta);
-    //if (left == mass2aa.end()) return ' '; // cannot happen, since we checked boundaries above
+    auto left = mass2aa_.lower_bound(m - delta);
+    //if (left == mass2aa_.end()) return ' '; // cannot happen, since we checked boundaries above
 
     if (fabs(left->first - m) < delta) return left->second;
     return ' ';
@@ -101,20 +102,15 @@ namespace OpenMS
   }
 
   Tagger::Tagger(size_t min_tag_length, double ppm, size_t max_tag_length, size_t min_charge, size_t max_charge, const StringList& fixed_mods, const StringList& var_mods)
+    : ppm_{fabs(ppm)}, min_tag_length_{min_tag_length}, max_tag_length_{max_tag_length}, min_charge_{min_charge}, max_charge_{max_charge}
   {
-    ppm_ = ppm;
-    min_tag_length_ = min_tag_length;
-    max_tag_length_ = max_tag_length;
-    min_charge_ = min_charge;
-    max_charge_ = max_charge;
-
     const std::set<const Residue*> aas = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
     for (const auto& r : aas)
     {
       const char letter = r->getOneLetterCode()[0];
       const double mass = r->getMonoWeight(Residue::Internal);
-      mass2aa[mass] = letter;
+      mass2aa_[mass] = letter;
     }
 
     // for fixed modifications, replace the unmodified residue with the modified one
@@ -126,17 +122,17 @@ namespace OpenMS
 
       // remove the unmodified residue
       // this requires searching the map by value, but this is only done once when the Tagger is initialized
-      for (std::map<double, char>::iterator it = mass2aa.begin(); it != mass2aa.end(); ++it)
+      for (std::map<double, char>::iterator it = mass2aa_.begin(); it != mass2aa_.end(); ++it)
       {
         if (it->second == rm->getOrigin())
         {
-          mass2aa.erase(it);
+          mass2aa_.erase(it);
           break;
         }
       }
       const char name = rm->getOrigin();
       const double mass = r.getMonoWeight(Residue::Internal);
-      mass2aa[mass] = name;
+      mass2aa_[mass] = name;
     }
 
     // for variable modifications, add an additional instance of the residue with the modified mass to the list
@@ -147,11 +143,11 @@ namespace OpenMS
       r.setModification(rm->getId());
       const char name = rm->getOrigin();
       const double mass = r.getMonoWeight(Residue::Internal);
-      mass2aa[mass] = name;
+      mass2aa_[mass] = name;
     }
 
-    min_gap_ = mass2aa.begin()->first - Math::ppmToMass(ppm, mass2aa.begin()->first);
-    max_gap_ = mass2aa.rbegin()->first + Math::ppmToMass(ppm, mass2aa.rbegin()->first);
+    min_gap_ = mass2aa_.begin()->first - Math::ppmToMass(ppm, mass2aa_.begin()->first);
+    max_gap_ = mass2aa_.rbegin()->first + Math::ppmToMass(ppm, mass2aa_.rbegin()->first);
   }
 
   void Tagger::getTag(const std::vector<double>& mzs, std::vector<std::string>& tags) const
