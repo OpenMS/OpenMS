@@ -458,7 +458,8 @@ using namespace OpenMS;
       vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_light_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_);
 
       spectrum_counter++;
-      cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << " |\tLight Spectrum index: " << scan_index << " |\tHeavy Spectrum index: " << scan_index_heavy << "\t| at: " << DateTime::now().getTime() << endl;
+      cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << endl;
+      cout << "Light Spectrum ID: " << spectrum_light.getNativeID() << " |\tHeavy Spectrum ID: " << spectra[scan_index_heavy].getNativeID() << "\t| at: " << DateTime::now().getTime() << endl;
       cout << "Number of peaks in light spectrum: " << spectrum_light.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
 
       // lists for one spectrum, to determine best match to the spectrum
