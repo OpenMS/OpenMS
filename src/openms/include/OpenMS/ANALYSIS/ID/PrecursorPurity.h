@@ -65,7 +65,6 @@ namespace OpenMS
     {
       double total_intensity = 0.0;
       double target_intensity = 0.0;
-      double residual_intensity = 0.0;
       double signal_proportion = 0.0;
       Size target_peak_count = 0;
       Size residual_peak_count = 0;

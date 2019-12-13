@@ -29,7 +29,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PrecursorPurity.h>" namespace "OpenMS":
 
         double total_intensity
         double target_intensity
-        double residual_intensity
         double signal_proportion
         Size target_peak_count
         Size residual_peak_count

@@ -119,7 +119,6 @@ namespace OpenMS
 
     score.total_intensity = total_intensity;
     score.target_intensity = target_intensity;
-    score.residual_intensity = noise_intensity;
     score.signal_proportion = rel_sig;
     score.target_peak_count = target_peak_count;
     score.residual_peak_count = isolated_window.size();
@@ -132,7 +131,6 @@ namespace OpenMS
     PrecursorPurity::PurityScores score;
     score.total_intensity = score1.total_intensity + score2.total_intensity;
     score.target_intensity = score1.target_intensity + score2.target_intensity;
-    score.residual_intensity = score1.residual_intensity + score2.residual_intensity;
     if (score.target_intensity > 0.0) // otherwise default value of 0 is used
     {
       score.signal_proportion = score.target_intensity / score.total_intensity;
