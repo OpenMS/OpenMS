@@ -69,8 +69,8 @@ namespace OpenMS
        */
       struct SimplePeak
       {
-        double mz = 0;
-        int charge = 0;
+        double mz;
+        int charge;
       };
 
       /**
@@ -78,7 +78,7 @@ namespace OpenMS
        */
       struct SimplePeakComparator
       {
-        bool operator() (const SimplePeak& a, const SimplePeak& b)
+        inline bool operator() (const SimplePeak& a, const SimplePeak& b)
         {
           return a.mz < b.mz;
         }
@@ -193,7 +193,7 @@ namespace OpenMS
        * @param pos
        * @param charge The charge of the ion
        */
-      virtual void addPeak_(std::vector< SimplePeak >&, double pos, int charge) const;
+      inline virtual void addPeak_(std::vector< SimplePeak >&, double pos, int charge) const;
 
       /**
        * @brief Adds precursor masses including neutral losses for the given charge
@@ -202,7 +202,7 @@ namespace OpenMS
        * @param precursor_mass The mass of the uncharged precursor
        * @param charge The charge of the precursor
        */
-      virtual void addPrecursorPeaks_(std::vector< SimplePeak >& spectrum, double precursor_mass, int charge) const;
+      inline virtual void addPrecursorPeaks_(std::vector< SimplePeak >& spectrum, double precursor_mass, int charge) const;
 
       /**
        * @brief Adds neutral losses for an ion to a spectrum
@@ -212,7 +212,7 @@ namespace OpenMS
        * @param charge The charge of the ion
        * @param losses a LossIndex with which to modify the current ion
        */
-      virtual void addLosses_(std::vector< SimplePeak >& spectrum, double mono_weight, int charge, LossIndex & losses) const;
+      inline virtual void addLosses_(std::vector< SimplePeak >& spectrum, double mono_weight, int charge, LossIndex & losses) const;
 
       /**
        * @brief Adds one-residue-linked ion peaks, that are specific to XLMS
@@ -227,7 +227,7 @@ namespace OpenMS
        * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
        * @param charge The charge of the ion
        */
-      virtual void addKLinkedIonPeaks_(std::vector< SimplePeak >& spectrum, AASequence & peptide, Size link_pos, double precursor_mass, int charge) const;
+      inline virtual void addKLinkedIonPeaks_(std::vector< SimplePeak >& spectrum, AASequence & peptide, Size link_pos, double precursor_mass, int charge) const;
 
       /**
        * @brief Adds cross-linked ions of a specific ion type and charge to a spectrum
