@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_11422463686885200558"
-	creationDate="2019-07-29T12:27:10">
+	creationDate="2019-12-13T15:17:13">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.4.0-feature-XLMS-Percolator-2019-07-29" name="OpenPepXL" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.4.0-feature-OPXL-opt-2019-12-12" name="OpenPepXL" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1003023" cvRef="PSI-MS" name="OpenPepXL"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.4.0-feature-XLMS-Percolator-2019-07-29" name="TOPP software" id="SOF_7344192187426184761">
+	<AnalysisSoftware version="OpenMS TOPP v2.4.0-feature-OPXL-opt-2019-12-12" name="TOPP software" id="SOF_7344192187426184761">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -169,7 +169,7 @@
 	<PeptideEvidence id="PEV_8195437834883133454" peptide_ref="PEP_7061025990090747374" dBSequence_ref="PROT_15916652588957785155" post="Q" pre="K" start="119" end="127" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2019-07-29T12:27:09">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2019-12-13T15:17:13">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -235,7 +235,7 @@
 			</DatabaseName>
 			<cvParam accession="MS:1001029" cvRef="PSI-MS" name="number of sequences searched" value="329"/>
 		</SearchDatabase>
-		<SpectraData location="UNKNOWN" id="SDAT_15004869347769368353">
+		<SpectraData location="" id="SDAT_15004869347769368353">
 			<FileFormat>
 				<cvParam accession="MS:1000584" cvRef="PSI-MS" name="mzML format"/>
 			</FileFormat>
@@ -292,7 +292,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.09115937126206"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.091359180643107"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="474525871221756682"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="101"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
@@ -301,20 +301,20 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="63"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.738323484929064"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.09115937126206"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="21.268635057165241"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.091359180643107"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="21.267239834718826"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.058823529411765"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.5"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.70818602347634"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.7074788656221"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="3.02076792344451"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.02076792344451"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="4.426152538973838"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.682481658019144"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.682481658019144"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.058441556990147"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.435901290938934"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.435901290938934"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.059999998658895"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.4060378925152"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.4060378925152"/>
 					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
@@ -375,7 +375,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.09115937126206"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.091359180643107"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="474525871221756682"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="101"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
@@ -384,20 +384,20 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="63"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.738323484929064"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.09115937126206"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="21.268635057165241"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.091359180643107"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="21.267239834718826"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.058823529411765"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.5"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.70818602347634"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.7074788656221"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="3.02076792344451"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.02076792344451"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="4.426152538973838"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.682481658019144"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.682481658019144"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.058441556990147"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.435901290938934"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.435901290938934"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.059999998658895"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.4060378925152"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.4060378925152"/>
 					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
@@ -467,7 +467,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.190406834856118"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.213291562461311"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="12524258085768770586"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -476,21 +476,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.449845658571601"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.190406834856118"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="26.959307476079957"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.213291562461311"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="26.840412655837437"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.047619047619048"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.444444444444444"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.557352432967356"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.49709150025447"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="7.885968174785376"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.844837911427021"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="4.041130263358355"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="8.840959950350225"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.848492067125076"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.891980986122778"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.053605627268553"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.071000887928378"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.310202373035712"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.831799402821044"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.055593699216843"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.109874600749877"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.332337599015239"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.887411602484515"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -518,7 +518,7 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.475830078119998" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1755235105885170967" calculatedMassToCharge="725.107937648270877" experimentalMassToCharge="725.109252929687955" chargeState="3" id="SII_8119044117483804262">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1755235105885170967" calculatedMassToCharge="725.10793764827099" experimentalMassToCharge="725.109252929687955" chargeState="3" id="SII_8119044117483804262">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_14811341817612382122"/>
 					<Fragmentation>
 						<IonType charge="1" index="2">
@@ -557,7 +557,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.190406834856118"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.213291562461311"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="12524258085768770586"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -566,21 +566,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.449845658571601"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.190406834856118"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="26.959307476079957"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.213291562461311"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="26.840412655837437"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.047619047619048"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.444444444444444"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.557352432967356"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.49709150025447"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="7.885968174785376"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.844837911427021"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="4.041130263358355"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="8.840959950350225"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.848492067125076"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.891980986122778"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.053605627268553"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.071000887928378"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.310202373035712"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.831799402821044"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.055593699216843"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.109874600749877"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.332337599015239"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.887411602484515"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -610,7 +610,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_17314619952666245179" calculatedMassToCharge="721.082830648270942" experimentalMassToCharge="721.084594726562955" chargeState="3" id="SII_7898004582401008768">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_3023658190814908261"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.190406834856118"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.213291562461311"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="12524258085768770586"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -619,21 +619,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.449845658571601"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.190406834856118"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="26.959307476079957"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.213291562461311"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="26.840412655837437"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.047619047619048"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.444444444444444"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.557352432967356"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.49709150025447"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="7.885968174785376"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.844837911427021"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="4.041130263358355"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="8.840959950350225"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.848492067125076"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.891980986122778"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.053605627268553"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.071000887928378"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.310202373035712"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.831799402821044"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.055593699216843"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.109874600749877"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.332337599015239"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.887411602484515"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -661,9 +661,9 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.475830078119998" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_17314619952666245179" calculatedMassToCharge="725.107937648270877" experimentalMassToCharge="725.109252929687955" chargeState="3" id="SII_15050004366391181853">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_17314619952666245179" calculatedMassToCharge="725.10793764827099" experimentalMassToCharge="725.109252929687955" chargeState="3" id="SII_15050004366391181853">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_3023658190814908261"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.190406834856118"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.213291562461311"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="12524258085768770586"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -672,21 +672,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.449845658571601"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.190406834856118"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="26.959307476079957"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.213291562461311"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="26.840412655837437"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.047619047619048"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.444444444444444"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.557352432967356"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.49709150025447"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="7.885968174785376"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.844837911427021"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="4.041130263358355"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="8.840959950350225"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.848492067125076"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.891980986122778"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.053605627268553"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.071000887928378"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.310202373035712"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.831799402821044"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.055593699216843"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.109874600749877"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.332337599015239"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.887411602484515"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -755,7 +755,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.202402484471653"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.215046269843106"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="16250062551099875712"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -764,21 +764,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.449845658571601"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.202402484471653"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="22.577260335424882"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.215046269843106"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="22.513814887887591"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.055555555555556"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.363636363636364"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.524906165848146"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.492749324724328"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="6.483426984399557"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.938557282090187"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="2.54486970230937"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="7.513900825288147"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.810440728162926"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.862857673417712"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.049832984805107"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.923973678785484"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.51868688281579"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.329260474755178"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.051681138575077"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.95309145109744"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.550911766809411"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.355271135385468"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -806,7 +806,7 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.475830078119998" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_16177748921272733768" calculatedMassToCharge="725.107937648270877" experimentalMassToCharge="725.108947753906023" chargeState="3" id="SII_11115414975438642789">
+				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_16177748921272733768" calculatedMassToCharge="725.10793764827099" experimentalMassToCharge="725.108947753906023" chargeState="3" id="SII_11115414975438642789">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_7276556891837796968"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 4">
@@ -845,7 +845,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.202402484471653"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.215046269843106"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="16250062551099875712"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -854,21 +854,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.449845658571601"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.202402484471653"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="22.577260335424882"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.215046269843106"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="22.513814887887591"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.055555555555556"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.363636363636364"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.524906165848146"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.492749324724328"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="6.483426984399557"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.938557282090187"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="2.54486970230937"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="7.513900825288147"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.810440728162926"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.862857673417712"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.049832984805107"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.923973678785484"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.51868688281579"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.329260474755178"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.051681138575077"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.95309145109744"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.550911766809411"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.355271135385468"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -898,7 +898,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_14509930621887606273" calculatedMassToCharge="721.082830648270942" experimentalMassToCharge="721.084594726562955" chargeState="3" id="SII_12665713047548007769">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_13424404046998308790"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.202402484471653"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.215046269843106"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="16250062551099875712"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -907,21 +907,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.449845658571601"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.202402484471653"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="22.577260335424882"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.215046269843106"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="22.513814887887591"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.055555555555556"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.363636363636364"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.524906165848146"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.492749324724328"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="6.483426984399557"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.938557282090187"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="2.54486970230937"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="7.513900825288147"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.810440728162926"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.862857673417712"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.049832984805107"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.923973678785484"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.51868688281579"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.329260474755178"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.051681138575077"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.95309145109744"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.550911766809411"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.355271135385468"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -949,9 +949,9 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.475830078119998" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_14509930621887606273" calculatedMassToCharge="725.107937648270877" experimentalMassToCharge="725.108947753906023" chargeState="3" id="SII_17092894204355333314">
+				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_14509930621887606273" calculatedMassToCharge="725.10793764827099" experimentalMassToCharge="725.108947753906023" chargeState="3" id="SII_17092894204355333314">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_13424404046998308790"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.202402484471653"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.215046269843106"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="16250062551099875712"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -960,21 +960,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.449845658571601"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.202402484471653"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="22.577260335424882"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.215046269843106"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="22.513814887887591"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.055555555555556"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.363636363636364"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.524906165848146"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.492749324724328"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="6.483426984399557"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.938557282090187"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="2.54486970230937"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="7.513900825288147"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.810440728162926"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.862857673417712"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.049832984805107"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.923973678785484"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.51868688281579"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.329260474755178"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.051681138575077"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.95309145109744"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.550911766809411"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.355271135385468"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1036,7 +1036,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159752955247908"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="10627069796380146481"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1045,21 +1045,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159752955247908"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="20.114031109055674"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160083568623408"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="20.112128552451129"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.111111111111111"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.416666666666667"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583819924597138"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582855628294783"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.407473879866302"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.067180298268795"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.340293581597507"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.614520953036845"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.766005841996757"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.785013346059799"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.032908666878939"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.815575888042583"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.645082485473351"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.03425407782197"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.831330071798809"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.676590852985804"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1119,7 +1119,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159752955247908"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="10627069796380146481"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1128,21 +1128,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159752955247908"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="20.114031109055674"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160083568623408"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="20.112128552451129"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.111111111111111"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.416666666666667"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583819924597138"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582855628294783"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.407473879866302"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.067180298268795"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.340293581597507"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.614520953036845"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.766005841996757"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.785013346059799"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.032908666878939"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.815575888042583"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.645082485473351"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.03425407782197"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.831330071798809"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.676590852985804"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1172,7 +1172,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_15885522598119108466" calculatedMassToCharge="541.063942102896021" experimentalMassToCharge="541.064880371093977" chargeState="4" id="SII_893904610286969204">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_3823858840059792698"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159752955247908"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="10627069796380146481"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1181,21 +1181,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159752955247908"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="20.114031109055674"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160083568623408"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="20.112128552451129"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.111111111111111"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.416666666666667"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583819924597138"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582855628294783"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.407473879866302"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.067180298268795"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.340293581597507"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.614520953036845"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.766005841996757"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.785013346059799"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.032908666878939"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.815575888042583"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.645082485473351"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.03425407782197"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.831330071798809"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.676590852985804"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1225,7 +1225,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_15885522598119108466" calculatedMassToCharge="544.082772352895972" experimentalMassToCharge="544.082763671875" chargeState="4" id="SII_14851350658635457156">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_3823858840059792698"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159752955247908"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="10627069796380146481"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1234,21 +1234,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159752955247908"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="20.114031109055674"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160083568623408"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="20.112128552451129"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.111111111111111"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.416666666666667"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583819924597138"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582855628294783"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.407473879866302"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.067180298268795"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.340293581597507"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.614520953036845"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.766005841996757"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.785013346059799"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.032908666878939"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.815575888042583"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.645082485473351"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.03425407782197"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.831330071798809"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.676590852985804"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1310,7 +1310,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159994913963651"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160084937451979"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="1003624456647096845"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1319,21 +1319,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159994913963651"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="17.976874003548623"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160084937451979"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="17.97635626706569"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.333333333333333"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583114049947659"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582851639160566"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.411685470491648"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.114360116422176"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.297325354069471"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.907184757292271"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.727969351820405"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.74683383908816"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.033987924456596"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.781839631189698"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.98760249492765"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.576076767451746"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.035377457737923"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.79067474281753"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.988230859259031"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.593118626376029"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1393,7 +1393,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159994913963651"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160084937451979"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="1003624456647096845"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1402,21 +1402,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159994913963651"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="17.976874003548623"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160084937451979"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="17.97635626706569"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.333333333333333"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583114049947659"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582851639160566"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.411685470491648"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.114360116422176"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.297325354069471"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.907184757292271"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.727969351820405"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.74683383908816"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.033987924456596"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.781839631189698"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.98760249492765"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.576076767451746"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.035377457737923"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.79067474281753"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.988230859259031"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.593118626376029"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1446,7 +1446,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_3246735940528705071" calculatedMassToCharge="541.063942102896021" experimentalMassToCharge="541.064880371093977" chargeState="4" id="SII_260132145239717571">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_4584897071539917580"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159994913963651"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160084937451979"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="1003624456647096845"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1455,21 +1455,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159994913963651"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="17.976874003548623"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160084937451979"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="17.97635626706569"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.333333333333333"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583114049947659"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582851639160566"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.411685470491648"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.114360116422176"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.297325354069471"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.907184757292271"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.727969351820405"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.74683383908816"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.033987924456596"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.781839631189698"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.98760249492765"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.576076767451746"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.035377457737923"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.79067474281753"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.988230859259031"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.593118626376029"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1499,7 +1499,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_3246735940528705071" calculatedMassToCharge="544.082772352895972" experimentalMassToCharge="544.084228515625" chargeState="4" id="SII_17569764383250687096">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_4584897071539917580"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159994913963651"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160084937451979"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="1003624456647096845"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1508,21 +1508,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159994913963651"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="17.976874003548623"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160084937451979"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="17.97635626706569"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.333333333333333"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583114049947659"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582851639160566"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.411685470491648"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.114360116422176"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.297325354069471"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.907184757292271"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.727969351820405"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.74683383908816"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.033987924456596"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.781839631189698"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.98760249492765"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.576076767451746"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.035377457737923"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.79067474281753"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.988230859259031"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.593118626376029"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1584,7 +1584,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.136797738202118"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.165753739690541"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17671779025680303814"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
@@ -1593,20 +1593,20 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="180"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="6.211690400107035"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.136797738202118"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.639777854598876"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.165753739690541"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.299072266781419"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.1"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.357142857142857"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="1.281158556666702"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="1.10847452837605"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="3.370177265256643"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.370177265256643"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="4.507567653665319"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.747670922369006"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.747670922369006"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.080188676714897"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="4.532412062114531"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="4.532412062114531"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.081730768084526"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="4.353716851943202"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="4.353716851943202"/>
 					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="7"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
@@ -1667,7 +1667,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.136797738202118"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.165753739690541"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17671779025680303814"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
@@ -1676,20 +1676,20 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="180"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="6.211690400107035"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.136797738202118"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.639777854598876"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.165753739690541"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.299072266781419"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.1"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.357142857142857"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="1.281158556666702"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="1.10847452837605"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="3.370177265256643"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.370177265256643"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="4.507567653665319"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.747670922369006"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.747670922369006"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.080188676714897"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="4.532412062114531"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="4.532412062114531"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.081730768084526"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="4.353716851943202"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="4.353716851943202"/>
 					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.0"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="7"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
@@ -1766,7 +1766,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.177950536879016"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.233412652722232"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="6182960951962378739"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1775,21 +1775,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.534607391583498"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.177950536879016"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="29.905855135941039"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.233412652722232"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="29.618798759959788"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.083333333333333"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.666666666666667"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.600758808412383"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.455266473905921"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="6.805892076343298"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.823429815471172"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="2.982462260872126"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="7.616044085938484"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.843423307732159"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.89362561449835"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.056505292654037"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.251759663321918"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.310202373035712"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.193316953608124"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.058600906282663"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.307965827436121"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.332337599015239"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.283594055857003"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="7"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1817,7 +1817,7 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.653564453119998" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_14891455924036538147" calculatedMassToCharge="725.107937648270877" experimentalMassToCharge="725.109252929687955" chargeState="3" id="SII_17287849381738438716">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_14891455924036538147" calculatedMassToCharge="725.10793764827099" experimentalMassToCharge="725.109252929687955" chargeState="3" id="SII_17287849381738438716">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_5860084234476467938"/>
 					<Fragmentation>
 						<IonType charge="1" index="2">
@@ -1863,7 +1863,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.177950536879016"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.233412652722232"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="6182960951962378739"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1872,21 +1872,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.534607391583498"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.177950536879016"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="29.905855135941039"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.233412652722232"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="29.618798759959788"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.083333333333333"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.666666666666667"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.600758808412383"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.455266473905921"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="6.805892076343298"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.823429815471172"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="2.982462260872126"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="7.616044085938484"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.843423307732159"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.89362561449835"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.056505292654037"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.251759663321918"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.310202373035712"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.193316953608124"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.058600906282663"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.307965827436121"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.332337599015239"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.283594055857003"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="7"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1916,7 +1916,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_2660422259164526995" calculatedMassToCharge="721.082830648270942" experimentalMassToCharge="721.084655761718977" chargeState="3" id="SII_4143272592559840046">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_5495827884756377090"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.177950536879016"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.233412652722232"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="6182960951962378739"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1925,21 +1925,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.534607391583498"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.177950536879016"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="29.905855135941039"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.233412652722232"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="29.618798759959788"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.083333333333333"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.666666666666667"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.600758808412383"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.455266473905921"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="6.805892076343298"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.823429815471172"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="2.982462260872126"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="7.616044085938484"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.843423307732159"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.89362561449835"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.056505292654037"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.251759663321918"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.310202373035712"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.193316953608124"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.058600906282663"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.307965827436121"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.332337599015239"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.283594055857003"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="7"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -1967,9 +1967,9 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.653564453119998" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_2660422259164526995" calculatedMassToCharge="725.107937648270877" experimentalMassToCharge="725.109252929687955" chargeState="3" id="SII_7870901012988979006">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_2660422259164526995" calculatedMassToCharge="725.10793764827099" experimentalMassToCharge="725.109252929687955" chargeState="3" id="SII_7870901012988979006">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_5495827884756377090"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.177950536879016"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.233412652722232"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="6182960951962378739"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -1978,21 +1978,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.534607391583498"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.177950536879016"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="29.905855135941039"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.233412652722232"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="29.618798759959788"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.083333333333333"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.666666666666667"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.600758808412383"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.455266473905921"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="6.805892076343298"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="3.823429815471172"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="2.982462260872126"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="7.616044085938484"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.843423307732159"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.89362561449835"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.056505292654037"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.251759663321918"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.310202373035712"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.193316953608124"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.058600906282663"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.307965827436121"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.332337599015239"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.283594055857003"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="7"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2061,7 +2061,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.261280289109611"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264684266634885"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="11399299100673837381"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2070,21 +2070,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.534607391583498"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.261280289109611"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="25.954602467113794"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.264684266634885"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="25.941415492945826"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.071428571428571"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.714285714285714"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.396051672827263"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.389367955560172"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.334692418575287"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="2.823429815471172"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="1.511262603104115"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.004356434568763"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.809764350323973"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.866183789114697"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.033693246543407"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.3217590050731"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.158570993877184"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.484947016269017"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.034942828118801"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.335724155859083"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.172099475859499"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.499348835858667"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="2"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2112,7 +2112,7 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.653564453119998" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_16164338904207598736" calculatedMassToCharge="725.107937648270877" experimentalMassToCharge="725.108947753906023" chargeState="3" id="SII_8795943655088158336">
+				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_16164338904207598736" calculatedMassToCharge="725.10793764827099" experimentalMassToCharge="725.108947753906023" chargeState="3" id="SII_8795943655088158336">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_4410447320637600518"/>
 					<Fragmentation>
 						<IonType charge="1" index="2">
@@ -2151,7 +2151,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.261280289109611"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264684266634885"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="11399299100673837381"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2160,21 +2160,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.534607391583498"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.261280289109611"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="25.954602467113794"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.264684266634885"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="25.941415492945826"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.071428571428571"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.714285714285714"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.396051672827263"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.389367955560172"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.334692418575287"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="2.823429815471172"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="1.511262603104115"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.004356434568763"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.809764350323973"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.866183789114697"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.033693246543407"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.3217590050731"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.158570993877184"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.484947016269017"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.034942828118801"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.335724155859083"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.172099475859499"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.499348835858667"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="2"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2204,7 +2204,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_6878260161865568505" calculatedMassToCharge="721.082830648270942" experimentalMassToCharge="721.084655761718977" chargeState="3" id="SII_3386388678910226661">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_4021463513649428920"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.261280289109611"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264684266634885"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="11399299100673837381"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2213,21 +2213,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.534607391583498"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.261280289109611"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="25.954602467113794"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.264684266634885"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="25.941415492945826"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.071428571428571"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.714285714285714"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.396051672827263"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.389367955560172"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.334692418575287"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="2.823429815471172"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="1.511262603104115"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.004356434568763"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.809764350323973"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.866183789114697"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.033693246543407"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.3217590050731"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.158570993877184"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.484947016269017"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.034942828118801"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.335724155859083"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.172099475859499"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.499348835858667"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="2"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2255,9 +2255,9 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.653564453119998" unitAccession="UO:0000010" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_6878260161865568505" calculatedMassToCharge="725.107937648270877" experimentalMassToCharge="725.108947753906023" chargeState="3" id="SII_13574947772324278593">
+				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_6878260161865568505" calculatedMassToCharge="725.10793764827099" experimentalMassToCharge="725.108947753906023" chargeState="3" id="SII_13574947772324278593">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_4021463513649428920"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.261280289109611"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264684266634885"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="11399299100673837381"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2266,21 +2266,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.534607391583498"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.261280289109611"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="25.954602467113794"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.264684266634885"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="25.941415492945826"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.071428571428571"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.714285714285714"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.396051672827263"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.389367955560172"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.334692418575287"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="2.823429815471172"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="1.511262603104115"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="5.004356434568763"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.809764350323973"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.866183789114697"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.033693246543407"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.3217590050731"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.158570993877184"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.484947016269017"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.034942828118801"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.335724155859083"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="2.172099475859499"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="0.499348835858667"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="2"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2342,7 +2342,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122229997194374"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122504015085269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="11106716189850669289"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2351,21 +2351,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.122229997194374"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.728876211598397"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.122504015085269"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.726973654993849"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.357142857142857"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.704302116286648"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.703337819984293"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.942826489917934"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.398687094449997"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.544139395467937"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="6.417988108005375"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.748358784660576"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.770152017538421"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.034688781946898"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.091149848493943"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.196230406376071"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.036106966435909"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.10690403225017"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.227738773888525"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2425,7 +2425,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122229997194374"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122504015085269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="11106716189850669289"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2434,21 +2434,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.122229997194374"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.728876211598397"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.122504015085269"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.726973654993849"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.357142857142857"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.704302116286648"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.703337819984293"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.942826489917934"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.398687094449997"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.544139395467937"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="6.417988108005375"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.748358784660576"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.770152017538421"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.034688781946898"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.091149848493943"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.196230406376071"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.036106966435909"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.10690403225017"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.227738773888525"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2478,7 +2478,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_7061025990090747374" calculatedMassToCharge="541.063942102896021" experimentalMassToCharge="541.064880371093977" chargeState="4" id="SII_3395379003172100421">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_8195437834883133454"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122229997194374"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122504015085269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="11106716189850669289"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2487,21 +2487,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.122229997194374"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.728876211598397"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.122504015085269"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.726973654993849"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.357142857142857"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.704302116286648"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.703337819984293"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.942826489917934"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.398687094449997"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.544139395467937"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="6.417988108005375"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.748358784660576"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.770152017538421"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.034688781946898"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.091149848493943"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.196230406376071"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.036106966435909"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.10690403225017"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.227738773888525"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2531,7 +2531,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_7061025990090747374" calculatedMassToCharge="544.082772352895972" experimentalMassToCharge="544.082763671875" chargeState="4" id="SII_11630589982317102322">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_8195437834883133454"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122229997194374"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122504015085269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="11106716189850669289"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2540,21 +2540,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.122229997194374"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.728876211598397"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.122504015085269"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.726973654993849"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.357142857142857"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.704302116286648"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.703337819984293"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.942826489917934"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.398687094449997"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.544139395467937"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="6.417988108005375"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.748358784660576"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.770152017538421"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.034688781946898"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.091149848493943"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.196230406376071"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.036106966435909"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="2.10690403225017"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="2.227738773888525"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2616,7 +2616,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159752955247908"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17325731682080510033"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2625,21 +2625,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159752955247908"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.345752673902883"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160083568623408"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.343850117298338"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.363636363636364"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583819924597138"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582855628294783"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.815379927866161"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.398687094449997"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.416692833416164"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="6.436977472621948"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.726351962284669"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.748080904173917"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.032908666878939"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.815575888042583"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.645082485473351"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.03425407782197"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.831330071798809"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.676590852985804"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2699,7 +2699,7 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159752955247908"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17325731682080510033"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2708,21 +2708,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159752955247908"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.345752673902883"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160083568623408"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.343850117298338"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.363636363636364"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583819924597138"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582855628294783"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.815379927866161"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.398687094449997"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.416692833416164"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="6.436977472621948"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.726351962284669"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.748080904173917"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.032908666878939"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.815575888042583"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.645082485473351"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.03425407782197"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.831330071798809"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.676590852985804"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2752,7 +2752,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_5106727040801878879" calculatedMassToCharge="541.063942102896021" experimentalMassToCharge="541.064880371093977" chargeState="4" id="SII_15721057298497490036">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_18390135059454481268"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159752955247908"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17325731682080510033"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2761,21 +2761,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159752955247908"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.345752673902883"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160083568623408"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.343850117298338"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.363636363636364"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583819924597138"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582855628294783"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.815379927866161"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.398687094449997"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.416692833416164"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="6.436977472621948"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.726351962284669"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.748080904173917"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.032908666878939"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.815575888042583"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.645082485473351"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.03425407782197"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.831330071798809"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.676590852985804"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
@@ -2805,7 +2805,7 @@
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_5106727040801878879" calculatedMassToCharge="544.082772352895972" experimentalMassToCharge="544.084228515625" chargeState="4" id="SII_2608380305220684729">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_18390135059454481268"/>
-					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.159752955247908"/>
+					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17325731682080510033"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
@@ -2814,21 +2814,21 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.737348370197513"/>
-					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.159752955247908"/>
-					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.345752673902883"/>
+					<userParam name="OpenPepXL:score" unitName="xsd:double" value="-0.160083568623408"/>
+					<userParam name="OpenPepXL:xquest_score" unitName="xsd:double" value="19.343850117298338"/>
 					<userParam name="OpenPepXL:xcorr xlink" unitName="xsd:double" value="0.0"/>
 					<userParam name="OpenPepXL:xcorr common" unitName="xsd:double" value="0.363636363636364"/>
-					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.583819924597138"/>
+					<userParam name="OpenPepXL:match-odds" unitName="xsd:double" value="0.582855628294783"/>
 					<userParam name="OpenPepXL:intsum" unitName="xsd:double" value="4.815379927866161"/>
 					<userParam name="OpenPepXL:intsum_alpha" unitName="xsd:double" value="1.398687094449997"/>
 					<userParam name="OpenPepXL:intsum_beta" unitName="xsd:double" value="3.416692833416164"/>
 					<userParam name="OpenPepXL:total_current" unitName="xsd:double" value="6.436977472621948"/>
 					<userParam name="OpenPepXL:wTIC" unitName="xsd:double" value="0.726351962284669"/>
 					<userParam name="OpenPepXL:TIC" unitName="xsd:double" value="0.748080904173917"/>
-					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.032908666878939"/>
-					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.815575888042583"/>
-					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611815"/>
-					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.645082485473351"/>
+					<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="0.03425407782197"/>
+					<userParam name="OpenPepXL:log_occupancy" unitName="xsd:double" value="1.831330071798809"/>
+					<userParam name="OpenPepXL:log_occupancy_alpha" unitName="xsd:double" value="1.986069290611814"/>
+					<userParam name="OpenPepXL:log_occupancy_beta" unitName="xsd:double" value="1.676590852985804"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="5"/>
