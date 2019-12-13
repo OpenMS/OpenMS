@@ -222,13 +222,6 @@ option(ENABLE_SIRIUS_TEST "Enable test for fingerid (SiriusAdapter)" ON)
 option(ENABLE_FINGERID_TEST "Enable test for fingerid (SiriusAdapter)" OFF)
 
 #------------------------------------------------------------------------------
-# Increase Clang Template Depth
-#------------------------------------------------------------------------------
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=1024")
-endif()
-
-#------------------------------------------------------------------------------
 # Enable Coverage
 #------------------------------------------------------------------------------
 option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing with gcov/lcov. Requires the Debug build type,
