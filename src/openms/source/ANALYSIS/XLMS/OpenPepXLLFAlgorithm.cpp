@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,28 +34,21 @@
 
 #include <OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
-#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/CHEMISTRY/Tagger.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 
 #include <iostream>
-#include <cmath>
-#include <numeric>
 
 using namespace std;
 using namespace OpenMS;
@@ -360,14 +353,14 @@ using namespace OpenMS;
     double tagger_tol;
     if (fragment_mass_tolerance_unit_ppm_) // ppm: increase tolerance by 50%
     {
-      tagger_tol = fragment_mass_tolerance_xlinks_ + (fragment_mass_tolerance_xlinks_ / 2.0);
+      tagger_tol = fragment_mass_tolerance_xlinks_ * 1.5;
     }
     else // dalton: turn into ppm at 500 mz
     {
-      tagger_tol = fragment_mass_tolerance_xlinks_ / 1e-6 / 500;
+      tagger_tol = Math::getPPM(500.0, 500+fragment_mass_tolerance_xlinks_);
     }
 
-    Tagger tagger = Tagger(sequence_tag_min_length_, tagger_tol, sequence_tag_min_length_, 1, max_precursor_charge_, fixedModNames_, varModNames_);
+    Tagger tagger(sequence_tag_min_length_, tagger_tol, sequence_tag_min_length_, 1, max_precursor_charge_, fixedModNames_, varModNames_);
     Size all_candidates_count(0);
 
 #ifdef DEBUG_OPENPEPXLLFALGO
@@ -442,7 +435,7 @@ using namespace OpenMS;
       cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum ID: " << spectrum.getNativeID() << "\t| at: " << DateTime::now().getTime() << endl;
       cout << "Number of peaks: " << spectrum.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
 
-      if (cross_link_candidates.size() < 1)
+      if (cross_link_candidates.empty())
       {
         continue;
       }
