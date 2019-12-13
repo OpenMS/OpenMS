@@ -378,7 +378,7 @@ using namespace OpenMS;
     specGenParams.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
     specGenParams.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
     specGenParams.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
-    specGenParams.setValue("add_k_linked_ions", "true");
+    specGenParams.setValue("add_k_linked_ions", "false");
     specGen.setParameters(specGenParams);
 
     Param specGenParams_mainscore = specGen_mainscore.getParameters();
@@ -393,7 +393,7 @@ using namespace OpenMS;
     specGenParams_mainscore.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
     specGenParams_mainscore.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
     specGenParams_mainscore.setValue("add_precursor_peaks", "true");
-    specGenParams_mainscore.setValue("add_k_linked_ions", "true");
+    specGenParams_mainscore.setValue("add_k_linked_ions", "false");
     specGen_mainscore.setParameters(specGenParams_mainscore);
 
 #ifdef DEBUG_OPENPEPXLALGO
@@ -476,6 +476,7 @@ using namespace OpenMS;
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
 
         std::vector< SimpleTSGXLMS::SimplePeak > theoretical_spec_linear_alpha;
+        theoretical_spec_linear_alpha.reserve(1500);
         std::vector< SimpleTSGXLMS::SimplePeak > theoretical_spec_linear_beta;
         std::vector< SimpleTSGXLMS::SimplePeak > theoretical_spec_xlinks_alpha;
         std::vector< SimpleTSGXLMS::SimplePeak > theoretical_spec_xlinks_beta;
@@ -495,11 +496,12 @@ using namespace OpenMS;
         specGen_mainscore.getLinearIonSpectrum(theoretical_spec_linear_alpha, alpha, cross_link_candidate.cross_link_position.first, 2, link_pos_B);
         if (type_is_cross_link)
         {
+          theoretical_spec_linear_beta.reserve(1500);
           specGen_mainscore.getLinearIonSpectrum(theoretical_spec_linear_beta, beta, cross_link_candidate.cross_link_position.second, 2);
         }
 
         // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
-        if (theoretical_spec_linear_alpha.size() < 1)
+        if (theoretical_spec_linear_alpha.empty())
         {
           continue;
         }
@@ -525,18 +527,21 @@ using namespace OpenMS;
         {
           continue;
         }
+        theoretical_spec_xlinks_alpha.reserve(1500);
 
         if (type_is_cross_link)
         {
-          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
-          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
+
+          theoretical_spec_xlinks_beta.reserve(1500);
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 2, precursor_charge);
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, false, 2, precursor_charge);
         }
         else
         {
           // Function for mono-links or loop-links
-          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, alpha, cross_link_candidate.cross_link_position.first, precursor_mass, 2, precursor_charge, link_pos_B);
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, alpha, cross_link_candidate.cross_link_position.first, precursor_mass, 1, precursor_charge, link_pos_B);
         }
-        if (theoretical_spec_xlinks_alpha.size() < 1)
+        if (theoretical_spec_xlinks_alpha.empty())
         {
           continue;
         }
@@ -597,10 +602,11 @@ using namespace OpenMS;
       // progresslogger.endProgress();
       std::sort(mainscore_csms_spectrum.rbegin(), mainscore_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
 
-      Size last_candidate_index = mainscore_csms_spectrum.size();
-      last_candidate_index = std::min(last_candidate_index, Size(number_top_hits_));
+      int last_candidate_index = static_cast<int>(mainscore_csms_spectrum.size());
+      last_candidate_index = std::min(last_candidate_index, number_top_hits_);
 
-      for (Size i = 0; i < last_candidate_index ; ++i)
+#pragma omp parallel for schedule(guided)
+      for (int i = 0; i < last_candidate_index ; ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = mainscore_csms_spectrum[i].cross_link;
         AASequence alpha;
@@ -621,8 +627,10 @@ using namespace OpenMS;
         csm.cross_link = cross_link_candidate;
 
         PeakSpectrum theoretical_spec_linear_alpha;
+        theoretical_spec_linear_alpha.reserve(1500);
         PeakSpectrum theoretical_spec_linear_beta;
         PeakSpectrum theoretical_spec_xlinks_alpha;
+        theoretical_spec_xlinks_alpha.reserve(1500);
         PeakSpectrum theoretical_spec_xlinks_beta;
 
         bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
@@ -636,6 +644,8 @@ using namespace OpenMS;
         specGen.getLinearIonSpectrum(theoretical_spec_linear_alpha, alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
         if (type_is_cross_link)
         {
+          theoretical_spec_linear_beta.reserve(1500);
+          theoretical_spec_xlinks_beta.reserve(1500);
           specGen.getLinearIonSpectrum(theoretical_spec_linear_beta, beta, cross_link_candidate.cross_link_position.second, false, 2);
           specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
           specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
@@ -1036,7 +1046,7 @@ using namespace OpenMS;
           csm.frag_annotations = frag_annotations;
           all_csms_spectrum.push_back(csm);
         }
-      } // candidates for peak finished, determine best matching candidate
+      } // end of parallel loop over top X candidates
 
       // collect top n matches to spectrum
       sort(all_csms_spectrum.rbegin(), all_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
