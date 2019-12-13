@@ -76,7 +76,6 @@ namespace OpenMS
 
       if (tag.size() >= min_tag_length_)
       {
-#pragma omp critical (tags_access)
           tags.push_back(tag);
       }
 
@@ -91,7 +90,6 @@ namespace OpenMS
 
         if (tag.size() >= min_tag_length_)
         {
-#pragma omp critical (tags_access)
           tags.push_back(tag);
         }
         getTag_(tag, mzs, j, tags, charge);
@@ -155,15 +153,21 @@ namespace OpenMS
     // start peak
     if (min_tag_length_ > mzs.size()) return; // avoid segfault
 
-#pragma omp parallel for schedule(guided)
-    for (int i = 0; i < static_cast<int>(mzs.size() - min_tag_length_); ++i)
+#pragma omp parallel
     {
-      for (size_t charge = min_charge_; charge <= max_charge_; ++charge)
+      std::vector<std::string> tags_local;
+#pragma omp for schedule(guided)
+      for (int i = 0; i < static_cast<int>(mzs.size() - min_tag_length_); ++i)
       {
-        std::string tag;
-        getTag_(tag, mzs, i, tags, charge);
-      }
-    } // end of parallelized loop over starting peaks
+        for (size_t charge = min_charge_; charge <= max_charge_; ++charge)
+        {
+          std::string tag;
+          getTag_(tag, mzs, i, tags_local, charge);
+        }
+      } // end of loop over starting peaks
+#pragma omp critical (join_tags)
+      tags.insert(tags.end(), tags_local.begin(), tags_local.end());
+    } // end of parallel section
 
     // make tags unique
     sort(tags.begin(), tags.end());
