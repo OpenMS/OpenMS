@@ -495,16 +495,7 @@ START_SECTION(filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>&
   std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 
   // set of tags
-  std::vector<std::string> tags;
-  tags.push_back("DE");
-  tags.push_back("PP");
-  tags.push_back("FDA");
-  tags.push_back("CIA");
-  tags.push_back("FTC");
-  tags.push_back("ESA");
-  tags.push_back("ISRO");
-  tags.push_back("NASA");
-  tags.push_back("JAXA");
+  std::vector<std::string> tags = {"DE", "PP", "FDA", "CIA", "FTC", "ESA", "ISRO", "NASA", "JAXA"};
 
   TEST_EQUAL(precursors.size(), 9604);
 
