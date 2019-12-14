@@ -71,9 +71,11 @@ namespace OpenMS
       }
       for (const FeatureMap& fmap : feature_maps) // not all elements are necessarily processed (break; is present inside the loop)
       {
-        StringList sample_name;
-        fmap.getPrimaryMSRunPath(sample_name);
-        if (!sample_name.size() || sample_name[0] != run.sample_name) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
+        StringList filename;
+        fmap.getPrimaryMSRunPath(filename);
+        String sample_name_1 = filename[0].substitute(".mzML", "");
+        String sample_name_2 = filename[0].substitute(".txt", "");
+        if (!filename.size() || !(sample_name_1 == run.sample_name || sample_name_2 == run.sample_name)) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
         {
           continue;
         }
