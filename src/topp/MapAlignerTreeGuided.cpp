@@ -91,11 +91,6 @@ using namespace std;
     - @ref OpenMS::TransformationModelLowess "lowess": Local regression (non-linear).
     - @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
 
-    The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
-    @htmlinclude OpenMS_MapAlignerTreeGuidedModel.parameters @n
-
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
-
     <B>The command line parameters of this tool are:</B> @n
     @verbinclude TOPP_MapAlignerTreeGuided.cli
     <B>INI file documentation of this tool:</B>
@@ -143,7 +138,6 @@ private:
         }
         else
         {
-          // TODO : maybe not one entry for list >1, but min(size1, size2) entries with median?
           double med1 = Math::median(pep1_it->second.begin(), pep1_it->second.end(), true);
           intercept_rts1.push_back(med1);
           double med2 = Math::median(pep2_it->second.begin(), pep2_it->second.end(), true);
@@ -192,11 +186,13 @@ private:
   }
 
   Param getSubsectionDefaults_(const String&  section) const override {
-    if (section == "align_algorithm") {
+    if (section == "align_algorithm")
+    {
       MapAlignmentAlgorithmIdentification algo;
       return algo.getParameters();
     }
-    if (section == "model") {
+    if (section == "model")
+    {
       return TOPPMapAlignerBase::getModelDefaults("b_spline");
     }
     return Param(); // this shouldn't happen
@@ -307,7 +303,8 @@ void TOPPMapAlignerTreeGuided::extractSeqAndRt_(const vector<FeatureMap>& featur
     vector<double> rts_tmp(feature_maps[i].size());
     for (auto feature_it = feature_maps[i].begin(); feature_maps[i].end() != feature_it; ++feature_it)
     {
-      if (!feature_it->getPeptideIdentifications().empty()) {
+      if (!feature_it->getPeptideIdentifications().empty())
+      {
         getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seq_and_rt[i], rts_tmp);
       }
     }
@@ -451,10 +448,13 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
     double left_range = maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.9] - maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.1];
     double right_range = maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.9] - maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.1];
 
-    if (left_range > right_range) {
+    if (left_range > right_range)
+    {
       ref = node.left_child;
       to_transform = node.right_child;
-    } else {
+    }
+    else
+    {
       ref = node.right_child;
       to_transform = node.left_child;
     }
@@ -509,7 +509,8 @@ void TOPPMapAlignerTreeGuided::computeTransformationsByOrigInFeature_(vector<Fea
       {
         point.first = fit->getMetaValue("original_RT");
       }
-      else{
+      else
+      {
         point.first = fit->getRT();
       }
       point.second = fit->getRT();
