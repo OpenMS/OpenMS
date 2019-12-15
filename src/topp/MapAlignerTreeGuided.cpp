@@ -110,7 +110,7 @@ class TOPPMapAlignerTreeGuided :
 
 public:
   TOPPMapAlignerTreeGuided() :
-          TOPPMapAlignerBase("MapAlignerTree", "Tree guided correction of retention time distortions between maps.")
+          TOPPMapAlignerBase("MapAlignerTreeGuided", "Tree guided correction of retention time distortions between maps.")
   {
   }
 
@@ -186,8 +186,6 @@ private:
   void registerOptionsAndFlags_() override
   {
     TOPPMapAlignerBase::registerOptionsAndFlags_("featureXML", REF_FLEXIBLE);
-    registerStringOption_("use_ranges", "string", "true", "Use map with larger 10/90 percentiles range as reference.", false);
-    setValidStrings_("use_ranges", {"true", "false"});
     registerSubsection_("align_algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
@@ -439,7 +437,6 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
   algorithm.setParameters(algo_params);
   algorithm.setLogType(log_type_);
 
-  bool use_ranges = getStringOption_("use_ranges").toQString() == "true";
   Size ref;
   Size to_transform;
 
@@ -449,34 +446,20 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
     // prepare alignment
     // ----------------
     vector<FeatureMap> to_align;
-    if (use_ranges)
-    {
-      OPENMS_LOG_INFO << "use larger range"  << endl;
-      //  determine the map with larger RT range for 10/90 percentile (->reference)
-      double left_range = maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.9] - maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.1];
-      double right_range = maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.9] - maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.1];
+    //  determine the map with larger RT range for 10/90 percentile (->reference)
+    double left_range = maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.9] - maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.1];
+    double right_range = maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.9] - maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.1];
 
-      if (left_range > right_range) {
-        ref = node.left_child;
-        to_transform = node.right_child;
-      } else {
-        ref = node.right_child;
-        to_transform = node.left_child;
-      }
-      std::vector<double> tmp;
-      std::merge(maps_ranges[node.right_child].begin(), maps_ranges[node.right_child].end(), maps_ranges[node.left_child].begin(), maps_ranges[node.left_child].end(), std::back_inserter(tmp));
+    if (left_range > right_range) {
+      ref = node.left_child;
+      to_transform = node.right_child;
+    } else {
+      ref = node.right_child;
+      to_transform = node.left_child;
     }
-    else{
-      OPENMS_LOG_INFO << "use larger map size"  << endl;
-      //  determine the map with more features (->reference)
-      if (feature_maps_transformed[node.left_child].size() > feature_maps_transformed[node.right_child].size()) {
-        ref = node.left_child;
-        to_transform = node.right_child;
-      } else {
-        ref = node.right_child;
-        to_transform = node.left_child;
-      }
-    }
+    std::vector<double> tmp;
+    std::merge(maps_ranges[node.right_child].begin(), maps_ranges[node.right_child].end(), maps_ranges[node.left_child].begin(), maps_ranges[node.left_child].end(), std::back_inserter(tmp));
+
     last_trafo = to_transform;
     to_align.push_back(feature_maps_transformed[to_transform]);
     to_align.push_back(feature_maps_transformed[ref]);
@@ -484,7 +467,6 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
     // ----------------
     // perform alignment
     // ----------------
-    OPENMS_LOG_INFO << "use internal reference for alignment"  << endl;
     algorithm.align(to_align, transformations_align, 1);
     // transform retention times of non-identity for next iteration
     transformations_align[0].fitModel(model_type, model_params);
