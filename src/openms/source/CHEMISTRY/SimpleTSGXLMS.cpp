@@ -36,7 +36,11 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+
+#if OPENMS_BOOST_VERSION_MINOR >= 67 && OPENMS_BOOST_VERSION_MAJOR == 1
+#define OPENMS_USE_PDQSORT
 #include <boost/sort/pdqsort/pdqsort.hpp>
+#endif
 
 using namespace std;
 
@@ -180,8 +184,12 @@ namespace OpenMS
       }
     }
 
+#ifdef OPENMS_USE_PDQSORT
     boost::sort::pdqsort(spectrum.begin(), spectrum.end(), SimpleTSGXLMS::SimplePeakComparator());
-    // std::stable_sort(spectrum.begin(), spectrum.end(), SimpleTSGXLMS::SimplePeakComparator());
+#else
+    std::stable_sort(spectrum.begin(), spectrum.end(), SimpleTSGXLMS::SimplePeakComparator());
+#endif
+
     return;
   }
 
@@ -318,9 +326,12 @@ namespace OpenMS
       addPrecursorPeaks_(spectrum, precursor_mass, maxcharge);
     }
 
+#ifdef OPENMS_USE_PDQSORT
     std::reverse(spectrum.begin(), spectrum.end());
     boost::sort::pdqsort(spectrum.begin(), spectrum.end(), SimpleTSGXLMS::SimplePeakComparator());
-    // std::sort(spectrum.begin(), spectrum.end(), SimpleTSGXLMS::SimplePeakComparator());
+#else
+    std::sort(spectrum.begin(), spectrum.end(), SimpleTSGXLMS::SimplePeakComparator());
+#endif
 
     return;
   }
@@ -578,9 +589,13 @@ namespace OpenMS
       addPrecursorPeaks_(spectrum, precursor_mass, maxcharge);
     }
 
+#ifdef OPENMS_USE_PDQSORT
     std::reverse(spectrum.begin(), spectrum.end());
     boost::sort::pdqsort(spectrum.begin(), spectrum.end(), SimpleTSGXLMS::SimplePeakComparator());
-    // std::sort(spectrum.begin(), spectrum.end(), SimpleTSGXLMS::SimplePeakComparator());
+#else
+    std::sort(spectrum.begin(), spectrum.end(), SimpleTSGXLMS::SimplePeakComparator());
+#endif
+
     return;
   }
 
