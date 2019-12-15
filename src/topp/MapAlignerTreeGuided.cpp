@@ -38,8 +38,6 @@
 // create binary tree
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 // align maps and generate output
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
@@ -163,15 +161,17 @@ private:
       if (pearson_val > 1)
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
-      return ((1 - pearson_val) * intercept_size / union_size);
+      return (1 - (pearson_val * intercept_size / union_size));
     }
   }; // end of PeptideIdentificationsPearsonDifference
+
 
   // function declarations
   template <typename MapType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FeatureXMLFile& fxml_file);
   static void getPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts, vector<double>& rts_tmp);
   static void extractSeqAndRt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges);
+  static void clusterUPGMA_(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, float threshold /*=1*/);
   static void buildTree_(vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, vector<vector<double>>& maps_ranges);
   void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> feature_maps_transformed,
           vector<vector<double>> &maps_ranges, FeatureMap& map_transformed, vector<Size>& trafo_order, const Param& model_params, const String& model_type);
@@ -244,7 +244,7 @@ private:
 
     // print tree
     ClusterAnalyzer ca;
-    OPENMS_LOG_INFO << "  Alignment follows tree: " << ca.newickTree(tree) << endl;
+    OPENMS_LOG_INFO << "  Alignment follows tree: " << ca.newickTree(tree, true) << endl;
 
     vector<Size> trafo_order;
     FeatureMap map_transformed;
@@ -324,10 +324,100 @@ void TOPPMapAlignerTreeGuided::buildTree_(vector<FeatureMap>& feature_maps, std:
   vector<SeqAndRTList> maps_seq_and_rt(feature_maps.size());
   extractSeqAndRt_(feature_maps, maps_seq_and_rt, maps_ranges);
   PeptideIdentificationsPearsonDistance pep_dist;
-  SingleLinkage sl;
+
   DistanceMatrix<float> dist_matrix;
-  ClusterHierarchical ch;
-  ch.cluster<SeqAndRTList, PeptideIdentificationsPearsonDistance>(maps_seq_and_rt, pep_dist, sl, tree, dist_matrix);
+  dist_matrix.resize(feature_maps.size(), 0.0);
+
+  for (Size i = 0; i < feature_maps.size(); ++i)
+  {
+    for (Size j = i+1; j < feature_maps.size(); ++j)
+    {
+      double dist = pep_dist(maps_seq_and_rt[i], maps_seq_and_rt[j]);
+
+      dist_matrix.setValue(i, j, dist);
+    }
+  }
+  clusterUPGMA_(dist_matrix, tree, 1);
+}
+
+void TOPPMapAlignerTreeGuided::clusterUPGMA_(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, float threshold /*=1*/)
+{
+  // attention: clustering process is done by clustering the indices
+  // pointing to elements in inputvector and distances in inputmatrix
+
+  // input MUST have >= 2 elements!
+  if (original_distance.dimensionsize() < 2)
+  {
+    throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Distance matrix to start from only contains one element");
+  }
+
+  std::vector<std::set<Size> > clusters(original_distance.dimensionsize());
+  for (Size i = 0; i < original_distance.dimensionsize(); ++i)
+  {
+    clusters[i].insert(i);
+  }
+
+  cluster_tree.clear();
+  cluster_tree.reserve(original_distance.dimensionsize() - 1);
+
+  // Initial minimum-distance pair
+  original_distance.updateMinElement();
+  std::pair<Size, Size> min = original_distance.getMinElementCoordinates();
+
+  //Size overall_cluster_steps(original_distance.dimensionsize());
+
+  while (original_distance(min.first, min.second) < threshold)
+  {
+    //grow the tree
+    cluster_tree.emplace_back(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second)/2);
+    if (cluster_tree.back().left_child > cluster_tree.back().right_child)
+    {
+      std::swap(cluster_tree.back().left_child, cluster_tree.back().right_child);
+    }
+
+    if (original_distance.dimensionsize() > 2)
+    {
+      // UPGMA - Unweighted Pair Group Method with Arithmetic mean
+      // d((i,j),k): (|i|* d(i,k) + |j|* d(j,k)) / (|i| + |j|)
+      for (Size k = 0; k < min.second; ++k)
+      {
+        float dik = original_distance.getValue(min.first, k)*clusters[min.first].size();
+        float djk = original_distance.getValue(min.second, k)*clusters[min.second].size();
+        original_distance.setValueQuick(min.second, k, ((dik + djk)/(clusters[min.first].size()+clusters[min.second].size()) ));
+      }
+      for (Size k = min.second + 1; k < original_distance.dimensionsize(); ++k)
+      {
+        float dik = original_distance.getValue(min.first, k)*clusters[min.first].size();
+        float djk = original_distance.getValue(min.second, k)*clusters[min.second].size();
+        original_distance.setValueQuick(k, min.second, ((dik + djk)/(clusters[min.first].size()+clusters[min.second].size()) ));
+      }
+      //pushback elements of second to first (and then erase second)
+      clusters[min.second].insert(clusters[min.first].begin(), clusters[min.first].end());
+      // erase first one
+      clusters.erase(clusters.begin() + min.first);
+
+      //reduce
+      original_distance.reduce(min.first);
+
+      //update minimum-distance pair
+      original_distance.updateMinElement();
+
+      //get new min-pair
+      min = original_distance.getMinElementCoordinates();
+    }
+    else
+    {
+      break;
+    }
+
+    //repeat until only two cluster remains or threshold exceeded, last step skips matrix operations
+  }
+  //fill tree with dummy nodes
+  Size sad(*clusters.front().begin());
+  for (Size i = 1; i < clusters.size() && (cluster_tree.size() < cluster_tree.capacity()); ++i)
+  {
+    cluster_tree.emplace_back(sad, *clusters[i].begin(), -1.0);
+  }
 }
 
 void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, vector<FeatureMap> feature_maps_transformed,
