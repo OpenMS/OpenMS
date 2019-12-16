@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,27 +34,21 @@
 
 #include <OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
-#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/CHEMISTRY/Tagger.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 
 #include <iostream>
-#include <cmath>
-#include <numeric>
 
 using namespace std;
 using namespace OpenMS;
@@ -117,6 +111,9 @@ using namespace OpenMS;
     StringList deisotope_strings = ListUtils::create<String>("true,false,auto");
     defaults_.setValue("algorithm:deisotope", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("algorithm:deisotope", deisotope_strings);
+    defaults_.setValue("algorithm:use_sequence_tags", "false", "Use sequence tags (de novo sequencing of short fragments) to filter out candidates before scoring. This will make the search faster, but can impact the sensitivity positively or negatively, depending on the dataset.");
+    defaults_.setValidStrings("algorithm:use_sequence_tags", bool_strings);
+    defaults_.setValue("algorithm:sequence_tag_min_length", 2, "Minimal length of sequence tags to use for filtering candidates. Longer tags will make the search faster but much less sensitive. Ignored if 'algorithm:use_sequence_tags' is false.", ListUtils::create<String>("advanced"));
     defaults_.setSectionDescription("algorithm", "Additional algorithm settings");
 
     defaults_.setValue("ions:b_ions", "true", "Search for peaks of b-ions.", ListUtils::create<String>("advanced"));
@@ -145,7 +142,7 @@ using namespace OpenMS;
   void OpenPepXLLFAlgorithm::updateMembers_()
   {
     decoy_string_ = static_cast<String>(param_.getValue("decoy_string"));
-    decoy_prefix_ = (param_.getValue("decoy_prefix") == "true" ? true : false);
+    decoy_prefix_ = param_.getValue("decoy_prefix") == "true";
 
     min_precursor_charge_ = static_cast<Int>(param_.getValue("precursor:min_charge"));
     max_precursor_charge_ = static_cast<Int>(param_.getValue("precursor:max_charge"));
@@ -172,6 +169,8 @@ using namespace OpenMS;
 
     number_top_hits_ = static_cast<Int>(param_.getValue("algorithm:number_top_hits"));
     deisotope_mode_ = static_cast<String>(param_.getValue("algorithm:deisotope"));
+    use_sequence_tags_ = param_.getValue("algorithm:use_sequence_tags") == "true";
+    sequence_tag_min_length_ = static_cast<Size>(param_.getValue("algorithm:sequence_tag_min_length"));
 
     add_y_ions_ = param_.getValue("ions:y_ions");
     add_b_ions_ = param_.getValue("ions:b_ions");
@@ -350,6 +349,20 @@ using namespace OpenMS;
     specGenParams_mainscore.setValue("add_k_linked_ions", "true");
     specGen_mainscore.setParameters(specGenParams_mainscore);
 
+    // use a less stringent tolerance for the tagger
+    double tagger_tol;
+    if (fragment_mass_tolerance_unit_ppm_) // ppm: increase tolerance by 50%
+    {
+      tagger_tol = fragment_mass_tolerance_xlinks_ * 1.5;
+    }
+    else // dalton: turn into ppm at 500 mz
+    {
+      tagger_tol = Math::getPPM(500.0, 500+fragment_mass_tolerance_xlinks_);
+    }
+
+    Tagger tagger(sequence_tag_min_length_, tagger_tol, sequence_tag_min_length_, 1, max_precursor_charge_, fixedModNames_, varModNames_);
+    Size all_candidates_count(0);
+
 #ifdef DEBUG_OPENPEPXLLFALGO
     OPENMS_LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
 #endif
@@ -394,7 +407,7 @@ using namespace OpenMS;
     // iterate over all spectra
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
 
-    Size spectrum_counter = 0;
+    Size spectrum_counter(0);
 
     for (SignedSize scan_index = 0; scan_index < static_cast<SignedSize>(spectra.size()); ++scan_index)
     {
@@ -404,19 +417,29 @@ using namespace OpenMS;
       const double precursor_mz = spectrum.getPrecursors()[0].getMZ();
       const double precursor_mass = (precursor_mz * static_cast<double>(precursor_charge)) - (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U);
 
+      std::vector<std::string> tags;
+      if (use_sequence_tags_)
+      {
+        tagger.setMaxCharge(precursor_charge-1);
+        tagger.getTag(spectrum, tags);
+      }
+
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > top_csms_spectrum;
-      vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_);
+      vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_, use_sequence_tags_, tags);
+      all_candidates_count += cross_link_candidates.size();
 
 #ifdef DEBUG_OPENPEPXLLFALGO
-#pragma omp critical (LOG_DEBUG_access)
       OPENMS_LOG_DEBUG << "Size of enumerated candidates: " << double(cross_link_candidates.size()) * sizeof(OPXLDataStructs::ProteinProteinCrossLink) / 1024.0 / 1024.0 << " mb" << endl;
 #endif
 
-
       spectrum_counter++;
-      cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum index: " << scan_index << "\t| at: " << DateTime::now().getTime() << endl;
+      cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum ID: " << spectrum.getNativeID() << "\t| at: " << DateTime::now().getTime() << endl;
       cout << "Number of peaks: " << spectrum.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
 
+      if (cross_link_candidates.empty())
+      {
+        continue;
+      }
 
       // lists for one spectrum, to determine best match to the spectrum
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
@@ -938,6 +961,8 @@ using namespace OpenMS;
       OPENMS_LOG_DEBUG << "Next Spectrum ##################################" << endl;
 #endif
     }
+
+    std::cout << std::endl << "Total number of potential candidates searched: " << all_candidates_count << std::endl;
 
     // end of matching / scoring
     progresslogger.endProgress();
