@@ -115,7 +115,6 @@ namespace OpenMS
     {
       rel_sig = target_intensity / total_intensity;
     }
-    double noise_intensity = total_intensity - target_intensity;
 
     score.total_intensity = total_intensity;
     score.target_intensity = target_intensity;
