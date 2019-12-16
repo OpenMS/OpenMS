@@ -230,7 +230,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("mzid,idXML,osw"));
     registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
-    setValidFormats_("out_pin", ListUtils::create<String>("tab"), !force_openms_format);
+    setValidFormats_("out_pin", ListUtils::create<String>("tsv"), !force_openms_format);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
     setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
@@ -810,19 +810,19 @@ protected:
     String pin_file;
     if (getStringOption_("out_pin").empty())
     {
-      pin_file = temp_directory_body + txt_designator + "_pin.tab";
+      pin_file = temp_directory_body + txt_designator + "_pin.tsv";
     }
     else
     {
       pin_file = getStringOption_("out_pin");
     }
     
-    String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
-    String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tab");
-    String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tab");
-    String pout_decoy_file_peptides(temp_directory_body + txt_designator + "_decoy_pout_peptides.tab");
-    String pout_target_file_proteins(temp_directory_body + txt_designator + "_target_pout_proteins.tab");
-    String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
+    String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tsv");
+    String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tsv");
+    String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tsv");
+    String pout_decoy_file_peptides(temp_directory_body + txt_designator + "_decoy_pout_peptides.tsv");
+    String pout_target_file_proteins(temp_directory_body + txt_designator + "_target_pout_proteins.tsv");
+    String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tsv");
 
     // prepare OSW I/O
     if (out_type == FileTypes::OSW && in_osw != out)
