@@ -39,7 +39,6 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -99,7 +98,7 @@ namespace OpenMS
       first_loop = lower_bound(first_loop, conservative_upper_bound, min_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
       last_loop = upper_bound(last_loop, conservative_upper_bound, max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
 
-      Size first_index = first_loop - peptides.cbegin();
+      int first_index = first_loop - peptides.cbegin();
       int last_index = last_loop - peptides.cbegin();
 
 #pragma omp parallel for
