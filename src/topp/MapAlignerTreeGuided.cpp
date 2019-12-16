@@ -103,7 +103,6 @@ using namespace std;
 class TOPPMapAlignerTreeGuided :
         public TOPPMapAlignerBase
 {
-
 public:
   TOPPMapAlignerTreeGuided() :
           TOPPMapAlignerBase("MapAlignerTreeGuided", "Tree guided correction of retention time distortions between maps.")
@@ -185,7 +184,8 @@ private:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String&  section) const override {
+  Param getSubsectionDefaults_(const String&  section) const override
+  {
     if (section == "align_algorithm")
     {
       MapAlignmentAlgorithmIdentification algo;
@@ -281,7 +281,7 @@ void TOPPMapAlignerTreeGuided::loadInputMaps_(vector<MapType>& maps, StringList&
 }
 
 void TOPPMapAlignerTreeGuided::getPeptideSequences_(const vector<PeptideIdentification>& peptides,
-                                              TOPPMapAlignerTreeGuided::SeqAndRTList& peptide_rts, vector<double>& rts_tmp)
+        TOPPMapAlignerTreeGuided::SeqAndRTList& peptide_rts, vector<double>& rts_tmp)
 {
   for (const auto & peptide : peptides)
   {
@@ -296,7 +296,7 @@ void TOPPMapAlignerTreeGuided::getPeptideSequences_(const vector<PeptideIdentifi
 }
 
 void TOPPMapAlignerTreeGuided::extractSeqAndRt_(const vector<FeatureMap>& feature_maps,
-                                                vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges)
+        vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges)
 {
   for (Size i = 0; i < feature_maps.size(); ++i)
   {
@@ -494,8 +494,8 @@ void TOPPMapAlignerTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTree
 }
 
 void TOPPMapAlignerTreeGuided::computeTransformationsByOrigInFeature_(vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
-                                                                     vector<TransformationDescription>& transformations, const vector<Size>& trafo_order, const Param& model_params,
-                                                                     const String& model_type)
+        vector<TransformationDescription>& transformations, const vector<Size>& trafo_order, const Param& model_params,
+        const String& model_type)
 {
   FeatureMap::const_iterator fit = map_transformed.begin();
   for (auto & map_idx : trafo_order)
@@ -524,8 +524,8 @@ void TOPPMapAlignerTreeGuided::computeTransformationsByOrigInFeature_(vector<Fea
   }
 }
 
-void TOPPMapAlignerTreeGuided::computeTransformedFeatureMaps_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations) {
-
+void TOPPMapAlignerTreeGuided::computeTransformedFeatureMaps_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations)
+{
   ProgressLogger progresslogger;
   progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
   progresslogger.startProgress(0, feature_maps.size(), "computing feature maps");
@@ -540,8 +540,8 @@ void TOPPMapAlignerTreeGuided::computeTransformedFeatureMaps_(vector<FeatureMap>
   progresslogger.endProgress();
 }
 
-void TOPPMapAlignerTreeGuided::storeFeatureXMLs_(const vector<FeatureMap>& feature_maps, const StringList& out_files, FeatureXMLFile& fxml_file) {
-
+void TOPPMapAlignerTreeGuided::storeFeatureXMLs_(const vector<FeatureMap>& feature_maps, const StringList& out_files, FeatureXMLFile& fxml_file)
+{
   ProgressLogger progresslogger;
   progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
   progresslogger.startProgress(0, feature_maps.size(), "writing output files");
@@ -554,7 +554,8 @@ void TOPPMapAlignerTreeGuided::storeFeatureXMLs_(const vector<FeatureMap>& featu
 }
 
 void TOPPMapAlignerTreeGuided::storeTransformationDescriptions_(const vector<TransformationDescription>& transformations,
-                                                          StringList& trafos) {
+        StringList& trafos)
+{
   // custom progress logger for this task:
   ProgressLogger progresslogger;
   progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
