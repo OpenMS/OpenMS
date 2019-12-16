@@ -73,9 +73,7 @@ namespace OpenMS
       {
         StringList filename;
         fmap.getPrimaryMSRunPath(filename);
-        String sample_name_1 = filename[0].substitute(".mzML", "");
-        String sample_name_2 = filename[0].substitute(".txt", "");
-        if (!filename.size() || !(sample_name_1 == run.sample_name || sample_name_2 == run.sample_name)) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
+        if (!filename.size() || !(filename[0].substitute(".mzML", "") == run.sample_name || filename[0].substitute(".txt", "") == run.sample_name)) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
         {
           continue;
         }
