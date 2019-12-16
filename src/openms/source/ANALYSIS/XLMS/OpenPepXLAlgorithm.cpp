@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,12 +40,10 @@
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
@@ -53,8 +51,6 @@
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 
 #include <iostream>
-#include <cmath>
-#include <numeric>
 
 using namespace std;
 using namespace OpenMS;
@@ -462,7 +458,8 @@ using namespace OpenMS;
       vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps_, precursor_mass, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_, filtered_peptide_masses, cross_link_mass_light_, cross_link_mass_mono_link_, cross_link_residue1_, cross_link_residue2_, cross_link_name_);
 
       spectrum_counter++;
-      cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << " |\tLight Spectrum index: " << scan_index << " |\tHeavy Spectrum index: " << scan_index_heavy << "\t| at: " << DateTime::now().getTime() << endl;
+      cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << endl;
+      cout << "Light Spectrum ID: " << spectrum_light.getNativeID() << " |\tHeavy Spectrum ID: " << spectra[scan_index_heavy].getNativeID() << "\t| at: " << DateTime::now().getTime() << endl;
       cout << "Number of peaks in light spectrum: " << spectrum_light.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
 
       // lists for one spectrum, to determine best match to the spectrum
