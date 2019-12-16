@@ -151,7 +151,7 @@ private:
       // pearsonCorrelationCoefficient(rt_map_i, rt_map_j)
       float pearson_val;
       pearson_val = static_cast<float>(pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(),
-                                                                     intercept_rts2.begin(), intercept_rts2.end()));
+              intercept_rts2.begin(), intercept_rts2.end()));
       if (pearson_val > 1)
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
