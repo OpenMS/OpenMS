@@ -75,6 +75,10 @@ namespace OpenMS
         SimplePeak(double mz, int charge)
         : mz(mz), charge(charge)
         {}
+
+        SimplePeak()
+        : mz(0.0), charge(0)
+        {}
       };
 
       /**
