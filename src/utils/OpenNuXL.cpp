@@ -116,6 +116,7 @@
 //#define FILTER_AMBIGIOUS_PEAKS 
 //#define FILTER_NO_ARBITRARY_TAG_PRESENT
 //#define SVM_RECALIBRATE
+//#define FILTER_TOTAL_HYPERSCORE 1
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -684,6 +685,9 @@ protected:
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
     const Size N = intensity_sum.size();
 
+    size_t comparisons(0);
+    size_t matches(0);
+
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
 
@@ -713,9 +717,11 @@ protected:
               dot_product += intensity;
               b_mean_err += intensity * std::abs(theo_mz - exp_mz);
               b_ions[i] += intensity;
+              ++matches;
               peak_matched[index] = true;
             }
           }
+          ++comparisons;
         }
       }
     }
@@ -748,9 +754,11 @@ protected:
             y_mean_err += intensity * std::abs(theo_mz - exp_mz);
             dot_product += intensity;                  
             y_ions[N-1 - i] += intensity;      
+            ++matches;
             peak_matched[index] = true;
           }
         }
+        ++comparisons;
       }
     }
 
@@ -820,9 +828,11 @@ protected:
           {
             const double intensity = exp_spectrum[index].getIntensity();
             pc_MIC += intensity;
+            ++matches;
             peak_matched[index] = true;
           }
         }
+        ++comparisons;
       }      
     }
     pc_MIC /= TIC;
@@ -840,9 +850,11 @@ protected:
           if (!peak_matched[index])
           {
             score += exp_spectrum[index].getIntensity();      
+            ++matches;
             peak_matched[index] = true;
           }
         } 
+        ++comparisons;
       };
 
     // see DOI: 10.1021/pr3007045 A Systematic Investigation into the Nature of Tryptic HCD Spectra
@@ -916,6 +928,14 @@ protected:
      exp_spectrum.size(),
      exp_spectrum.back().getMZ(),
      (int)Morph);
+
+/*
+    modds = matchOddsScore_(comparisons,
+     fragment_mass_tolerance_Da,
+     exp_spectrum.size(),
+     exp_spectrum.back().getMZ(),
+     matches);
+*/
   }
 
   static void scoreShiftedLadderIons_(
@@ -1294,15 +1314,15 @@ score += ah.mass_error_p     *   1.15386068
            + 3.0 * ah.total_MIC + ah.ladder_score;
 */
     return 
-             10.0 * ah.total_loss_score
-           +  1.0 * ah.partial_loss_score
+              1.0 * ah.total_loss_score
+           +  0.1 * ah.partial_loss_score
            +  0.1 * ah.mass_error_p 
-           - 10.0 * ah.err 
-           - 10.0 * ah.pl_err
-           +  3.0 * ah.pl_MIC
-           + isXL * 3.0 * ah.marker_ions_score
-           +  3.0 * ah.total_MIC 
-           +  1.0 * ah.ladder_score;
+           -  0.1 * ah.err 
+           -  0.1 * ah.pl_err
+           +  0.1 * ah.pl_MIC
+           + isXL * 0.1 * ah.marker_ions_score
+           +  0.1 * ah.total_MIC 
+           +  0.1 * ah.ladder_score;
 
 /*
             -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err
@@ -1882,6 +1902,28 @@ static void scoreXLIons_(
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
+    {
+      MSSpectrum & spec = exp[exp_index];
+      // sort by mz
+      spec.sortByPosition();
+
+      // deisotope
+      Deisotoper::deisotopeAndSingleCharge(spec, 
+                                         0.05,
+                                         false,
+                                         1, 3, 
+                                         false, 
+                                         2, 10, 
+                                         single_charge_spectra, 
+                                         annotate_charge,
+                                         false, // no iso peak count annotation
+                                         false); // no isotope model
+    }
+
     SqrtMower sqrt_mower_filter;
     sqrt_mower_filter.filterPeakMap(exp);
 
@@ -1909,18 +1951,6 @@ static void scoreXLIons_(
       MSSpectrum & spec = exp[exp_index];
       // sort by mz
       spec.sortByPosition();
-
-      // deisotope
-      Deisotoper::deisotopeAndSingleCharge(spec, 
-                                         0.05, 
-                                         false, 
-                                         1, 3, 
-                                         false, 
-                                         2, 10, 
-                                         single_charge_spectra, 
-                                         annotate_charge,
-                                         false, // no iso peak count annotation
-                                         false); // no isotope model
 
       if (annotate_charge)
       { 
@@ -1984,6 +2014,8 @@ static void scoreXLIons_(
       spec.getFloatDataArrays()[0].push_back(TIC);
       spec.getFloatDataArrays()[0].setName("TIC");
     }
+
+    MzMLFile().store("debug_filtering.mzML", exp); 
   }
 
   void filterTopNAnnotations_(vector<vector<AnnotatedHit>>& ahs, const Size top_hits)
@@ -4388,7 +4420,6 @@ static void scoreXLIons_(
                       ah.sequence_score = ladderScore_(range) / (double)intensity_linear.size();
                     }
 
-
                     RankScores rankscores = rankScores_(exp_spectrum, peak_matched);
                     ah.rank_product = rankscores.rp;
                     ah.wTop50 = rankscores.wTop50;
@@ -5009,7 +5040,30 @@ variable_modifications  -0.0944707
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
       // generate filtered results
+#ifdef FILTER_TOTAL_HYPERSCORE
+      for (auto & pi : peptide_ids)
+      {
+        double best_HS(0);
+        auto & phs = pi.getHits();
+        if (phs.empty()) continue;
+        double max_total_HS = std::max_element(phs.begin(), phs.end(), 
+           [] (PeptideHit const& lhs, PeptideHit const& rhs) 
+           {
+             return (double)lhs.getMetaValue("NuXL:total_HS") < (double)rhs.getMetaValue("NuXL:total_HS"); 
+           })->getMetaValue("NuXL:total_HS");
+
+        cout << "Max total_HS: " << max_total_HS << endl;
+
+        auto new_end = std::remove_if(phs.begin(), phs.end(),
+            [&max_total_HS](const PeptideHit & ph) 
+          { 
+           return fabs((double)ph.getMetaValue("NuXL:total_HS") - max_total_HS) > 1e-4; 
+          });
+        phs.erase(new_end, phs.end());
+      } 
+#else
       IDFilter::keepNBestHits(peptide_ids, 1);
+#endif       
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
       // split PSMs into XLs and non-XLs but keep only best one of both

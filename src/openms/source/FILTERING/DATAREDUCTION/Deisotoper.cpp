@@ -162,6 +162,14 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
               has_min_isopeaks = (i >= min_isopeaks);
               break;
             }
+
+            // ratio of first isotopic peak to monoisotopic peak may not be too large 
+            if (i == 1 && old_spectrum[p].getIntensity() / old_spectrum[extensions.back()].getIntensity() > 10.0)
+            {
+              has_min_isopeaks = (i >= min_isopeaks);
+              break;
+            }
+
             // averagine check passed or skipped
             extensions.push_back(p);
             if (annotate_iso_peak_count)
