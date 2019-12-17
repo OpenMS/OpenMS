@@ -50,11 +50,7 @@ include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
 # QT dependencies
-find_package(Qt5 COMPONENTS Core Network OpenGL Svg REQUIRED)
-if (NOT Qt5Network_FOUND)
-  message(STATUS "QtNetwork module not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
-endif()
+find_package(Qt5 COMPONENTS Core Network REQUIRED)
 
 # add the targets
 foreach(i ${EXAMPLES_executables})
@@ -73,6 +69,7 @@ add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
 
 if(WITH_GUI)
+  find_package(Qt5 COMPONENTS Core Network OpenGL Svg REQUIRED)
   # add OpenMS GUI includes
   include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 
