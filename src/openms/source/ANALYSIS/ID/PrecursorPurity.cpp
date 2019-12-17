@@ -143,10 +143,16 @@ namespace OpenMS
   std::map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     std::map<String, PrecursorPurity::PurityScores> purityscores;
+    std::pair<std::map<String, PrecursorPurity::PurityScores>::iterator, bool> insert_return_value;
 
     if (spectra[0].getMSLevel() != 1)
     {
-      OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Will be skipped!\n";
+      OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. First Spectrum is not MS1. Precursor Purity info will not be calculated!\n";
+      return purityscores;
+    }
+    if (spectra[0].getNativeID().empty())
+    {
+      OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Spectrum without an ID. Precursor Purity info will not be calculated!\n";
       return purityscores;
     }
 
@@ -155,10 +161,16 @@ namespace OpenMS
     int next_parent_index = 0;
     bool lastMS1(false);
     int spectra_size = static_cast<int>(spectra.size());
+    bool break_loop(false);
 
 #pragma omp parallel for schedule(guided)
     for (int i = 0; i < spectra_size; ++i)
     {
+      // cannot return or break from OpenMP for loop, so continue to the end and return empty vector after loop
+      if (break_loop)
+      {
+        continue;
+      }
       // change current parent index if a new MS1 spectrum is reached
       if (spectra[i].getMSLevel() == 1)
       {
@@ -201,11 +213,28 @@ namespace OpenMS
 
 #pragma omp critical (purityscores_access)
         {
-          purityscores[spectra[i].getNativeID()] = score;
+          insert_return_value = purityscores.insert(std::pair<String, PrecursorPurity::PurityScores>(spectra[i].getNativeID(), score));
+          // check if the key had already been used before, and only set break_loop if really necessary
+          // (do not set it to false every time, might overwrite a true value in parallel processing)
+          if (!insert_return_value.second)
+          {
+            break_loop = true;
+          }
+        }
+        if (break_loop)
+        {
+          OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Duplicate Spectrum IDs. Precursor Purity info will not be calculated!\n";
         }
       } // end of MS2 spectrum
     } // end of parallelized spectra loop
-    return purityscores;
+    if (break_loop)
+    {
+      return std::map<String, PrecursorPurity::PurityScores>();
+    }
+    else
+    {
+      return purityscores;
+    }
   } // end of function def
 
 }
