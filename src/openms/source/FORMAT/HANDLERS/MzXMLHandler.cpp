@@ -59,40 +59,42 @@ namespace OpenMS
     //--------------------------------------------------------------------------------
 
     // this cannot be moved into a function as VS2008 does not allow more than 31 static members in a function .. don't ask...
-    const XMLCh * MzXMLHandler::s_value_ = nullptr;
-    const XMLCh * MzXMLHandler::s_count_ = nullptr;
-    const XMLCh * MzXMLHandler::s_type_ = nullptr;
-    const XMLCh * MzXMLHandler::s_name_ = nullptr;
-    const XMLCh * MzXMLHandler::s_version_ = nullptr;
-    const XMLCh * MzXMLHandler::s_filename_ = nullptr;
-    const XMLCh * MzXMLHandler::s_filetype_ = nullptr;
-    const XMLCh * MzXMLHandler::s_filesha1_ = nullptr;
-    const XMLCh * MzXMLHandler::s_completiontime_ = nullptr;
-    const XMLCh * MzXMLHandler::s_precision_ = nullptr;
-    const XMLCh * MzXMLHandler::s_byteorder_ = nullptr;
-    const XMLCh * MzXMLHandler::s_contentType_ = nullptr;
-    const XMLCh * MzXMLHandler::s_compressionType_ = nullptr;
-    const XMLCh * MzXMLHandler::s_precursorintensity_ = nullptr;
-    const XMLCh * MzXMLHandler::s_precursorcharge_ = nullptr;
-    const XMLCh * MzXMLHandler::s_windowwideness_ = nullptr;
-    const XMLCh * MzXMLHandler::s_mslevel_ = nullptr;
-    const XMLCh * MzXMLHandler::s_peakscount_ = nullptr;
-    const XMLCh * MzXMLHandler::s_polarity_ = nullptr;
-    const XMLCh * MzXMLHandler::s_scantype_ = nullptr;
-    const XMLCh * MzXMLHandler::s_filterline_ = nullptr;
-    const XMLCh * MzXMLHandler::s_retentiontime_ = nullptr;
-    const XMLCh * MzXMLHandler::s_startmz_ = nullptr;
-    const XMLCh * MzXMLHandler::s_endmz_ = nullptr;
-    const XMLCh * MzXMLHandler::s_first_ = nullptr;
-    const XMLCh * MzXMLHandler::s_last_ = nullptr;
-    const XMLCh * MzXMLHandler::s_phone_ = nullptr;
-    const XMLCh * MzXMLHandler::s_email_ = nullptr;
-    const XMLCh * MzXMLHandler::s_uri_ = nullptr;
-    const XMLCh * MzXMLHandler::s_num_ = nullptr;
-    const XMLCh * MzXMLHandler::s_intensitycutoff_ = nullptr;
-    const XMLCh * MzXMLHandler::s_centroided_ = nullptr;
-    const XMLCh * MzXMLHandler::s_deisotoped_ = nullptr;
-    const XMLCh * MzXMLHandler::s_chargedeconvoluted_ = nullptr;
+    const XMLCh* s_value_ = xercesc::XMLString::transcode("value");
+    const XMLCh* s_count_ = xercesc::XMLString::transcode("scanCount");
+    const XMLCh* s_type_ = xercesc::XMLString::transcode("type");
+    const XMLCh* s_name_ = xercesc::XMLString::transcode("name");
+    const XMLCh* s_version_ = xercesc::XMLString::transcode("version");
+    const XMLCh* s_filename_ = xercesc::XMLString::transcode("fileName");
+    const XMLCh* s_filetype_ = xercesc::XMLString::transcode("fileType");
+    const XMLCh* s_filesha1_ = xercesc::XMLString::transcode("fileSha1");
+    const XMLCh* s_completiontime_ = xercesc::XMLString::transcode("completionTime");
+    const XMLCh* s_precision_ = xercesc::XMLString::transcode("precision");
+    const XMLCh* s_byteorder_ = xercesc::XMLString::transcode("byteOrder");
+    const XMLCh* s_contentType_ = xercesc::XMLString::transcode("contentType");
+    const XMLCh* s_compressionType_ = xercesc::XMLString::transcode("compressionType");
+    const XMLCh* s_precursorintensity_ = xercesc::XMLString::transcode("precursorIntensity");
+    const XMLCh* s_precursorcharge_ = xercesc::XMLString::transcode("precursorCharge");
+    const XMLCh* s_windowwideness_ = xercesc::XMLString::transcode("windowWideness");
+    const XMLCh* s_activationMethod_ = xercesc::XMLString::transcode("activationMethod");
+    const XMLCh* s_mslevel_ = xercesc::XMLString::transcode("msLevel");
+    const XMLCh* s_peakscount_ = xercesc::XMLString::transcode("peaksCount");
+    const XMLCh* s_polarity_ = xercesc::XMLString::transcode("polarity");
+    const XMLCh* s_scantype_ = xercesc::XMLString::transcode("scanType");
+    const XMLCh* s_filterline_ = xercesc::XMLString::transcode("filterLine");
+    const XMLCh* s_retentiontime_ = xercesc::XMLString::transcode("retentionTime");
+    const XMLCh* s_startmz_ = xercesc::XMLString::transcode("startMz");
+    const XMLCh* s_endmz_ = xercesc::XMLString::transcode("endMz");
+    const XMLCh* s_first_ = xercesc::XMLString::transcode("first");
+    const XMLCh* s_last_ = xercesc::XMLString::transcode("last");
+    const XMLCh* s_phone_ = xercesc::XMLString::transcode("phone");
+    const XMLCh* s_email_ = xercesc::XMLString::transcode("email");
+    const XMLCh* s_uri_ = xercesc::XMLString::transcode("URI");
+    const XMLCh* s_num_ = xercesc::XMLString::transcode("num");
+    const XMLCh* s_intensitycutoff_ = xercesc::XMLString::transcode("intensityCutoff");
+    const XMLCh* s_centroided_ = xercesc::XMLString::transcode("centroided");
+    const XMLCh* s_deisotoped_ = xercesc::XMLString::transcode("deisotoped");
+    const XMLCh* s_chargedeconvoluted_ = xercesc::XMLString::transcode("chargeDeconvoluted");
+    
 
     /// Constructor for a read-only handler
     MzXMLHandler::MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
@@ -141,12 +143,6 @@ namespace OpenMS
       const xercesc::Attributes& attributes)
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
-
-      static bool init_static_members(false);
-      if (!init_static_members)
-      {
-        initStaticMembers_();
-      }
 
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
@@ -226,9 +222,9 @@ namespace OpenMS
       }
       else if (tag == "precursorMz")
       {
-        //add new precursor
+        // add new precursor
         spectrum_data_.back().spectrum.getPrecursors().push_back(Precursor());
-        //intensity
+        // intensity
         try
         {
           spectrum_data_.back().spectrum.getPrecursors().back().setIntensity(attributeAsDouble_(attributes, s_precursorintensity_));
@@ -237,17 +233,30 @@ namespace OpenMS
         {
           error(LOAD, "Mandatory attribute 'precursorIntensity' of tag 'precursorMz' not found! Setting precursor intensity to zero!");
         }
-        //charge
+        // charge
         Int charge = 0;
         if (optionalAttributeAsInt_(charge, attributes, s_precursorcharge_))
         {
           spectrum_data_.back().spectrum.getPrecursors().back().setCharge(charge);
         }
-        //window bounds (here only the width is stored in both fields - this is corrected when we parse the m/z position)
+        // window bounds (here only the width is stored in both fields - this is corrected when we parse the m/z position)
         double window = 0.0;
         if (optionalAttributeAsDouble_(window, attributes, s_windowwideness_))
         {
           spectrum_data_.back().spectrum.getPrecursors().back().setIsolationWindowLowerOffset(window);
+        }
+        // parse activation method (CID, ...)
+        String activation;
+        if (optionalAttributeAsString_(activation, attributes, s_activationMethod_))
+        {
+          auto it = std::find(Precursor::NamesOfActivationMethodShort, 
+                              Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD, 
+                              activation);
+
+          if (it != Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+          {
+            spectrum_data_.back().spectrum.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod(it - Precursor::NamesOfActivationMethodShort));
+          }
         }
       }
       else if (tag == "scan")
@@ -954,22 +963,15 @@ namespace OpenMS
         // convert meta values to tags
         writeAttributeIfExists_(os, spec, "lowest observed m/z", "lowMz");
         writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz");
-        if (spec.metaValueExists("base peak m/z")) writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz");
+        if (spec.metaValueExists("base peak m/z")) 
+        {
+          writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz");
+        }
         else
         { // base peak mz (used by some programs like MAVEN), according to xsd: "m/z of the base peak (most intense peak)"
-          os << " basePeakMz=\"";
-          double basePeakInt(0), basePeakMz(0);
-          for (Size j = 0; j < spec.size(); j++)
-          {
-            if (spec[j].getIntensity() > basePeakInt)
-            {
-              basePeakInt = spec[j].getIntensity();
-              basePeakMz = spec[j].getMZ();
-            }
-          }
-          os << basePeakMz << "\"";
+          auto it = spec.getBasePeak();
+          os << " basePeakMz=\"" << (it != spec.end() ? it->getMZ() : 0.0) << "\"";
         }
-
         writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity");
         writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent");
 
@@ -983,9 +985,8 @@ namespace OpenMS
         os << ">\n";
 
 
-        for (Size i = 0; i < spec.getPrecursors().size(); ++i)
+        for (const auto& precursor : spec.getPrecursors())
         {
-          const Precursor& precursor = spec.getPrecursors()[i];
           // intensity
           os << String(ms_level + 2, '\t') << "<precursorMz precursorIntensity=\"" << (int)precursor.getIntensity() << "\"";
           // charge
@@ -1095,51 +1096,6 @@ namespace OpenMS
 
       logger_.endProgress();
       spec_write_counter_ = 1;
-    }
-
-    void MzXMLHandler::initStaticMembers_()
-    {
-      static bool init(false);
-      if (!init)
-      {
-        s_value_ = xercesc::XMLString::transcode("value");
-        s_count_ = xercesc::XMLString::transcode("scanCount");
-        s_type_ = xercesc::XMLString::transcode("type");
-        s_name_ = xercesc::XMLString::transcode("name");
-        s_version_ = xercesc::XMLString::transcode("version");
-        s_filename_ = xercesc::XMLString::transcode("fileName");
-        s_filetype_ = xercesc::XMLString::transcode("fileType");
-        s_filesha1_ = xercesc::XMLString::transcode("fileSha1");
-        s_completiontime_ = xercesc::XMLString::transcode("completionTime");
-        s_precision_ = xercesc::XMLString::transcode("precision");
-        s_byteorder_ = xercesc::XMLString::transcode("byteOrder");
-        s_contentType_ = xercesc::XMLString::transcode("contentType");
-        s_compressionType_ = xercesc::XMLString::transcode("compressionType");
-        s_precursorintensity_ = xercesc::XMLString::transcode("precursorIntensity");
-        s_precursorcharge_ = xercesc::XMLString::transcode("precursorCharge");
-        s_windowwideness_ = xercesc::XMLString::transcode("windowWideness");
-        s_mslevel_ = xercesc::XMLString::transcode("msLevel");
-        s_peakscount_ = xercesc::XMLString::transcode("peaksCount");
-        s_polarity_ = xercesc::XMLString::transcode("polarity");
-        s_scantype_ = xercesc::XMLString::transcode("scanType");
-        s_filterline_ = xercesc::XMLString::transcode("filterLine");
-        s_retentiontime_ = xercesc::XMLString::transcode("retentionTime");
-        s_startmz_ = xercesc::XMLString::transcode("startMz");
-        s_endmz_ = xercesc::XMLString::transcode("endMz");
-        s_first_ = xercesc::XMLString::transcode("first");
-        s_last_ = xercesc::XMLString::transcode("last");
-        s_phone_ = xercesc::XMLString::transcode("phone");
-        s_email_ = xercesc::XMLString::transcode("email");
-        s_uri_ = xercesc::XMLString::transcode("URI");
-        s_num_ = xercesc::XMLString::transcode("num");
-        s_intensitycutoff_ = xercesc::XMLString::transcode("intensityCutoff");
-        s_centroided_ = xercesc::XMLString::transcode("centroided");
-        s_deisotoped_ = xercesc::XMLString::transcode("deisotoped");
-        s_chargedeconvoluted_ = xercesc::XMLString::transcode("chargeDeconvoluted");
-
-        init = true;
-      }
-      return;
     }
 
     inline std::ostream& MzXMLHandler::writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname)
