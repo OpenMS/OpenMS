@@ -135,6 +135,7 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
   TEST_EQUAL(purityscores["randomString"].target_peak_count, 0)
   TEST_EQUAL(purityscores["randomString"].residual_peak_count, 0)
 
+  PeakMap spectra_copy = spectra;
 
   // remove last spectrum
   // this is the case for the last batch of MS2 spectra, if the last spectrum in the PeakMap is an MS2 spectrum
@@ -177,6 +178,22 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
   purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
   TEST_EQUAL(purityscores.size(), 0)
 
+  spectra = spectra_copy;
+
+  // duplicate IDs, skip the computation
+  spectra = spectra_copy;
+  TEST_EQUAL(spectra[2].getNativeID(), "controllerType=0 controllerNumber=1 scan=4")
+  spectra[2].setNativeID(spectra[4].getNativeID());
+  TEST_EQUAL(spectra[2].getNativeID(), "controllerType=0 controllerNumber=1 scan=8")
+  TEST_EQUAL(spectra[4].getNativeID(), "controllerType=0 controllerNumber=1 scan=8")
+  purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
+  TEST_EQUAL(purityscores.size(), 0)
+
+  // empty ID, skip the computation
+  spectra = spectra_copy;
+  spectra[0].setNativeID("");
+  purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
+  TEST_EQUAL(purityscores.size(), 0)
 
 END_SECTION
 
