@@ -184,7 +184,7 @@ namespace OpenMS
        */
       struct CLSMScoreComparator
       {
-        inline bool operator() (const CrossLinkSpectrumMatch& a, const CrossLinkSpectrumMatch& b)
+        bool operator() (const CrossLinkSpectrumMatch& a, const CrossLinkSpectrumMatch& b)
         {
           if (a.score == b.score)
           {
@@ -229,15 +229,15 @@ namespace OpenMS
        */
       struct XLPrecursorComparator
       {
-        inline bool operator() (const XLPrecursor& a, const XLPrecursor& b) const
+        bool operator() (const XLPrecursor& a, const XLPrecursor& b) const
         {
           return a.precursor_mass < b.precursor_mass;
         }
-        inline bool operator() (const XLPrecursor& a, const double& b) const
+        bool operator() (const XLPrecursor& a, const double& b) const
         {
           return a.precursor_mass < b;
         }
-        inline bool operator() (const double& a, const XLPrecursor& b) const
+        bool operator() (const double& a, const XLPrecursor& b) const
         {
           return a < b.precursor_mass;
         }
@@ -280,15 +280,15 @@ namespace OpenMS
        */
       struct AASeqWithMassComparator
       {
-        inline bool operator() (const AASeqWithMass& a, const AASeqWithMass& b) const
+        bool operator() (const AASeqWithMass& a, const AASeqWithMass& b) const
         {
           return a.peptide_mass < b.peptide_mass;
         }
-        inline bool operator() (const AASeqWithMass& a, const double& b) const
+        bool operator() (const AASeqWithMass& a, const double& b) const
         {
           return a.peptide_mass < b;
         }
-        inline bool operator() (const double& a, const AASeqWithMass& b) const
+        bool operator() (const double& a, const AASeqWithMass& b) const
         {
           return a < b.peptide_mass;
         }
