@@ -936,7 +936,10 @@ using namespace OpenMS;
 
         csm.frag_annotations = frag_annotations;
 
-        all_csms_spectrum.push_back(csm);
+#pragma omp critical (all_csms_spectrum_access)
+        {
+          all_csms_spectrum.push_back(csm);
+        }
       } // end of parallel loop over top X candidates
 
       // collect top n matches to spectrum
