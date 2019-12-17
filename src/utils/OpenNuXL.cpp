@@ -102,6 +102,9 @@
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
+#include <boost/accumulators/statistics/p_square_quantile.hpp>
+using namespace boost::accumulators;
+
 #ifdef _OPENMP
 #include <omp.h>
 #define NUMBER_OF_THREADS (omp_get_num_threads())
@@ -116,7 +119,10 @@
 //#define FILTER_AMBIGIOUS_PEAKS 
 //#define FILTER_NO_ARBITRARY_TAG_PRESENT
 //#define SVM_RECALIBRATE
-//#define FILTER_TOTAL_HYPERSCORE 1
+#define FILTER_RANKS 1
+//#define CALCULATE_NUCLEOTIDE_TAGS 1
+
+typedef accumulator_set<double, stats<tag::p_square_quantile> > quantile_accu_t;
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -1678,7 +1684,6 @@ static void scoreXLIons_(
       aa_plus_adduct_mass[m][r] = 0;
     }
 
-
     if (debug_level_ > 0)
     {
       // output ambigious masses
@@ -1715,12 +1720,15 @@ static void scoreXLIons_(
       {
         for (Size j = i+1; j < mzs.size(); ++j)
         {
+          if (charges[i] != charges[j]) continue;
+
           double m = mzs[j];
           double dm = m - mzs[i];
 
-          if (charges[i] != charges[j]) continue;
-
           const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
+
+          if (dm * charges[i] > *adduct_mass.rbegin() + tolerance) break;
+
           auto left = adduct_mass.lower_bound((dm * charges[i]) - tolerance);
           if (left == adduct_mass.end()) continue;
           ++in_mass_range;
@@ -1766,10 +1774,15 @@ static void scoreXLIons_(
       spec.getFloatDataArrays()[1][0] = (double)match / (double)in_mass_range;
       spec.getFloatDataArrays()[1].setName("nucleotide_mass_tags");
 
-      spec.getIntegerDataArrays().resize(3);
 
-     // calculate ranks
-      //
+    }
+
+    // calculate ranks
+    cout << "Calculating ranks..." << endl;
+    for (auto & spec : exp)
+    {
+      if (spec.getMSLevel() != 2) continue;
+
       // initialize original index locations
       vector<size_t> idx(spec.size());
       std::iota(idx.begin(), idx.end(), 0);
@@ -1778,15 +1791,28 @@ static void scoreXLIons_(
       sort(idx.begin(), idx.end(),
         [&spec](size_t i1, size_t i2) { return spec[i1].getIntensity() > spec[i2].getIntensity(); });
 
+      spec.getIntegerDataArrays().resize(IA_RANK_INDEX + 1);
       spec.getIntegerDataArrays()[IA_RANK_INDEX].clear();
       for (int rank : idx) { spec.getIntegerDataArrays()[IA_RANK_INDEX].push_back(rank); }
       spec.getIntegerDataArrays()[IA_RANK_INDEX].setName("intensity_rank");
+    }
+    cout << " done!" << endl;
 
-      OpenNuXLTagger tagger(0.05, 3);
+    cout << "Calculating longest mass tags..." << endl;
+    OpenNuXLTagger tagger(0.05, 3);
+    for (auto & spec : exp)
+    {
+      if (spec.getMSLevel() != 2) continue;
+      spec.getIntegerDataArrays().resize(IA_DENOVO_TAG_INDEX + 1);
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].resize(1);
+      spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] = 0;
+      #ifdef CALCULATE_LONGEST_TAG
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] = tagger.getLongestTag(spec).size();
+      #endif
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].setName("longest_tag");
     }
+    cout << " done!" << endl;
+
 
     if (debug_level_ > 0) 
     {
@@ -3917,6 +3943,8 @@ static void scoreXLIons_(
     vector<omp_lock_t> annotated_peptides_lock(annotated_peptides.size());
     for (size_t i = 0; i != annotated_peptides_lock.size(); i++) { omp_init_lock(&(annotated_peptides_lock[i])); }
 #endif
+    vector<quantile_accu_t> annotated_peptides_quantiles_peptides(spectra.size(), quantile_accu_t(quantile_probability = 0.95));
+    vector<quantile_accu_t> annotated_peptides_quantiles_XLs(spectra.size(), quantile_accu_t(quantile_probability = 0.95));
 
     // load fasta file
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
@@ -4211,6 +4239,7 @@ static void scoreXLIons_(
                   omp_set_lock(&(annotated_peptides_lock[scan_index]));
 #endif
                   {
+                    annotated_peptides_quantiles_peptides[scan_index](ah.total_loss_score);
                     annotated_peptides[scan_index].emplace_back(move(ah));
 
                     // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
@@ -4446,6 +4475,7 @@ static void scoreXLIons_(
                     omp_set_lock(&(annotated_XLs_lock[scan_index]));
 #endif
                     {
+                      annotated_peptides_quantiles_XLs[scan_index](ah.total_loss_score + ah.partial_loss_score);
                       annotated_XLs[scan_index].emplace_back(move(ah));
 
                       // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
@@ -4606,6 +4636,27 @@ static void scoreXLIons_(
 
     // annotate RNPxl related information to hits and create report
     vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
+/*
+      for (Size scan_index = 0; scan_index != peptide_ids.size(); ++scan_index)
+      {
+        PeptideIdentification& pi = peptide_ids[scan_index];
+        cout << "score\tpeptides\tXLs\ttype" << endl;
+        for (auto & ph : pi.getHits())
+        {
+          if (ph.getMetaValue("NuXL:isXL") == "1")
+          {
+            ph.setMetaValue("NuXL:total_HS", (double)ph.getMetaValue("NuXL:total_HS") / p_square_quantile(annotated_peptides_quantiles_XLs[scan_index]));
+          }
+          else
+          {
+            ph.setMetaValue("NuXL:total_HS", (double)ph.getMetaValue("NuXL:total_HS") / p_square_quantile(annotated_peptides_quantiles_peptides[scan_index]));
+          }
+        }
+      }
+*/
+
+
+
 
 /*
     // keep 10 bins with best 100 scores using priority queues
@@ -4719,6 +4770,7 @@ static void scoreXLIons_(
           pi.assignRanks();
         }
       }
+
 
 #ifdef SVM_RECALIBRATE
       ///////////////////////////////////////// SVM score recalibration
@@ -5040,24 +5092,22 @@ variable_modifications  -0.0944707
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
       // generate filtered results
-#ifdef FILTER_TOTAL_HYPERSCORE
+#ifdef FILTER_RANKS
       for (auto & pi : peptide_ids)
       {
         double best_HS(0);
         auto & phs = pi.getHits();
         if (phs.empty()) continue;
-        double max_total_HS = std::max_element(phs.begin(), phs.end(), 
+        double max_total_Morph = std::max_element(phs.begin(), phs.end(), 
            [] (PeptideHit const& lhs, PeptideHit const& rhs) 
            {
-             return (double)lhs.getMetaValue("NuXL:total_HS") < (double)rhs.getMetaValue("NuXL:total_HS"); 
-           })->getMetaValue("NuXL:total_HS");
-
-        cout << "Max total_HS: " << max_total_HS << endl;
+             return (double)lhs.getMetaValue("NuXL:total_Morph") < (double)rhs.getMetaValue("NuXL:total_Morph"); 
+           })->getMetaValue("NuXL:total_Morph");
 
         auto new_end = std::remove_if(phs.begin(), phs.end(),
-            [&max_total_HS](const PeptideHit & ph) 
+            [&max_total_Morph](const PeptideHit & ph) 
           { 
-           return fabs((double)ph.getMetaValue("NuXL:total_HS") - max_total_HS) > 1e-4; 
+           return fabs((double)ph.getMetaValue("NuXL:total_Morph") - max_total_Morph) > 1e-4; 
           });
         phs.erase(new_end, phs.end());
       } 
