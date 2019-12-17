@@ -26,4 +26,4 @@ openms-build
 *.swp
 cmake-build-debug
 cmake-build-release
-
+.vs
