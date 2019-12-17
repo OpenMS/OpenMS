@@ -185,7 +185,7 @@ namespace OpenMS
     }
 
 #ifdef OPENMS_USE_PDQSORT
-    boost::sort::pdqsort(spectrum.begin(), spectrum.end(), [](const SimplePeak& a, const SimplePeak& b) {return a.mz < b.mz;});
+    boost::sort::pdqsort_branchless(spectrum.begin(), spectrum.end(), [](const SimplePeak& a, const SimplePeak& b) {return a.mz < b.mz;});
 #else
     std::stable_sort(spectrum.begin(), spectrum.end(), [](const SimplePeak& a, const SimplePeak& b) {return a.mz < b.mz;});
 #endif
@@ -328,7 +328,7 @@ namespace OpenMS
 
 #ifdef OPENMS_USE_PDQSORT
     std::reverse(spectrum.begin(), spectrum.end());
-    boost::sort::pdqsort(spectrum.begin(), spectrum.end(), [](const SimplePeak& a, const SimplePeak& b) {return a.mz < b.mz;});
+    boost::sort::pdqsort_branchless(spectrum.begin(), spectrum.end(), [](const SimplePeak& a, const SimplePeak& b) {return a.mz < b.mz;});
 #else
     std::sort(spectrum.begin(), spectrum.end(), [](const SimplePeak& a, const SimplePeak& b) {return a.mz < b.mz;});
 #endif
@@ -591,7 +591,7 @@ namespace OpenMS
 
 #ifdef OPENMS_USE_PDQSORT
     std::reverse(spectrum.begin(), spectrum.end());
-    boost::sort::pdqsort(spectrum.begin(), spectrum.end(), [](const SimplePeak& a, const SimplePeak& b) {return a.mz < b.mz;});
+    boost::sort::pdqsort_branchless(spectrum.begin(), spectrum.end(), [](const SimplePeak& a, const SimplePeak& b) {return a.mz < b.mz;});
 #else
     std::sort(spectrum.begin(), spectrum.end(), [](const SimplePeak& a, const SimplePeak& b) {return a.mz < b.mz;});
 #endif
