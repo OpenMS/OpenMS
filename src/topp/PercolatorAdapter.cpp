@@ -810,19 +810,19 @@ protected:
     String pin_file;
     if (getStringOption_("out_pin").empty())
     {
-      pin_file = temp_directory_body + txt_designator + "_pin.tsv";
+      pin_file = temp_directory_body + txt_designator + "_pin.tab";
     }
     else
     {
       pin_file = getStringOption_("out_pin");
     }
     
-    String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tsv");
-    String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tsv");
-    String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tsv");
-    String pout_decoy_file_peptides(temp_directory_body + txt_designator + "_decoy_pout_peptides.tsv");
-    String pout_target_file_proteins(temp_directory_body + txt_designator + "_target_pout_proteins.tsv");
-    String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tsv");
+    String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
+    String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tab");
+    String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tab");
+    String pout_decoy_file_peptides(temp_directory_body + txt_designator + "_decoy_pout_peptides.tab");
+    String pout_target_file_proteins(temp_directory_body + txt_designator + "_target_pout_proteins.tab");
+    String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
 
     // prepare OSW I/O
     if (out_type == FileTypes::OSW && in_osw != out)
