@@ -86,6 +86,8 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
+    registerInputFile_("sequences_file", "<file>", "", "Fasta File", false);
+    setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("csv"));
     registerFlag_("latex", "Indicates whether the output file format of the table should be LaTeX or CSV (default)");
