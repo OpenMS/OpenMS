@@ -182,9 +182,14 @@ namespace OpenMS
       }
 
       auto sumInt = .0;
+      std::stringstream ss; // pgmass_strings
+      std::stringstream ss_rt; // pgmass_strings
+      ss.str(std::string());
       for (auto &p : mt)
       {
         sumInt += p.getIntensity();
+        ss << std::to_string(p.getMZ()) << ";" ;
+        ss_rt << std::to_string(p.getRT()) << ";";
       }
 
       auto massDelta = averagines.getAverageMassDelta(mass);
@@ -205,7 +210,9 @@ namespace OpenMS
           << maxCharge << "\t"
           << charges.count() << "\t"
           << isoScore << "\t"
-          << chargeScore << "\n";
+          << chargeScore << "\t"
+          << ss.str() << "\t"
+          << ss_rt.str() << "\n";
     }
     delete[] perIsotopeIntensity;
     delete[] perChargeMz;

@@ -529,9 +529,9 @@ protected:
     //cout<<1<<endl;
     fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.spec->getNativeID() << "\t"<< pg.spec->getMSLevel() << "\t"
         << pg.massCntr << "\t"
-       << fixed << setprecision(3) << am << "\t" << m << "\t" << intensity << "\t"
+       << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
        << (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
-       << fixed << setprecision(1) << pg.spec->getRT()
+       << std::to_string(pg.spec->getRT())
        << "\t" << pg.peaks.size() << "\t";
 
     fs << fixed << setprecision(2);
@@ -707,7 +707,8 @@ protected:
     }
     fsf << "ID\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
+           "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
+           "\tPeakGroupMasses\tPeakGroupRTs\n";
 
     return;
   }
