@@ -999,9 +999,14 @@ namespace OpenMS
           {
             os << " windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset()) << "\"";
           }
-          if (!precursor.getActivationMethods().empty() && !Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))].empty())
+          if (!precursor.getActivationMethods().empty())
           { // must not be empty, but technically only ETD, ECD, CID are allowed in mzXML 3.1
             os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))] << "\" ";
+          } 
+          else if (options_.getForceMQCompatability())
+          { // a missing activation would make old MQ versions crash...
+            OPENMS_LOG_WARN << "Warning: An MS2 scan does not have data on it's activation method. Using 'CID' as fallback!\n";
+            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[Precursor::ActivationMethod::CID] << "\" ";
           }
 
           //m/z
@@ -1018,7 +1023,7 @@ namespace OpenMS
         // mzXML reader will fail otherwise! -- dont ask..) while others cannot
         // deal with them (mostly TPP tools such as SpectraST).
         String s_peaks;
-        if (options_.getForceMQCompatability() )
+        if (options_.getForceMQCompatability())
         {
           s_peaks = "<peaks precision=\"32\"\n byteOrder=\"network\"\n contentType=\"m/z-int\"\n compressionType=\"none\"\n compressedLen=\"0\" ";
         }
@@ -1036,10 +1041,11 @@ namespace OpenMS
           os << ">";
           // for MaxQuant-compatible mzXML, the data type must be 'float', i.e. precision=32 bit. 64bit will crash MaxQuant!
           std::vector<float> tmp;
-          for (Size i = 0; i < spec.size(); i++)
+          tmp.reserve(spec.size() * 2);
+          for (const auto& p : spec)
           {
-            tmp.push_back(spec[i].getMZ());
-            tmp.push_back(spec[i].getIntensity());
+            tmp.push_back(p.getMZ());
+            tmp.push_back(p.getIntensity());
           }
 
           String encoded;
