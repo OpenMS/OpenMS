@@ -280,15 +280,15 @@ namespace OpenMS
        */
       struct AASeqWithMassComparator
       {
-        bool operator() (const AASeqWithMass a, const AASeqWithMass b) const
+        bool operator() (const AASeqWithMass& a, const AASeqWithMass& b) const
         {
           return a.peptide_mass < b.peptide_mass;
         }
-        bool operator() (const AASeqWithMass a, const double b) const
+        bool operator() (const AASeqWithMass& a, const double& b) const
         {
           return a.peptide_mass < b;
         }
-        bool operator() (const double a, const AASeqWithMass b) const
+        bool operator() (const double& a, const AASeqWithMass& b) const
         {
           return a < b.peptide_mass;
         }
