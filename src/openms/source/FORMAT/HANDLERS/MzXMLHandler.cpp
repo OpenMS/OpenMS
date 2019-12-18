@@ -49,8 +49,8 @@ namespace OpenMS
     struct IndexPos
     {
       Size id_;
-      std::ostream::streampos pos_;
-      IndexPos(const Size id, const std::ostream::streampos pos)
+      std::ostream::pos_type pos_;
+      IndexPos(const Size id, const std::ostream::pos_type pos)
         : id_(id),
         pos_(pos) {}
     };
@@ -1082,7 +1082,7 @@ namespace OpenMS
         {
           OPENMS_LOG_INFO << "mzXML: index was not requested, but will be written to maintain MaxQuant compatibility." << std::endl;
         }
-        std::ostream::streampos index_offset = os.tellp();
+        std::ostream::pos_type index_offset = os.tellp();
         os << "<index name = \"scan\" >\n";
         for (Size i = 0; i < scan_index_positions.size(); ++i)
         {
