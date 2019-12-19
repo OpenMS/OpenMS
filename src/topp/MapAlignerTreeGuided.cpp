@@ -153,7 +153,9 @@ private:
       pearson_val = static_cast<float>(pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(),
               intercept_rts2.begin(), intercept_rts2.end()));
       if (pearson_val > 1)
+      {
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
 
       return (1 - (pearson_val * intercept_size / union_size));
     }
@@ -577,4 +579,3 @@ int main(int argc, const char** argv)
 }
 
 /// @endcond
-
