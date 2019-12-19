@@ -254,6 +254,9 @@ using namespace OpenMS;
     progresslogger.endProgress();
     picked_spectra.clear(true);
 
+    // sort the spectra by RT, the order might have been changed by parallel preprocessing
+    spectra.sortSpectra(false);
+
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_name_);
     digestor.setMissedCleavages(missed_cleavages_);
