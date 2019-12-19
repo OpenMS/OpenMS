@@ -84,6 +84,8 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
 
   map<String, PrecursorPurity::PurityScores> purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
 
+  TEST_EQUAL(purityscores.size(), 5)
+
   // using the ID of an MS1 spectrum, a new ID for the map, adds a new Score to the map, initialized to 0
   TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].total_intensity, 0)
   TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].target_intensity, 0)
@@ -141,6 +143,7 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
   // this is the case for the last batch of MS2 spectra, if the last spectrum in the PeakMap is an MS2 spectrum
   spectra.resize(spectra.size()-1);
   purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
+  TEST_EQUAL(purityscores.size(), 5)
 
   // using the ID of an MS1 spectrum, a new ID for the map, adds a new Score to the map, initialized to 0
   TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].total_intensity, 0)
@@ -191,7 +194,7 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
 
   // empty ID, skip the computation
   spectra = spectra_copy;
-  spectra[0].setNativeID("");
+  spectra[3].setNativeID("");
   purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
   TEST_EQUAL(purityscores.size(), 0)
 
