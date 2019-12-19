@@ -167,6 +167,5 @@
   - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
   - @subpage TOPP_GNPSExport - Export MS/MS data in .MGF format for GNPS.
   - @subpage TOPP_MaRaClusterAdapter - Run the spectral clustering implemented in MaRaCluster.
-  - @subpage TOPP_SequenceRemover - Removes n peptides randomly from peptideidentifications from featureXML files.
 
 */
