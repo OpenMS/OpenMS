@@ -38,6 +38,7 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/FORMAT/Base64.h>
 
+#include <atomic>
 #include <stack>
 
 namespace OpenMS
@@ -966,9 +967,17 @@ namespace OpenMS
 
         // convert meta values to tags
         if (!writeAttributeIfExists_(os, spec, "lowest observed m/z", "lowMz") &&
-            options_.getForceMQCompatability()) writeKeyValue(os, "lowMz", spec.empty() ? 0 : spec.begin()->getMZ());
+            options_.getForceMQCompatability())
+        {
+          if (!spec.isSorted()) error(STORE, "Spectrum is not sorted by m/z! Please sort before storing!");
+          writeKeyValue(os, "lowMz", spec.empty() ? 0 : spec.begin()->getMZ());
+        }
         if (!writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz") &&
-            options_.getForceMQCompatability()) writeKeyValue(os, "highMz", spec.empty() ? 0 : spec.rbegin()->getMZ());
+            options_.getForceMQCompatability()) 
+        {
+          if (!spec.isSorted()) error(STORE, "Spectrum is not sorted by m/z! Please sort before storing!");
+          writeKeyValue(os, "highMz", spec.empty() ? 0 : spec.rbegin()->getMZ());
+        }
         
         if (!writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz"))
         { // base peak mz (used by some programs like MAVEN), according to xsd: "m/z of the base peak (most intense peak)"
@@ -1132,11 +1141,11 @@ namespace OpenMS
       std::vector<String> keys; // Vector to hold keys to meta info
       meta.getKeys(keys);
 
-      for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      for (const String& key : keys)
       {
-        if ((*it)[0] != '#') // internally used meta info start with '#'
+        if (key[0] != '#') // internally used meta info start with '#'
         {
-          os << String(indent, '\t') << "<" << tag << " name=\"" << *it << "\" value=\"" << writeXMLEscape(meta.getMetaValue(*it)) << "\"/>\n";
+          os << String(indent, '\t') << "<" << tag << " name=\"" << key << "\" value=\"" << writeXMLEscape(meta.getMetaValue(key)) << "\"/>\n";
         }
       }
     }
@@ -1146,7 +1155,7 @@ namespace OpenMS
       typedef SpectrumType::PeakType PeakType;
 
       //std::cout << "reading scan" << "\n";
-      if (spectrum_data.char_rest_ == "") // no peaks
+      if (spectrum_data.char_rest_.empty()) // no peaks
       {
         return;
       }
@@ -1214,14 +1223,12 @@ namespace OpenMS
       // Whether spectrum should be populated with data
       if (options_.getFillData())
       {
-        size_t errCount = 0;
-#ifdef _OPENMP
+        std::atomic<size_t> err_count = 0;
 #pragma omp parallel for
-#endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
           // parallel exception catching and re-throwing business
-          if (!errCount) // no need to parse further if already an error was encountered
+          if (!err_count) // no need to parse further if already an error was encountered
           {
             try
             {
@@ -1233,12 +1240,11 @@ namespace OpenMS
             }
             catch (...)
             {
-              #pragma omp critical(HandleException)
-              ++errCount;
+              ++err_count;
             }
           }
-        }
-        if (errCount != 0)
+        } // end parallel for
+        if (err_count != 0)
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
         }
