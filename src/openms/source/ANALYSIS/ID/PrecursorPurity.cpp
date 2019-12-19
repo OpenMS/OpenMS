@@ -36,9 +36,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-// #ifdef _OPENMP
-// #include <omp.h>
-// #endif
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -156,16 +156,11 @@ namespace OpenMS
       return purityscores;
     }
 
-    // keep the index of the two MS1 spectra flanking the current group of MS2 spectra
-    int current_parent_index = 0;
-    int next_parent_index = 0;
     bool lastMS1(false);
     int spectra_size = static_cast<int>(spectra.size());
     bool break_loop(false);
 
-// TODO make this multi-threaded, after making sure it is thread safe
-// current_parent_index and next_parent_index variables are not thread safe, determine flanking MS1 spectra directly from the current MS2
-//#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(guided)
     for (int i = 0; i < spectra_size; ++i)
     {
       // cannot return or break from OpenMP for loop, so continue to the end and return empty vector after loop
@@ -173,34 +168,38 @@ namespace OpenMS
       {
         continue;
       }
-      // change current parent index if a new MS1 spectrum is reached
-      if (spectra[i].getMSLevel() == 1)
+      if (spectra[i].getMSLevel() == 2)
       {
-        current_parent_index = i;
-      }
-      else if (spectra[i].getMSLevel() == 2)
-      {
-        // update next MS1 index, if it is lower than the current MS2 index
-        if (next_parent_index < i)
+        auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin()+i);
+        if (parent_spectrum_it == spectra.end())
         {
-          for (int j = i+1; j < spectra_size; ++j)
+#pragma omp critical (purityscores_access)
           {
-            if (spectra[j].getMSLevel() == 1)
-            {
-              next_parent_index = j;
-              break;
-            }
-          }
-          // if the next MS1 index was not updated,
-          // the end of the PeakMap was reached right after this current group of MS2 spectra
-          if (next_parent_index < i)
-          {
-            lastMS1 = true;
+            OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. An MS2 spectrum without parent spectrum detected. Precursor Purity info will not be calculated!\n";
+            break_loop = true;
           }
         }
 
+        // update next MS1 index, if it is lower than the current MS2 index
+        int next_parent_index(0);
+        for (int j = i+1; j < spectra_size; ++j)
+        {
+          if (spectra[j].getMSLevel() == 1)
+          {
+            next_parent_index = j;
+            break;
+          }
+        }
+        // if the next MS1 index was not updated,
+        // the end of the PeakMap was reached right after this current group of MS2 spectra
+        if (next_parent_index <= i)
+        {
+#pragma omp critical (lastMS1_access)
+          lastMS1 = true;
+        }
+
         PrecursorPurity::PurityScores score;
-        PrecursorPurity::PurityScores score1 = PrecursorPurity::computePrecursorPurity(spectra[current_parent_index], spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+        PrecursorPurity::PurityScores score1 = PrecursorPurity::computePrecursorPurity((*parent_spectrum_it), spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
         // use default values of 0, if there is an MS2 spectrum without an MS1 after it (may happen for the last group of MS2 spectra)
         PrecursorPurity::PurityScores score2;
         if (!lastMS1) // there is an MS1 after this MS2, combine values from previous and next MS1
@@ -213,19 +212,16 @@ namespace OpenMS
           score = score1;
         }
 
-//#pragma omp critical (purityscores_access)
+#pragma omp critical (purityscores_access)
         {
           insert_return_value = purityscores.insert(std::pair<String, PrecursorPurity::PurityScores>(spectra[i].getNativeID(), score));
           // check if the key had already been used before, and only set break_loop if really necessary
           // (do not set it to false every time, might overwrite a true value in parallel processing)
           if (!insert_return_value.second)
           {
+            OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Duplicate Spectrum IDs. Precursor Purity info will not be calculated!\n";
             break_loop = true;
           }
-        }
-        if (break_loop)
-        {
-          OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Duplicate Spectrum IDs. Precursor Purity info will not be calculated!\n";
         }
       } // end of MS2 spectrum
     } // end of parallelized spectra loop
