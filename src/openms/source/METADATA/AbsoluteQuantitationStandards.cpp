@@ -73,9 +73,11 @@ namespace OpenMS
       {
         StringList filename;
         fmap.getPrimaryMSRunPath(filename);
-        if (!filename.size() || !(filename[0].substitute(".mzML", "") == run.sample_name || filename[0].substitute(".txt", "") == run.sample_name)) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
+        if (!filename.empty()) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
         {
-          continue;
+          if (filename[0].hasSuffix(".mzML")) filename[0].resize(filename[0].size() - 5);
+          else if (filename[0].hasSuffix(".txt")) filename[0].resize(filename[0].size() - 4);
+          if (filename[0] != run.sample_name) continue;
         }
         AbsoluteQuantitationStandards::featureConcentration fc;
         if (!findComponentFeature_(fmap, run.component_name, fc.feature)) // if there was no match: skip.
