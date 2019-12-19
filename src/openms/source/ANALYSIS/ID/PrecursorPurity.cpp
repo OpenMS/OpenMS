@@ -36,9 +36,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// #ifdef _OPENMP
+// #include <omp.h>
+// #endif
 
 namespace OpenMS
 {
@@ -163,7 +163,9 @@ namespace OpenMS
     int spectra_size = static_cast<int>(spectra.size());
     bool break_loop(false);
 
-#pragma omp parallel for schedule(guided)
+// TODO make this multi-threaded, after making sure it is thread safe
+// current_parent_index and next_parent_index variables are not thread safe, determine flanking MS1 spectra directly from the current MS2
+//#pragma omp parallel for schedule(guided)
     for (int i = 0; i < spectra_size; ++i)
     {
       // cannot return or break from OpenMP for loop, so continue to the end and return empty vector after loop
@@ -211,7 +213,7 @@ namespace OpenMS
           score = score1;
         }
 
-#pragma omp critical (purityscores_access)
+//#pragma omp critical (purityscores_access)
         {
           insert_return_value = purityscores.insert(std::pair<String, PrecursorPurity::PurityScores>(spectra[i].getNativeID(), score));
           // check if the key had already been used before, and only set break_loop if really necessary
