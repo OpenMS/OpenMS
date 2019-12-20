@@ -635,7 +635,7 @@ namespace OpenMS
 
     void MzXMLHandler::writeTo(std::ostream& os)
     {
-      //determine how many spectra there are (count only those with peaks)
+      // determine how many spectra there are (count only those with peaks)
       UInt count_tmp_ = 0;
       for (Size s = 0; s < cexp_->size(); s++)
       {
@@ -870,6 +870,7 @@ namespace OpenMS
 
       // write scans
       std::stack<UInt> open_scans;
+      Size spec_index {0};
       for (Size s = 0; s < cexp_->size(); s++)
       {
         logger_.setProgress(s);
@@ -880,10 +881,11 @@ namespace OpenMS
           continue;
         }
 
+        ++spec_index; // do not use 's', since we might have skipped empty spectra
         UInt ms_level = spec.getMSLevel();
         open_scans.push(ms_level);
 
-        Size spectrum_id = s + 1;
+        Size spectrum_id = spec_index;
         if (all_prefixed_numbers)
         {
           spectrum_id = spec.getNativeID().substr(5).toInt();
@@ -1223,7 +1225,7 @@ namespace OpenMS
       // Whether spectrum should be populated with data
       if (options_.getFillData())
       {
-        std::atomic<size_t> err_count = 0;
+        std::atomic<size_t> err_count{0};
 #pragma omp parallel for
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
