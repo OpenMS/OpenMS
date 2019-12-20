@@ -38,6 +38,7 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/FORMAT/Base64.h>
 
+#include <atomic>
 #include <stack>
 
 namespace OpenMS
@@ -94,7 +95,11 @@ namespace OpenMS
     const XMLCh* s_centroided_ = xercesc::XMLString::transcode("centroided");
     const XMLCh* s_deisotoped_ = xercesc::XMLString::transcode("deisotoped");
     const XMLCh* s_chargedeconvoluted_ = xercesc::XMLString::transcode("chargeDeconvoluted");
-    
+
+    void writeKeyValue(std::ostream& os, const String& key, const DataValue& value)
+    {
+      os << " " << key << "=\"" << value << "\"";
+    }
 
     /// Constructor for a read-only handler
     MzXMLHandler::MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
@@ -630,7 +635,7 @@ namespace OpenMS
 
     void MzXMLHandler::writeTo(std::ostream& os)
     {
-      //determine how many spectra there are (count only those with peaks)
+      // determine how many spectra there are (count only those with peaks)
       UInt count_tmp_ = 0;
       for (Size s = 0; s < cexp_->size(); s++)
       {
@@ -825,8 +830,8 @@ namespace OpenMS
         }
       }
 
-      //check if the nativeID of all spectra are numbers or numbers prefixed with 'scan='
-      //If not we need to renumber all spectra.
+      // Check if the nativeID of all spectra are numbers or numbers prefixed with 'scan='
+      // If not, we need to renumber all spectra.
       bool all_numbers = true;
       bool all_empty = true;
       bool all_prefixed_numbers = true;
@@ -865,15 +870,22 @@ namespace OpenMS
 
       // write scans
       std::stack<UInt> open_scans;
+      Size spec_index {0};
       for (Size s = 0; s < cexp_->size(); s++)
       {
         logger_.setProgress(s);
         const SpectrumType& spec = (*cexp_)[s];
+        
+        if (spec.empty() && options_.getForceMQCompatability())
+        { // MaxQuant's XML parser cannot deal with empty spectra in mzXML (Error: 'there are multiple root elements'...)
+          continue;
+        }
 
+        ++spec_index; // do not use 's', since we might have skipped empty spectra
         UInt ms_level = spec.getMSLevel();
         open_scans.push(ms_level);
 
-        Size spectrum_id = s + 1;
+        Size spectrum_id = spec_index;
         if (all_prefixed_numbers)
         {
           spectrum_id = spec.getNativeID().substr(5).toInt();
@@ -903,41 +915,36 @@ namespace OpenMS
           os << "any";
         }
         os << "\"";
-        //scan type
+        // scan type
+        String type;
         switch (spec.getInstrumentSettings().getScanMode())
         {
         case InstrumentSettings::UNKNOWN:
           break;
-
         case InstrumentSettings::MASSSPECTRUM:
         case InstrumentSettings::MS1SPECTRUM:
         case InstrumentSettings::MSNSPECTRUM:
-          if (spec.getInstrumentSettings().getZoomScan())
-          {
-            os << " scanType=\"zoom\"";
-          }
-          else
-          {
-            os << " scanType=\"Full\"";
-          }
+          type = (spec.getInstrumentSettings().getZoomScan() ? "zoom" : "Full");
           break;
-
         case InstrumentSettings::SIM:
-          os << " scanType=\"SIM\"";
+          type = "SIM";
           break;
-
         case InstrumentSettings::SRM:
-          os << " scanType=\"SRM\"";
+          type = "SRM";
           break;
-
         case InstrumentSettings::CRM:
-          os << " scanType=\"CRM\"";
+          type = "CRM";
           break;
-
         default:
-          os << " scanType=\"Full\"";
+          type = "Full";
           warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[spec.getInstrumentSettings().getScanMode()] + "' not supported by mzXML. Using 'Full' scan mode!");
         }
+        if (type.empty() && options_.getForceMQCompatability())
+        {
+          type = "Full";
+          warning(STORE, String("Scan type unknown. Assuming 'Full' scan mode for MQ compatibility!"));
+        }
+        if (!type.empty()) os << " scanType=\""<< type << "\"";
 
         // filter line
         if (spec.metaValueExists("filter string"))
@@ -946,7 +953,7 @@ namespace OpenMS
           os << writeXMLEscape((String)spec.getMetaValue("filter string"));
           os << "\"";
         }
-
+       
         // retention time
         os << " retentionTime=\"";
         if (spec.getRT() < 0) os << "-";
@@ -954,30 +961,47 @@ namespace OpenMS
         if (!spec.getInstrumentSettings().getScanWindows().empty())
         {
           os << " startMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].begin << "\" endMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].end << "\"";
-        }
-        if (spec.getInstrumentSettings().getScanWindows().size() > 1)
-        {
-          warning(STORE, "The MzXML format can store only one scan window for each scan. Only the first one is stored!");
+          if (spec.getInstrumentSettings().getScanWindows().size() > 1)
+          {
+            warning(STORE, "The MzXML format can store only one scan window for each scan. Only the first one is stored!");
+          }
         }
 
         // convert meta values to tags
-        writeAttributeIfExists_(os, spec, "lowest observed m/z", "lowMz");
-        writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz");
-        if (spec.metaValueExists("base peak m/z")) 
+        if (!writeAttributeIfExists_(os, spec, "lowest observed m/z", "lowMz") &&
+            options_.getForceMQCompatability())
         {
-          writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz");
+          if (!spec.isSorted()) error(STORE, "Spectrum is not sorted by m/z! Please sort before storing!");
+          writeKeyValue(os, "lowMz", spec.empty() ? 0 : spec.begin()->getMZ());
         }
-        else
+        if (!writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz") &&
+            options_.getForceMQCompatability()) 
+        {
+          if (!spec.isSorted()) error(STORE, "Spectrum is not sorted by m/z! Please sort before storing!");
+          writeKeyValue(os, "highMz", spec.empty() ? 0 : spec.rbegin()->getMZ());
+        }
+        
+        if (!writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz"))
         { // base peak mz (used by some programs like MAVEN), according to xsd: "m/z of the base peak (most intense peak)"
           auto it = spec.getBasePeak();
-          os << " basePeakMz=\"" << (it != spec.end() ? it->getMZ() : 0.0) << "\"";
+          writeKeyValue(os, "basePeakMz", (it != spec.end() ? it->getMZ() : 0.0));
         }
-        writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity");
-        writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent");
+
+        if (!writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity") &&
+            options_.getForceMQCompatability())
+        {
+          auto it = spec.getBasePeak();
+          writeKeyValue(os, "basePeakIntensity", (it != spec.end() ? it->getIntensity() : 0.0));
+        }
+        if (!writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent") &&
+            options_.getForceMQCompatability())
+        {
+          writeKeyValue(os, "totIonCurrent", spec.getTIC());
+        }
 
         if (ms_level == 2 &&
-          !spec.getPrecursors().empty() &&
-          spec.getPrecursors().front().metaValueExists("collision energy"))
+            !spec.getPrecursors().empty() &&
+            spec.getPrecursors().front().metaValueExists("collision energy"))
         {
           os << " collisionEnergy=\"" << spec.getPrecursors().front().getMetaValue("collision energy") << "\" ";
         }
@@ -1038,7 +1062,6 @@ namespace OpenMS
         os << String(ms_level + 2, '\t') << s_peaks;
         if (!spec.empty())
         {
-          os << ">";
           // for MaxQuant-compatible mzXML, the data type must be 'float', i.e. precision=32 bit. 64bit will crash MaxQuant!
           std::vector<float> tmp;
           tmp.reserve(spec.size() * 2);
@@ -1050,7 +1073,7 @@ namespace OpenMS
 
           String encoded;
           Base64::encode(tmp, Base64::BYTEORDER_BIGENDIAN, encoded);
-          os << encoded << "</peaks>\n";
+          os << ">" << encoded << "</peaks>\n";
         }
         else
         {
@@ -1104,25 +1127,27 @@ namespace OpenMS
       spec_write_counter_ = 1;
     }
 
-    inline std::ostream& MzXMLHandler::writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname)
+    inline bool MzXMLHandler::writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname)
     {
       if (meta.metaValueExists(metakey))
       {
-        os << " " << attname << "=\"" << meta.getMetaValue(metakey) << "\"";
+        writeKeyValue(os, attname, meta.getMetaValue(metakey));
+        return true;
       }
-      return os;
+      return false;
     }
+
 
     inline void MzXMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent, String tag)
     {
       std::vector<String> keys; // Vector to hold keys to meta info
       meta.getKeys(keys);
 
-      for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      for (const String& key : keys)
       {
-        if ((*it)[0] != '#') // internally used meta info start with '#'
+        if (key[0] != '#') // internally used meta info start with '#'
         {
-          os << String(indent, '\t') << "<" << tag << " name=\"" << *it << "\" value=\"" << writeXMLEscape(meta.getMetaValue(*it)) << "\"/>\n";
+          os << String(indent, '\t') << "<" << tag << " name=\"" << key << "\" value=\"" << writeXMLEscape(meta.getMetaValue(key)) << "\"/>\n";
         }
       }
     }
@@ -1132,7 +1157,7 @@ namespace OpenMS
       typedef SpectrumType::PeakType PeakType;
 
       //std::cout << "reading scan" << "\n";
-      if (spectrum_data.char_rest_ == "") // no peaks
+      if (spectrum_data.char_rest_.empty()) // no peaks
       {
         return;
       }
@@ -1200,14 +1225,12 @@ namespace OpenMS
       // Whether spectrum should be populated with data
       if (options_.getFillData())
       {
-        size_t errCount = 0;
-#ifdef _OPENMP
+        std::atomic<size_t> err_count{0};
 #pragma omp parallel for
-#endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
           // parallel exception catching and re-throwing business
-          if (!errCount) // no need to parse further if already an error was encountered
+          if (!err_count) // no need to parse further if already an error was encountered
           {
             try
             {
@@ -1219,12 +1242,11 @@ namespace OpenMS
             }
             catch (...)
             {
-              #pragma omp critical(HandleException)
-              ++errCount;
+              ++err_count;
             }
           }
-        }
-        if (errCount != 0)
+        } // end parallel for
+        if (err_count != 0)
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
         }

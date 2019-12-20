@@ -172,7 +172,8 @@ protected:
 
 
       /// write metaInfo to xml (usually in nameValue-tag)
-      inline std::ostream& writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname);
+      /// returns true if metavalue existed and data was written to the stream
+      inline bool writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname);
 
       /// write metaInfo to xml (usually in nameValue-tag)
       inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, String tag = "nameValue");
