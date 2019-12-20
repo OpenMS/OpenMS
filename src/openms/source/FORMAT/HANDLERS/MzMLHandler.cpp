@@ -1406,7 +1406,10 @@ namespace OpenMS
           }
         }
         //no value, although there should be a numerical value
-        else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING)
+        else if (term.xref_type != ControlledVocabulary::CVTerm::NONE &&
+                 term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING && // should be numerical
+                 !cv_.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
+                )
         {
           warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
           return;
@@ -1449,14 +1452,14 @@ namespace OpenMS
       {
         if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(bin_data_, accession, value, name, unit_accession))
         {
-          if (cv_.isChildOf(accession, "MS:1000513")) //other array names as string
-          {
-            bin_data_.back().meta.setName(cv_.getTerm(accession).name);
-          }
-          else
+          if (!cv_.isChildOf(accession, "MS:1000513")) //other array names as string
           {
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           }
+        }
+        if (cv_.isChildOf(accession, "MS:1000513")) // other array names as string
+        {
+          bin_data_.back().meta.setName(cv_.getTerm(accession).name);
         }
       }
       //------------------------- spectrum ----------------------------
