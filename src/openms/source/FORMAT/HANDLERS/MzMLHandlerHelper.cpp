@@ -307,6 +307,15 @@ namespace OpenMS
                                                        const String& name,
                                                        const String& unit_accession)
   {
+
+    bool is_default_array = (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595");
+
+    // store unit accession for non-default arrays
+    if (!unit_accession.empty() && !is_default_array)
+    {
+      data.back().meta.setMetaValue("unit_accession", unit_accession);
+    }
+
     //MS:1000518 ! binary data type
     if (accession == "MS:1000523") //64-bit float
     {
@@ -375,7 +384,7 @@ namespace OpenMS
       data.back().compression = false;
       data.back().np_compression = MSNumpressCoder::NONE;
     }
-    else if (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595")    // handle m/z, intensity, rt
+    else if (is_default_array) // handle m/z, intensity, rt
     {
       data.back().meta.setName(name);
 
