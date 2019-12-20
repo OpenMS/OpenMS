@@ -5386,7 +5386,7 @@ namespace OpenMS
         else
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" +
-            array.getName() + "\" " + unit_cv_term + " />\n";
+            array.getName() + "\"" + unit_cv_term + " />\n";
         }
 
         compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", true);
@@ -5485,7 +5485,7 @@ namespace OpenMS
       // write cvParams (chromatogram type)
       if (chromatogram.getChromatogramType() == ChromatogramSettings::MASS_CHROMATOGRAM)
       {
-        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"mass chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"ion current chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
       {
