@@ -24,7 +24,7 @@
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="OMS:precursor_mz_error_ppm,OpenPepXL:score,precursor_correction,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 	</SearchParameters>
-	<IdentificationRun date="2019-12-16T20:51:50" search_engine="OpenPepXL" search_engine_version="2.4.0-feature-OPXL-opt-2019-12-16" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-12-20T11:33:03" search_engine="OpenPepXL" search_engine_version="2.4.0-fix-PP-not-thread-safe-2019-12-20" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -284,10 +284,10 @@
 				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="194.810721588134754"/>
 				<UserParam type="float" name="ppm_error_abs_sum_beta" value="227.413535435994476"/>
 				<UserParam type="float" name="ppm_error_abs_sum" value="215.769673347473145"/>
-				<UserParam type="float" name="precursor_total_intensity" value="1.8262668125e06"/>
-				<UserParam type="float" name="precursor_target_intensity" value="1.8262668125e06"/>
+				<UserParam type="float" name="precursor_total_intensity" value="9.919959375e05"/>
+				<UserParam type="float" name="precursor_target_intensity" value="9.919959375e05"/>
 				<UserParam type="float" name="precursor_signal_proportion" value="1.0"/>
-				<UserParam type="int" name="precursor_target_peak_count" value="2"/>
+				<UserParam type="int" name="precursor_target_peak_count" value="1"/>
 				<UserParam type="int" name="precursor_residual_peak_count" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="sequence_beta" value="SAVIKTSTR"/>
@@ -352,10 +352,10 @@
 				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="191.911642074584961"/>
 				<UserParam type="float" name="ppm_error_abs_sum_beta" value="309.684105157852173"/>
 				<UserParam type="float" name="ppm_error_abs_sum" value="259.210192407880527"/>
-				<UserParam type="float" name="precursor_total_intensity" value="1.8262668125e06"/>
-				<UserParam type="float" name="precursor_target_intensity" value="1.8262668125e06"/>
+				<UserParam type="float" name="precursor_total_intensity" value="9.919959375e05"/>
+				<UserParam type="float" name="precursor_target_intensity" value="9.919959375e05"/>
 				<UserParam type="float" name="precursor_signal_proportion" value="1.0"/>
-				<UserParam type="int" name="precursor_target_peak_count" value="2"/>
+				<UserParam type="int" name="precursor_target_peak_count" value="1"/>
 				<UserParam type="int" name="precursor_residual_peak_count" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="sequence_beta" value="SAVIKTSTR"/>
@@ -680,10 +680,10 @@
 				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="152.371572875976568"/>
 				<UserParam type="float" name="ppm_error_abs_sum_beta" value="178.670226669311518"/>
 				<UserParam type="float" name="ppm_error_abs_sum" value="169.904008738199877"/>
-				<UserParam type="float" name="precursor_total_intensity" value="1.837489875e06"/>
-				<UserParam type="float" name="precursor_target_intensity" value="1.837489875e06"/>
+				<UserParam type="float" name="precursor_total_intensity" value="3.318901875e05"/>
+				<UserParam type="float" name="precursor_target_intensity" value="3.318901875e05"/>
 				<UserParam type="float" name="precursor_signal_proportion" value="1.0"/>
-				<UserParam type="int" name="precursor_target_peak_count" value="3"/>
+				<UserParam type="int" name="precursor_target_peak_count" value="1"/>
 				<UserParam type="int" name="precursor_residual_peak_count" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="sequence_beta" value="SAVIKTSTR"/>
@@ -748,10 +748,10 @@
 				<UserParam type="float" name="ppm_error_abs_sum_alpha" value="152.371572875976568"/>
 				<UserParam type="float" name="ppm_error_abs_sum_beta" value="186.712714725070526"/>
 				<UserParam type="float" name="ppm_error_abs_sum" value="174.448021207536982"/>
-				<UserParam type="float" name="precursor_total_intensity" value="1.837489875e06"/>
-				<UserParam type="float" name="precursor_target_intensity" value="1.837489875e06"/>
+				<UserParam type="float" name="precursor_total_intensity" value="3.318901875e05"/>
+				<UserParam type="float" name="precursor_target_intensity" value="3.318901875e05"/>
 				<UserParam type="float" name="precursor_signal_proportion" value="1.0"/>
-				<UserParam type="int" name="precursor_target_peak_count" value="3"/>
+				<UserParam type="int" name="precursor_target_peak_count" value="1"/>
 				<UserParam type="int" name="precursor_residual_peak_count" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="sequence_beta" value="SAVIKTSTR"/>

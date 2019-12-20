@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_12049315334424432437"
-	creationDate="2019-12-16T20:51:50">
+	creationDate="2019-12-20T11:33:04">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.4.0-feature-OPXL-opt-2019-12-16" name="OpenPepXL" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.4.0-fix-PP-not-thread-safe-2019-12-20" name="OpenPepXL" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1003023" cvRef="PSI-MS" name="OpenPepXL"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.4.0-feature-OPXL-opt-2019-12-16" name="TOPP software" id="SOF_9868242461570157420">
+	<AnalysisSoftware version="OpenMS TOPP v2.4.0-fix-PP-not-thread-safe-2019-12-20" name="TOPP software" id="SOF_9868242461570157420">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -176,7 +176,7 @@
 	<PeptideEvidence id="PEV_7539502987715517688" peptide_ref="PEP_1196373166564353753" dBSequence_ref="PROT_13440783915218733453" post="V" pre="R" start="145" end="159" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2019-12-16T20:51:50">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2019-12-20T11:33:03">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -1080,10 +1080,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="194.810721588134754"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="227.413535435994476"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="215.769673347473145"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.8262668125e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.8262668125e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="9.919959375e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="9.919959375e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="2"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -1163,10 +1163,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="194.810721588134754"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="227.413535435994476"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="215.769673347473145"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.8262668125e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.8262668125e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="9.919959375e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="9.919959375e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="2"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -1216,10 +1216,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="194.810721588134754"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="227.413535435994476"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="215.769673347473145"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.8262668125e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.8262668125e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="9.919959375e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="9.919959375e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="2"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -1269,10 +1269,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="194.810721588134754"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="227.413535435994476"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="215.769673347473145"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.8262668125e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.8262668125e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="9.919959375e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="9.919959375e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="2"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -1354,10 +1354,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="191.911642074584961"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="309.684105157852173"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="259.210192407880527"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.8262668125e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.8262668125e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="9.919959375e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="9.919959375e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="2"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -1437,10 +1437,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="191.911642074584961"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="309.684105157852173"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="259.210192407880527"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.8262668125e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.8262668125e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="9.919959375e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="9.919959375e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="2"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -1490,10 +1490,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="191.911642074584961"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="309.684105157852173"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="259.210192407880527"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.8262668125e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.8262668125e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="9.919959375e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="9.919959375e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="2"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -1543,10 +1543,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="191.911642074584961"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="309.684105157852173"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="259.210192407880527"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.8262668125e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.8262668125e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="9.919959375e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="9.919959375e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="2"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -2552,10 +2552,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="152.371572875976568"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="178.670226669311518"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="169.904008738199877"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.837489875e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.837489875e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="3.318901875e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="3.318901875e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="3"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -2635,10 +2635,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="152.371572875976568"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="178.670226669311518"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="169.904008738199877"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.837489875e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.837489875e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="3.318901875e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="3.318901875e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="3"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -2688,10 +2688,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="152.371572875976568"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="178.670226669311518"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="169.904008738199877"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.837489875e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.837489875e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="3.318901875e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="3.318901875e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="3"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -2741,10 +2741,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="152.371572875976568"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="178.670226669311518"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="169.904008738199877"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.837489875e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.837489875e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="3.318901875e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="3.318901875e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="3"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -2826,10 +2826,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="152.371572875976568"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="186.712714725070526"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="174.448021207536982"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.837489875e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.837489875e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="3.318901875e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="3.318901875e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="3"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -2909,10 +2909,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="152.371572875976568"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="186.712714725070526"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="174.448021207536982"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.837489875e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.837489875e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="3.318901875e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="3.318901875e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="3"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -2962,10 +2962,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="152.371572875976568"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="186.712714725070526"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="174.448021207536982"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.837489875e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.837489875e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="3.318901875e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="3.318901875e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="3"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>
@@ -3015,10 +3015,10 @@
 					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="152.371572875976568"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="186.712714725070526"/>
 					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="174.448021207536982"/>
-					<userParam name="precursor_total_intensity" unitName="xsd:double" value="1.837489875e06"/>
-					<userParam name="precursor_target_intensity" unitName="xsd:double" value="1.837489875e06"/>
+					<userParam name="precursor_total_intensity" unitName="xsd:double" value="3.318901875e05"/>
+					<userParam name="precursor_target_intensity" unitName="xsd:double" value="3.318901875e05"/>
 					<userParam name="precursor_signal_proportion" unitName="xsd:double" value="1.0"/>
-					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="3"/>
+					<userParam name="precursor_target_peak_count" unitName="xsd:integer" value="1"/>
 					<userParam name="precursor_residual_peak_count" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="xl_pos1_protein" unitName="xsd:string" value="71"/>

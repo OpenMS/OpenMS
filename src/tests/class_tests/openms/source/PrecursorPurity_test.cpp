@@ -84,6 +84,8 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
 
   map<String, PrecursorPurity::PurityScores> purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
 
+  TEST_EQUAL(purityscores.size(), 5)
+
   // using the ID of an MS1 spectrum, a new ID for the map, adds a new Score to the map, initialized to 0
   TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].total_intensity, 0)
   TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].target_intensity, 0)
@@ -92,34 +94,34 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
   TEST_EQUAL(purityscores[spectra[0].getNativeID()].residual_peak_count, 0)
 
   // 5 MS2 spectra between two MS1 spectra
-  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].total_intensity, 9849578.5)
-  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].target_intensity, 9849578.5)
+  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].total_intensity, 5517171)
+  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].target_intensity, 5517171)
   TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].signal_proportion, 1)
-  TEST_EQUAL(purityscores[spectra[1].getNativeID()].target_peak_count, 2)
+  TEST_EQUAL(purityscores[spectra[1].getNativeID()].target_peak_count, 1)
   TEST_EQUAL(purityscores[spectra[1].getNativeID()].residual_peak_count, 0)
 
-  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].total_intensity, 22845744.8125)
-  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].target_intensity, 16314393.5)
-  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].signal_proportion, 0.71411)
-  TEST_EQUAL(purityscores[spectra[2].getNativeID()].target_peak_count, 2)
-  TEST_EQUAL(purityscores[spectra[2].getNativeID()].residual_peak_count, 6)
+  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].total_intensity, 11287967.625)
+  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].target_intensity, 7390478.5)
+  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].signal_proportion, 0.65472)
+  TEST_EQUAL(purityscores[spectra[2].getNativeID()].target_peak_count, 1)
+  TEST_EQUAL(purityscores[spectra[2].getNativeID()].residual_peak_count, 3)
 
-  TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].total_intensity, 19751783.375)
-  TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].target_intensity, 16388424)
-  TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].signal_proportion, 0.82971)
-  TEST_EQUAL(purityscores[spectra[3].getNativeID()].target_peak_count, 2)
-  TEST_EQUAL(purityscores[spectra[3].getNativeID()].residual_peak_count, 7)
+  TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].total_intensity, 9098343.89062)
+  TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].target_intensity, 7057944)
+  TEST_REAL_SIMILAR(purityscores[spectra[3].getNativeID()].signal_proportion, 0.77573)
+  TEST_EQUAL(purityscores[spectra[3].getNativeID()].target_peak_count, 1)
+  TEST_EQUAL(purityscores[spectra[3].getNativeID()].residual_peak_count, 4)
 
-  TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].total_intensity, 23979143.35156)
-  TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].target_intensity, 17510631.5)
-  TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].signal_proportion, 0.73024)
-  TEST_EQUAL(purityscores[spectra[4].getNativeID()].target_peak_count, 2)
-  TEST_EQUAL(purityscores[spectra[4].getNativeID()].residual_peak_count, 9)
+  TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].total_intensity, 9762418.03906)
+  TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].target_intensity, 7029896.5)
+  TEST_REAL_SIMILAR(purityscores[spectra[4].getNativeID()].signal_proportion, 0.72009)
+  TEST_EQUAL(purityscores[spectra[4].getNativeID()].target_peak_count, 1)
+  TEST_EQUAL(purityscores[spectra[4].getNativeID()].residual_peak_count, 5)
 
-  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].total_intensity, 11964238)
-  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].target_intensity, 11964238)
+  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].total_intensity, 5465177)
+  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].target_intensity, 5465177)
   TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].signal_proportion, 1)
-  TEST_EQUAL(purityscores[spectra[5].getNativeID()].target_peak_count, 2)
+  TEST_EQUAL(purityscores[spectra[5].getNativeID()].target_peak_count, 1)
   TEST_EQUAL(purityscores[spectra[5].getNativeID()].residual_peak_count, 0)
 
   // using the ID of an MS1 spectrum, a new ID for the map, adds a new Score to the map, initialized to 0
@@ -136,38 +138,6 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
   TEST_EQUAL(purityscores["randomString"].residual_peak_count, 0)
 
   PeakMap spectra_copy = spectra;
-
-  // remove last spectrum
-  // this is the case for the last batch of MS2 spectra, if the last spectrum in the PeakMap is an MS2 spectrum
-  spectra.resize(spectra.size()-1);
-  purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
-
-  // using the ID of an MS1 spectrum, a new ID for the map, adds a new Score to the map, initialized to 0
-  TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].total_intensity, 0)
-  TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].target_intensity, 0)
-  TEST_REAL_SIMILAR(purityscores[spectra[0].getNativeID()].signal_proportion, 0)
-  TEST_EQUAL(purityscores[spectra[0].getNativeID()].target_peak_count, 0)
-  TEST_EQUAL(purityscores[spectra[0].getNativeID()].residual_peak_count, 0)
-
-  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].total_intensity, 5517171)
-  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].target_intensity, 5517171)
-  TEST_REAL_SIMILAR(purityscores[spectra[1].getNativeID()].signal_proportion, 1)
-  TEST_EQUAL(purityscores[spectra[1].getNativeID()].target_peak_count, 1)
-  TEST_EQUAL(purityscores[spectra[1].getNativeID()].residual_peak_count, 0)
-
-  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].total_intensity, 11287967.625)
-  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].target_intensity, 7390478.5)
-  TEST_REAL_SIMILAR(purityscores[spectra[2].getNativeID()].signal_proportion, 0.65472)
-  TEST_EQUAL(purityscores[spectra[2].getNativeID()].target_peak_count, 1)
-  TEST_EQUAL(purityscores[spectra[2].getNativeID()].residual_peak_count, 3)
-
-  TEST_EQUAL(spectra.size(), 6)
-  // the last spectrum is not an MS1 spectrum anymore and has an entry in purityscores
-  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].total_intensity, 5465177)
-  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].target_intensity, 5465177)
-  TEST_REAL_SIMILAR(purityscores[spectra[5].getNativeID()].signal_proportion, 1)
-  TEST_EQUAL(purityscores[spectra[5].getNativeID()].target_peak_count, 1)
-  TEST_EQUAL(purityscores[spectra[5].getNativeID()].residual_peak_count, 0)
 
   // If the PeakMap does not start with an MS1 spectrum, PrecursorPurity is not applicable and returns an empty vector
   spectra[0].setMSLevel(2);
@@ -191,7 +161,7 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
 
   // empty ID, skip the computation
   spectra = spectra_copy;
-  spectra[0].setNativeID("");
+  spectra[3].setNativeID("");
   purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
   TEST_EQUAL(purityscores.size(), 0)
 
