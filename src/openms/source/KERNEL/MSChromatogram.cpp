@@ -172,7 +172,7 @@ void MSChromatogram::sortByIntensity(bool reverse) {
 
     for (Size i = 0; i < float_data_arrays_.size(); ++i)
     {
-      std::vector<float> mda_tmp;
+      std::vector<double> mda_tmp;
       for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
       {
         mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -229,7 +229,7 @@ void MSChromatogram::sortByPosition()
 
     for (Size i = 0; i < float_data_arrays_.size(); ++i)
     {
-      std::vector<float> mda_tmp;
+      std::vector<double> mda_tmp;
       for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
       {
         mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));

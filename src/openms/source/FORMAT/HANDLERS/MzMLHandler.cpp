@@ -5350,7 +5350,7 @@ namespace OpenMS
     {
       String encoded_string;
       bool no_numpress = true;
-      std::vector<float> data_to_encode = array;
+      std::vector<double> data_to_encode = array;
       MetaInfoDescription array_metadata = array;
       // bool is32bit = true;
 

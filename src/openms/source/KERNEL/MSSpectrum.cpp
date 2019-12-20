@@ -60,7 +60,7 @@ namespace OpenMS
                                                                                   String(float_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
       }
 
-      std::vector<float> mda_tmp;
+      std::vector<double> mda_tmp;
       mda_tmp.reserve(float_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {

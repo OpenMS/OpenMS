@@ -44,7 +44,7 @@ namespace OpenMS
     /// Float data array class
     class FloatDataArray :
       public MetaInfoDescription,
-      public std::vector<float>
+      public std::vector<double>
     {
     };
 
