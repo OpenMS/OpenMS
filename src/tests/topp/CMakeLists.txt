@@ -467,6 +467,9 @@ set_tests_properties("TOPP_FileConverter_30_out" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_31" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_30_output.mzML -change_im_format single -out_type mzML -out FileConverter_31.tmp)
 add_test("TOPP_FileConverter_31_out" ${DIFF} -in1 FileConverter_31.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_31_output.mzML -whitelist "location=" "<offset")
 set_tests_properties("TOPP_FileConverter_31_out" PROPERTIES DEPENDS "TOPP_FileConverter_31")
+add_test("TOPP_FileConverter_32" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_32_input.mzML -out_type mzML -out FileConverter_32.tmp)
+add_test("TOPP_FileConverter_32_out" ${DIFF} -in1 FileConverter_32.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_32_output.mzML -whitelist "location=" "<offset")
+set_tests_properties("TOPP_FileConverter_32_out" PROPERTIES DEPENDS "TOPP_FileConverter_32")
 
 #------------------------------------------------------------------------------
 # FileFilter tests

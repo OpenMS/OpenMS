@@ -369,29 +369,33 @@ namespace OpenMS
           {
             if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
             {
-              //create new array
+              // create new array
               spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
-              //reserve space in the array
+              // reserve space in the array
               spectrum.getFloatDataArrays().back().reserve(input_data[i].size);
-              //copy meta info into MetaInfoDescription
+              // copy meta info into MetaInfoDescription
               spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+              if (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_32)
+              {
+                spectrum.getFloatDataArrays().back().setMetaValue("is32bit", true);
+              }
             }
             else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
             {
-              //create new array
+              // create new array
               spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
-              //reserve space in the array
+              // reserve space in the array
               spectrum.getIntegerDataArrays().back().reserve(input_data[i].size);
-              //copy meta info into MetaInfoDescription
+              // copy meta info into MetaInfoDescription
               spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
             }
             else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
             {
-              //create new array
+              // create new array
               spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
-              //reserve space in the array
+              // reserve space in the array
               spectrum.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
-              //copy meta info into MetaInfoDescription
+              // copy meta info into MetaInfoDescription
               spectrum.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
             }
           }
@@ -530,29 +534,33 @@ namespace OpenMS
           {
             if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
             {
-              //create new array
+              // create new array
               inp_chromatogram.getFloatDataArrays().resize(inp_chromatogram.getFloatDataArrays().size() + 1);
-              //reserve space in the array
+              // reserve space in the array
               inp_chromatogram.getFloatDataArrays().back().reserve(input_data[i].size);
-              //copy meta info into MetaInfoDescription
+              // copy meta info into MetaInfoDescription
               inp_chromatogram.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+              if (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_32)
+              {
+                inp_chromatogram.getFloatDataArrays().back().setMetaValue("is32bit", true);
+              }
             }
             else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
             {
-              //create new array
+              // create new array
               inp_chromatogram.getIntegerDataArrays().resize(inp_chromatogram.getIntegerDataArrays().size() + 1);
-              //reserve space in the array
+              // reserve space in the array
               inp_chromatogram.getIntegerDataArrays().back().reserve(input_data[i].size);
-              //copy meta info into MetaInfoDescription
+              // copy meta info into MetaInfoDescription
               inp_chromatogram.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
             }
             else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
             {
-              //create new array
+              // create new array
               inp_chromatogram.getStringDataArrays().resize(inp_chromatogram.getStringDataArrays().size() + 1);
-              //reserve space in the array
+              // reserve space in the array
               inp_chromatogram.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
-              //copy meta info into MetaInfoDescription
+              // copy meta info into MetaInfoDescription
               inp_chromatogram.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
             }
           }
@@ -5352,7 +5360,9 @@ namespace OpenMS
       bool no_numpress = true;
       std::vector<double> data_to_encode = array;
       MetaInfoDescription array_metadata = array;
-      // bool is32bit = true;
+
+      bool is32bit = array_metadata.metaValueExists("is32bit");
+      array_metadata.removeMetaValue("is32bit");
 
       // Compute the array-type and the compression CV term
       String cv_term_type;
@@ -5407,14 +5417,24 @@ namespace OpenMS
         }
       }
 
-      // Regular DataArray without numpress (here: only 32 bit encoded)
-      if (no_numpress)
+      // Regular DataArray without numpress (either 32 or 64 bit encoded)
+      if (is32bit && no_numpress)
+      {
+        compression_term = compression_term_no_np; // select the no-numpress term
+        std::vector<float> v_float(data_to_encode.begin(), data_to_encode.end());
+        Base64::encode(v_float, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+
+        os << cv_term_type;
+        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+      }
+      else if (!is32bit && no_numpress)
       {
         compression_term = compression_term_no_np; // select the no-numpress term
         Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
         os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
         os << cv_term_type;
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
       }
 
       os << compression_term << "\n";
