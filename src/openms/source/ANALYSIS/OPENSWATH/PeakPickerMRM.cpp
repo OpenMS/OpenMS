@@ -230,6 +230,12 @@ namespace OpenMS
   {
     LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
 
+    // copy meta data of the input chromatogram
+    picked_chrom.clear(true);
+    picked_chrom.ChromatogramSettings::operator=(chromatogram);
+    picked_chrom.MetaInfoInterface::operator=(chromatogram);
+    picked_chrom.setName(chromatogram.getName());
+
     std::vector<double> time;
     std::vector<double> intensity;
     for (Size i = 0; i < chromatogram.size(); i++)
