@@ -1461,6 +1461,11 @@ namespace OpenMS
         {
           bin_data_.back().meta.setName(cv_.getTerm(accession).name);
         }
+
+        if (!unit_accession.empty())
+        {
+          bin_data_.back().meta.setMetaValue("unit_accession", unit_accession);
+        }
       }
       //------------------------- spectrum ----------------------------
       else if (parent_tag == "spectrum")
@@ -3356,7 +3361,7 @@ namespace OpenMS
           // retrieving the identifier and looking up the term within the
           // correct ontology in our cv_ object.
           char s[8];
-          snprintf(s, sizeof(s), "%07d", metaValue.getUnit()); // all CV use 7 digit indentifiers padded with zeros
+          snprintf(s, sizeof(s), "%07d", metaValue.getUnit()); // all CV use 7 digit identifiers padded with zeros
           String unitstring = String(s);
           if (metaValue.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
           {
@@ -5346,6 +5351,7 @@ namespace OpenMS
       String encoded_string;
       bool no_numpress = true;
       std::vector<float> data_to_encode = array;
+      MetaInfoDescription array_metadata = array;
       // bool is32bit = true;
 
       // Compute the array-type and the compression CV term
@@ -5357,13 +5363,23 @@ namespace OpenMS
       {
         // Try and identify whether we have a CV term for this particular array (otherwise write the array name itself)
         ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName()); // name: binary data array
+
+        String unit_cv_term = "";
+        if (array_metadata.metaValueExists("unit_accession"))
+        {
+          ControlledVocabulary::CVTerm unit = cv_.getTerm(array_metadata.getMetaValue("unit_accession"));
+          unit_cv_term = " unitAccession=\"" + unit.id + "\" unitName=\"" + unit.name + "\" unitCvRef=\"" + unit.id.prefix(2) + "\"";
+          array_metadata.removeMetaValue("unit_accession"); // prevent this from being written as userParam
+        }
+
         if (bi_term.id != "")
         {
-          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" + bi_term.id + "\" name=\"" + bi_term.name + "\" />\n";
+          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" + bi_term.id + "\" name=\"" + bi_term.name + "\"" + unit_cv_term + " />\n";
         }
         else
         {
-          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" + array.getName() + "\" />\n";
+          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" +
+            array.getName() + "\" " + unit_cv_term + " />\n";
         }
 
         compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", true);
@@ -5404,11 +5420,11 @@ namespace OpenMS
       os << compression_term << "\n";
       if (isSpectrum)
       {
-        writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
+        writeUserParam_(os, array_metadata, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
       }
       else
       {
-        writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
+        writeUserParam_(os, array_metadata, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
       }
       os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
       os << "\t\t\t\t\t</binaryDataArray>\n";
