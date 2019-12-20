@@ -184,31 +184,7 @@ namespace OpenMS
       if (spectra[i].getMSLevel() == 2)
       {
         auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin()+i);
-
-        // search for the next MS1 spectrum
-        int next_parent_index(0);
-        for (int j = i+1; j < spectra_size; ++j)
-        {
-          if (spectra[j].getMSLevel() == 1)
-          {
-            next_parent_index = j;
-            break;
-          }
-        }
-
-        PrecursorPurity::PurityScores score;
-        PrecursorPurity::PurityScores score1 = PrecursorPurity::computePrecursorPurity((*parent_spectrum_it), spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-        // use default values of 0, if there is an MS2 spectrum without an MS1 after it (may happen for the last group of MS2 spectra)
-        PrecursorPurity::PurityScores score2;
-        if (next_parent_index > i) // there is an MS1 after this MS2, combine values from previous and next MS1
-        {
-          score2 = PrecursorPurity::computePrecursorPurity(spectra[next_parent_index], spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-          score = PrecursorPurity::combinePrecursorPurities(score1, score2);
-        }
-        else // no later MS1 spectrum, use only numbers from previous MS1
-        {
-          score = score1;
-        }
+        PrecursorPurity::PurityScores score = PrecursorPurity::computePrecursorPurity((*parent_spectrum_it), spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 
 #pragma omp critical (purityscores_access)
         {
