@@ -349,7 +349,7 @@ protected:
         }
       }
       UInt pro_count = 0;
-      for (UInt a = 0; a < PROTEINS.size() - 1; ++a)
+      for (UInt a = 0; a + 1 < PROTEINS.size(); ++a)
       {
         if (PROTEINS[a] == PROTEINS[a + 1])
         {
