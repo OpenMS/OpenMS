@@ -291,9 +291,9 @@
 					</scan>
 				</scanList>
 				<precursorList count="2">
-					<precursor>
+					<precursor spectrumRef="index=0">
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="5.5555" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="5.55" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="6.66" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="7.77" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
@@ -436,9 +436,9 @@
 	<index name="spectrum">
 		<offset idRef="index=0">12965</offset>
 		<offset idRef="index=1">18108</offset>
-		<offset idRef="index=2">26827</offset>
+		<offset idRef="index=2">26847</offset>
 	</index>
 </indexList>
-<indexListOffset>31667</indexListOffset>
+<indexListOffset>31687</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
