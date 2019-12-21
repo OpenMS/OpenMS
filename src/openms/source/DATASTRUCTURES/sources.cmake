@@ -30,6 +30,7 @@ ListUtilsIO.cpp
 LPWrapper.cpp
 Map.cpp
 MassExplainer.cpp
+MatchedIterator.cpp
 Matrix.cpp
 Param.cpp
 QTCluster.cpp

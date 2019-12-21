@@ -38,6 +38,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -48,7 +49,7 @@ namespace OpenMS
   }
 
   ParamXMLFile::ParamXMLFile() :
-    XMLFile("/SCHEMAS/Param_1_6_2.xsd", "1.6.2")
+    XMLFile("/SCHEMAS/Param_1_7_0.xsd", "1.7.0")
   {
   }
 
@@ -88,7 +89,7 @@ namespace OpenMS
     os.precision(writtenDigits<double>(0.0));
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-    os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_6_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_7_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
     String indentation = "  ";
     Param::ParamIterator it = param.begin();
     while (it != param.end())
@@ -121,6 +122,7 @@ namespace OpenMS
         // that will be represented differently in the xml
         std::set<String> tag_list = it->tags;
         DataValue::DataType value_type = it->value.valueType();
+        bool stringParamIsFlag = false;
 
         //write opening tag
         switch (value_type)
@@ -143,6 +145,13 @@ namespace OpenMS
           {
             os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << "\" type=\"output-file\"";
             tag_list.erase("output file");
+          }
+          else if (it->valid_strings.size() == 2 &&
+          it->valid_strings[0] == "true" && it->valid_strings[1] == "false" &&
+          it->value == "false")
+          {
+            stringParamIsFlag = true;
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << "\" type=\"bool\"";
           }
           else
           {
@@ -223,70 +232,74 @@ namespace OpenMS
         }
 
         //restrictions
-        String restrictions = "";
-        switch (value_type)
+        // for boolean Flags they are implicitly given
+        if (!stringParamIsFlag)
         {
-        case DataValue::INT_VALUE:
-        case DataValue::INT_LIST:
-        {
-          bool min_set = (it->min_int != -std::numeric_limits<Int>::max());
-          bool max_set = (it->max_int != std::numeric_limits<Int>::max());
-          if (max_set || min_set)
+          String restrictions = "";
+          switch (value_type)
           {
-            if (min_set)
+            case DataValue::INT_VALUE:
+            case DataValue::INT_LIST:
             {
-              restrictions += String(it->min_int);
+              bool min_set = (it->min_int != -std::numeric_limits<Int>::max());
+              bool max_set = (it->max_int != std::numeric_limits<Int>::max());
+              if (max_set || min_set)
+              {
+                if (min_set)
+                {
+                  restrictions += String(it->min_int);
+                }
+                restrictions += ':';
+                if (max_set)
+                {
+                  restrictions += String(it->max_int);
+                }
+              }
             }
-            restrictions += ':';
-            if (max_set)
-            {
-              restrictions += String(it->max_int);
-            }
-          }
-        }
-        break;
+              break;
 
-        case DataValue::DOUBLE_VALUE:
-        case DataValue::DOUBLE_LIST:
-        {
-          bool min_set = (it->min_float != -std::numeric_limits<double>::max());
-          bool max_set = (it->max_float != std::numeric_limits<double>::max());
-          if (max_set || min_set)
-          {
-            if (min_set)
+            case DataValue::DOUBLE_VALUE:
+            case DataValue::DOUBLE_LIST:
             {
-              restrictions += String(it->min_float);
+              bool min_set = (it->min_float != -std::numeric_limits<double>::max());
+              bool max_set = (it->max_float != std::numeric_limits<double>::max());
+              if (max_set || min_set)
+              {
+                if (min_set)
+                {
+                  restrictions += String(it->min_float);
+                }
+                restrictions += ':';
+                if (max_set)
+                {
+                  restrictions += String(it->max_float);
+                }
+              }
             }
-            restrictions += ':';
-            if (max_set)
+              break;
+
+            case DataValue::STRING_VALUE:
+            case DataValue::STRING_LIST:
+              if (it->valid_strings.size() != 0)
+              {
+                restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
+              }
+              break;
+
+            default:
+              break;
+          }
+          // for files we store the restrictions as supported_formats
+          if (restrictions != "")
+          {
+            if (it->tags.find("input file") != it->tags.end() || it->tags.find("output file") != it->tags.end())
             {
-              restrictions += String(it->max_float);
+              os << " supported_formats=\"" << writeXMLEscape(restrictions) << "\"";
             }
-          }
-        }
-        break;
-
-        case DataValue::STRING_VALUE:
-        case DataValue::STRING_LIST:
-          if (it->valid_strings.size() != 0)
-          {
-            restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
-          }
-          break;
-
-        default:
-          break;
-        }
-        // for files we store the restrictions as supported_formats
-        if (restrictions != "")
-        {
-          if (it->tags.find("input file") != it->tags.end() || it->tags.find("output file") != it->tags.end())
-          {
-            os << " supported_formats=\"" << writeXMLEscape(restrictions) << "\"";
-          }
-          else
-          {
-            os << " restrictions=\"" << writeXMLEscape(restrictions) << "\"";
+            else
+            {
+              os << " restrictions=\"" << writeXMLEscape(restrictions) << "\"";
+            }
           }
         }
 

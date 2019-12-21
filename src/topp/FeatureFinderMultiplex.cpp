@@ -85,7 +85,6 @@
 
 using namespace std;
 using namespace OpenMS;
-using namespace boost::math;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -235,7 +234,7 @@ public:
     levels.push_back(1);
     file.getOptions().setMSLevels(levels);
     
-    LOG_DEBUG << "Loading input..." << endl;
+    OPENMS_LOG_DEBUG << "Loading input..." << endl;
     file.setLogType(log_type_);
     file.load(in_, exp);
 

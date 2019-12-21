@@ -51,7 +51,6 @@
 
 using namespace std;
 using namespace OpenMS;
-using namespace boost::math;
 
 //#define DEBUG
 
@@ -277,7 +276,7 @@ private:
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The meta value 'map_index' is missing in the input data. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
     }
     double detected_delta_mass_at_label_set = deltaMassFromMapIndex_(consensus->getFeatures(), consensus->getPeptideIdentifications()[0].getMetaValue("map_index"));
-    if (boost::math::isnan(detected_delta_mass_at_label_set))
+    if (std::isnan(detected_delta_mass_at_label_set))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No delta mass with this map_index could be found.", "");
     }
@@ -331,11 +330,10 @@ private:
       std::vector<MultiplexDeltaMasses::DeltaMass> pattern = it_pattern->getDeltaMasses();
       
       double shift = matchLabelSet_(pattern, label_set, index_label_set);
-      if (!boost::math::isnan(shift))
+      if (!std::isnan(shift))
       {        
-        // reset boolean vector
-        unsigned i = delta_mass_matched.size();
-        delta_mass_matched.assign(i, false);
+        // reset boolean vector to false
+        delta_mass_matched.assign(delta_mass_matched.size(), false);
         
         bool match = matchDeltaMasses_(consensus, pattern, shift, delta_mass_matched);
         if (match)
@@ -464,7 +462,7 @@ private:
          ++it_mass_shift, ++it_delta_mass_matched)
     {
       
-      //LOG_DEBUG << "    index = " << (it_mass_shift - pattern.begin()) << "    shift = " << it_mass_shift->delta_mass;
+      //OPENMS_LOG_DEBUG << "    index = " << (it_mass_shift - pattern.begin()) << "    shift = " << it_mass_shift->delta_mass;
       if (*it_delta_mass_matched)
       {
         // copy feature from incomplete consensus
@@ -522,18 +520,18 @@ private:
   {
     // unsigned found_pattern_count = 0;
     std::vector<MultiplexDeltaMasses> theoretical_masses = generator.getDeltaMassesList();
-    unsigned multiplicity = theoretical_masses[0].getDeltaMasses().size();
+    size_t multiplicity = theoretical_masses[0].getDeltaMasses().size();
     
     for (ConsensusMap::ConstIterator cit = map_in.begin(); cit != map_in.end(); ++cit)
     {
-      //LOG_DEBUG << "consensus = " << (cit - map_in.begin());
-      //LOG_DEBUG << "       RT = " << cit->getRT();
-      //LOG_DEBUG << "       mz = " << cit->getMZ();
+      //OPENMS_LOG_DEBUG << "consensus = " << (cit - map_in.begin());
+      //OPENMS_LOG_DEBUG << "       RT = " << cit->getRT();
+      //OPENMS_LOG_DEBUG << "       mz = " << cit->getMZ();
       
       // Consensus features without sequence annotations are written unchanged to the conflict output.
       if (cit->getPeptideIdentifications().empty())
       {
-        //LOG_DEBUG << "  (no ID)\n\n";
+        //OPENMS_LOG_DEBUG << "  (no ID)\n\n";
         
         ConsensusFeature consensus(*cit);
         map_conflicts.push_back(consensus);
@@ -551,7 +549,7 @@ private:
             
       if (index >= 0)
       {
-        //LOG_DEBUG << "  (Ok)\n\n";
+        //OPENMS_LOG_DEBUG << "  (Ok)\n\n";
         // ++found_pattern_count;
         
         ConsensusFeature consensus = completeConsensus_(*cit, theoretical_masses[index].getDeltaMasses(), delta_mass_matched, index_label_set);
@@ -559,7 +557,7 @@ private:
       }
       else
       {
-        //LOG_DEBUG << "  (Conflict)\n\n";
+        //OPENMS_LOG_DEBUG << "  (Conflict)\n\n";
         
         ConsensusFeature consensus(*cit);
         map_conflicts.push_back(consensus);
@@ -575,10 +573,10 @@ private:
     map_out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     map_conflicts.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     
-    /*LOG_DEBUG << "\n";
-    LOG_DEBUG << "number of consensuses                   = " << map_in.size() << "\n";
-    LOG_DEBUG << "number of consensuses without conflicts = " << found_pattern_count << "\n";
-    LOG_DEBUG << "\n";*/
+    /*OPENMS_LOG_DEBUG << "\n";
+    OPENMS_LOG_DEBUG << "number of consensuses                   = " << map_in.size() << "\n";
+    OPENMS_LOG_DEBUG << "number of consensuses without conflicts = " << found_pattern_count << "\n";
+    OPENMS_LOG_DEBUG << "\n";*/
   }
   
 public:

@@ -34,18 +34,68 @@
 
 #pragma once
 
-#include <vector>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+
+#include <vector>
 
 namespace OpenMS
 {
   class TheoreticalSpectrumGenerator;
   namespace DIAHelpers
   {
+
     /**
       @brief Helper functions for the DIA scoring of OpenSWATH
     */
     ///@{
+
+    /**
+      @brief Integrate intensity in a spectrum from start to end
+
+      This function will integrate the intensity in a spectrum between mz_start
+      and mz_end, returning the total intensity and an intensity-weighted m/z
+      value.
+
+      @note If there is no signal, mz will be set to -1 and intensity to 0
+      @return Returns true if a signal was found (and false if no signal was found)
+
+    */
+    OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
+                                       double mz_end, double& mz, double& intensity, bool centroided = false);
+
+    /**
+      @brief Integrate intensities in a spectrum from start to end
+    */
+    OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr spectrum, //!< [in] Spectrum
+                                        const std::vector<double>& windows_center, //!< [in] center location
+                                        double width,
+                                        std::vector<double>& integrated_windows_intensity,
+                                        std::vector<double>& integrated_windows_mz,
+                                        bool remove_zero = false);
+
+    /**
+      @brief Integrate intensity in an ion mobility spectrum from start to end
+
+      This function will integrate the intensity in a spectrum between mz_start
+      and mz_end, returning the total intensity and an intensity-weighted drift
+      time value.
+
+      @note If there is no signal, mz will be set to -1 and intensity to 0
+    */
+    OPENMS_DLLAPI void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum,
+                                              double mz_start,
+                                              double mz_end,
+                                              double & im,
+                                              double & intensity,
+                                              double drift_start,
+                                              double drift_end);
+
+    /**
+      @brief Adjust left/right window based on window and whether its ppm or not
+    */
+    OPENMS_DLLAPI void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm);
+
     /// compute the b and y series masses for a given AASequence
     OPENMS_DLLAPI void getBYSeries(const AASequence& a,
                                    std::vector<double>& bseries,

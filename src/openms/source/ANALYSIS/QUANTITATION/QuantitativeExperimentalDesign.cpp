@@ -108,57 +108,11 @@ namespace OpenMS
     }
   }
 
-  void QuantitativeExperimentalDesign::applyDesign2Quantifier(PeptideAndProteinQuant& quantifier, TextFile& file, StringList& file_paths)
-  {
-    //        vector< pair<PeptideAndProteinQuant::PeptideData,PeptideAndProteinQuant::ProteinQuant> >& result)
-    //create mapping from experimental setting to all respective file names
-    map<String, StringList> design2FileBaseName;
-    mapFiles2Design_(design2FileBaseName, file);
-    //filter out all non-existing files
-    map<String, StringList> design2FilePath;
-    findRelevantFilePaths_(design2FileBaseName, design2FilePath, file_paths);
-
-    //determine whether we deal with idXML or featureXML
-    FileTypes::Type in_type = FileHandler::getType(file_paths.front());
-
-    if (in_type == FileTypes::FEATUREXML)
-    {
-      FeatureMap features;
-
-      for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
-      {
-        mergeFeatureMaps_(features, iter->first, iter->second);
-      }
-      LOG_INFO << "Number of proteinIdentifications: " << features.getProteinIdentifications().size() << endl;
-      ProteinIdentification& proteins = features.getProteinIdentifications()[0];
-
-      quantifier.readQuantData(features);
-      quantifier.quantifyPeptides();
-      quantifier.quantifyProteins(proteins);
-    }
-    else
-    {
-      ConsensusMap consensus;
-
-      for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
-      {
-        mergeConsensusMaps_(consensus, iter->first, iter->second);
-      }
-
-      LOG_INFO << "Number of proteinIdentifications: " << consensus.getProteinIdentifications().size() << endl;
-      ProteinIdentification& proteins = consensus.getProteinIdentifications()[0];
-
-      quantifier.readQuantData(consensus);
-      quantifier.quantifyPeptides();
-      quantifier.quantifyProteins(proteins);
-    }
-  }
-
   void QuantitativeExperimentalDesign::mergeConsensusMaps_(ConsensusMap& out, const String& experiment, StringList& file_paths)
   {
     ConsensusMap map;
 
-    LOG_INFO << "Merge consensus maps: " << endl;
+    OPENMS_LOG_INFO << "Merge consensus maps: " << endl;
     UInt counter = 1;
     for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
     {
@@ -170,25 +124,7 @@ namespace OpenMS
       }
       out.appendRows(map);
     }
-    LOG_INFO << endl;
-  }
-
-  void QuantitativeExperimentalDesign::mergeFeatureMaps_(FeatureMap& out, const String& experiment, StringList& file_paths)
-  {
-    FeatureMap map;
-
-    LOG_INFO << "Merge feature maps: " << endl;
-    UInt counter = 1;
-    for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
-    {
-      //load should clear the map
-      FeatureXMLFile().load(*file_it, map);
-      for (FeatureMap::iterator it = map.begin(); it != map.end(); ++it)
-      {
-        it->setMetaValue("experiment", DataValue(experiment));
-      }
-      out += map;
-    }
+    OPENMS_LOG_INFO << endl;
   }
 
   void QuantitativeExperimentalDesign::mergeIDFiles_(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, const String& experiment, StringList& file_paths)
@@ -197,7 +133,7 @@ namespace OpenMS
     vector<ProteinIdentification> additional_proteins;
     vector<PeptideIdentification> additional_peptides;
 
-    LOG_INFO << "Merge idXML-files:" << endl;
+    OPENMS_LOG_INFO << "Merge idXML-files:" << endl;
     for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it)
     {
       // load should clear the vectors
@@ -223,7 +159,7 @@ namespace OpenMS
         String id = prot_it->getIdentifier();
         if (used_ids.find(id) != used_ids.end()) // ID used previously
         {
-          LOG_INFO << "Warning: The identifier '" + id + "' was used before!" << endl;
+          OPENMS_LOG_INFO << "Warning: The identifier '" + id + "' was used before!" << endl;
           // generate a new ID:
           DateTime date_time = prot_it->getDateTime();
           String new_id;
@@ -235,7 +171,7 @@ namespace OpenMS
             new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
           } while (used_ids.find(new_id) != used_ids.end());
 
-          LOG_INFO << "New identifier '" + new_id + "' generated as replacement." << endl;
+          OPENMS_LOG_INFO << "New identifier '" + new_id + "' generated as replacement." << endl;
           // update fields:
           prot_it->setIdentifier(new_id);
           prot_it->setDateTime(date_time);
@@ -390,10 +326,10 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << "\n Statistics: \n";
+    OPENMS_LOG_INFO << "\n Statistics: \n";
     for (it = experiments.begin(); it != experiments.end(); ++it)
     {
-      LOG_INFO << "Experiment: " << it->first << ", number datasets: " << it->second.size() << endl;
+      OPENMS_LOG_INFO << "Experiment: " << it->first << ", number datasets: " << it->second.size() << endl;
     }
   }
 

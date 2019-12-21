@@ -114,7 +114,9 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
     registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
-    setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));    
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
+    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML"));
     registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     // setValidStrings_("extra", ?);
     // TODO: add this MHC feature back in with TopPerc::hasMHCEnd_()
@@ -139,7 +141,7 @@ protected:
     //-------------------------------------------------------------
     const StringList in_list = getStringList_("in");
     bool multiple_search_engines = getFlag_("multiple_search_engines");
-    LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << endl;
+    OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << endl;
     if (in_list.size() > 1 && !multiple_search_engines)
     {
       writeLog_("Fatal error: multiple input files given for -in, but -multiple_search_engines flag not specified. If the same search engine was used, feed the input files into PSMFeatureExtractor one by one.");
@@ -162,14 +164,14 @@ protected:
       String in = *fit;
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(in);
-      LOG_INFO << "Loading input file: " << in << endl;
+      OPENMS_LOG_INFO << "Loading input file: " << in << endl;
       if (in_type == FileTypes::IDXML)
       {
         IdXMLFile().load(in, protein_ids, peptide_ids);
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
-        LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
+        OPENMS_LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
         MzIdentMLFile().load(in, protein_ids, peptide_ids);
       }
       //else caught by TOPPBase:registerInput being mandatory mzid or idxml
@@ -224,7 +226,7 @@ protected:
     //-------------------------------------------------------------
     String search_engine = all_protein_ids.front().getSearchEngine();
     if (multiple_search_engines) search_engine = "multiple";
-    LOG_DEBUG << "Registered search engine: " << search_engine << endl;
+    OPENMS_LOG_DEBUG << "Registered search engine: " << search_engine << endl;
     
     StringList extra_features = getStringList_("extra");
     StringList feature_set;
@@ -248,7 +250,7 @@ protected:
     else if (search_engine == "Comet") PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
     else
     {
-      LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;
+      OPENMS_LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -261,7 +263,7 @@ protected:
     
     if (all_protein_ids.size() > 1)
     {
-      LOG_ERROR << "Multiple identifications in one file are not supported. Please resume with separate input files. Quitting." << std::endl;
+      OPENMS_LOG_ERROR << "Multiple identifications in one file are not supported. Please resume with separate input files. Quitting." << std::endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
     else
@@ -275,9 +277,20 @@ protected:
     }
     
     // Storing the PeptideHits with calculated q-value, pep and svm score
-    FileTypes::Type out_type = FileHandler::getType(out);
-    
-    LOG_INFO << "writing output file: " << out << endl;
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      FileHandler fh;
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Fatal error: Could not determine output file type! Set 'out_type' parameter to desired file type.");
+      return PARSE_ERROR;
+    }
+    OPENMS_LOG_INFO << "writing output file: " << out << endl;
     
     if (out_type == FileTypes::IDXML)
     {

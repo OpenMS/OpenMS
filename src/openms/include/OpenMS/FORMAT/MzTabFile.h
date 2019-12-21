@@ -133,9 +133,10 @@ namespace OpenMS
     /// Generate an mzTab section comprising multiple rows of the same type
     template <typename SectionRow> void generateMzTabSection_(const std::vector<SectionRow>& rows, const std::vector<String>& optional_columns, StringList& output) const
     {
-      for (typename std::vector<SectionRow>::const_iterator it = rows.begin(); it != rows.end(); ++it)
+      output.reserve(output.size() + rows.size() + 1);
+      for (const auto& row : rows)
       {
-        output.push_back(generateMzTabSectionRow_(*it, optional_columns));
+        output.push_back(generateMzTabSectionRow_(row, optional_columns));
       }
       output.push_back(String("\n"));
     }

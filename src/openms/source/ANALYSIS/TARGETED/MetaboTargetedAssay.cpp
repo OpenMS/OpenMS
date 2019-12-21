@@ -140,7 +140,7 @@ namespace OpenMS
         // check if MS2 spectrum is empty
         if (spectrum.empty())
         {
-          LOG_WARN << "Empty MS/MS spectrum was provided. Please manually investigate at index: " << *index_it << std::endl;
+          OPENMS_LOG_WARN << "Empty MS/MS spectrum was provided. Please manually investigate at index: " << *index_it << std::endl;
           continue;
         }
 
@@ -394,7 +394,7 @@ namespace OpenMS
           explanation_array = transition_spectrum.getStringDataArrays()[0];
           if (explanation_array.getName() != "explanation")
           {
-            LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
+            OPENMS_LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
           }
           else
           {
@@ -458,7 +458,7 @@ namespace OpenMS
       OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
 
       // check which entry is saved in the FloatDataArry (control for "use_exact_mass")
-      LOG_DEBUG << transition_spectrum.getFloatDataArrays()[0].getName() << " is not used to build the assay library."
+      OPENMS_LOG_DEBUG << transition_spectrum.getFloatDataArrays()[0].getName() << " is not used to build the assay library."
                 << std::endl;
 
       // here ms2 spectra information is used

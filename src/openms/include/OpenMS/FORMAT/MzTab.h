@@ -54,12 +54,13 @@ namespace OpenMS
 {
 /**
       @brief Data model of MzTab files.
+
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO
   */
 
-// MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
+  /// MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
   enum MzTabCellStateType
   {
     MZTAB_CELLSTATE_DEFAULT,
@@ -69,7 +70,7 @@ namespace OpenMS
     SIZE_OF_MZTAB_CELLTYPE
   };
 
-// basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
+  /// basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
   class OPENMS_DLLAPI MzTabNullAbleInterface
   {
 public:
@@ -80,7 +81,7 @@ public:
     virtual void fromCellString(const String&) = 0;
   };
 
-// interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
+  /// interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
   class OPENMS_DLLAPI MzTabNullNaNAndInfAbleInterface :
     public MzTabNullAbleInterface
   {
@@ -92,7 +93,7 @@ public:
     virtual void setInf() = 0;
   };
 
-// base class for atomic, non-container types (Double, Int)
+  /// base class for atomic, non-container types (Double, Int)
   class OPENMS_DLLAPI MzTabNullAbleBase :
     public MzTabNullAbleInterface
   {
@@ -429,7 +430,7 @@ public:
 
     void setMSFile(Size index);
 
-    void setSpecRef(String spec_ref);
+    void setSpecRef(const String& spec_ref);
 
     String getSpecRef() const;
 
@@ -442,7 +443,7 @@ public:
     void fromCellString(const String& s) override;
 
 protected:
-    Size ms_run_; // number is specified in the meta data section.
+    Size ms_run_; //< number is specified in the meta data section.
     String spec_ref_;
   };
 
@@ -582,7 +583,7 @@ public:
     std::vector<String> colunit_small_molecule;
   };
 
-  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; ///<  column name (not null able), value (null able)
+  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //<  column name (not null able), value (null able)
 
   /// PRT - Protein section (Table based)
   struct OPENMS_DLLAPI MzTabProteinSectionRow
@@ -928,7 +929,8 @@ public:
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getOligonucleotideOptionalColumnNames() const;
 
-    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String id, const MetaInfoInterface meta);
+    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String& id, const MetaInfoInterface& meta);
+
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getOSMOptionalColumnNames() const;
 
@@ -937,26 +939,58 @@ public:
     static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromVariableModifications(const std::vector<String>& mods);
 
     static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const std::vector<String>& mods);
- 
+
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename);
 
+    /**
+      * @brief Export peptide and protein identifications to mzTab
+      *
+      * Additionally this function fills two std::maps with mappings for external usage.
+      *
+      * @param[IN] prot_ids Data structure containing protein identifications
+      * @param[IN] peptide_ids Data structure containing peptide identifications
+      * @param[IN] filename Input idXML file name
+      * @param[IN] first_run_inference_only Is all protein inference information stored in the first run?
+      * @param[OUT] map_run_fileidx_2_msfileidx Mapping from (run index, input file index) to experimental design file index. The experimental design file index is either given, or a simplified version created from the input file index on the fly.
+      * @param[OUT] idrun_2_run_index Mapping from protein identification identifier (search engine + date) to run index, i.e. for storing file origins from different runs
+      *
+      * @return mzTab object
+    */
     static MzTab exportIdentificationsToMzTab(
         const std::vector<ProteinIdentification>& prot_ids,
         const std::vector<PeptideIdentification>& peptide_ids,
         const String& filename,
-        bool first_run_inference_only);
+        bool first_run_inference_only,
+        std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
+        std::map<String, size_t>& idrun_2_run_index,
+        bool export_empty_pep_ids = false);
 
-    /// Generate MzTab style list of PTMs from AASequence object. 
+    /// Generate MzTab style list of PTMs from AASequence object.
     /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
     /// In contrast, all modifications are reported in the PSM section (see standard document for details).
     static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
 
+		/**
+		 * @brief export linked peptide features aka consensus map
+		 *
+		 * @param consensus_map		data structure of the linked peptide features
+		 * @param filename		input consensusXML file name
+		 * @param export_unidentified_features		Should not identified peptide features be exported?
+		 * @param export_unassigned_ids		Should unassigned identifications be exported?
+		 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
+		 *
+		 * @return mzTab object
+		 */
     static MzTab exportConsensusMapToMzTab(
-      const ConsensusMap & consensus_map, 
-      const String & filename,
+      const ConsensusMap& consensus_map,
+      const String& filename,
+      const bool first_run_inference_only,
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
-      String title = "ConsensusMap export from OpenMS");
+      const bool export_subfeatures,
+      const bool export_empty_pep_ids = false,
+      const String& title = "ConsensusMap export from OpenMS");
+
 
   protected:
     /// Helper function for "get...OptionalColumnNames" functions
@@ -981,6 +1015,7 @@ public:
       return names;
     }
 
+    static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
 
     MzTabMetaData meta_data_;
     MzTabProteinSectionRows protein_data_;

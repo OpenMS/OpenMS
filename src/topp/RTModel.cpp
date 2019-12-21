@@ -34,15 +34,17 @@
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <map>
 #include <numeric>
@@ -366,8 +368,8 @@ protected:
     String outputfile_name = getStringOption_("out");
     additive_cv = getFlag_("additive_cv");
     skip_cv = getFlag_("cv:skip_cv");
-    if (skip_cv) LOG_INFO << "Cross-validation disabled!\n";
-    else LOG_INFO << "Cross-validation enabled!\n";
+    if (skip_cv) OPENMS_LOG_INFO << "Cross-validation disabled!\n";
+    else OPENMS_LOG_INFO << "Cross-validation enabled!\n";
 
     float total_gradient_time = getDoubleOption_("total_gradient_time");
     max_std = getDoubleOption_("max_std");

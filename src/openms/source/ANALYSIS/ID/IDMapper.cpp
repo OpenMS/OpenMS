@@ -196,7 +196,7 @@ namespace OpenMS
     }
 
     // some statistics output
-    LOG_INFO << "Peptides assigned to a precursor: " << peptides_mapped.size() << "\n"
+    OPENMS_LOG_INFO << "Peptides assigned to a precursor: " << peptides_mapped.size() << "\n"
              << "             Unassigned peptides: " << peptide_ids.size() - peptides_mapped.size() << "\n"
              << "       Unmapped (empty) peptides: " << peptide_ids.size() - identifications_precursors.size() << endl;
   }
@@ -223,8 +223,13 @@ namespace OpenMS
   }
 
 
-  void IDMapper::annotate(ConsensusMap& map, const vector<PeptideIdentification>& ids, const vector<ProteinIdentification>& protein_ids,
-                          bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra)
+  void IDMapper::annotate(
+    ConsensusMap& map,
+    const vector<PeptideIdentification>& ids,
+    const vector<ProteinIdentification>& protein_ids,
+    bool measure_from_subelements,
+    bool annotate_ids_with_subelements,
+    const PeakMap& spectra)
   {
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);
@@ -360,9 +365,9 @@ namespace OpenMS
     if (!ids.empty() && !spectra.empty())
     {
 
-      LOG_INFO << "Mapping " << ids.size() << "PeptideIdentifications to " << spectra.size() << " spectra." << endl;
+      OPENMS_LOG_INFO << "Mapping " << ids.size() << "PeptideIdentifications to " << spectra.size() << " spectra." << endl;
 
-      LOG_INFO << "Identification state of spectra: \n"
+      OPENMS_LOG_INFO << "Identification state of spectra: \n"
                << "Unidentified: " << unidentified.size() << "\n"
                << "Identified:   " << mapPrecursorsToIdentifications(spectra, ids).identified.size() << "\n"
                << "No precursor: " << mapPrecursorsToIdentifications(spectra, ids).no_precursors.size() << endl;
@@ -484,14 +489,14 @@ namespace OpenMS
     // some statistics output
     if (!ids.empty())
     {
-      LOG_INFO << "Unassigned peptides: " << id_matches_none << "\n"
+      OPENMS_LOG_INFO << "Unassigned peptides: " << id_matches_none << "\n"
                << "Peptides assigned to exactly one feature: " << id_matches_single << "\n"
                << "Peptides assigned to multiple features: " << id_matches_multiple << "\n";
     }
 
     if (!spectra.empty())
     {
-      LOG_INFO << "Unassigned precursors without identification: " << spectrum_matches_none << "\n"
+      OPENMS_LOG_INFO << "Unassigned precursors without identification: " << spectrum_matches_none << "\n"
                << "Unidentified precursor assigned to exactly one feature: " << spectrum_matches_single << "\n"
                << "Unidentified precursor assigned to multiple features: " << spectrum_matches_multiple << "\n";
     }
@@ -516,7 +521,7 @@ namespace OpenMS
         {
           use_centroid_rt = true;
           use_centroid_mz = true;
-          LOG_WARN << "IDMapper warning: at least one feature has no convex hull - using centroid coordinates for matching" << endl;
+          OPENMS_LOG_WARN << "IDMapper warning: at least one feature has no convex hull - using centroid coordinates for matching" << endl;
           break;
         }
       }
@@ -587,7 +592,7 @@ namespace OpenMS
     }
     else
     {
-      LOG_WARN << "IDMapper received an empty FeatureMap! All peptides are mapped as 'unassigned'!" << endl;
+      OPENMS_LOG_WARN << "IDMapper received an empty FeatureMap! All peptides are mapped as 'unassigned'!" << endl;
     }
 
     // for statistics:
@@ -825,15 +830,15 @@ namespace OpenMS
     }
 
     // some statistics output
-    LOG_INFO << "Unassigned peptides: " << matches_none << "\n"
+    OPENMS_LOG_INFO << "Unassigned peptides: " << matches_none << "\n"
     << "Peptides assigned to exactly one feature: " << matches_single << "\n"
     << "Peptides assigned to multiple features: " << matches_multi << "\n";
 
-    LOG_INFO << "Unassigned and unidentified precursors: " << spectrum_matches_none << "\n"
+    OPENMS_LOG_INFO << "Unassigned and unidentified precursors: " << spectrum_matches_none << "\n"
     << "Unidentified precursor assigned to exactly one feature: " << spectrum_matches_single << "\n"
     << "Unidentified precursor assigned to multiple features: " << spectrum_matches_multi << "\n";
 
-    LOG_INFO << map.getAnnotationStatistics() << endl;
+    OPENMS_LOG_INFO << map.getAnnotationStatistics() << endl;
   }
 
   double IDMapper::getAbsoluteMZTolerance_(const double mz) const
@@ -932,7 +937,7 @@ namespace OpenMS
           continue; // parameter info not available
         if (!before.empty() && (reported_mz != before))
         {
-          LOG_WARN << "The m/z values reported for features in the input seem to be of different types (e.g. monoisotopic/average). They will all be compared against monoisotopic peptide masses, but the mapping results may not be meaningful in the end." << endl;
+          OPENMS_LOG_WARN << "The m/z values reported for features in the input seem to be of different types (e.g. monoisotopic/average). They will all be compared against monoisotopic peptide masses, but the mapping results may not be meaningful in the end." << endl;
           return false;
         }
         if (reported_mz == "average")
@@ -941,7 +946,7 @@ namespace OpenMS
         }
         else if (reported_mz == "maximum")
         {
-          LOG_WARN << "For features, m/z values from the highest mass traces are reported. This type of m/z value is not available for peptides, so the comparison has to be done using average peptide masses." << endl;
+          OPENMS_LOG_WARN << "For features, m/z values from the highest mass traces are reported. This type of m/z value is not available for peptides, so the comparison has to be done using average peptide masses." << endl;
           use_avg_mass = true;
         }
         before = reported_mz;

@@ -24,7 +24,6 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
                                         Size peptide_min_size,
                                         Int min_precursor_charge,
                                         Int max_precursor_charge,
-                                        libcpp_vector[ size_t ]& discarded_spectra,
                                         bool deisotope,
                                         bool labeled) nogil except +
 
@@ -44,13 +43,3 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
                                             const libcpp_vector[ SimplePeak ]& theo_spectrum,
                                             const MSSpectrum& exp_spectrum,
                                             const IntegerDataArray& exp_charges) nogil except +
-
-        MSSpectrum deisotopeAndSingleChargeMSSpectrum(MSSpectrum& old_spectrum,
-                                                      Int min_charge,
-                                                      Int max_charge,
-                                                      double fragment_tolerance,
-                                                      bool fragment_tolerance_unit_ppm,
-                                                      bool keep_only_deisotoped,
-                                                      Size min_isopeaks,
-                                                      Size max_isopeaks,
-                                                      bool make_single_charged) nogil except +

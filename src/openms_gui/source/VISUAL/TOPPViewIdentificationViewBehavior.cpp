@@ -46,6 +46,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <boost/range/adaptor/reversed.hpp>
 #include <QtWidgets/QMessageBox>
@@ -146,7 +147,7 @@ namespace OpenMS
             break;
           }
           default:
-            LOG_WARN << "Annotation of MS level > 2 not supported.!" << endl;
+            OPENMS_LOG_WARN << "Annotation of MS level > 2 not supported.!" << endl;
         }
       }
 
@@ -165,7 +166,7 @@ namespace OpenMS
 
     if (current_layer.getCurrentSpectrum().empty())
     {
-      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
+      OPENMS_LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
     }
 
     // mass precision to match a peak's m/z to a feature m/z
@@ -219,7 +220,7 @@ namespace OpenMS
           StringList msg;
           if (!ith->metaValueExists("identifier")) msg.push_back("identifier");
           if (!ith->metaValueExists("chemical_formula")) msg.push_back("chemical_formula");
-          LOG_WARN << "Missing meta-value(s): " << ListUtils::concatenate(msg, ", ") << ". Cannot annotate!\n";
+          OPENMS_LOG_WARN << "Missing meta-value(s): " << ListUtils::concatenate(msg, ", ") << ". Cannot annotate!\n";
         }
       }
 
@@ -349,18 +350,17 @@ namespace OpenMS
             // use stored fragment annotations
             addPeakAnnotationsFromID_(ph);
 
-            if (ph.metaValueExists("xl_chain")) // if this meta value exists, this should be an XLMS annotation
+            if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE)) // if this meta value exists, this should be an XL-MS annotation
             {
               String box_text;
               String vert_bar = "&#124;";
 
-              if (ph.metaValueExists("xl_pos2") && pis[peptide_id_index].getHits().size() == 1 && ph.getMetaValue("xl_pos2") != "-") // if this meta value exists, this should be the special case of a loop-link
+              if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
               {
                 String hor_bar = "_";
-                PeptideHit ph_alpha = pis[peptide_id_index].getHits()[0];
                 String seq_alpha = ph.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue("xl_pos")).toInt();
-                int xl_pos_beta = String(ph.getMetaValue("xl_pos2")).toInt() - xl_pos_alpha - 1;
+                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+                int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() - xl_pos_alpha - 1;
 
                 String alpha_cov;
                 String beta_cov;
@@ -370,15 +370,12 @@ namespace OpenMS
                 box_text += alpha_cov + "<br>" +  seq_alpha +  "<br>" + String(xl_pos_alpha, ' ') +  vert_bar + n_times(xl_pos_beta, hor_bar) + vert_bar;
                 // cut out line: "<br>" + String(xl_pos_alpha, ' ') + vert_bar + String(xl_pos_beta, ' ') + vert_bar +
               }
-              else if (pis[peptide_id_index].getHits().size() == 2) // xl_chain exists and 2 PeptideHits: should be a cross-link
+              else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
               {
-                PeptideHit ph_alpha = pis[peptide_id_index].getHits()[0];
-                PeptideHit ph_beta = pis[peptide_id_index].getHits()[1];
-                String seq_alpha = ph_alpha.getSequence().toUnmodifiedString();
-                String seq_beta = ph_beta.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph_alpha.getMetaValue("xl_pos")).toInt();
-                int xl_pos_beta = String(ph_alpha.getMetaValue("xl_pos2")).toInt();
-
+                String seq_alpha = ph.getSequence().toUnmodifiedString();
+                String seq_beta = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString();
+                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+                int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt();
 
                 // String formatting
                 Size prefix_length = max(xl_pos_alpha, xl_pos_beta);
@@ -388,15 +385,15 @@ namespace OpenMS
 
                 String alpha_cov;
                 String beta_cov;
-                extractCoverageStrings(ph_alpha.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
+                extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
 
                 box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
                 // color: <font color=\"green\">&boxur;</font>
               }
-              else // no value in xl_pos2 and no second PeptideHit, should be a mono-link
+              else // if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "mono-link")
               {
                 String seq_alpha = ph.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue("xl_pos")).toInt();
+                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
                 Size prefix_length = xl_pos_alpha;
 
                 String alpha_cov;
@@ -441,7 +438,7 @@ namespace OpenMS
                                                             top_ions, bottom_ions);
                   widget_1D->canvas()->setTextBox(diagram.toQString());
                 }
-                catch (Exception::ParseError) // label doesn't contain have a valid seq.
+                catch (Exception::ParseError&) // label doesn't contain have a valid seq.
                 {
                 }
               }
@@ -450,7 +447,7 @@ namespace OpenMS
           break;
         }
         default:
-          LOG_WARN << "Annotation of MS level > 2 not supported." << endl;
+          OPENMS_LOG_WARN << "Annotation of MS level > 2 not supported." << endl;
       }
     } // end DT_PEAK
     // else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
@@ -827,8 +824,10 @@ namespace OpenMS
       for (vector<Precursor>::const_iterator it = pcs.begin(); it != pcs.end(); ++it)
       {
         // determine start and stop of isolation window
-        double isolation_window_lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();
-        double isolation_window_upper_mz = it->getMZ() + it->getIsolationWindowUpperOffset();
+        double center_mz = it->metaValueExists("isolation window target m/z") ?
+          double(it->getMetaValue("isolation window target m/z")) : it->getMZ();
+        double isolation_window_lower_mz = center_mz - it->getIsolationWindowLowerOffset();
+        double isolation_window_upper_mz = center_mz + it->getIsolationWindowUpperOffset();
 
         // determine maximum peak intensity in isolation window
         SpectrumType::const_iterator vbegin = spectrum.MZBegin(isolation_window_lower_mz);
@@ -1147,7 +1146,7 @@ namespace OpenMS
 
     if (current_spectrum.empty())
     {
-      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
+      OPENMS_LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
     }
     else if (!current_spectrum.isSorted())
     {
@@ -1164,7 +1163,7 @@ namespace OpenMS
       Int peak_idx = current_spectrum.findNearest(ann.mz, 1e-2);
       if (peak_idx == -1) // no match
       {
-        LOG_WARN << "Annotation present for missing peak. m/z: " << ann.mz
+        OPENMS_LOG_WARN << "Annotation present for missing peak. m/z: " << ann.mz
                   << endl;
         continue;
       }

@@ -192,101 +192,122 @@ namespace OpenMS
 
     if (tag_ == "aa")
     {
-      // e.g. <aa type="S" at="2" modified="42.0106" />
-      String aa = attributeAsString_(attributes, "type");
-      Int mod_pos = attributeAsInt_(attributes, "at");
-      double mass_shift = attributeAsDouble_(attributes, "modified");
-
-      AASequence aa_seq = peptide_hits_[current_id_].back().getSequence();
-      mod_pos -= current_start_; // X! Tandem uses position in the protein
-
-      const ResidueModification* res_mod = nullptr;
-
-      // first, try to find matching mod in the defined ones:
-      multimap<double, ModificationDefinition> matches;
-      if (mod_pos <= 0) // N-terminal mod?
+      if (group_type_stack_.empty())
       {
-        mod_def_set_.findMatches(matches, mass_shift, aa,
-                                 ResidueModification::N_TERM);
+        error(LOAD, String("Found an 'aa' element outside of a 'group'! Please check your input file."));
       }
-      else if (mod_pos >= Int(aa_seq.size() - 1)) // C-terminal mod?
+      auto& current_group_type_ = group_type_stack_.top();
+      // TODO support "aa" entries in the parameter groups (e.g. to read user-specified amino acids)
+      //  currently we just ignore them
+      if (current_group_type_ == GroupType::MODEL)
       {
-        mod_def_set_.findMatches(matches, mass_shift, aa,
-                                 ResidueModification::C_TERM);
-      }
-      if (matches.empty())
-      {
-        mod_def_set_.findMatches(matches, mass_shift, aa,
-                                 ResidueModification::ANYWHERE);
-      }
-      if (matches.empty() && (mod_pos <= 0)) // try X! Tandem's default mods
-      {
-        default_nterm_mods_.findMatches(matches, mass_shift, aa,
-                                        ResidueModification::N_TERM);
+        // e.g. <aa type="S" at="2" modified="42.0106" />
+        String aa = attributeAsString_(attributes, "type");
+        Int mod_pos = attributeAsInt_(attributes, "at");
+        double mass_shift = attributeAsDouble_(attributes, "modified");
+
+        AASequence aa_seq = peptide_hits_[current_id_].back().getSequence();
+        mod_pos -= current_start_; // X! Tandem uses position in the protein
+
+        const ResidueModification* res_mod = nullptr;
+
+        // first, try to find matching mod in the defined ones:
+        multimap<double, ModificationDefinition> matches;
+        if (mod_pos <= 0) // N-terminal mod?
+        {
+          mod_def_set_.findMatches(matches, mass_shift, aa,
+                                   ResidueModification::N_TERM);
+        }
+        else if (mod_pos >= Int(aa_seq.size() - 1)) // C-terminal mod?
+          {
+            mod_def_set_.findMatches(matches, mass_shift, aa,
+                                     ResidueModification::C_TERM);
+          }
+        if (matches.empty())
+        {
+          mod_def_set_.findMatches(matches, mass_shift, aa,
+                                   ResidueModification::ANYWHERE);
+        }
+        if (matches.empty() && (mod_pos <= 0)) // try X! Tandem's default mods
+        {
+          default_nterm_mods_.findMatches(matches, mass_shift, aa,
+                                          ResidueModification::N_TERM);
+          if (!matches.empty())
+          {
+            // add the match to the mod. set for output (search parameters):
+            ModificationDefinition mod_def(matches.begin()->second.getModificationName());
+            mod_def.setFixedModification(false);
+            mod_def_set_.addModification(mod_def);
+          }
+        }
+        // matches are sorted by mass error - first one is best match:
         if (!matches.empty())
         {
-          // add the match to the mod. set for output (search parameters):
-          ModificationDefinition mod_def(matches.begin()->second.getModificationName());
-          mod_def.setFixedModification(false);
-          mod_def_set_.addModification(mod_def);
+          res_mod = &(matches.begin()->second.getModification());
         }
-      }
-      // matches are sorted by mass error - first one is best match:
-      if (!matches.empty())
-      {
-        res_mod = &(matches.begin()->second.getModification());
-      }
-      else // no match? strange, let's try all possible modifications
-      {
-        ModificationsDB* mod_db = ModificationsDB::getInstance();
-        // try to find a mod that fits
-        if (mod_pos <= 0) // can (!) be an N-terminal mod
+        else // no match? strange, let's try all possible modifications
         {
-          res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::N_TERM);
+          ModificationsDB* mod_db = ModificationsDB::getInstance();
+          // try to find a mod that fits
+          if (mod_pos <= 0) // can (!) be an N-terminal mod
+          {
+            res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::N_TERM);
+          }
+          else if (mod_pos >= static_cast<int>(aa_seq.size() - 1))
+            {
+              res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::C_TERM);
+            }
+          if (res_mod == nullptr) // if no terminal mod, try normal one
+          {
+            res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::ANYWHERE);
+          }
         }
-        else if (mod_pos >= static_cast<int>(aa_seq.size() - 1))
-        {
-          res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::C_TERM);
-        }
-        if (res_mod == nullptr) // if no terminal mod, try normal one
-        {
-          res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::ANYWHERE);
-        }
-      }
 
-      if (res_mod == nullptr)
-      {
-        error(LOAD, String("No modification found which fits residue '") + aa + "' with mass '" + String(mass_shift) + "'!");
-      }
-      else
-      {
-        // @TODO: avoid unnecessary conversion of mods from/to string below
-        if (res_mod->getTermSpecificity() == ResidueModification::N_TERM)
+        if (res_mod == nullptr)
         {
-          aa_seq.setNTerminalModification(res_mod->getFullId());
-        }
-        else if (res_mod->getTermSpecificity() == ResidueModification::C_TERM)
-        {
-          aa_seq.setCTerminalModification(res_mod->getFullId());
+          error(LOAD, String("No modification found which fits residue '") + aa + "' with mass '" + String(mass_shift) + "'!");
         }
         else
         {
-          aa_seq.setModification(mod_pos, res_mod->getFullId());
+          // @TODO: avoid unnecessary conversion of mods from/to string below
+          if (res_mod->getTermSpecificity() == ResidueModification::N_TERM)
+          {
+            aa_seq.setNTerminalModification(res_mod->getFullId());
+          }
+          else if (res_mod->getTermSpecificity() == ResidueModification::C_TERM)
+          {
+            aa_seq.setCTerminalModification(res_mod->getFullId());
+          }
+          else
+          {
+            aa_seq.setModification(mod_pos, res_mod->getFullId());
+          }
+          peptide_hits_[current_id_].back().setSequence(aa_seq);
         }
-        peptide_hits_[current_id_].back().setSequence(aa_seq);
       }
-      return;
     }
 
     if (tag_ == "group")
     {
-      Int index = attributes.getIndex(sm_.convert("z").c_str());
-      if (index >= 0)
+      String type = attributeAsString_(attributes, "type");
+      if (type == "model")
       {
-        current_charge_ = String(sm_.convert(attributes.getValue(index))).toInt();
+        group_type_stack_.push(GroupType::MODEL);
+        Int index = attributes.getIndex(sm_.convert("z").c_str());
+        if (index >= 0)
+        {
+          current_charge_ = String(sm_.convert(attributes.getValue(index))).toInt();
+        }
+        previous_seq_ = "";
       }
-      previous_seq_ = "";
-      return;
+      else if (type == "parameter")
+      {
+        group_type_stack_.push(GroupType::PARAMETERS);
+      }
+      else
+      {
+        group_type_stack_.push(GroupType::SUPPORT);
+      }
     }
 
     if (tag_ == "note")
@@ -334,7 +355,10 @@ namespace OpenMS
   void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname));
-    return;
+    if (tag_ == "group")
+    {
+      group_type_stack_.pop();
+    }
   }
 
   void XTandemXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)

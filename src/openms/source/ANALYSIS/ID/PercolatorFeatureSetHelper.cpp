@@ -105,7 +105,7 @@ namespace OpenMS
               else
               {
                 stdev_error_top7 = mean_error_top7;
-                LOG_WARN << "StdevErrorTop7 is NaN, setting as MeanErrorTop7 instead." << endl;
+                OPENMS_LOG_WARN << "StdevErrorTop7 is NaN, setting as MeanErrorTop7 instead." << endl;
               }
               
               mean_error_top7 = rescaleFragmentFeature_(mean_error_top7, num_matched_main_ions);
@@ -116,7 +116,7 @@ namespace OpenMS
               hit->setMetaValue("MSGF:StdevErrorTop7", stdev_error_top7);
             }
           }
-          else LOG_WARN << "MS-GF+ PSM with missing NumMatchedMainIons skipped." << endl;
+          else OPENMS_LOG_WARN << "MS-GF+ PSM with missing NumMatchedMainIons skipped." << endl;
         }
       }
     }
@@ -274,7 +274,7 @@ namespace OpenMS
       for (StringList::iterator it = search_engines_used.begin(); it != search_engines_used.end(); ++it) {
         feature_set.push_back("CONCAT:" + *it);
       }
-      LOG_INFO << "Using " << ListUtils::concatenate(search_engines_used, ", ") << " as source for search engine specific features." << endl;
+      OPENMS_LOG_INFO << "Using " << ListUtils::concatenate(search_engines_used, ", ") << " as source for search engine specific features." << endl;
       feature_set.push_back("CONCAT:lnEvalue");
       feature_set.push_back("CONCAT:deltaLnEvalue");
       
@@ -289,7 +289,7 @@ namespace OpenMS
 
     void PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
     {
-      LOG_DEBUG << "creating spectrum map" << endl;
+      OPENMS_LOG_DEBUG << "creating spectrum map" << endl;
       
       std::map<String,PeptideIdentification> unified;
       //setup map of merge characteristics per spectrum
@@ -301,11 +301,11 @@ namespace OpenMS
         String spectrum_reference = getScanMergeKey_(pit, all_peptide_ids.begin());
         unified[spectrum_reference] = ins;
       }
-      LOG_DEBUG << "filled spectrum map with previously observed PSM: " << unified.size() << endl;
+      OPENMS_LOG_DEBUG << "filled spectrum map with previously observed PSM: " << unified.size() << endl;
 
       int nc = 0;
       int mc = 0;
-      LOG_DEBUG << "About to merge in:" << new_peptide_ids.size() << "PSMs." << endl;
+      OPENMS_LOG_DEBUG << "About to merge in:" << new_peptide_ids.size() << "PSMs." << endl;
       for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
         PeptideIdentification ins = *pit;
@@ -412,22 +412,22 @@ namespace OpenMS
         }
       }
       
-      LOG_DEBUG << "filled spectrum map" << endl;
+      OPENMS_LOG_DEBUG << "filled spectrum map" << endl;
       std::vector<PeptideIdentification> swip;
       swip.reserve(unified.size());
-      LOG_DEBUG << "merging spectrum map" << endl;
+      OPENMS_LOG_DEBUG << "merging spectrum map" << endl;
       for (std::map<String,PeptideIdentification>::iterator it = unified.begin(); it != unified.end(); ++it)
       {
         swip.push_back(it->second);
       }
       all_peptide_ids.swap(swip);
-      LOG_DEBUG << "Now containing " << all_peptide_ids.size() << " spectra identifications, new: " << nc << " merged in: " << mc << endl;
+      OPENMS_LOG_DEBUG << "Now containing " << all_peptide_ids.size() << " spectra identifications, new: " << nc << " merged in: " << mc << endl;
     }
     
     // references from PeptideHits to ProteinHits work with the protein accessions, so no need to update the PeptideHits
     void PercolatorFeatureSetHelper::mergeMULTISEProteinIds(vector<ProteinIdentification>& all_protein_ids, vector<ProteinIdentification>& new_protein_ids)
     {      
-      LOG_DEBUG << "merging search parameters" << endl;
+      OPENMS_LOG_DEBUG << "merging search parameters" << endl;
       
       String SE = new_protein_ids.front().getSearchEngine();  
       if (all_protein_ids.empty())
@@ -439,7 +439,7 @@ namespace OpenMS
         all_protein_ids.front().setDateTime(now);
         all_protein_ids.front().setIdentifier(identifier);
         all_protein_ids.front().setSearchEngine(SE);
-        LOG_DEBUG << "Setting search engine to " << SE << endl;
+        OPENMS_LOG_DEBUG << "Setting search engine to " << SE << endl;
         all_protein_ids.front().setSearchParameters(new_protein_ids.front().getSearchParameters());
       }
       else if (all_protein_ids.front().getSearchEngine() != SE)
@@ -449,10 +449,10 @@ namespace OpenMS
       std::vector<ProteinHit>& all_protein_hits = all_protein_ids.front().getHits();
       std::vector<ProteinHit>& new_protein_hits = new_protein_ids.front().getHits();
       
-      LOG_DEBUG << "Sorting " << new_protein_hits.size() << " new ProteinHits." << endl;
+      OPENMS_LOG_DEBUG << "Sorting " << new_protein_hits.size() << " new ProteinHits." << endl;
       std::sort(new_protein_hits.begin(), new_protein_hits.end(), PercolatorFeatureSetHelper::lq_ProteinHit());
       
-      LOG_DEBUG << "Melting with " << all_protein_hits.size() << " previous ProteinHits." << endl;
+      OPENMS_LOG_DEBUG << "Melting with " << all_protein_hits.size() << " previous ProteinHits." << endl;
       if (all_protein_hits.empty())
       {
         all_protein_hits.swap(new_protein_hits);
@@ -467,13 +467,13 @@ namespace OpenMS
         tmp_protein_hits.resize(uni - tmp_protein_hits.begin());
         all_protein_hits.swap(tmp_protein_hits);
       }
-      LOG_DEBUG << "Done with next ProteinHits." << endl;
+      OPENMS_LOG_DEBUG << "Done with next ProteinHits." << endl;
     
       StringList keys;
       all_protein_ids.front().getSearchParameters().getKeys(keys);      
       if (!ListUtils::contains(keys, "SE:" + SE)) 
       {
-        LOG_DEBUG << "Melting Parameters from " << SE << " into MetaInfo." << endl;
+        OPENMS_LOG_DEBUG << "Melting Parameters from " << SE << " into MetaInfo." << endl;
         
         //insert into MetaInfo as SE:param
         ProteinIdentification::SearchParameters sp = new_protein_ids.front().getSearchParameters();
@@ -491,11 +491,13 @@ namespace OpenMS
         all_sp.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
         all_sp.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
         all_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+        //TODO maybe add all the files in file origin that were searched with this SE. then we can do a lookup later
+        // for every PepID based on its file_origin, with which SEs and settings it was identified.
         
-        LOG_DEBUG << "Done with next Parameters." << endl;
+        OPENMS_LOG_DEBUG << "Done with next Parameters." << endl;
         all_protein_ids.front().setSearchParameters(all_sp);
       }
-      LOG_DEBUG << "Merging primaryMSRunPaths." << endl;
+      OPENMS_LOG_DEBUG << "Merging primaryMSRunPaths." << endl;
       try
       {
         StringList all_primary_ms_run_path;
@@ -506,15 +508,15 @@ namespace OpenMS
         all_primary_ms_run_path.insert(all_primary_ms_run_path.end(), new_primary_ms_run_path.begin(), new_primary_ms_run_path.end());
         all_protein_ids.front().setPrimaryMSRunPath(all_primary_ms_run_path);
 
-        LOG_DEBUG << "New primary run paths: " << ListUtils::concatenate(new_primary_ms_run_path,",") << endl;
-        LOG_DEBUG << "All primary run paths: " << ListUtils::concatenate(all_primary_ms_run_path,",") << endl;
+        OPENMS_LOG_DEBUG << "New primary run paths: " << ListUtils::concatenate(new_primary_ms_run_path,",") << endl;
+        OPENMS_LOG_DEBUG << "All primary run paths: " << ListUtils::concatenate(all_primary_ms_run_path,",") << endl;
       }
       catch (Exception::BaseException& e)
       {
-        LOG_DEBUG << "faulty primary MS run path: " << endl;
+        OPENMS_LOG_DEBUG << "faulty primary MS run path: " << endl;
         Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, e.what(), "");
       }
-      LOG_DEBUG << "Merging for this file finished." << endl;
+      OPENMS_LOG_DEBUG << "Merging for this file finished." << endl;
     }
     
     void PercolatorFeatureSetHelper::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
@@ -586,7 +588,7 @@ namespace OpenMS
       //feature_set.push_back("MULTI:ionFrac");
       //feature_set.push_back("MULTI:numHits"); // this is not informative if we only keep PSMs with hits for all search engines
       
-      LOG_INFO << "Using " << ListUtils::concatenate(search_engines_used, ", ") << " as source for search engine specific features." << endl;
+      OPENMS_LOG_INFO << "Using " << ListUtils::concatenate(search_engines_used, ", ") << " as source for search engine specific features." << endl;
 
       // get all the feature values
       if (!complete_only)
@@ -604,11 +606,11 @@ namespace OpenMS
                 {
                   String recast = hit->getMetaValue(*feats);
                   double d = boost::lexical_cast<double>(recast);
-                  LOG_DEBUG << "recast: "
+                  OPENMS_LOG_DEBUG << "recast: "
                             << recast << " "
                             << double(hit->getMetaValue(*feats)) << "* ";
                   hit->setMetaValue(*feats,d);
-                  LOG_DEBUG << hit->getMetaValue(*feats).valueType() << " "
+                  OPENMS_LOG_DEBUG << hit->getMetaValue(*feats).valueType() << " "
                             << hit->getMetaValue(*feats)
                             << endl;
                 }
@@ -652,7 +654,7 @@ namespace OpenMS
       size_t complete_spectra = 0;
       size_t incomplete_spectra = 0;
 
-      LOG_DEBUG << "Looking for minimum feature set:" << ListUtils::concatenate(feature_set, ", ") << "." << endl;
+      OPENMS_LOG_DEBUG << "Looking for minimum feature set:" << ListUtils::concatenate(feature_set, ", ") << "." << endl;
 
       for (vector<PeptideIdentification>::iterator pi = peptide_ids.begin(); pi != peptide_ids.end(); ++pi)
       {
@@ -702,15 +704,15 @@ namespace OpenMS
       }
       if (sum_removed > 0)
       {
-        LOG_WARN << "Removed " << sum_removed << " incomplete cases of PSMs." << endl;
+        OPENMS_LOG_WARN << "Removed " << sum_removed << " incomplete cases of PSMs." << endl;
       }
       if (imputed_values > 0)
       {
-        LOG_WARN << "Imputed " << imputed_values << " of " << observed_values+imputed_values
+        OPENMS_LOG_WARN << "Imputed " << imputed_values << " of " << observed_values+imputed_values
                  << " missing values. ("
                  << imputed_values*100.0/(imputed_values+observed_values)
                  << "%)" << endl;
-        LOG_WARN << "Affected " << incomplete_spectra << " of " << incomplete_spectra+complete_spectra
+        OPENMS_LOG_WARN << "Affected " << incomplete_spectra << " of " << incomplete_spectra+complete_spectra
                  << " spectra. ("
                  << incomplete_spectra*100.0/(incomplete_spectra+complete_spectra)
                  << "%)" << endl;
@@ -732,7 +734,7 @@ namespace OpenMS
       }
       for (set<StringList::iterator>::reverse_iterator rit = unavail.rbegin(); rit != unavail.rend(); ++rit)
       {
-        LOG_WARN << "A extra_feature requested (" << *(*rit) << ") was not available - removed." << endl;
+        OPENMS_LOG_WARN << "A extra_feature requested (" << *(*rit) << ") was not available - removed." << endl;
         extra_features.erase(*rit);
       }
     }
@@ -766,6 +768,8 @@ namespace OpenMS
     }
         
     // TODO: this is code redundancy to PercolatorAdapter
+    // TODO: in case of merged idXML files from fractions and/or replicates make sure that you also consider the file origin
+    //  this is usually stored in the map_index MetaValue of a PeptideIdentification (PSM) object.
     String PercolatorFeatureSetHelper::getScanMergeKey_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
     {
       // MSGF+ uses this field, is empty if not specified
@@ -781,7 +785,7 @@ namespace OpenMS
         else
         {
           scan_identifier = "index=" + String(it - start + 1);
-          LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
+          OPENMS_LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
         }
       }
       

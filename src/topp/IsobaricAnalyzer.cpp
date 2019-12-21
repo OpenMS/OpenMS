@@ -43,6 +43,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
@@ -86,7 +87,7 @@ using namespace std;
 
   The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
 
-  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, and 11-plex as labeling methods.
+  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, and 16-plex as labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
   The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
@@ -175,16 +176,19 @@ public:
     TMTSixPlexQuantitationMethod* tmt6plex = new TMTSixPlexQuantitationMethod();
     TMTTenPlexQuantitationMethod* tmt10plex = new TMTTenPlexQuantitationMethod();
     TMTElevenPlexQuantitationMethod* tmt11plex = new TMTElevenPlexQuantitationMethod();
-    quant_methods_[itraq4plex->getName()] = itraq4plex;
-    quant_methods_[itraq8plex->getName()] = itraq8plex;
-    quant_methods_[tmt6plex->getName()] = tmt6plex;
-    quant_methods_[tmt10plex->getName()] = tmt10plex;
-    quant_methods_[tmt11plex->getName()] = tmt11plex;
-    quant_method_names_[itraq4plex->getName()] = "iTRAQ 4-plex";
-    quant_method_names_[itraq8plex->getName()] = "iTRAQ 8-plex";
-    quant_method_names_[tmt6plex->getName()] = "TMT 6-plex";
-    quant_method_names_[tmt10plex->getName()] = "TMT 10-plex";
-    quant_method_names_[tmt11plex->getName()] = "TMT 11-plex";
+    TMTSixteenPlexQuantitationMethod* tmt16plex = new TMTSixteenPlexQuantitationMethod();
+    quant_methods_[itraq4plex->getMethodName()] = itraq4plex;
+    quant_methods_[itraq8plex->getMethodName()] = itraq8plex;
+    quant_methods_[tmt6plex->getMethodName()] = tmt6plex;
+    quant_methods_[tmt10plex->getMethodName()] = tmt10plex;
+    quant_methods_[tmt11plex->getMethodName()] = tmt11plex;
+    quant_methods_[tmt16plex->getMethodName()] = tmt16plex;
+    quant_method_names_[itraq4plex->getMethodName()] = "iTRAQ 4-plex";
+    quant_method_names_[itraq8plex->getMethodName()] = "iTRAQ 8-plex";
+    quant_method_names_[tmt6plex->getMethodName()] = "TMT 6-plex";
+    quant_method_names_[tmt10plex->getMethodName()] = "TMT 10-plex";
+    quant_method_names_[tmt11plex->getMethodName()] = "TMT 11-plex";
+    quant_method_names_[tmt16plex->getMethodName()] = "TMT 16-plex";
   }
 
   ~TOPPIsobaricAnalyzer() override
@@ -223,7 +227,7 @@ protected:
          it != quant_methods_.end();
          ++it)
     {
-      registerSubsection_(it->second->getName(), String("Algorithm parameters for ") + quant_method_names_[it->second->getName()]);
+      registerSubsection_(it->second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[it->second->getMethodName()]);
     }
   }
 
@@ -277,7 +281,7 @@ protected:
     IsobaricQuantitationMethod* quant_method = quant_methods_[getStringOption_("type")];
 
     // set the parameters for this method
-    quant_method->setParameters(getParam_().copy(quant_method->getName() + ":", true));
+    quant_method->setParameters(getParam_().copy(quant_method->getMethodName() + ":", true));
 
     //-------------------------------------------------------------
     // calculations

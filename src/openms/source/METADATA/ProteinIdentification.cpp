@@ -32,9 +32,14 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+
 #include <numeric>
 #include <unordered_set>
 
@@ -65,7 +70,7 @@ namespace OpenMS
     return accessions < rhs.accessions;
   }
 
-  const ProteinIdentification::ProteinGroup::FloatDataArrays &ProteinIdentification::ProteinGroup::getFloatDataArrays() const
+  const ProteinIdentification::ProteinGroup::FloatDataArrays& ProteinIdentification::ProteinGroup::getFloatDataArrays() const
   {
     return float_data_arrays_;
   }
@@ -75,32 +80,32 @@ namespace OpenMS
     float_data_arrays_ = fda;
   }
 
-  const ProteinIdentification::ProteinGroup::StringDataArrays &ProteinIdentification::ProteinGroup::getStringDataArrays() const
+  const ProteinIdentification::ProteinGroup::StringDataArrays& ProteinIdentification::ProteinGroup::getStringDataArrays() const
   {
     return string_data_arrays_;
   }
 
-  void ProteinIdentification::ProteinGroup::setStringDataArrays(const ProteinIdentification::ProteinGroup::StringDataArrays &sda)
+  void ProteinIdentification::ProteinGroup::setStringDataArrays(const ProteinIdentification::ProteinGroup::StringDataArrays& sda)
   {
     string_data_arrays_ = sda;
   }
 
-  ProteinIdentification::ProteinGroup::StringDataArrays &ProteinIdentification::ProteinGroup::getStringDataArrays()
+  ProteinIdentification::ProteinGroup::StringDataArrays& ProteinIdentification::ProteinGroup::getStringDataArrays()
   {
     return string_data_arrays_;
   }
 
-  const ProteinIdentification::ProteinGroup::IntegerDataArrays &ProteinIdentification::ProteinGroup::getIntegerDataArrays() const
+  const ProteinIdentification::ProteinGroup::IntegerDataArrays& ProteinIdentification::ProteinGroup::getIntegerDataArrays() const
   {
     return integer_data_arrays_;
   }
 
-  ProteinIdentification::ProteinGroup::IntegerDataArrays &ProteinIdentification::ProteinGroup::getIntegerDataArrays()
+  ProteinIdentification::ProteinGroup::IntegerDataArrays& ProteinIdentification::ProteinGroup::getIntegerDataArrays()
   {
     return integer_data_arrays_;
   }
 
-  void ProteinIdentification::ProteinGroup::setIntegerDataArrays(const ProteinIdentification::ProteinGroup::IntegerDataArrays &ida)
+  void ProteinIdentification::ProteinGroup::setIntegerDataArrays(const ProteinIdentification::ProteinGroup::IntegerDataArrays& ida)
   {
     integer_data_arrays_ = ida;
   }
@@ -357,21 +362,73 @@ namespace OpenMS
     protein_hits_.push_back(std::forward<ProteinHit>(protein_hit));
   }
 
-  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, bool raw)
   {
-    if (!s.empty())
+    String meta_name = raw ? "spectra_data_raw" : "spectra_data";
+    setMetaValue(meta_name, DataValue(StringList()));
+    if (s.empty())
     {
-      this->setMetaValue("spectra_data", DataValue(s));
+      OPENMS_LOG_WARN << "Setting an empty value for primary MS runs paths." << std::endl;
+    }
+    else
+    {
+      addPrimaryMSRunPath(s, raw);
     }
   }
 
-  /// get the file path to the first MS run
-  void ProteinIdentification::getPrimaryMSRunPath(StringList& toFill) const
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
   {
-    if (this->metaValueExists("spectra_data"))
+    StringList ms_path;
+    e.getPrimaryMSRunPath(ms_path);
+    if (ms_path.size() == 1)
     {
-      toFill = this->getMetaValue("spectra_data");
+      FileTypes::Type filetype = FileHandler::getTypeByFileName(ms_path[0]);
+      if ((filetype == FileTypes::MZML) && File::exists(ms_path[0]))
+      {
+        setMetaValue("spectra_data", DataValue(StringList({ms_path[0]})));
+        return; // don't do anything else in this case
+      }
+      if (filetype == FileTypes::RAW)
+      {
+        setMetaValue("spectra_data_raw", DataValue(StringList({ms_path[0]})));
+      }
     }
+    setPrimaryMSRunPath(s);
+  }
+
+  /// get the file path to the first MS runs
+  void ProteinIdentification::getPrimaryMSRunPath(StringList& output, bool raw) const
+  {
+    String meta_name = raw ? "spectra_data_raw" : "spectra_data";
+    if (metaValueExists(meta_name))
+    {
+      output = getMetaValue(meta_name);
+    }
+  }
+
+  void ProteinIdentification::addPrimaryMSRunPath(const StringList& s, bool raw)
+  {
+    String meta_name = raw ? "spectra_data_raw" : "spectra_data";
+    if (!raw) // mzML files expected
+    {
+      for (const String& filename : s)
+      {
+        FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
+        if (filetype != FileTypes::MZML)
+        {
+          OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS runs.\n"
+                          << "Filename: '" << filename << "'" << std::endl;
+        }
+      }
+    }
+    StringList spectra_data = getMetaValue(meta_name, DataValue(StringList()));
+    spectra_data.insert(spectra_data.end(), s.begin(), s.end());
+    setMetaValue(meta_name, spectra_data);
+  }
+
+  void ProteinIdentification::addPrimaryMSRunPath(const String& s, bool raw)
+  {
+    addPrimaryMSRunPath(StringList({s}), raw);
   }
 
   //TODO find a more robust way to figure that out. CV Terms?
@@ -455,17 +512,17 @@ namespace OpenMS
     for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
     {
       // peptide hits
-      const PeptideIdentification & peptide_id = pep_ids[pep_i];
-      const vector<PeptideHit> peptide_hits = peptide_id.getHits();
+      const PeptideIdentification& peptide_id = pep_ids[pep_i];
+      const vector<PeptideHit>& peptide_hits = peptide_id.getHits();
       for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
       {
-        const PeptideHit & peptide_hit = peptide_hits[ph_i];
+        const PeptideHit& peptide_hit = peptide_hits[ph_i];
         const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
 
         // matched proteins for hit
         for (Size pep_ev_i = 0; pep_ev_i != ph_evidences.size(); ++pep_ev_i)
         {
-          const PeptideEvidence & evidence = ph_evidences[pep_ev_i];
+          const PeptideEvidence& evidence = ph_evidences[pep_ev_i];
           map_acc_2_evidence[evidence.getProteinAccession()].insert(evidence);
         }
       }
@@ -480,11 +537,11 @@ namespace OpenMS
       }
       vector<bool> covered_amino_acids(protein_length, false);
 
-      const String & accession = protein_hits_[i].getAccession();
+      const String& accession = protein_hits_[i].getAccession();
       double coverage = 0.0;
       if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
       {
-        const set<PeptideEvidence> & evidences = map_acc_2_evidence.find(accession)->second;
+        const set<PeptideEvidence>& evidences = map_acc_2_evidence.find(accession)->second;
         for (set<PeptideEvidence>::const_iterator sit = evidences.begin(); sit != evidences.end(); ++sit)
         {
           int start = sit->getStart();
@@ -514,8 +571,8 @@ namespace OpenMS
   }
 
   void ProteinIdentification::computeModifications(
-    const std::vector<PeptideIdentification>& pep_ids, 
-    const StringList & skip_modifications)
+    const std::vector<PeptideIdentification>& pep_ids,
+    const StringList& skip_modifications)
   {
     // map protein accession to observed position,modifications pairs
     map<String, set<pair<Size, ResidueModification>>> prot2mod;
@@ -523,12 +580,12 @@ namespace OpenMS
     for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
     {
       // peptide hits
-      const PeptideIdentification & peptide_id = pep_ids[pep_i];
+      const PeptideIdentification& peptide_id = pep_ids[pep_i];
       const vector<PeptideHit> peptide_hits = peptide_id.getHits();
       for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
       {
-        const PeptideHit & peptide_hit = peptide_hits[ph_i];
-        const AASequence & aas = peptide_hit.getSequence();
+        const PeptideHit& peptide_hit = peptide_hits[ph_i];
+        const AASequence& aas = peptide_hit.getSequence();
         const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
 
         // skip unmodified peptides
@@ -545,7 +602,7 @@ namespace OpenMS
             {
               for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
               {
-                const String & acc = ph_evidences[phe_i].getProteinAccession();
+                const String& acc = ph_evidences[phe_i].getProteinAccession();
                 const Size mod_pos = ph_evidences[phe_i].getStart(); // mod at N terminus
                 prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
               }
@@ -563,8 +620,8 @@ namespace OpenMS
               {
                 for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
                 {
-                  const String & acc = ph_evidences[phe_i].getProteinAccession();
-                  const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai 
+                  const String& acc = ph_evidences[phe_i].getProteinAccession();
+                  const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai
                   prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
                 }
               }
@@ -580,7 +637,7 @@ namespace OpenMS
             {
               for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
               {
-                const String & acc = ph_evidences[phe_i].getProteinAccession();
+                const String& acc = ph_evidences[phe_i].getProteinAccession();
                 const Size mod_pos = ph_evidences[phe_i].getEnd(); // mod at C terminus
                 prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
               }
@@ -592,7 +649,7 @@ namespace OpenMS
 
     for (Size i = 0; i < protein_hits_.size(); ++i)
     {
-      const String & accession = protein_hits_[i].getAccession();
+      const String& accession = protein_hits_[i].getAccession();
       if (prot2mod.find(accession) != prot2mod.end())
       {
         protein_hits_[i].setModifications(prot2mod[accession]);
@@ -643,6 +700,11 @@ namespace OpenMS
   void ProteinIdentification::setSearchParameters(const SearchParameters& search_parameters)
   {
     search_parameters_ = search_parameters;
+  }
+
+  void ProteinIdentification::setSearchParameters(SearchParameters&& search_parameters)
+  {
+    search_parameters_ = std::move(search_parameters);
   }
 
   const ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters() const

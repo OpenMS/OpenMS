@@ -431,7 +431,7 @@ namespace OpenMS
       }
       else if (component_1.metaValueExists("native_id"))
       {
-        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
+        OPENMS_LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
         const double feature_1 = component_1.getIntensity();
         ratio = feature_1;
       }
@@ -447,13 +447,13 @@ namespace OpenMS
       }
       else if (component_1.metaValueExists(feature_name))
       {
-        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
+        OPENMS_LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
         const double feature_1 = component_1.getMetaValue(feature_name);
         ratio = feature_1;
       }
       else
       {
-        LOG_DEBUG << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
+        OPENMS_LOG_DEBUG << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
       }
     }
 
@@ -478,7 +478,7 @@ namespace OpenMS
     else
     {
       key_exists = false;
-      LOG_DEBUG << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
+      OPENMS_LOG_DEBUG << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
     }
     return check;
   }

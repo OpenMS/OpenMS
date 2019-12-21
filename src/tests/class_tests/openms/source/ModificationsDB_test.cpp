@@ -46,7 +46,7 @@ using namespace std;
 
 struct ResidueModificationOriginCmp
 {
-  bool operator() (const ResidueModification* a, const ResidueModification* b)
+  bool operator() (const ResidueModification* a, const ResidueModification* b) const
   {
     return a->getOrigin() < b->getOrigin();
   }
@@ -247,7 +247,7 @@ START_SECTION((const ResidueModification& getModification(const String& mod_name
   // missing modification (exception)
   TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING"));
   TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING", "", ResidueModification::N_TERM));
-  TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING", "", ResidueModification::C_TERM));	
+  TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING", "", ResidueModification::C_TERM));
 }
 END_SECTION
 

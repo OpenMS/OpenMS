@@ -34,13 +34,16 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+
+#include <boost/cast.hpp>
 
 // #define DEBUG_SONAR
 
@@ -222,7 +225,7 @@ namespace OpenMS
           right += dia_extract_window_ / 2.0;
         }
         double mz, intensity;
-        integrateWindow(spectrum_, left, right, mz, intensity, dia_centroided_);
+        DIAHelpers::integrateWindow(spectrum_, left, right, mz, intensity, dia_centroided_);
 
         sonar_profile.push_back(intensity);
         sonar_mz_profile.push_back(mz);

@@ -231,7 +231,7 @@ START_SECTION(([EXTRA] load broken file))
     // Manually, one can cast the indexoffset variable to int to trigger this
     // behavior in IndexedMzMLDecoder.cpp
     // 
-    TEST_EXCEPTION_WITH_MESSAGE (Exception::ConversionError, 
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError,
       new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_3_broken.mzML")), 
       "Could not convert string '9223372036854775807' to an integer on your system." )
   }

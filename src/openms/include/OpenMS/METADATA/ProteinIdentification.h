@@ -40,10 +40,13 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
+
+
 #include <set>
 
 namespace OpenMS
 {
+  class MSExperiment;
   class PeptideIdentification;
 
   /**
@@ -135,7 +138,7 @@ public:
 
       /// Returns a const reference to the string meta data arrays
       const StringDataArrays& getStringDataArrays() const;
- 
+
       /// Returns a mutable reference to the string meta data arrays
       StringDataArrays& getStringDataArrays();
 
@@ -154,42 +157,42 @@ public:
       /// Returns a mutable reference to the first integer meta data array with the given name
       inline IntegerDataArray& getIntegerDataArrayByName(String name)
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a mutable reference to the first string meta data array with the given name
       inline StringDataArray& getStringDataArrayByName(String name)
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a mutable reference to the first float meta data array with the given name
       inline FloatDataArray& getFloatDataArrayByName(String name)
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a const reference to the first integer meta data array with the given name
       inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a const reference to the first string meta data array with the given name
       inline const StringDataArray& getStringDataArrayByName(String name) const
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a const reference to the first float meta data array with the given name
       inline const FloatDataArray& getFloatDataArrayByName(String name) const
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
       }
 
@@ -234,16 +237,16 @@ public:
 
       SearchParameters();
       /// Copy constructor
-      SearchParameters(const SearchParameters &) = default;
+      SearchParameters(const SearchParameters&) = default;
       /// Move constructor
       SearchParameters(SearchParameters&&) = default;
       /// Destructor
       ~SearchParameters() = default;
 
       /// Assignment operator
-      SearchParameters & operator=(const SearchParameters &) = default;
+      SearchParameters& operator=(const SearchParameters&) = default;
       /// Move assignment operator
-      SearchParameters& operator=(SearchParameters&&) & = default;
+      SearchParameters& operator=(SearchParameters&&)& = default;
 
       bool operator==(const SearchParameters& rhs) const;
 
@@ -279,13 +282,13 @@ public:
     ///@name Protein hit information (public members)
     //@{
     /// Returns the protein hits
-    const std::vector<ProteinHit> & getHits() const;
+    const std::vector<ProteinHit>& getHits() const;
     /// Returns the protein hits (mutable)
-    std::vector<ProteinHit> & getHits();
+    std::vector<ProteinHit>& getHits();
     /// Appends a protein hit
-    void insertHit(const ProteinHit & input);
+    void insertHit(const ProteinHit& input);
     /// Appends a protein hit
-    void insertHit(ProteinHit && input);
+    void insertHit(ProteinHit&& input);
 
     /**
         @brief Sets the protein hits
@@ -302,7 +305,7 @@ public:
     /// Returns the protein groups (mutable)
     std::vector<ProteinGroup>& getProteinGroups();
     /// Appends a new protein group
-    void insertProteinGroup(const ProteinGroup & group);
+    void insertProteinGroup(const ProteinGroup& group);
 
     /// Returns the indistinguishable proteins
     const std::vector<ProteinGroup>& getIndistinguishableProteins() const;
@@ -341,13 +344,13 @@ public:
 
     /**
        @brief Compute the modifications of all ProteinHits given PeptideHits
-      
+
       For every protein accession, the pair of position and modification is returned.
       Because fixed modifications might not be of interest, a list can be provided to skip those.
     */
     void computeModifications(
-      const std::vector<PeptideIdentification>& pep_ids, 
-      const StringList & skip_modifications);
+      const std::vector<PeptideIdentification>& pep_ids,
+      const StringList& skip_modifications);
 
 
     ///@name General information
@@ -374,18 +377,32 @@ public:
     const String getInferenceEngineVersion() const;
     /// Sets the search parameters
     void setSearchParameters(const SearchParameters& search_parameters);
+    /// Sets the search parameters (move)
+    void setSearchParameters(SearchParameters&& search_parameters);
     /// Returns the search parameters
     const SearchParameters& getSearchParameters() const;
     /// Returns the search parameters (mutable)
-    SearchParameters& getSearchParameters();    
+    SearchParameters& getSearchParameters();
     /// Returns the identifier
     const String& getIdentifier() const;
     /// Sets the identifier
     void setIdentifier(const String& id);
-    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-    void setPrimaryMSRunPath(const StringList& s);
-    /// get the file path to the first MS run
-    void getPrimaryMSRunPath(StringList& toFill) const;
+    /**
+       Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
+
+       @param raw Store paths to the raw files (or equivalent) rather than mzMLs
+    */
+    void setPrimaryMSRunPath(const StringList& s, bool raw = false);
+    /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
+    void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
+    void addPrimaryMSRunPath(const String& s, bool raw = false);
+    void addPrimaryMSRunPath(const StringList& s, bool raw = false);
+    /**
+       Get the file paths to the primary MS runs
+
+       @param raw Get raw files (or equivalent) instead of mzMLs
+    */
+    void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
     /// if this object has inference data
     bool hasInferenceData() const;
     bool hasInferenceEngineAsSearchEngine() const;

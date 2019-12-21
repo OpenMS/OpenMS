@@ -33,23 +33,21 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/METADATA/SpectrumLookup.h>
-
-#include <boost/regex.hpp>
-
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <boost/regex.hpp>
 
 using namespace OpenMS;
 using namespace std;
 
-void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths,
-                                  const String & original_input_mzml,
-                                  const Size & top_n_hits,
-                                  MzTab & result)
+void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths,
+                                  const String& original_input_mzml,
+                                  const Size& top_n_hits,
+                                  MzTab& result)
 {
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
@@ -109,7 +107,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
 
         // fill identification structure containing all candidate hits for a single spectrum
-        CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
+        CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id{};
 
         // extract scan_index from path
         OpenMS::String str = File::path(pathtocsicsv);
@@ -195,7 +193,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             std::vector <MzTabString> pubchemids;
             for (Size k = 0; k < hit.pubchemids.size(); ++k)
             {
-              pubchemids.push_back(MzTabString(hit.pubchemids[k]));
+              pubchemids.emplace_back(MzTabString(hit.pubchemids[k]));
             }  
             smsr.identifier.set(pubchemids);
             smsr.inchi_key = MzTabString(hit.inchikey2D);
@@ -203,7 +201,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             std::vector < MzTabString > uri;
             for (Size k = 0; k < hit.links.size(); ++k)
             {
-              uri.push_back(MzTabString(hit.links[k]));
+              uri.emplace_back(MzTabString(hit.links[k]));
             }  
 
             smsr.exp_mass_to_charge = MzTabDouble(id.mz);

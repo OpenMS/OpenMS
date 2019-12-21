@@ -74,11 +74,7 @@ namespace OpenMS
 public:
 
     /// Returns a pointer to the modifications DB (singleton)
-    inline static ModificationsDB* getInstance(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo")
-    {
-      static ModificationsDB* db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
-      return db_;
-    }
+    static ModificationsDB* getInstance(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Check whether ModificationsDB was instantiated before
     static bool isInstantiated();
@@ -182,7 +178,7 @@ protected:
     Map<String, std::set<const ResidueModification*> > modification_names_;
 
     /// Helper function to check if a residue matches the origin for a modification
-    bool residuesMatch_(const String& residue, char origin) const;
+    bool residuesMatch_(const String& residue, const ResidueModification* origin) const;
 
 private:
 

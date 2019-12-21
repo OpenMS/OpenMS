@@ -222,7 +222,7 @@ namespace OpenMS
                 {
                   peptide.setNTerminalModification(mod_name);
                 }
-                catch (Exception::ElementNotFound /*e*/)
+                catch (Exception::ElementNotFound& /*e*/)
                 {
                   peptide.setModification(position, mod_name);
                 }
@@ -234,7 +234,7 @@ namespace OpenMS
                 {
                   peptide.setCTerminalModification(mod_name);
                 }
-                catch (Exception::ElementNotFound /*e*/)
+                catch (Exception::ElementNotFound& /*e*/)
                 {
                   peptide.setModification(position, mod_name);
                 }
@@ -432,7 +432,7 @@ namespace OpenMS
         {
           if (rich_spec.getStringDataArrays()[k].getName() == "IonName")
           {
-            ion_name = k;
+            ion_name = (int)k;
             break;
           }
         }

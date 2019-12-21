@@ -33,13 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
-#include <QtCore/QProcess>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <QDirIterator>
-
+#include <QString>
+#include <QtCore/QProcess>
 #include <fstream>
 
 namespace OpenMS
@@ -134,47 +136,53 @@ namespace OpenMS
       most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
     }   
 
-    std::pair<String, String> SiriusAdapterAlgorithm::checkSiriusExecutablePath(String& executable)
-    { 
-      std::pair<String, String> executable_workdir;
-      // if executable was not provided
-      if (executable.empty())
-      {
-        const QProcessEnvironment env;
-        const String& qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
-        if (qsiriuspathenv.empty())
-        {
-          throw Exception::InvalidValue(__FILE__,
-                                        __LINE__, 
-                                        OPENMS_PRETTY_FUNCTION, 
-                                        "FATAL: Executable of Sirius could not be found. Please either use SIRIUS_PATH env variable or provide with -executable",
-                                         "");
-        }
-        executable = qsiriuspathenv;
-      }
-
-      // normalize file path
-      QString exe = executable.toQString();
-      QFileInfo file_info(exe);
-      exe = file_info.canonicalFilePath();
-  
-      LOG_WARN << "Executable is: " + String(exe) << std::endl;
-      const String path_to_executable = File::path(exe);
-      executable_workdir = std::make_pair(exe.toStdString(), path_to_executable);
-      
-      return executable_workdir;
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::SiriusTemporaryFileSystemObjects(int debug_level)
+    {
+      QString base_dir = File::getTempDirectory().toQString();
+      tmp_dir_ = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
+      tmp_ms_file_ = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
+      tmp_out_dir_ = QDir(tmp_dir_.toQString()).filePath("sirius_out");
+      debug_level_ = debug_level;
     }
 
-    SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct()
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::~SiriusTemporaryFileSystemObjects()
     {
-      SiriusTmpStruct tmp_struct;
-      QString base_dir = File::getTempDirectory().toQString();
-      tmp_struct.tmp_dir = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
-      tmp_struct.tmp_ms_file = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
-      tmp_struct.tmp_out_dir = QDir(tmp_struct.tmp_dir.toQString()).filePath("sirius_out");
+      constexpr int debug_threshold = 2;
 
-      return tmp_struct;
-    } 
+      // clean tmp directory if debug level < debug threshold
+      if (debug_level_ >= debug_threshold)
+      {
+        OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir_ << " and msfile at this location "<< tmp_ms_file_ << ". Set debug level lower than " << debug_threshold << " to remove them." << std::endl;
+      }
+      else
+      {
+        if (!tmp_dir_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
+          File::removeDir(tmp_dir_.toQString());
+        }
+        if (!tmp_ms_file_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_ms_file_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
+          File::remove(tmp_ms_file_);
+        }
+      }
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpDir() const
+    {
+      return tmp_dir_;
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpOutDir() const
+    {
+      return tmp_out_dir_;
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpMsFile() const
+    {
+      return tmp_ms_file_;
+    }
     
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
@@ -193,16 +201,23 @@ namespace OpenMS
           FeatureMap feature_map;
           fxml.load(featureinfo, feature_map);
           
-          bool feature_only = (sirius_algo.feature_only_ == "true") ? true : false;
+          bool feature_only;
+          if (sirius_algo.feature_only_ == "true") feature_only = true;
+          else if (sirius_algo.feature_only_ == "false") feature_only = false;
+          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature only is either true or false");
+          
           unsigned int num_masstrace_filter = sirius_algo.filter_by_num_masstraces_;
           double precursor_mz_tol = sirius_algo.precursor_mz_tolerance_;
           double precursor_rt_tol = sirius_algo.precursor_rt_tolerance_;
-          bool ppm_prec = (sirius_algo.precursor_mz_tolerance_unit_ == "true") ? true : false; 
+          bool ppm_prec;
+          if (sirius_algo.precursor_mz_tolerance_unit_ == "ppm") ppm_prec = true;
+          else if (sirius_algo.precursor_mz_tolerance_unit_ == "Da") ppm_prec = false;
+          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor m/z tolerance unit is either ppm or Da"); 
           
           if (num_masstrace_filter != 1 && !feature_only)
           {
             num_masstrace_filter = 1;
-            LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
+            OPENMS_LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
           }
 
           // filter feature by number of masstraces
@@ -243,12 +258,12 @@ namespace OpenMS
       // number of features to be processed 
       if (feature_only && !featureinfo.empty())
       {
-        LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
       }
       else if (!featureinfo.empty())
       {
-        LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-        LOG_WARN << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_WARN << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
       } 
       else
       {
@@ -260,7 +275,7 @@ namespace OpenMS
             count_ms2++;
           }
         }
-        LOG_WARN << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
+        OPENMS_LOG_WARN << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
       }
     } 
 
@@ -312,9 +327,8 @@ namespace OpenMS
   
       // the actual process
       QProcess qp;
-      std::pair<String, String> exe_wd = SiriusAdapterAlgorithm::checkSiriusExecutablePath(executable);
-      QString exe = exe_wd.first.toQString();
-      QString wd = exe_wd.second.toQString(); 
+      QString exe = executable.toQString();
+      QString wd = File::path(executable).toQString();
       qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
       qp.start(exe, process_params); // does automatic escaping etc... start
       std::stringstream ss;
@@ -323,19 +337,19 @@ namespace OpenMS
       {
           ss << " " << it->toStdString();
       }
-      LOG_DEBUG << ss.str() << std::endl;
-      LOG_WARN << "Executing: " + String(exe) << std::endl;
-      LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
+      OPENMS_LOG_DEBUG << ss.str() << std::endl;
+      OPENMS_LOG_WARN << "Executing: " + String(exe) << std::endl;
+      OPENMS_LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
       const bool success = qp.waitForFinished(-1); // wait till job is finished
   
       if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
       {
-        LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
+        OPENMS_LOG_WARN << "FATAL: External invocation of Sirius failed. Standard output and error were:" << std::endl;
         const QString sirius_stdout(qp.readAllStandardOutput());
         const QString sirius_stderr(qp.readAllStandardError());
-        LOG_WARN << String(sirius_stdout) << std::endl;
-        LOG_WARN << String(sirius_stderr) << std::endl;
-        LOG_WARN << String(qp.exitCode()) << std::endl;
+        OPENMS_LOG_WARN << String(sirius_stdout) << std::endl;
+        OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
+        OPENMS_LOG_WARN << String(qp.exitCode()) << std::endl;
         qp.close();
 
         throw Exception::InvalidValue(__FILE__,

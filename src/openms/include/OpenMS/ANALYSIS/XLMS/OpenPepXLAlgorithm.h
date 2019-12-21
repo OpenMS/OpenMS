@@ -49,7 +49,7 @@ namespace OpenMS
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenPepXL OpenPepXL
+  @page TOPP_OpenPepXL OpenPepXL
 
   @brief Search for peptide pairs linked with a labeled cross-linker
 
@@ -122,7 +122,8 @@ public:
     {
       EXECUTION_OK,
       ILLEGAL_PARAMETERS,
-      UNEXPECTED_RESULT
+      UNEXPECTED_RESULT,
+      INCOMPATIBLE_INPUT_DATA
     };
 
     /// Default constructor

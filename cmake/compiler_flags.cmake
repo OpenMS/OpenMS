@@ -46,7 +46,7 @@ endif()
 if (CMAKE_COMPILER_IS_GNUCXX)
 
   add_compile_options(-Wall -Wextra 
-    -fvisibility=hidden
+    #-fvisibility=hidden # This is now added as a target property for each library.
     -Wno-non-virtual-dtor 
     -Wno-unknown-pragmas
     -Wno-long-long 
@@ -97,6 +97,9 @@ elseif (MSVC)
 	## coinor windows.h include bug workaround
 	add_definitions(/DNOMINMAX)
 
+	## hdf5 linkage for windows (in case we want to build dynamically)
+	# add_definitions(-DH5_BUILT_AS_DYNAMIC_LIB)
+
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 
@@ -111,7 +114,8 @@ elseif (MSVC)
 elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
   # add clang specific warning levels
-  add_compile_options(-Weverything)
+  # we should not use -Weverything routinely https://quuxplusone.github.io/blog/2018/12/06/dont-use-weverything/
+  add_compile_options(-Wall -Wextra)
   # .. and disable some of the harmless ones
   add_compile_options(
                   -Wno-sign-conversion

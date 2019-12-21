@@ -67,6 +67,8 @@ namespace OpenMS
     is_ms1_shown_(false),
     fragment_window_(nullptr)
   {
+    setObjectName("Identifications");
+
     // set common defaults
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 
@@ -610,13 +612,6 @@ namespace OpenMS
           {
             const PeptideHit & ph = pi[pi_idx].getHits()[ph_idx];
 
-            // for XL-MS data, do not show the beta peptide hit, as it is largely redundant
-            // and not visualized correctly; "MS:1002510" is the CV term for beta chain
-            if (ph.metaValueExists("xl_chain") && ph.getMetaValue("xl_chain") == "MS:1002510")
-            {
-              continue;
-            }
-
             // add new row at the end of the table
             table_widget_->insertRow(table_widget_->rowCount());
 
@@ -678,9 +673,9 @@ namespace OpenMS
               double ppm_error(0);
 
               // Protein:RNA cross-link, Protein-Protein cross-link, or other data with a precomputed precursor error
-              if (pi[pi_idx].getHits()[0].metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
+              if (pi[pi_idx].getHits()[0].metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
               {
-                ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
+                ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
               }
               else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
               {

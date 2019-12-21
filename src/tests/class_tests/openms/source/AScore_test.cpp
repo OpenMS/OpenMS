@@ -121,28 +121,8 @@ DTAFile().load(OPENMS_GET_TEST_DATA_PATH("Ascore_test_input3.dta"), tmp);
 //=============================================================================
 // create permutations based on sequence QSSVTQVTEQSPK
 //=============================================================================
-std::vector<std::vector<Size>> permutations;
-std::vector<Size> perm;
+std::vector<std::vector<Size>> permutations = { {1}, {2}, {4}, {7}, {10} };
 
-perm.clear();
-perm.push_back(1);
-permutations.push_back(perm);
-
-perm.clear();
-perm.push_back(2);
-permutations.push_back(perm);
-
-perm.clear();
-perm.push_back(4);
-permutations.push_back(perm);
-
-perm.clear();
-perm.push_back(7);
-permutations.push_back(perm);
-
-perm.clear();
-perm.push_back(10);
-permutations.push_back(perm);
 //=============================================================================
 
 AScore* ptr = nullptr;
@@ -188,69 +168,28 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   peptide_site_scores_1.resize(4);
   peptide_site_scores_2.resize(4);
   peptide_site_scores_3.resize(4);
-  vector<double> temp;
-  temp.resize(10);
-  for(Size i = 0; i < 10; ++i)
-  {
-    temp[i] = 0.1;
-  }
+  vector<double> temp(10, 0.1);
   peptide_site_scores_1[0] = temp;
   peptide_site_scores_2[3] = temp;
   peptide_site_scores_3[0] = temp;
-  temp.clear();
-  temp.resize(10);
-  for(Size i = 0; i < 10; ++i)
-  {
-    temp[i] = 0.2;
-  }
+  temp = vector<double>(10, 0.2);
   peptide_site_scores_1[1] = temp;
   peptide_site_scores_2[0] = temp;
   peptide_site_scores_3[3] = temp;
-  temp.clear();
-  temp.resize(10);
-  for(Size i = 0; i < 10; ++i)
-  {
-    temp[i] = 0.3;
-  }
+  temp = vector<double>(10, 0.3);
   peptide_site_scores_1[2] = temp;
   peptide_site_scores_2[1] = temp;
   peptide_site_scores_3[2] = temp;
-  temp.clear();
-  temp.resize(10);
-  for(Size i = 0; i < 10; ++i)
-  {
-    temp[i] = 0.4;
-  }
+  temp = vector<double>(10, 0.4);
   peptide_site_scores_1[3] = temp;
   peptide_site_scores_2[2] = temp;
   peptide_site_scores_3[1] = temp;
 
-
-  vector<vector<Size>> permutations;
-  vector<Size> per;
-  per.push_back(1);
-  per.push_back(3);
-  per.push_back(5);
-  permutations.push_back(per);
-  per.clear();
-  per.push_back(3);
-  per.push_back(5);
-  per.push_back(6);
-  permutations.push_back(per);
-  per.clear();
-  per.push_back(1);
-  per.push_back(3);
-  per.push_back(6);
-  permutations.push_back(per);
-  per.clear();
-  per.push_back(1);
-  per.push_back(5);
-  per.push_back(6);
-  permutations.push_back(per);
-
+  vector<vector<Size>> permutations{ {1,3,5}, {3,5,6}, {1,3,6}, {1,5,6} };
 
   vector<ProbablePhosphoSites> sites;
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_1);
+  TEST_REAL_SIMILAR( ranking.rbegin()->first, .4);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_1, sites, permutations,ranking);
   TEST_EQUAL(sites.size(), 3);
   TEST_EQUAL(sites[0].seq_1, 3);
@@ -270,6 +209,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   TEST_EQUAL(sites[2].peak_depth, 1);
 
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_3);
+  TEST_REAL_SIMILAR(ranking.rbegin()->first, .4);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_3, sites, permutations, ranking);
   TEST_EQUAL(sites.size(), 3);
   TEST_EQUAL(sites[0].seq_1, 1);
@@ -289,6 +229,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   TEST_EQUAL(sites[2].peak_depth, 1);
 
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_2);
+  TEST_REAL_SIMILAR(ranking.rbegin()->first, .4);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_2, sites, permutations, ranking);
   TEST_EQUAL(sites.size(), 3);
   TEST_EQUAL(sites[0].seq_1, 2);
@@ -308,41 +249,14 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   TEST_EQUAL(sites[2].peak_depth, 1)
 
   peptide_site_scores_1.clear();
-  temp.clear();
-  temp.resize(10);
-  temp[0] = 55;
-  temp[1] = 60;
-  temp[2]= 75;
-  temp[3] = 100;
-  temp[4] = 90;
-  temp[5] = 120;
-  temp[6]  =125;
-  temp[7] = 120;
-  temp[8] = 100;
-  temp[9] = 90;
+  temp = {55, 60, 75, 100, 90, 120, 125, 120, 100, 90};
   peptide_site_scores_1.push_back(temp);
-  temp.clear();
-  temp.resize(10);
-  temp[0] = 40;
-  temp[1] = 50;
-  temp[2] = 53;
-  temp[3] = 60;
-  temp[4] = 50;
-  temp[5]= 53;
-  temp[6]= 59;
-  temp[7] = 53;
-  temp[8] = 50;
-  temp[9]= 40;
+  temp = { 40, 50, 53, 60, 50, 53, 59, 53, 50, 40 };
   peptide_site_scores_1.push_back(temp);
-  permutations.clear();
-  per.clear();
-  per.push_back(3);
-  permutations.push_back(per);
-  per.clear();
-  per.push_back(6);
-  permutations.push_back(per);
+  permutations = { {3}, {6} };
 
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_1);
+  TEST_REAL_SIMILAR(ranking.rbegin()->first, 94.10714285714287);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_1, sites, permutations, ranking);
   TEST_EQUAL(sites.size(), 1)
   TEST_EQUAL(sites[0].seq_1, 0)
@@ -351,32 +265,8 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   TEST_EQUAL(sites[0].second, 6);
   TEST_EQUAL(sites[0].peak_depth, 6)
 
-  permutations.clear();
-  per.clear();
-  per.push_back(3);
-  per.push_back(5);
-  permutations.push_back(per);
-  per.clear();
-  per.push_back(5);
-  per.push_back(6);
-  permutations.push_back(per);
-  per.clear();
-  per.push_back(3);
-  per.push_back(7);
-  permutations.push_back(per);
-  per.clear();
-  per.push_back(3);
-  per.push_back(6);
-  permutations.push_back(per);
-  per.clear();
-  per.push_back(5);
-  per.push_back(7);
-  permutations.push_back(per);
-  per.clear();
-  per.push_back(6);
-  per.push_back(7);
-  permutations.push_back(per);
-  std::vector< std::vector<double> > sec;
+  permutations = { {3, 5}, {5, 6}, {3, 7}, {3, 6}, {5, 7}, {6, 7} };
+
   peptide_site_scores_1.push_back(temp);
   peptide_site_scores_1.push_back(temp);
   peptide_site_scores_1.push_back(temp);
@@ -425,14 +315,7 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum>& t
   candidates.first = 1;
   candidates.second = 4;
   
-  vector<vector<Size>> p;
-  perm.clear();
-  perm.push_back(candidates.first);
-  p.push_back(perm);
-
-  perm.clear();
-  perm.push_back(candidates.second);
-  p.push_back(perm);
+  vector<vector<Size>> p { {candidates.first}, {candidates.second} };
   
   th_s = ptr_test->createTheoreticalSpectraTest_(p, seq);
   
@@ -469,14 +352,8 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum>& t
   candidates.first = 0;
   candidates.second = 4;
   
-  p.clear();
-  perm.clear();
-  perm.push_back(candidates.first);
-  p.push_back(perm);
+  p = { { candidates.first },{ candidates.second } };
 
-  perm.clear();
-  perm.push_back(candidates.second);
-  p.push_back(perm);
   
   th_s = ptr_test->createTheoreticalSpectraTest_(p, seq);
   
@@ -511,15 +388,8 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum>& t
   candidates.seq_2 = 1;
   candidates.first = 2;
   candidates.second = 6;
-  
-  p.clear();
-  perm.clear();
-  perm.push_back(candidates.first);
-  p.push_back(perm);
 
-  perm.clear();
-  perm.push_back(candidates.second);
-  p.push_back(perm);
+  p = { { candidates.first },{ candidates.second } };
   
   th_s = ptr_test->createTheoreticalSpectraTest_(p, seq);
   
@@ -557,14 +427,7 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum>& t
   candidates.first = 12;
   candidates.second = 8;
   
-  p.clear();
-  perm.clear();
-  perm.push_back(candidates.first);
-  p.push_back(perm);
-
-  perm.clear();
-  perm.push_back(candidates.second);
-  p.push_back(perm);
+  p = { { candidates.first },{ candidates.second } };
   
   th_s = ptr_test->createTheoreticalSpectraTest_(p, seq);
   
@@ -608,11 +471,7 @@ END_SECTION
 
 START_SECTION(std::vector<std::vector<Size>> computePermutationsTest_(const std::vector<Size>& tupel, Int number_of_phospho_sites))
 {
-  vector<Size> tupel;
-  tupel.push_back(1);
-  tupel.push_back(2);
-  tupel.push_back(3);
-  tupel.push_back(4);
+  vector<Size> tupel{1, 2, 3, 4};
   vector<vector<Size> > permutations;
   
   permutations = ptr_test->computePermutationsTest_(tupel, 1);
@@ -779,7 +638,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit1 = ptr_test->compute(hit1, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=3.51, sequence=QSSVT*QSK
-  TEST_REAL_SIMILAR(static_cast<double>(hit1.getMetaValue("AScore_1")), 9.40409359086883);
+  TEST_REAL_SIMILAR(static_cast<double>(hit1.getMetaValue("AScore_1")), 8.65157151899052);
   TEST_EQUAL(hit1.getSequence().toString(), "QSS(Phospho)VTQSK");
   
   // ===========================================================================
@@ -789,7 +648,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit2 = ptr_test->compute(hit2, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=21.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit2.getMetaValue("AScore_1")), 20.4116482719882);
+  TEST_REAL_SIMILAR(static_cast<double>(hit2.getMetaValue("AScore_1")), 18.8755623850511);
   TEST_EQUAL(hit2.getSequence().toString(), "RIRLT(Phospho)ATTR");
   
   // ===========================================================================
@@ -799,7 +658,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit3 = ptr_test->compute(hit3, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit3.getMetaValue("AScore_1")), 92.2548303427145);
+  TEST_REAL_SIMILAR(static_cast<double>(hit3.getMetaValue("AScore_1")), 88.3030731386678);
   TEST_EQUAL(hit3.getSequence().toString(), "QSSVTQVTEQS(Phospho)PK"); 
   
   // ===========================================================================
@@ -813,7 +672,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit4 = ptr_test->compute(hit4, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit4.getMetaValue("AScore_1")), 20.1669211754322);
+  TEST_REAL_SIMILAR(static_cast<double>(hit4.getMetaValue("AScore_1")), 49.2714597801023);
   TEST_EQUAL(hit4.getSequence().toString(), "ATPGNLGSSVLHS(Phospho)K");
   
   // ===========================================================================
@@ -829,7 +688,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit5 = ptr_test->compute(hit5, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=3.51, sequence=QSSVT*QSK
-  TEST_REAL_SIMILAR(static_cast<double>(hit5.getMetaValue("AScore_1")), 9.40409359086883);
+  TEST_REAL_SIMILAR(static_cast<double>(hit5.getMetaValue("AScore_1")), 6.53833235677545);
   TEST_EQUAL(hit5.getSequence().toString(), "QSS(Phospho)VTQSK");
   
   params.setValue("fragment_mass_tolerance", 70.0); // 0.05 Da were converted to ppm based on a small peptide
@@ -841,7 +700,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit6 = ptr_test->compute(hit6, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit6.getMetaValue("AScore_1")), 20.1669211754322);
+  TEST_REAL_SIMILAR(static_cast<double>(hit6.getMetaValue("AScore_1")), 40.6506162613816);
   TEST_EQUAL(hit6.getSequence().toString(), "ATPGNLGSSVLHS(Phospho)K");
 
   // ===========================================================================

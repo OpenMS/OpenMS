@@ -56,7 +56,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MSstatsConverter
+    @page UTILS_MSstatsConverter MSstatsConverter
 
     @brief Converter to input for MSstats
 
@@ -88,7 +88,7 @@ protected:
 
     // this function will be used to register the tool parameters
     // it gets automatically called on tool execution
-    void registerOptionsAndFlags_() final override
+    void registerOptionsAndFlags_() override
     {
       // Input consensusXML
       registerInputFile_(param_in, "<in>", "", "Input consensusXML with peptide intensities",
@@ -127,7 +127,10 @@ protected:
       // Specifies how peptide ions eluding at different retention times should be resolved
       registerStringOption_(param_retention_time_summarization_method,
                             "<retention_time_summarization_method>", "max",
-                            "How undistinguishable peptides at different retention times should be treated", false,
+                            "How indistinguishable peptidoforms at different retention times should be treated."
+                            " This is usually necessary for LFQ experiments and therefore defaults to 'max'."
+                            " In case of TMT/iTRAQ, MSstatsTMT"
+                            " does the aggregation itself later and the parameter always resets to manual (i.e. is unused).", false,
                             true);
       setValidStrings_(param_retention_time_summarization_method,
                        ListUtils::create<String>("manual,max,min,mean,sum"));
@@ -171,7 +174,6 @@ protected:
 
         MSstatsFile msStatsFile;
 
-
         if (arg_method == "LFQ")
         {
             msStatsFile.storeLFQ(arg_out, consensus_map, design,
@@ -210,7 +212,7 @@ private:
     {
       if (error_condition)
       {
-        LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
+        OPENMS_LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
         throw exit_code;
       }
     }

@@ -39,14 +39,13 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
 #include <QDir>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <algorithm>
 
@@ -61,6 +60,7 @@ namespace OpenMS
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
       DefaultParamHandler("PosteriorErrorProbabilityModel"),
       incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
+      incorrectly_assigned_fit_gumbel_param_(GumbelMaxLikelihoodFitter::GumbelDistributionFitResult(-1,-1)),
       correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
       negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
     {
@@ -69,13 +69,177 @@ namespace OpenMS
       defaults_.setValue("incorrectly_assigned", "Gumbel", "for 'Gumbel', the Gumbel distribution is used to plot incorrectly assigned sequences. For 'Gauss', the Gauss distribution is used.", ListUtils::create<String>("advanced"));
       defaults_.setValue("max_nr_iterations", 1000, "Bounds the number of iterations for the EM algorithm when convergence is slow.", ListUtils::create<String>("advanced"));
       defaults_.setValidStrings("incorrectly_assigned", ListUtils::create<String>("Gumbel,Gauss"));
+      defaults_.setValue("neg_log_delta",6, "The negative logarithm of the convergence threshold for the likelihood increase.");
       defaultsToParam_();
       getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
     }
 
-    PosteriorErrorProbabilityModel::~PosteriorErrorProbabilityModel()
+    PosteriorErrorProbabilityModel::~PosteriorErrorProbabilityModel() = default;
+
+    bool PosteriorErrorProbabilityModel::fitGumbelGauss(std::vector<double>& search_engine_scores)
     {
+      // nothing to fit?
+      if (search_engine_scores.empty()) { return false; }
+
+      //-------------------------------------------------------------
+      // Initializing Parameters
+      //-------------------------------------------------------------
+      sort(search_engine_scores.begin(), search_engine_scores.end());
+
+      smallest_score_ = search_engine_scores[0];
+
+      vector<double> x_scores{search_engine_scores};
+
+      //transform to a positive range
+      for (double & d : x_scores) { d += fabs(smallest_score_) + 0.001; }
+
+      incorrectly_assigned_fit_gumbel_param_.a = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
+      incorrectly_assigned_fit_gumbel_param_.b = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_gumbel_param_.a);
+      negative_prior_ = 0.7;
+
+      getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
+      getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
+
+      Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7)); // if only one score is present, ceil(...) will yield 1, which is an invalid index
+      correctly_assigned_fit_param_.x0 = Math::mean(x_scores.begin() + x_score_start, x_scores.end()) + x_scores[x_score_start]; //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
+      correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_gumbel_param_.b;
+      correctly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2.0));
+
+      //-------------------------------------------------------------
+      // create files for output
+      //-------------------------------------------------------------
+      bool output_plots  = (param_.getValue("out_plot").toString().trim().length() > 0);
+      TextFile file;
+      if (output_plots)
+      {
+        // create output directory (if not already present)
+        QDir dir(param_.getValue("out_plot").toString().toQString());
+        if (!dir.cdUp())
+        {
+          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
+          return false;
+        }
+        if (!dir.exists() && !dir.mkpath("."))
+        {
+          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
+          return false;
+        }
+        //
+        file = initPlots(x_scores);
+      }
+
+      //-------------------------------------------------------------
+      // Estimate Parameters - EM algorithm
+      //-------------------------------------------------------------
+      bool stop_em_init = false;
+      Int max_itns = param_.getValue("max_nr_iterations");
+      int delta = param_.getValue("neg_log_delta");
+      int itns = 0;
+
+      vector<double> incorrect_log_density, correct_log_density;
+      fillLogDensitiesGumbel(x_scores, incorrect_log_density, correct_log_density);
+      vector<double> bins;
+      vector<double> incorrect_posteriors;
+      double maxlike = computeLLAndIncorrectPosteriorsFromLogDensities(incorrect_log_density, correct_log_density, incorrect_posteriors);
+      double sumIncorrectPosteriors = Math::sum(incorrect_posteriors.begin(),incorrect_posteriors.end());
+      double sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
+
+      OpenMS::Math::GumbelMaxLikelihoodFitter gmlf{incorrectly_assigned_fit_gumbel_param_};
+
+      do
+      {
+        //-------------------------------------------------------------
+        // E-STEP (gauss)
+        double newGaussMean = 0.0;
+        auto the_x = x_scores.cbegin();
+
+        for (auto incorrect = incorrect_posteriors.cbegin(); incorrect != incorrect_posteriors.cend(); ++incorrect, ++the_x)
+        {
+          newGaussMean += (1.-*incorrect) * *the_x;
+        }
+        newGaussMean /= sumCorrectPosteriors;
+
+        double newGaussSigma = 0.0;
+        the_x = x_scores.cbegin();
+
+        for (auto incorrect = incorrect_posteriors.cbegin(); incorrect != incorrect_posteriors.cend(); ++incorrect, ++the_x)
+        {
+          newGaussSigma += (1. - *incorrect) * pow((*the_x) - newGaussMean, 2);
+        }
+        newGaussSigma = sqrt(newGaussSigma/sumCorrectPosteriors);
+
+        GumbelMaxLikelihoodFitter::GumbelDistributionFitResult newGumbelParams = gmlf.fitWeighted(x_scores, incorrect_posteriors);
+
+        if (newGumbelParams.b <= 0 || std::isnan(newGumbelParams.b))
+        {
+          OPENMS_LOG_WARN << "Warning: encountered impossible standard deviations. Aborting fit." << std::endl;
+          break;
+        }
+
+        // update parameters
+        correctly_assigned_fit_param_.x0 = newGaussMean;
+        correctly_assigned_fit_param_.sigma = newGaussSigma;
+        correctly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(newGaussSigma, 2));
+
+        incorrectly_assigned_fit_gumbel_param_ = newGumbelParams;
+
+
+        // compute new prior probabilities negative peptides
+        fillLogDensitiesGumbel(x_scores, incorrect_log_density, correct_log_density);
+        double new_maxlike = computeLLAndIncorrectPosteriorsFromLogDensities(incorrect_log_density, correct_log_density, incorrect_posteriors);
+        sumIncorrectPosteriors = Math::sum(incorrect_posteriors.begin(),incorrect_posteriors.end());
+        sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
+        negative_prior_ = sumIncorrectPosteriors / x_scores.size();
+
+        if (std::isnan(new_maxlike - maxlike)
+            || new_maxlike < maxlike)
+        {
+          return false;
+        }
+
+        // check termination criterium
+        if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
+        {
+          if (itns >= max_itns)
+          {
+            OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last likelihood increase: " << (new_maxlike - maxlike) << endl;
+            OPENMS_LOG_WARN << "Algorithm returns probabilities for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
+          }
+          stop_em_init = true;
+        }
+
+        if (output_plots)
+        {
+          String formula1, formula2, formula3;
+          formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + String(negative_prior_); //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+          formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+          formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
+          // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
+          file.addLine("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+        }
+        //update maximum likelihood
+        maxlike = new_maxlike;
+        ++itns;
+      } while (!stop_em_init);
+
+      //-------------------------------------------------------------
+      // Finished fitting
+      //-------------------------------------------------------------
+      max_incorrectly_ = getGumbel_(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_);
+      max_correctly_ = correctly_assigned_fit_param_.eval(correctly_assigned_fit_param_.x0);
+
+      if (output_plots)
+      {
+        String formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "*" + String(negative_prior_); //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+        String formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; // String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+        String formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
+        // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
+        file.addLine("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+        file.store((String)param_.getValue("out_plot"));
+        tryGnuplot((String)param_.getValue("out_plot"));
+      }
+      return true;
     }
 
     bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores)
@@ -91,6 +255,8 @@ namespace OpenMS
       smallest_score_ = search_engine_scores[0];
 
       vector<double> x_scores{search_engine_scores};
+
+      //transform to a positive range
       for (double & d : x_scores) { d += fabs(smallest_score_) + 0.001; }
 
       negative_prior_ = 0.7;
@@ -98,7 +264,7 @@ namespace OpenMS
       {
         incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
         incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0);
-        incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
+        incorrectly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2.0));
         //TODO: Currently, the fit is calculated using the Gauss. 
         getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
       }
@@ -106,7 +272,7 @@ namespace OpenMS
       {
         incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
         incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0);
-        incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
+        incorrectly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2.0));
         getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
       }
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -114,12 +280,7 @@ namespace OpenMS
       Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7)); // if only one score is present, ceil(...) will yield 1, which is an invalid index
       correctly_assigned_fit_param_.x0 = Math::mean(x_scores.begin() + x_score_start, x_scores.end()) + x_scores[x_score_start]; //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
       correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
-      correctly_assigned_fit_param_.A = 1.0   / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
-
-      vector<double> incorrect_density, correct_density;
-      fillDensities(x_scores, incorrect_density, correct_density);
-
-      double maxlike = computeMaxLikelihood(incorrect_density, correct_density);
+      correctly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2.0));
  
       //-------------------------------------------------------------
       // create files for output
@@ -132,12 +293,12 @@ namespace OpenMS
         QDir dir(param_.getValue("out_plot").toString().toQString());
         if (!dir.cdUp())
         {
-          LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
           return false;
         }
         if (!dir.exists() && !dir.mkpath("."))
         {
-          LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
           return false;
         }
         //
@@ -149,49 +310,54 @@ namespace OpenMS
       //-------------------------------------------------------------
       bool stop_em_init = false;
       Int max_itns = param_.getValue("max_nr_iterations");
-      int delta = 6;
+      int delta = param_.getValue("neg_log_delta");
       int itns = 0;
-      
+
+      vector<double> incorrect_log_density, correct_log_density;
+      fillLogDensities(x_scores, incorrect_log_density, correct_log_density);
+      vector<double> incorrect_posteriors;
+      double maxlike = computeLLAndIncorrectPosteriorsFromLogDensities(incorrect_log_density, correct_log_density, incorrect_posteriors);
+      double sumIncorrectPosteriors = Math::sum(incorrect_posteriors.begin(),incorrect_posteriors.end());
+      double sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
+
       do
       {
         //-------------------------------------------------------------
         // E-STEP
-        double one_minus_sum_posterior = one_minus_sum_post(incorrect_density, correct_density);
-        double sum_posterior = sum_post(incorrect_density, correct_density);
+        std::pair<double,double> newMeans = pos_neg_mean_weighted_posteriors(x_scores, incorrect_posteriors);
+        newMeans.first /= sumCorrectPosteriors;
+        newMeans.second /= sumIncorrectPosteriors;
 
-        // new mean
-        double sum_positive_x0 = sum_pos_x0(x_scores, incorrect_density, correct_density);
-        double sum_negative_x0 = sum_neg_x0(x_scores, incorrect_density, correct_density);
+        //new standard deviation
+        std::pair<double,double> newSigmas = pos_neg_sigma_weighted_posteriors(x_scores, incorrect_posteriors, newMeans);
+        newSigmas.first = sqrt(newSigmas.first/sumCorrectPosteriors);
+        newSigmas.second = sqrt(newSigmas.second/sumIncorrectPosteriors);
 
-        double positive_mean = sum_positive_x0 / one_minus_sum_posterior;
-        double negative_mean = sum_negative_x0 / sum_posterior;
-
-        //i new standard deviation
-        double sum_positive_sigma = sum_pos_sigma(x_scores, incorrect_density, correct_density, positive_mean);
-        double sum_negative_sigma = sum_neg_sigma(x_scores, incorrect_density, correct_density, negative_mean);
+        if (newSigmas.first <= 0 || newSigmas.second <= 0 || std::isnan(newSigmas.first) || std::isnan(newSigmas.second) )
+        {
+          OPENMS_LOG_WARN << "Warning: encountered impossible standard deviations. Aborting fit." << std::endl;
+          break;
+        }
 
         // update parameters
-        correctly_assigned_fit_param_.x0 = positive_mean;
-        if (sum_positive_sigma  != 0)
-        {
-          correctly_assigned_fit_param_.sigma = sqrt(sum_positive_sigma / one_minus_sum_posterior);
-          correctly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
-        }
+        correctly_assigned_fit_param_.x0 = newMeans.first;
+        incorrectly_assigned_fit_param_.x0 = newMeans.second;
 
-        incorrectly_assigned_fit_param_.x0 = negative_mean;
-        if (sum_negative_sigma  != 0)
-        {
-          incorrectly_assigned_fit_param_.sigma = sqrt(sum_negative_sigma / sum_posterior);
-          incorrectly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
-        }
+        correctly_assigned_fit_param_.sigma = newSigmas.first;
+        correctly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
+
+        incorrectly_assigned_fit_param_.sigma = newSigmas.second;
+        incorrectly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
+
 
         // compute new prior probabilities negative peptides
-        fillDensities(x_scores, incorrect_density, correct_density);
-        sum_posterior = sum_post(incorrect_density, correct_density);
-        negative_prior_ = sum_posterior / x_scores.size();
+        fillLogDensities(x_scores, incorrect_log_density, correct_log_density);
+        double new_maxlike = computeLLAndIncorrectPosteriorsFromLogDensities(incorrect_log_density, correct_log_density, incorrect_posteriors);
+        sumIncorrectPosteriors = Math::sum(incorrect_posteriors.begin(),incorrect_posteriors.end());
+        sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
+        negative_prior_ = sumIncorrectPosteriors / x_scores.size();
 
-        double new_maxlike(computeMaxLikelihood(incorrect_density, correct_density));
-        if (boost::math::isnan(new_maxlike - maxlike) 
+        if (std::isnan(new_maxlike - maxlike) 
           || new_maxlike < maxlike)
         {
           return false;
@@ -202,13 +368,10 @@ namespace OpenMS
         {
           if (itns >= max_itns)
           {
-            LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last likelihood increase: " << (new_maxlike - maxlike) << endl;
-            LOG_WARN << "Algorithm returns probabilites for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
+            OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last likelihood increase: " << (new_maxlike - maxlike) << endl;
+            OPENMS_LOG_WARN << "Algorithm returns probabilities for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
           }
           stop_em_init = true;
-          sum_posterior = sum_post(incorrect_density, correct_density);
-          negative_prior_ = sum_posterior / x_scores.size();
-
         }
 
         if (output_plots)
@@ -263,15 +426,15 @@ namespace OpenMS
       return true;
     }
 
-    void PosteriorErrorProbabilityModel::fillDensities(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
+    void PosteriorErrorProbabilityModel::fillDensities(const vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
     {
       if (incorrect_density.size() != x_scores.size())
       {
         incorrect_density.resize(x_scores.size());
         correct_density.resize(x_scores.size());
       }
-      vector<double>::iterator incorrect(incorrect_density.begin());
-      vector<double>::iterator correct(correct_density.begin());
+      auto incorrect(incorrect_density.begin());
+      auto correct(correct_density.begin());
       for (double const & score : x_scores)
       {
         // TODO: incorrect is currently filled with gauss as fitting gumble is not supported
@@ -282,105 +445,139 @@ namespace OpenMS
       }
     }
 
-    double PosteriorErrorProbabilityModel::computeMaxLikelihood(vector<double>& incorrect_density, vector<double>& correct_density)
+    void PosteriorErrorProbabilityModel::fillLogDensitiesGumbel(const vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
+    {
+      if (incorrect_density.size() != x_scores.size())
+      {
+        incorrect_density.resize(x_scores.size());
+        correct_density.resize(x_scores.size());
+      }
+      auto incorrect(incorrect_density.begin());
+      auto correct(correct_density.begin());
+      for (double const & score : x_scores)
+      {
+        *incorrect = incorrectly_assigned_fit_gumbel_param_.log_eval_no_normalize(score);
+        *correct = correctly_assigned_fit_param_.log_eval_no_normalize(score);
+        ++incorrect;
+        ++correct;
+      }
+    }
+
+    void PosteriorErrorProbabilityModel::fillLogDensities(const vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
+    {
+      if (incorrect_density.size() != x_scores.size())
+      {
+        incorrect_density.resize(x_scores.size());
+        correct_density.resize(x_scores.size());
+      }
+      auto incorrect(incorrect_density.begin());
+      auto correct(correct_density.begin());
+      for (double const & score : x_scores)
+      {
+        // TODO: incorrect is currently filled with gauss as fitting gumble is not supported
+        *incorrect = incorrectly_assigned_fit_param_.log_eval_no_normalize(score);
+        *correct = correctly_assigned_fit_param_.log_eval_no_normalize(score);
+        ++incorrect;
+        ++correct;
+      }
+    }
+
+    double PosteriorErrorProbabilityModel::computeLogLikelihood(const vector<double>& incorrect_density, const vector<double>& correct_density)
     {
       double maxlike(0);
-      vector<double>::iterator incorrect = incorrect_density.begin();
-      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect)
+      auto incorrect = incorrect_density.cbegin();
+      for (auto correct = correct_density.cbegin(); correct < correct_density.cend(); ++correct, ++incorrect)
       {
         maxlike += log10(negative_prior_ * (*incorrect) + (1 - negative_prior_) * (*correct));
       }
       return maxlike;
     }
 
-    double PosteriorErrorProbabilityModel::one_minus_sum_post(vector<double>& incorrect_density, vector<double>& correct_density)
+    double PosteriorErrorProbabilityModel::computeLLAndIncorrectPosteriorsFromLogDensities(
+        const vector<double>& incorrect_log_density, const vector<double>& correct_log_density,
+        vector<double>& incorrect_posterior)
     {
-      double one_min(0);
-      vector<double>::iterator incorrect = incorrect_density.begin();
-      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect)
+      double loglikelihood = 0.0;
+      double log_prior_pos = log(1. - negative_prior_);
+      double log_prior_neg = log(negative_prior_);
+      auto incorrect = incorrect_log_density.cbegin();
+      if (incorrect_posterior.size() != incorrect_log_density.size())
       {
-        one_min +=  1  - ((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)));
+        incorrect_posterior.resize(incorrect_log_density.size());
       }
-      return one_min;
+      auto incorrect_posterior_it = incorrect_posterior.begin();
+
+      for (auto correct = correct_log_density.cbegin(); correct < correct_log_density.cend(); ++correct, ++incorrect, ++incorrect_posterior_it)
+      {
+        double log_resp_correct = log_prior_pos + *correct;
+        double log_resp_incorrect = log_prior_neg + *incorrect;
+        double max_log_resp = std::max(log_resp_correct,log_resp_incorrect);
+        log_resp_correct -= max_log_resp;
+        log_resp_incorrect -= max_log_resp;
+        double resp_correct = exp(log_resp_correct);
+        double resp_incorrect = exp(log_resp_incorrect);
+        double sum = resp_correct + resp_incorrect;
+        // normalize
+        *incorrect_posterior_it = resp_incorrect / sum; //TODO can we somehow stay in log space (i.e. fill as log posteriors?)
+        loglikelihood += max_log_resp + log(sum);
+      }
+      return loglikelihood;
     }
 
-    double PosteriorErrorProbabilityModel::sum_post(vector<double>& incorrect_density, vector<double>& correct_density)
-    {
-      double post(0);
-      vector<double>::iterator incorrect = incorrect_density.begin();
-      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect)
-      {
-        post += ((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)));
-      }
-      return post;
-    }
-
-    double PosteriorErrorProbabilityModel::sum_pos_x0(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
+    std::pair<double,double> PosteriorErrorProbabilityModel::pos_neg_mean_weighted_posteriors(const vector<double>& x_scores, const vector<double>& incorrect_posteriors)
     {
       double pos_x0(0);
-      vector<double>::iterator the_x = x_scores.begin();
-      vector<double>::iterator incorrect = incorrect_density.begin();
-      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect, ++the_x)
-      {
-        pos_x0 += ((1  - ((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)))) * (*the_x));
-      }
-      return pos_x0;
-    }
-
-    double PosteriorErrorProbabilityModel::sum_neg_x0(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
-    {
       double neg_x0(0);
-      vector<double>::iterator the_x = x_scores.begin();
-      vector<double>::iterator correct = correct_density.begin();
-      for (vector<double>::iterator incorrect = incorrect_density.begin(); incorrect < incorrect_density.end(); ++correct, ++incorrect, ++the_x)
+      auto the_x = x_scores.cbegin();
+
+      for (auto incorrect = incorrect_posteriors.cbegin(); incorrect < incorrect_posteriors.end(); ++incorrect, ++the_x)
       {
-        neg_x0 += ((((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)))) * (*the_x));
+        pos_x0 += (1. - *incorrect) * (*the_x);
+        neg_x0 += (*incorrect) * (*the_x);
       }
-      return neg_x0;
+      return {pos_x0,neg_x0};
     }
 
-    double PosteriorErrorProbabilityModel::sum_pos_sigma(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density, double positive_mean)
+
+
+    std::pair<double,double> PosteriorErrorProbabilityModel::pos_neg_sigma_weighted_posteriors(
+        const vector<double>& x_scores,
+        const vector<double>& incorrect_posteriors,
+        const std::pair<double,double>& pos_neg_mean)
     {
       double pos_sigma(0);
-      vector<double>::iterator the_x = x_scores.begin();
-      vector<double>::iterator incorrect = incorrect_density.begin();
-      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect, ++the_x)
-      {
-        pos_sigma += ((1  - ((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)))) * pow((*the_x) - positive_mean, 2));
-      }
-      return pos_sigma;
-    }
-
-    double PosteriorErrorProbabilityModel::sum_neg_sigma(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density, double positive_mean)
-    {
       double neg_sigma(0);
-      vector<double>::iterator the_x = x_scores.begin();
-      vector<double>::iterator incorrect = incorrect_density.begin();
-      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect, ++the_x)
+      auto the_x = x_scores.cbegin();
+
+      for (auto incorrect = incorrect_posteriors.cbegin(); incorrect < incorrect_posteriors.end(); ++incorrect, ++the_x)
       {
-        neg_sigma += ((((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)))) * pow((*the_x) - positive_mean, 2));
+        pos_sigma += (1. - *incorrect) * pow((*the_x) - pos_neg_mean.first, 2);
+        neg_sigma += (*incorrect) * pow((*the_x) - pos_neg_mean.second, 2);
       }
-      return neg_sigma;
+      return {pos_sigma, neg_sigma};
     }
 
     double PosteriorErrorProbabilityModel::computeProbability(double score) const
     {
+      // apply the same transformation that was applied before fitting
       score = score + fabs(smallest_score_) + 0.001;
       double x_neg, x_pos;
 
-      // the score is smaller than the peak of incorrectly assigned sequences. To ensure that the probabilities wont rise again use the incorrectly assigned peak for computation
+      // the score is smaller than the peak of incorrectly assigned sequences.
+      // To ensure that the probabilities wont rise again use the incorrectly assigned peak for computation
       if (score < incorrectly_assigned_fit_param_.x0)
       {
         x_neg = max_incorrectly_;
         x_pos = correctly_assigned_fit_param_.eval(score);
       }
       // same as above. However, this time to ensure that probabilities wont drop again.
+      //TODO this does not consider the possibility of using Gauss as negative function anymore! Confusing at best!
       else if (score > correctly_assigned_fit_param_.x0)
       {
         x_neg = getGumbel_(score, incorrectly_assigned_fit_param_);
         x_pos = max_correctly_;
       }
-      // if its in between use the normal formula
+      // if it's in-between use the normal formula
       else
       {
         x_neg = getGumbel_(score, incorrectly_assigned_fit_param_);
@@ -447,6 +644,8 @@ namespace OpenMS
       return file;
     }
 
+
+    //TODO those functions should be members of the Fitter/Function classes!
     const String PosteriorErrorProbabilityModel::getGumbelGnuplotFormula(const GaussFitter::GaussFitResult& params) const
     {
       // build a formula with the fitted parameters for gnuplot
@@ -476,7 +675,7 @@ namespace OpenMS
         StringList empty;
         if (target.size() == 0) empty.push_back("target");
         if (decoy.size() == 0) empty.push_back("decoy");
-        LOG_WARN << "Target-Decoy plot was called, but '" << ListUtils::concatenate(empty, "' and '") << "' has no data! Unable to create a target-decoy plot." << std::endl;
+        OPENMS_LOG_WARN << "Target-Decoy plot was called, but '" << ListUtils::concatenate(empty, "' and '") << "' has no data! Unable to create a target-decoy plot." << std::endl;
         return;
       }
       Int number_of_bins = param_.getValue("number_of_bins");
@@ -572,21 +771,26 @@ namespace OpenMS
 
     void PosteriorErrorProbabilityModel::tryGnuplot(const String& gp_file)
     {
-      LOG_INFO << "Attempting to call 'gnuplot' ...";
+      OPENMS_LOG_INFO << "Attempting to call 'gnuplot' ...";
       String cmd = String("gnuplot \"") + gp_file + "\"";
       if (system(cmd.c_str()))  // 0 is success!
       {
-        LOG_WARN << "Calling 'gnuplot' on '" << gp_file << "' failed. Please create plots manually." << std::endl;
+        OPENMS_LOG_WARN << "Calling 'gnuplot' on '" << gp_file << "' failed. Please create plots manually." << std::endl;
       }
-      else LOG_INFO << " success!" << std::endl;
+      else OPENMS_LOG_INFO << " success!" << std::endl;
 
     }
 
     double PosteriorErrorProbabilityModel::transformScore_(const String & engine, const PeptideHit & hit)
     {
-      // Set fixed e-value threshold
-      const double smallest_e_value_ = numeric_limits<double>::denorm_min();
+      //TODO implement censoring. 1) if value is below censoring take cumulative density below it, instead of point estimate
+      //Set fixed e-value threshold
+      //rather take min to be safe even with optimizations
+      //const double smallest_e_value_ = numeric_limits<double>::denorm_min();
+      const double smallest_e_value_ = numeric_limits<double>::min();
 
+      //TODO we don't care about score types here? What if the data was processed with
+      // IDPEP or Percolator already?
       if (engine == "OMSSA")
       {
         return (-1) * log10(max(hit.getScore(), smallest_e_value_));
@@ -662,7 +866,7 @@ namespace OpenMS
       const double fdr_for_targets_smaller)
     {
       std::set<Int> charges;
-      const StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet");
+      const StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet,tide-search,OpenMS/ConsensusID_best,OpenMS/ConsensusID_worst,OpenMS/ConsensusID_average");
 
       if (split_charge)
       {  // determine different charges in data
@@ -689,6 +893,11 @@ namespace OpenMS
           for (ProteinIdentification const & prot : protein_ids)
           {
             String search_engine = prot.getSearchEngine();
+            if (search_engine.hasPrefix("OpenMS/ConsensusID"))
+            {
+              search_engine = prot.getMetaValue("ConsensusIDBaseSearch");
+              search_engine = search_engine.prefix(':');
+            }
             search_engine.toUpper();
 
             if (supported_engine == search_engine)
@@ -705,7 +914,7 @@ namespace OpenMS
                     if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
                     {
                       double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0]);
-                      if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                      if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                       {
                         scores.push_back(score);
 
@@ -730,7 +939,7 @@ namespace OpenMS
                       if (!split_charge || (hit.getCharge() == *charge_it))
                       {
                         double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit);
-                        if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                        if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                         {
                           scores.push_back(score);
                         }
@@ -783,16 +992,16 @@ namespace OpenMS
       bool & data_might_not_be_well_fit)
     {
       String engine(search_engine);
-      unable_to_fit_data = true;
-      data_might_not_be_well_fit = true;
+      unable_to_fit_data = false;
+      data_might_not_be_well_fit = false;
 
       engine.toUpper();
       for (ProteinIdentification & prot : protein_ids)
       {
-        String search_engine = prot.getSearchEngine();
-        search_engine.toUpper();
+        String se = prot.getSearchEngine();
+        se.toUpper();
 
-        if (engine == search_engine)
+        if (engine == se)
         {
           for (PeptideIdentification & pep : peptide_ids)
           {
@@ -808,7 +1017,9 @@ namespace OpenMS
                   hit.setMetaValue(score_type, hit.getScore());
                   score = PosteriorErrorProbabilityModel::transformScore_(engine, hit);
 
-                  if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                  //TODO they should be ignored during fitting already!
+                  // and in this issue the -log(10^99) should actually be an acceptable value.
+                  if (std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                   {
                     score = 1.0;
                   }
@@ -817,8 +1028,8 @@ namespace OpenMS
                     score = PEP_model.computeProbability(score);
 
                     // invalid score? invalid fit!
-                    if ((score > 0.0) && (score < 1.0)) unable_to_fit_data = false; 
-                    if ((score > 0.2) && (score < 0.8)) data_might_not_be_well_fit = false;
+                    if ((score < 0.0) || (score > 1.0)) unable_to_fit_data = true;
+                    //TODO implement something to check the quality of fit and set data_might_not_be_well_fit
                   }
                   hit.setScore(score);
                   if (prob_correct)

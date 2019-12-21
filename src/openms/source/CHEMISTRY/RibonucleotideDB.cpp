@@ -50,6 +50,15 @@ namespace OpenMS
     readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
   }
 
+  RibonucleotideDB* RibonucleotideDB::getInstance()
+  {
+    static RibonucleotideDB* db_ = nullptr;
+    if (db_ == nullptr)
+    {
+      db_ = new RibonucleotideDB;
+    }
+    return db_;
+  }
 
   RibonucleotideDB::~RibonucleotideDB()
   {
@@ -106,7 +115,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        LOG_ERROR << "Error: Failed to parse input line " << line_count
+        OPENMS_LOG_ERROR << "Error: Failed to parse input line " << line_count
                   << ". Reason:\n" << e.getName()
                   << " - " << e.getMessage() << "\nSkipping this line." << endl;
       }
@@ -168,7 +177,7 @@ namespace OpenMS
       }
     }
     // Modomics' "new code" contains information on terminal specificity:
-    if (parts[2].back() == 'N') // terminal mod., exception: "GN"
+    if ((!parts[2].empty()) && parts[2].back() == 'N') // terminal mod., exception: "GN"
     {
       if (parts[2].hasSubstring("55") || (parts[2] == "N"))
       {

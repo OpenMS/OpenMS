@@ -79,16 +79,19 @@ public:
       LM_XPERCENT_YPERCENT
     };
 
+    /// extra empty margin added on top to ensure annotations and 100% y-axis label are properly drawn
+    constexpr static double TOP_MARGIN{1.09};
+
     /// Default constructor
-    Spectrum1DCanvas(const Param & preferences, QWidget * parent = nullptr);
+    Spectrum1DCanvas(const Param & preferences, QWidget* parent = nullptr);
     /// Destructor
     ~Spectrum1DCanvas() override;
 
     ///Enumerate all available paint styles
     enum DrawModes
     {
-      DM_PEAKS,                                 ///< draw data as peak
-      DM_CONNECTEDLINES                 ///< draw as connected lines
+      DM_PEAKS,         ///< draw data as peak
+      DM_CONNECTEDLINES ///< draw as connected lines
     };
 
     /// Returns the draw mode of the current layer
@@ -116,13 +119,13 @@ public:
     void setMirrorModeActive(bool b);
 
     /// For convenience - calls dataToWidget
-    void dataToWidget(const PeakType & peak, QPoint & point, bool flipped = false, bool percentage = true);
+    void dataToWidget(const PeakType& peak, QPoint& point, bool flipped = false, bool percentage = true);
 
     /// Calls SpectrumCanvas::dataToWidget_(), takes mirror mode into account
-    void dataToWidget(double x, double y, QPoint & point, bool flipped = false, bool percentage = false);
+    void dataToWidget(double x, double y, QPoint& point, bool flipped = false, bool percentage = false);
 
     /// For convenience - calls widgetToData
-    PointType widgetToData(const QPoint & pos, bool percentage = false);
+    PointType widgetToData(const QPoint& pos, bool percentage = false);
 
     /// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
     PointType widgetToData(double x, double y, bool percentage = false);
@@ -133,21 +136,21 @@ public:
     /// ----- Annotations
 
     /// Add an annotation item for the given peak
-    Annotation1DItem * addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color);
+    Annotation1DItem* addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color);
 
     /// Draws all annotation items of @p layer_index on @p painter
-    void drawAnnotations(Size layer_index, QPainter & painter);
+    void drawAnnotations(Size layer_index, QPainter& painter);
 
     /// ----- Alignment
 
     /// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
-    void performAlignment(Size layer_index_1, Size layer_index_2, const Param & param);
+    void performAlignment(Size layer_index_1, Size layer_index_2, const Param& param);
 
     /// Resets alignment_
     void resetAlignment();
 
     /// Draws the alignment on @p painter
-    void drawAlignment(QPainter & painter);
+    void drawAlignment(QPainter& painter);
 
     /// Returns the number of aligned pairs of peaks
     Size getAlignmentSize();
@@ -168,7 +171,13 @@ public:
     void setCurrentLayerPeakPenStyle(Qt::PenStyle ps);
 
     /// Actual painting takes place here
-    void paint(QPainter * paint_device, QPaintEvent * e);
+    void paint(QPainter* paint_device, QPaintEvent* e);
+
+    /// interesting (e.g., high-intensity) get live annotated with m/s's
+    void setDrawInterestingMZs(bool enable);
+
+    /// Return true if interesting m/s are annotated
+    bool isDrawInterestingMZs() const;
 
     // Show/hide ion ladder on top right corner (Identification view)
     void setIonLadderVisible(bool show);
@@ -217,9 +226,12 @@ protected:
     bool finishAdding_() override;
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
-    void drawCoordinates_(QPainter & painter, const PeakIndex & peak);
+    void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
-    void drawDeltas_(QPainter & painter, const PeakIndex & start, const PeakIndex & end);
+    void drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end);
+
+    /// annotate interesting peaks in visible area with m/z
+    void drawMZAtInterestingPeaks_(Size layer_index, QPainter& painter);
 
     /**
         @brief Changes visible area interval
@@ -229,10 +241,10 @@ protected:
     void changeVisibleArea_(double lo, double hi, bool repaint = true, bool add_to_stack = false);
 
     /// Draws a highlighted peak; if draw_elongation is true, the elongation line is drawn (for measuring)
-    void drawHighlightedPeak_(Size layer_index, const PeakIndex & peak, QPainter & painter, bool draw_elongation = false);
+    void drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation = false);
 
     /// Draws a dashed line using the highlighted peak color parameter
-    void drawDashedLine_(const QPoint & from, const QPoint & to, QPainter & painter);
+    void drawDashedLine_(const QPoint& from, const QPoint& to, QPainter& painter);
 
     /// Recalculates the current scale factor based on the specified layer (= 1.0 if intensity mode != IM_PERCENTAGE)
     void updatePercentageFactor_(Size layer_index);
@@ -247,7 +259,7 @@ protected:
         @param repaint if repainting of the widget should be triggered
         @param add_to_stack If the new area is to add to the zoom_stack_
     */
-    void changeVisibleArea_(const AreaType & new_area, bool repaint = true, bool add_to_stack = false) override;
+    void changeVisibleArea_(const AreaType& new_area, bool repaint = true, bool add_to_stack = false) override;
     // Docu in base class
     void recalculateSnapFactor_() override;
     // Docu in base class
@@ -284,14 +296,16 @@ protected:
     bool is_swapped_;
     /// whether the ion ladder is displayed on the top right corner in ID view
     bool ion_ladder_visible_;
+    /// annotate interesting peaks with m/z's
+    bool draw_interesting_MZs_;
 
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);
 
     /// Shows dialog and calls addLabelAnnotation_
-    void addUserLabelAnnotation_(const QPoint & screen_position);
+    void addUserLabelAnnotation_(const QPoint& screen_position);
     /// Adds an annotation item at the given screen position
-    void addLabelAnnotation_(const QPoint & screen_position, QString label_text);
+    void addLabelAnnotation_(const QPoint& screen_position, QString label_text);
     /// Shows dialog and calls addPeakAnnotation_
     void addUserPeakAnnotation_(PeakIndex near_peak);
 
@@ -302,12 +316,12 @@ protected:
 
     /** @name Reimplemented QT events */
     //@{
-    void paintEvent(QPaintEvent * e) override;
-    void mousePressEvent(QMouseEvent * e) override;
-    void mouseReleaseEvent(QMouseEvent * e) override;
-    void mouseMoveEvent(QMouseEvent * e) override;
-    void keyPressEvent(QKeyEvent * e) override;
-    void contextMenuEvent(QContextMenuEvent * e) override;
+    void paintEvent(QPaintEvent* e) override;
+    void mousePressEvent(QMouseEvent* e) override;
+    void mouseReleaseEvent(QMouseEvent* e) override;
+    void mouseMoveEvent(QMouseEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void contextMenuEvent(QContextMenuEvent* e) override;
     //@}
 
     ///Go forward in zoom history
@@ -319,7 +333,7 @@ protected:
     //docu in base class
     void translateRight_(Qt::KeyboardModifiers m) override;
     //docu in base class
-    void paintGridLines_(QPainter & painter) override;
+    void paintGridLines_(QPainter& painter) override;
   };
 } // namespace OpenMS
 

@@ -92,9 +92,12 @@ namespace OpenMS
         }
       };
 
-
       /**
        * @brief Enumerates precursor masses for all candidates in an XL-MS search
+
+          Assumes the list of peptides and the list of spectrum precursor masses are sorted by mass in ascending order,
+          and the list of mono-link masses is sorted in descending order.
+
        * @param peptides The peptides with precomputed masses from the digestDatabase function
        * @param cross_link_mass_light Mass of the cross-linker, only the light one if a labeled linker is used
        * @param cross_link_mass_mono_link A list of possible masses for the cross-link, if it is attached to a peptide on one side
@@ -128,10 +131,10 @@ namespace OpenMS
        * @param c_term_linker True, if the cross-linker can react with the C-terminal of a protein
        * @return A vector of AASeqWithMass containing the peptides, their masses and information about terminal peptides
        */
-      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, 
+      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db,
         EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2,
-        const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
-        const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
+        const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+        const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
         Size max_variable_mods_per_peptide);
 
       /**
@@ -189,9 +192,39 @@ namespace OpenMS
 
       /**
        * @brief adds MetaValues for cross-link positions to PeptideHits
-       * @param peptide_ids The vector of peptide_ids containing XL-MS search results, after mapping of peptides to proteins
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
        */
       static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief adds xl_target_decoy MetaValue that combines alpha and beta target_decoy info
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
+       */
+      static void addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief adds accessions_beta MetaValue to alpha peptides for TOPPView visualization and CSV table output
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
+       */
+      static void addBetaAccessions(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief removes beta peptides from cross-link IDs, since all info is already contained in the alpha peptide hits
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits
+       */
+      static void removeBetaPeptideHits(std::vector< PeptideIdentification > & peptide_ids);
+
+      /**
+       * @brief adds the list of features that percolator should use for OpenPepXL
+       * @param search_params The search parameters of OpenPepXL
+       */
+      static void addPercolatorFeatureList(ProteinIdentification& prot_id);
+
+      /**
+       * @brief sorts PeptideHits for each PeptideIdentification by score and adds the delta score as a MetaValue
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results without beta PeptideHits
+       */
+      static void computeDeltaScores(std::vector< PeptideIdentification >& peptide_ids);
 
       /**
        * @brief combines all hits to spectrum pairs with the same light spectrum into one ranked list
@@ -221,8 +254,21 @@ namespace OpenMS
        * @param cross_link_residue1 A list of one-letter-code residues, that the first side of the cross-linker can attach to
        * @param cross_link_residue2 A list of one-letter-code residues, that the second side of the cross-linker can attach to
        * @param cross_link_name The name of the cross-linker, e.g. "DSS" or "BS3"
+       * @param use_sequence_tags Whether to use sequence tags to filter out candidates
+       * @param tags The list of sequence tags that are used to filter candidate sequences. Only applied if use_sequence_tags = true
        */
-      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(const IntList& precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, const std::vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name);
+      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(const IntList& precursor_correction_steps,
+                                                                                                double precursor_mass,
+                                                                                                double precursor_mass_tolerance,
+                                                                                                bool precursor_mass_tolerance_unit_ppm,
+                                                                                                const std::vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses,
+                                                                                                double cross_link_mass,
+                                                                                                DoubleList cross_link_mass_mono_link,
+                                                                                                StringList cross_link_residue1,
+                                                                                                StringList cross_link_residue2,
+                                                                                                String cross_link_name,
+                                                                                                bool use_sequence_tags = false,
+                                                                                                const std::vector<std::string>& tags = std::vector<std::string>());
 
       /**
        * @brief Computes the mass error of a precursor mass to a hit
@@ -242,10 +288,12 @@ namespace OpenMS
        */
       static void isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta);
 
-    private:
+      /**
+       * @brief Filters the list of candidates for cases that include at least one of the tags in at least one of the two sequences
 
-      // helper function for enumerateCrossLinksAndMasses
-      static bool filter_and_add_candidate(std::vector<OPXLDataStructs::XLPrecursor>& mass_to_candidates, const std::vector< double >& spectrum_precursors, std::vector< int >& precursor_correction_positions, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OPXLDataStructs::XLPrecursor precursor);
-
+       * @param candidates The list of XLPrecursors as enumerated by e.g. enumerateCrossLinksAndMasses
+       * @param tags The list of tags for the current spectrum produced by the Tagger
+       */
+      static void filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags);
   };
 }

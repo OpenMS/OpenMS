@@ -1,4 +1,5 @@
 \documentclass[a4paper]{article}
+\usepackage{ifthen}
 \usepackage{geometry}
 \geometry{
   includeheadfoot,
@@ -119,6 +120,8 @@
 	\input{TOPP_example_ppp}
 	\pagebreak
 	\input{TOPP_example_convert}
+	\pagebreak
+	\input{TOPP_example_qualitycontrol}
 
 
 \end{document}

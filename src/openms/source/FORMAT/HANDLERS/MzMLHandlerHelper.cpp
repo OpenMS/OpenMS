@@ -57,7 +57,7 @@ namespace OpenMS
       {
         error_message_ += String("( in line ") + line + " column " + column + ")";
       }
-      LOG_WARN << error_message_ << std::endl;
+      OPENMS_LOG_WARN << error_message_ << std::endl;
     }
 
   String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, String indent, bool use_numpress)

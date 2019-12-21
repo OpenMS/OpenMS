@@ -159,13 +159,13 @@ namespace OpenMS
         const double left_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][k];
         const double right_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][k];
         const double local_peak_width = right_rt - left_rt;
-        LOG_DEBUG << "findWidestPeakIndices(): local_peak_width=" << local_peak_width << std::endl;
+        OPENMS_LOG_DEBUG << "findWidestPeakIndices(): local_peak_width=" << local_peak_width << std::endl;
         if (local_peak_width > max_width)
         {
           max_width = local_peak_width;
           chrom_idx = static_cast<Int>(i);
           point_idx = static_cast<Int>(k);
-          LOG_DEBUG << "findWidestPeakIndices(): max_width=" << max_width << "; chrom_idx=" << chrom_idx << "; point_idx=" << point_idx << std::endl;
+          OPENMS_LOG_DEBUG << "findWidestPeakIndices(): max_width=" << max_width << "; chrom_idx=" << chrom_idx << "; point_idx=" << point_idx << std::endl;
         }
       }
     }

@@ -1,7 +1,7 @@
 
 -- General information --
 
-File name: C:/dev/OpenMS/source/TEST/TOPP/FileInfo_10_input.idXML
+File name: /home/sachsenb/OpenMS/src/tests/topp/FileInfo_10_input.idXML
 File type: idXML
 Number of:
   runs:                       1
@@ -9,7 +9,9 @@ Number of:
   non-redundant protein hits: 0
   (only hits that differ in the accession)
 
-  matched spectra:            0
+  matched spectra:    0
+  peptide sequences:  0
+  PSMs / spectrum (ignoring unidentified spectra):    0
   peptide hits:               0 (avg. length: 0)
   modified top-hits:          0/0
   non-redundant peptide hits: 0

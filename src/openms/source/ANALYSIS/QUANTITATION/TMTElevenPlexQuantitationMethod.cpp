@@ -37,16 +37,12 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
-#include <boost/assign/list_of.hpp>
-
 #include <algorithm>
-
-using namespace boost::assign;
 
 namespace OpenMS
 {
 const String TMTElevenPlexQuantitationMethod::name_ = "tmt11plex";
-const std::vector<String> TMTElevenPlexQuantitationMethod::channel_names_ = list_of("126")("127N")("127C")("128N")("128C")("129N")("129C")("130N")("130C")("131N")("131C");
+const std::vector<String> TMTElevenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C"};
 
 TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
 {
@@ -86,10 +82,6 @@ TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
     reference_channel_ = 0;
 
     setDefaultParams_();
-}
-
-TMTElevenPlexQuantitationMethod::~TMTElevenPlexQuantitationMethod()
-{
 }
 
 void TMTElevenPlexQuantitationMethod::setDefaultParams_()
@@ -147,7 +139,8 @@ void TMTElevenPlexQuantitationMethod::updateMembers_()
     reference_channel_ = t_it - TMTElevenPlexQuantitationMethod::channel_names_.begin();
 }
 
-TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod(const TMTElevenPlexQuantitationMethod& other)
+TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod(const TMTElevenPlexQuantitationMethod& other):
+IsobaricQuantitationMethod(other)
 {
     channels_.clear();
     channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
@@ -169,7 +162,7 @@ TMTElevenPlexQuantitationMethod& TMTElevenPlexQuantitationMethod::operator=(cons
     return *this;
 }
 
-const String& TMTElevenPlexQuantitationMethod::getName() const
+const String& TMTElevenPlexQuantitationMethod::getMethodName() const
 {
     return TMTElevenPlexQuantitationMethod::name_;
 }

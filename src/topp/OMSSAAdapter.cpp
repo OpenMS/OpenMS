@@ -45,9 +45,11 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -220,7 +222,7 @@ protected:
     //-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
     //-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
     //registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
-    registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 
     //registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to idXML");
@@ -412,7 +414,7 @@ protected:
     OMSSAVersion omssa_version_i;
     if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + omssa_executable + " -version'. Make sure that OMSSA exists and the path given in '-omssa_executable' is correct!");
+      writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + omssa_executable + " -version'. Make sure that the OMSSA executable given in '-omssa_executable' is correct!");
       return ILLEGAL_PARAMETERS;
     }
     else
@@ -440,7 +442,7 @@ protected:
     //-------------------------------------------------------------
     if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
     {
-      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
+      OPENMS_LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -458,7 +460,7 @@ protected:
       }
       catch (...)
       {
-        LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
+        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
       db_name = full_db_name;
@@ -470,10 +472,10 @@ protected:
     bool has_phr = File::readable(db_name + ".phr");
     if (!has_pin || !has_phr)
     {
-      LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
-      if (!has_pin) LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
-      if (!has_phr) LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
-      LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
+      OPENMS_LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
+      if (!has_pin) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
+      if (!has_phr) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      OPENMS_LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -774,16 +776,17 @@ protected:
     //-------------------------------------------------------------
 
     // names of temporary files for data chunks
-    StringList file_spectra_chunks_in, file_spectra_chunks_out, primary_ms_runs;
+    StringList file_spectra_chunks_in, file_spectra_chunks_out;
     Size ms2_spec_count(0);
+    ProteinIdentification protein_identification;    
     { // local scope to free memory after conversion to MGF format is done
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap peak_map;
       fh.getOptions().addMSLevel(2);
       fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_, false, false);
+      protein_identification.setPrimaryMSRunPath({inputfile_name}, peak_map);
 
-      peak_map.getPrimaryMSRunPath(primary_ms_runs);
       ms2_spec_count = peak_map.size();
       writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 
@@ -839,8 +842,6 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    ProteinIdentification protein_identification;
-    protein_identification.setPrimaryMSRunPath(primary_ms_runs);
     vector<PeptideIdentification> peptide_ids;
 
     ProgressLogger pl;
@@ -1040,7 +1041,7 @@ protected:
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 
     // some stats
-    LOG_INFO << "Statistics:\n"
+    OPENMS_LOG_INFO << "Statistics:\n"
              << "  identified MS2 spectra: " << peptide_ids.size() << " / " << ms2_spec_count << " = " << int(peptide_ids.size() * 100.0 / ms2_spec_count) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
 
 
