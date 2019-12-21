@@ -145,6 +145,7 @@ namespace OpenMS
       if (options_.getFillData())
       {
         size_t errCount = 0;
+        String error_message;
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -164,6 +165,15 @@ namespace OpenMS
                 spectrum_data_[i].spectrum.sortByPosition();
               }
             }
+
+            catch (OpenMS::Exception::BaseException& e)
+            {
+#pragma omp critical
+              {
+                ++errCount;
+                error_message = e.what();
+              }
+            }
             catch (...)
             {
 #pragma omp atomic
@@ -173,7 +183,9 @@ namespace OpenMS
         }
         if (errCount != 0)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
+          std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
+          std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data: '" + error_message + "'");
         }
       }
 
@@ -204,6 +216,7 @@ namespace OpenMS
       if (options_.getFillData())
       {
         size_t errCount = 0;
+        String error_message;
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -221,12 +234,26 @@ namespace OpenMS
               chromatogram_data_[i].chromatogram.sortByPosition();
             }
           }
+          catch (OpenMS::Exception::BaseException& e)
+          {
+#pragma omp critical
+            {
+              ++errCount;
+              error_message = e.what();
+            }
+          }
           catch (...)
-          {++errCount; }
+          {
+#pragma omp atomic
+            ++errCount;
+          }
         }
         if (errCount != 0)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
+          // throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
+          std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
+          std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data: '" + error_message + "'");
         }
 
       }
