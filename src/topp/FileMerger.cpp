@@ -120,7 +120,7 @@ protected:
     registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);
     setValidStrings_("in_type", valid_in);
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML,FASTA"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
     registerStringOption_("append_method", "<choice>", "append_rows", "Append consensusMaps rowise or colwise. (Please use colwise for the MSstatsConverter)", false);
