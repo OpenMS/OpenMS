@@ -408,54 +408,6 @@ namespace OpenMS
     }
   }
 
-  void TheoreticalSpectrumGenerator::addLosses_fast_(PeakSpectrum& spectrum,
-                       double mz,
-                       std::unordered_set<String>& losses,
-                       int ion_ordinal,
-                       DataArrays::StringDataArray& ion_names,
-                       DataArrays::IntegerDataArray& charges,
-                       double intensity,
-                       Residue::ResidueType res_type,
-                       std::unordered_map<String, double>& xloss_map,
-                       bool add_metainfo,
-                       int charge) const
-  {
-#pragma omp critical (addLosses_fast)
-    {
-      // static std::map<String, double> xloss_map;
-      Peak1D p;
-      // std::unordered_map<String, double> loss_map;
-      // static loss_map : 1.117s for 1e5 molecules
-      // non-static loss_map : 8.634s for 1e5 molecules
-      // mutable member loss_map :  0m1.146s for 1e5 molecules
-      // fxn argument loss_map : 2.238s for 1e5 molecules
-      for (const auto& l : losses)
-      {
-        if (xloss_map.find(l) == xloss_map.end())
-        {
-          xloss_map[l] = EmpiricalFormula(l).getMonoWeight();
-        }
-      }
-
-      for (const auto& it : losses)
-      {
-        double loss_pos = xloss_map[ it ];
-        p.setIntensity(intensity); // * rel_loss_intensity);
-        p.setMZ((mz - loss_pos) / (double)charge);
-        spectrum.push_back(p);
-
-        const String& loss_name = it;
-        if (add_metainfo)
-        {
-          // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
-          String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion_ordinal) + "-" + loss_name + String((Size)abs(charge), '+');
-          ion_names.push_back(ion_name);
-          charges.push_back(charge);
-        }
-      }
-    }
-  }
-
   void TheoreticalSpectrumGenerator::addLosses_(PeakSpectrum& spectrum,
                                                 const AASequence& ion,
                                                 DataArrays::StringDataArray& ion_names,
