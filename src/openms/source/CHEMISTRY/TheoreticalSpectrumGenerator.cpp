@@ -35,6 +35,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -49,10 +50,11 @@ namespace OpenMS
   TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator() :
     DefaultParamHandler("TheoreticalSpectrumGenerator")
   {
-    defaults_.setValue("add_isotopes", "false", "If set to 'true' isotope peaks of the product ion peaks are added");
-    defaults_.setValidStrings("add_isotopes", ListUtils::create<String>("true,false"));
+    defaults_.setValue("isotope_model", "none", "Model to use for isotopic peaks ('none' means no isotopic peaks are added, 'coarse' adds isotopic peaks in unit mass distance, 'fine' uses the hyperfine isotopic generator to add accurate isotopic peaks. Note that adding isotopic peaks is very slow.");
+    defaults_.setValidStrings("isotope_model", ListUtils::create<String>("none,coarse,fine"));
 
-    defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added if 'add_isotopes' is 'true'");
+    defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added if 'isotope_model' is 'coarse'");
+    defaults_.setValue("max_isotope_probability", 0.05, "Defines the maximal isotopic probability to cover if 'isotope_model' is 'fine'");
 
     defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
     defaults_.setValidStrings("add_metainfo", ListUtils::create<String>("true,false"));
@@ -329,18 +331,27 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const
   {
-    double pos = ion.getMonoWeight(res_type, charge);
+    // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
+    EmpiricalFormula f = ion.getFormula(res_type, charge) + EmpiricalFormula("H") * charge;
+    f.setCharge(0);
+
     Peak1D p;
-    IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
+    IsotopeDistribution dist;
+    if (isotope_model_ == 1)
+    {
+      dist = f.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
+    }
+    else if (isotope_model_ == 2)
+    {
+      dist = f.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
+    }
 
     String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + String((Size)abs(charge), '+');
 
-    double j(0.0);
-    for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
+    for (const auto& it : dist)
     {
-      // TODO: this is usually dominated by 13C-12C mass shift which deviates a bit from neutron mass
-      p.setMZ((double)(pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
-      p.setIntensity(intensity * it->getIntensity());
+      p.setMZ(it.getMZ() / charge);
+      p.setIntensity(intensity * it.getIntensity());
       if (add_metainfo_) // one entry per peak
       {
         ion_names.push_back(ion_name);
@@ -396,16 +407,27 @@ namespace OpenMS
 
       if (add_isotopes_)
       {
-        IsotopeDistribution dist = loss_ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
+        // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
+        loss_ion += EmpiricalFormula("H") * charge;
+        loss_ion.setCharge(0);
+
+        IsotopeDistribution dist;
+        if (isotope_model_ == 1)
+        {
+          dist = loss_ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
+        }
+        else if (isotope_model_ == 2)
+        {
+          dist = loss_ion.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
+        }
 
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
         String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + "-" + loss_name + String((Size)abs(charge), '+');
 
-        double j(0.0);
-        for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)
+        for (const auto& iso : dist)
         {
-          p.setMZ((double)(loss_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
-          p.setIntensity(intensity * rel_loss_intensity_ * iso->getIntensity());
+          p.setMZ(iso.getMZ() / (double)charge);
+          p.setIntensity(intensity * rel_loss_intensity_ * iso.getIntensity());
           if (add_metainfo_)
           {
             ion_names.push_back(ion_name);
@@ -576,13 +598,26 @@ namespace OpenMS
     // precursor peak
     double mono_pos = peptide.getMonoWeight(Residue::Full, charge);
 
+
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
-      double j(0.0);
-      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
+      // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
+      auto formula = peptide.getFormula(Residue::Full, charge) + EmpiricalFormula("H") * charge;
+      formula.setCharge(0);
+
+      IsotopeDistribution dist;
+      if (isotope_model_ == 1)
       {
-        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
+        dist = formula.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
+      }
+      else if (isotope_model_ == 2)
+      {
+        dist = formula.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
+      }
+
+      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it)
+      {
+        p.setMZ(it->getMZ() / (double)charge);
         p.setIntensity(pre_int_ * it->getIntensity());
         if (add_metainfo_)
         {
@@ -610,11 +645,22 @@ namespace OpenMS
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
-      UInt j(0);
-      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
+      ion += EmpiricalFormula("H") * charge;
+      ion.setCharge(0);
+
+      IsotopeDistribution dist;
+      if (isotope_model_ == 1)
       {
-        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
+        dist = ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
+      }
+      else if (isotope_model_ == 2)
+      {
+        dist = ion.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
+      }
+
+      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it)
+      {
+        p.setMZ(it->getMZ() / charge);
         p.setIntensity(pre_int_H2O_ *  it->getIntensity());
         if (add_metainfo_)
         {
@@ -643,11 +689,23 @@ namespace OpenMS
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
-      UInt j(0);
-      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
+      // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
+      ion += EmpiricalFormula("H") * charge;
+      ion.setCharge(0);
+
+      IsotopeDistribution dist; 
+      if (isotope_model_ == 1)
       {
-        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
+        dist = ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
+      }
+      else if (isotope_model_ == 2)
+      {
+        dist = ion.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
+      }
+
+      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it)
+      {
+        p.setMZ(it->getMZ() / (double)charge);
         p.setIntensity(pre_int_NH3_ *  it->getIntensity());
         if (add_metainfo_)
         {
@@ -672,7 +730,6 @@ namespace OpenMS
     }
   }
 
-
   void TheoreticalSpectrumGenerator::updateMembers_()
   {
     add_b_ions_ = param_.getValue("add_b_ions").toBool();
@@ -684,7 +741,10 @@ namespace OpenMS
     add_first_prefix_ion_ = param_.getValue("add_first_prefix_ion").toBool();
     add_losses_ = param_.getValue("add_losses").toBool();
     add_metainfo_ = param_.getValue("add_metainfo").toBool();
-    add_isotopes_ = param_.getValue("add_isotopes").toBool();
+    add_isotopes_ = param_.getValue("isotope_model") != "none";
+    if (param_.getValue("isotope_model") == "coarse") isotope_model_ = 1;
+    else if (param_.getValue("isotope_model") == "fine") isotope_model_ = 2;
+    else if (param_.getValue("isotope_model") == "simple") isotope_model_ = 3;
     add_precursor_peaks_ = param_.getValue("add_precursor_peaks").toBool();
     add_all_precursor_charges_ = param_.getValue("add_all_precursor_charges").toBool();
     add_abundant_immonium_ions_ = param_.getValue("add_abundant_immonium_ions").toBool();
@@ -695,6 +755,7 @@ namespace OpenMS
     y_intensity_ = (double)param_.getValue("y_intensity");
     z_intensity_ = (double)param_.getValue("z_intensity");
     max_isotope_ = (Int)param_.getValue("max_isotope");
+    max_isotope_probability_ = param_.getValue("max_isotope_probability");
     rel_loss_intensity_ = (double)param_.getValue("relative_loss_intensity");
     pre_int_ = (double)param_.getValue("precursor_intensity");
     pre_int_H2O_ = (double)param_.getValue("precursor_H2O_intensity");
