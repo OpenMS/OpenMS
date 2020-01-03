@@ -115,6 +115,18 @@ namespace OpenMS
     /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
 
+  void addLosses_fast_(PeakSpectrum& spectrum,
+                       double mz,
+                       std::unordered_set<String>& losses,
+                       int ion_ordinal,
+                       DataArrays::StringDataArray& ion_names,
+                       DataArrays::IntegerDataArray& charges,
+                       double intensity,
+                       Residue::ResidueType res_type,
+                       std::unordered_map<String, double>& loss_map,
+                       bool add_metainfo,
+                       int charge) const;
+
     bool add_b_ions_;
     bool add_y_ions_;
     bool add_a_ions_;
@@ -129,6 +141,7 @@ namespace OpenMS
     bool add_precursor_peaks_;
     bool add_all_precursor_charges_ ;
     bool add_abundant_immonium_ions_;
+    bool sort_by_position_;
     double a_intensity_;
     double b_intensity_;
     double c_intensity_;
@@ -142,5 +155,8 @@ namespace OpenMS
     double pre_int_;
     double pre_int_H2O_;
     double pre_int_NH3_;
+
+    int isotope_model_;
+    mutable std::unordered_map<String, double> loss_map_;
   };
 }
