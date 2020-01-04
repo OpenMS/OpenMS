@@ -89,7 +89,7 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
   tsg_param.setValue("add_losses", "true");
-  tsg_param.setValue("add_isotopes", "true");
+  tsg_param.setValue("isotope_model", "coarse");
   tsg.setParameters(tsg_param);
 
   PeakSpectrum rspec;
@@ -128,7 +128,7 @@ START_SECTION((void getIdentification(PeptideIdentification& id, const PeakSpect
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
   tsg_param.setValue("add_losses", "true");
-  tsg_param.setValue("add_isotopes", "true");
+  tsg_param.setValue("isotope_model", "coarse");
   tsg.setParameters(tsg_param);
 
   PeakSpectrum rspec;
