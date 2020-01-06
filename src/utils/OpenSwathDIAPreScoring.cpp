@@ -173,7 +173,7 @@ protected:
       //std::string tmp = File.basename(fileout);
       //std::string fname = File::removeExtension(fileout);
       //fname += ".tsv";
-      fname = outfile_list[i];
+      String fname = outfile_list[i];
 
       swath_file.setLogType(log_type_);
       swath_file.load(file_list[i], *swath_map);
