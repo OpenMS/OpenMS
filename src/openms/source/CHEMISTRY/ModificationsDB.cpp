@@ -48,6 +48,57 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  bool inline residuesMatch_fast_(const char residue, const ResidueModification* curr_mod)
+  {
+    const char origin = curr_mod->getOrigin();
+
+    if (origin != 'X')
+    {
+      // residues match if they are equal or they match everything (X/.)
+      return (origin == residue || residue == 'X' || residue == '.' || residue == '?');
+    }
+    else
+    {
+      // origin is X, this usually means that the modifcation can be at any amino acid
+
+      // residues do NOT match if the modification is user-defined and has origin
+      // X (which here means an actual input AA X and it does *not* mean "match
+      // all AA") while the current residue is not X. Make sure we dont match things like
+      // PEPN[400] and PEPX[400] since these have very different masses.
+      bool non_matching_user_defined =  (
+           curr_mod->isUserDefined() &&
+           !(residue == '?') &&
+           origin != residue );
+
+      return !non_matching_user_defined;
+    }
+  }
+
+  bool ModificationsDB::residuesMatch_(const String& residue, const ResidueModification* curr_mod) const
+  {
+
+    // residues match if they are equal or they match everything (X/.)
+    bool matching =  (
+             residue.empty() ||
+             (curr_mod->getOrigin() == residue[0]) ||
+             (residue == "X") ||
+             (curr_mod->getOrigin() == 'X') ||
+             (residue == ".") );
+
+    // residues do NOT match if the modification is user-defined and has origin
+    // X (which here means an actual input AA X and it does *not* mean "match
+    // all AA") while the current residue is not X. Make sure we dont match things like
+    // PEPN[400] and PEPX[400] since these have very different masses.
+    bool non_matching_user_defined =  (
+         curr_mod->isUserDefined() &&
+         curr_mod->getOrigin() == 'X' &&
+         !residue.empty() &&
+         String(curr_mod->getOrigin()) != residue );
+
+    return matching && !non_matching_user_defined;
+  }
+
   bool ModificationsDB::is_instantiated_ = false;
 
   ModificationsDB* ModificationsDB::getInstance(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
@@ -649,30 +700,6 @@ namespace OpenMS
       }
       return a.size() < b.size();
     });
-  }
-
-  bool ModificationsDB::residuesMatch_(const String& residue, const ResidueModification* curr_mod) const
-  {
-
-    // residues match if they are equal or they match everything (X/.)
-    bool matching =  (
-             residue.empty() ||
-             (curr_mod->getOrigin() == residue[0]) ||
-             (residue == "X") ||
-             (curr_mod->getOrigin() == 'X') ||
-             (residue == ".") );
-
-    // residues do NOT match if the modification is user-defined and has origin
-    // X (which here means an actual input AA X and it does *not* mean "match
-    // all AA") while the current residue is not X. Make sure we dont match things like
-    // PEPN[400] and PEPX[400] since these have very different masses.
-    bool non_matching_user_defined =  (
-         curr_mod->isUserDefined() &&
-         curr_mod->getOrigin() == 'X' &&
-         !residue.empty() &&
-         String(curr_mod->getOrigin()) != residue );
-
-    return matching && !non_matching_user_defined;
   }
 
 } // namespace OpenMS
