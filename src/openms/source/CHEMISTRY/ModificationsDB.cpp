@@ -119,7 +119,8 @@ namespace OpenMS
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       bool found = true;
-      if (!modification_names_.has(mod_name))
+      auto modifications = modification_names_.find(mod_name);
+      if (modifications == modification_names_.end())
       {
         // Try to fix things, Skyline for example uses unimod:10 and not UniMod:10 syntax
         if (mod_name.size() > 6 && mod_name.prefix(6).toLower() == "unimod")
@@ -127,7 +128,8 @@ namespace OpenMS
           mod_name = "UniMod" + mod_name.substr(6, mod_name.size() - 6);
         }
 
-        if (!modification_names_.has(mod_name))
+        modifications = modification_names_.find(mod_name);
+        if (modifications == modification_names_.end())
         {
           OPENMS_LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
           found = false; 
@@ -136,8 +138,7 @@ namespace OpenMS
 
       if (found)
       {
-        const set<const ResidueModification*>& temp = modification_names_[mod_name];
-        for (const auto& it : temp)
+        for (const auto& it : modifications->second)
         {
           if (residuesMatch_(residue, it) &&
                (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
