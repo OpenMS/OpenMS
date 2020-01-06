@@ -34,7 +34,10 @@
 
 ## Windows installer
 
-if (CMAKE_GENERATOR MATCHES ".*Win64.*")
+## With VS2019 the architecture HAS TO BE specified with the "–A" option or CMAKE_GENERATOR_PLATFORM var.
+## Therefore the legacy way of adding a suffix to the Generator is not valid anymore.
+## Read value of CMAKE_VS_PLATFORM_NAME instead
+if (CMAKE_VS_PLATFORM_NAME MATCHES ".*Win64.*")
   set(PLATFORM "64")
   set(ARCH "x64")
 else()
