@@ -1001,12 +1001,11 @@ namespace OpenMS
           "Cannot convert string to peptide modification: missing ')'");
     }
 
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
-
     // First search for N or C terminal modifications (start of peptide indicates N-terminal modification as well)
     if (aas.peptide_.empty() || specificity == ResidueModification::N_TERM ||
                                 specificity == ResidueModification::PROTEIN_N_TERM)
     {
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
       // Advance iterator one or two positions (we may or may not have a dot
       // after the closing bracket) to point to the first AA of the peptide.
       String::ConstIterator next_aa = mod_end;
@@ -1028,11 +1027,13 @@ namespace OpenMS
     const String& res = aas.peptide_.back()->getOneLetterCode();
     if (specificity == ResidueModification::PROTEIN_C_TERM)
     {
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
       aas.c_term_mod_ = proteinTerminalResidueHelper(mod_db, 'c', str, mod, res);
       return mod_end;
     }
     else if (specificity == ResidueModification::C_TERM)
     {
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
       aas.c_term_mod_ = terminalResidueHelper(mod_db, 'c', true, str, mod, res);
       return mod_end;
     }
@@ -1044,6 +1045,8 @@ namespace OpenMS
     }
     catch(...)  // no internal mod for this residue
     {
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
+
       // TODO: get rid of this code path, its deprecated and is only a hack for
       // C/N-terminal modifications that don't use the dot notation
       if (std::distance(str_it, str.begin()) == -1)
