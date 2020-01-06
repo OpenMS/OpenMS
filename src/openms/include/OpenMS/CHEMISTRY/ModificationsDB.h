@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <set>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -175,7 +176,7 @@ protected:
     std::vector<ResidueModification*> mods_;
 
     /// Stores the mappings of (unique) names to the modifications
-    Map<String, std::set<const ResidueModification*> > modification_names_;
+    std::unordered_map<String, std::set<const ResidueModification*> > modification_names_;
 
     /// Helper function to check if a residue matches the origin for a modification
     bool residuesMatch_(const String& residue, const ResidueModification* origin) const;

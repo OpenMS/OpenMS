@@ -188,7 +188,7 @@ namespace OpenMS
     bool has_mod;
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      has_mod = modification_names_.has(modification);
+      has_mod = (modification_names_.find(modification) != modification_names_.end());
     }
     return has_mod;
   }
@@ -203,7 +203,7 @@ namespace OpenMS
     bool one_mod(true);
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      if (modification_names_[mod_name].size() > 1)
+      if (modification_names_.find(mod_name)->second.size() > 1)
       {
         one_mod = false;
       }
@@ -216,7 +216,7 @@ namespace OpenMS
     Size index(numeric_limits<Size>::max());
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      const ResidueModification* mod = *modification_names_[mod_name].begin();
+      const ResidueModification* mod = *(modification_names_.find(mod_name)->second.begin());
       for (Size i = 0; i != mods_.size(); ++i)
       {
         if (mods_[i] == mod)
