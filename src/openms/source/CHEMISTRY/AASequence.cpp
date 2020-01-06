@@ -1380,7 +1380,12 @@ namespace OpenMS
   void AASequence::parseString_(const String& pep, AASequence& aas,
                                 bool permissive)
   {
+    // Reserving space, populate it and then shrink again (since we probably
+    // over-allocate due to modifications). This substantially speeds up the
+    // function for unmodified sequences (3x speedup).
     aas.peptide_.clear();
+    aas.peptide_.reserve(pep.size());
+
     String peptide(pep);
     peptide.trim();
 
@@ -1482,6 +1487,8 @@ namespace OpenMS
     // since the user might just want to represent the sequence (including modifications on other AA's),
     // e.g. when digesting a peptide
     // We check for 'weightless' X in places where a mass is needed, e.g. during getMonoMass()
+
+    aas.peptide_.shrink_to_fit();
   }
 
   void AASequence::getAAFrequencies(Map<String, Size>& frequency_table) const
