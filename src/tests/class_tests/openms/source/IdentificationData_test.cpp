@@ -77,12 +77,12 @@ START_SECTION((const InputFiles& getInputFiles() const))
 }
 END_SECTION
 
-START_SECTION((InputFileRef registerInputFile(const String& file)))
+START_SECTION((InputFileRef registerInputFile(const InputFile& file)))
 {
-  String file = "test.mzML";
+  IdentificationData::InputFile file("test.mzML");
   file_ref = data.registerInputFile(file);
   TEST_EQUAL(data.getInputFiles().size(), 1);
-  TEST_STRING_EQUAL(*file_ref, file);
+  TEST_STRING_EQUAL(file_ref->name, file.name);
   // re-registering doesn't lead to redundant entries:
   data.registerInputFile(file);
   TEST_EQUAL(data.getInputFiles().size(), 1);

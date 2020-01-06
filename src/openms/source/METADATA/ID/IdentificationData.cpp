@@ -93,9 +93,24 @@ namespace OpenMS
 
 
   IdentificationData::InputFileRef
-  IdentificationData::registerInputFile(const String& file)
+  IdentificationData::registerInputFile(const InputFile& file)
   {
-    return input_files_.insert(file).first;
+    if (file.name.empty())
+    {
+      String msg = "input file must have a name";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    auto result = input_files_.insert(file);
+    if (!result.second) // existing element - merge in new information
+    {
+      input_files_.modify(result.first, [&file](InputFile& existing)
+                          {
+                            existing += file;
+                          });
+    }
+
+    return result.first;
   }
 
 

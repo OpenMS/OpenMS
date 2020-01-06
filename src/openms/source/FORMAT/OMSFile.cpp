@@ -410,16 +410,25 @@ namespace OpenMS
 
     createTable_("ID_InputFile",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
-                 "file TEXT UNIQUE NOT NULL");
+                 "name TEXT UNIQUE NOT NULL, "        \
+                 "experimental_design_id TEXT, "      \
+                 "primary_files TEXT");
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO ID_InputFile VALUES ("  \
                   ":id, "                              \
-                  ":file)");
-    for (const String& input_file : id_data_.getInputFiles())
+                  ":name, "                            \
+                  ":experimental_design_id, "          \
+                  ":primary_files)");
+    for (const ID::InputFile& input : id_data_.getInputFiles())
     {
-      query.bindValue(":id", Key(&input_file));
-      query.bindValue(":file", input_file.toQString());
+      query.bindValue(":id", Key(&input));
+      query.bindValue(":name", input.name.toQString());
+      query.bindValue(":experimental_design_id",
+                      input.experimental_design_id.toQString());
+      // @TODO: what if a primary file name contains ","?
+      String primary_files = ListUtils::concatenate(input.primary_files);
+      query.bindValue(":primary_files", primary_files.toQString());
       if (!query.exec())
       {
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -592,7 +601,6 @@ namespace OpenMS
       "ID_DataProcessingStep",
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "software_id INTEGER NOT NULL, "                                  \
-      "primary_files TEXT, "                                            \
       "date_time TEXT, "                                                \
       "search_param_id INTEGER, "                                       \
       "FOREIGN KEY (search_param_id) REFERENCES ID_DBSearchParam (id)");
@@ -604,7 +612,6 @@ namespace OpenMS
     query.prepare("INSERT INTO ID_DataProcessingStep VALUES ("  \
                   ":id, "                                       \
                   ":software_id, "                              \
-                  ":primary_files, "                            \
                   ":date_time, "                                \
                   ":search_param_id)");
     bool any_input_files = false;
@@ -617,9 +624,6 @@ namespace OpenMS
       if (!step.input_file_refs.empty()) any_input_files = true;
       query.bindValue(":id", Key(&step));
       query.bindValue(":software_id", Key(&(*step.software_ref)));
-      // @TODO: what if a primary file name contains ","?
-      String primary_files = ListUtils::concatenate(step.primary_files, ",");
-      query.bindValue(":primary_files", primary_files.toQString());
       query.bindValue(":date_time", step.date_time.get().toQString());
       auto pos = id_data_.getDBSearchSteps().find(step_ref);
       if (pos != id_data_.getDBSearchSteps().end())
@@ -1308,8 +1312,12 @@ namespace OpenMS
     }
     while (query.next())
     {
-      ID::InputFileRef ref =
-        id_data_.registerInputFile(query.value("file").toString());
+      ID::InputFile input(query.value("name").toString(),
+                          query.value("experimental_design_id").toString());
+      String primary_files = query.value("primary_files").toString();
+      vector<String> pf_list = ListUtils::create<String>(primary_files);
+      input.primary_files.insert(pf_list.begin(), pf_list.end());
+      ID::InputFileRef ref = id_data_.registerInputFile(input);
       input_file_refs_[query.value("id").toLongLong()] = ref;
     }
   }
@@ -1558,8 +1566,6 @@ namespace OpenMS
       Key id = query.value("id").toLongLong();
       Key software_id = query.value("software_id").toLongLong();
       ID::DataProcessingStep step(processing_software_refs_[software_id]);
-      String primary_files = query.value("primary_files").toString();
-      step.primary_files = ListUtils::create<String>(primary_files);
       String date_time = query.value("date_time").toString();
       if (!date_time.empty()) step.date_time.set(date_time);
       if (have_input_files)

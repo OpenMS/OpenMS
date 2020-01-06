@@ -34,59 +34,54 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ID/DataProcessingSoftware.h>
-#include <OpenMS/METADATA/ID/InputFile.h>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/member.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
-    */
-    struct DataProcessingStep: public MetaInfoInterface
+    /// Information about input files that were processed
+    struct InputFile
     {
-      ProcessingSoftwareRef software_ref;
+      String name;
 
-      std::vector<InputFileRef> input_file_refs;
+      String experimental_design_id;
 
-      DateTime date_time;
+      std::set<String> primary_files;
 
-      // @TODO: add processing actions that are relevant for ID data
-      std::set<DataProcessing::ProcessingAction> actions;
-
-      explicit DataProcessingStep(
-        ProcessingSoftwareRef software_ref,
-        const std::vector<InputFileRef>& input_file_refs =
-        std::vector<InputFileRef>(), const DateTime& date_time =
-        DateTime::now(), std::set<DataProcessing::ProcessingAction> actions =
-        std::set<DataProcessing::ProcessingAction>()):
-        software_ref(software_ref), input_file_refs(input_file_refs),
-        date_time(date_time), actions(actions)
+      explicit InputFile(const String& name,
+                         const String& experimental_design_id = "",
+                         const std::set<String>& primary_files =
+                         std::set<String>()):
+        name(name), experimental_design_id(experimental_design_id),
+        primary_files(primary_files)
       {
       }
 
-      DataProcessingStep(const DataProcessingStep& other) = default;
+      InputFile(const InputFile& other) = default;
 
-      // order by date/time first, don't compare meta data (?):
-      bool operator<(const DataProcessingStep& other) const
+      /// Merge in data from another object
+      InputFile& operator+=(const InputFile& other)
       {
-        return (std::tie(date_time, software_ref, input_file_refs, actions) <
-                std::tie(other.date_time, other.software_ref,
-                         other.input_file_refs, other.actions));
-      }
-
-      // don't compare meta data (?):
-      bool operator==(const DataProcessingStep& other) const
-      {
-        return (std::tie(software_ref, input_file_refs, date_time, actions) ==
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.date_time, other.actions));
+        if (experimental_design_id.empty())
+        {
+          experimental_design_id = other.experimental_design_id;
+        }
+        primary_files.insert(other.primary_files.begin(),
+                             other.primary_files.end());
+        return *this;
       }
     };
 
-    typedef std::set<DataProcessingStep> DataProcessingSteps;
-    typedef IteratorWrapper<DataProcessingSteps::iterator> ProcessingStepRef;
+    typedef boost::multi_index_container<
+      InputFile,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<boost::multi_index::member<
+          InputFile, String, &InputFile::name>>>
+      > InputFiles;
+    typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
 
   }
 }

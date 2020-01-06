@@ -74,14 +74,20 @@ namespace OpenMS
 
       IdentificationData::DataProcessingStep step(software_ref);
       // ideally, this should give us the raw files:
-      prot.getPrimaryMSRunPath(step.primary_files, true);
+      vector<String> primary_files;
+      prot.getPrimaryMSRunPath(primary_files, true);
       // ... and this should give us mzML files:
       vector<String> spectrum_files;
       prot.getPrimaryMSRunPath(spectrum_files);
-      for (const String& path : spectrum_files)
+      // if there's the same number of each, hope they're in the same order:
+      bool match_files = (primary_files.size() == spectrum_files.size());
+      // @TODO: what to do with raw files if there's a different number?
+      for (Size i = 0; i < spectrum_files.size(); ++i)
       {
+        IdentificationData::InputFile input(spectrum_files[i]);
+        if (match_files) input.primary_files.insert(primary_files[i]);
         IdentificationData::InputFileRef file_ref =
-          id_data.registerInputFile(path);
+          id_data.registerInputFile(input);
         step.input_file_refs.push_back(file_ref);
       }
       step.date_time = prot.getDateTime();
@@ -207,7 +213,7 @@ namespace OpenMS
       {
         String file = "UNKNOWN_INPUT_FILE_" + id;
         IdentificationData::InputFileRef file_ref =
-          id_data.registerInputFile(file);
+          id_data.registerInputFile(IdentificationData::InputFile(file));
         query.input_file_opt = file_ref;
       }
       query.rt = pep.getRT();
@@ -624,7 +630,7 @@ namespace OpenMS
          it != id_data.getInputFiles().end(); ++it)
     {
       MzTabMSRunMetaData run_meta;
-      run_meta.location.set(*it);
+      run_meta.location.set(it->name);
       meta.ms_run[counter] = run_meta;
       file_map[it] = counter;
       ++counter;
@@ -964,51 +970,15 @@ namespace OpenMS
     IdentificationData::ProcessingStepRef step_ref,
     ProteinIdentification& protein)
   {
-    // are input files mzMLs?
-    // @TODO: what if there's a mix of mzMLs and other files?
-    bool mzml_inputs = false;
-    vector<String> mzml_files;
     for (IdentificationData::InputFileRef input_ref : step_ref->input_file_refs)
     {
-      FileTypes::Type type = FileHandler::getTypeByFileName(*input_ref);
-      if (type == FileTypes::MZML)
+      // @TODO: check if files are mzMLs?
+      protein.addPrimaryMSRunPath(input_ref->name);
+      for (const String& primary_file : input_ref->primary_files)
       {
-        mzml_inputs = true;
-        mzml_files.push_back(*input_ref);
-      }
-      else
-      {
-        mzml_inputs = false;
-        break;
+        protein.addPrimaryMSRunPath(primary_file, true);
       }
     }
-    if (mzml_inputs)
-    {
-      protein.setPrimaryMSRunPath(mzml_files);
-      if (!step_ref->primary_files.empty())
-      { // also store raw files (or equivalent):
-        protein.setPrimaryMSRunPath(step_ref->primary_files, true);
-      }
-      return;
-    }
-    // alternatively, are the primary files mzMLs?
-    if (step_ref->primary_files.empty()) return;
-    bool mzml_primaries = false;
-    for (const String& file : step_ref->primary_files)
-    {
-      FileTypes::Type type = FileHandler::getTypeByFileName(file);
-      if (type == FileTypes::MZML)
-      {
-        mzml_primaries = true;
-      }
-      else
-      {
-        mzml_primaries = false;
-        break;
-      }
-    }
-    // store as (raw) primary files depending on file type:
-    protein.setPrimaryMSRunPath(step_ref->primary_files, !mzml_primaries);
   }
 
 } // end namespace OpenMS

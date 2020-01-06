@@ -21,12 +21,6 @@
 			<UserParam type="string" name="protein_group_0" value="0.88,PH_0,PH_1"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0.0,PH_0,PH_1"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0.0" spectrum_reference="UNKNOWN_QUERY_1" >
-			<PeptideHit score="44.399999999999999" sequence="PEPTIDERRR" charge="2" >
-			</PeptideHit>
-			<PeptideHit score="33.299999999999997" sequence="PEPTIDERRRR" charge="2" >
-			</PeptideHit>
-		</PeptideIdentification>
 		<PeptideIdentification score_type="MOWSE_reversed" higher_score_better="false" significance_threshold="0.0" MZ="675.899999999999977" RT="1234.5" spectrum_reference="17" >
 			<PeptideHit score="0.9" sequence="PEPTIDER" charge="1" aa_before="A X" aa_after="B X" protein_refs="PH_0 PH_1" >
 				<UserParam type="string" name="name" value="PeptideHit"/>
@@ -34,6 +28,12 @@
 			<PeptideHit score="1.4" sequence="PEPTIDERR" charge="1" >
 			</PeptideHit>
 			<UserParam type="string" name="name" value="PeptideIdentification"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0.0" spectrum_reference="UNKNOWN_QUERY_1" >
+			<PeptideHit score="44.399999999999999" sequence="PEPTIDERRR" charge="2" >
+			</PeptideHit>
+			<PeptideHit score="33.299999999999997" sequence="PEPTIDERRRR" charge="2" >
+			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
 	<IdentificationRun date="2007-01-12T12:13:14" search_engine="Mascot" search_engine_version="2.1.1" search_parameters_ref="SP_1" >
