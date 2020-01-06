@@ -237,7 +237,7 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   std::vector<int> ai(&air[0], &air[5]);
   MSSpectrum::IntegerDataArray aia;
   swap(aia, ai);
-  std::vector<float> af(&afr[0], &afr[5]);
+  std::vector<double> af(&afr[0], &afr[5]);
   MSSpectrum::FloatDataArray afa;
   swap(afa, af);
   std::vector<String> as(&asr[0], &asr[5]);
