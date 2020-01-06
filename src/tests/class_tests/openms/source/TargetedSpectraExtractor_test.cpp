@@ -611,7 +611,7 @@ START_SECTION(void selectSpectra(
   {
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
     TEST_EQUAL(selected_spectra[i].getName(), selected_features[i].getMetaValue("transition_name"))
-    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0], selected_features[i].getIntensity())
+    TEST_REAL_SIMILAR(selected_spectra[i].getFloatDataArrays()[1][0], selected_features[i].getIntensity())
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_select_score, true)
   }
 
