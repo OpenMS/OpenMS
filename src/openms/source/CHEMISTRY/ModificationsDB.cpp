@@ -75,30 +75,6 @@ namespace OpenMS
     }
   }
 
-  bool ModificationsDB::residuesMatch_(const String& residue, const ResidueModification* curr_mod) const
-  {
-
-    // residues match if they are equal or they match everything (X/.)
-    bool matching =  (
-             residue.empty() ||
-             (curr_mod->getOrigin() == residue[0]) ||
-             (residue == "X") ||
-             (curr_mod->getOrigin() == 'X') ||
-             (residue == ".") );
-
-    // residues do NOT match if the modification is user-defined and has origin
-    // X (which here means an actual input AA X and it does *not* mean "match
-    // all AA") while the current residue is not X. Make sure we dont match things like
-    // PEPN[400] and PEPX[400] since these have very different masses.
-    bool non_matching_user_defined =  (
-         curr_mod->isUserDefined() &&
-         curr_mod->getOrigin() == 'X' &&
-         !residue.empty() &&
-         String(curr_mod->getOrigin()) != residue );
-
-    return matching && !non_matching_user_defined;
-  }
-
   bool ModificationsDB::is_instantiated_ = false;
 
   ModificationsDB* ModificationsDB::getInstance(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
@@ -157,7 +133,6 @@ namespace OpenMS
     return mods_[index];
   }
 
-
   void ModificationsDB::searchModifications(set<const ResidueModification*>& mods,
                                             const String& mod_name_,
                                             const String& residue,
@@ -166,6 +141,9 @@ namespace OpenMS
     mods.clear();
 
     String mod_name = mod_name_;
+
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
 
     #pragma omp critical(OpenMS_ModificationsDB)
     {
@@ -191,7 +169,7 @@ namespace OpenMS
       {
         for (const auto& it : modifications->second)
         {
-          if (residuesMatch_(residue, it) &&
+          if ( residuesMatch_fast_(res, it) &&
                (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
                (term_spec == it->getTermSpecificity())))
           {
@@ -204,7 +182,7 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
-    set<const ResidueModification*> mods;
+    set<const ResidueModification*> mods; // set is faster than unordered_set (for few values)
     // if residue is specified, try residue-specific search first to avoid
     // ambiguities (e.g. "Carbamidomethyl (N-term)"/"Carbamidomethyl (C)"):
     if (!residue.empty() &&
@@ -289,12 +267,14 @@ namespace OpenMS
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       for (auto const & m : mods_)
       {
         if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
-            residuesMatch_(residue, m) &&
+            residuesMatch_fast_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
@@ -309,6 +289,8 @@ namespace OpenMS
   {
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       for (auto const & m : mods_)
@@ -318,7 +300,7 @@ namespace OpenMS
         // first matching UniMod entry)
         double mass_error = fabs(m->getDiffMonoMass() - mass);
         if ((mass_error < min_error) &&
-            residuesMatch_(residue, m) &&
+            residuesMatch_fast_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
