@@ -96,7 +96,7 @@
 				<userParam name="parameter: pc_mz" type="xsd:string" value=":"/>
 				<userParam name="parameter: int" type="xsd:string" value=":"/>
 				<userParam name="parameter: sort" type="xsd:string" value="false"/>
-				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: peak_options:rm_pc_charge" type="xsd:string" value="[]"/>
 				<userParam name="parameter: peak_options:level" type="xsd:string" value="[1, 2, 3]"/>
 				<userParam name="parameter: peak_options:sort_peaks" type="xsd:string" value="false"/>
@@ -128,13 +128,13 @@
 				<userParam name="parameter: id:mz" type="xsd:double" value="0.001"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_3">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
@@ -153,7 +153,7 @@
 				<userParam name="parameter: pc_mz" type="xsd:string" value=":"/>
 				<userParam name="parameter: int" type="xsd:string" value=":"/>
 				<userParam name="parameter: sort" type="xsd:string" value="false"/>
-				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: peak_options:rm_pc_charge" type="xsd:string" value="[]"/>
 				<userParam name="parameter: peak_options:level" type="xsd:string" value="[1, 2, 3]"/>
 				<userParam name="parameter: peak_options:sort_peaks" type="xsd:string" value="false"/>
@@ -185,13 +185,13 @@
 				<userParam name="parameter: id:mz" type="xsd:double" value="0.001"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_4">
 				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
@@ -258,23 +258,23 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>tStrRuExHEYa9GpFeHixRTLCokUHcBJF</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="6" encodedLength="32" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>tStrRuExHEYa9GpFeHixRTLCokUHcBJF</binary>
+						<binary>AAAAonZlzUAAAAAcPIbDQAAAADCDXq1AAAAADA8vtkAAAAAwRli0QAAAAOgATqJA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="6" encodedLength="32" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>8FM6REB0OkQNljpEosA7ROzVO0TSFjxE</binary>
+						<binary>AAAAAH5Kh0AAAAAAiE6HQAAAAKDBUodAAAAAQBR4h0AAAACAvXqHQAAAAEDagodA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="6" encodedLength="32" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>Hlk6RLR3OkSIlzpEncI7RKjXO0TEHDxE</binary>
+						<binary>AAAAwCNLh0AAAACA9k6HQAAAAADxUodAAAAAoFN4h0AAAAAA9XqHQAAAAICYg4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -283,9 +283,9 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=21913">17654</offset>
+		<offset idRef="scan=21913">17668</offset>
 	</index>
 </indexList>
-<indexListOffset>20453</indexListOffset>
+<indexListOffset>20563</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
