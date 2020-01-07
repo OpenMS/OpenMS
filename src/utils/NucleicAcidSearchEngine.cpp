@@ -1373,7 +1373,9 @@ protected:
 
     if (!db_out.empty())
     {
-      OMSFile().store(db_out, id_data);
+      OMSFile oms;
+      oms.setLogType(log_type_);
+      oms.store(db_out, id_data);
     }
 
     if (!lfq_out.empty())

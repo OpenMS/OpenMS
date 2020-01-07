@@ -1205,19 +1205,32 @@ namespace OpenMS
   void OMSFile::store(const String& filename, const IdentificationData& id_data)
   {
     OMSFileStore helper(filename, id_data);
+    startProgress(0, 12, "Writing data to file");
     // generally, create tables only if we have data to write - no empty ones!
     helper.storeVersionAndDate();
+    nextProgress();
     helper.storeInputFiles();
+    nextProgress();
     helper.storeScoreTypes();
+    nextProgress();
     helper.storeDataProcessingSoftwares();
+    nextProgress();
     helper.storeDBSearchParams();
+    nextProgress();
     helper.storeDataProcessingSteps();
+    nextProgress();
     helper.storeDataQueries();
+    nextProgress();
     helper.storeParentMolecules();
+    nextProgress();
     helper.storeParentMoleculeGroupings();
+    nextProgress();
     helper.storeIdentifiedCompounds();
+    nextProgress();
     helper.storeIdentifiedSequences();
+    nextProgress();
     helper.storeMoleculeQueryMatches();
+    endProgress();
     // @TODO: store molecule-query match groups
   }
 
@@ -2027,17 +2040,29 @@ namespace OpenMS
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
     OMSFileLoad helper(filename, id_data);
+    startProgress(0, 11, "Reading data from file");
     helper.loadInputFiles();
+    nextProgress();
     helper.loadScoreTypes();
+    nextProgress();
     helper.loadDataProcessingSoftwares();
+    nextProgress();
     helper.loadDBSearchParams();
+    nextProgress();
     helper.loadDataProcessingSteps();
+    nextProgress();
     helper.loadDataQueries();
+    nextProgress();
     helper.loadParentMolecules();
+    nextProgress();
     helper.loadParentMoleculeGroupings();
+    nextProgress();
     helper.loadIdentifiedCompounds();
+    nextProgress();
     helper.loadIdentifiedSequences();
+    nextProgress();
     helper.loadMoleculeQueryMatches();
+    endProgress();
     // @TODO: load parent molecule groups and molecule-query match groups
   }
 

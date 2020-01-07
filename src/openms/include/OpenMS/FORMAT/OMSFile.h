@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <QtSql/QSqlDatabase>
@@ -43,12 +44,13 @@
 namespace OpenMS
 {
   class IdentificationData;
+
   /**
       @brief This class supports reading and writing of OMS files.
 
       OMS files are SQLite databases consisting of several tables.
   */
-  class OPENMS_DLLAPI OMSFile
+  class OPENMS_DLLAPI OMSFile: public ProgressLogger
   {
   public:
 
@@ -57,7 +59,7 @@ namespace OpenMS
      * @param filename The output file
      * @param id_data The IdentificationData object
      *
-    */
+     */
     void store(const String& filename, const IdentificationData& id_data);
 
     /** @brief Read in a OMS file and construct an IdentificationData
@@ -65,7 +67,7 @@ namespace OpenMS
      * @param filename The input file
      * @param id_data The IdentificationData object
      *
-    */
+     */
     void load(const String& filename, IdentificationData& id_data);
 
   protected:
