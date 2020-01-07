@@ -607,6 +607,7 @@ START_SECTION(static MT_QUANTMETHOD getQuantMethod(const String& val))
   
   TEST_EQUAL(MassTrace::getQuantMethod("area"), MassTrace::MT_QUANT_AREA)
   TEST_EQUAL(MassTrace::getQuantMethod("median"), MassTrace::MT_QUANT_MEDIAN)
+  TEST_EQUAL(MassTrace::getQuantMethod("max_height"), MassTrace::MT_QUANT_HEIGHT)
   TEST_EQUAL(MassTrace::getQuantMethod("somethingwrong"), MassTrace::SIZE_OF_MT_QUANTMETHOD)
 
 END_SECTION
@@ -625,6 +626,11 @@ START_SECTION((void setQuantMethod(MT_QUANTMETHOD method)))
   // should return the median of the intensities
   TEST_REAL_SIMILAR(raw_mt.getIntensity(false), 542293.0);
   TEST_EQUAL(raw_mt.getQuantMethod(), MassTrace::MT_QUANT_MEDIAN);
+
+  // test max_height
+  raw_mt.setQuantMethod(MassTrace::MT_QUANT_HEIGHT);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(false), 33329535.0);
+  TEST_EQUAL(raw_mt.getQuantMethod(), MassTrace::MT_QUANT_HEIGHT);
 
   TEST_EXCEPTION(Exception::InvalidValue, raw_mt.setQuantMethod(MassTrace::SIZE_OF_MT_QUANTMETHOD))
 
