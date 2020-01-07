@@ -66,13 +66,18 @@ namespace OpenMS
         double minIsotopeCosine;
         double minChargeCosine;
 
+        double tolerance2;
+        double minIsotopeCosineSpec2;
+        double minChargeCosineSpec2;
+
+        int minContinuousChargePeakCount2;
         double minIsotopeCosineSpec;
         double minChargeCosineSpec;
 
         int minContinuousChargePeakCount;
         int maxIsotopeCount;
         int maxMassCount;
-        int maxMSLevel = 1;//maxMSL;
+        unsigned int maxMSLevel = 1;//maxMSL;
         //double charg = 1eDistributionScoreThreshold;
         double RTwindow;
         double minRTSpan;
@@ -80,11 +85,12 @@ namespace OpenMS
         int chargeRange;
         int currentChargeRange;
         double binWidth;
+        double binWidth2;
         int minNumOverLappedScans = 1;
         int numOverlappedScans = minNumOverLappedScans;
         int threads = 1;
         int writeSpecTsv = 0;
-        int jitter = 0;
+        //int jitter = 0;
     };
 
     struct OPENMS_DLLAPI PrecalcularedAveragine

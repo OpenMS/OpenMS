@@ -33,17 +33,17 @@ namespace OpenMS
                                                            int &offset,
                                                            FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
-    std::vector<PeakGroup> & scoreAndFilterPeakGroups(int msLevel, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
+    std::vector<PeakGroup> & scoreAndFilterPeakGroups(unsigned int &msLevel, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
   protected:
     std::vector<PeakGroup> &peakGroups;
     Parameter &param;
 
-    void removeOverlappingPeakGroups();
+    void removeOverlappingPeakGroups(double tol);
 
     std::vector<int> updatePerChargeIsotopeIntensity(
-        double **intensityGrid,
-        double **intensityGrid2,
+//        double **intensityGrid,
+//        double **intensityGrid2,
         double *perIsotopeIntensity,
         double *perChargeIntensity,
         PeakGroup &pg);
@@ -53,16 +53,16 @@ namespace OpenMS
 
     static double getCosine(std::vector<double> &a, std::vector<double> &b, int off = 0);
 
-    static double getCosine(double *a, double *b, int size);
+    static double getCosine(const double *a, double *b, Size size);
 
-    static double getCorrelation(double *a,
+    static double getCorrelation(const double *a,
                                  int &aStart,
                                  int &aEnd,
                                  IsotopeDistribution &b,
                                  int &bSize,
                                  int offset);
 
-    static double getCosine(double *a,
+    static double getCosine(const double *a,
                             int &aStart,
                             int &aEnd,
                             IsotopeDistribution &b,
