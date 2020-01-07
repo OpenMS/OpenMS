@@ -84,6 +84,14 @@ namespace OpenMS
       // if d'tor doesn't get called, DB connection (db_name_) doesn't get
       // removed, but that shouldn't be a big problem
     }
+    QSqlQuery query(db);
+    // foreign key constraints are disabled by default - turn them on:
+    // @TODO: performance impact? (seems negligible, but should be tested more)
+    if (!query.exec("PRAGMA foreign_keys = ON"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error configuring database");
+    }
   }
 
 
