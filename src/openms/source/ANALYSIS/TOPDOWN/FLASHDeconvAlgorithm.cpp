@@ -81,11 +81,10 @@ namespace OpenMS
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       auto msLevel =  it->getMSLevel();
-      if ((int) msLevel> param.maxMSLevel)
+      if (msLevel> param.maxMSLevel)
       {
         continue;
       }
-
       //if(qspecCntr > 50){
       //  break; //
       //}
@@ -98,7 +97,6 @@ namespace OpenMS
       }
 
       specCntr++;
-
 
       auto sd = SpectrumDeconvolution(*it, param);
 

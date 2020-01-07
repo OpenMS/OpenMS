@@ -44,8 +44,7 @@ namespace OpenMS
     std::vector<PeakGroup>& getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                    std::vector<double> &prevMinBinLogMassVector,
                                                      FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
-                                                     int msLevel);
-
+                                                     unsigned int& msLevel);
 
   protected:
     MSSpectrum &spec;
@@ -77,27 +76,29 @@ namespace OpenMS
 
     void unionPrevMassBins(double &massBinMinValue,
                            std::vector<std::vector<Size>> &prevMassBinVector,
-                           std::vector<double> &prevMassBinMinValue);
+                           std::vector<double> &prevMassBinMinValue,
+                           unsigned int& msLevel);
 
     Byte **updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
                            float *massIntensities,
                            long &binStart, long &binEnd,
-                           int &msLevel
+                           unsigned int &msLevel
     );
 
     Byte **updateMassBins(double &massBinMinValue,
                           float *massIntensities,
                           float *mzIntensities,
-                          int &msLevel
+                          unsigned int &msLevel
     );
 
-    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites, float *mzIntensities, int &msLevel);
+    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites, float *mzIntensities, unsigned int &msLevel);
 
     void getCandidatePeakGroups(double &mzBinMinValue,
                                 double &massBinMinValue,
                                 float *sumLogIntensities,
                                 Byte **chargeRanges,
-                                FLASHDeconvHelperStructs::PrecalcularedAveragine &avg
+                                FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
+                                unsigned int& msLevel
     );
 
     void setFilters();
