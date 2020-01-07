@@ -52,6 +52,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
 // digestion enzymes
@@ -169,6 +170,9 @@ protected:
 
     registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)", false);
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
+
+    registerOutputFile_("db_out", "<file>", "", "Output file: oms (SQLite database)", false);
+    setValidFormats_("db_out", ListUtils::create<String>("oms"));
 
     registerOutputFile_("lfq_out", "<file>", "", "Output file: Targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
     setValidFormats_("lfq_out", vector<String>(1, "tsv"));
@@ -928,6 +932,7 @@ protected:
     String in_db = getStringOption_("database");
     String out = getStringOption_("out");
     String id_out = getStringOption_("id_out");
+    String db_out = getStringOption_("db_out");
     String lfq_out = getStringOption_("lfq_out");
     String theo_ms2_out = getStringOption_("theo_ms2_out");
     String exp_ms2_out = getStringOption_("exp_ms2_out");
@@ -1364,6 +1369,11 @@ protected:
       // proteins[0].setDateTime(DateTime::now());
       // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);
+    }
+
+    if (!db_out.empty())
+    {
+      OMSFile().store(db_out, id_data);
     }
 
     if (!lfq_out.empty())
