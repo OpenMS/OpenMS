@@ -693,7 +693,7 @@ namespace OpenMS
                  "rt REAL, "                                            \
                  "mz REAL, "                                            \
                  "UNIQUE (data_id, input_file_id), "                    \
-                 "FOREIGN KEY (input_file_id) REFERENCES ID_InputFiles (id)");
+                 "FOREIGN KEY (input_file_id) REFERENCES ID_InputFile (id)");
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO ID_DataQuery VALUES (" \
