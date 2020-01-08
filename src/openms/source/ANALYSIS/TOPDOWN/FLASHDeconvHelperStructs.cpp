@@ -221,23 +221,24 @@ namespace OpenMS
 
   bool FLASHDeconvHelperStructs::PeakGroup::operator<(const FLASHDeconvHelperStructs::PeakGroup &a) const
   {
-    if(this->spec->getRT() == a.spec->getRT()){
+    //if(this->spec->getRT() == a.spec->getRT()){
       return  this->monoisotopicMass < a.monoisotopicMass;
-    }
-    return this->spec->getRT() < a.spec->getRT();
+    //}
+    //return this->spec->getRT() < a.spec->getRT();
   }
 
   bool FLASHDeconvHelperStructs::PeakGroup::operator>(const FLASHDeconvHelperStructs::PeakGroup &a) const
   {
-    if(this->spec->getRT() == a.spec->getRT()){
+    //if(this->spec->getRT() == a.spec->getRT()){
       return  this->monoisotopicMass > a.monoisotopicMass;
-    }
-    return this->spec->getRT() > a.spec->getRT();
+    //}
+    //return this->spec->getRT() > a.spec->getRT();
   }
 
   bool FLASHDeconvHelperStructs::PeakGroup::operator==(const PeakGroup &a) const
   {
-    return this->spec->getRT() == a.spec->getRT() && this->monoisotopicMass == a.monoisotopicMass
+    return// this->spec->getRT() == a.spec->getRT() &&
+    this->monoisotopicMass == a.monoisotopicMass
            && this->intensity == a.intensity;
   }
 
