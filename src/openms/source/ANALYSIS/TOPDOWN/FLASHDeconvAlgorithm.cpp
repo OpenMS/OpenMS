@@ -74,8 +74,8 @@ namespace OpenMS
     allPeakGroups.reserve(200000);
     //to overlap previous mass bins.
 
-    std::map<UInt, std::vector<std::vector<Size>>> prevMassBinMap;
-    std::map<UInt,std::vector<double>> prevMinBinLogMassMap;
+    std::vector<std::vector<Size>> prevMassBinMap;
+    std::vector<double> prevMinBinLogMassMap;
     std::map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
 
     for (auto it = map.begin(); it != map.end(); ++it)
@@ -100,10 +100,6 @@ namespace OpenMS
 
       auto sd = SpectrumDeconvolution(*it, param);
 
-      if(prevMassBinMap.find(msLevel) == prevMassBinMap.end()){
-        prevMassBinMap[msLevel] = std::vector<std::vector<Size>>();
-        prevMinBinLogMassMap[msLevel] = std::vector<double>();
-      }
       auto precursorMsLevel = msLevel - 1;
 
       // to find precursor peaks with assigned charges..
@@ -138,13 +134,16 @@ namespace OpenMS
           param.currentChargeRange = mc;
           param.currentMaxMass = mm;
           //std::cout<<mc<< " " << mm << std::endl;
+         // param.currentChargeRange = param.chargeRange;
+          //param.currentMaxMass = param.maxMass;
+
         }else{
           param.currentChargeRange = param.chargeRange;
           param.currentMaxMass = param.maxMass;
         }
       }
 
-      auto & peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap[msLevel], prevMinBinLogMassMap[msLevel],avg, msLevel);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
+      auto & peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap, prevMinBinLogMassMap ,avg, msLevel);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
 
       auto subPeakChargeMap = std::map<double, int>();
       for (auto& pg : peakGroups)

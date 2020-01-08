@@ -76,8 +76,7 @@ namespace OpenMS
 
     void unionPrevMassBins(double &massBinMinValue,
                            std::vector<std::vector<Size>> &prevMassBinVector,
-                           std::vector<double> &prevMassBinMinValue,
-                           unsigned int& msLevel);
+                           std::vector<double> &prevMassBinMinValue);
 
     Byte **updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
                            float *massIntensities,

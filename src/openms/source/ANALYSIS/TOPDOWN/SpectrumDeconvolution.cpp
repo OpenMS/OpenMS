@@ -138,8 +138,7 @@ namespace OpenMS
 
   void SpectrumDeconvolution::unionPrevMassBins(double &massBinMinValue,
                                                 std::vector<std::vector<Size>> &prevMassBinVector,
-                                                std::vector<double> &prevMassBinMinValue,
-                                                unsigned int& msLevel)
+                                                std::vector<double> &prevMassBinMinValue)
   {
     //return;
     if (massBins.empty())
@@ -154,7 +153,7 @@ namespace OpenMS
       {
         continue;
       }
-      long shift = (long) (round((massBinMinValue - prevMassBinMinValue[i]) * (msLevel<=1? param.binWidth : param.binWidth2)));
+      long shift = (long) (round((massBinMinValue - prevMassBinMinValue[i]) * param.binWidth));
 
       for (auto &index : pmb)
       {
@@ -323,7 +322,7 @@ namespace OpenMS
       //  std::fill_n(noise[k], massBins.size(), 0);
       //}
 
-      float factor = 10.0; //
+      //float factor = 100.0; //
       while (mzBinIndex != mzBins.npos)
       {
         auto &intensity = mzIntensities[mzBinIndex];
@@ -346,14 +345,14 @@ namespace OpenMS
           float maxInt = std::max(intensity, prevIntensity);
           float id = maxInt / minInt;
 
-          if (cd != 1 || id > factor)
+          if (cd != 1)// ||id > factor)//
           {
             continuousChargePeakPairCount[massBinIndex] = 0;
           }
           else
           {
             int maxHcharge = -1;
-//            float maxHint = .0;
+            //float maxHint = .0;
             for (auto k = 0; k < hChargeSize; k++)
             {
               auto hmzBinIndex = massBinIndex - hBinOffsets[k][j];
@@ -361,14 +360,15 @@ namespace OpenMS
               {
                 auto &hintensity = mzIntensities[hmzBinIndex];
                 if (hintensity > minInt
-                    && hintensity < factor * maxInt)
+                    //&& hintensity < factor * maxInt
+                    )
                 {
                   //if (hintensity < maxHint)
                   //{
-                  maxHcharge = k;
-                  break;
+                    maxHcharge = k;
+                    break;
                   //}
-                  // maxHint = hintensity;
+                 // maxHint = hintensity;
 
                 }
               }
@@ -396,7 +396,6 @@ namespace OpenMS
 
       delete[] prevIntensities;
       delete[] prevCharges;
-
 
     }
     delete[] continuousChargePeakPairCount;
@@ -1077,7 +1076,7 @@ namespace OpenMS
   {
     if (logMzPeaks.empty())
     {
-      auto tmp = std::vector<SpectrumDeconvolution::PeakGroup>();
+      auto tmp =std::vector<SpectrumDeconvolution::PeakGroup>();
       return tmp;
     }
 
@@ -1119,7 +1118,10 @@ namespace OpenMS
     massBins = boost::dynamic_bitset<>(massBinNumber);
     massBinsForThisSpectrum = boost::dynamic_bitset<>(massBinNumber);
 
-    unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, msLevel);
+    if(msLevel == 1)
+    {
+      unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector);
+    }
 
     auto perMassChargeRanges = updateMassBins(massBinMinValue, massIntensities,
                                               mzBinIntensities, msLevel);
@@ -1131,33 +1133,37 @@ namespace OpenMS
     //std::cout<<2<<std::endl;
     PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
     peakGroups = scorer.scoreAndFilterPeakGroups(msLevel, avg);
+
     //std::cout<<3<<std::endl;
     // std::cout<<" "<<peakGroups.size()<<std::endl;
 
-
-    if (!prevMassBinVector.empty() && prevMassBinVector.size() >= (Size) param.numOverlappedScans)
+    //auto numOverlap = (Size)(msLevel <=1 ?  param.numOverlappedScans : 1);
+    if(msLevel == 1)
     {
-      prevMassBinVector.erase(prevMassBinVector.begin());
-      prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
-    }
-
-
-    std::vector<Size> mb;
-    mb.reserve(peakGroups.size());
-    for (auto &pg : peakGroups)//filteredPeakGroups
-    {
-      pg.peaks.shrink_to_fit();
-      if (massBinsForThisSpectrum[pg.massBinIndex])
+      if (!prevMassBinVector.empty() && prevMassBinVector.size() >= (Size) param.numOverlappedScans)
       {
-        mb.push_back(pg.massBinIndex);
+        prevMassBinVector.erase(prevMassBinVector.begin());
+        prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
       }
+
+
+      std::vector<Size> mb;
+      mb.reserve(peakGroups.size());
+      for (auto &pg : peakGroups)//filteredPeakGroups
+      {
+        pg.peaks.shrink_to_fit();
+        if (massBinsForThisSpectrum[pg.massBinIndex])
+        {
+          mb.push_back(pg.massBinIndex);
+        }
+      }
+
+      prevMassBinVector.push_back(mb); //
+      prevMinBinLogMassVector.push_back(massBinMinValue);
+
+      prevMassBinVector.shrink_to_fit();
+      prevMinBinLogMassVector.shrink_to_fit();
     }
-
-    prevMassBinVector.push_back(mb); //
-    prevMinBinLogMassVector.push_back(massBinMinValue);
-
-    prevMassBinVector.shrink_to_fit();
-    prevMinBinLogMassVector.shrink_to_fit();
 
     for (int i = 0; i < 3; i++)
     {

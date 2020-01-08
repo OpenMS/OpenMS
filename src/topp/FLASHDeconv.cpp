@@ -86,9 +86,9 @@ protected:
                         "if dir, [dir]/[inputfile].tsv is generated per [inputfile])");
 
     registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
-    registerIntOption_("minC", "<min charge>", 2, "minimum charge state", false, false);
+    registerIntOption_("minC", "<min charge>", 1, "minimum charge state", false, false);
     registerIntOption_("maxC", "<max charge>", 100, "maximum charge state", false, false);
-    registerDoubleOption_("minM", "<min mass>", 1000.0, "minimum mass (Da)", false, false);
+    registerDoubleOption_("minM", "<min mass>", 10.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
 
     registerDoubleOption_("minIC", "<cosine threshold 0 - 1>", .75, "cosine threshold between avg. and observed isotope pattern", false, false);
@@ -104,13 +104,13 @@ protected:
     registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 1% total gradient time)", false, true);
     registerDoubleOption_("minRTspan", "<seconds>", 10.0, "Min feature RT span", false, true);
     registerIntOption_("writeSpecDeconv", "<1:true 0:false>", 0, "to write per spectrum deconvoluted masses or not. If set, [prefix]PerSpecMasses.tsv is generated", false, true);
-    registerIntOption_("maxMSL", "", 1, "maximum MS-level (inclusive) for deconvolution", false, true);
+    registerIntOption_("maxMSL", "", 2, "maximum MS-level (inclusive) for deconvolution", false, true);
 
     // parameters for MSn
     registerDoubleOption_("tol2", "<MSn tolerance>", 10.0, "ppm tolerance for MSn (n>1)", false, false);
-    registerDoubleOption_("minICS2", "<MSn cosine threshold 0 - 1>", .5, "cosine threshold between avg. and observed isotope pattern (spectrum level) for MSn (n>1)", false, true);
-    registerDoubleOption_("minCCS2", "<MSn cosine threshold 0 - 1>", .5, "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level) for MSn (n>1)", false, true);
-    registerIntOption_("minCP2", "<MSn min continuous charge peak count>", 2, "minimum number of peaks of continuous charges per mass for MSn (n>1)", false, true);
+    registerDoubleOption_("minICS2", "<MSn cosine threshold 0 - 1>", .75, "cosine threshold between avg. and observed isotope pattern (spectrum level) for MSn (n>1)", false, true);
+    registerDoubleOption_("minCCS2", "<MSn cosine threshold 0 - 1>", .0, "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level) for MSn (n>1)", false, true);
+    registerIntOption_("minCP2", "<MSn min continuous charge peak count>", 1, "minimum number of peaks of continuous charges per mass for MSn (n>1)", false, true);
 
     //registerIntOption_("jitter", "<1:true 0:false>", 0, "jitter universal pattern to generate decoy features (output file will end with *Decoy.tsv)", false, true);
   }
@@ -252,11 +252,13 @@ protected:
       for (auto it = map.begin(); it != map.end(); ++it)
       {
         //cout<<it->getMSLevel()<<endl;
+        if (it->getMSLevel() ==1){
+          ms1Cntr++;
+        }
         if (it->getMSLevel() > param.maxMSLevel)
         {
           continue;
         }
-        ms1Cntr++;
       }
 
       double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
@@ -325,13 +327,34 @@ protected:
       {
         OPENMS_LOG_INFO << endl << "writing per spec deconvolution results ...";
         OPENMS_LOG_INFO.flush();
+        fsm << "monomasses=[";
+
+        auto prevRT = .0;
+        auto monoMassSet = std::set<int>();
 
         for (auto &pg : peakGroups)
         {
-          writePeakGroup(pg, param, fs);
-          writePeakGroupMfile(pg, param, fsm);
+          if(prevRT != pg.spec->getRT()){
+            for(auto mm : monoMassSet){
+              fsm<<mm<<";";
+            }
+            monoMassSet.clear();
+          }
+          prevRT = pg.spec->getRT();
+          monoMassSet.insert((int)round(pg.monoisotopicMass));
+
+         // fsm << pg.monoisotopicMass<<" "<<pg.spec->getRT() << ";";
+
+          //writePeakGroupMfile(pg, param, fsm);
         }
 
+        for(auto mm : monoMassSet){
+          fsm<<mm<<";";
+        }
+
+
+
+        fsm <<"];";
         OPENMS_LOG_INFO << "done" << endl;
 
       }
@@ -599,6 +622,7 @@ protected:
   }
 
 
+
   static void writePeakGroupMfile(PeakGroup &pg, Parameter &param, fstream &fs)//, fstream &fsm, fstream &fsp)
   {
     if (pg.peaks.empty())//
@@ -709,7 +733,8 @@ protected:
     }
     fsf << "ID\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
+           "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
+           "\tPeakGroupMasses\tPeakGroupRTs\n";
 
     return;
   }

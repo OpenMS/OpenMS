@@ -44,15 +44,15 @@ namespace OpenMS
 
       last = i;
     }
-    if (last - first < 2)
-    {
-      return 0;
-    }
 
     for (int i = first; i <= last; i++)
     {
       xs.push_back(i);
       ys.push_back((1 + perChargeIntensity[i]));
+    }
+
+    if (xs.size() <= 2){
+      return 0.01;
     }
 
     Eigen::Matrix3d m;
@@ -475,14 +475,14 @@ namespace OpenMS
                                                                        offset,
                                                                        avg);
 
-      if (pg.peaks.empty() || (pg.isotopeCosineScore < (msLevel<=1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
+      if (pg.peaks.empty() || (pg.isotopeCosineScore <= (msLevel<=1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
       {
         continue;
       }
 
       pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.currentChargeRange);
 
-      if (pg.peaks.empty() || (pg.chargeCosineScore < (msLevel<=1? param.minChargeCosineSpec : param.minChargeCosineSpec2)))
+      if (pg.peaks.empty() || (pg.chargeCosineScore <= (msLevel<=1? param.minChargeCosineSpec : param.minChargeCosineSpec2)))
       {
         continue;
       }
@@ -491,7 +491,7 @@ namespace OpenMS
       {
         bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
                                                                param.chargeRange,
-                                                               param.minContinuousChargePeakCount);
+                                                               (msLevel <= 1? param.minContinuousChargePeakCount : param.minContinuousChargePeakCount2));
 
         if (!isChargeWellDistributed)
         {
