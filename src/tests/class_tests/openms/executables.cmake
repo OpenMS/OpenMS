@@ -419,6 +419,7 @@ set(chemistry_executables_list
   SvmTheoreticalSpectrumGeneratorSet_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
   SvmTheoreticalSpectrumGenerator_test
+  Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
   WeightWrapper_test

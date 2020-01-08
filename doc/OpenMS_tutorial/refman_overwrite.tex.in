@@ -12,6 +12,11 @@
 \usepackage{float}
 \usepackage{alltt}
 \usepackage{newtxtext, newtxmath}
+% since 1.62 newtxmath defines Bbbk for the small double bold k
+% this is also defined in amssymb which is loaded by 
+% doxygen.sty later. Undefine it here.
+% actually newtxmath and amssymb are incompatible. we should choose one!!!
+\let\Bbbk\relax
 % newtxtext loads textcomp only in newer versions and with differing options between versions
 % @commands need to be enclosed by makeatletter and makeatother
 \makeatletter
