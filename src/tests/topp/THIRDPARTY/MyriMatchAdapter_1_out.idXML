@@ -12,7 +12,8 @@
 			</ProteinHit>
 			<ProteinHit id="PH_2" accession="BSA3" score="0" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[file:///C:/testing/test_file_path/test_file_name.raw]"/>
+			<UserParam type="stringList" name="spectra_data_raw" value="[file:///C:/testing/test_file_path/test_file_name.raw]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="mvh" higher_score_better="true" significance_threshold="0" MZ="520.263365947832" RT="2655.09570312498" >
 			<PeptideHit score="39.267901895785" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" protein_refs="PH_0" >

@@ -213,14 +213,8 @@ public:
       enzyme.setEnzyme(enzyme_name_);
       enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
 
-      bool xtandem_fix_parameters = true, msgfplus_fix_parameters = true;
-
-      // specificity is none or semi? don't automate xtandem 
-      if (enzyme.getSpecificity() == EnzymaticDigestion::SPEC_SEMI ||
-          enzyme.getSpecificity() == EnzymaticDigestion::SPEC_NONE) 
-      {
-        xtandem_fix_parameters = false;
-      }
+      bool xtandem_fix_parameters = true;
+      bool msgfplus_fix_parameters = true;
 
       // determine if search engine is solely xtandem or MSGFPlus
       for (const auto& prot_id : prot_ids)

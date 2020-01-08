@@ -130,6 +130,39 @@ namespace OpenMS
     return SpectrumSettings::UNKNOWN;
   }
 
+  MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const
+  {
+    ConstIterator largest = cbegin();
+    if (empty()) return largest;
+    ConstIterator current = cbegin();
+    ++current;
+    for (; current != cend(); ++current)
+    {
+      if (largest->getIntensity() < current->getIntensity())
+      {
+        largest = current;
+      }
+    }
+    return largest;
+  }
+
+  MSSpectrum::Iterator MSSpectrum::getBasePeak()
+  {
+    ConstIterator largest = const_cast<const MSSpectrum&>(*this).getBasePeak();
+    return begin() + std::distance(cbegin(), largest);
+  }
+
+  MSSpectrum::PeakType::IntensityType MSSpectrum::getTIC() const
+  {
+    return std::accumulate(cbegin(), 
+                           cend(),
+                           0.0,
+                           [](MSSpectrum::PeakType::IntensityType sum, const PeakType& p)
+                              {
+                                return sum + p.getIntensity();
+                              });
+  }
+
   void MSSpectrum::clear(bool clear_meta_data)
   {
     ContainerType::clear();

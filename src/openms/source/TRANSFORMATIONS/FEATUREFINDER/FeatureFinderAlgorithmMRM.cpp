@@ -416,7 +416,7 @@ param.setValue( "deltaRelError", deltaRelError_);
     quality = fitter.fit1d(rt_input_data, model);
 
     // Check quality
-    if (boost::math::isnan(quality)) quality = -1.0;
+    if (std::isnan(quality)) quality = -1.0;
 
     return quality;
   }

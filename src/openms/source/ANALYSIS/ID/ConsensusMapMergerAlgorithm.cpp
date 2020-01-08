@@ -173,7 +173,7 @@ namespace OpenMS
 
     // Mapping from old run ID String to new runIDs indices, i.e. calculate from the file/label pairs (=ColumnHeaders),
     // which ProteinIdentifications need to be merged.
-    map<String,set<Size>> runIDToNewRunIdcs;
+    map<String, set<Size>> runIDToNewRunIdcs;
     // this is to check how many old runs contribute to the new runs
     // this can help save time and we can double check
     vector<Size> nrInputsForNewRunIDs(new_size, 0);
@@ -181,8 +181,9 @@ namespace OpenMS
     {
       for (auto& oldProtID : cmap.getProteinIdentifications())
       {
-        set<String> currentContent;
-        oldProtID.getPrimaryMSRunPath(currentContent);
+        StringList primary_runs;
+        oldProtID.getPrimaryMSRunPath(primary_runs);
+        set<String> currentContent(primary_runs.begin(), primary_runs.end());
         const set<String>& mergeRequest = newidxToOriginsetMapIdxPair.second.first;
         // if this run is fully covered by a requested merged set, use it for it.
         Size count = 1;

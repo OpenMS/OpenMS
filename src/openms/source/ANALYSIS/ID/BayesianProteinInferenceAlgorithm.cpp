@@ -435,6 +435,11 @@ namespace OpenMS
     double operator() (double alpha, double beta, double gamma)
     {
       OPENMS_LOG_INFO << "Evaluating: " << alpha << " " << beta << " " << gamma << std::endl;
+      if (beta - alpha >= 0.3 && alpha + beta <= 1.0)
+      {
+        OPENMS_LOG_INFO << "Skipping improbable parameter combination.. " << std::endl;
+        return 0.;
+      }
       param_.setValue("model_parameters:prot_prior", gamma);
       param_.setValue("model_parameters:pep_emission", alpha);
       param_.setValue("model_parameters:pep_spurious_emission", beta);
@@ -445,7 +450,7 @@ namespace OpenMS
       fdrparam.setValue("conservative",param_.getValue("param_optimize:conservative_fdr"));
       fdrparam.setValue("add_decoy_proteins","true");
       fdr.setParameters(fdrparam);
-      return fdr.applyEvaluateProteinIDs(ibg_.getProteinIDs(), 1.0, 50, static_cast<double>(param_.getValue("param_optimize:aucweight")));
+      return fdr.applyEvaluateProteinIDs(ibg_.getProteinIDs(), 1.0, 100, static_cast<double>(param_.getValue("param_optimize:aucweight")));
     }
   };
 
@@ -566,16 +571,16 @@ namespace OpenMS
     defaults_.setValue("loopy_belief_propagation:dampening_lambda",
                        1e-3,
                        "Initial value for how strongly should messages be updated in each step. "
-                           "0 = new message overwrites old completely (no dampening),"
-                           "1 = old message stays (no convergence, don't do that)"
+                           "0 = new message overwrites old completely (no dampening; only recommended for trees),"
+                           "0.5 = equal contribution of old and new message (stay below that),"
                            "In-between it will be a convex combination of both. Prevents oscillations but hinders convergence.");
-    defaults_.setMinFloat("loopy_belief_propagation:dampening_lambda", 1e-7);
-    defaults_.setMaxFloat("loopy_belief_propagation:dampening_lambda", 0.5);
+    defaults_.setMinFloat("loopy_belief_propagation:dampening_lambda", 0.0);
+    defaults_.setMaxFloat("loopy_belief_propagation:dampening_lambda", 0.49999);
 
     defaults_.setValue("loopy_belief_propagation:max_nr_iterations",
                        (1ul<<31)-1,
                        "(Unused, autodetermined) If not all messages converge, how many iterations should be done at max?");
-    //I think restricting does not work because it only works for type Int (= int)
+    //I think restricting does not work because it only works for type Int (= int), not unsigned long
     //defaults_.setMinInt("loopy_belief_propagation:max_nr_iterations", 10);
 
     defaults_.setValue("loopy_belief_propagation:p_norm_inference",
@@ -588,7 +593,7 @@ namespace OpenMS
 
     defaults_.addSection("param_optimize","Settings for the parameter optimization.");
     defaults_.setValue("param_optimize:aucweight",
-                       0.2,
+                       0.3,
                        "How important is AUC vs calibration of the posteriors?"
                        " 0 = maximize calibration only,"
                        " 1 = maximize AUC only,"
@@ -829,7 +834,7 @@ namespace OpenMS
     }
     if (beta > 1.0 || beta < 0.0)
     {
-      beta_search = {0.001};
+      beta_search = {0.01, 0.2, 0.4};
     }
     else
     {
@@ -902,6 +907,7 @@ namespace OpenMS
     //TODO BIG filtering needs to account for run info if used
     std::for_each(peptideIDs.begin(), peptideIDs.end(), checkConvertAndFilterPepHits_);
     IDFilter::removeEmptyIdentifications(peptideIDs);
+    IDFilter::removeUnreferencedProteins(proteinIDs, peptideIDs);
 
     Size nr_top_psms = static_cast<Size>(param_.getValue("top_PSMs"));
 

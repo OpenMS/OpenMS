@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 ///////////////////////////
 
+#include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>

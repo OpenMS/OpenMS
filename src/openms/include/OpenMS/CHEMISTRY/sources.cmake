@@ -35,6 +35,7 @@ SpectrumAnnotator.h
 SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h
+Tagger.h
 TheoreticalSpectrumGenerator.h
 TheoreticalSpectrumGeneratorXLMS.h
 WeightWrapper.h

@@ -32,13 +32,15 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
