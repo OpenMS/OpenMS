@@ -66,8 +66,14 @@ public:
     /// Copy constructor
     MRMFeature(const MRMFeature &rhs);
 
+    /// Move constructor
+    MRMFeature(MRMFeature &&rhs) = default;
+
     /// Assignment operator
     MRMFeature & operator=(const MRMFeature & rhs);
+
+    /// Move assignment operator
+    MRMFeature& operator=(MRMFeature&&) & = default;
 
     /// Destructor
     ~MRMFeature() override;
@@ -97,6 +103,8 @@ public:
     /// Adds an feature from a single chromatogram into the feature.
     void addFeature(const Feature & feature, const String& key);
 
+    void addFeature(Feature && feature, const String& key);
+
     /// get a list of features
     const std::vector<Feature> & getFeatures() const;
 
@@ -105,6 +113,8 @@ public:
 
     /// Adds a precursor feature from a single chromatogram into the feature.
     void addPrecursorFeature(const Feature & feature, const String& key);
+
+    void addPrecursorFeature(Feature && feature, const String& key);
 
     /// get a list of IDs of available precursor features
     void getPrecursorFeatureIDs(std::vector<String> & result) const;
@@ -115,6 +125,7 @@ public:
     /// get a specified precursor feature (const)
     const Feature & getPrecursorFeature(String key) const;
 
+    void IDScoresAsMetaValue(bool decoy, const OpenSwath_Ind_Scores& idscores);
     //@}
 
 protected:

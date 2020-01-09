@@ -277,6 +277,11 @@ public:
     {
       mrm_features_.push_back(feature);
     }
+
+    inline void addFeature(MRMFeature && feature)
+    {
+      mrm_features_.push_back(std::move(feature));
+    }
     //@}
 
 

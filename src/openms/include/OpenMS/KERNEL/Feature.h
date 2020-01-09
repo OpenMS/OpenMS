@@ -80,6 +80,9 @@ public:
     /// Copy constructor
     Feature(const Feature& feature);
 
+    /// Move constructor
+    Feature(Feature&&) noexcept;
+
     /// Destructor
     ~Feature() override;
     //@}
@@ -124,6 +127,9 @@ public:
 
     /// Assignment operator
     Feature& operator=(const Feature& rhs);
+
+    /// Move assignment operator
+    Feature& operator=(Feature&&) & noexcept;
 
     /// Equality operator
     bool operator==(const Feature& rhs) const;

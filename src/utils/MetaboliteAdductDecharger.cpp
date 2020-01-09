@@ -106,7 +106,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("out_cm", "<file>", "", "output consensus map");
+    registerOutputFile_("out_cm", "<file>", "", "output consensus map", false);
     registerOutputFile_("out_fm", "<file>", "", "output feature map", false);
     registerOutputFile_("outpairs", "<file>", "", "output file", false);
     setValidFormats_("out_fm", ListUtils::create<String>("featureXML"));

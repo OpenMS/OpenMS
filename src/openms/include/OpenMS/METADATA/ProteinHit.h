@@ -161,7 +161,7 @@ public:
     //@{
 
     /// returns the score of the protein hit
-    float getScore() const;
+    double getScore() const;
 
     /// returns the rank of the protein hit
     UInt getRank() const;
@@ -204,7 +204,7 @@ public:
     //@}
 
 protected:
-    float score_;        ///< the score of the protein hit
+    double score_;        ///< the score of the protein hit
     UInt rank_;          ///< the position(rank) where the hit appeared in the hit list
     String accession_;   ///< the protein identifier
     String sequence_;    ///< the amino acid sequence of the protein hit

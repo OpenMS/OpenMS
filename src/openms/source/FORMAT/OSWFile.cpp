@@ -37,10 +37,13 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <sqlite3.h>
+
+#include <cstring> // for strcmp
 #include <sstream>
 
 namespace OpenMS
 {
+  namespace Sql = Internal::SqliteHelper;
   using namespace std;
 
   OSWFile::OSWFile()
@@ -101,15 +104,15 @@ namespace OpenMS
       }
 
       // Execute SQL select statement
-      conn.executePreparedStatement(&stmt, select_sql);
-      sqlite3_step( stmt );
+      conn.prepareStatement(&stmt, select_sql);
+      sqlite3_step(stmt);
 
       int cols = sqlite3_column_count(stmt);
 
       // Generate features
       int k = 0;
-      std::vector<std::string> group_id_index;
-
+      std::vector<std::basic_string<unsigned char>> group_id_index;
+      OpenMS::String tmp;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         std::string psm_id;
@@ -120,26 +123,24 @@ namespace OpenMS
 
         for (int i = 0; i < cols; i++)
         {
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "FEATURE_ID")
+          if (strcmp(sqlite3_column_name(stmt, i), "FEATURE_ID") == 0)
           {
-            psm_id = OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )));
+            Sql::extractValue<string>(&psm_id, stmt, i);
           }
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "GROUP_ID")
+          if (strcmp(sqlite3_column_name(stmt, i), "GROUP_ID") == 0)
           {
-            if (std::find(group_id_index.begin(), group_id_index.end(),
-                  OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) != group_id_index.end())
+            auto it = std::find(group_id_index.begin(), group_id_index.end(), sqlite3_column_text(stmt, i));
+            if (it != group_id_index.end())
             {
-              scan_id = std::find(group_id_index.begin(), group_id_index.end(),
-                          OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+              scan_id = it - group_id_index.begin();
             }
             else
             {
-              group_id_index.push_back(OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i ))));
-              scan_id = std::find(group_id_index.begin(), group_id_index.end(),
-                          OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+              scan_id = group_id_index.size();
+              group_id_index.push_back(sqlite3_column_text(stmt, i));
             }
           }
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "DECOY")
+          if (strcmp(sqlite3_column_name(stmt, i), "DECOY") == 0)
           {
             if (sqlite3_column_int( stmt, i ) == 1)
             {
@@ -150,11 +151,11 @@ namespace OpenMS
               label = 1;
             }
           }
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "MODIFIED_SEQUENCE")
+          if (strcmp(sqlite3_column_name( stmt, i ), "MODIFIED_SEQUENCE") == 0)
           {
-            peptide = OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )));
+            Sql::extractValue<string>(&peptide, stmt, i);
           }
-          if (OpenMS::String(sqlite3_column_name( stmt, i )).substr(0,4) == "VAR_")
+          if (strncmp(sqlite3_column_name( stmt, i ), "VAR_", 4) == 0)
           {
             features[OpenMS::String(sqlite3_column_name( stmt, i ))] = sqlite3_column_double( stmt, i );
           }

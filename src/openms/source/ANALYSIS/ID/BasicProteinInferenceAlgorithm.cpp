@@ -166,7 +166,7 @@ namespace OpenMS
        initScore = 1.0;
        break;
      case AggregationMethod::MAXIMUM :
-       initScore = -std::numeric_limits<double>::max();
+       initScore = -std::numeric_limits<double>::infinity();
        break;
      case AggregationMethod::SUM :
        break;

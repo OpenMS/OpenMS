@@ -84,6 +84,18 @@ public:
     }
 
     /**
+      @brief Checks whether the given table exists
+
+      @p tablename The name of the table to be checked
+
+      @returns Whether the table exists or not
+    */
+    bool tableExists(const String& tablename)
+    {
+      return tableExists(db_, tablename);
+    }
+
+    /**
       @brief Checkes whether the given table contains a certain column
 
       @p tablename The name of the table (needs to exist)
@@ -130,7 +142,7 @@ public:
       databases, and the raw data needs to be passed separately as it cannot be
       part of a true SQL statement
 
-        INSERT INTO TBL (ID, DATA) VALUES (100, ?1), (101, ?2), (102, ?3)" 
+        INSERT INTO TBL (ID, DATA) VALUES (100, ?1), (101, ?2), (102, ?3)"
 
       See also https://www.sqlite.org/c3ref/bind_blob.html
 
@@ -155,12 +167,10 @@ public:
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    void executePreparedStatement(sqlite3_stmt** stmt, const String& prepare_statement)
+    void prepareStatement(sqlite3_stmt** stmt, const String& prepare_statement)
     {
-      executePreparedStatement(db_, stmt, prepare_statement);
+      prepareStatement(db_, stmt, prepare_statement);
     }
-
-
 
     /**
       @brief Checks whether the given table exists
@@ -168,9 +178,9 @@ public:
       @p db The sqlite database (needs to be open)
       @p tablename The name of the table to be checked
 
-      @returns Whether the column exists or not
+      @returns Whether the table exists or not
     */
-    static bool tableExists(sqlite3 *db, const String& tablename);
+    static bool tableExists(sqlite3* db, const String& tablename);
 
     /**
       @brief Checks whether the given table contains a certain column
@@ -181,7 +191,7 @@ public:
 
       @returns Whether the column exists or not
     */
-    static bool columnExists(sqlite3 *db, const String& tablename, const String& colname);
+    static bool columnExists(sqlite3* db, const String& tablename, const String& colname);
 
     /**
       @brief Executes a given SQL statement (insert statement)
@@ -193,7 +203,7 @@ public:
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    static void executeStatement(sqlite3 *db, const std::stringstream& statement);
+    static void executeStatement(sqlite3* db, const std::stringstream& statement);
 
     /**
       @brief Executes a given SQL statement (insert statement)
@@ -205,7 +215,7 @@ public:
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    static void executeStatement(sqlite3 *db, const String& statement);
+    static void executeStatement(sqlite3* db, const String& statement);
 
     /**
       @brief Converts an SQL statement into a prepared statement
@@ -221,22 +231,22 @@ public:
       calls sqlite3_prepare_v2.
 
       @p db The sqlite database (needs to be open)
-      @p statement The SQL statement
-      @p data The data to bind
+      @p stmt The prepared statement (output)
+      @p prepare_statement The SQL statement to prepare (input)
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    static void executePreparedStatement(sqlite3 *db, sqlite3_stmt** stmt, const String& prepare_statement);
+    static void prepareStatement(sqlite3* db, sqlite3_stmt** stmt, const String& prepare_statement);
 
 
     /**
-      @brief Executes raw data SQL statements (insert statements) 
+      @brief Executes raw data SQL statements (insert statements)
 
       This is useful for a case where raw data should be inserted into sqlite
       databases, and the raw data needs to be passed separately as it cannot be
       part of a true SQL statement
 
-        INSERT INTO TBL (ID, DATA) VALUES (100, ?1), (101, ?2), (102, ?3)" 
+        INSERT INTO TBL (ID, DATA) VALUES (100, ?1), (101, ?2), (102, ?3)"
 
       See also https://www.sqlite.org/c3ref/bind_blob.html
 
@@ -246,7 +256,7 @@ public:
 
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
-    static void executeBindStatement(sqlite3 *db, const String& prepare_statement, const std::vector<String>& data);
+    static void executeBindStatement(sqlite3* db, const String& prepare_statement, const std::vector<String>& data);
 
 protected:
 
@@ -273,44 +283,41 @@ protected:
         @brief Extracts a specific value from an SQL column
 
         @p dst Destination (where to store the value)
-        @p sqlite3_stmt Sqlite statement object
-        @p pos Column position 
+        @p stmt Sqlite statement object
+        @p pos Column position
 
-        For example, to extract a specific integer from column 5 of an SQL statement, one can use
+        For example, to extract a specific integer from column 5 of an SQL statement, one can use:
 
-          sqlite3_stmt * stmt;
-          sqlite3 *db;
-          SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
-          sqlite3_step( stmt );
+          sqlite3_stmt* stmt;
+          sqlite3* db;
+          SqliteConnector::prepareStatement(db, &stmt, select_sql);
+          sqlite3_step(stmt);
 
           double target;
-          while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+          while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
           {
             extractValue<double>(&target, stmt, 5);
             sqlite3_step( stmt );
           }
           sqlite3_finalize(stmt);
-
-
-
       */
       template <typename ValueType>
-      void extractValue(ValueType* /* dst */, sqlite3_stmt* /* stmt */, int /* pos */)
+      bool extractValue(ValueType* /* dst */, sqlite3_stmt* /* stmt */, int /* pos */)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Not implemented");
       }
 
-      template <> void extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
-      template <> void extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
-      template <> void extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
-      template <> void extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
       /// Special case where an integer should be stored in a String field
-      void extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
+      bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
 
     }
   }

@@ -43,6 +43,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 
 using namespace std;

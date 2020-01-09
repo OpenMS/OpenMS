@@ -260,10 +260,45 @@ START_SECTION(static String findDatabase(const String &db_name))
 
 END_SECTION
 
-START_SECTION(static String findExecutable(const OpenMS::String& toolName))
+START_SECTION(static bool findExecutable(OpenMS::String& exe_filename))
 {
-  TEST_EXCEPTION(Exception::FileNotFound, File::findExecutable("executable_does_not_exist"))
-  TEST_EQUAL(File::path(File::findExecutable("File_test")) + "/", File::getExecutablePath())
+  //NOT_TESTABLE // since it depends on PATH
+
+  // this test is somewhat brittle, but should work on most platforms (revert to NOT_TESTABLE if this does not work)
+#ifdef OPENMS_WINDOWSPLATFORM
+  String find = "cmd";
+  TEST_EQUAL(File::findExecutable(find), true)
+  TEST_EQUAL(find.suffix(7).toUpper(), "CMD.EXE") // should be C:\Windows\System32\cmd.exe or similar
+#else
+  String find = "echo";
+  TEST_EQUAL(File::findExecutable(find), true)
+  TEST_EQUAL(find.hasSuffix("echo"), true) // should be /usr/bin/echo or similar
+#endif
+}
+END_SECTION
+
+START_SECTION(static StringList getPathLocations(const String& path = std::getenv("PATH")))
+{
+  // set env-variables is not portable across platforms, thus we inject the PATH values
+#ifdef OPENMS_WINDOWSPLATFORM
+  String test_paths=R"(C:\WINDOWS\CCM;C:\WINDOWS\system32\config\systemprofile\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Git\cmd)";
+#else
+  String test_paths="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games";
+#endif
+  StringList l = File::getPathLocations(test_paths);
+#ifdef OPENMS_WINDOWSPLATFORM
+  TEST_EQUAL(ListUtils::contains(l, "C:/Program Files (x86)/Git/cmd/"), true)
+#else
+  TEST_EQUAL(ListUtils::contains(l, "/usr/bin/"), true)
+#endif
+}
+END_SECTION
+
+
+START_SECTION(static String findSiblingTOPPExecutable(const OpenMS::String& toolName))
+{
+  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("executable_does_not_exist"))
+  TEST_EQUAL(File::path(File::findSiblingTOPPExecutable("File_test")) + "/", File::getExecutablePath())
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

@@ -99,34 +99,7 @@ namespace OpenMS
     // copy back the input maps (they have been deleted while swapping)
     out.getColumnHeaders() = input[0].getColumnHeaders();
 
-    // add protein IDs and unassigned peptide IDs to the result map here,
-    // to keep the same order as the input maps (useful for output later)
-    for (std::vector<FeatureMap>::const_iterator map_it = maps.begin();
-         map_it != maps.end(); ++map_it)
-    {
-      // add protein identifications to result map
-      out.getProteinIdentifications().insert(
-        out.getProteinIdentifications().end(),
-        map_it->getProteinIdentifications().begin(),
-        map_it->getProteinIdentifications().end());
-
-      // add unassigned peptide identifications to result map
-      out.getUnassignedPeptideIdentifications().insert(
-        out.getUnassignedPeptideIdentifications().end(),
-        map_it->getUnassignedPeptideIdentifications().begin(),
-        map_it->getUnassignedPeptideIdentifications().end());
-    }
-
-    // canonical ordering for checking the results, and the ids have no real meaning anyway
-#if 1 // the way this was done in DelaunayPairFinder and StablePairFinder
-    out.sortByMZ();
-#else
-    out.sortByQuality();
-    out.sortByMaps();
-    out.sortBySize();
-#endif
-
-    return;
+    postprocess_(maps, out);
   }
 
   void FeatureGroupingAlgorithmUnlabeled::addToGroup(int map_id, const FeatureMap& feature_map)

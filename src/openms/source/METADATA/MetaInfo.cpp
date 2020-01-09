@@ -45,49 +45,49 @@ namespace OpenMS
   {
   }
 
-  bool MetaInfo::operator==(const MetaInfo & rhs) const
+  bool MetaInfo::operator==(const MetaInfo& rhs) const
   {
     return index_to_value_ == rhs.index_to_value_;
   }
 
-  bool MetaInfo::operator!=(const MetaInfo & rhs) const
+  bool MetaInfo::operator!=(const MetaInfo& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const DataValue & MetaInfo::getValue(const String & name) const
+  const DataValue& MetaInfo::getValue(const String& name, const DataValue& default_value) const
   {
     MapType::const_iterator it = index_to_value_.find(registry_.getIndex(name));
     if (it != index_to_value_.end())
     {
       return it->second;
     }
-    return DataValue::EMPTY;
+    return default_value;
   }
 
-  const DataValue & MetaInfo::getValue(UInt index) const
+  const DataValue& MetaInfo::getValue(UInt index, const DataValue& default_value) const
   {
     MapType::const_iterator it = index_to_value_.find(index);
     if (it != index_to_value_.end())
     {
       return it->second;
     }
-    return DataValue::EMPTY;
+    return default_value;
   }
 
-  void MetaInfo::setValue(const String & name, const DataValue & value)
+  void MetaInfo::setValue(const String& name, const DataValue& value)
   {
     UInt index = registry_.registerName(name); // no-op if name is already registered
     setValue(index, value);
   }
 
-  void MetaInfo::setValue(UInt index, const DataValue & value)
+  void MetaInfo::setValue(UInt index, const DataValue& value)
   {
     // @TODO: check if that index is registered in MetaInfoRegistry?
     auto it = index_to_value_.find(index);
-    if ( it != index_to_value_.end()) 
+    if (it != index_to_value_.end())
     {
-      it->second = value; 
+      it->second = value;
     }
     else
     {
@@ -99,12 +99,12 @@ namespace OpenMS
     }
   }
 
-  MetaInfoRegistry & MetaInfo::registry()
+  MetaInfoRegistry& MetaInfo::registry()
   {
     return registry_;
   }
 
-  bool MetaInfo::exists(const String & name) const
+  bool MetaInfo::exists(const String& name) const
   {
     UInt index = registry_.getIndex(name);
     if (index != UInt(-1))
@@ -119,7 +119,7 @@ namespace OpenMS
     return (index_to_value_.find(index) != index_to_value_.end());
   }
 
-  void MetaInfo::removeValue(const String & name)
+  void MetaInfo::removeValue(const String& name)
   {
     MapType::iterator it = index_to_value_.find(registry_.getIndex(name));
     if (it != index_to_value_.end())
@@ -137,7 +137,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfo::getKeys(vector<String> & keys) const
+  void MetaInfo::getKeys(vector<String>& keys) const
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;
@@ -147,7 +147,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfo::getKeys(vector<UInt> & keys) const
+  void MetaInfo::getKeys(vector<UInt>& keys) const
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;
