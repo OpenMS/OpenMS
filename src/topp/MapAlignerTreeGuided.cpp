@@ -165,7 +165,7 @@ private:
   // function declarations
   template <typename MapType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FeatureXMLFile& fxml_file);
-  static void addPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts, vector<double>& rts_tmp);
+  static void addPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts, vector<double>& map_range);
   static void extractSeqAndRt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges);
   static void clusterUPGMA_(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, float threshold /*=1*/);
   static void buildTree_(vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, vector<vector<double>>& maps_ranges);
@@ -283,7 +283,7 @@ void TOPPMapAlignerTreeGuided::loadInputMaps_(vector<MapType>& maps, StringList&
 }
 
 void TOPPMapAlignerTreeGuided::addPeptideSequences_(const vector<PeptideIdentification>& peptides,
-                                                    TOPPMapAlignerTreeGuided::SeqAndRTList& peptide_rts, vector<double>& rts_tmp)
+                                                    TOPPMapAlignerTreeGuided::SeqAndRTList& peptide_rts, vector<double>& map_range)
 {
   for (const auto & peptide : peptides)
   {
@@ -292,7 +292,7 @@ void TOPPMapAlignerTreeGuided::addPeptideSequences_(const vector<PeptideIdentifi
       const String& sequence = peptide.getHits()[0].getSequence().toString();
       double rt = peptide.getRT();
       peptide_rts[sequence].push_back(rt);
-      rts_tmp.push_back(rt);
+      map_range.push_back(rt);
     }
   }
 }
@@ -300,21 +300,16 @@ void TOPPMapAlignerTreeGuided::addPeptideSequences_(const vector<PeptideIdentifi
 void TOPPMapAlignerTreeGuided::extractSeqAndRt_(const vector<FeatureMap>& feature_maps,
         vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges)
 {
-  vector<double> rts_tmp;
   for (Size i = 0; i < feature_maps.size(); ++i)
   {
-    rts_tmp.reserve(feature_maps[i].size());
     for (auto feature_it = feature_maps[i].begin(); feature_maps[i].end() != feature_it; ++feature_it)
     {
       if (!feature_it->getPeptideIdentifications().empty())
       {
-        addPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seq_and_rt[i], rts_tmp);
+        addPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seq_and_rt[i], maps_ranges[i]);
       }
     }
-    sort(rts_tmp.begin(), rts_tmp.end());
-
-    maps_ranges[i] = rts_tmp;
-    rts_tmp.clear();
+    sort(maps_ranges[i].begin(), maps_ranges[i].end());
   }
 }
 
