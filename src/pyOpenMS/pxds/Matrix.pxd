@@ -22,6 +22,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
         # TODO look into Cython Bug
         # libcpp_vector[ValueT] row(size_t i) nogil except +
         # libcpp_vector[ValueT] col(size_t i) nogil except +
+        libcpp_vector[ValueT] asVector() nogil except + # wrap-ignore
         void clear() nogil except +
         void resize(size_t i, size_t j, ValueT value) nogil except +
         void resize(libcpp_pair[ size_t, size_t ] & size_pair, ValueT value) nogil except +

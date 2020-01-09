@@ -2,6 +2,7 @@ from Matrix cimport *
 
 
 # continue with extra code if needed
+
     def get_matrix(self):
         """Cython signature: numpy_matrix get_matrix()
         """
@@ -10,18 +11,13 @@ from Matrix cimport *
 
         cdef unsigned int rows = mat_.rows()
         cdef unsigned int cols = mat_.cols()
-        cdef np.ndarray[double, ndim=2] data
-        data = np.zeros( (rows,cols), dtype=np.float64)
 
         cdef libcpp_vector[double] tmp_vec;
-        tmp_vec.reserve( rows * cols);
+        tmp_vec = mat_.asVector();
 
-        cdef int i = 0
-        cdef int j = 0
-        for i in range(int(rows)):
-            for j in range(int(cols)):
-                data[i][j] = mat_.getValue(j,i) ## first try
-        return data
+        xarr = np.asarray(tmp_vec)
+        xarr = xarr.reshape(rows, cols)
+        return xarr
 
     def get_matrix_as_view(self):
         """Cython signature: numpy_matrix get_matrix()
@@ -46,35 +42,6 @@ from Matrix cimport *
         xarr = xarr.reshape(rows, cols)
         return xarr
 
-
-
-    def get_matrix_as_vec(self):
-        """Cython signature: numpy_matrix get_matrix()
-        """
-
-        cdef _Matrix[double] * mat_ = self.inst.get()
-
-        cdef unsigned int rows = mat_.rows()
-        cdef unsigned int cols = mat_.cols()
-        cdef unsigned int n = rows * cols
-        cdef np.ndarray[double, ndim=2] data
-        data = np.zeros( (rows,cols), dtype=np.float64)
-
-        cdef libcpp_vector[double] tmp_vec;
-        tmp_vec.reserve( rows * cols);
-
-        cdef int i = 0
-        cdef int j = 0
-        for i in range(int(rows)):
-            for j in range(int(cols)):
-                ### data[i][j] = mat_.getValue(j,i) ## first try
-                tmp_vec.push_back( mat_.getValue(j,i) )
-
-        xarr = np.asarray(tmp_vec) # numpy array refer to the underlying buffer without copy
-        xarr = xarr.reshape(rows, cols)
-        return xarr
-
-
     def set_matrix(self, np.ndarray[double, ndim=2, mode="c"] data not None):
         """Cython signature: numpy_matrix set_matrix()
         """
@@ -89,7 +56,7 @@ from Matrix cimport *
         cdef int j = 0
         for i in range(int(rows)):
             for j in range(int(cols)):
-                mat_.setValue(j,i,data[i][j])
+                mat_.setValue(i,j,data[i][j])
 
 
 
