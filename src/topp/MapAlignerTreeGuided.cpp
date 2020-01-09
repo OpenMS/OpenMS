@@ -113,7 +113,7 @@ private:
   /// Type to store retention times given for individual peptide sequence
   typedef std::map<String, DoubleList> SeqAndRTList;
 
-  class PeptideIdentificationsPearsonDistance
+  class PeptideIdentificationsPearsonDistance_
   {
   public:
     float operator()(SeqAndRTList& map_first, SeqAndRTList& map_second) const
@@ -165,7 +165,7 @@ private:
   // function declarations
   template <typename MapType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FeatureXMLFile& fxml_file);
-  static void getPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts, vector<double>& rts_tmp);
+  static void addPeptideSequences_(const vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts, vector<double>& rts_tmp);
   static void extractSeqAndRt_(const vector<FeatureMap>& feature_maps, vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges);
   static void clusterUPGMA_(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, float threshold /*=1*/);
   static void buildTree_(vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, vector<vector<double>>& maps_ranges);
@@ -282,8 +282,8 @@ void TOPPMapAlignerTreeGuided::loadInputMaps_(vector<MapType>& maps, StringList&
   progresslogger.endProgress();
 }
 
-void TOPPMapAlignerTreeGuided::getPeptideSequences_(const vector<PeptideIdentification>& peptides,
-        TOPPMapAlignerTreeGuided::SeqAndRTList& peptide_rts, vector<double>& rts_tmp)
+void TOPPMapAlignerTreeGuided::addPeptideSequences_(const vector<PeptideIdentification>& peptides,
+                                                    TOPPMapAlignerTreeGuided::SeqAndRTList& peptide_rts, vector<double>& rts_tmp)
 {
   for (const auto & peptide : peptides)
   {
@@ -300,14 +300,15 @@ void TOPPMapAlignerTreeGuided::getPeptideSequences_(const vector<PeptideIdentifi
 void TOPPMapAlignerTreeGuided::extractSeqAndRt_(const vector<FeatureMap>& feature_maps,
         vector<SeqAndRTList>& maps_seq_and_rt, vector<vector<double>>& maps_ranges)
 {
+  vector<double> rts_tmp;
   for (Size i = 0; i < feature_maps.size(); ++i)
   {
-    vector<double> rts_tmp(feature_maps[i].size());
+    rts_tmp.reserve(feature_maps[i].size());
     for (auto feature_it = feature_maps[i].begin(); feature_maps[i].end() != feature_it; ++feature_it)
     {
       if (!feature_it->getPeptideIdentifications().empty())
       {
-        getPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seq_and_rt[i], rts_tmp);
+        addPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seq_and_rt[i], rts_tmp);
       }
     }
     sort(rts_tmp.begin(), rts_tmp.end());
@@ -321,10 +322,9 @@ void TOPPMapAlignerTreeGuided::buildTree_(vector<FeatureMap>& feature_maps, std:
 {
   vector<SeqAndRTList> maps_seq_and_rt(feature_maps.size());
   extractSeqAndRt_(feature_maps, maps_seq_and_rt, maps_ranges);
-  PeptideIdentificationsPearsonDistance pep_dist;
+  PeptideIdentificationsPearsonDistance_ pep_dist;
 
-  DistanceMatrix<float> dist_matrix;
-  dist_matrix.resize(feature_maps.size(), 0.0);
+  DistanceMatrix<float> dist_matrix(feature_maps.size(), 0.0);
 
   for (Size i = 0; i < feature_maps.size(); ++i)
   {
@@ -500,10 +500,9 @@ void TOPPMapAlignerTreeGuided::computeTransformationsByOrigInFeature_(vector<Fea
         const String& model_type)
 {
   FeatureMap::const_iterator fit = map_transformed.begin();
+  TransformationDescription::DataPoints trafo_data_tmp;
   for (auto & map_idx : trafo_order)
   {
-    TransformationDescription::DataPoints trafo_data_tmp;
-
     for (Size i = 0; i < feature_maps[map_idx].size(); ++i)
     {
       TransformationDescription::DataPoint point;
