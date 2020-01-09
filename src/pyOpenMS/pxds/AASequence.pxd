@@ -73,6 +73,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
         # returns the mono isotopic weight of the peptide
         double getMonoWeight() nogil except +
+        double getMonoWeight(ResidueType type_) nogil except +
         double getMonoWeight(ResidueType type_, Int charge) nogil except +
 
         # returns the number of residues

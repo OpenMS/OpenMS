@@ -9,8 +9,8 @@
         if _idx >= self.inst.get().size():
             raise IndexError("invalid index %d" % _idx)
 
-        cdef float _r = deref(self.inst.get())[(<int>in_0)]
-        py_result = <float>_r
+        cdef double _r = deref(self.inst.get())[(<int>in_0)]
+        py_result = <double>_r
         return py_result
 
     def __setitem__(self, key, value):
@@ -20,7 +20,7 @@
         if _idx >= self.inst.get().size():
             raise IndexError("invalid index %d" % _idx)
 
-        cdef float _v = (<float>value)
+        cdef double _v = (<double>value)
         deref( self.inst.get() )[(<int>key)] = _v
 
     def get_data(self):
@@ -37,13 +37,13 @@
         cdef unsigned int n = fda_.size()
          
         # Obtain a raw ptr to the beginning of the C++ array
-        cdef libcpp_vector[float] * vec_ptr = <libcpp_vector[float]*> fda_
-        cdef float * raw_ptr =  address(deref(vec_ptr)[0]) 
+        cdef libcpp_vector[double] * vec_ptr = <libcpp_vector[double]*> fda_
+        cdef double * raw_ptr =  address(deref(vec_ptr)[0]) 
 
         # We use a memory view to get the data from the raw data
         # See https://cython.readthedocs.io/en/latest/src/userguide/memoryviews.html 
         # See https://stackoverflow.com/questions/43021574/cast-c-array-into-numpy-array-cython-typed-memoryview-in-cython-code
-        cdef float[:] fda_view = <float[:n]>raw_ptr # cast to memoryview, refer to the underlying buffer without copy
+        cdef double[:] fda_view = <double[:n]>raw_ptr # cast to memoryview, refer to the underlying buffer without copy
         xarr = np.asarray(fda_view) # numpy array refer to the underlying buffer without copy
         return xarr
 
@@ -66,7 +66,7 @@
         # We see an improvement of ca 50x using the memory view method (and a
         # 2600x fold improvement compared to pure Python).
 
-    def set_data(self, np.ndarray[float, ndim=1, mode="c"] data not None):
+    def set_data(self, np.ndarray[double, ndim=1, mode="c"] data not None):
         """
         Sets the raw data for the float data array
 
@@ -83,8 +83,8 @@
         # See: https://github.com/cython/cython/wiki/tutorials-NumpyPointerToC
 
         # We use "assign" to directly to copy the numpy array (stored in
-        # data.data) into the std::vector<float> in our FloatDataArray object
-        cdef float * array_start = <float*>data.data
+        # data.data) into the std::vector<double> in our FloatDataArray object
+        cdef double * array_start = <double*>data.data
         cdef int N
         N = data.size
         fda_.assign(array_start, array_start + N)
