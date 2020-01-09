@@ -26,6 +26,3 @@ openms-build
 *.swp
 cmake-build-debug
 cmake-build-release
-src/topp/MapAlignerTree.cpp
-scr/topp/MapAlignerTreeConsensus.cpp
-src/topp/SequenceRemover.cpp
