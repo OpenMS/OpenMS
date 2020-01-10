@@ -126,6 +126,58 @@ namespace OpenMS
     return s;
   }
 
+  const ResidueModification* ModificationsDB::searchModifications_fast(const String& mod_name_,
+                                                                       bool& multiple_matches,
+                                                                       const String& residue,
+                                                                       ResidueModification::TermSpecificity term_spec
+                                                                       ) const
+  {
+    const ResidueModification* mod;
+
+    String mod_name = mod_name_;
+    multiple_matches = false;
+
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+    bool found = true;
+
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      auto modifications = modification_names_.find(mod_name);
+      if (modifications == modification_names_.end())
+      {
+        // Try to fix things, Skyline for example uses unimod:10 and not UniMod:10 syntax
+        if (mod_name.size() > 6 && mod_name.prefix(6).toLower() == "unimod")
+        {
+          mod_name = "UniMod" + mod_name.substr(6, mod_name.size() - 6);
+        }
+
+        modifications = modification_names_.find(mod_name);
+        if (modifications == modification_names_.end())
+        {
+          OPENMS_LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
+          found = false; 
+        }
+      }
+
+      int nr_mods = 0;
+      if (found)
+      {
+        for (const auto& it : modifications->second)
+        {
+          if ( residuesMatch_fast_(res, it) &&
+               (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+               (term_spec == it->getTermSpecificity())))
+          {
+            mod = it;
+            nr_mods++;
+          }
+        }
+      }
+      if (nr_mods > 1) multiple_matches = true;
+    }
+    return mod;
+  }
 
   const ResidueModification* ModificationsDB::getModification(Size index) const
   {

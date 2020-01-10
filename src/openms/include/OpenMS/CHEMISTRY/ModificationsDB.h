@@ -100,6 +100,12 @@ public:
     */
     void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
+    const ResidueModification* searchModifications_fast(const String& mod_name, 
+bool& multiple_matches,
+                                                        const String& residue = "",
+                                                        ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY
+                                                        ) const;
+
     /**
        @brief Returns the modification with the given name
 
