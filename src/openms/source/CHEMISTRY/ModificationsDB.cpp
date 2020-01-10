@@ -234,33 +234,34 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
-    set<const ResidueModification*> mods; // set is faster than unordered_set (for few values)
+    const ResidueModification* mod(nullptr);
     // if residue is specified, try residue-specific search first to avoid
     // ambiguities (e.g. "Carbamidomethyl (N-term)"/"Carbamidomethyl (C)"):
+    bool multiple_matches = false;
     if (!residue.empty() &&
         (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY))
     {
-      searchModifications(mods, mod_name, residue,
+      mod = searchModifications_fast(mod_name, multiple_matches, residue,
                           ResidueModification::ANYWHERE);
     }
-    if (mods.empty()) searchModifications(mods, mod_name, residue, term_spec);
+    if (mod == nullptr) mod = searchModifications_fast(mod_name, multiple_matches, residue, term_spec);
 
-    if (mods.empty())
+    if (mod == nullptr)
     {
       String message = String("Retrieving the modification failed. It is not available for the residue '") + residue 
         + "' and term specificity '" + ResidueModification().getTermSpecificityName(term_spec) + "'. ";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, mod_name);
     }
-    if (mods.size() > 1)
+    if (multiple_matches)
     {
       OPENMS_LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one of:";
-      for (auto it = mods.begin(); it != mods.end(); ++it)
-      {
-        OPENMS_LOG_WARN << " " << (*it)->getFullId();
-      }
+      // for (auto it = mods.begin(); it != mods.end(); ++it)
+      // {
+      //   OPENMS_LOG_WARN << " " << (*it)->getFullId();
+      // }
       OPENMS_LOG_WARN << "\n";
     }
-    return *mods.begin();
+    return mod;
   }
 
 
