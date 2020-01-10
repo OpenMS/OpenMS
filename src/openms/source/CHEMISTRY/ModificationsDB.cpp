@@ -132,7 +132,7 @@ namespace OpenMS
                                                                        ResidueModification::TermSpecificity term_spec
                                                                        ) const
   {
-    const ResidueModification* mod;
+    const ResidueModification* mod(nullptr);
 
     String mod_name = mod_name_;
     multiple_matches = false;
