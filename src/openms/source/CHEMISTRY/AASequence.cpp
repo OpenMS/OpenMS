@@ -1384,10 +1384,10 @@ namespace OpenMS
     // over-allocate due to modifications). This substantially speeds up the
     // function for unmodified sequences (3x speedup).
     aas.peptide_.clear();
-    aas.peptide_.reserve(pep.size());
 
     String peptide(pep);
     peptide.trim();
+    aas.peptide_.reserve(peptide.size());
 
     if (peptide.empty()) return;
 
