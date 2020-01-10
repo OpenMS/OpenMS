@@ -94,6 +94,11 @@ namespace OpenMS
     }
     // @TODO: could also try disabling checks ("PRAGMA ignore_check_constraints
     // = ON"), but limited testing has shown no apparent performance benefit
+    if (!query.exec("PRAGMA synchronous = OFF"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error configuring database");
+    }
   }
 
 
