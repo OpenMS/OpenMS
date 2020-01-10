@@ -254,7 +254,7 @@ namespace OpenMS
     }
     if (multiple_matches)
     {
-      OPENMS_LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one of:";
+      OPENMS_LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one only.";
       // for (auto it = mods.begin(); it != mods.end(); ++it)
       // {
       //   OPENMS_LOG_WARN << " " << (*it)->getFullId();
