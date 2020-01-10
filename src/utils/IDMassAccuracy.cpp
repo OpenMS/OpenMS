@@ -131,8 +131,8 @@ protected:
     registerIntOption_("number_of_bins", "<#bins>", 100, "Number of bins that should be used to calculate the histograms for the fitting.", false, true);
     setMinInt_("number_of_bins", 10);
 
-    registerStringOption_("generate_gnuplot_scripts", "<false>", "false", "If this option is set to true, the distributions and the fits are used to generate a gnuplot script, that can be used to generate plots. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
-    setValidStrings_("generate_gnuplot_scripts", ListUtils::create<String>("true,false"));
+    registerOutputFile_("gnuplot_script", "<file>", "", "Gnuplot output file. The distributions and the fits are used to generate a gnuplot script, that can be used to generate plots. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
+    setValidFormats_("gnuplot_script", ListUtils::create<String>("txt"));
   }
 
   double getMassDifference(double theo_mz, double exp_mz, bool use_ppm)
@@ -156,7 +156,6 @@ protected:
     Size number_of_bins((UInt)getIntOption_("number_of_bins"));
     bool precursor_error_ppm(getFlag_("precursor_error_ppm"));
     bool fragment_error_ppm(getFlag_("fragment_error_ppm"));
-    bool generate_gnuplot_scripts(DataValue(getStringOption_("generate_gnuplot_scripts")).toBool());
 
     if (in_raw.size() != id_in.size())
     {
@@ -361,16 +360,10 @@ protected:
         gf.fit(values);
 
         // write gnuplot scripts
-        if (generate_gnuplot_scripts)
+        String gnuplot_out_file(getStringOption_("gnuplot_script"));
+        if (gnuplot_out_file != "")
         {
-          ofstream out(String(precursor_out_file + "_gnuplot.dat").c_str());
-          for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
-          {
-            out << it->getX() << " " << it->getY() << endl;
-          }
-          out.close();
-
-          ofstream gpl_out(String(precursor_out_file + "_gnuplot.gpl").c_str());
+          ofstream out(gnuplot_out_file.c_str());
           gpl_out << "set terminal png" << endl;
           gpl_out << "set output \"" << precursor_out_file  << "_gnuplot.png\"" << endl;
           if (precursor_error_ppm)
@@ -382,7 +375,14 @@ protected:
             gpl_out << "set xlabel \"error in Da\"" << endl;
           }
           gpl_out << "set ylabel \"frequency\"" << endl;
-          gpl_out << "plot '" << precursor_out_file << "_gnuplot.dat' title 'Precursor mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
+          gpl_out << "plot '-' using 1:2 title 'Precursor mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
+
+	  for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          {
+            out << it->getX() << " " << it->getY() << endl;
+          }
+          out.close();
+
           gpl_out.close();
         }
 
