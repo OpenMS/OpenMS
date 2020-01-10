@@ -535,7 +535,8 @@ namespace OpenMS
         try
         {
           // terminal modifications don't apply to residues (side chain), so only consider internal ones
-          mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
+          static const ModificationsDB* mdb = ModificationsDB::getInstance();
+          mod = mdb->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
         }
         catch (...)
         {
