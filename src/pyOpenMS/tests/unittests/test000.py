@@ -3529,6 +3529,73 @@ def testMapAlignment():
     pyopenms.MapAlignmentTransformer.transformRetentionTimes
 
 @report
+def testMatrixDouble():
+
+    """
+    @tests: MatrixDouble
+     MapAlignmentAlgorithmIdentification.__init__
+     """
+
+    m = pyopenms.MatrixDouble()
+    N = 90
+    m.resize(N-1, N+2, 5.0)
+
+    assert m.rows() == 89
+    assert m.cols() == 92
+
+    rows = N-1
+    cols = N+2
+    test = []
+    for i in range(int(rows)):
+        for j in range(int(cols)):
+            test.append( m.getValue(i,j) )
+
+    testm = np.asarray(test)
+    testm = testm.reshape(rows, cols)
+
+    assert sum(sum(testm)) == 40940.0
+    assert sum(sum(testm)) == (N-1)*(N+2)*5
+
+    matrix = m.get_matrix()
+    assert sum(sum(matrix)) == 40940.0
+    assert sum(sum(matrix)) == (N-1)*(N+2)*5
+
+    matrix_view = m.get_matrix_as_view()
+    assert sum(sum(matrix_view)) == 40940.0
+    assert sum(sum(matrix_view)) == (N-1)*(N+2)*5
+
+
+    # Column = 3 / Row = 5
+    ## Now change a value:
+
+    assert m.getValue(3, 5) == 5.0
+    m.setValue(3, 5, 8.0)
+    assert m.getValue(3, 5) == 8.0
+
+    mat = m.get_matrix_as_view()
+    assert mat[3, 5] == 8.0
+
+    mat = m.get_matrix()
+    assert m.getValue(3, 5) == 8.0
+    assert mat[3, 5] == 8.0
+
+    # Whatever we change here gets changed in the raw data as well
+    matrix_view = m.get_matrix_as_view()
+    matrix_view[1, 6] = 11.0
+    assert m.getValue(1, 6) == 11.0
+    assert matrix_view[1, 6] == 11.0
+
+    m.clear()
+    assert m.rows() == 0
+    assert m.cols() == 0
+
+    mat[3, 6] = 9.0
+    m.set_matrix(mat)
+    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(3, 6) == 9.0
+
+
+@report
 def testMapAlignmentIdentification():
 
     """

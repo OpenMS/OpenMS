@@ -199,8 +199,7 @@ START_TEST(FragmentMassError, "$Id$")
 
     // featureMap with missing ProteinIdentifications
     FeatureMap fmap_auto;
-
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, FragmentMassError::ToleranceUnit::AUTO), "There is no information about fragment mass tolerance given in the FeatureXML. Please choose a fragment_mass_unit")
+    TEST_EXCEPTION(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, FragmentMassError::ToleranceUnit::AUTO))
     
     //--------------------------------------------------------------------
     // test with no given fragmentation method

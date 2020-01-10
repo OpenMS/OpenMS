@@ -174,7 +174,7 @@ protected:
     setValidFormats_("in", {"mzML"});
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", {"mzML"});
-    registerInputFile_("rscript_executable", "<file>", "Rscript", "Path to the Rscript executable (default: 'Rscript').", false); // do not use required+'is_executable' here, since R is only required for optional QC plots
+    registerInputFile_("rscript_executable", "<file>", "Rscript", "Path to the Rscript executable (default: 'Rscript').", false, false, {"is_executable"});
         
     addEmptyLine_();
 
@@ -239,7 +239,6 @@ protected:
     //-------------------------------------------------------------
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    String rscript_executable = getStringOption_("rscript_executable"); 
     String cal_id = getStringOption_("cal:id_in");
     String cal_lock = getStringOption_("cal:lock_in");
     String file_cal_lock_out = getStringOption_("cal:lock_out");
@@ -359,13 +358,21 @@ protected:
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
     MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
 
+    String file_models_plot = getStringOption_("quality_control:models_plot");
+    String file_residuals_plot = getStringOption_("quality_control:residuals_plot");
+    String rscript_executable;
+    if (!file_models_plot.empty() || !file_residuals_plot.empty())
+    { // only check for existance of Rscript if output files are requested...
+      rscript_executable = getStringOption_("rscript_executable");
+    }
+
     if (!ic.calibrate(exp, ms_level, md, rt_chunk, use_RANSAC, 
                       getDoubleOption_("goodness:median"),
                       getDoubleOption_("goodness:MAD"), 
                       getStringOption_("quality_control:models"),
-                      getStringOption_("quality_control:models_plot"),
+                      file_models_plot,
                       getStringOption_("quality_control:residuals"),
-                      getStringOption_("quality_control:residuals_plot"),
+                      file_residuals_plot,
                       rscript_executable))
     {
       OPENMS_LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;

@@ -167,7 +167,7 @@ def doCythonCompile(arg):
     modname, autowrap_include_dirs = arg
     m_filename = "pyopenms/%s.pyx" % modname
     print ("Cython compile", m_filename)
-    autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs, extra_opts=None, out=m_filename)
+    autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs, extra_opts={"compiler_directives": {"language_level": 2}}, out=m_filename)
 
     if False:
         #

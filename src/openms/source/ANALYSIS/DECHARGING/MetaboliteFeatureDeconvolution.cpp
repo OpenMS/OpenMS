@@ -223,8 +223,10 @@ namespace OpenMS
       }
 
       // determine charge of adduct (by # of '+' or '-')
-      Int pos_charge = adduct[1].size() - adduct[1].remove('+').size();
-      Int neg_charge = adduct[1].size() - adduct[1].remove('-').size();
+      Size charge_s_len = adduct[1].size();
+      Int pos_charge = charge_s_len - adduct[1].remove('+').size();
+      charge_s_len = adduct[1].size();
+      Int neg_charge = charge_s_len - adduct[1].remove('-').size();
       if (pos_charge > 0 && neg_charge > 0)
       {
         String error = "MetaboliteFeatureDeconvolution::potential_adduct mixes charges for an adduct!";
