@@ -139,10 +139,10 @@ namespace OpenMS
 
     char res = '?'; // empty
     if (!residue.empty()) res = residue[0];
-    bool found = true;
 
     #pragma omp critical(OpenMS_ModificationsDB)
     {
+      bool found = true;
       auto modifications = modification_names_.find(mod_name);
       if (modifications == modification_names_.end())
       {
