@@ -1187,35 +1187,30 @@ namespace OpenMS
              id_data_.getMoleculeQueryMatches())
       {
         if (match.peak_annotations.empty()) continue;
-        QVariantList parent_ids, processing_step_ids, peak_annotations,
-          peak_charges, peak_mzs, peak_intensities;
-        QVariant parent_id = Key(&match);
+        query.bindValue(":parent_id", Key(&match));
         for (const auto& pair : match.peak_annotations)
         {
-          // use processing step if given, otherwise NULL value:
-          QVariant processing_step_id = (pair.first ? Key(&(**pair.first)) :
-                                         QVariant(QVariant::Int));
+          if (pair.first) // processing step given
+          {
+            query.bindValue(":processing_step_id", Key(&(**pair.first)));
+          }
+          else // use NULL value
+          {
+            query.bindValue(":processing_step_id", QVariant(QVariant::Int));
+          }
           for (const auto& peak_ann : pair.second)
           {
-            // make sure all parameter lists have the same length:
-            parent_ids << parent_id;
-            processing_step_ids << processing_step_id;
-            peak_annotations << peak_ann.annotation.toQString();
-            peak_charges << peak_ann.charge;
-            peak_mzs << peak_ann.mz;
-            peak_intensities << peak_ann.intensity;
+            query.bindValue(":peak_annotation",
+                            peak_ann.annotation.toQString());
+            query.bindValue(":peak_charge", peak_ann.charge);
+            query.bindValue(":peak_mz", peak_ann.mz);
+            query.bindValue(":peak_intensity", peak_ann.intensity);
+            if (!query.exec())
+            {
+              raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                            "error inserting data");
+            }
           }
-        }
-        query.bindValue(":parent_id", parent_ids);
-        query.bindValue(":processing_step_id", processing_step_ids);
-        query.bindValue(":peak_annotation", peak_annotations);
-        query.bindValue(":peak_charge", peak_charges);
-        query.bindValue(":peak_mz", peak_mzs);
-        query.bindValue(":peak_intensity", peak_intensities);
-        if (!query.execBatch())
-        {
-          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                        "error inserting data in batch");
         }
       }
     }
