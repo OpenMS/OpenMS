@@ -77,7 +77,7 @@ public:
     /// Returns a pointer to the modifications DB (singleton)
     static ModificationsDB* getInstance()
     {
-      static ModificationsDB* db_ = ModificationsDB::initializeModificationDB();
+      static ModificationsDB* db_ = ModificationsDB::initializeModificationsDB();
       return db_;
     }
 
