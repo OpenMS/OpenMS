@@ -363,7 +363,7 @@ protected:
         String gnuplot_out_file(getStringOption_("gnuplot_script"));
         if (gnuplot_out_file != "")
         {
-          ofstream out(gnuplot_out_file.c_str());
+          ofstream gpl_out(gnuplot_out_file.c_str());
           gpl_out << "set terminal png" << endl;
           gpl_out << "set output \"" << precursor_out_file  << "_gnuplot.png\"" << endl;
           if (precursor_error_ppm)
@@ -379,10 +379,8 @@ protected:
 
 	  for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
           {
-            out << it->getX() << " " << it->getY() << endl;
+            gpl_out << it->getX() << " " << it->getY() << endl;
           }
-          out.close();
-
           gpl_out.close();
         }
 
