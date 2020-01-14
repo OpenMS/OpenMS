@@ -36,8 +36,10 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
 
 #include <fstream>
+#include <regex>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -285,6 +287,23 @@ namespace OpenMS
     return feat_score_;
   }
 
+  Range::Range(double left_boundary, double right_boundary)
+  {
+    this->left_boundary = left_boundary;
+    this->right_boundary = right_boundary;
+
+  };
+  double Range::leftBoundary() const
+  {
+    return left_boundary;
+  }
+
+  double Range::rightBoundary() const
+  {
+    return right_boundary;
+  }
+
+
   FeatureFindingMetabo::FeatureFindingMetabo() :
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
   {
@@ -316,6 +335,12 @@ namespace OpenMS
     defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
     defaults_.setValidStrings("remove_single_traces", ListUtils::create<String>("false,true"));
 
+    //TODO does this make other parameters obsolete, or do we still want to support all different options?
+    defaults_.setValue("mz_scoring_by_elements", "false", "Use the m/z range of the assumed elements to detect isotope peaks. A expected m/z range is computed from the isotopes of the assumed elements. If enabled, this ignores 'mz_scoring_13C'");
+    defaults_.setValidStrings("mz_scoring_by_elements", ListUtils::create<String>("false,true"));
+
+    defaults_.setValue("elements", "CHNOPS", "Elements assumes to be present in the sample (this influences isotope detection).");
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -346,6 +371,42 @@ namespace OpenMS
     report_chromatograms_ = param_.getValue("report_chromatograms").toBool();
 
     remove_single_traces_ = param_.getValue("remove_single_traces").toBool();
+
+    use_mz_scoring_by_element_range = param_.getValue("mz_scoring_by_elements").toBool();
+    std::string elements_list_ = param_.getValue("elements");
+    elements_ = elements_from_string_(elements_list_);
+  }
+
+
+  std::vector<const Element*> FeatureFindingMetabo::elements_from_string_(const std::string&elements_string) const
+  {
+    std::vector<const Element*> elements;
+    try {
+      std::regex re("[A-Z][a-z]*"); //todo only allow 2 letter code. This may parse element names as well in case these start with the appropriate symbol
+      std::sregex_iterator next(elements_string.begin(), elements_string.end(), re);
+      std::sregex_iterator end;
+      while (next != end) {
+        std::smatch match = *next;
+        bool  is_known = ElementDB::getInstance()->hasElement(match.str());
+        if (is_known)
+        {
+          const Element *ele;
+          ele = ElementDB::getInstance()->getElement(match.str());
+          elements.push_back(ele);
+          next++;
+        } else
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Could not parse elements string. Unknown element '" + match.str() + "'. Aborting.", elements_string);
+        }
+
+
+      }
+    } catch (std::regex_error& e) {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Could not parse elements string: " + elements_string + ". Aborting.", elements_string);
+    }
+    return elements;
   }
 
   double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
@@ -504,7 +565,7 @@ namespace OpenMS
     }
   }
 
-  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
+  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge, std::vector<const Element*> elements) const
   {
     double mu, sd;
     if (use_mz_scoring_C13_)
@@ -541,11 +602,39 @@ namespace OpenMS
     double mz_score(0.0);
 
 
-    if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
+    if (use_mz_scoring_by_element_range){
+      //This part is based on the isotope picking procedure of SIRIUS
+      //todo cand this sigma be used as absolute mass deviation?
+      double allowed_deviation = score_sigma * sigma_mult;
+
+      Range expected_iso_range = getTheoreticIsotopicMassWindow_(elements, mz1, iso_pos);
+      double lbound = (expected_iso_range.leftBoundary() - mz1) / charge;
+      double rbound = (expected_iso_range.rightBoundary() - mz1) / charge;
+
+      if ((diff_mz < rbound) && (diff_mz > lbound))
+      {
+        //isotope masstrace lies in the expected range
+        mz_score = 1.0;
+      } else if ((diff_mz < rbound + allowed_deviation) && (diff_mz > lbound - allowed_deviation))
+      {
+        //score only the m/z difference which cannot explained by the elements m/z ranges
+        double tmp_exponent;
+        if (diff_mz < lbound)
+        {
+          tmp_exponent = (lbound - diff_mz) / score_sigma;
+        } else
+        {
+          tmp_exponent = (diff_mz - rbound) / score_sigma;
+        }
+        mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
+      }
+      //else mz_score stays 0
+
+    }
+    else if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
     {
       double tmp_exponent((diff_mz - mu) / score_sigma);
       mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
-
     }
 
     // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
@@ -628,6 +717,46 @@ namespace OpenMS
     return computeCosineSim_(x, y);
   }
 
+  /**
+   * @brief helper method to score isotope mass traces. Estimates the possible m/z range of a isotope peak based on a alphabet of elements
+   * @param alphabet
+   * @param monomz
+   * @param peakOffset
+   * @return
+   */
+  Range FeatureFindingMetabo::getTheoreticIsotopicMassWindow_(std::vector<const Element*> alphabet, double monomz, int peakOffset) const
+  {
+    if (peakOffset < 1) throw std::invalid_argument("Expect a peak offset of at least 1");
+
+    double minmz = std::numeric_limits<double>::infinity();
+    double maxmz = -std::numeric_limits<double>::infinity();
+
+    for (const Element* e : alphabet) {
+      IsotopeDistribution iso = e->getIsotopeDistribution();
+      for (int k = 1; k < iso.size(); ++k) {
+        const double mz_mono = iso[0].getMZ();
+        const double mz_iso = iso[k].getMZ();
+
+        const int integer_mz_mono =  (int)round(mz_mono);
+        const int integer_mz_iso =  (int)round(mz_iso);
+        const int i = integer_mz_iso - integer_mz_mono;
+
+        if (i > peakOffset) break;
+        const double mz_diff_iso_mono = mz_iso - mz_mono;
+        double diff = mz_diff_iso_mono - i;
+        diff *= (peakOffset / i);
+        minmz = std::min(minmz, diff);
+        maxmz = std::max(maxmz, diff);
+      }
+    }
+    const double a = monomz + peakOffset + minmz;
+    const double b = monomz + peakOffset + maxmz;
+
+    Range range = Range(a, b);
+    return range;
+  }
+
+
   double FeatureFindingMetabo::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
   {
     if (x.size() != y.size())
@@ -698,7 +827,7 @@ namespace OpenMS
 
           // Score current mass trace candidates against hypothesis
           double rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
-          double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
+          double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge, elements_));
 
           // disable intensity scoring for now...
           double int_score(1.0);

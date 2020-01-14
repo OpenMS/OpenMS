@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 #include <vector>
 #include <svm.h>
@@ -140,6 +141,21 @@ public:
   };
 
   /**
+   * @brief Internal class to store a lower and upper bound of an m/z range
+   */
+  class OPENMS_DLLAPI  Range
+{
+  double left_boundary;
+  double right_boundary;
+
+  public:
+  Range(double left_boundary, double right_boundary);
+
+  double leftBoundary() const;
+  double rightBoundary() const;
+};
+
+  /**
     @brief Method for the assembly of mass traces belonging to the same isotope
     pattern, i.e., that are compatible in retention times, mass-to-charge ratios,
     and isotope abundances.
@@ -182,6 +198,22 @@ protected:
     void updateMembers_() override;
 
 private:
+    /**
+     * @brief parses a string of element symbols into a vector of Elements
+     * @param elements_string string of element symbols without whitespaces or commas. e.g. CHNOPSCl
+     * @return vector of Elements
+     */
+    std::vector<const Element*> elements_from_string_(const std::string& elements_string) const;
+    /**
+     * Calculate for a given alphabet the maximal and minimal mass defects of isotopes.
+     *
+     * @param alphabet   chemical alphabet (elements which are expected to be present)
+     * @param monomz     m/z of monoisotopic peak
+     * @param peakOffset integer distance between isotope peak and monoisotopic peak (minimum: 1)
+     * @return an interval which should contain the isotopic peak
+     */
+    Range getTheoreticIsotopicMassWindow_(std::vector<const Element*> alphabet, double monomz, int peakOffset) const;
+
     /** @brief Computes the cosine similarity between two vectors
      *
      * The cosine similarity (or cosine distance) is the cosine of the angle
@@ -231,8 +263,12 @@ private:
      *
      * Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
      *
+     * an alternative scoring was added which considers all possible m/z
+     * differences of all isotopes of a set of elements. The mass trace
+     * is positively scored if it could be an isotope based on the given elements.
+     *
     */
-    double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge) const;
+    double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge, std::vector<const Element*> elements) const;
 
     /** @brief Perform retention time scoring of two multiple mass traces
      *
@@ -286,10 +322,12 @@ e conditions are fulfilled. Mainly the
     bool use_smoothed_intensities_;
     
     bool use_mz_scoring_C13_;
+    bool use_mz_scoring_by_element_range;
     bool report_convex_hulls_;
     bool report_chromatograms_;
 
     bool remove_single_traces_;
+    std::vector<const Element*> elements_;
   };
 
 }
