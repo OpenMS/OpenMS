@@ -294,7 +294,7 @@ protected:
               }
               else // just write the title as metainfo to the spectrum
               {
-                firstEqual = line.find('=', 4);
+                Size firstEqual = line.find('=', 4);
                 if (firstEqual != std::string::npos)
                 {
                   spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1));
