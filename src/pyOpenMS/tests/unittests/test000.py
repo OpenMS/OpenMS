@@ -5170,6 +5170,105 @@ def testModificationsDB():
     assert m.getUniModAccession() == "UniMod:35"
 
 @report
+def testRNaseDB():
+    """
+    @tests: RNaseDB
+        const DigestionEnzymeRNA* getEnzyme(const String& name) nogil except +
+        const DigestionEnzymeRNA* getEnzymeByRegEx(const String& cleavage_regex) nogil except +
+        void getAllNames(libcpp_vector[ String ]& all_names) nogil except +
+        bool hasEnzyme(const String& name) nogil except +
+        bool hasRegEx(const String& cleavage_regex) nogil except +
+     """
+    db = pyopenms.RNaseDB()
+    names = []
+    db.getAllNames(names)
+
+    e = db.getEnzyme("RNase_T1")
+    assert e.getRegEx() == u'(?<=G)'
+    assert e.getThreePrimeGain() == u'p'
+
+    assert db.hasRegEx(u'(?<=G)')
+    assert db.hasEnzyme("RNase_T1")
+    
+
+@report
+def testRibonucleotideDB():
+    """
+    @tests: RibonucleotideDB
+    """
+    r = pyopenms.RibonucleotideDB()
+
+    uridine = r.getRibonucleotide("U")
+
+    assert uridine.getName() == u'uridine'
+    assert uridine.getCode() == u'U'
+    assert uridine.getFormula().toString() == u'C9H12N2O6'
+    assert uridine.isModified() == False
+
+@report
+def testRibonucleotide():
+    """
+    @tests: Ribonucleotide
+    """
+    r = pyopenms.Ribonucleotide()
+
+    assert not r.isModified()
+
+    r.setHTMLCode("test")
+    assert r.getHTMLCode() == "test"
+
+    r.setOrigin("A")
+    assert r.getOrigin() == "A"
+
+    r.setNewCode("A")
+    assert r.getNewCode() == "A"
+
+
+@report
+def testRNaseDigestion():
+    """
+    @tests: RNaseDigestion
+     """
+
+    dig = pyopenms.RNaseDigestion()
+    dig.setEnzyme("RNase_T1")
+    assert dig.getEnzymeName() == "RNase_T1"
+
+    oligo = pyopenms.NASequence.fromString("pAUGUCGCAG");
+
+    result = []
+    dig.digest(oligo, result)
+    assert len(result) == 3
+
+
+@report
+def testNASequence():
+    """
+    @tests: NASequence
+     """
+
+    oligo = pyopenms.NASequence.fromString("pAUGUCGCAG");
+
+    assert oligo.size() == 9
+    seq_formula = oligo.getFormula()
+    seq_formula.toString() == u'C86H108N35O64P9'
+
+    oligo_mod = pyopenms.NASequence.fromString("A[m1A][Gm]A")
+    seq_formula = oligo_mod.getFormula()
+    seq_formula.toString() == u'C42H53N20O23P3'
+
+    for r in oligo:
+        pass
+
+    assert oligo_mod[1].isModified()
+
+    charge = 2
+    oligo_mod.getMonoWeight(pyopenms.NASequence.NASFragmentType.WIon, charge)
+    oligo_mod.getFormula(pyopenms.NASequence.NASFragmentType.WIon, charge)
+
+
+
+@report
 def testExperimentalDesign():
     """
     @tests: ExperimentalDesign
