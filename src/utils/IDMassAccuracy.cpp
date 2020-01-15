@@ -131,8 +131,11 @@ protected:
     registerIntOption_("number_of_bins", "<#bins>", 100, "Number of bins that should be used to calculate the histograms for the fitting.", false, true);
     setMinInt_("number_of_bins", 10);
 
-    registerOutputFile_("gnuplot_script", "<file>", "", "Gnuplot output file. The distributions and the fits are used to generate a gnuplot script, that can be used to generate plots. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
-    setValidFormats_("gnuplot_script", ListUtils::create<String>("txt"));
+    registerOutputFile_("precursor_fit_out", "<file>", "", "Gaussian fit of the frequency of the deviations from the precursors. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
+    setValidFormats_("precursor_fit_out", ListUtils::create<String>("tsv"));
+
+    registerOutputFile_("fragment_fit_out", "<file>", "", "Gaussian fit of the frequency of fthe fragment ion m/z deviation. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
+    setValidFormats_("fragment_fit_out", ListUtils::create<String>("tsv"));
   }
 
   double getMassDifference(double theo_mz, double exp_mz, bool use_ppm)
@@ -360,28 +363,25 @@ protected:
         gf.fit(values);
 
         // write gnuplot scripts
-        String gnuplot_out_file(getStringOption_("gnuplot_script"));
-        if (gnuplot_out_file != "")
+        String fit_out_file(getStringOption_("precursor_fit_out"));
+        if (fit_out_file != "")
         {
-          ofstream gpl_out(gnuplot_out_file.c_str());
-          gpl_out << "set terminal png" << endl;
-          gpl_out << "set output \"" << precursor_out_file  << "_gnuplot.png\"" << endl;
+          ofstream fit_out(fit_out_file.c_str());
           if (precursor_error_ppm)
           {
-            gpl_out << "set xlabel \"error in ppm\"" << endl;
+            fit_out << "error in ppm";
           }
           else
           {
-            gpl_out << "set xlabel \"error in Da\"" << endl;
+            fit_out << "error in Da";
           }
-          gpl_out << "set ylabel \"frequency\"" << endl;
-          gpl_out << "plot '-' using 1:2 title 'Precursor mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
+          fit_out << "\tfrequency\n";
 
 	  for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
           {
-            gpl_out << it->getX() << " " << it->getY() << endl;
+            fit_out << it->getX() << "\t" << it->getY() << "\n";
           }
-          gpl_out.close();
+          fit_out.close();
         }
 
       }
@@ -457,31 +457,26 @@ protected:
       {
         gf.fit(values);
 
-
-        // write gnuplot script
-        if (generate_gnuplot_scripts)
+        // write gnuplot scripts
+        String fit_out_file(getStringOption_("fragment_fit_out"));
+        if (fit_out_file != "")
         {
-          ofstream out(String(fragment_out_file + "_gnuplot.dat").c_str());
-          for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          ofstream fit_out(fit_out_file.c_str());
+          if (precursor_error_ppm)
           {
-            out << it->getX() << " " << it->getY() << endl;
-          }
-          out.close();
-
-          ofstream gpl_out(String(fragment_out_file + "_gnuplot.gpl").c_str());
-          gpl_out << "set terminal png" << endl;
-          gpl_out << "set output \"" << fragment_out_file  << "_gnuplot.png\"" << endl;
-          if (fragment_error_ppm)
-          {
-            gpl_out << "set xlabel \"error in ppm\"" << endl;
+            fit_out << "error in ppm";
           }
           else
           {
-            gpl_out << "set xlabel \"error in Da\"" << endl;
+            fit_out << "error in Da";
           }
-          gpl_out << "set ylabel \"frequency\"" << endl;
-          gpl_out << "plot '" << fragment_out_file << "_gnuplot.dat' title 'Fragment mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
-          gpl_out.close();
+          fit_out << "\tfrequency\n";
+
+	  for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          {
+            fit_out << it->getX() << "\t" << it->getY() << "\n";
+          }
+          fit_out.close();
         }
       }
       catch (Exception::UnableToFit&)
