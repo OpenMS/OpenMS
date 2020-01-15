@@ -360,7 +360,7 @@ public:
   {
     // common decoy strings in FASTA files
     // note: decoy prefixes/suffices must be provided in lower case
-    const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
+    const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
 
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;
