@@ -91,26 +91,71 @@ protected:
     registerDoubleOption_("minM", "<min mass>", 10.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
 
-    registerDoubleOption_("minIC", "<cosine threshold 0 - 1>", .75, "cosine threshold between avg. and observed isotope pattern", false, false);
-    registerDoubleOption_("minCC", "<cosine threshold 0 - 1>", .5, "cosine threshold between per-charge-intensity and fitted gaussian distribution", false, false);
-    registerDoubleOption_("minICS", "<cosine threshold 0 - 1>", .75, "cosine threshold between avg. and observed isotope pattern (spectrum level)", false, true);
-    registerDoubleOption_("minCCS", "<cosine threshold 0 - 1>", .5, "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level)", false, true);
+    registerDoubleOption_("minIC",
+                          "<cosine threshold 0 - 1>",
+                          .75,
+                          "cosine threshold between avg. and observed isotope pattern",
+                          false,
+                          false);
+    registerDoubleOption_("minCC",
+                          "<cosine threshold 0 - 1>",
+                          .5,
+                          "cosine threshold between per-charge-intensity and fitted gaussian distribution",
+                          false,
+                          false);
+    registerDoubleOption_("minICS",
+                          "<cosine threshold 0 - 1>",
+                          .75,
+                          "cosine threshold between avg. and observed isotope pattern (spectrum level)",
+                          false,
+                          true);
+    registerDoubleOption_("minCCS",
+                          "<cosine threshold 0 - 1>",
+                          .5,
+                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level)",
+                          false,
+                          true);
 
 
-    registerIntOption_("minCP", "<min continuous charge peak count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
+    registerIntOption_("minCP",
+                       "<min continuous charge peak count>",
+                       3,
+                       "minimum number of peaks of continuous charges per mass",
+                       false,
+                       true);
     registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
     //
     registerDoubleOption_("minIT", "<min intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 1% total gradient time)", false, true);
     registerDoubleOption_("minRTspan", "<seconds>", 10.0, "Min feature RT span", false, true);
-    registerIntOption_("writeSpecDeconv", "<1:true 0:false>", 0, "to write per spectrum deconvoluted masses or not. If set, [prefix]PerSpecMasses.tsv is generated", false, true);
+    registerIntOption_("writeSpecDeconv",
+                       "<1:true 0:false>",
+                       0,
+                       "to write per spectrum deconvoluted masses or not. If set, [prefix]PerSpecMasses.tsv is generated",
+                       false,
+                       true);
     registerIntOption_("maxMSL", "", 2, "maximum MS-level (inclusive) for deconvolution", false, true);
 
     // parameters for MSn
     registerDoubleOption_("tol2", "<MSn tolerance>", 10.0, "ppm tolerance for MSn (n>1)", false, false);
-    registerDoubleOption_("minICS2", "<MSn cosine threshold 0 - 1>", .75, "cosine threshold between avg. and observed isotope pattern (spectrum level) for MSn (n>1)", false, true);
-    registerDoubleOption_("minCCS2", "<MSn cosine threshold 0 - 1>", .0, "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level) for MSn (n>1)", false, true);
-    registerIntOption_("minCP2", "<MSn min continuous charge peak count>", 1, "minimum number of peaks of continuous charges per mass for MSn (n>1)", false, true);
+    registerDoubleOption_("minICS2",
+                          "<MSn cosine threshold 0 - 1>",
+                          .75,
+                          "cosine threshold between avg. and observed isotope pattern (spectrum level) for MSn (n>1)",
+                          false,
+                          true);
+//    registerDoubleOption_("minCCS2",
+//                          "<MSn cosine threshold 0 - 1>",
+//                          0,
+//                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level) for MSn (n>1)",
+//                          false,
+//                          true);
+    registerIntOption_("minCP2",
+                       "<MSn min continuous charge peak count>",
+                       1,
+                       "minimum number of peaks of continuous charges per mass for MSn (n>1)",
+                       false,
+                       true);
 
     //registerIntOption_("jitter", "<1:true 0:false>", 0, "jitter universal pattern to generate decoy features (output file will end with *Decoy.tsv)", false, true);
   }
@@ -119,8 +164,8 @@ protected:
   {
     Parameter param;
     param.minCharge = getIntOption_("minC");
-    param.chargeRange = getIntOption_("maxC") - param.minCharge + 1;
-    param.maxMass = getDoubleOption_("maxM");
+    param.currentChargeRange = param.chargeRange = getIntOption_("maxC") - param.minCharge + 1;
+    param.currentMaxMass = param.maxMass = getDoubleOption_("maxM");
     param.minMass = getDoubleOption_("minM");
     param.tolerance = getDoubleOption_("tol") * 1e-6;
     param.binWidth = .5 / param.tolerance;
@@ -134,7 +179,7 @@ protected:
 
     //  param.maxIsotopeCosine = getDoubleOption_("minIC1");
     //param.maxIsotopeCount = getIntOption_("maxIC");
-    param.maxMassCount = getIntOption_("maxMC");
+    param.currentMaxMassCount = param.maxMassCount = getIntOption_("maxMC");
     //param.chargeDistributionScoreThreshold = getDoubleOption_("minCDScore");
     param.RTwindow = getDoubleOption_("RTwindow");
     param.minRTSpan = getDoubleOption_("minRTspan");
@@ -146,7 +191,7 @@ protected:
     param.binWidth2 = .5 / param.tolerance2;
     param.minContinuousChargePeakCount2 = getIntOption_("minCP2");
     param.minIsotopeCosineSpec2 = getDoubleOption_("minICS2");
-    param.minChargeCosineSpec2 = getDoubleOption_("minCCS2");
+    //param.minChargeCosineSpec2 = getDoubleOption_("minCCS2");
 
     return param;
   }
@@ -160,7 +205,6 @@ protected:
     generator->setMaxIsotope((Size) param.maxIsotopeCount);
     return FLASHDeconvHelperStructs::PrecalcularedAveragine(100, param.maxMass, 25, generator);
   }
-
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
@@ -252,7 +296,8 @@ protected:
       for (auto it = map.begin(); it != map.end(); ++it)
       {
         //cout<<it->getMSLevel()<<endl;
-        if (it->getMSLevel() ==1){
+        if (it->getMSLevel() == 1)
+        {
           ms1Cntr++;
         }
         if (it->getMSLevel() > param.maxMSLevel)
@@ -265,11 +310,12 @@ protected:
       double rtDelta = rtDuration / ms1Cntr;
       if (param.RTwindow <= 0)
       {
-        param.RTwindow = std::max(10.0,rtDuration * .01);
+        param.RTwindow = std::max(10.0, rtDuration * .01);
       }
 
       param.numOverlappedScans = max(param.minNumOverLappedScans, (int) (.5 + param.RTwindow / rtDelta));
-      OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT " << param.RTwindow << " sec)" << endl;
+      OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT " << param.RTwindow
+                      << " sec)" << endl;
       if (isOutPathDir)
       {
         std::string outfileName(param.fileName);
@@ -329,32 +375,50 @@ protected:
         OPENMS_LOG_INFO.flush();
         fsm << "monomasses=[";
 
-        auto prevRT = .0;
-        auto monoMassSet = std::set<int>();
+        auto rtMassMap = std::map<double, vector<PeakGroup>>();
 
         for (auto &pg : peakGroups)
         {
-          if(prevRT != pg.spec->getRT()){
-            for(auto mm : monoMassSet){
-              fsm<<mm<<";";
-            }
-            monoMassSet.clear();
+          if (pg.spec->getMSLevel() == 1)
+          {
+            continue;
           }
-          prevRT = pg.spec->getRT();
-          monoMassSet.insert((int)round(pg.monoisotopicMass));
+          auto rt = pg.spec->getRT();
 
-         // fsm << pg.monoisotopicMass<<" "<<pg.spec->getRT() << ";";
+          vector<PeakGroup> pgs;
+          if (rtMassMap.find(rt) != rtMassMap.end())
+          {
+            pgs = rtMassMap[rt];
+          }
+          pgs.push_back(pg);
+          rtMassMap[rt] = pgs;
 
-          //writePeakGroupMfile(pg, param, fsm);
+        }
+        auto monoMassSet = std::set<int>();
+        for (auto iter = rtMassMap.begin(); iter != rtMassMap.end(); ++iter)
+        {
+          auto pgs = iter->second;
+          monoMassSet.clear();
+          for (auto &pg : pgs)
+          {
+            auto intMass = (int) round(pg.monoisotopicMass);
+            if (monoMassSet.find(intMass) != monoMassSet.end())
+            {
+              continue;
+            }
+
+            monoMassSet.insert(intMass);
+
+            fsm << pg.monoisotopicMass << " " << pg.isotopeCosineScore << " " << pg.intensity
+                << ";";
+            //writePeakGroup(pg, param, fs);
+            //writePeakGroupMfile(pg, param, fsm);
+          }
         }
 
-        for(auto mm : monoMassSet){
-          fsm<<mm<<";";
-        }
 
+        fsm << "];\n";
 
-
-        fsm <<"];";
         OPENMS_LOG_INFO << "done" << endl;
 
       }
@@ -432,7 +496,8 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    OPENMS_LOG_INFO << "Total elapsed time\n-- done [took " << total_elapsed_cpu_secs << " s (CPU), " << total_elapsed_wall_secs
+    OPENMS_LOG_INFO << "Total elapsed time\n-- done [took " << total_elapsed_cpu_secs << " s (CPU), "
+                    << total_elapsed_wall_secs
                     << " s (Wall)] --"
                     << endl;
 
@@ -463,12 +528,13 @@ protected:
     return EXECUTION_OK;
   }
 
-  static void writeAnnotatedSpectra(vector<PeakGroup> &pgs,
+  static void writeAnnotatedSpectra(vector <PeakGroup> &pgs,
                                     MSExperiment &map,
                                     fstream &fs)//, fstream &fsm, fstream &fsp)
   {
 
-    boost::unordered_map<double, vector<PeakGroup>> pgmap;
+    boost::unordered_map<double, vector < PeakGroup>>
+    pgmap;
 
     for (auto &pg : pgs)
     {
@@ -552,7 +618,8 @@ protected:
     //       << (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
     //       << std::to_string(pg.spec->getRT())
     //cout<<1<<endl;
-    fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.spec->getNativeID() << "\t"<< pg.spec->getMSLevel() << "\t"
+    fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.spec->getNativeID() << "\t"
+       << pg.spec->getMSLevel() << "\t"
        << pg.massCntr << "\t"
        << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
        << (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
@@ -581,14 +648,12 @@ protected:
     }
     fs << "\t";
 
-
-
     for (auto &p : pg.peaks)
     {
       auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
       auto diff = tm / p.charge + Constants::PROTON_MASS_U - p.mz;
 
-      fs << 100*diff << ";";
+      fs << 100 * diff << ";";
     }
     fs << "\t";
 
@@ -620,7 +685,6 @@ protected:
 
 
   }
-
 
 
   static void writePeakGroupMfile(PeakGroup &pg, Parameter &param, fstream &fs)//, fstream &fsm, fstream &fsp)
@@ -655,32 +719,34 @@ protected:
     fill_n(iis, maxIsotope + 1, 0);
     fill_n(cis, maxCharge + 1, 0);
 
-    fs << (pg.spec->getMSLevel() == 1 ? "sm" : "tm") << pg.specIndex << "_" << pg.massIndex << "=" << pg.monoisotopicMass << ";\n";
+    fs << (pg.spec->getMSLevel() == 1 ? "sm" : "tm") << pg.specIndex << "_" << pg.massIndex << "="
+       << pg.monoisotopicMass << ";\n";
 
     fs << (pg.spec->getMSLevel() == 1 ? "sa" : "ta") << pg.specIndex << "_" << pg.massIndex << "=[";
     for (auto &p : pg.peaks)
     {
-      fs << p.mz << "," << p.intensity<<";";
+      fs << p.mz << "," << p.intensity << ";";
       iis[p.isotopeIndex] += p.intensity;
       cis[p.charge] += p.intensity;
     }
-    fs<<"];\n";
+    fs << "];\n";
 
     fs << (pg.spec->getMSLevel() == 1 ? "sc" : "tc") << pg.specIndex << "_" << pg.massIndex << "=[";
-    for(auto i=0;i<=maxCharge;i++){
-      if(cis[i] <=0)
+    for (auto i = 0; i <= maxCharge; i++)
+    {
+      if (cis[i] <= 0)
       {
         continue;
       }
       fs << i << "," << cis[i] << ";";
     }
-    fs<<"];\n";
+    fs << "];\n";
 
-    float ** dist = new float * [maxCharge-minCharge+1];
-    for (int j = 0; j <=maxCharge-minCharge ; ++j)
+    float **dist = new float *[maxCharge - minCharge + 1];
+    for (int j = 0; j <= maxCharge - minCharge; ++j)
     {
-      dist[j] = new float[maxIsotope-minIsotope+1];
-      fill_n(dist[j], maxIsotope-minIsotope+1, 0);
+      dist[j] = new float[maxIsotope - minIsotope + 1];
+      fill_n(dist[j], maxIsotope - minIsotope + 1, 0);
     }
 
     for (auto &p : pg.peaks)
@@ -690,30 +756,31 @@ protected:
 
     fs << (pg.spec->getMSLevel() == 1 ? "sd" : "td") << pg.specIndex << "_" << pg.massIndex << "=[";
 
-    for (int j = 0; j <=maxCharge-minCharge ; ++j)
+    for (int j = 0; j <= maxCharge - minCharge; ++j)
     {
-      for (int i = 0; i <=maxIsotope-minIsotope ; ++i)
+      for (int i = 0; i <= maxIsotope - minIsotope; ++i)
       {
-        fs << dist[j][i]<<",";
+        fs << dist[j][i] << ",";
       }
-      fs<<";";
+      fs << ";";
     }
-    fs<<"];";
+    fs << "];";
 
     fs << (pg.spec->getMSLevel() == 1 ? "si" : "ti") << pg.specIndex << "_" << pg.massIndex << "=[";
-    for(auto i=0;i<=maxIsotope;i++){
-      if(iis[i] <=0)
+    for (auto i = 0; i <= maxIsotope; i++)
+    {
+      if (iis[i] <= 0)
       {
         continue;
       }
       fs << i << "," << iis[i] << ";";
     }
 
-    fs<<"];\n";
+    fs << "];\n";
 
     delete[] iis;
     delete[] cis;
-    for (int j = 0; j <=maxCharge-minCharge ; ++j)
+    for (int j = 0; j <= maxCharge - minCharge; ++j)
     {
       delete[] dist[j];
     }
@@ -740,14 +807,11 @@ protected:
   }
 
 
-
-
 };
 
 
-
 // the actual main function needed to create an executable
-int main(int argc, const char ** argv)
+int main(int argc, const char **argv)
 {
   TOPPFLASHDeconv tool;
   return tool.main(argc, argv);

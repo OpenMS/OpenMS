@@ -68,7 +68,7 @@ namespace OpenMS
 
         double tolerance2;
         double minIsotopeCosineSpec2;
-        double minChargeCosineSpec2;
+        //double minChargeCosineSpec2;
 
         int minContinuousChargePeakCount2;
         double minIsotopeCosineSpec;
@@ -77,6 +77,8 @@ namespace OpenMS
         int minContinuousChargePeakCount;
         int maxIsotopeCount;
         int maxMassCount;
+        int currentMaxMassCount;
+
         unsigned int maxMSLevel = 1;//maxMSL;
         //double charg = 1eDistributionScoreThreshold;
         double RTwindow;
@@ -150,6 +152,8 @@ namespace OpenMS
 
       double isotopeCosineScore = .0;
       double chargeCosineScore = .0;
+      double massPpmError = .0;
+
       int massIndex, specIndex, massCntr;
       int maxCharge, minCharge;
 

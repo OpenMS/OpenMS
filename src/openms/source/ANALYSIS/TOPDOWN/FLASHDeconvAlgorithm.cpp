@@ -77,6 +77,11 @@ namespace OpenMS
     std::vector<std::vector<Size>> prevMassBinMap;
     std::vector<double> prevMinBinLogMassMap;
     std::map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
+    auto prevCharges = new int[param.maxMSLevel];
+    auto prevMaxMasses = new double[param.maxMSLevel];
+
+    std::fill_n(prevCharges, param.maxMSLevel, param.chargeRange);
+    std::fill_n(prevMaxMasses, param.maxMSLevel, param.maxMass);
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
@@ -85,9 +90,6 @@ namespace OpenMS
       {
         continue;
       }
-      //if(qspecCntr > 50){
-      //  break; //
-      //}
 
       float progress = (float) (it - map.begin()) / map.size();
       if (progress > prevProgress + .01)
@@ -103,10 +105,12 @@ namespace OpenMS
       auto precursorMsLevel = msLevel - 1;
 
       // to find precursor peaks with assigned charges..
-      if (peakChargeMap.find(precursorMsLevel) == peakChargeMap.end())
+      if (msLevel == 1 || peakChargeMap.find(precursorMsLevel) == peakChargeMap.end())
       {
         param.currentChargeRange = param.chargeRange;
         param.currentMaxMass = param.maxMass;
+        param.currentMaxMassCount = param.maxMassCount;
+
       }else{
         auto &subPeakChargeMap = peakChargeMap[precursorMsLevel];
         int mc = -1;
@@ -133,17 +137,28 @@ namespace OpenMS
         if(mc > 0){
           param.currentChargeRange = mc;
           param.currentMaxMass = mm;
-          //std::cout<<mc<< " " << mm << std::endl;
-         // param.currentChargeRange = param.chargeRange;
-          //param.currentMaxMass = param.maxMass;
 
+          prevCharges[msLevel-1] = mc;
+          prevMaxMasses[msLevel-1] = mm;
         }else{
-          param.currentChargeRange = param.chargeRange;
-          param.currentMaxMass = param.maxMass;
+          param.currentChargeRange =  prevCharges[msLevel-1];
+          param.currentMaxMass = prevMaxMasses[msLevel-1];
         }
+
+        param.currentMaxMassCount = (int)(param.currentMaxMass/110 * 2);
+
+      }
+
+      if(sd.empty()){
+        continue;
       }
 
       auto & peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap, prevMinBinLogMassMap ,avg, msLevel);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
+
+      if (peakGroups.empty())
+      {
+        continue;
+      }
 
       auto subPeakChargeMap = std::map<double, int>();
       for (auto& pg : peakGroups)
@@ -159,10 +174,6 @@ namespace OpenMS
       }
       peakChargeMap[msLevel] = subPeakChargeMap;
 
-      if (peakGroups.empty())
-      {
-        continue;
-      }
 
       qspecCntr++;
 
@@ -179,6 +190,9 @@ namespace OpenMS
     }
     printProgress(1); //
     //allPeakGroups.shrink_to_fit();
+    delete[] prevCharges;
+    delete[] prevMaxMasses;
+
     return allPeakGroups; //
   }
 
@@ -301,31 +315,7 @@ namespace OpenMS
 
  */
 
-/*
-  void
-  FLASHDeconvAlgorithm::filterPeakGroupsByIntensity(std::vector<PeakGroup> &peakGroups, std::vector<double> &intensities, const Parameter &param)
-  {
-    if (param.maxMassCount < 0 || intensities.size() <= (Size) param.maxMassCount)
-    {
-      return;
-    }
-    Size mc = (Size) param.maxMassCount;
-    sort(intensities.begin(), intensities.end());
-    auto threshold = intensities[intensities.size() - mc];
-    for (auto pg = peakGroups.begin(); pg != peakGroups.end();)
-    {
-      if (peakGroups.size() <= mc)
-      {
-        break;
-      }
-      if (pg->intensity < threshold)
-      {
-        pg = peakGroups.erase(pg);
-        continue;
-      }
-      ++pg;
-    }
-  }
-*/
+
+
 }
 

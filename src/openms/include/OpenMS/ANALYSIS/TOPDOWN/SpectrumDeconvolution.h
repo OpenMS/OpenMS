@@ -68,6 +68,9 @@ namespace OpenMS
 
     static Size getBinNumber(double v, double minV, double binWidth);
 
+    static void pringMasses(boost::dynamic_bitset<> &massBins, double &minMass, double binWidth);
+
+
     void updateLogMzPeaks();
 
     void updateMzBins(double &mzBinMinValue, Size &binNumber, double binWidth,
