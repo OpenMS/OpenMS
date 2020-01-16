@@ -162,6 +162,49 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
 }
 END_SECTION
 
+START_SECTION((bool getVariableInosine()))
+{
+  RNaseDigestion rd;
+  TEST_EQUAL(rd.getVariableInosine(), false);
+  rd.setVariableInosine(true);
+  TEST_EQUAL(rd.getVariableInosine(), true);
+}
+END_SECTION
+
+START_SECTION((void setVariableInosine(bool value)))
+{
+  IdentificationData id_data;
+  IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
+  // IdentificationData::ParentMoleculeRef rna_ref =
+  id_data.registerParentMolecule(rna);
+
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1"); // cuts after G and leaves a 3'-phosphate
+  rd.setVariableInosine(true); // optional cuts after I (modified from A)
+  rd.digest(id_data);
+
+  TEST_EQUAL(id_data.getIdentifiedOligos().size(), 7);
+
+  rd.setMissedCleavages(1);
+  rd.digest(id_data);
+
+  TEST_EQUAL(id_data.getIdentifiedOligos().size(), 11);
+
+  // get oligos ordered by occurrence in the RNA:
+  // set<tuple<Size, Size, String>> oligos;
+  // for (const auto& oligo : id_data.getIdentifiedOligos())
+  // {
+  //   const IdentificationData::MoleculeParentMatch match = *oligo.parent_matches.at(rna_ref).begin();
+  //   oligos.emplace(match.start_pos, match.end_pos, oligo.sequence.toString());
+  // }
+  // cout << "\n" << rna.sequence << endl;
+  // for (const auto &element : oligos)
+  // {
+  //   cout << get<0>(element) << "-" << get<1>(element) << ": " << get<2>(element) << endl;
+  // }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
