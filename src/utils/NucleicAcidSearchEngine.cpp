@@ -1140,6 +1140,11 @@ protected:
     RNaseDigestion digestor;
     digestor.setEnzyme(search_param.digestion_enzyme);
     digestor.setMissedCleavages(search_param.missed_cleavages);
+    // presence of inosine can affect digestion:
+    if (search_param.variable_mods.count("I"))
+    {
+      digestor.setVariableInosine(true);
+    }
     // set minimum and maximum size of oligo after digestion
     Size min_oligo_length = getIntOption_("oligo:min_size");
     Size max_oligo_length = getIntOption_("oligo:max_size");
