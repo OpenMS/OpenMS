@@ -3,9 +3,9 @@
   <NODE name="Enzymes">
     <NODE name="RNase_T1">
       <ITEM name="Name" value="RNase_T1" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=G)" type="string" />
-      <ITEM name="RegExDescription" value="RNase T1 cuts after G." type="string" />
-      <ITEM name="CutsAfter" value="G(?!m)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=G|I)" type="string" />
+      <ITEM name="RegExDescription" value="RNase T1 cuts after G or I." type="string" />
+      <ITEM name="CutsAfter" value="[GI](?!m)" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />
       <ITEM name="ThreePrimeGain" value="p" type="string" />
       <ITEM name="FivePrimeGain" value="" type="string" />
@@ -23,7 +23,7 @@
       <ITEM name="Name" value="RNase_U2" type="string" />
       <ITEM name="RegEx" value="(?&lt;=A|G)" type="string" />
       <ITEM name="RegExDescription" value="RNase U2 cuts after A or G." type="string" />
-      <ITEM name="CutsAfter" value="G|A(?!m)" type="string" />
+      <ITEM name="CutsAfter" value="[AG](?!m)" type="string" />
       <ITEM name="CutsBefore" value=".*" type="string" />
       <ITEM name="ThreePrimeGain" value="p" type="string" />
       <ITEM name="FivePrimeGain" value="" type="string" />
