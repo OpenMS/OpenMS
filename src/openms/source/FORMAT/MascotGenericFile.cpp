@@ -41,7 +41,7 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
-#include <OpenMS/METADATA/SpectrumLookup.h> 
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <QFileInfo>
 #include <QtCore/QRegExp>
@@ -337,34 +337,52 @@ namespace OpenMS
       os << "BEGIN IONS\n";
       if (!store_compact_)
       {
-        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt)
-           << "_" << spec.getNativeID() << "_" << filename << "\n";
+        // if a TITLE is available, it was (most likely) parsed from an MGF file
+        // in that case, a nativeID was constructed from the TITLE and the spectrum index
+        if (spec.metaValueExists("TITLE"))
+        {
+          os << "TITLE=" << spec.getNativeID() << "\n";
+        }
+        else
+        {
+          os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt)
+             << "_" << spec.getNativeID() << "_" << filename << "\n";
+        }
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
-  if (native_id_type_accession == "UNKNOWN")
-  {
-    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
-  }
-  else
-  {
-          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
-  }
+        if (native_id_type_accession == "UNKNOWN")
+        {
+          os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+        }
+        else
+        {
+                os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+        }
       }
       else
       {
-        os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
-           << setprecision(LOW_PRECISION) << rt << "_"
-           << spec.getNativeID() << "_" << filename << "\n";
+        // if a TITLE is available, it was (most likely) parsed from an MGF file
+        // in that case, a nativeID was constructed from the TITLE and the spectrum index
+        if (spec.metaValueExists("TITLE"))
+        {
+          os << "TITLE=" << spec.getNativeID() << "\n";
+        }
+        else
+        {
+          os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
+             << setprecision(LOW_PRECISION) << rt << "_"
+             << spec.getNativeID() << "_" << filename << "\n";
+        }
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
-  if (native_id_type_accession == "UNKNOWN")
-  {
-    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
-  }
-  else
-  {
-    os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
-  }
+        if (native_id_type_accession == "UNKNOWN")
+        {
+          os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+        }
+        else
+        {
+          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+        }
       }
 
       int charge(precursor.getCharge());

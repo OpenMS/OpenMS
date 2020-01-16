@@ -94,7 +94,7 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
 
   vector<String> strings;
   strings.push_back("BEGIN IONS\n"
-                    "TITLE=1998.0_25.379000000000001_Testtitle_index=0_test\n" // different from input!
+                    "TITLE=Testtitle_index=0\n" // different from input!
                     "PEPMASS=1998.0\n"
                     "RTINSECONDS=25.379000000000001\n"
                     "SCANS=0");
