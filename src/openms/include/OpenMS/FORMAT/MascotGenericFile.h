@@ -53,7 +53,7 @@ namespace OpenMS
     @brief Read/write Mascot generic files (MGF).
 
     For details of the format, see http://www.matrixscience.com/help/data_file_help.html#GEN.
-    
+
     @htmlinclude OpenMS_MascotGenericFile.parameters
 
     @ingroup FileIO
@@ -74,11 +74,11 @@ public:
     void updateMembers_() override;
 
     /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
-    void store(const String& filename, const PeakMap& experiment, 
+    void store(const String& filename, const PeakMap& experiment,
                bool compact = false);
 
     /// store the experiment data in a MascotGenericFile; the output is written to the given stream, the filename will be noted in the file (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
-    void store(std::ostream& os, const String& filename, 
+    void store(std::ostream& os, const String& filename,
                const PeakMap& experiment, bool compact = false);
 
     /**
@@ -160,7 +160,6 @@ protected:
     {
       spectrum.resize(0);
 
-      spectrum.setNativeID(String("index=") + (spectrum_number));
       if (spectrum.metaValueExists("TITLE"))
       {
         spectrum.removeMetaValue("TITLE");
@@ -199,7 +198,7 @@ protected:
                 line.substitute('\t', ' '); // also accept Tab (strictly, only space(s) are allowed)
                 if (line.split(' ', split, false))
                 {
-                  try 
+                  try
                   {
                     p.setPosition(split[0].toDouble());
                     p.setIntensity(split[1].toDouble());
@@ -219,6 +218,22 @@ protected:
 
               if (line == "END IONS")
               {
+                // if a TITLE was read in from the MGF file, use it as a part of the nativeID, instead of overwriting it
+                if (spectrum.metaValueExists("TITLE"))
+                {
+                  if (String(spectrum.getMetaValue("TITLE")).hasSubstring("_index="))
+                  {
+                    spectrum.setNativeID(spectrum.getMetaValue("TITLE"));
+                  }
+                  else
+                  {
+                    spectrum.setNativeID(String(spectrum.getMetaValue("TITLE")) + String("_index=") + (spectrum_number));
+                  }
+                }
+                else
+                {
+                  spectrum.setNativeID(String("index=") + (spectrum_number));
+                }
                 return true; // found end of spectrum
               }
               else
@@ -311,4 +326,3 @@ protected:
   };
 
 } // namespace OpenMS
-
