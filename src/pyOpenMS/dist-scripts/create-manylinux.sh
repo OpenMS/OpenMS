@@ -24,7 +24,7 @@ cd OpenMS
 wget https://raw.githubusercontent.com/hroest/OpenMS/0f3a2e8833d18fc54b7de86e6d67ab7349e828a0/src/pyOpenMS/README.rst -O src/pyOpenMS/README.rst
 sed -i 's/@CF_OPENMS_PACKAGE_VERSION@/2.4.0/' src/pyOpenMS/env.py.in
 patch -p0 src/pyOpenMS/pyopenms/__init__.py < /data/manylinux.patch 
-patch -p0 src/pyOpenMS/pyopenms/__init__.py < /data/manylinux.patch2 ## somehow required to link against regex boost lib
+patch -p0 src/pyOpenMS/setup.py < /data/manylinux.patch2 ## somehow required to link against regex boost lib
 cd /
 
 # fixes some issues with empty pxd files
