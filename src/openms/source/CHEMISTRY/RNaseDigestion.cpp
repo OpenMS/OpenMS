@@ -40,6 +40,13 @@ using namespace std;
 
 namespace OpenMS
 {
+  RNaseDigestion::RNaseDigestion():
+    variable_inosine_(false)
+  {
+    setEnzyme("RNase_T1");
+  }
+
+
   void RNaseDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
     EnzymaticDigestion::setEnzyme(enzyme);
@@ -68,7 +75,44 @@ namespace OpenMS
   }
 
 
-  vector<pair<Size, Size>> RNaseDigestion::getFragmentPositions_(
+  void RNaseDigestion::setVariableInosine(bool value)
+  {
+    variable_inosine_ = value;
+  }
+
+
+  bool RNaseDigestion::getVariableInosine()
+  {
+    return variable_inosine_;
+  }
+
+
+  void RNaseDigestion::digest(const NASequence& rna, vector<NASequence>& output,
+                              Size min_length, Size max_length) const
+  {
+    output.clear();
+    if (rna.empty()) return;
+
+    vector<DigestionFragment> fragments = getFragmentPositions_(rna, min_length,
+                                                                max_length);
+
+    for (const DigestionFragment& fragment : fragments)
+    {
+      NASequence seq = rna.getSubsequence(fragment.start, fragment.length);
+      if (fragment.start > 0)
+      {
+        seq.setFivePrimeMod(five_prime_gain_);
+      }
+      if (fragment.start + fragment.length < rna.size())
+      {
+        seq.setThreePrimeMod(three_prime_gain_);
+      }
+      output.push_back(seq);
+    }
+  }
+
+
+  vector<RNaseDigestion::DigestionFragment> RNaseDigestion::getFragmentPositions_(
     const NASequence& rna, Size min_length, Size max_length) const
   {
     if (min_length == 0) min_length = 1;
@@ -77,7 +121,7 @@ namespace OpenMS
       max_length = rna.size();
     }
 
-    vector<pair<Size, Size>> result;
+    vector<DigestionFragment> result;
     if (enzyme_->getName() == NoCleavage) // no cleavage
     {
       Size length = rna.size();
@@ -100,31 +144,76 @@ namespace OpenMS
     }
     else // proper enzyme cleavage
     {
-      vector<Size> fragment_pos(1, 0);
+      // with variable A->I, would enzyme cut after/before I, but not unmod. A?
+      bool cuts_after_I = (variable_inosine_ &&
+                           boost::regex_search("I", cuts_after_regex_) &&
+                           !boost::regex_search("A", cuts_after_regex_));
+      bool cuts_before_I = (variable_inosine_ &&
+                            boost::regex_search("I", cuts_before_regex_) &&
+                            !boost::regex_search("A", cuts_before_regex_));
+      // list of fragment (start) positions, and whether cleavage there would
+      // require a variable modification (A->I) before or after the site:
+      vector<tuple<Size, bool, bool>> fragment_pos;
+      fragment_pos.emplace_back(0, false, false);
       for (Size i = 1; i < rna.size(); ++i)
       {
-        if (boost::regex_search(rna[i - 1]->getCode(), cuts_after_regex_) &&
-            boost::regex_search(rna[i]->getCode(), cuts_before_regex_))
+        // standard case:
+        bool cuts_after_regular =
+          boost::regex_search(rna[i - 1]->getCode(), cuts_after_regex_);
+        bool cuts_before_regular =
+          boost::regex_search(rna[i]->getCode(), cuts_before_regex_);
+        if (cuts_after_regular && cuts_before_regular)
         {
-          fragment_pos.push_back(i);
+          fragment_pos.emplace_back(i, false, false);
+          continue;
+        }
+        // cases involving variable modifications:
+        bool cuts_after_special = (!cuts_after_regular && cuts_after_I &&
+                                   (rna[i - 1]->getCode() == "A"));
+        if (cuts_after_special && cuts_before_regular)
+        {
+          fragment_pos.emplace_back(i, true, false);
+          continue;
+        }
+        bool cuts_before_special = (!cuts_before_regular && cuts_before_I &&
+                                    (rna[i]->getCode() == "A"));
+
+        if (cuts_after_regular && cuts_before_special)
+        {
+          fragment_pos.emplace_back(i, false, true);
+          continue;
+        }
+        if (cuts_after_special && cuts_before_special)
+        {
+          fragment_pos.emplace_back(i, true, true);
+          continue;
         }
       }
-      fragment_pos.push_back(rna.size());
+      fragment_pos.emplace_back(rna.size(), false, false);
 
       // "fragment_pos" has at least two elements (zero and "rna.size()"):
       for (Size start_it = 0; start_it < fragment_pos.size() - 1; ++start_it)
       {
-        Size start_pos = fragment_pos[start_it];
-        for (Size offset = 0; offset <= missed_cleavages_; ++offset)
+        Size start_pos = get<0>(fragment_pos[start_it]);
+        Size missed_cleavages = 0;
+        for (Size end_it = start_it + 1;
+             (missed_cleavages <= missed_cleavages_) && (end_it < fragment_pos.size());
+             ++end_it)
         {
-          Size end_it = start_it + offset + 1;
-          if (end_it >= fragment_pos.size()) break;
-          Size end_pos = fragment_pos[end_it];
+          Size end_pos = get<0>(fragment_pos[end_it]);
 
           Size length = end_pos - start_pos;
           if ((length >= min_length) && (length <= max_length))
           {
-            result.emplace_back(start_pos, length);
+            DigestionFragment fragment(start_pos, length, missed_cleavages);
+            fragment.req_mod_first = get<2>(fragment_pos[start_it]);
+            fragment.req_mod_last = get<1>(fragment_pos[end_it]);
+            result.push_back(fragment);
+          }
+          // missed cleavage only occurs if no var. mod. is required:
+          if (!get<1>(fragment_pos[end_it]) && !get<2>(fragment_pos[end_it]))
+          {
+            missed_cleavages++;
           }
         }
       }
@@ -133,34 +222,13 @@ namespace OpenMS
     return result;
   }
 
-  void RNaseDigestion::digest(const NASequence& rna, vector<NASequence>& output,
-                              Size min_length, Size max_length) const
-  {
-    output.clear();
-    if (rna.empty()) return;
-
-    vector<pair<Size, Size>> positions = getFragmentPositions_(rna, min_length,
-                                                               max_length);
-
-    for (const auto& pos : positions)
-    {
-      NASequence fragment = rna.getSubsequence(pos.first, pos.second);
-      if (pos.first > 0)
-      {
-        fragment.setFivePrimeMod(five_prime_gain_);
-      }
-      if (pos.first + pos.second < rna.size())
-      {
-        fragment.setThreePrimeMod(three_prime_gain_);
-      }
-      output.push_back(fragment);
-    }
-  }
-
-
   void RNaseDigestion::digest(IdentificationData& id_data, Size min_length,
                               Size max_length) const
   {
+    const Ribonucleotide* inosine =
+      (variable_inosine_ ?
+       RibonucleotideDB::getInstance()->getRibonucleotide("I") : 0);
+
     for (IdentificationData::ParentMoleculeRef parent_ref =
            id_data.getParentMolecules().begin(); parent_ref !=
            id_data.getParentMolecules().end(); ++parent_ref)
@@ -171,24 +239,33 @@ namespace OpenMS
       }
 
       NASequence rna = NASequence::fromString(parent_ref->sequence);
-      vector<pair<Size, Size>> positions =
+      vector<DigestionFragment> fragments =
         getFragmentPositions_(rna, min_length, max_length);
 
-      for (const auto& pos : positions)
+      for (const DigestionFragment& fragment : fragments)
       {
-        NASequence fragment = rna.getSubsequence(pos.first, pos.second);
-        if (pos.first > 0)
+        NASequence seq = rna.getSubsequence(fragment.start, fragment.length);
+        // if the fragment is only valid with mods, apply them:
+        if (fragment.req_mod_first)
         {
-          fragment.setFivePrimeMod(five_prime_gain_);
+          seq[0] = inosine;
         }
-        if (pos.first + pos.second < rna.size())
+        if (fragment.req_mod_last)
         {
-          fragment.setThreePrimeMod(three_prime_gain_);
+          seq[fragment.length - 1] = inosine;
         }
-        IdentificationData::IdentifiedOligo oligo(fragment);
-        Size end_pos = pos.first + pos.second; // past-the-end position!
-        IdentificationData::MoleculeParentMatch match(pos.first, end_pos - 1);
-        match.left_neighbor = (pos.first > 0) ? rna[pos.first - 1]->getCode() :
+        if (fragment.start > 0)
+        {
+          seq.setFivePrimeMod(five_prime_gain_);
+        }
+        Size end_pos = fragment.start + fragment.length; // past-the-end position!
+        if (end_pos < rna.size())
+        {
+          seq.setThreePrimeMod(three_prime_gain_);
+        }
+        IdentificationData::IdentifiedOligo oligo(seq);
+        IdentificationData::MoleculeParentMatch match(fragment.start, end_pos - 1);
+        match.left_neighbor = (fragment.start > 0) ? rna[fragment.start - 1]->getCode() :
           IdentificationData::MoleculeParentMatch::LEFT_TERMINUS;
         match.right_neighbor = (end_pos < rna.size()) ?
           rna[end_pos]->getCode() :
