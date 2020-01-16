@@ -13,30 +13,33 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 
 OpenMS 2.5 features some exciting new tools and improvements. 
 
-- General:
-  - Support for VS2019 and GCC 9.1 (see PR #4211)
-  - Speed improvements (loading/storing files, handling peptide sequences)
-  - TMT16plex support for IsobaricAnalyzer (see PR #4295)
-  - Extend MaxQuant-compatible mzXML support (via FileConverter) (see PR #4432, #4423)
-  - Improved MsStats/MsStatsTMT output support (#4181, #4207)
-  - TOPPAS improvements (#4266, #4121, #4100)
+General:
+- Support for VS2019 and GCC 9.1 (see PR #4211)
+- Speed improvements (loading/storing files, handling peptide sequences)
+- TMT16plex support for IsobaricAnalyzer (see PR #4295)
+- Extend MaxQuant-compatible mzXML support (via FileConverter) (see PR #4432, #4423)
+- Improved MsStats/MsStatsTMT output support (#4181, #4207)
+- TOPPAS improvements (#4266, #4121, #4100)
 
-- New Tools:
-  - Epifany -- Runs a Bayesian protein inference (UTIL)
-  - FeatureFinderMetaboIdent -- Detects features in MS1 data based on metabolite identifications (UTIL)
-  - GNPSExport -- Tool to export consensus features into MGF format (TOPP)
-  - NucleicAcidSearchEngine -- Annotate nucleic acid identifications to MS/MS spectra (UTIL)
-  - ProteomicsLFQ -- A standard proteomics LFQ pipeline (TOPP) (experimental)
-  - QualityControl -- Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get (TOPP)
-  - RNAMassCalculator -- Calculates masses and mass-to-charge ratios of RNA sequences (UTIL)
+New Tools:
+- Epifany -- Runs a Bayesian protein inference (UTIL)
+- FeatureFinderMetaboIdent -- Detects features in MS1 data based on metabolite identifications (UTIL)
+- GNPSExport -- Tool to export consensus features into MGF format (TOPP)
+- NucleicAcidSearchEngine -- Annotate nucleic acid identifications to MS/MS spectra (UTIL)
+- ProteomicsLFQ -- A standard proteomics LFQ pipeline (TOPP) (experimental)
+- QualityControl -- Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get (TOPP)
+- RNAMassCalculator -- Calculates masses and mass-to-charge ratios of RNA sequences (UTIL)
 
-- Removed tools:
+Deprecated and removed Tools:
 
-- Status changed:
+Changed Tools:
+- OpenPepXL and OpenPepXLLF runtime and memory efficiency improved by orders of magnitude
+- IDFilter can now filter by using all MetaValues available in the ID files
 
-OpenPepXL (UTIL -> TOPP)
-OpenPepXLLF (UTIL -> TOPP)
-XFDR (UTIL -> TOPP)
+Status changed:
+- OpenPepXL (UTIL -> TOPP)
+- OpenPepXLLF (UTIL -> TOPP)
+- XFDR (UTIL -> TOPP)
 
 - CHANGED PARAMETERS:
 
@@ -218,6 +221,8 @@ OpenPepXL	-	peptide:enzyme	string	Trypsin	iodosobenzoate,glutamyl endopeptidase,
 OpenPepXLLF	+	decoy_prefix	string	true	true,false	
 OpenPepXLLF	+	decoy_string	string	DECOY_		
 OpenPepXLLF	+	peptide:enzyme	string	Trypsin	Trypsin,Arg-C,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,V8-DE,Trypsin/P,V8-E,leukocyte elastase,proline endopeptidase,Alpha-lytic protease,glutamyl endopeptidase,2-iodobenzoate,iodosobenzoate,proline-endopeptidase/HKR,Arg-C/P,staphylococcal protease/D,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage	
+OpenPepXLLF	+	algorithm:use_sequence_tags	string	false	true,false
+OpenPepXLLF	+	algorithm:sequence_tag_min_length	int	2
 OpenPepXLLF	-	algorithm:number_of_scored_candidates	int	10000		
 OpenPepXLLF	-	algorithm:pre_scoring	string	false	true,false	
 OpenPepXLLF	-	decoy_prefix	string	false	true,false	
