@@ -141,18 +141,12 @@ public:
   };
 
   /**
-   * @brief Internal class to store a lower and upper bound of an m/z range
+   * @brief Internal structure to store a lower and upper bound of an m/z range
    */
-  class OPENMS_DLLAPI  Range
+  struct OPENMS_DLLAPI  Range
 {
   double left_boundary;
   double right_boundary;
-
-  public:
-  Range(double left_boundary, double right_boundary);
-
-  double leftBoundary() const;
-  double rightBoundary() const;
 };
 
   /**
@@ -203,16 +197,15 @@ private:
      * @param elements_string string of element symbols without whitespaces or commas. e.g. CHNOPSCl
      * @return vector of Elements
      */
-    std::vector<const Element*> elements_from_string_(const std::string& elements_string) const;
+    std::vector<const Element*> elementsFromString_(const std::string& elements_string) const;
     /**
-     * Calculate for a given alphabet the maximal and minimal mass defects of isotopes.
+     * Calculate the maximal and minimal mass defects of isotopes for a given set of elements.
      *
      * @param alphabet   chemical alphabet (elements which are expected to be present)
-     * @param monomz     m/z of monoisotopic peak
      * @param peakOffset integer distance between isotope peak and monoisotopic peak (minimum: 1)
-     * @return an interval which should contain the isotopic peak
+     * @return an interval which should contain the isotopic peak. This interval is relative to the monoisotopic peak.
      */
-    Range getTheoreticIsotopicMassWindow_(std::vector<const Element*> alphabet, double monomz, int peakOffset) const;
+    Range getTheoreticIsotopicMassWindow_(const std::vector<Element const *> alphabet, int peakOffset) const;
 
     /** @brief Computes the cosine similarity between two vectors
      *
@@ -259,12 +252,11 @@ private:
      *
      * Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
      *
-     * an alternative scoring was added which considers all possible m/z
-     * differences of all isotopes of a set of elements. The mass trace
-     * is positively scored if it could be an isotope based on the given elements.
+     * An alternative scoring was added which test if isotope m/z distances lie in an expected m/z window.
+     * This window is computed from a given set of elements.
      *
     */
-    double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge, std::vector<const Element*> elements) const;
+    double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge, Range isotope_window) const;
 
     /** @brief Perform retention time scoring of two multiple mass traces
      *
