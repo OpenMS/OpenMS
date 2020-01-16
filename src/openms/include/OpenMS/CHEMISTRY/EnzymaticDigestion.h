@@ -178,9 +178,9 @@ protected:
       If start is negative, it is reset to zero.
       If end is negative or beyond @p sequence's size(), it is set to size().
       All returned positions are relative to the full @p sequence.
-      
-      Returned positions include @p start and any positions between start and end matching the regex.      
-            
+
+      Returned positions include @p start and any positions between start and end matching the regex.
+
       @param sequence ...
       @param start Start digestion after this point
       @param end Past-the-end index into @p sequence
